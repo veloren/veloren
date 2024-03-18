@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("moose"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_medium.generic"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.moose"),
     inventory: (
         loadout: FromBody,
     ),

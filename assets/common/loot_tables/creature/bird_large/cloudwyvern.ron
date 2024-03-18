@@ -2,9 +2,9 @@
   (1, All([
         MultiDrop(Item("common.items.mineral.gem.topaz"), 1, 1),
         MultiDrop(Item("common.items.mineral.gem.amethyst"), 1, 3),
-        MultiDrop(Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, 3),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.elegant_crest"), 4, 10),
         MultiDrop(Item("common.items.crafting_ing.animal_misc.claw"), 1, 3),
-        MultiDrop(Item("common.items.crafting_ing.hide.dragon_scale"), 2, 6),
+        MultiDrop(Item("common.items.crafting_ing.hide.dragon_scale"), 8, 12),
         ],
    )),
 ]

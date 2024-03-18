@@ -250,9 +250,12 @@ lazy_static! {
 }
 
 #[derive(Clone)]
-/// A collection of items with probabilty (normalized to one), created
+/// A collection of items with probabilty, created
 /// hierarchically from `LootSpec`s
 /// (probability, item id, average amount)
+///
+/// This collection is NOT normalized (the sum of probabilities may not equal to
+/// one, as maltiple items can drop in one roll)
 pub struct ProbabilityFile {
     pub content: Vec<(f32, ItemDefinitionIdOwned, f32)>,
 }
@@ -1148,11 +1151,7 @@ pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, ItemDefinitionIdOwned, f
 // cd common && cargo test trade_pricing -- --nocapture
 #[cfg(test)]
 mod tests {
-    use crate::{
-        comp::inventory::trade_pricing::{expand_loot_table, ProbabilityFile, TradePricing},
-        lottery::LootSpec,
-        trade::Good,
-    };
+    use crate::{comp::inventory::trade_pricing::TradePricing, trade::Good};
     use tracing::{info, Level};
     use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
 
@@ -1162,26 +1161,6 @@ mod tests {
             .with_env_filter(EnvFilter::from_default_env())
             .try_init()
             .unwrap_or(());
-    }
-
-    #[test]
-    fn test_loot_table() {
-        init();
-        info!("init");
-
-        let loot = expand_loot_table("common.loot_tables.creature.quad_medium.gentle");
-        let lootsum = loot.iter().fold(0.0, |s, i| s + i.0);
-        assert!((lootsum - 1.0).abs() < 1e-3);
-        // hierarchical
-        let loot2 = expand_loot_table("common.loot_tables.creature.quad_medium.catoblepas");
-        let lootsum2 = loot2.iter().fold(0.0, |s, i| s + i.0);
-        assert!((lootsum2 - 1.0).abs() < 1e-4);
-
-        // highly nested
-        let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
-        let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
-        //tracing::trace!("{:?} {}", loot3, lootsum3);
-        assert!((lootsum3 - 1.0).abs() < 1e-5);
     }
 
     #[test]
@@ -1211,44 +1190,5 @@ mod tests {
         for i in loadout.iter() {
             info!("Random item {:?}*{}", i.0, i.1);
         }
-    }
-
-    fn normalized(probability: &ProbabilityFile) -> bool {
-        let sum = probability.content.iter().map(|(p, _, _)| p).sum::<f32>();
-        (dbg!(sum) - 1.0).abs() < 1e-3
-    }
-
-    #[test]
-    fn test_normalizing_table1() {
-        let item = |asset: &str| LootSpec::Item(asset.to_owned());
-        let loot_table = vec![(1.0, item("wow")), (1.0, item("nice"))];
-
-        let probability: ProbabilityFile = loot_table.into();
-        assert!(normalized(&probability));
-    }
-
-    #[test]
-    fn test_normalizing_table2() {
-        let table = |asset: &str| LootSpec::LootTable(asset.to_owned());
-        let loot_table = vec![(
-            1.0,
-            table("common.loot_tables.creature.quad_medium.catoblepas"),
-        )];
-        let probability: ProbabilityFile = loot_table.into();
-        assert!(normalized(&probability));
-    }
-
-    #[test]
-    fn test_normalizing_table3() {
-        let table = |asset: &str| LootSpec::LootTable(asset.to_owned());
-        let loot_table = vec![
-            (
-                1.0,
-                table("common.loot_tables.creature.quad_medium.catoblepas"),
-            ),
-            (1.0, table("common.loot_tables.creature.quad_medium.gentle")),
-        ];
-        let probability: ProbabilityFile = loot_table.into();
-        assert!(normalized(&probability));
     }
 }

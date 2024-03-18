@@ -1,7 +1,12 @@
 [
-    (2.0, MultiDrop(Item("common.items.log.wood"), 1, 3)),
-    (1.0, Item("common.items.log.hardwood")),
-    (2.0, Item("common.items.flowers.plant_fiber")),
-    (2.0, Item("common.items.crafting_ing.resin")),
-    (1.0, Item("common.items.crafting_ing.animal_misc.grim_eyeball")),
+    (1, All([
+        MultiDrop(Item("common.items.crafting_ing.twigs"), 2, 3),
+        MultiDrop(Item("common.items.log.hardwood"), 1, 3),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.grim_eyeball"), 0, 1),
+        Lottery([
+            (0.5, MultiDrop(Item("common.items.flowers.plant_fiber"), 3, 5)),
+            (0.5, MultiDrop(Item("common.items.crafting_ing.resin"), 0, 3)),
+        ]),
+      ],
+    )),
 ]

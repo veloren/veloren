@@ -5,5 +5,4 @@
     (0.1, Item("common.items.lantern.geode_purp")),
     // Weapons
     (2.0, LootTable("common.loot_tables.weapons.components.tier-3")),
-    (0.05, LootTable("common.loot_tables.weapons.cave")),
 ]
