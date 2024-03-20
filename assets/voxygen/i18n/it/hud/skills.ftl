@@ -1,15 +1,17 @@
 hud-rank_up = Nuovo punto abilità
-hud-skill-sp_available = { $number } PA disponibili
+hud-skill-sp_available =
+    { $number ->
+        [0] Nessun punto abilità disponibile
+        [1] { $number } punto abilità disponibile
+       *[other] { $number } punti abilità disponibili
+    }
 hud-skill-not_unlocked = Non ancora sbloccato
-hud-skill-req_sp =
-    { "\u000A" }
-
-    Richiede { $number } PA
-hud-skill-set_as_exp_bar = Imposta nella barra dell'esperienza
+hud-skill-req_sp = { "\u000A" }Richiede { $number } PA
+hud-skill-set_as_exp_bar = Segna i progressi sulla barra dell'esperienza
 hud-skill-inc_health_title = Aumenta la salute
-hud-skill-inc_health = Incrementa la salute massima di { $boost }{ $SP }
+hud-skill-inc_health = Incrementa la tua salute massima di { $boost } punti.{ $SP }
 hud-skill-inc_energy_title = Aumenta l'energia
-hud-skill-inc_energy = Incrementa l'energia massima di { $boost }{ $SP }
+hud-skill-inc_energy = Incrementa la tua energia massima di { $boost } punti.{ $SP }
 hud-skill-unlck_sword_title = Sblocca spada
 hud-skill-unlck_sword = Sblocca l'albero di abilità per la spada{ $SP }
 hud-skill-unlck_axe_title = Sblocca ascia
@@ -171,3 +173,18 @@ hud-skill-pick_strike_oregain_title = Resa materiali grezzi picconata
 hud-skill-pick_strike_oregain = Possibilità di ottenere materiale grezzo extra del ({ $boost }% per livello){ $SP }
 hud-skill-pick_strike_gemgain_title = Resa gemme picconata
 hud-skill-pick_strike_gemgain = Possibilità di ottenere gemme extra del ({ $boost }% per livello){ $SP }
+# Internal terms, currently only used in es
+# If we remove them here, they also get auto-removed in es,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-hud-skill-sc_wardaura_title = ""
+# Internal terms, currently only used in es
+# If we remove them here, they also get auto-removed in es,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-hud-skill-bow_shotgun_title = ""
+# Internal terms, currently only used in es
+# If we remove them here, they also get auto-removed in es,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-hud-skill-st_shockwave_title = ""

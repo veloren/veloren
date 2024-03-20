@@ -18,7 +18,7 @@ hud-trade-result-declined = Scambio rifiutato.
 hud-trade-result-nospace = Non c'è abbastanza spazio per completare lo scambio.
 hud-trade-buy =
     Prezzo di acquisto: { $coin_num ->
-        [one] una moneta
+        [1] una moneta
        *[other] { $coin_formatted } monete
     }
 hud-trade-sell =

@@ -4,9 +4,9 @@ hud-crafting-ingredients = Інгрідієнти:
 hud-crafting-craft = Створити
 hud-crafting-craft_all = Створити Все
 hud-crafting-repair = Ремонтувати
-hud-crafting-repair_equipped = 
-                Ремонтувати
-                екіпіроване
+hud-crafting-repair_equipped =
+    Ремонтувати
+    екіпіроване
 hud-crafting-repair_all = Ремонтувати все
 hud-crafting-tool_cata = Необхідно:
 hud-crafting-req_crafting_station = Необхідно:
@@ -23,7 +23,7 @@ hud-crafting-repair_bench = Ремонтна станція
 hud-crafting-campfire = Вогнище
 hud-crafting-tabs-all = Все
 hud-crafting-tabs-armor = Броня
-hud-crafting-tabs-dismantle = Переробка
+hud-crafting-tabs-dismantle = Переробити
 hud-crafting-tabs-food = Їжа
 hud-crafting-tabs-glider = Планери
 hud-crafting-tabs-potion = Зілля
@@ -34,12 +34,12 @@ hud-crafting-tabs-bag = Сумки
 hud-crafting-tabs-processed_material = Матеріали
 hud-crafting-dismantle_title = Переробка
 hud-crafting-dismantle_explanation =
-        Наведіть курсор на речі
-        у сумці щоб побачити
-        що ви можете отримати.
+    Наведіть курсор на речі в сумці щоб
+    побачити що ви можете розібрати,
+    і що з того отримати.
 
-        Натисніть двічі,
-        щоб почати переробку.
+    Натисніть на предмет двічі, щоб
+    його розібрати.
 hud-crafting-modular_desc = Частини предметів для створення зброї.
 hud-crafting-mod_weap_prim_slot_title = Основний компонент зброї
 hud-crafting-mod_weap_prim_slot_desc = Покладіть основний компонент зброї сюди (Наприклад, лезо меча, наконечник сокири або кінцівку лука).

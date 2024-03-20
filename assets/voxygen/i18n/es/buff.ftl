@@ -144,9 +144,8 @@ buff-lifesteal = Robo de vida
 buff-agility = Agilidad
     .desc = Te mueves más rápido, pero disminuye tu ataque y tu defensa.
     .stat =
-        Aumenta la velocidad de movimiento en un { $strength } %,
-        pero te hace incapaz de infligir daño
-        y duplica el daño que recibes.
+        Aumenta la velocidad de movimiento en un { $strength } %.
+        A su vez, disminuye en gran medida tu poder de ataque y defensa.
 buff-heatstroke = Golpe de calor
     .desc = Las altas temperaturas te han provocado un golpe de calor. Tu ganancia de energía y velocidad de movimiento se ven reducidas. Refréscate.
 buff-flame = Llama

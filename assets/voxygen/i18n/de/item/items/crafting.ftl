@@ -117,3 +117,105 @@ sprite-flowers-moonbell = Mondglöckchen
     .desc = Es glitzert glanzvoll im Mondlicht.
 sprite-crafting_ing-plant_fiber = Pflanzenfaser
     .desc = Ein Stück rohes Pflanzenmaterial.
+sprite-flowers-sunflower_1 = Sonnenblume
+    .desc = Riecht nach Sommer.
+sprite-flowers-yellow = Gelbe Blume
+    .desc = Strahlt wie die Sonne.
+object-v-coin = Münzen
+    .desc = Kostbare Münzen, kann gegen Waren und Dienstleistungen eingetauscht werden.
+sprite-flowers-flower_red-4 = Rote Blume
+    .desc = Kann als färbende Zutat verwendet werden.
+sprite-flowers-flax = Wilder Flachs
+    .desc = Kann zum Spinnen von einfachem Stoff verwendet werden.
+object-training_dummy = Trainingsstrohpuppe
+    .desc = Sein Namen ist Willi. Feuer nach Belieben.
+object-mortar_pestle = Mörser und Stößel
+    .desc = Bricht und mahlt Dinge in feines Pulver oder Paste. Zum Herstellen verschiedener Dinge benötigt.
+object-sewing_set = Nähset
+    .desc = Benutzt um verschiedene Dinge herzustellen.
+object-potion_empty = Leeres Fläschchen
+    .desc = Ein einfaches Glasfläschchen für verschiedene Flüssigkeiten.
+object-glacial_crystal = Eiszeitlicher Kristall
+    .desc = Die reinste Form von Eis, kalt genug um Lava zu kühlen.
+object-honey = Honig
+    .desc = Von einem Bienenstock gestohlen. Sicherlich sind die Bienen darüber nicht glücklich!
+object-collar = Kollar
+    .desc = Zähmt neutrale wilde Tiere innerhalb von 5 Blöcken.
+object-glowing_remains = Glühende Überreste
+    .desc =
+        Von einer bösen Kreatur erbeutet.
+
+        Mit etwas zusätzlicher Arbeit können sie sicher
+        zu ihrer alten Pracht zurückkehren...
+object-strong_pincer = Starker Greifzahn
+    .desc =
+        Ein kräftiger Greifzahn von einer hartschaligen Kreatur.
+
+        Hat kraftverstärkende Effekte bei der Herstellung von Waffen.
+sprite-velorite-velorite = Veloritsplitter
+    .desc = Kleine Runen funkeln auf der Oberfläche, aber du weißt nicht, was dies bedeutet.
+sprite-mineral-ore-copper = Kupfererz
+    .desc = Ein braunes Metall. Hauptbestandteil von Bronze.
+sprite-mineral-ore-tin = Zinnerz
+    .desc = Ein silbernes Metall. Einer der Bestandteile von Bronze.
+sprite-mineral-ingot-cobalt = Kobaltbarren
+    .desc =
+        Ein auffallend blauer Barren.
+
+        Kann zum Herstellen von Metallwaffen verwendet werden.
+object-elegant_crest = Elegantes Gefieder
+    .desc =
+        Helles Gefieder, einst Teil einer farbenfrohen Kreatur.
+
+        Kann zum Herstellen schneller und energieeffizienter
+        Waffen verwendet werden.
+object-long_tusk = Langer Stoßzahn
+    .desc =
+        Ein beeindruckend langer Stoßzahn eines stolzen Tieres.
+
+        Kann zum Herstellen effizienter Waffen mit hoher
+        Reichweite verwendet werden.
+object-ice_shard = Eisige Scherbe
+    .desc = Erbeutet von einer frostigen Kreatur.
+object-raptor_feather = Raptorfeder
+    .desc = Eine große bunte Feder von einem Raubvogel.
+sprite-mineral-ore-bloodstone = Blutsteinerz
+    .desc = Ein tiefes rotes Erz, es erinnert dich an Blut.
+sprite-mineral-ore-coal = Kohle
+    .desc = Eine dunkle, brennbare Energiequelle.
+sprite-mineral-ore-cobalt = Kobalterz
+    .desc = Ein blaues glänzendes Erz.
+sprite-mineral-ore-gold = Golderz
+    .desc = Ein wertvolles gelbes Metall.
+sprite-mineral-ore-iron = Eisenerz
+    .desc = Ein unglaublich übliches, aber unglaublich vielseitiges Metall.
+sprite-mineral-ore-silver = Silbererz
+    .desc = Ein kostbares, glänzendes gräulich-weißes Metall.
+sprite-velorite-velorite_ore = Velorit
+    .desc = Ein seltsames, eigenartig schimmerndes Erz, seine Herkunft scheint in Rätsel gehüllt zu sein.
+sprite-mineral-ingot-bloodsteel = Blutstahlbarren
+    .desc =
+        Eine Legierung aus Blutstein und Eisen, mit einer dunklen roten Farbe.
+
+        Kann zum Herstellen von Metallwaffen verwendet werden.
+sprite-mineral-ingot-bronze = Bronzebarren
+    .desc =
+        Eine robuste Legierung durch das verbinden von Kupfer und Zinn.
+
+        Kann zum Herstellen von Metallwaffen verwendet werden.
+sprite-mineral-ingot-copper = Kupferbarren
+    .desc = Ein Barren mit einzigartiger brauner Farbe.
+sprite-mineral-ingot-iron = Eisenbarren
+    .desc =
+        Ein erstaunlich gewöhnliches Metall.
+
+        Kann zum Herstellen von Metallwaffen verwendet werden.
+sprite-mineral-ingot-orichalcum = Orichalkumbarren
+    .desc =
+        Ein Barren aus veredeltem Orichalkum.
+
+        Kann zum Herstellen von Metallwaffen verwendet werden.
+sprite-mineral-ingot-silver = Silberbarren
+    .desc = Ein Barren aus veredeltem Silber.
+sprite-mineral-ingot-gold = Goldbarren
+    .desc = Ein Barren aus veredeltem Gold.

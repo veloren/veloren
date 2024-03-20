@@ -6,26 +6,26 @@ hud-chat-offline_msg = { "[" }{ $name }] s'est déconnecté.
 ## Buff deaths
 
 hud-chat-died_of_pvp_buff_msg =
-    .burning = { "[" }{ $victim }] est mort de Mort: brûlé(e) causé par [{ $attacker }]
-    .bleeding = { "[" }{ $victim }] est mort de Mort: saignement causé par [{ $attacker }]
-    .curse = { "[" }{ $victim }] est mort de Mort: malédiction causé par [{ $attacker }]
-    .crippled = { "[" }{ $victim }] est mort de Mort: estropié(e) causé par [{ $attacker }]
-    .frozen = { "[" }{ $victim }] est mort de Mort: glacé(e) causé par [{ $attacker }]
-    .mysterious = { "[" }{ $victim }] est mort de Mort: secrète causé par [{ $attacker }]
+    .burning = { "[" }{ $victim }] est mort de : brûlé(e) causé par [{ $attacker }]
+    .bleeding = { "[" }{ $victim }] est mort de : saignement causé par [{ $attacker }]
+    .curse = { "[" }{ $victim }] est mort de : malédiction causé par [{ $attacker }]
+    .crippled = { "[" }{ $victim }] est mort de : estropié(e) causé par [{ $attacker }]
+    .frozen = { "[" }{ $victim }] est mort de : glacé(e) causé par [{ $attacker }]
+    .mysterious = { "[" }{ $victim }] est mort de : secrète causé par [{ $attacker }]
 hud-chat-died_of_buff_nonexistent_msg =
-    .burning = { "[" }{ $victim }] est mort de Mort: brûlé(e)
-    .bleeding = { "[" }{ $victim }] est mort de Mort: saignement
-    .curse = { "[" }{ $victim }] est mort de Mort: malédiction
-    .crippled = { "[" }{ $victim }] est mort de Mort: estropié(e)
-    .frozen = { "[" }{ $victim }] est mort de Mort: glacé(e)
-    .mysterious = { "[" }{ $victim }] est mort de Mort: secrète
+    .burning = { "[" }{ $victim }] est mort de : brûlé(e)
+    .bleeding = { "[" }{ $victim }] est mort de : saignement
+    .curse = { "[" }{ $victim }] est mort de : malédiction
+    .crippled = { "[" }{ $victim }] est mort de : estropié(e)
+    .frozen = { "[" }{ $victim }] est mort de : glacé(e)
+    .mysterious = { "[" }{ $victim }] est mort de : secrète
 hud-chat-died_of_npc_buff_msg =
-    .burning = { "[" }{ $victim }] est mort de Mort: brûlé(e) causé par { $attacker }
-    .bleeding = { "[" }{ $victim }] est mort de Mort: saignement causé par { $attacker }
-    .curse = { "[" }{ $victim }] est mort de Mort: malédiction causé par { $attacker }
-    .crippled = { "[" }{ $victim }] est mort de Mort: estropié(e) causé par { $attacker }
-    .frozen = { "[" }{ $victim }] est mort de Mort: glacé(e) causé par { $attacker }
-    .mysterious = { "[" }{ $victim }] est mort de Mort: secrète causé par { $attacker }
+    .burning = { "[" }{ $victim }] est mort de : brûlé(e) causé par { $attacker }
+    .bleeding = { "[" }{ $victim }] est mort de : saignement causé par { $attacker }
+    .curse = { "[" }{ $victim }] est mort de : malédiction causé par { $attacker }
+    .crippled = { "[" }{ $victim }] est mort de : estropié(e) causé par { $attacker }
+    .frozen = { "[" }{ $victim }] est mort de : glacé(e) causé par { $attacker }
+    .mysterious = { "[" }{ $victim }] est mort de : secrète causé par { $attacker }
 
 ## PvP deaths
 

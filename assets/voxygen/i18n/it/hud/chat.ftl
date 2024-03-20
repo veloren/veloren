@@ -2,13 +2,13 @@
 
 hud-chat-online_msg =
     { $user_gender ->
-        [she] { "[" }{ $name }] si è connessa
-       *[he] { "[" }{ $name }] si è connesso
+        [she] { "[" }{ $name }] si è connessa.
+       *[he] { "[" }{ $name }] si è connesso.
     }
 hud-chat-offline_msg =
     { $user_gender ->
-        [she] { "[" }{ $name }] si è sconnessa
-       *[he] { "[" }{ $name }] si è sconnesso
+        [she] { "[" }{ $name }] si è disconnessa.
+       *[he] { "[" }{ $name }] si è disconnesso.
     }
 hud-chat-goodbye = Arrivederci!
 hud-chat-connection_lost =

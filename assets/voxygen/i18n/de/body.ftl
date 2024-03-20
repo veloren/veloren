@@ -62,3 +62,5 @@ body-npc-speech-biped_large-terracotta_pursuer = ein Terrakotta-Verfolger
 body-npc-speech-biped_large-gigas_frost = ein Gigafrost
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-adlet_elder = ein Adlet-Älterer
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-cursekeeper = ein Terrakotta-Verfolger

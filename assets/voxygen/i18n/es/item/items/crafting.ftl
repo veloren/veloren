@@ -184,7 +184,7 @@ sprite-mineral-ore-tin = Mena de hojalata
 sprite-velorite-velorite_ore = Velorita
     .desc = Mineral que emite un brillo inusual y extraño. Su origen es un misterio.
 sprite-velorite-velorite = Fragmento de velorita
-    .desc = Sobre su superficie se reflejan unas pequeñas runas cuyo significado no conoces.
+    .desc = Sobre su superficie se reflejan unas pequeñas runas cuyo significado desconoces.
 sprite-mineral-ingot-bloodsteel = Lingote de acerosangre
     .desc =
         Una aleación de acerosangre y hierro, con un color rojo oscuro.

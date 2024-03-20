@@ -22,3 +22,13 @@ armor-misc-bag-mindflayer_spellbag = Sinnesflåare Trolleriväska
         onda närvaro strömma igenom tyget.
 armor-misc-bag-reliable_backpack = Pålitlig Ryggsäck
     .desc = Den kommer aldrig ge dig upp.
+lantern-geode_purp = Lila Geod
+    .desc = Avger ett lugnande sken, hjälper med att lugna ner nerverna.
+glider-leaves = Lövglidare
+    .desc = flyg bland träden.
+glider-butterfly-orange_monarch = Orange Monark
+    .desc = De delikata vingarna fladdrar svagt.
+glider-butterfly-blue_morpho = Blå Morpho
+    .desc = De delikata vingarna fladdrar svagt.
+glider-moth = Grön Luna
+    .desc = De delikata vingarna fladdrar svagt.
