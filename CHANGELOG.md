@@ -95,11 +95,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plugin interface based on WASI 0.2 WIT, wasmtime executes these components.
 - Balance changes; Smoother entity progression consisting of larger variety in (effective) health pools, DPS, entity flee_health alterations, and minor weight distribution changes for entity spawns.
 - Made power of weapon tiers scale non-linearly.
-- Sword Changes; Pommel Strike has been nerfed -> increased energy cost, increased _durations, and decreased poise damage. Heavy Sweep has been nerfed -> decreased poise damage and stun vulnerability damage. Pillar Thrust has been altered -> decreased maximum base damage with an increase in stun vulnerability damage.
+- Sword Changes; Pommel Strike has been nerfed -> increased energy cost, increased durations, and decreased poise damage. Heavy Sweep has been nerfed -> decreased poise damage and stun vulnerability damage. Pillar Thrust has been altered -> decreased maximum base damage with an increase in stun vulnerability damage.
 - Weapons block are based on poise.
 - Wooden Shield recipe.
 - Overhauled the visuals of several cave biomes.
 - Dropped items now merge dynamically (including non-stackables).
+- You no longer need to unlock health, energy and roll skills to get to max.
+- Rolls now don't skip recovery, and instead have increased buildup during ability interrupts.
 
 ### Removed
 

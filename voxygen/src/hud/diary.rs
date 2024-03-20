@@ -33,13 +33,12 @@ use common::{
             slot::EquipSlot,
         },
         skills::{
-            self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
-            RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
+            self, AxeSkill, BowSkill, ClimbSkill, HammerSkill, MiningSkill, SceptreSkill, Skill,
+            StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
         Body, CharacterState, Energy, Health, Inventory, Poise,
     },
-    consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
 use conrod_core::{
     color, image,
@@ -1374,9 +1373,9 @@ impl<'a> Diary<'a> {
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
-        let skills_top_l = 2;
-        let skills_top_r = 6;
-        let skills_bot_l = 4;
+        let skills_top_l = 6;
+        let skills_top_r = 0;
+        let skills_bot_l = 0;
         let skills_bot_r = 5;
 
         self.setup_state_for_skill_icons(
@@ -1387,7 +1386,7 @@ impl<'a> Diary<'a> {
             skills_bot_l,
             skills_bot_r,
         );
-        use skills::{GeneralSkill::*, RollSkill::*};
+
         use SkillGroupKind::*;
         use ToolKind::*;
         // General Combat
@@ -1419,80 +1418,42 @@ impl<'a> Diary<'a> {
             //        5 1 6
             //        3 0 4
             //        8 2 7
-            SkillIcon::Unlockable {
-                skill: Skill::General(HealthIncrease),
-                image: self.imgs.health_plus_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
-                id: state.ids.skill_general_stat_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::General(EnergyIncrease),
-                image: self.imgs.energy_plus_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
-                id: state.ids.skill_general_stat_1,
-            },
-            // Top right skills
+            // Bottom left skills
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Sword)),
                 image: self.imgs.unlock_sword_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
                 id: state.ids.skill_general_tree_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Axe)),
                 image: self.imgs.unlock_axe_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
                 id: state.ids.skill_general_tree_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Hammer)),
                 image: self.imgs.unlock_hammer_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
+                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
                 id: state.ids.skill_general_tree_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Bow)),
                 image: self.imgs.unlock_bow_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
+                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
                 id: state.ids.skill_general_tree_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Staff)),
                 image: self.imgs.unlock_staff_skill0,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
+                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
                 id: state.ids.skill_general_tree_4,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Sceptre)),
                 image: self.imgs.unlock_sceptre_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[5], 3.0),
+                position: MidTopWithMarginOn(state.ids.skills_top_l[5], 3.0),
                 id: state.ids.skill_general_tree_5,
-            },
-            // Bottom left skills
-            SkillIcon::Descriptive {
-                title: "hud-skill-dodge_title",
-                desc: "hud-skill-dodge",
-                image: self.imgs.skill_dodge_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
-                id: state.ids.skill_general_roll_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Roll(Cost),
-                image: self.imgs.utility_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
-                id: state.ids.skill_general_roll_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Roll(Strength),
-                image: self.imgs.utility_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
-                id: state.ids.skill_general_roll_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Roll(Duration),
-                image: self.imgs.utility_duration_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
-                id: state.ids.skill_general_roll_3,
             },
             // Bottom right skills
             SkillIcon::Descriptive {
@@ -2849,7 +2810,6 @@ impl<'a> Diary<'a> {
 fn skill_strings(skill: Skill) -> SkillStrings<'static> {
     match skill {
         // general tree
-        Skill::General(s) => general_skill_strings(s),
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
         Skill::Hammer(s) => hammer_skill_strings(s),
@@ -2857,27 +2817,11 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         Skill::Staff(s) => staff_skill_strings(s),
         Skill::Sceptre(s) => sceptre_skill_strings(s),
         // movement trees
-        Skill::Roll(s) => roll_skill_strings(s),
         Skill::Climb(s) => climb_skill_strings(s),
         Skill::Swim(s) => swim_skill_strings(s),
         // mining
         Skill::Pick(s) => mining_skill_strings(s),
         _ => SkillStrings::plain("", ""),
-    }
-}
-
-fn general_skill_strings(skill: GeneralSkill) -> SkillStrings<'static> {
-    match skill {
-        GeneralSkill::HealthIncrease => SkillStrings::with_const(
-            "hud-skill-inc_health_title",
-            "hud-skill-inc_health",
-            u32::from(HP_PER_LEVEL),
-        ),
-        GeneralSkill::EnergyIncrease => SkillStrings::with_const(
-            "hud-skill-inc_energy_title",
-            "hud-skill-inc_energy",
-            u32::from(ENERGY_PER_LEVEL),
-        ),
     }
 }
 
@@ -3212,27 +3156,6 @@ fn sceptre_skill_strings(skill: SceptreSkill) -> SkillStrings<'static> {
             "hud-skill-sc_wardaura_cost_title",
             "hud-skill-sc_wardaura_cost",
             modifiers.warding_aura.energy_cost,
-        ),
-    }
-}
-
-fn roll_skill_strings(skill: RollSkill) -> SkillStrings<'static> {
-    let modifiers = SKILL_MODIFIERS.general_tree.roll;
-    match skill {
-        RollSkill::Cost => SkillStrings::with_mult(
-            "hud-skill-roll_energy_title",
-            "hud-skill-roll_energy",
-            modifiers.energy_cost,
-        ),
-        RollSkill::Strength => SkillStrings::with_mult(
-            "hud-skill-roll_speed_title",
-            "hud-skill-roll_speed",
-            modifiers.strength,
-        ),
-        RollSkill::Duration => SkillStrings::with_mult(
-            "hud-skill-roll_dur_title",
-            "hud-skill-roll_dur",
-            modifiers.duration,
         ),
     }
 }

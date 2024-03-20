@@ -1240,12 +1240,12 @@ impl CharacterAbility {
             0.0
         };
         CharacterAbility::Roll {
-            energy_cost: 12.0,
+            energy_cost: 10.85,
             // Remaining recover flows into buildup
             buildup_duration: 0.05 + remaining_recover,
-            movement_duration: 0.33,
+            movement_duration: 0.36,
             recover_duration: 0.125,
-            roll_strength: 3.0,
+            roll_strength: 3.3075,
             attack_immunities: AttackFilters {
                 melee: true,
                 projectiles: false,
@@ -1917,8 +1917,7 @@ impl CharacterAbility {
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
             Some(ToolKind::Sceptre) => self.adjusted_by_sceptre_skills(skillset),
             Some(ToolKind::Pick) => self.adjusted_by_mining_skills(skillset),
-            None => self.adjusted_by_general_skills(skillset),
-            Some(_) => {},
+            None | Some(_) => {},
         }
         self
     }
@@ -1940,30 +1939,6 @@ impl CharacterAbility {
                 *buildup_duration /= speed;
                 *swing_duration /= speed;
                 *recover_duration /= speed;
-            }
-        }
-    }
-
-    fn adjusted_by_general_skills(&mut self, skillset: &SkillSet) {
-        if let CharacterAbility::Roll {
-            ref mut energy_cost,
-            ref mut roll_strength,
-            ref mut movement_duration,
-            ..
-        } = self
-        {
-            use skills::RollSkill::{Cost, Duration, Strength};
-
-            let modifiers = SKILL_MODIFIERS.general_tree.roll;
-
-            if let Ok(level) = skillset.skill_level(Skill::Roll(Cost)) {
-                *energy_cost *= modifiers.energy_cost.powi(level.into());
-            }
-            if let Ok(level) = skillset.skill_level(Skill::Roll(Strength)) {
-                *roll_strength *= modifiers.strength.powi(level.into());
-            }
-            if let Ok(level) = skillset.skill_level(Skill::Roll(Duration)) {
-                *movement_duration *= modifiers.duration.powi(level.into());
             }
         }
     }

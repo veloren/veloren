@@ -1,16 +1,11 @@
 ({
     General: [
-        General(HealthIncrease),
-        General(EnergyIncrease),
         UnlockGroup(Weapon(Sword)),
         UnlockGroup(Weapon(Axe)),
         UnlockGroup(Weapon(Hammer)),
         UnlockGroup(Weapon(Bow)),
         UnlockGroup(Weapon(Staff)),
         UnlockGroup(Weapon(Sceptre)),
-        Roll(Cost),
-        Roll(Strength),
-        Roll(Duration),
         Climb(Cost),
         Climb(Speed),
         Swim(Speed),

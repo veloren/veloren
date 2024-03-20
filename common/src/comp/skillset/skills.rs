@@ -11,14 +11,12 @@ use serde::{Deserialize, Serialize};
 // SkillTree Modifiers below.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum Skill {
-    General(GeneralSkill),
     Sword(SwordSkill),
     Axe(AxeSkill),
     Hammer(HammerSkill),
     Bow(BowSkill),
     Staff(StaffSkill),
     Sceptre(SceptreSkill),
-    Roll(RollSkill),
     Climb(ClimbSkill),
     Swim(SwimSkill),
     Pick(MiningSkill),
@@ -160,19 +158,6 @@ pub enum SceptreSkill {
     ADuration,
     ARange,
     ACost,
-}
-
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
-pub enum GeneralSkill {
-    HealthIncrease,
-    EnergyIncrease,
-}
-
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
-pub enum RollSkill {
-    Cost,
-    Strength,
-    Duration,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
@@ -473,15 +458,8 @@ impl MiningTreeModifiers {
 }
 
 pub struct GeneralTreeModifiers {
-    pub roll: RollTreeModifiers,
     pub swim: SwimTreeModifiers,
     pub climb: ClimbTreeModifiers,
-}
-
-pub struct RollTreeModifiers {
-    pub energy_cost: f32,
-    pub strength: f32,
-    pub duration: f32,
 }
 
 pub struct SwimTreeModifiers {
@@ -496,11 +474,6 @@ pub struct ClimbTreeModifiers {
 impl GeneralTreeModifiers {
     const fn get() -> Self {
         Self {
-            roll: RollTreeModifiers {
-                energy_cost: 0.95,
-                strength: 1.05,
-                duration: 1.05,
-            },
             swim: SwimTreeModifiers { speed: 1.25 },
             climb: ClimbTreeModifiers {
                 energy_cost: 0.8,
