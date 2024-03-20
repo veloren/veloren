@@ -205,7 +205,8 @@ impl SingleplayerWorlds {
             now.hour(),
             now.minute(),
             now.second(),
-            now.timestamp_subsec_millis()
+            now.and_utc().timestamp_subsec_millis() /* .and_utc() necessary, as other fn is
+                                                     * deprecated */
         );
 
         let mut test_name = name.clone();
