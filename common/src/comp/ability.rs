@@ -1240,9 +1240,9 @@ impl CharacterAbility {
             0.0
         };
         CharacterAbility::Roll {
-            // Energy cost increased by
-            energy_cost: 12.0 + remaining_recover * 100.0,
-            buildup_duration: 0.05,
+            energy_cost: 12.0,
+            // Remaining recover flows into buildup
+            buildup_duration: 0.05 + remaining_recover,
             movement_duration: 0.33,
             recover_duration: 0.125,
             roll_strength: 3.0,
