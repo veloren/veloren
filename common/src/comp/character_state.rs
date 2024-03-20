@@ -405,7 +405,13 @@ impl CharacterState {
         }
     }
 
-    pub fn is_dodge(&self) -> bool { matches!(self, CharacterState::Roll(_)) }
+    pub fn is_dodge(&self) -> bool {
+        if let CharacterState::Roll(c) = self {
+            c.stage_section == StageSection::Movement
+        } else {
+            false
+        }
+    }
 
     pub fn is_glide(&self) -> bool { matches!(self, CharacterState::Glide(_)) }
 
@@ -415,7 +421,7 @@ impl CharacterState {
 
     pub fn attack_immunities(&self) -> Option<AttackFilters> {
         if let CharacterState::Roll(c) = self {
-            Some(c.static_data.attack_immunities)
+            (c.stage_section == StageSection::Movement).then_some(c.static_data.attack_immunities)
         } else {
             None
         }

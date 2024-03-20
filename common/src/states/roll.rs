@@ -60,7 +60,7 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Buildup => {
-                handle_move(data, &mut update, 1.0);
+                handle_move(data, &mut update, 0.3);
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
                     update.character = CharacterState::Roll(Data {
