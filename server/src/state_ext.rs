@@ -297,7 +297,7 @@ impl StateExt for State {
             .with(body.collider())
             .with(comp::Controller::default())
             .with(body)
-            .with(comp::Energy::new(body, 0))
+            .with(comp::Energy::new(body))
             .with(stats)
             .with(if body.is_humanoid() {
                 comp::ActiveAbilities::default_limited(BASE_ABILITY_LIMIT)
@@ -428,7 +428,7 @@ impl StateExt for State {
             .with(comp::CharacterActivity::default())
             // TODO: some of these are required in order for the character_behavior system to
             // recognize a possesed airship; that system should be refactored to use `.maybe()`
-            .with(comp::Energy::new(ship.into(), 0))
+            .with(comp::Energy::new(ship.into()))
             .with(comp::Stats::new("Airship".to_string(), body))
             .with(comp::SkillSet::default())
             .with(comp::ActiveAbilities::default())
@@ -727,8 +727,8 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, body);
             self.write_component_ignore_entity_dead(entity, body.mass());
             self.write_component_ignore_entity_dead(entity, body.density());
-            self.write_component_ignore_entity_dead(entity, comp::Health::new(body, 0));
-            self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, 0));
+            self.write_component_ignore_entity_dead(entity, comp::Health::new(body));
+            self.write_component_ignore_entity_dead(entity, comp::Energy::new(body));
             self.write_component_ignore_entity_dead(entity, Poise::new(body));
             self.write_component_ignore_entity_dead(entity, stats);
             self.write_component_ignore_entity_dead(entity, active_abilities);
@@ -773,7 +773,7 @@ impl StateExt for State {
                             ori,
                             stats,
                             comp::SkillSet::default(),
-                            Some(comp::Health::new(body, 0)),
+                            Some(comp::Health::new(body)),
                             Poise::new(body),
                             Inventory::with_loadout(
                                 LoadoutBuilder::from_default(&body).build(),

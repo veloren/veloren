@@ -11,14 +11,12 @@ use serde::{Deserialize, Serialize};
 // SkillTree Modifiers below.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum Skill {
-    General(GeneralSkill),
     Sword(SwordSkill),
     Axe(AxeSkill),
     Hammer(HammerSkill),
     Bow(BowSkill),
     Staff(StaffSkill),
     Sceptre(SceptreSkill),
-    Roll(RollSkill),
     Climb(ClimbSkill),
     Swim(SwimSkill),
     Pick(MiningSkill),
@@ -161,12 +159,6 @@ pub enum SceptreSkill {
     ARange,
     ACost,
 }
-
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
-pub enum GeneralSkill {}
-
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
-pub enum RollSkill {}
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum ClimbSkill {

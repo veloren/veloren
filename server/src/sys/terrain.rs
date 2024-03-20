@@ -498,7 +498,7 @@ impl SpawnEntityData {
             inventory
         };
 
-        let health = Some(comp::Health::new(body, 0));
+        let health = Some(comp::Health::new(body));
         let poise = comp::Poise::new(body);
 
         // Allow Humanoid, BirdMedium, and Parrot to speak

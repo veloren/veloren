@@ -1,4 +1,4 @@
-use crate::{comp, consts::ENERGY_PER_LEVEL};
+use crate::comp;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::ops::Mul;
@@ -82,11 +82,8 @@ impl Energy {
         self.current = self.current.min(self.maximum);
     }
 
-    pub fn new(body: comp::Body, level: u16) -> Self {
-        let energy = u32::from(
-            body.base_energy()
-                .saturating_add(ENERGY_PER_LEVEL.saturating_mul(level)),
-        ) * Self::SCALING_FACTOR_INT;
+    pub fn new(body: comp::Body) -> Self {
+        let energy = u32::from(body.base_energy()) * Self::SCALING_FACTOR_INT;
         Energy {
             current: energy,
             base_max: energy,
@@ -128,15 +125,6 @@ impl Energy {
             self.change_by(change);
             Ok(())
         }
-    }
-
-    pub fn update_max_energy(&mut self, body: comp::Body, level: u16) {
-        let old_max = self.base_max;
-        self.base_max = u32::from(
-            body.base_energy()
-                .saturating_add(ENERGY_PER_LEVEL.saturating_mul(level)),
-        ) * Self::SCALING_FACTOR_INT;
-        self.current = (self.current + self.base_max - old_max).min(self.maximum);
     }
 
     pub fn refresh(&mut self) { self.current = self.maximum; }

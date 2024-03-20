@@ -64,7 +64,7 @@ mod tests {
             .with(body.mass())
             .with(body.density())
             .with(body)
-            .with(Energy::new(body, 0))
+            .with(Energy::new(body))
             .with(Controller::default())
             .with(Poise::new(body))
             .with(skill_set)

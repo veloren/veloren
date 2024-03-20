@@ -1,6 +1,4 @@
-use crate::{
-    combat::DamageContributor, comp, consts::HP_PER_LEVEL, resources::Time, uid::Uid, DamageSource,
-};
+use crate::{combat::DamageContributor, comp, resources::Time, uid::Uid, DamageSource};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
@@ -117,11 +115,8 @@ impl Health {
         self.current = self.current.min(self.maximum);
     }
 
-    pub fn new(body: comp::Body, level: u16) -> Self {
-        let health = u32::from(
-            body.base_health()
-                .saturating_add(HP_PER_LEVEL.saturating_mul(level)),
-        ) * Self::SCALING_FACTOR_INT;
+    pub fn new(body: comp::Body) -> Self {
+        let health = u32::from(body.base_health()) * Self::SCALING_FACTOR_INT;
         Health {
             current: health,
             base_max: health,
@@ -137,16 +132,6 @@ impl Health {
             is_dead: false,
             damage_contributors: HashMap::new(),
         }
-    }
-
-    // TODO: Delete this once stat points will be a thing
-    pub fn update_max_hp(&mut self, body: comp::Body, level: u16) {
-        let old_max = self.base_max;
-        self.base_max = u32::from(
-            body.base_health()
-                .saturating_add(HP_PER_LEVEL.saturating_mul(level)),
-        ) * Self::SCALING_FACTOR_INT;
-        self.current = (self.current + self.base_max - old_max).min(self.maximum);
     }
 
     /// Returns a boolean if the delta was not zero.

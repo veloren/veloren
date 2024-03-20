@@ -140,8 +140,6 @@
     ],
     // Just copypasta from max with random reductions
     "middle": [
-        // General skills
-
         // Sword
         (UnlockGroup(Weapon(Sword)), 1),
 
@@ -225,8 +223,6 @@
     ],
     // Basic skill preset to unlock all abilities
     "basic": [
-        // General skills
-
         // Sword
         (UnlockGroup(Weapon(Sword)), 1),
 

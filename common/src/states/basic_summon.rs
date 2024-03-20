@@ -134,7 +134,7 @@ impl CharacterBehavior for Data {
                             .static_data
                             .summon_info
                             .has_health
-                            .then(|| comp::Health::new(body, 0));
+                            .then(|| comp::Health::new(body));
 
                         // Ray cast to check where summon should happen
                         let summon_frac =

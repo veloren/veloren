@@ -1689,7 +1689,7 @@ fn handle_spawn(
                         comp::Ori::default(),
                         comp::Stats::new(get_npc_name(id, npc::BodyType::from_body(body)), body),
                         comp::SkillSet::default(),
-                        Some(comp::Health::new(body, 0)),
+                        Some(comp::Health::new(body)),
                         comp::Poise::new(body),
                         inventory,
                         body,
@@ -1778,7 +1778,7 @@ fn handle_spawn_training_dummy(
 
     let stats = comp::Stats::new("Training Dummy".to_string(), body);
     let skill_set = comp::SkillSet::default();
-    let health = comp::Health::new(body, 0);
+    let health = comp::Health::new(body);
     let poise = comp::Poise::new(body);
 
     server

@@ -1917,8 +1917,7 @@ impl CharacterAbility {
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
             Some(ToolKind::Sceptre) => self.adjusted_by_sceptre_skills(skillset),
             Some(ToolKind::Pick) => self.adjusted_by_mining_skills(skillset),
-            None => self.adjusted_by_general_skills(skillset),
-            Some(_) => {},
+            None | Some(_) => {},
         }
         self
     }
@@ -1943,8 +1942,6 @@ impl CharacterAbility {
             }
         }
     }
-
-    fn adjusted_by_general_skills(&mut self, _skillset: &SkillSet) {}
 
     fn adjusted_by_hammer_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
