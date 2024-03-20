@@ -48,3 +48,13 @@ glider-woodraptor = Holzraptorflügel
     .desc = Fliehe mit den Flügeln eines verstohlenen Raubtieres.
 armor-misc-back-backpack = Robuster Rucksack
     .desc = Hält all dein Zeug beisammen.
+armor-misc-bag-heavy_seabag = Schwerer Seesack
+    .desc = Normalerweise von Seeleuten genutzt.
+armor-misc-bag-knitted_red_pouch = Rote Stricktasche
+    .desc = Ein ansehnlicher roter Beutel mit zwei Taschen, aus Wolle und Farbe.
+armor-misc-bag-liana_kit = Lianengebinde
+    .desc = Gewebt aus getrockneten Lianen.
+armor-misc-bag-mindflayer_spellbag = Mindflayer-Zauberbeutel
+    .desc =
+        Du kannst fast die böse Anwesenheit eines
+        Mindflayers durch den Stoff strömen spüren.

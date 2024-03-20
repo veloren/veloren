@@ -1,4 +1,5 @@
 ## Debug abilities
+
 common-abilities-debug-possess = Freccia di controllo
     .desc = Scocca una freccia velenosa. Ti permette di controllare il tuo obiettivo.
 common-abilities-debug-evolve = Evolvi
@@ -7,7 +8,6 @@ common-abilities-debug-glide_boost = Vroom
     .desc = Ti dà la spinta per raggiungere il cielo
 common-abilities-debug-glide_speeder = Vroom
     .desc = Ti dà la spinta per arrivare ovunque arrivi il tuo sguardo
-
 common-abilities-hammer-leap = Colpo del destino
     .desc = Un attacco ad area con contraccolpo. Salta alla posizione del cursore.
 common-abilities-bow-shotgun = Raffica
@@ -341,3 +341,68 @@ common-abilities-axe-capsize = Capovolgimento
     .desc =
         Stordisci tutto nelle vicinanze con un colpo rotante pesante
         Si trasforma automaticamente in Murata a 50 combo
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-heavy_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-agile_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-defensive_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-crippling_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cleaving_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-basic_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-heavy_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-agile_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-defensive_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-crippling_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cleaving_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-double_slash = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-modified_depending_stance = ""

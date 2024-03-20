@@ -7,7 +7,7 @@ sprite-crafting_ing-cloth-silk = Silke
 sprite-flowers-sunflower_1 = Solros
     .desc = Doftar som sommar.
 sprite-cacti-flat_cactus_med = Kaktus
-    .desc = Växer i varma och torra platser. Vädlig taggig!
+    .desc = Växer i varma och torra platser. Väldigt taggig!
 sprite-crafting_ing-pearl = Pärla
     .desc = Skulle göra en fin lampa.
 object-training_dummy = Träningsdummy
@@ -62,3 +62,49 @@ sprite-crafting_ing-bowl = Skål
     .desc = En enkel skål till att förbereda måltider.
 sprite-crafting_ing-cotton_boll = Bomullsboll
     .desc = Plockad från en vanlig bomullsväxt.
+sprite-mineral-ore-coal = Kål
+    .desc = En mörk, förbränningsbar energikälla.
+sprite-mineral-ingot-cobalt = Kobolttacka
+    .desc =
+        En anmärkingsvärd blå tacka.
+
+        Kan användas när man tillverkar metallvapen.
+sprite-mineral-ingot-copper = Koppartacka
+    .desc = En tacka med en unik brun färg.
+sprite-mineral-ingot-gold = Guldtacka
+    .desc = En tacka gjort av raffinerat metalliskt guld.
+sprite-mineral-ingot-iron = Järntacka
+    .desc =
+        En otroligt vanlig metall.
+
+        Kan användas när man tillverkar metallvapen.
+sprite-mineral-ingot-silver = Silvertacka
+    .desc = En tacka gjort av raffinerat metalliskt silver.
+sprite-mineral-ingot-tin = Tenntacka
+    .desc = En tacka som främst används till att göra brons.
+sprite-mineral-gem-amethystgem = Ametist
+    .desc = En värdefull lila ädelsten.
+sprite-mineral-gem-diamondgem = Diamant
+    .desc = En glittrande silverädelsten.
+sprite-mineral-gem-emeraldgem = Smaragd
+    .desc = En färgglad smaragdgrön ädelsten.
+sprite-mineral-gem-rubygem = Rubin
+    .desc = En utmärkt scharlakansröd pärla.
+sprite-mineral-gem-sapphiregem = Safir
+    .desc = En färgglad koboltfärgad pärla.
+sprite-mineral-gem-topazgem = Topas
+    .desc = En enastående orange ädelsten.
+sprite-mineral-ore-cobalt = Koboltmalm
+    .desc = En blå, glansig malm.
+sprite-mineral-ore-bloodstone = Blodstensmalm
+    .desc = En djupröd malm, den påminner dig om blod.
+sprite-mineral-ingot-bloodsteel = Blodstålstacka
+    .desc =
+        En legering mellan blodsten och järn, med en mörkröd färg.
+
+        Kan användas när man tillverkar metallvapen.
+sprite-mineral-ingot-steel = Ståltacka
+    .desc =
+        En legering mellan järn och kål som är mycket tuffare än dess komponenter.
+
+        Kan användas när man tillverkar metallvapen.

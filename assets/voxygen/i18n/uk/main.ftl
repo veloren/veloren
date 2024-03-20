@@ -112,3 +112,4 @@ loading-tips =
     .a21 = Знайшли щось файне? Зробіть знімок екрану, натиснувши '{ $gameinput-screenshot }'.
 main-singleplayer-day_length = Тривалість дня
 main-server-rules = Цей сервер визначає правила, що мають бути прийняті
+main-server-rules-seen-before = Ці правила змінилися з часу, коли ви востаннє приймали їх.
