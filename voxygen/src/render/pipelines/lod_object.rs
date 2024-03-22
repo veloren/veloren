@@ -1,5 +1,6 @@
 use super::super::{AaMode, GlobalsLayouts, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
+use common::util::srgb_to_linear;
 use std::mem;
 use vek::*;
 
@@ -9,20 +10,27 @@ pub struct Vertex {
     pos: [f32; 3],
     norm: [f32; 3],
     col: [f32; 3],
+    flags: u32,
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>) -> Self {
+    pub fn new(
+        pos: Vec3<f32>,
+        norm: Vec3<f32>,
+        col: Rgb<f32>,
+        flags: crate::scene::lod::Flags,
+    ) -> Self {
         Self {
             pos: pos.into_array(),
             norm: norm.into_array(),
             col: col.into_array(),
+            flags: flags.bits() as u32,
         }
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 3] =
-            wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x3];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 4] =
+            wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x3, 3 => Uint32];
         wgpu::VertexBufferLayout {
             array_stride: Self::STRIDE,
             step_mode: wgpu::VertexStepMode::Vertex,
@@ -40,7 +48,7 @@ impl VertexTrait for Vertex {
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Instance {
     inst_pos: [f32; 3],
-    inst_col: [u8; 4],
+    inst_col: [f32; 3],
     flags: u32,
 }
 
@@ -48,16 +56,16 @@ impl Instance {
     pub fn new(inst_pos: Vec3<f32>, col: Rgb<u8>, flags: common::lod::Flags) -> Self {
         Self {
             inst_pos: inst_pos.into_array(),
-            inst_col: Rgba::new(col.r, col.g, col.b, 255).into_array(),
+            inst_col: srgb_to_linear(col.map(|c| c as f32 / 255.0)).into_array(),
             flags: flags.bits() as u32,
         }
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         const ATTRIBUTES: [wgpu::VertexAttribute; 3] = wgpu::vertex_attr_array![
-            3 => Float32x3,
-            4 => Uint8x4,
-            5 => Uint32,
+            4 => Float32x3,
+            5 => Float32x3,
+            6 => Uint32,
         ];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,

@@ -7316,6 +7316,7 @@ version = "0.15.0"
 dependencies = [
  "assets_manager",
  "backtrace",
+ "bitflags 2.5.0",
  "bytemuck",
  "chrono",
  "chumsky",

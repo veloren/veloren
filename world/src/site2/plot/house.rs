@@ -95,6 +95,8 @@ impl House {
     }
 
     pub fn z_range(&self) -> Range<i32> { self.alt..self.alt + self.levels as i32 * STOREY }
+
+    pub fn roof_color(&self) -> Rgb<u8> { self.roof_color }
 }
 
 const STOREY: i32 = 5;

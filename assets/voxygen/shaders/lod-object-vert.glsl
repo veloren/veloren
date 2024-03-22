@@ -20,9 +20,13 @@
 layout(location = 0) in vec3 v_pos;
 layout(location = 1) in vec3 v_norm;
 layout(location = 2) in vec3 v_col;
-layout(location = 3) in vec3 inst_pos;
-layout(location = 4) in uvec3 inst_col;
-layout(location = 5) in uint inst_flags;
+layout(location = 3) in uint v_flags;
+layout(location = 4) in vec3 inst_pos;
+layout(location = 5) in vec3 inst_col;
+layout(location = 6) in uint inst_flags;
+
+const uint FLAG_INST_COLOR = 1;
+const uint FLAG_INST_GLOW = 2;
 
 layout(location = 0) out vec3 f_pos;
 layout(location = 1) out vec3 f_norm;
@@ -47,8 +51,13 @@ void main() {
     #endif
 
     f_norm = v_norm;
-    f_col = vec4(vec3(inst_col) * (1.0 / 255.0) * v_col * (hash(inst_pos.xyxy) * 0.4 + 0.6), 1.0);
-    f_flags = inst_flags;
+
+    if ((v_flags & FLAG_INST_COLOR) > 0u) {
+        f_col = vec4(inst_col, 1.0);
+    } else {
+        f_col = vec4(v_col, 1.0);
+    }
+    f_flags = inst_flags | (v_flags & FLAG_INST_GLOW);
 
     gl_Position =
         all_mat *
