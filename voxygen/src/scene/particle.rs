@@ -1861,8 +1861,8 @@ impl ParticleMgr {
                                         Duration::from_secs(3),
                                         time,
                                         ParticleMode::Ice,
-                                        pos.x + Vec3::unit_z() * z_start,
-                                        pos.x + offset.with_z(z_end),
+                                        pos + Vec3::unit_z() * z_start,
+                                        pos + offset.with_z(z_end),
                                     )
                                 },
                             );
