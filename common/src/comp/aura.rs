@@ -7,6 +7,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use slotmap::{new_key_type, SlotMap};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
+use std::collections::{HashMap, HashSet};
 
 new_key_type! { pub struct AuraKey; }
 
@@ -21,10 +22,24 @@ pub enum AuraKind {
         category: BuffCategory,
         source: BuffSource,
     },
+    /// Enables free-for-all friendly-fire. Includes group members, and pets.
+    /// BattleMode checks still apply.
+    FriendlyFire,
+    /// Ignores the [`crate::comp::BattleMode`] of all entities affected by this
+    /// aura, only player entities will be affected by this aura.
+    ForcePvP,
     /* TODO: Implement other effects here. Things to think about
      * are terrain/sprite effects, collision and physics, and
      * environmental conditions like temperature and humidity
      * Multiple auras can be given to an entity. */
+}
+
+/// Variants of [`AuraKind`] without data
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum AuraKindVariant {
+    Buff,
+    FriendlyFire,
+    IgnorePvE,
 }
 
 /// Aura
@@ -57,6 +72,8 @@ pub enum AuraChange {
     Add(Aura),
     /// Removes auras of these indices
     RemoveByKey(Vec<AuraKey>),
+    EnterAura(Uid, AuraKey, AuraKindVariant),
+    ExitAura(Uid, AuraKey, AuraKindVariant),
 }
 
 /// Used by the aura system to filter entities when applying an effect.
@@ -70,6 +87,13 @@ pub enum AuraTarget {
     /// enemies.
     NotGroupOf(Uid),
     /// Targets all entities. This is for auras which are global or neutral.
+    All,
+}
+
+// Only used for parsing in commands
+pub enum SimpleAuraTarget {
+    Group,
+    OutOfGroup,
     All,
 }
 
@@ -87,6 +111,16 @@ impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {
             (Some(GroupTarget::InGroup), Some(uid)) => Self::GroupOf(*uid),
             (Some(GroupTarget::OutOfGroup), Some(uid)) => Self::NotGroupOf(*uid),
             _ => Self::All,
+        }
+    }
+}
+
+impl AsRef<AuraKindVariant> for AuraKind {
+    fn as_ref(&self) -> &AuraKindVariant {
+        match self {
+            AuraKind::Buff { .. } => &AuraKindVariant::Buff,
+            AuraKind::FriendlyFire => &AuraKindVariant::FriendlyFire,
+            AuraKind::ForcePvP => &AuraKindVariant::IgnorePvE,
         }
     }
 }
@@ -168,6 +202,24 @@ impl AuraBuffConstructor {
     }
 }
 
+/// Auras affecting an entity
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct EnteredAuras {
+    /// [`AuraKey`] is local to each [`Auras`] component, therefore we also
+    /// store the [`Uid`] of the aura caster
+    pub auras: HashMap<AuraKindVariant, HashSet<(Uid, AuraKey)>>,
+}
+
+impl EnteredAuras {
+    pub fn flatten(&self) -> impl Iterator<Item = (Uid, AuraKey)> + '_ {
+        self.auras.values().flat_map(|i| i.iter().copied())
+    }
+}
+
 impl Component for Auras {
+    type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
+}
+
+impl Component for EnteredAuras {
     type Storage = DerefFlaggedStorage<Self, VecStorage<Self>>;
 }

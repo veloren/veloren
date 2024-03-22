@@ -49,7 +49,7 @@ pub use self::{
         TradingBehavior,
     },
     anchor::Anchor,
-    aura::{Aura, AuraChange, AuraKind, Auras},
+    aura::{Aura, AuraChange, AuraKind, Auras, EnteredAuras},
     beam::Beam,
     body::{
         arthropod, biped_large, biped_small, bird_large, bird_medium, crustacean, dragon,

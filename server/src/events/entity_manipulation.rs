@@ -18,7 +18,9 @@ use common::{
     combat,
     combat::{AttackSource, DamageContributor},
     comp::{
-        self, aura, buff,
+        self,
+        aura::{self, EnteredAuras},
+        buff,
         chat::{KillSource, KillType},
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
@@ -945,6 +947,7 @@ impl ServerEvent for ExplosionEvent {
         ReadStorage<'a, comp::Combo>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Alignment>,
+        ReadStorage<'a, EnteredAuras>,
         ReadStorage<'a, comp::Buffs>,
         ReadStorage<'a, comp::Stats>,
         ReadStorage<'a, Health>,
@@ -975,6 +978,7 @@ impl ServerEvent for ExplosionEvent {
             combos,
             inventories,
             alignments,
+            entered_auras,
             buffs,
             stats,
             healths,
@@ -1199,7 +1203,9 @@ impl ServerEvent for ExplosionEvent {
                             ),
                         )
                             .join()
-                            .filter(|(_, _, h, _)| !h.is_dead)
+                            .filter(|(e, _, h, _)| {
+                                !h.is_dead && owner_entity.map_or(true, |owner| owner != *e)
+                            })
                         {
                             let dist_sqrd = ev.pos.distance_squared(pos_b.0);
 
@@ -1274,10 +1280,19 @@ impl ServerEvent for ExplosionEvent {
                                 let target_dodging = char_state_b_maybe
                                     .and_then(|cs| cs.attack_immunities())
                                     .map_or(false, |i| i.explosions);
+                                let allow_friendly_fire =
+                                    owner_entity.is_some_and(|owner_entity| {
+                                        combat::allow_friendly_fire(
+                                            &entered_auras,
+                                            owner_entity,
+                                            entity_b,
+                                        )
+                                    });
                                 // PvP check
                                 let may_harm = combat::may_harm(
                                     &alignments,
                                     &players,
+                                    &entered_auras,
                                     &id_maps,
                                     owner_entity,
                                     entity_b,
@@ -1285,6 +1300,7 @@ impl ServerEvent for ExplosionEvent {
                                 let attack_options = combat::AttackOptions {
                                     target_dodging,
                                     may_harm,
+                                    allow_friendly_fire,
                                     target_group,
                                     precision_mult: None,
                                 };
@@ -1307,7 +1323,9 @@ impl ServerEvent for ExplosionEvent {
                     },
                     RadiusEffect::Entity(mut effect) => {
                         for (entity_b, pos_b, body_b_maybe) in
-                            (&entities, &positions, bodies.maybe()).join()
+                            (&entities, &positions, bodies.maybe())
+                                .join()
+                                .filter(|(e, _, _)| owner_entity.map_or(true, |owner| owner != *e))
                         {
                             let strength = if let Some(body) = body_b_maybe {
                                 cylinder_sphere_strength(
@@ -1322,8 +1340,9 @@ impl ServerEvent for ExplosionEvent {
                                 1.0 - distance_squared / ev.explosion.radius.powi(2)
                             };
 
-                            // Player check only accounts for PvP/PvE flag, but bombs
-                            // are intented to do friendly fire.
+                            // Player check only accounts for PvP/PvE flag (unless in a friendly
+                            // fire aura), but bombs are intented to do
+                            // friendly fire.
                             //
                             // What exactly is friendly fire is subject to discussion.
                             // As we probably want to minimize possibility of being dick
@@ -1335,6 +1354,7 @@ impl ServerEvent for ExplosionEvent {
                                 combat::may_harm(
                                     &alignments,
                                     &players,
+                                    &entered_auras,
                                     &id_maps,
                                     owner_entity,
                                     entity_b,
@@ -1504,11 +1524,16 @@ impl ServerEvent for BonkEvent {
 }
 
 impl ServerEvent for AuraEvent {
-    type SystemData<'a> = WriteStorage<'a, Auras>;
+    type SystemData<'a> = (WriteStorage<'a, Auras>, WriteStorage<'a, EnteredAuras>);
 
-    fn handle(events: impl ExactSizeIterator<Item = Self>, mut auras: Self::SystemData<'_>) {
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (mut auras, mut entered_auras): Self::SystemData<'_>,
+    ) {
         for ev in events {
-            if let Some(mut auras) = auras.get_mut(ev.entity) {
+            if let (Some(mut auras), Some(mut entered_auras)) =
+                (auras.get_mut(ev.entity), entered_auras.get_mut(ev.entity))
+            {
                 use aura::AuraChange;
                 match ev.aura_change {
                     AuraChange::Add(new_aura) => {
@@ -1517,6 +1542,24 @@ impl ServerEvent for AuraEvent {
                     AuraChange::RemoveByKey(keys) => {
                         for key in keys {
                             auras.remove(key);
+                        }
+                    },
+                    AuraChange::EnterAura(uid, key, variant) => {
+                        entered_auras
+                            .auras
+                            .entry(variant)
+                            .and_modify(|entered_auras| {
+                                entered_auras.insert((uid, key));
+                            })
+                            .or_insert_with(|| <_ as Into<_>>::into([(uid, key)]));
+                    },
+                    AuraChange::ExitAura(uid, key, variant) => {
+                        if let Some(entered_auras_variant) = entered_auras.auras.get_mut(&variant) {
+                            entered_auras_variant.remove(&(uid, key));
+
+                            if entered_auras_variant.is_empty() {
+                                entered_auras.auras.remove(&variant);
+                            }
                         }
                     },
                 }

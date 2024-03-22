@@ -2,6 +2,7 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
+        aura::EnteredAuras,
         Alignment, Beam, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
         Player, Pos, Scale, Stats,
     },
@@ -59,6 +60,7 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
     character_states: ReadStorage<'a, CharacterState>,
     buffs: ReadStorage<'a, Buffs>,
+    entered_auras: ReadStorage<'a, EnteredAuras>,
     outcomes: Read<'a, EventBus<Outcome>>,
     events: ReadAttackEvents<'a>,
 }
@@ -203,6 +205,12 @@ impl<'a> System<'a> for Sys {
                                 >= tgt_dist;
 
                         if hit {
+                            let allow_friendly_fire = combat::allow_friendly_fire(
+                                &read_data.entered_auras,
+                                entity,
+                                target,
+                            );
+
                             // See if entities are in the same group
                             let same_group = group
                                 .map(|group_a| Some(group_a) == read_data.groups.get(target))
@@ -246,6 +254,7 @@ impl<'a> System<'a> for Sys {
                             let may_harm = combat::may_harm(
                                 &read_data.alignments,
                                 &read_data.players,
+                                &read_data.entered_auras,
                                 &read_data.id_maps,
                                 Some(entity),
                                 target,
@@ -276,6 +285,7 @@ impl<'a> System<'a> for Sys {
                             let attack_options = AttackOptions {
                                 target_dodging,
                                 may_harm,
+                                allow_friendly_fire,
                                 target_group,
                                 precision_mult,
                             };

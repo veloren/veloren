@@ -2,6 +2,7 @@ use common::{
     combat::{self, AttackOptions, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
+        aura::EnteredAuras,
         shockwave::ShockwaveDodgeable,
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
         PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
@@ -62,6 +63,7 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
     character_states: ReadStorage<'a, CharacterState>,
     buffs: ReadStorage<'a, Buffs>,
+    entered_auras: ReadStorage<'a, EnteredAuras>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -193,6 +195,7 @@ impl<'a> System<'a> for Sys {
 
                 // Check if it is a hit
                 let hit = entity != target
+                    && shockwave_owner.map_or(true, |owner| owner != target)
                     && !health_b.is_dead
                     && (pos_b.0 - pos.0).magnitude() < frame_end_dist + rad_b
                     // Collision shapes
@@ -208,6 +211,9 @@ impl<'a> System<'a> for Sys {
                     };
 
                 if hit {
+                    let allow_friendly_fire = shockwave_owner.is_some_and(|entity| {
+                        combat::allow_friendly_fire(&read_data.entered_auras, entity, target)
+                    });
                     let dir = Dir::from_unnormalized(pos_b.0 - pos.0).unwrap_or(look_dir);
 
                     let attacker_info =
@@ -249,6 +255,7 @@ impl<'a> System<'a> for Sys {
                     let may_harm = combat::may_harm(
                         &read_data.alignments,
                         &read_data.players,
+                        &read_data.entered_auras,
                         &read_data.id_maps,
                         shockwave_owner,
                         target,
@@ -258,6 +265,7 @@ impl<'a> System<'a> for Sys {
                     let attack_options = AttackOptions {
                         target_dodging,
                         may_harm,
+                        allow_friendly_fire,
                         target_group,
                         precision_mult,
                     };

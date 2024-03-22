@@ -305,6 +305,7 @@ pub struct ExitIngameEvent {
     pub entity: EcsEntity,
 }
 
+#[derive(Debug)]
 pub struct AuraEvent {
     pub entity: EcsEntity,
     pub aura_change: comp::AuraChange,

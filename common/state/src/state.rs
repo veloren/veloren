@@ -243,6 +243,7 @@ impl State {
         ecs.register::<comp::ActiveAbilities>();
         ecs.register::<comp::Buffs>();
         ecs.register::<comp::Auras>();
+        ecs.register::<comp::EnteredAuras>();
         ecs.register::<comp::Energy>();
         ecs.register::<comp::Combo>();
         ecs.register::<comp::Health>();

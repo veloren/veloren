@@ -2,6 +2,7 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
+        aura::EnteredAuras,
         melee::MultiTarget,
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Melee,
         Ori, Player, Pos, Scale, Stats,
@@ -59,6 +60,7 @@ pub struct ReadData<'a> {
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
     buffs: ReadStorage<'a, Buffs>,
+    entered_auras: ReadStorage<'a, EnteredAuras>,
     events: ReadAttackEvents<'a>,
 }
 
@@ -186,6 +188,8 @@ impl<'a> System<'a> for Sys {
                     && !is_blocked_by_wall(&read_data.terrain, attacker_cylinder, target_cylinder);
 
                 if hit {
+                    let allow_friendly_fire =
+                        combat::allow_friendly_fire(&read_data.entered_auras, attacker, target);
                     // See if entities are in the same group
                     let same_group = read_data
                         .groups
@@ -230,6 +234,7 @@ impl<'a> System<'a> for Sys {
                     let may_harm = combat::may_harm(
                         &read_data.alignments,
                         &read_data.players,
+                        &read_data.entered_auras,
                         &read_data.id_maps,
                         Some(attacker),
                         target,
@@ -265,6 +270,7 @@ impl<'a> System<'a> for Sys {
                     let attack_options = AttackOptions {
                         target_dodging,
                         may_harm,
+                        allow_friendly_fire,
                         target_group,
                         precision_mult,
                     };

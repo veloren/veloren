@@ -26,7 +26,10 @@ use crate::{
     admin::draw_admin_commands_window, character_states::draw_char_state_group,
     experimental_shaders::draw_experimental_shaders_window, widgets::two_col_row,
 };
-use common::comp::{aura::AuraKind::Buff, Body, Fluid};
+use common::comp::{
+    aura::AuraKind::{Buff, ForcePvP, FriendlyFire},
+    Body, Fluid,
+};
 use egui_winit_platform::Platform;
 use std::time::Duration;
 #[cfg(feature = "use-dyn-lib")]
@@ -711,7 +714,9 @@ fn selected_entity_window(
                                 ui.end_row();
                                 auras.auras.iter().for_each(|(_, v)| {
                                     ui.label(match v.aura_kind {
-                                        Buff { kind, .. } =>  format!("Buff - {:?}", kind)
+                                        Buff { kind, .. } =>  format!("Buff - {:?}", kind),
+                                        FriendlyFire =>  "Friendly Fire".to_string(),
+                                        ForcePvP =>  "ForcedPvP".to_string(),
                                     });
                                     ui.label(format!("{:1}", v.radius));
                                     ui.label(v.end_time.map_or("-".to_owned(), |x| format!("{:1}s", x.0 - time.0)));
