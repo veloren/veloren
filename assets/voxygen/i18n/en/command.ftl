@@ -85,6 +85,9 @@ command-message-group-missing = You are using group chat but do not belong to a 
   /region to change chat.
 command-tell-request = { $sender } wants to talk to you.
 command-transform-invalid-presence = Cannot transform in the current presence
+command-aura-invalid-buff-parameters = Invalid buff parameters for aura
+command-aura-spawn = Spawned new aura attached to entity
+command-aura-spawn-new-entity = Spawned new aura
 
 # Unreachable/untestable but added for consistency
 

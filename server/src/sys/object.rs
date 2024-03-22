@@ -68,15 +68,15 @@ impl<'a> System<'a> for Sys {
             &entities,
             &positions,
             &velocities,
-            &physics_states,
+            physics_states.maybe(),
             &objects,
-            &bodies,
+            bodies.maybe(),
         )
             .join()
         {
             match object {
                 Object::Bomb { owner } => {
-                    if physics.on_surface().is_some() {
+                    if physics.is_some_and(|physics| physics.on_surface().is_some()) {
                         emitters.emit(DeleteEvent(entity));
                         emitters.emit(ExplosionEvent {
                             pos: pos.0,
@@ -213,7 +213,9 @@ impl<'a> System<'a> for Sys {
                                 })
                         });
 
-                    if (*body == Body::Object(object::Body::PortalActive)) != is_active {
+                    if body.is_some_and(|body| {
+                        (*body == Body::Object(object::Body::PortalActive)) != is_active
+                    }) {
                         emitters.emit(ChangeBodyEvent {
                             entity,
                             new_body: Body::Object(if is_active {

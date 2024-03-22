@@ -1,6 +1,12 @@
 use crate::{
     assets::{self, AssetCombined, Concatenate},
-    comp::{self, buff::BuffKind, inventory::item::try_all_item_defs, AdminRole as Role, Skill},
+    comp::{
+        self,
+        aura::{AuraKindVariant, SimpleAuraTarget},
+        buff::BuffKind,
+        inventory::item::try_all_item_defs,
+        AdminRole as Role, Skill,
+    },
     generation::try_all_entity_configs,
     npc, terrain,
 };
@@ -313,6 +319,7 @@ pub enum ServerChatCommand {
     AreaAdd,
     AreaList,
     AreaRemove,
+    Aura,
     Ban,
     BattleMode,
     BattleModeForce,
@@ -430,6 +437,18 @@ impl ServerChatCommand {
                 vec![Any("name", Required)],
                 "Change your alias",
                 Some(Moderator),
+            ),
+            ServerChatCommand::Aura => cmd(
+                vec![
+                    Float("aura_radius", 10.0, Required),
+                    Float("aura_duration", 10.0, Optional),
+                    Boolean("new_entity", "true".to_string(), Optional),
+                    Enum("aura_target", SimpleAuraTarget::all_options(), Optional),
+                    Enum("aura_kind", AuraKindVariant::all_options(), Required),
+                    Any("aura spec", Optional),
+                ],
+                "Create an aura",
+                Some(Admin),
             ),
             ServerChatCommand::Buff => cmd(
                 vec![
@@ -955,6 +974,7 @@ impl ServerChatCommand {
             ServerChatCommand::AreaAdd => "area_add",
             ServerChatCommand::AreaList => "area_list",
             ServerChatCommand::AreaRemove => "area_remove",
+            ServerChatCommand::Aura => "aura",
             ServerChatCommand::Ban => "ban",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",
@@ -1284,6 +1304,45 @@ impl ArgumentSpec {
         }
     }
 }
+
+pub trait CommandEnumArg: FromStr {
+    fn all_options() -> Vec<String>;
+}
+
+macro_rules! impl_from_to_str_cmd {
+    ($enum:ident, ($($attribute:ident => $str:expr),*)) => {
+        impl std::str::FromStr for $enum {
+            type Err = String;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    $(
+                        $str => Ok($enum::$attribute),
+                    )*
+                    s => Err(format!("Invalid variant: {s}")),
+                }
+            }
+        }
+
+        impl $crate::cmd::CommandEnumArg for $enum {
+            fn all_options() -> Vec<String> {
+                vec![$($str.to_string()),*]
+            }
+        }
+    }
+}
+
+impl_from_to_str_cmd!(AuraKindVariant, (
+    Buff => "buff",
+    FriendlyFire => "friendly_fire",
+    IgnorePvE => "ingore_pve"
+));
+
+impl_from_to_str_cmd!(SimpleAuraTarget, (
+    Group => "group",
+    OutOfGroup => "out_of_group",
+    All => "all"
+));
 
 /// Parse a series of command arguments into values, including collecting all
 /// trailing arguments.
