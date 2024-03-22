@@ -22,6 +22,16 @@ pub enum ObjectKind {
     Dead,
     House,
     GiantTree,
+    Mangrove,
+    Acacia,
+    Birch,
+    Redwood,
+    Baobab,
+    Frostpine,
+    Haniwa,
+    Desert,
+    Palm,
+    Arena,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

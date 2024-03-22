@@ -622,9 +622,14 @@ impl World {
                     Some(lod::Object {
                         kind: match tree.forest_kind {
                             all::ForestKind::Dead => lod::ObjectKind::Dead,
-                            all::ForestKind::Pine
-                            | all::ForestKind::Frostpine
-                            | all::ForestKind::Redwood => lod::ObjectKind::Pine,
+                            all::ForestKind::Pine => lod::ObjectKind::Pine,
+                            all::ForestKind::Mangrove => lod::ObjectKind::Mangrove,
+                            all::ForestKind::Acacia => lod::ObjectKind::Acacia,
+                            all::ForestKind::Birch => lod::ObjectKind::Birch,
+                            all::ForestKind::Redwood => lod::ObjectKind::Redwood,
+                            all::ForestKind::Baobab => lod::ObjectKind::Baobab,
+                            all::ForestKind::Frostpine => lod::ObjectKind::Frostpine,
+                            all::ForestKind::Palm => lod::ObjectKind::Palm,
                             _ => lod::ObjectKind::GenericTree,
                         },
                         pos: {
@@ -676,6 +681,21 @@ impl World {
                                 site.tile_wpos(plot.root_tile),
                                 t.leaf_color(),
                                 lod::ObjectKind::GiantTree,
+                            )),
+                            site2::plot::PlotKind::Haniwa(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::Haniwa,
+                            )),
+                            site2::plot::PlotKind::DesertCityMultiPlot(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::Desert,
+                            )),
+                            site2::plot::PlotKind::DesertCityArena(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::Arena,
                             )),
                             _ => None,
                         })

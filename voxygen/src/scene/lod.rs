@@ -84,6 +84,28 @@ impl Lod {
                     lod::ObjectKind::GiantTree,
                     make_lod_object("giant_tree", renderer),
                 ),
+                (
+                    lod::ObjectKind::Mangrove,
+                    make_lod_object("mangrove", renderer),
+                ),
+                (lod::ObjectKind::Acacia, make_lod_object("acacia", renderer)),
+                (lod::ObjectKind::Birch, make_lod_object("birch", renderer)),
+                (
+                    lod::ObjectKind::Redwood,
+                    make_lod_object("redwood", renderer),
+                ),
+                (lod::ObjectKind::Baobab, make_lod_object("baobab", renderer)),
+                (
+                    lod::ObjectKind::Frostpine,
+                    make_lod_object("frostpine", renderer),
+                ),
+                (lod::ObjectKind::Haniwa, make_lod_object("haniwa", renderer)),
+                (
+                    lod::ObjectKind::Desert,
+                    make_lod_object("desert_houses", renderer),
+                ),
+                (lod::ObjectKind::Palm, make_lod_object("palm", renderer)),
+                (lod::ObjectKind::Arena, make_lod_object("arena", renderer)),
             ]
             .into(),
         }
