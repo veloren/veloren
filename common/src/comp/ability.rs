@@ -1238,7 +1238,8 @@ impl CharacterAbility {
             }
         } else {
             0.0
-        };
+        }
+        .max(0.0);
         CharacterAbility::Roll {
             energy_cost: 10.85,
             // Remaining recover flows into buildup
