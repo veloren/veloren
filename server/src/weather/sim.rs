@@ -119,7 +119,7 @@ impl WeatherSim {
                 let time_scale = 100_000.0;
                 let spos = (pos / space_scale).with_z(time / time_scale);
 
-                let avg_scale = 20_000.0;
+                let avg_scale = 30_000.0;
                 let avg_delay = 250_000.0;
                 let pressure = ((base_nz
                     .get((pos / avg_scale).with_z(time / avg_delay).into_array())
@@ -135,7 +135,7 @@ impl WeatherSim {
                     - self.consts[point].humidity * 0.6;
 
                 const RAIN_CLOUD_THRESHOLD: f32 = 0.25;
-                cell.cloud = (1.0 - pressure).max(0.0) * 0.5;
+                cell.cloud = (1.0 - pressure).max(0.0).powi(2) * 4.0;
                 cell.rain = ((1.0 - pressure - RAIN_CLOUD_THRESHOLD).max(0.0)
                     * self.consts[point].humidity
                     * 2.5)

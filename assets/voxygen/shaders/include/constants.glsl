@@ -64,7 +64,7 @@
 
 // An arbitrary value that represents a very far distance (at least as far as the player should be able to see) without
 // being too far that we end up with precision issues (used in clouds and elsewhere).
-#define DIST_CAP 50000
+#define DIST_CAP 500000
 
 /* Constants expected to be defined automatically by configuration: */
 

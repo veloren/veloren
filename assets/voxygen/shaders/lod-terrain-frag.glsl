@@ -130,13 +130,13 @@ void main() {
         voxel_norm = normalize(mix(side_norm, top_norm, max(cam_dir.z, 0.0)));
     #else
         #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
-            float nz_offset = (noise_2d((f_pos.xy + focus_off.xy) * 0.01) - 0.5) * 3.0 / f_norm.z;
+            float nz_offset = floor((noise_2d((floor(f_pos.xy) + focus_off.xy) * 0.01) - 0.5) * 3.0 / max(f_norm.z, 0.01));
         #else
             const float nz_offset = 0.0;
         #endif
 
-        float t = -2.0;
-        while (t < 2.0) {
+        float t = -2.0 + nz_offset;
+        while (t < 2.0 + nz_offset) {
             vec3 deltas = (step(vec3(0), -cam_dir) - fract(f_pos - cam_dir * t)) / -cam_dir;
             float m = min(min(deltas.x, deltas.y), deltas.z);
 
@@ -147,7 +147,7 @@ void main() {
                 vec3 to_center = abs(block_pos - (f_pos - cam_dir * t));
                 voxel_norm = step(max(max(to_center.x, to_center.y), to_center.z), to_center) * sign(-cam_dir);
                 voxel_norm = mix(f_norm, voxel_norm, voxelize_factor);
-                f_ao = mix(1.0, clamp(1.0 + (t - nz_offset) * 0.5, 0.1, 1.0), voxelize_factor);
+                f_ao = mix(1.0, clamp(1.0 + (t - nz_offset) * 0.5, 0.1, 1.0), voxelize_factor * max(0.0, -dot(cam_dir, f_norm)));
                 break;
             }
         }
