@@ -541,7 +541,7 @@ struct Crystal {
 #[derive(Clone)]
 struct CrystalCluster {
     pos: Vec3<i32>,
-    crystals: Vec<Crystal>,
+    crystals: [Crystal; 5],
     color: Rgb<u8>,
 }
 
@@ -822,7 +822,6 @@ fn write_column<R: Rng>(
                         z_range.end
                     });
 
-                    let mut crystals: Vec<Crystal> = Vec::new();
                     let max_length = (48.0 * close(vertical, MAX_RADIUS, MAX_RADIUS, 1)).max(12.0);
                     let length = rng.gen_range(8.0..max_length);
                     let radius =
@@ -834,27 +833,30 @@ fn write_column<R: Rng>(
                     )
                     .normalized();
 
-                    crystals.push(Crystal {
-                        dir,
-                        length,
-                        radius,
-                    });
+                    let mut gen_crystal = || Crystal {
+                        dir: Vec3::new(
+                            rng.gen_range(-1.0..1.0),
+                            rng.gen_range(-1.0..1.0),
+                            (dir.z + rng.gen_range(-0.2..0.2)).clamped(0.0, 1.0),
+                        ),
+                        length: length * rng.gen_range(0.3..0.8),
+                        radius: (radius * rng.gen_range(0.5..0.8)).max(1.0),
+                    };
 
-                    (0..4).for_each(|_| {
-                        crystals.push(Crystal {
-                            dir: Vec3::new(
-                                rng.gen_range(-1.0..1.0),
-                                rng.gen_range(-1.0..1.0),
-                                (dir.z + rng.gen_range(-0.2..0.2)).clamped(0.0, 1.0),
-                            ),
-                            length: length * rng.gen_range(0.3..0.8),
-                            radius: (radius * rng.gen_range(0.5..0.8)).max(1.0),
-                        });
-                    });
+                    let crystals = [
+                        Crystal {
+                            dir,
+                            length,
+                            radius,
+                        },
+                        gen_crystal(),
+                        gen_crystal(),
+                        gen_crystal(),
+                        gen_crystal(),
+                    ];
 
                     let purple = rng.gen_range(25..75);
                     let blue = (rng.gen_range(45.0..75.0) * biome.icy) as u8;
-
                     Some(CaveStructure::Crystal(CrystalCluster {
                         pos,
                         crystals,
