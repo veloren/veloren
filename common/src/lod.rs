@@ -8,7 +8,7 @@ pub const ZONE_SIZE: u32 = 32;
 
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-    pub struct Flags: u8 {
+    pub struct InstFlags: u8 {
         const SNOW_COVERED  = 0b00000001;
         const GLOW          = 0b00000010;
     }
@@ -38,7 +38,7 @@ pub enum ObjectKind {
 pub struct Object {
     pub kind: ObjectKind,
     pub pos: Vec3<i16>,
-    pub flags: Flags,
+    pub flags: InstFlags,
     pub color: Rgb<u8>,
 }
 

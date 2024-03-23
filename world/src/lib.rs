@@ -640,11 +640,11 @@ impl World {
                                 rpos.map(|e| e as i16).with_z(col.alt as i16)
                             }
                         },
-                        flags: lod::Flags::empty()
+                        flags: lod::InstFlags::empty()
                             | if col.snow_cover {
-                                lod::Flags::SNOW_COVERED
+                                lod::InstFlags::SNOW_COVERED
                             } else {
-                                lod::Flags::empty()
+                                lod::InstFlags::empty()
                             },
                         color: {
                             let field = crate::util::RandomField::new(tree.seed);
@@ -713,9 +713,9 @@ impl World {
                         .map(|e| e as i16)
                         .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16),
                     flags: if column.snow_cover {
-                        lod::Flags::SNOW_COVERED
+                        lod::InstFlags::SNOW_COVERED
                     } else {
-                        lod::Flags::empty()
+                        lod::InstFlags::empty()
                     },
                     color,
                 }),

@@ -18,7 +18,7 @@ impl Vertex {
         pos: Vec3<f32>,
         norm: Vec3<f32>,
         col: Rgb<f32>,
-        flags: crate::scene::lod::Flags,
+        flags: crate::scene::lod::VertexFlags,
     ) -> Self {
         Self {
             pos: pos.into_array(),
@@ -53,7 +53,7 @@ pub struct Instance {
 }
 
 impl Instance {
-    pub fn new(inst_pos: Vec3<f32>, col: Rgb<u8>, flags: common::lod::Flags) -> Self {
+    pub fn new(inst_pos: Vec3<f32>, col: Rgb<u8>, flags: common::lod::InstFlags) -> Self {
         Self {
             inst_pos: inst_pos.into_array(),
             inst_col: srgb_to_linear(col.map(|c| c as f32 / 255.0)).into_array(),

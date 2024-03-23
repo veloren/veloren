@@ -25,7 +25,7 @@ const MAX_OBJECT_RADIUS: i32 = 64;
 
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy)]
-    pub struct Flags: u8 {
+    pub struct VertexFlags: u8 {
         // Use instance not vertex colour
         const INST_COLOR    = 0b00000001;
         // Glow!
@@ -276,25 +276,19 @@ fn make_lod_object(name: &str, renderer: &mut Renderer) -> Model<LodObjectVertex
         .0
         .objects()
         .flat_map(|(objname, obj)| {
+            let mut color = objname.split('_').filter_map(|x| x.parse::<u8>().ok());
+            let color = color
+                .next()
+                .and_then(|r| Some(Rgb::new(r, color.next()?, color.next()?)))
+                .unwrap_or(Rgb::broadcast(127));
+            let color = srgb_to_linear(color.map(|c| (c as f32 / 255.0)));
+            let flags = match objname {
+                "InstCol" => VertexFlags::INST_COLOR,
+                "Glow" => VertexFlags::GLOW,
+                _ => VertexFlags::empty(),
+            };
             obj.triangles().map(move |vs| {
                 let [a, b, c] = vs.map(|v| {
-                    let color = {
-                        let color = objname
-                            .split('_')
-                            .filter_map(|x| x.parse::<u8>().ok())
-                            .collect::<Vec<_>>();
-                        if color.len() >= 3 {
-                            Rgb::new(color[0], color[1], color[2])
-                        } else {
-                            Rgb::broadcast(127)
-                        }
-                    };
-                    let color = srgb_to_linear(color.map(|c| (c as f32 / 255.0)));
-                    let flags = match objname {
-                        "InstCol" => Flags::INST_COLOR,
-                        "Glow" => Flags::GLOW,
-                        _ => Flags::empty(),
-                    };
                     LodObjectVertex::new(
                         v.position().into(),
                         v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
