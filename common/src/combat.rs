@@ -229,7 +229,12 @@ impl Attack {
                 .clamp(0.0, 1.0);
             let raw_damage_reduction =
                 Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats, msm);
-            (1.0 - attacker_penetration) * raw_damage_reduction
+
+            if raw_damage_reduction >= 1.0 {
+                raw_damage_reduction
+            } else {
+                (1.0 - attacker_penetration) * raw_damage_reduction
+            }
         } else {
             0.0
         }
