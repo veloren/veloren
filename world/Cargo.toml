@@ -69,6 +69,10 @@ svg_fmt = "0.4"
 harness = false
 name = "tree"
 
+[[bench]]
+harness = false
+name = "cave"
+
 [[example]]
 name = "chunk_compression_benchmarks"
 required-features = ["bin_compression"]
