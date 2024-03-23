@@ -8,31 +8,38 @@ pub const ZONE_SIZE: u32 = 32;
 
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-    pub struct Flags: u8 {
+    pub struct InstFlags: u8 {
         const SNOW_COVERED  = 0b00000001;
-        const IS_BUILDING   = 0b00000010;
-        const IS_GIANT_TREE = 0b00000100;
+        const GLOW          = 0b00000010;
     }
 }
 
 #[derive(Copy, Clone, Hash, PartialEq, Eq, Debug, Serialize, Deserialize, EnumIter)]
 #[repr(u16)]
 pub enum ObjectKind {
-    Oak,
+    GenericTree,
     Pine,
     Dead,
     House,
     GiantTree,
-    MapleTree,
-    Cherry,
-    AutumnTree,
+    Mangrove,
+    Acacia,
+    Birch,
+    Redwood,
+    Baobab,
+    Frostpine,
+    Haniwa,
+    Desert,
+    Palm,
+    Arena,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Object {
     pub kind: ObjectKind,
     pub pos: Vec3<i16>,
-    pub flags: Flags,
+    pub flags: InstFlags,
+    pub color: Rgb<u8>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

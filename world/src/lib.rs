@@ -608,7 +608,7 @@ impl World {
 
         // Add trees
         prof_span!(guard, "add trees");
-        objects.append(
+        objects.extend(
             &mut self
                 .sim()
                 .get_area_trees(min_wpos, max_wpos)
@@ -621,15 +621,16 @@ impl World {
                 .filter_map(|(col, tree)| {
                     Some(lod::Object {
                         kind: match tree.forest_kind {
-                            all::ForestKind::Oak => lod::ObjectKind::Oak,
                             all::ForestKind::Dead => lod::ObjectKind::Dead,
-                            all::ForestKind::Pine
-                            | all::ForestKind::Frostpine
-                            | all::ForestKind::Redwood => lod::ObjectKind::Pine,
-                            all::ForestKind::Mapletree => lod::ObjectKind::MapleTree,
-                            all::ForestKind::Cherry => lod::ObjectKind::Cherry,
-                            all::ForestKind::AutumnTree => lod::ObjectKind::AutumnTree,
-                            _ => lod::ObjectKind::Oak,
+                            all::ForestKind::Pine => lod::ObjectKind::Pine,
+                            all::ForestKind::Mangrove => lod::ObjectKind::Mangrove,
+                            all::ForestKind::Acacia => lod::ObjectKind::Acacia,
+                            all::ForestKind::Birch => lod::ObjectKind::Birch,
+                            all::ForestKind::Redwood => lod::ObjectKind::Redwood,
+                            all::ForestKind::Baobab => lod::ObjectKind::Baobab,
+                            all::ForestKind::Frostpine => lod::ObjectKind::Frostpine,
+                            all::ForestKind::Palm => lod::ObjectKind::Palm,
+                            _ => lod::ObjectKind::GenericTree,
                         },
                         pos: {
                             let rpos = tree.pos - min_wpos;
@@ -639,19 +640,26 @@ impl World {
                                 rpos.map(|e| e as i16).with_z(col.alt as i16)
                             }
                         },
-                        flags: lod::Flags::empty()
+                        flags: lod::InstFlags::empty()
                             | if col.snow_cover {
-                                lod::Flags::SNOW_COVERED
+                                lod::InstFlags::SNOW_COVERED
                             } else {
-                                lod::Flags::empty()
+                                lod::InstFlags::empty()
                             },
+                        color: {
+                            let field = crate::util::RandomField::new(tree.seed);
+                            let lerp = field.get_f32(Vec3::from(tree.pos)) * 0.8 + 0.1;
+                            let sblock = tree.forest_kind.leaf_block();
+
+                            crate::all::leaf_color(index, tree.seed, lerp, &sblock)
+                                .unwrap_or(Rgb::black())
+                        },
                     })
-                })
-                .collect(),
+                }),
         );
         drop(guard);
 
-        // Add buildings
+        // Add structures
         objects.extend(
             index
                 .sites
@@ -661,68 +669,55 @@ impl World {
                         .map2(min_wpos.zip(max_wpos), |e, (min, max)| e >= min && e < max)
                         .reduce_and()
                 })
-                .filter_map(|(_, site)| match &site.kind {
-                    SiteKind::Refactor(site) => {
-                        Some(site.plots().filter_map(|plot| match &plot.kind {
-                            site2::plot::PlotKind::House(_) => Some(site.tile_wpos(plot.root_tile)),
+                .filter_map(|(_, site)| {
+                    site.site2().map(|site| {
+                        site.plots().filter_map(|plot| match &plot.kind {
+                            site2::plot::PlotKind::House(h) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                h.roof_color(),
+                                lod::ObjectKind::House,
+                            )),
+                            site2::plot::PlotKind::GiantTree(t) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                t.leaf_color(),
+                                lod::ObjectKind::GiantTree,
+                            )),
+                            site2::plot::PlotKind::Haniwa(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::Haniwa,
+                            )),
+                            site2::plot::PlotKind::DesertCityMultiPlot(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::Desert,
+                            )),
+                            site2::plot::PlotKind::DesertCityArena(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::Arena,
+                            )),
                             _ => None,
-                        }))
-                    },
-                    _ => None,
+                        })
+                    })
                 })
                 .flatten()
-                .filter_map(|wpos2d| {
+                .filter_map(|(wpos2d, color, model)| {
                     ColumnGen::new(self.sim())
                         .get((wpos2d, index, self.sim().calendar.as_ref()))
-                        .zip(Some(wpos2d))
+                        .zip(Some((wpos2d, color, model)))
                 })
-                .map(|(col, wpos2d)| lod::Object {
-                    kind: lod::ObjectKind::House,
+                .map(|(column, (wpos2d, color, model))| lod::Object {
+                    kind: model,
                     pos: (wpos2d - min_wpos)
                         .map(|e| e as i16)
                         .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16),
-                    flags: lod::Flags::IS_BUILDING
-                        | if col.snow_cover {
-                            lod::Flags::SNOW_COVERED
-                        } else {
-                            lod::Flags::empty()
-                        },
-                }),
-        );
-
-        // Add giant trees
-        objects.extend(
-            index
-                .sites
-                .iter()
-                .filter(|(_, site)| {
-                    site.get_origin()
-                        .map2(min_wpos.zip(max_wpos), |e, (min, max)| e >= min && e < max)
-                        .reduce_and()
-                })
-                .filter(|(_, site)| matches!(&site.kind, SiteKind::GiantTree(_)))
-                .filter_map(|(_, site)| {
-                    let wpos2d = site.get_origin();
-                    let col = ColumnGen::new(self.sim()).get((
-                        wpos2d,
-                        index,
-                        self.sim().calendar.as_ref(),
-                    ))?;
-                    Some(lod::Object {
-                        kind: lod::ObjectKind::GiantTree,
-                        pos: {
-                            (wpos2d - min_wpos)
-                                .map(|e| e as i16)
-                                .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16)
-                        },
-                        flags: lod::Flags::empty()
-                            | lod::Flags::IS_GIANT_TREE
-                            | if col.snow_cover {
-                                lod::Flags::SNOW_COVERED
-                            } else {
-                                lod::Flags::empty()
-                            },
-                    })
+                    flags: if column.snow_cover {
+                        lod::InstFlags::SNOW_COVERED
+                    } else {
+                        lod::InstFlags::empty()
+                    },
+                    color,
                 }),
         );
 

@@ -12,7 +12,7 @@ use common::{
     assets::{AssetExt, ObjAsset},
     lod,
     spiral::Spiral2d,
-    util::srgba_to_linear,
+    util::{srgb_to_linear, srgba_to_linear},
     weather,
 };
 use hashbrown::HashMap;
@@ -22,6 +22,16 @@ use vek::*;
 
 // For culling
 const MAX_OBJECT_RADIUS: i32 = 64;
+
+bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy)]
+    pub struct VertexFlags: u8 {
+        // Use instance not vertex colour
+        const INST_COLOR    = 0b00000001;
+        // Glow!
+        const GLOW          = 0b00000010;
+    }
+}
 
 struct ObjectGroup {
     instances: Instances<LodObjectInstance>,
@@ -63,7 +73,10 @@ impl Lod {
             data,
             zone_objects: HashMap::new(),
             object_data: [
-                (lod::ObjectKind::Oak, make_lod_object("oak", renderer)),
+                (
+                    lod::ObjectKind::GenericTree,
+                    make_lod_object("oak", renderer),
+                ),
                 (lod::ObjectKind::Pine, make_lod_object("pine", renderer)),
                 (lod::ObjectKind::Dead, make_lod_object("dead", renderer)),
                 (lod::ObjectKind::House, make_lod_object("house", renderer)),
@@ -71,15 +84,30 @@ impl Lod {
                     lod::ObjectKind::GiantTree,
                     make_lod_object("giant_tree", renderer),
                 ),
-                (lod::ObjectKind::MapleTree, make_lod_object("oak", renderer)),
-                (lod::ObjectKind::Cherry, make_lod_object("oak", renderer)),
                 (
-                    lod::ObjectKind::AutumnTree,
-                    make_lod_object("oak", renderer),
+                    lod::ObjectKind::Mangrove,
+                    make_lod_object("mangrove", renderer),
                 ),
+                (lod::ObjectKind::Acacia, make_lod_object("acacia", renderer)),
+                (lod::ObjectKind::Birch, make_lod_object("birch", renderer)),
+                (
+                    lod::ObjectKind::Redwood,
+                    make_lod_object("redwood", renderer),
+                ),
+                (lod::ObjectKind::Baobab, make_lod_object("baobab", renderer)),
+                (
+                    lod::ObjectKind::Frostpine,
+                    make_lod_object("frostpine", renderer),
+                ),
+                (lod::ObjectKind::Haniwa, make_lod_object("haniwa", renderer)),
+                (
+                    lod::ObjectKind::Desert,
+                    make_lod_object("desert_houses", renderer),
+                ),
+                (lod::ObjectKind::Palm, make_lod_object("palm", renderer)),
+                (lod::ObjectKind::Arena, make_lod_object("arena", renderer)),
             ]
-            .into_iter()
-            .collect(),
+            .into(),
         }
     }
 
@@ -127,21 +155,10 @@ impl Lod {
                             z_range.start.min(pos.z as i32)..z_range.end.max(pos.z as i32)
                         },
                     ));
-                    // TODO: Put this somewhere more easily configurable, like a manifest
-                    let color = match object.kind {
-                        lod::ObjectKind::Pine => Rgb::new(0, 25, 12),
-                        lod::ObjectKind::Oak => Rgb::new(10, 50, 5),
-                        lod::ObjectKind::Dead => Rgb::new(20, 10, 2),
-                        lod::ObjectKind::House => Rgb::new(20, 15, 0),
-                        lod::ObjectKind::GiantTree => Rgb::new(8, 35, 5),
-                        lod::ObjectKind::MapleTree => Rgb::new(20, 0, 5),
-                        lod::ObjectKind::Cherry => Rgb::new(70, 40, 70),
-                        lod::ObjectKind::AutumnTree => Rgb::new(60, 25, 0),
-                    };
                     objects
                         .entry(object.kind)
                         .or_default()
-                        .push(LodObjectInstance::new(pos, color, object.flags));
+                        .push(LodObjectInstance::new(pos, object.color, object.flags));
                 }
                 objects
                     .into_iter()
@@ -257,17 +274,30 @@ fn make_lod_object(name: &str, renderer: &mut Renderer) -> Model<LodObjectVertex
     let mesh = model
         .read()
         .0
-        .triangles()
-        .map(|vs| {
-            let [a, b, c] = vs.map(|v| {
-                LodObjectVertex::new(
-                    v.position().into(),
-                    v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
-                    Rgb::broadcast(1.0),
-                    //v.color().unwrap_or([1.0; 3]).into(),
-                )
-            });
-            Tri::new(a, b, c)
+        .objects()
+        .flat_map(|(objname, obj)| {
+            let mut color = objname.split('_').filter_map(|x| x.parse::<u8>().ok());
+            let color = color
+                .next()
+                .and_then(|r| Some(Rgb::new(r, color.next()?, color.next()?)))
+                .unwrap_or(Rgb::broadcast(127));
+            let color = srgb_to_linear(color.map(|c| (c as f32 / 255.0)));
+            let flags = match objname {
+                "InstCol" => VertexFlags::INST_COLOR,
+                "Glow" => VertexFlags::GLOW,
+                _ => VertexFlags::empty(),
+            };
+            obj.triangles().map(move |vs| {
+                let [a, b, c] = vs.map(|v| {
+                    LodObjectVertex::new(
+                        v.position().into(),
+                        v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
+                        color,
+                        flags,
+                    )
+                });
+                Tri::new(a, b, c)
+            })
         })
         .collect();
     renderer.create_model(&mesh).expect("Mesh was empty!")

@@ -80,6 +80,18 @@ impl GiantTree {
             None
         }
     }
+
+    pub fn leaf_color(&self) -> Rgb<u8> {
+        let fast_noise = FastNoise::new(self.seed);
+        let dark = Rgb::new(10, 70, 50).map(|e| e as f32);
+        let light = Rgb::new(80, 140, 10).map(|e| e as f32);
+        Lerp::lerp(
+            dark,
+            light,
+            fast_noise.get((self.wpos.map(|e| e as f64) * 0.05) * 0.5 + 0.5),
+        )
+        .map(|e| e as u8)
+    }
 }
 
 impl Structure for GiantTree {
@@ -88,14 +100,7 @@ impl Structure for GiantTree {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_gianttree")]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
-        let fast_noise = FastNoise::new(self.seed);
-        let dark = Rgb::new(10, 70, 50).map(|e| e as f32);
-        let light = Rgb::new(80, 140, 10).map(|e| e as f32);
-        let leaf_col = Lerp::lerp(
-            dark,
-            light,
-            fast_noise.get((self.wpos.map(|e| e as f64) * 0.05) * 0.5 + 0.5),
-        );
+        let leaf_col = self.leaf_color();
         let mut rng = rand::thread_rng();
         self.tree.walk(|branch, parent| {
             let aabr = Aabr {
@@ -122,10 +127,7 @@ impl Structure for GiantTree {
                             parent.get_leaf_radius(),
                             branch.get_leaf_radius(),
                         )
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            leaf_col.map(|e| e as u8),
-                        )));
+                        .fill(Fill::Block(Block::new(BlockKind::Leaves, leaf_col)));
                     // Calculate direction of the branch
                     let branch_start = branch.get_line().start;
                     let branch_end = branch.get_line().end;

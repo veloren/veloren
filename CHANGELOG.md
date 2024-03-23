@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow moving and resizing the chat with left and right mouse button respectively.
 - Missing plugins are requested from the server and cached locally.
 - Support for adding spots in plugins.
+- Added real colours to LOD trees and rooftops, unique models for most tree kinds, and models for several buildings
 
 ### Changed
 
