@@ -1,10 +1,8 @@
 use crate::{
     assets::{self, AssetCombined, Concatenate},
+    combat::GroupTarget,
     comp::{
-        self,
-        aura::{AuraKindVariant, SimpleAuraTarget},
-        buff::BuffKind,
-        inventory::item::try_all_item_defs,
+        self, aura::AuraKindVariant, buff::BuffKind, inventory::item::try_all_item_defs,
         AdminRole as Role, Skill,
     },
     generation::try_all_entity_configs,
@@ -443,7 +441,7 @@ impl ServerChatCommand {
                     Float("aura_radius", 10.0, Required),
                     Float("aura_duration", 10.0, Optional),
                     Boolean("new_entity", "true".to_string(), Optional),
-                    Enum("aura_target", SimpleAuraTarget::all_options(), Optional),
+                    Enum("aura_target", GroupTarget::all_options(), Optional),
                     Enum("aura_kind", AuraKindVariant::all_options(), Required),
                     Any("aura spec", Optional),
                 ],
@@ -1335,13 +1333,12 @@ macro_rules! impl_from_to_str_cmd {
 impl_from_to_str_cmd!(AuraKindVariant, (
     Buff => "buff",
     FriendlyFire => "friendly_fire",
-    IgnorePvE => "ingore_pve"
+    ForcePvP => "force_pvp"
 ));
 
-impl_from_to_str_cmd!(SimpleAuraTarget, (
-    Group => "group",
-    OutOfGroup => "out_of_group",
-    All => "all"
+impl_from_to_str_cmd!(GroupTarget, (
+    InGroup => "in_group",
+    OutOfGroup => "out_of_group"
 ));
 
 /// Parse a series of command arguments into values, including collecting all

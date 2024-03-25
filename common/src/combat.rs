@@ -90,8 +90,8 @@ pub struct TargetInfo<'a> {
 #[derive(Clone, Copy)]
 pub struct AttackOptions {
     pub target_dodging: bool,
-    /// Result of [`may_harm`]
-    pub may_harm: bool,
+    /// Result of [`permit_pvp`]
+    pub permit_pvp: bool,
     pub target_group: GroupTarget,
     /// When set to `true`, entities in the same group or pets & pet owners may
     /// hit eachother albeit the target_group being OutOfGroup
@@ -275,7 +275,7 @@ impl Attack {
 
         let AttackOptions {
             target_dodging,
-            may_harm,
+            permit_pvp,
             allow_friendly_fire,
             target_group,
             precision_mult,
@@ -288,11 +288,11 @@ impl Attack {
         // it should avoid such "damage" or effect, unless friendly fire is enabled
         let avoid_damage = |attack_damage: &AttackDamage| {
             (matches!(attack_damage.target, Some(GroupTarget::OutOfGroup)) && !allow_friendly_fire)
-                && (target_dodging || !may_harm)
+                && (target_dodging || !permit_pvp)
         };
         let avoid_effect = |attack_effect: &AttackEffect| {
             (matches!(attack_effect.target, Some(GroupTarget::OutOfGroup)) && !allow_friendly_fire)
-                && (target_dodging || !may_harm)
+                && (target_dodging || !permit_pvp)
         };
         let precision_mult = attacker
             .and_then(|a| a.stats)
@@ -811,7 +811,7 @@ pub fn allow_friendly_fire(
 /// If both players have PvP mode enabled, interact with NPC and
 /// in any other case, this function will return `true`
 // TODO: add parameter for doing self-harm?
-pub fn may_harm(
+pub fn permit_pvp(
     alignments: &ReadStorage<Alignment>,
     players: &ReadStorage<Player>,
     entered_auras: &ReadStorage<EnteredAuras>,
@@ -849,16 +849,18 @@ pub fn may_harm(
         entered_auras.get(target_owner),
     ) && attacker_auras
         .auras
-        .get(&AuraKindVariant::IgnorePvE)
-        .zip(target_auras.auras.get(&AuraKindVariant::IgnorePvE))
+        .get(&AuraKindVariant::ForcePvP)
+        .zip(target_auras.auras.get(&AuraKindVariant::ForcePvP))
         // Only allow forced pvp if both entities are affectd by the same FriendlyFire aura
         .is_some_and(|(attacker, target)| attacker.intersection(target).next().is_some())
     {
         return true;
     }
 
-    // Prevent owners from attacking their pets and vice versa, unless friendly fire
-    // is enabled
+    // Prevent PvP between pets, unless friendly fire is enabled
+    //
+    // This code is NOT intended to prevent pet <-> owner combat,
+    // pets and their owners being in the same group should take care of that
     if attacker_owner == target_owner {
         return allow_friendly_fire(entered_auras, attacker, target);
     }

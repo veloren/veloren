@@ -28,7 +28,7 @@ use common::{
     },
     comp::{
         self,
-        aura::{AuraKindVariant, AuraTarget, SimpleAuraTarget},
+        aura::{AuraKindVariant, AuraTarget},
         buff::{Buff, BuffData, BuffKind, BuffSource, MiscBuffData},
         inventory::{
             item::{all_items_expect, tool::AbilityMap, MaterialStatManifest, Quality},
@@ -57,7 +57,8 @@ use common::{
     tether::Tethered,
     uid::Uid,
     vol::ReadVol,
-    weather, Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
+    weather, Damage, DamageKind, DamageSource, Explosion, GroupTarget, LoadoutBuilder,
+    RadiusEffect,
 };
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
@@ -3980,14 +3981,11 @@ fn handle_aura(
     let target_uid = uid(server, target, "target")?;
 
     let (Some(aura_radius), aura_duration, new_entity, aura_target, Some(aura_kind_variant), spec) =
-        parse_cmd_args!(args, f32, f32, bool, SimpleAuraTarget, AuraKindVariant, ..Vec<String>)
+        parse_cmd_args!(args, f32, f32, bool, GroupTarget, AuraKindVariant, ..Vec<String>)
     else {
         return Err(Content::Plain(action.help_string()));
     };
-    let (new_entity, aura_target) = (
-        new_entity.unwrap_or(false),
-        aura_target.unwrap_or(SimpleAuraTarget::OutOfGroup),
-    );
+    let new_entity = new_entity.unwrap_or(false);
     let aura_kind = match aura_kind_variant {
         AuraKindVariant::Buff => {
             let (Some(buff), strength, duration, misc_data_spec) =
@@ -4026,15 +4024,15 @@ fn handle_aura(
             }
         },
         AuraKindVariant::FriendlyFire => AuraKind::FriendlyFire,
-        AuraKindVariant::IgnorePvE => AuraKind::ForcePvP,
+        AuraKindVariant::ForcePvP => AuraKind::ForcePvP,
     };
     let aura_target = server
         .state
         .read_component_copied::<Uid>(target)
         .map(|uid| match aura_target {
-            SimpleAuraTarget::Group => AuraTarget::GroupOf(uid),
-            SimpleAuraTarget::OutOfGroup => AuraTarget::NotGroupOf(uid),
-            SimpleAuraTarget::All => AuraTarget::All,
+            Some(GroupTarget::InGroup) => AuraTarget::GroupOf(uid),
+            Some(GroupTarget::OutOfGroup) => AuraTarget::NotGroupOf(uid),
+            None => AuraTarget::All,
         })
         .unwrap_or(AuraTarget::All);
 

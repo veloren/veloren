@@ -241,12 +241,12 @@ fn activate_aura(
             //
             // We don't have this for now, but think about this
             // when we will add this.
-            let may_harm = || {
+            let permit_pvp = || {
                 let owner = match source {
                     BuffSource::Character { by } => read_data.id_maps.uid_entity(by),
                     _ => None,
                 };
-                combat::may_harm(
+                combat::permit_pvp(
                     &read_data.alignments,
                     &read_data.players,
                     &read_data.entered_auras,
@@ -256,7 +256,7 @@ fn activate_aura(
                 )
             };
 
-            conditions_held && (kind.is_buff() || allow_friendly_fire || may_harm())
+            conditions_held && (kind.is_buff() || allow_friendly_fire || permit_pvp())
         },
         AuraKind::FriendlyFire => true,
         AuraKind::ForcePvP => {

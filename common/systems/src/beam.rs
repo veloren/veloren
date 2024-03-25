@@ -251,7 +251,7 @@ impl<'a> System<'a> for Sys {
                                 .and_then(|cs| cs.attack_immunities())
                                 .map_or(false, |i| i.beams);
                             // PvP check
-                            let may_harm = combat::may_harm(
+                            let permit_pvp = combat::permit_pvp(
                                 &read_data.alignments,
                                 &read_data.players,
                                 &read_data.entered_auras,
@@ -284,7 +284,7 @@ impl<'a> System<'a> for Sys {
 
                             let attack_options = AttackOptions {
                                 target_dodging,
-                                may_harm,
+                                permit_pvp,
                                 allow_friendly_fire,
                                 target_group,
                                 precision_mult,

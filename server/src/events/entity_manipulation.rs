@@ -1203,9 +1203,7 @@ impl ServerEvent for ExplosionEvent {
                             ),
                         )
                             .join()
-                            .filter(|(e, _, h, _)| {
-                                !h.is_dead && owner_entity.map_or(true, |owner| owner != *e)
-                            })
+                            .filter(|(_, _, h, _)| !h.is_dead)
                         {
                             let dist_sqrd = ev.pos.distance_squared(pos_b.0);
 
@@ -1289,7 +1287,7 @@ impl ServerEvent for ExplosionEvent {
                                         )
                                     });
                                 // PvP check
-                                let may_harm = combat::may_harm(
+                                let permit_pvp = combat::permit_pvp(
                                     &alignments,
                                     &players,
                                     &entered_auras,
@@ -1299,7 +1297,7 @@ impl ServerEvent for ExplosionEvent {
                                 );
                                 let attack_options = combat::AttackOptions {
                                     target_dodging,
-                                    may_harm,
+                                    permit_pvp,
                                     allow_friendly_fire,
                                     target_group,
                                     precision_mult: None,
@@ -1323,9 +1321,7 @@ impl ServerEvent for ExplosionEvent {
                     },
                     RadiusEffect::Entity(mut effect) => {
                         for (entity_b, pos_b, body_b_maybe) in
-                            (&entities, &positions, bodies.maybe())
-                                .join()
-                                .filter(|(e, _, _)| owner_entity.map_or(true, |owner| owner != *e))
+                            (&entities, &positions, bodies.maybe()).join()
                         {
                             let strength = if let Some(body) = body_b_maybe {
                                 cylinder_sphere_strength(
@@ -1350,8 +1346,8 @@ impl ServerEvent for ExplosionEvent {
                             // you want to harm yourself.
                             //
                             // This can be changed later.
-                            let may_harm = || {
-                                combat::may_harm(
+                            let permit_pvp = || {
+                                combat::permit_pvp(
                                     &alignments,
                                     &players,
                                     &entered_auras,
@@ -1365,7 +1361,7 @@ impl ServerEvent for ExplosionEvent {
 
                                 if is_alive {
                                     effect.modify_strength(strength);
-                                    if !effect.is_harm() || may_harm() {
+                                    if !effect.is_harm() || permit_pvp() {
                                         emit_effect_events(
                                             &mut emitters,
                                             *time,

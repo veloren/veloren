@@ -194,6 +194,12 @@ impl<'a> System<'a> for Sys {
                 };
 
                 // Check if it is a hit
+                //
+                // TODO: Should the owner entity really be filtered out here? Unlike other
+                // attacks, explosions and shockwaves are rather "imprecise"
+                // attacks with which one shoud be easily able to hit oneself.
+                // Once we make shockwaves start out a little way out from the center, this can
+                // be removed.
                 let hit = entity != target
                     && shockwave_owner.map_or(true, |owner| owner != target)
                     && !health_b.is_dead
@@ -252,7 +258,7 @@ impl<'a> System<'a> for Sys {
                             ShockwaveDodgeable::No => false,
                         });
                     // PvP check
-                    let may_harm = combat::may_harm(
+                    let permit_pvp = combat::permit_pvp(
                         &read_data.alignments,
                         &read_data.players,
                         &read_data.entered_auras,
@@ -264,7 +270,7 @@ impl<'a> System<'a> for Sys {
                     let precision_mult = None;
                     let attack_options = AttackOptions {
                         target_dodging,
-                        may_harm,
+                        permit_pvp,
                         allow_friendly_fire,
                         target_group,
                         precision_mult,

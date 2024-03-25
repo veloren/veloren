@@ -39,7 +39,7 @@ pub enum AuraKind {
 pub enum AuraKindVariant {
     Buff,
     FriendlyFire,
-    IgnorePvE,
+    ForcePvP,
 }
 
 /// Aura
@@ -90,13 +90,6 @@ pub enum AuraTarget {
     All,
 }
 
-// Only used for parsing in commands
-pub enum SimpleAuraTarget {
-    Group,
-    OutOfGroup,
-    All,
-}
-
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Specifier {
     WardingAura,
@@ -120,7 +113,7 @@ impl AsRef<AuraKindVariant> for AuraKind {
         match self {
             AuraKind::Buff { .. } => &AuraKindVariant::Buff,
             AuraKind::FriendlyFire => &AuraKindVariant::FriendlyFire,
-            AuraKind::ForcePvP => &AuraKindVariant::IgnorePvE,
+            AuraKind::ForcePvP => &AuraKindVariant::ForcePvP,
         }
     }
 }

@@ -163,7 +163,7 @@ impl<'a> System<'a> for Sys {
                 if let Some((_, burning)) = buff_comp.iter_kind(BuffKind::Burning).next() {
                     for t_entity in physics_state.touch_entities.keys().filter_map(|te_uid| {
                         read_data.id_maps.uid_entity(*te_uid).filter(|te| {
-                            combat::may_harm(
+                            combat::permit_pvp(
                                 &read_data.alignments,
                                 &read_data.players,
                                 &read_data.entered_auras,

@@ -374,7 +374,7 @@ fn dispatch_hit(
             });
 
             // PvP check
-            let may_harm = combat::may_harm(
+            let permit_pvp = combat::permit_pvp(
                 &read_data.alignments,
                 &read_data.players,
                 &read_data.entered_auras,
@@ -467,7 +467,7 @@ fn dispatch_hit(
 
             let attack_options = AttackOptions {
                 target_dodging,
-                may_harm,
+                permit_pvp,
                 allow_friendly_fire,
                 target_group: projectile_target_info.target_group,
                 precision_mult,
