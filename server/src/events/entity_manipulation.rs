@@ -2165,8 +2165,7 @@ pub fn handle_transform(
 #[derive(Debug)]
 pub enum TransformEntityError {
     EntityDead,
-    UnexpectedNpcWaypoint,
-    UnexpectedNpcTeleporter,
+    UnexpectedSpecialEntity,
     LoadingCharacter,
     EntityIsPlayer,
 }
@@ -2308,11 +2307,8 @@ pub fn transform_entity(
                 }
             }
         },
-        SpawnEntityData::Waypoint(_) => {
-            return Err(TransformEntityError::UnexpectedNpcWaypoint);
-        },
-        SpawnEntityData::Teleporter(_, _) => {
-            return Err(TransformEntityError::UnexpectedNpcTeleporter);
+        SpawnEntityData::Special(_, _) => {
+            return Err(TransformEntityError::UnexpectedSpecialEntity);
         },
     }
 

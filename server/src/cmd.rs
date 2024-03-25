@@ -42,10 +42,10 @@ use common::{
     depot,
     effect::Effect,
     event::{
-        ClientDisconnectEvent, CreateNpcEvent, CreateWaypointEvent, EventBus, ExplosionEvent,
+        ClientDisconnectEvent, CreateNpcEvent, CreateSpecialEntityEvent, EventBus, ExplosionEvent,
         GroupManipEvent, InitiateInviteEvent, TamePetEvent,
     },
-    generation::{EntityConfig, EntityInfo},
+    generation::{EntityConfig, EntityInfo, SpecialEntity},
     link::Is,
     mounting::{Rider, Volume, VolumeRider},
     npc::{self, get_npc_name},
@@ -670,11 +670,8 @@ fn handle_into_npc(
         TransformEntityError::EntityDead => {
             Content::localized_with_args("command-entity-dead", [("entity", "target")])
         },
-        TransformEntityError::UnexpectedNpcWaypoint => {
-            Content::localized("command-unimplemented-waypoint-spawn")
-        },
-        TransformEntityError::UnexpectedNpcTeleporter => {
-            Content::localized("command-unimplemented-teleporter-spawn")
+        TransformEntityError::UnexpectedSpecialEntity => {
+            Content::localized("command-unimplemented-spawn-special")
         },
         TransformEntityError::LoadingCharacter => {
             Content::localized("command-transform-invalid-presence")
@@ -731,11 +728,8 @@ fn handle_make_npc(
         );
 
         match SpawnEntityData::from_entity_info(entity_info) {
-            SpawnEntityData::Waypoint(_) => {
-                return Err(Content::localized("command-unimplemented-waypoint-spawn"));
-            },
-            SpawnEntityData::Teleporter(_, _) => {
-                return Err(Content::localized("command-unimplemented-teleporter-spawn"));
+            SpawnEntityData::Special(_, _) => {
+                return Err(Content::localized("command-unimplemented-spawn-special"));
             },
             SpawnEntityData::Npc(data) => {
                 let (npc_builder, _pos) = data.to_npc_builder();
@@ -2000,8 +1994,11 @@ fn handle_spawn_campfire(
     server
         .state
         .ecs()
-        .read_resource::<EventBus<CreateWaypointEvent>>()
-        .emit_now(CreateWaypointEvent(pos.0));
+        .read_resource::<EventBus<CreateSpecialEntityEvent>>()
+        .emit_now(CreateSpecialEntityEvent {
+            pos: pos.0,
+            entity: SpecialEntity::Waypoint,
+        });
 
     server.notify_client(
         client,

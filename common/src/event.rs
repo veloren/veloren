@@ -6,10 +6,9 @@ use crate::{
         agent::Sound,
         dialogue::Subject,
         invite::{InviteKind, InviteResponse},
-        misc::PortalData,
         DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
     },
-    generation::EntityInfo,
+    generation::{EntityInfo, SpecialEntity},
     lottery::LootSpec,
     mounting::VolumePos,
     outcome::Outcome,
@@ -152,8 +151,10 @@ pub struct ChatEvent(pub UnresolvedChatMsg);
 pub struct CommandEvent(pub EcsEntity, pub String, pub Vec<String>);
 
 // Entity Creation
-pub struct CreateWaypointEvent(pub Vec3<f32>);
-pub struct CreateTeleporterEvent(pub Vec3<f32>, pub PortalData);
+pub struct CreateSpecialEntityEvent {
+    pub pos: Vec3<f32>,
+    pub entity: SpecialEntity,
+}
 
 pub struct CreateNpcEvent {
     pub pos: Pos,
@@ -498,8 +499,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<ClientDisconnectWithoutPersistenceEvent>::default());
     ecs.insert(EventBus::<ChatEvent>::default());
     ecs.insert(EventBus::<CommandEvent>::default());
-    ecs.insert(EventBus::<CreateWaypointEvent>::default());
-    ecs.insert(EventBus::<CreateTeleporterEvent>::default());
+    ecs.insert(EventBus::<CreateSpecialEntityEvent>::default());
     ecs.insert(EventBus::<CreateNpcEvent>::default());
     ecs.insert(EventBus::<CreateShipEvent>::default());
     ecs.insert(EventBus::<CreateItemDropEvent>::default());

@@ -1234,9 +1234,14 @@ impl Structure for DesertCityArena {
                 .fill(sandstone.clone());
             // campfires & repair benches
             painter.spawn(
-                EntityInfo::at((spire_pos - 2).with_z(base - 1).map(|e| e as f32))
+                EntityInfo::at((spire_pos - 2).with_z(base - 1).as_())
                     .into_special(SpecialEntity::Waypoint),
             );
+            painter.spawn(EntityInfo::at(center.with_z(base).as_()).into_special(
+                SpecialEntity::ArenaTotem {
+                    range: length as f32,
+                },
+            ));
             painter.sprite((spire_pos + 2).with_z(base - 1), SpriteKind::RepairBench);
 
             // lamps

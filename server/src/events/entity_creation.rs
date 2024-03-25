@@ -13,9 +13,10 @@ use common::{
     },
     event::{
         CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent, CreateShipEvent,
-        CreateTeleporterEvent, CreateWaypointEvent, EventBus, InitializeCharacterEvent,
-        InitializeSpectatorEvent, ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
+        CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent, InitializeSpectatorEvent,
+        ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
     },
+    generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
     outcome::Outcome,
     resources::{Secs, Time},
@@ -388,53 +389,76 @@ pub fn handle_shockwave(server: &mut Server, ev: ShockwaveEvent) {
         .build();
 }
 
-pub fn handle_create_waypoint(server: &mut Server, ev: CreateWaypointEvent) {
+pub fn handle_create_special_entity(server: &mut Server, ev: CreateSpecialEntityEvent) {
     let time = server.state.get_time();
-    server
-        .state
-        .create_object(Pos(ev.0), comp::object::Body::CampfireLit)
-        .with(LightEmitter {
-            col: Rgb::new(1.0, 0.3, 0.1),
-            strength: 5.0,
-            flicker: 1.0,
-            animated: true,
-        })
-        .with(WaypointArea::default())
-        .with(comp::Immovable)
-        .with(comp::Auras::new(vec![
-            Aura::new(
-                AuraKind::Buff {
-                    kind: BuffKind::CampfireHeal,
-                    data: BuffData::new(0.02, Some(Secs(1.0))),
-                    category: BuffCategory::Natural,
-                    source: BuffSource::World,
-                },
-                5.0,
-                None,
-                AuraTarget::All,
-                Time(time),
-            ),
-            Aura::new(
-                AuraKind::Buff {
-                    kind: BuffKind::Burning,
-                    data: BuffData::new(2.0, Some(Secs(10.0))),
-                    category: BuffCategory::Natural,
-                    source: BuffSource::World,
-                },
-                0.7,
-                None,
-                AuraTarget::All,
-                Time(time),
-            ),
-        ]))
-        .build();
-}
 
-pub fn handle_create_teleporter(server: &mut Server, ev: CreateTeleporterEvent) {
-    server
-        .state
-        .create_teleporter(comp::Pos(ev.0), ev.1)
-        .build();
+    match ev.entity {
+        SpecialEntity::Waypoint => {
+            server
+                .state
+                .create_object(Pos(ev.pos), comp::object::Body::CampfireLit)
+                .with(LightEmitter {
+                    col: Rgb::new(1.0, 0.3, 0.1),
+                    strength: 5.0,
+                    flicker: 1.0,
+                    animated: true,
+                })
+                .with(WaypointArea::default())
+                .with(comp::Immovable)
+                .with(comp::EnteredAuras::default())
+                .with(comp::Auras::new(vec![
+                    Aura::new(
+                        AuraKind::Buff {
+                            kind: BuffKind::CampfireHeal,
+                            data: BuffData::new(0.02, Some(Secs(1.0))),
+                            category: BuffCategory::Natural,
+                            source: BuffSource::World,
+                        },
+                        5.0,
+                        None,
+                        AuraTarget::All,
+                        Time(time),
+                    ),
+                    Aura::new(
+                        AuraKind::Buff {
+                            kind: BuffKind::Burning,
+                            data: BuffData::new(2.0, Some(Secs(10.0))),
+                            category: BuffCategory::Natural,
+                            source: BuffSource::World,
+                        },
+                        0.7,
+                        None,
+                        AuraTarget::All,
+                        Time(time),
+                    ),
+                ]))
+                .build();
+        },
+        SpecialEntity::Teleporter(portal) => {
+            server
+                .state
+                .create_teleporter(comp::Pos(ev.pos), portal)
+                .build();
+        },
+        SpecialEntity::ArenaTotem { range } => {
+            server
+                .state
+                .create_object(Pos(ev.pos), comp::object::Body::GnarlingTotemGreen)
+                .with(comp::Immovable)
+                .with(comp::EnteredAuras::default())
+                .with(comp::Auras::new(vec![
+                    Aura::new(
+                        AuraKind::FriendlyFire,
+                        range,
+                        None,
+                        AuraTarget::All,
+                        Time(time),
+                    ),
+                    Aura::new(AuraKind::ForcePvP, range, None, AuraTarget::All, Time(time)),
+                ]))
+                .build();
+        },
+    }
 }
 
 pub fn handle_create_item_drop(server: &mut Server, ev: CreateItemDropEvent) {
