@@ -63,6 +63,8 @@ pub trait StateExt {
         inventory: Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder;
+    /// Create an entity with only a position
+    fn create_empty(&mut self, pos: comp::Pos) -> EcsEntityBuilder;
     /// Build a static object entity
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder;
     /// Create an item drop or merge the item with an existing drop, if a
@@ -314,16 +316,21 @@ impl StateExt for State {
             .with(comp::Buffs::default())
             .with(comp::Combo::default())
             .with(comp::Auras::default())
+            .with(comp::EnteredAuras::default())
             .with(comp::Stance::default())
     }
 
-    fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder {
-        let body = comp::Body::Object(object);
+    fn create_empty(&mut self, pos: comp::Pos) -> EcsEntityBuilder {
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
+    }
+
+    fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder {
+        let body = comp::Body::Object(object);
+        self.create_empty(pos)
             .with(body.mass())
             .with(body.density())
             .with(body.collider())
@@ -628,6 +635,7 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Alignment::Owned(player_uid));
             self.write_component_ignore_entity_dead(entity, comp::Buffs::default());
             self.write_component_ignore_entity_dead(entity, comp::Auras::default());
+            self.write_component_ignore_entity_dead(entity, comp::EnteredAuras::default());
             self.write_component_ignore_entity_dead(entity, comp::Combo::default());
             self.write_component_ignore_entity_dead(entity, comp::Stance::default());
 

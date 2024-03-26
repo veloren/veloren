@@ -94,6 +94,7 @@ impl CharacterBehavior for Data {
                                     data.strength *=
                                         (self.static_data.combo_at_cast.max(1) as f32).sqrt();
                                 },
+                                AuraKind::FriendlyFire | AuraKind::ForcePvP => {},
                             }
                             output_events.emit_server(ComboChangeEvent {
                                 entity: data.entity,

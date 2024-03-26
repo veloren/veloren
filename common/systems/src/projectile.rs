@@ -2,6 +2,7 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
+        aura::EnteredAuras,
         projectile, Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health,
         Inventory, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
     },
@@ -71,6 +72,7 @@ pub struct ReadData<'a> {
     character_states: ReadStorage<'a, CharacterState>,
     terrain: ReadExpect<'a, TerrainGrid>,
     buffs: ReadStorage<'a, Buffs>,
+    entered_auras: ReadStorage<'a, EnteredAuras>,
 }
 
 /// This system is responsible for handling projectile effect triggers
@@ -138,7 +140,20 @@ impl<'a> System<'a> for Sys {
                     GroupTarget::OutOfGroup
                 };
 
-                if projectile.ignore_group && same_group {
+                if projectile.ignore_group
+                    && same_group
+                    && projectile
+                        .owner
+                        .and_then(|owner| {
+                            read_data
+                                .id_maps
+                                .uid_entity(owner)
+                                .zip(read_data.id_maps.uid_entity(other))
+                        })
+                        .map_or(true, |(owner, other)| {
+                            !combat::allow_friendly_fire(&read_data.entered_auras, owner, other)
+                        })
+                {
                     continue;
                 }
 
@@ -354,10 +369,15 @@ fn dispatch_hit(
                 });
             }
 
+            let allow_friendly_fire = owner.is_some_and(|owner| {
+                combat::allow_friendly_fire(&read_data.entered_auras, owner, target)
+            });
+
             // PvP check
-            let may_harm = combat::may_harm(
+            let permit_pvp = combat::permit_pvp(
                 &read_data.alignments,
                 &read_data.players,
+                &read_data.entered_auras,
                 &read_data.id_maps,
                 owner,
                 target,
@@ -447,7 +467,8 @@ fn dispatch_hit(
 
             let attack_options = AttackOptions {
                 target_dodging,
-                may_harm,
+                permit_pvp,
+                allow_friendly_fire,
                 target_group: projectile_target_info.target_group,
                 precision_mult,
             };

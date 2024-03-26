@@ -54,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing plugins are requested from the server and cached locally.
 - Support for adding spots in plugins.
 - Added real colours to LOD trees and rooftops, unique models for most tree kinds, and models for several buildings
+- `/aura` command
+- Friendly Fire and Forced PvP auras to desert city arenas
 
 ### Changed
 

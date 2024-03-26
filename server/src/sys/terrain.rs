@@ -13,12 +13,10 @@ use crate::{
 use common::{
     calendar::Calendar,
     comp::{
-        self, agent, biped_small, bird_medium, misc::PortalData, BehaviorCapability, ForceUpdate,
-        Pos, Presence, Waypoint,
+        self, agent, biped_small, bird_medium, BehaviorCapability, ForceUpdate, Pos, Presence,
+        Waypoint,
     },
-    event::{
-        CreateNpcEvent, CreateTeleporterEvent, CreateWaypointEvent, EmitExt, EventBus, NpcBuilder,
-    },
+    event::{CreateNpcEvent, CreateSpecialEntityEvent, EmitExt, EventBus, NpcBuilder},
     event_emitters,
     generation::{EntityInfo, SpecialEntity},
     lottery::LootSpec,
@@ -58,8 +56,7 @@ type RtSimData<'a> = ();
 event_emitters! {
     struct Events[Emitters] {
         create_npc: CreateNpcEvent,
-        create_waypoint: CreateWaypointEvent,
-        create_teleporter: CreateTeleporterEvent,
+        create_waypoint: CreateSpecialEntityEvent,
     }
 }
 
@@ -207,8 +204,8 @@ impl<'a> System<'a> for Sys {
 
                 let data = SpawnEntityData::from_entity_info(entity);
                 match data {
-                    SpawnEntityData::Waypoint(pos) => {
-                        emitters.emit(CreateWaypointEvent(pos));
+                    SpawnEntityData::Special(pos, entity) => {
+                        emitters.emit(CreateSpecialEntityEvent { pos, entity });
                     },
                     SpawnEntityData::Npc(data) => {
                         let (npc_builder, pos) = data.to_npc_builder();
@@ -219,9 +216,6 @@ impl<'a> System<'a> for Sys {
                             npc: npc_builder.with_anchor(comp::Anchor::Chunk(key)),
                             rider: None,
                         });
-                    },
-                    SpawnEntityData::Teleporter(pos, teleporter) => {
-                        emitters.emit(CreateTeleporterEvent(pos, teleporter));
                     },
                 }
             }
@@ -423,8 +417,7 @@ pub struct NpcData {
 #[derive(Debug)]
 pub enum SpawnEntityData {
     Npc(NpcData),
-    Waypoint(Vec3<f32>),
-    Teleporter(Vec3<f32>, PortalData),
+    Special(Vec3<f32>, SpecialEntity),
 }
 
 impl SpawnEntityData {
@@ -454,10 +447,7 @@ impl SpawnEntityData {
         } = entity;
 
         if let Some(special) = special_entity {
-            return match special {
-                SpecialEntity::Waypoint => Self::Waypoint(pos),
-                SpecialEntity::Teleporter(teleporter) => Self::Teleporter(pos, teleporter),
-            };
+            return Self::Special(pos, special);
         }
 
         let name = name.unwrap_or_else(|| "Unnamed".to_string());

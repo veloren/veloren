@@ -1,6 +1,7 @@
 use crate::{
     comp::{
         ability::Capability,
+        aura::{AuraKindVariant, EnteredAuras},
         buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
         inventory::{
             item::{
@@ -89,8 +90,12 @@ pub struct TargetInfo<'a> {
 #[derive(Clone, Copy)]
 pub struct AttackOptions {
     pub target_dodging: bool,
-    pub may_harm: bool,
+    /// Result of [`permit_pvp`]
+    pub permit_pvp: bool,
     pub target_group: GroupTarget,
+    /// When set to `true`, entities in the same group or pets & pet owners may
+    /// hit eachother albeit the target_group being OutOfGroup
+    pub allow_friendly_fire: bool,
     pub precision_mult: Option<f32>,
 }
 
@@ -270,7 +275,8 @@ impl Attack {
 
         let AttackOptions {
             target_dodging,
-            may_harm,
+            permit_pvp,
+            allow_friendly_fire,
             target_group,
             precision_mult,
         } = options;
@@ -279,14 +285,14 @@ impl Attack {
         // "attack" has negative effects.
         //
         // so if target dodges this "attack" or we don't want to harm target,
-        // it should avoid such "damage" or effect
+        // it should avoid such "damage" or effect, unless friendly fire is enabled
         let avoid_damage = |attack_damage: &AttackDamage| {
-            matches!(attack_damage.target, Some(GroupTarget::OutOfGroup))
-                && (target_dodging || !may_harm)
+            (matches!(attack_damage.target, Some(GroupTarget::OutOfGroup)) && !allow_friendly_fire)
+                && (target_dodging || !permit_pvp)
         };
         let avoid_effect = |attack_effect: &AttackEffect| {
-            matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
-                && (target_dodging || !may_harm)
+            (matches!(attack_effect.target, Some(GroupTarget::OutOfGroup)) && !allow_friendly_fire)
+                && (target_dodging || !permit_pvp)
         };
         let precision_mult = attacker
             .and_then(|a| a.stats)
@@ -300,7 +306,7 @@ impl Attack {
         for damage in self
             .damages
             .iter()
-            .filter(|d| d.target.map_or(true, |t| t == target_group))
+            .filter(|d| allow_friendly_fire || d.target.map_or(true, |t| t == target_group))
             .filter(|d| !avoid_damage(d))
         {
             let damage_instance = damage.instance + damage_instance_offset;
@@ -594,7 +600,7 @@ impl Attack {
                     .iter()
                     .flat_map(|stats| stats.effects_on_attack.iter()),
             )
-            .filter(|e| e.target.map_or(true, |t| t == target_group))
+            .filter(|e| allow_friendly_fire || e.target.map_or(true, |t| t == target_group))
             .filter(|e| !avoid_effect(e))
         {
             let requirements_met = effect.requirements.iter().all(|req| match req {
@@ -778,6 +784,24 @@ impl Attack {
     }
 }
 
+pub fn allow_friendly_fire(
+    entered_auras: &ReadStorage<EnteredAuras>,
+    attacker: EcsEntity,
+    target: EcsEntity,
+) -> bool {
+    entered_auras
+        .get(attacker)
+        .zip(entered_auras.get(target))
+        .and_then(|(attacker, target)| {
+            Some((
+                attacker.auras.get(&AuraKindVariant::FriendlyFire)?,
+                target.auras.get(&AuraKindVariant::FriendlyFire)?,
+            ))
+        })
+        // Only allow friendly fire if both entities are affectd by the same FriendlyFire aura
+        .is_some_and(|(attacker, target)| attacker.intersection(target).next().is_some())
+}
+
 /// Function that checks for unintentional PvP between players.
 ///
 /// Returns `false` if attack will create unintentional conflict,
@@ -787,9 +811,10 @@ impl Attack {
 /// If both players have PvP mode enabled, interact with NPC and
 /// in any other case, this function will return `true`
 // TODO: add parameter for doing self-harm?
-pub fn may_harm(
+pub fn permit_pvp(
     alignments: &ReadStorage<Alignment>,
     players: &ReadStorage<Player>,
+    entered_auras: &ReadStorage<EnteredAuras>,
     id_maps: &IdMaps,
     attacker: Option<EcsEntity>,
     target: EcsEntity,
@@ -815,17 +840,34 @@ pub fn may_harm(
     };
 
     // "Dereference" to owner if this is a pet.
-    let attacker = owner_if_pet(attacker);
-    let target = owner_if_pet(target);
+    let attacker_owner = owner_if_pet(attacker);
+    let target_owner = owner_if_pet(target);
 
-    // Prevent owners from attacking their pets and vice versa
-    if attacker == target {
-        return false;
+    // If both players are in the same ForcePvP aura, allow them to harm eachother
+    if let (Some(attacker_auras), Some(target_auras)) = (
+        entered_auras.get(attacker_owner),
+        entered_auras.get(target_owner),
+    ) && attacker_auras
+        .auras
+        .get(&AuraKindVariant::ForcePvP)
+        .zip(target_auras.auras.get(&AuraKindVariant::ForcePvP))
+        // Only allow forced pvp if both entities are affectd by the same FriendlyFire aura
+        .is_some_and(|(attacker, target)| attacker.intersection(target).next().is_some())
+    {
+        return true;
+    }
+
+    // Prevent PvP between pets, unless friendly fire is enabled
+    //
+    // This code is NOT intended to prevent pet <-> owner combat,
+    // pets and their owners being in the same group should take care of that
+    if attacker_owner == target_owner {
+        return allow_friendly_fire(entered_auras, attacker, target);
     }
 
     // Get player components
-    let attacker_info = players.get(attacker);
-    let target_info = players.get(target);
+    let attacker_info = players.get(attacker_owner);
+    let target_info = players.get(target_owner);
 
     // Return `true` if not players.
     attacker_info

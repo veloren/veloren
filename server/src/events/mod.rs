@@ -14,8 +14,8 @@ use specs::{
 use self::{
     entity_creation::{
         handle_create_item_drop, handle_create_npc, handle_create_object, handle_create_ship,
-        handle_create_teleporter, handle_create_waypoint, handle_initialize_character,
-        handle_initialize_spectator, handle_loaded_character_data, handle_shockwave, handle_shoot,
+        handle_create_special_entity, handle_initialize_character, handle_initialize_spectator,
+        handle_loaded_character_data, handle_shockwave, handle_shoot,
     },
     entity_manipulation::{handle_delete, handle_transform},
     interaction::handle_tame_pet,
@@ -146,8 +146,7 @@ impl Server {
         self.handle_serial_events(handle_create_ship);
         self.handle_serial_events(handle_shoot);
         self.handle_serial_events(handle_shockwave);
-        self.handle_serial_events(handle_create_waypoint);
-        self.handle_serial_events(handle_create_teleporter);
+        self.handle_serial_events(handle_create_special_entity);
         self.handle_serial_events(handle_create_item_drop);
         self.handle_serial_events(handle_create_object);
         self.handle_serial_events(handle_delete);

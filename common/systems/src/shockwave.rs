@@ -2,6 +2,7 @@ use common::{
     combat::{self, AttackOptions, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
+        aura::EnteredAuras,
         shockwave::ShockwaveDodgeable,
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
         PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
@@ -62,6 +63,7 @@ pub struct ReadData<'a> {
     combos: ReadStorage<'a, Combo>,
     character_states: ReadStorage<'a, CharacterState>,
     buffs: ReadStorage<'a, Buffs>,
+    entered_auras: ReadStorage<'a, EnteredAuras>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -192,7 +194,14 @@ impl<'a> System<'a> for Sys {
                 };
 
                 // Check if it is a hit
+                //
+                // TODO: Should the owner entity really be filtered out here? Unlike other
+                // attacks, explosions and shockwaves are rather "imprecise"
+                // attacks with which one shoud be easily able to hit oneself.
+                // Once we make shockwaves start out a little way out from the center, this can
+                // be removed.
                 let hit = entity != target
+                    && shockwave_owner.map_or(true, |owner| owner != target)
                     && !health_b.is_dead
                     && (pos_b.0 - pos.0).magnitude() < frame_end_dist + rad_b
                     // Collision shapes
@@ -208,6 +217,9 @@ impl<'a> System<'a> for Sys {
                     };
 
                 if hit {
+                    let allow_friendly_fire = shockwave_owner.is_some_and(|entity| {
+                        combat::allow_friendly_fire(&read_data.entered_auras, entity, target)
+                    });
                     let dir = Dir::from_unnormalized(pos_b.0 - pos.0).unwrap_or(look_dir);
 
                     let attacker_info =
@@ -246,9 +258,10 @@ impl<'a> System<'a> for Sys {
                             ShockwaveDodgeable::No => false,
                         });
                     // PvP check
-                    let may_harm = combat::may_harm(
+                    let permit_pvp = combat::permit_pvp(
                         &read_data.alignments,
                         &read_data.players,
+                        &read_data.entered_auras,
                         &read_data.id_maps,
                         shockwave_owner,
                         target,
@@ -257,7 +270,8 @@ impl<'a> System<'a> for Sys {
                     let precision_mult = None;
                     let attack_options = AttackOptions {
                         target_dodging,
-                        may_harm,
+                        permit_pvp,
+                        allow_friendly_fire,
                         target_group,
                         precision_mult,
                     };

@@ -85,12 +85,14 @@ command-message-group-missing = You are using group chat but do not belong to a 
   /region to change chat.
 command-tell-request = { $sender } wants to talk to you.
 command-transform-invalid-presence = Cannot transform in the current presence
+command-aura-invalid-buff-parameters = Invalid buff parameters for aura
+command-aura-spawn = Spawned new aura attached to entity
+command-aura-spawn-new-entity = Spawned new aura
 
 # Unreachable/untestable but added for consistency
 
 command-player-info-unavailable = Cannot get player information for { $target }
-command-unimplemented-waypoint-spawn = Waypoint spawning is not implemented
-command-unimplemented-teleporter-spawn = Teleporter spawning is not implemented
+command-unimplemented-spawn-special = Spawning special entities is not implemented
 command-kit-inventory-unavailable = Could not get inventory
 command-inventory-cant-fit-item = Can't fit item to inventory
 # Emitted by /disconnect_all when you don't exist (?)

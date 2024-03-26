@@ -2,7 +2,7 @@ use common::{
     combat::{self, DamageContributor},
     comp::{
         agent::{Sound, SoundKind},
-        aura::Auras,
+        aura::{Auras, EnteredAuras},
         body::{object, Body},
         buff::{
             Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffKey, BuffKind, BuffSource,
@@ -61,6 +61,7 @@ pub struct ReadData<'a> {
     msm: ReadExpect<'a, MaterialStatManifest>,
     buffs: ReadStorage<'a, Buffs>,
     auras: ReadStorage<'a, Auras>,
+    entered_auras: ReadStorage<'a, EnteredAuras>,
     positions: ReadStorage<'a, Pos>,
     bodies: ReadStorage<'a, Body>,
     light_emitters: ReadStorage<'a, LightEmitter>,
@@ -162,9 +163,10 @@ impl<'a> System<'a> for Sys {
                 if let Some((_, burning)) = buff_comp.iter_kind(BuffKind::Burning).next() {
                     for t_entity in physics_state.touch_entities.keys().filter_map(|te_uid| {
                         read_data.id_maps.uid_entity(*te_uid).filter(|te| {
-                            combat::may_harm(
+                            combat::permit_pvp(
                                 &read_data.alignments,
                                 &read_data.players,
+                                &read_data.entered_auras,
                                 &read_data.id_maps,
                                 Some(entity),
                                 *te,

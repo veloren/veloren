@@ -18,7 +18,9 @@ use common::{
     combat,
     combat::{AttackSource, DamageContributor},
     comp::{
-        self, aura, buff,
+        self,
+        aura::{self, EnteredAuras},
+        buff,
         chat::{KillSource, KillType},
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
@@ -945,6 +947,7 @@ impl ServerEvent for ExplosionEvent {
         ReadStorage<'a, comp::Combo>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Alignment>,
+        ReadStorage<'a, EnteredAuras>,
         ReadStorage<'a, comp::Buffs>,
         ReadStorage<'a, comp::Stats>,
         ReadStorage<'a, Health>,
@@ -975,6 +978,7 @@ impl ServerEvent for ExplosionEvent {
             combos,
             inventories,
             alignments,
+            entered_auras,
             buffs,
             stats,
             healths,
@@ -1274,17 +1278,27 @@ impl ServerEvent for ExplosionEvent {
                                 let target_dodging = char_state_b_maybe
                                     .and_then(|cs| cs.attack_immunities())
                                     .map_or(false, |i| i.explosions);
+                                let allow_friendly_fire =
+                                    owner_entity.is_some_and(|owner_entity| {
+                                        combat::allow_friendly_fire(
+                                            &entered_auras,
+                                            owner_entity,
+                                            entity_b,
+                                        )
+                                    });
                                 // PvP check
-                                let may_harm = combat::may_harm(
+                                let permit_pvp = combat::permit_pvp(
                                     &alignments,
                                     &players,
+                                    &entered_auras,
                                     &id_maps,
                                     owner_entity,
                                     entity_b,
                                 );
                                 let attack_options = combat::AttackOptions {
                                     target_dodging,
-                                    may_harm,
+                                    permit_pvp,
+                                    allow_friendly_fire,
                                     target_group,
                                     precision_mult: None,
                                 };
@@ -1322,8 +1336,9 @@ impl ServerEvent for ExplosionEvent {
                                 1.0 - distance_squared / ev.explosion.radius.powi(2)
                             };
 
-                            // Player check only accounts for PvP/PvE flag, but bombs
-                            // are intented to do friendly fire.
+                            // Player check only accounts for PvP/PvE flag (unless in a friendly
+                            // fire aura), but bombs are intented to do
+                            // friendly fire.
                             //
                             // What exactly is friendly fire is subject to discussion.
                             // As we probably want to minimize possibility of being dick
@@ -1331,10 +1346,11 @@ impl ServerEvent for ExplosionEvent {
                             // you want to harm yourself.
                             //
                             // This can be changed later.
-                            let may_harm = || {
-                                combat::may_harm(
+                            let permit_pvp = || {
+                                combat::permit_pvp(
                                     &alignments,
                                     &players,
+                                    &entered_auras,
                                     &id_maps,
                                     owner_entity,
                                     entity_b,
@@ -1345,7 +1361,7 @@ impl ServerEvent for ExplosionEvent {
 
                                 if is_alive {
                                     effect.modify_strength(strength);
-                                    if !effect.is_harm() || may_harm() {
+                                    if !effect.is_harm() || permit_pvp() {
                                         emit_effect_events(
                                             &mut emitters,
                                             *time,
@@ -1504,11 +1520,16 @@ impl ServerEvent for BonkEvent {
 }
 
 impl ServerEvent for AuraEvent {
-    type SystemData<'a> = WriteStorage<'a, Auras>;
+    type SystemData<'a> = (WriteStorage<'a, Auras>, WriteStorage<'a, EnteredAuras>);
 
-    fn handle(events: impl ExactSizeIterator<Item = Self>, mut auras: Self::SystemData<'_>) {
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (mut auras, mut entered_auras): Self::SystemData<'_>,
+    ) {
         for ev in events {
-            if let Some(mut auras) = auras.get_mut(ev.entity) {
+            if let (Some(mut auras), Some(mut entered_auras)) =
+                (auras.get_mut(ev.entity), entered_auras.get_mut(ev.entity))
+            {
                 use aura::AuraChange;
                 match ev.aura_change {
                     AuraChange::Add(new_aura) => {
@@ -1517,6 +1538,24 @@ impl ServerEvent for AuraEvent {
                     AuraChange::RemoveByKey(keys) => {
                         for key in keys {
                             auras.remove(key);
+                        }
+                    },
+                    AuraChange::EnterAura(uid, key, variant) => {
+                        entered_auras
+                            .auras
+                            .entry(variant)
+                            .and_modify(|entered_auras| {
+                                entered_auras.insert((uid, key));
+                            })
+                            .or_insert_with(|| <_ as Into<_>>::into([(uid, key)]));
+                    },
+                    AuraChange::ExitAura(uid, key, variant) => {
+                        if let Some(entered_auras_variant) = entered_auras.auras.get_mut(&variant) {
+                            entered_auras_variant.remove(&(uid, key));
+
+                            if entered_auras_variant.is_empty() {
+                                entered_auras.auras.remove(&variant);
+                            }
                         }
                     },
                 }
@@ -2126,8 +2165,7 @@ pub fn handle_transform(
 #[derive(Debug)]
 pub enum TransformEntityError {
     EntityDead,
-    UnexpectedNpcWaypoint,
-    UnexpectedNpcTeleporter,
+    UnexpectedSpecialEntity,
     LoadingCharacter,
     EntityIsPlayer,
 }
@@ -2269,11 +2307,8 @@ pub fn transform_entity(
                 }
             }
         },
-        SpawnEntityData::Waypoint(_) => {
-            return Err(TransformEntityError::UnexpectedNpcWaypoint);
-        },
-        SpawnEntityData::Teleporter(_, _) => {
-            return Err(TransformEntityError::UnexpectedNpcTeleporter);
+        SpawnEntityData::Special(_, _) => {
+            return Err(TransformEntityError::UnexpectedSpecialEntity);
         },
     }
 

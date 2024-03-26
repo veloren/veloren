@@ -177,10 +177,14 @@ pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
     Ok(configs.read().ids().map(|id| id.to_string()).collect())
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum SpecialEntity {
     Waypoint,
     Teleporter(PortalData),
+    /// Totem with FriendlyFire and ForcePvP auras
+    ArenaTotem {
+        range: f32,
+    },
 }
 
 #[derive(Clone)]
