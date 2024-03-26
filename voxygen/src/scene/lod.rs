@@ -106,6 +106,14 @@ impl Lod {
                 ),
                 (lod::ObjectKind::Palm, make_lod_object("palm", renderer)),
                 (lod::ObjectKind::Arena, make_lod_object("arena", renderer)),
+                (
+                    lod::ObjectKind::SavannahHut,
+                    make_lod_object("savannah_hut", renderer),
+                ),
+                (
+                    lod::ObjectKind::SavannahPit,
+                    make_lod_object("savannah_pit", renderer),
+                ),
             ]
             .into(),
         }

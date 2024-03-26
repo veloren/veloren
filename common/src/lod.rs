@@ -32,6 +32,8 @@ pub enum ObjectKind {
     Desert,
     Palm,
     Arena,
+    SavannahHut,
+    SavannahPit,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
