@@ -19,7 +19,7 @@ main-notice =
     Bedankt voor de tijd te nemen om deze melding te lezen, we hopen dat je van het spel zult genieten!
     Thanks for taking the time to read this notice, we hope you enjoy the game!
 
-    ~ De Veloren ontwikkelaars
+    ~ De ontwikkelaars
 main-login_process =
     Information over het loginproces:
 
@@ -29,8 +29,8 @@ main-login_process =
     Je kan een account maken op
 
     https://veloren.net/account/.
-main-login-server_not_found = Server nie gevonden
-main-login-authentication_error = Authenticatie mislukt
+main-login-server_not_found = Server niet gevonden.
+main-login-authentication_error = Authenticatie fout op de server.
 main-login-server_full = Server zit vol
 main-login-untrusted_auth_server = Onvertrouwde authenticatie server
 main-login-outdated_client_or_server = Versieprobleem: De versie tussen de client en de server komen niet overeen. Check of er updates zijn/
@@ -38,10 +38,10 @@ main-login-timeout = Timeout: De server deed er te lang over om te antwoorden. (
 main-login-server_shut_down = Server is afgesloten
 main-login-network_error = Network problemen
 main-login-failed_sending_request = Kon verzoek niet naar authenticatie server sturen
-main-login-invalid_character = Het geselecteerde karakter is ongeldig
-main-login-client_crashed = Client is gecrashed
+main-login-invalid_character = Het geselecteerde karakter is ongeldig.
+main-login-client_crashed = Client is gecrasht.
 main-login-not_on_whitelist = Je moet op de whitelist staan om deze wereld te joinen
-main-login-banned = Je bent verbannen voor de volgende reden
+main-login-banned = Je bent verbannen voor de volgende reden:
 main-login-kicked = Je bent gekicked voor de volgende reden
 main-login-select_language = Kies een taal
 loading-tips =
@@ -64,3 +64,10 @@ loading-tips =
     .a16 = Als je het ontwikkelingsteam wil versterken of gewoon een babbeltje wil doen met ons, kom dan langs op onze Discord-Server.
     .a17 = Je kan numerieke waarden in de levensbalk aan of uit zetten in de instellingen.
     .a18 = Om je stats te zien kan je op 'Stats' klikken in je Inventory.
+main-singleplayer-random_seed = Willekeurig
+main-username = Gebruikersnaam
+main-singleplayer-new = Nieuw
+main-singleplayer-delete = Verwijder
+main-singleplayer-regenerate = Regenereren
+main-server = Server
+main-password = Wachtwoord

@@ -37,3 +37,4 @@ hud-trade-their_offer =
     Предложение
          скупщика
 hud-trade-amount_input = Выберите предмет
+hud-confirm-trade-for-nothing = Вы действительно хотите отдать эти предметы даром?

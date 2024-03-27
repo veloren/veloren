@@ -45,3 +45,5 @@ subtitle-roll = Перекат
 subtitle-attack_blocked = Атака заблокирована
 subtitle-interrupted = Прервано
 subtitle-fire_shot = Выстрел посоха
+subtitle-staff_attack = Выстрел посоха
+subtitle-footsteps_snow = Шаги по снегу

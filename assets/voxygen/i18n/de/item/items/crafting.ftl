@@ -219,3 +219,22 @@ sprite-mineral-ingot-silver = Silberbarren
     .desc = Ein Barren aus veredeltem Silber.
 sprite-mineral-ingot-gold = Goldbarren
     .desc = Ein Barren aus veredeltem Gold.
+sprite-mineral-ingot-tin = Zinnbarren
+    .desc = Ein Barren, der vor allem zur Herstellung von Bronze verwendet wird.
+sprite-mineral-gem-amethystgem = Amethyst
+    .desc = Ein kostbarer violetter Edelstein.
+sprite-mineral-gem-diamondgem = Diamant
+    .desc = Ein funkelnder silberner Edelstein.
+sprite-mineral-gem-emeraldgem = Smaragd
+    .desc = Ein leuchtender blau-grüner Edelstein.
+sprite-mineral-gem-rubygem = Rubin
+    .desc = Ein prächtiges scharlachrotes Juwel.
+sprite-mineral-gem-topazgem = Topas
+    .desc = Ein bemerkenswerter orangefarbener Edelstein.
+sprite-mineral-ingot-steel = Stahlbarren
+    .desc =
+        Eine Legierung aus Eisen und Kohle, die viel robuster als ihre Bestandteile ist.
+
+        Kann zum Herstellen von Metallwaffen verwendet werden.
+sprite-mineral-gem-sapphiregem = Saphir
+    .desc = Ein bunter kobaltblauer Edelstein.

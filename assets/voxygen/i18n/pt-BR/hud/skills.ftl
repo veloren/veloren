@@ -6,10 +6,6 @@ hud-skill-req_sp =
 
     Requer { $number } PHs
 hud-skill-set_as_exp_bar = Configuar como Barra de Experiência
-hud-skill-inc_health_title = Aumentar Saúde
-hud-skill-inc_health = Aumentar saúde máxima por { $boost }{ $SP }
-hud-skill-inc_energy_title = Aumentar Stamina
-hud-skill-inc_energy = Aumentar stamina máxima por { $boost }{ $SP }
 hud-skill-unlck_sword_title = Desbloquear Espada
 hud-skill-unlck_sword = Desbloquear habilidades de espada{ $SP }
 hud-skill-unlck_axe_title = Desbloquear Machado
@@ -22,14 +18,6 @@ hud-skill-unlck_staff_title = Desbloquear Cajado
 hud-skill-unlck_staff = Desbloquear Habilidades de Cajado{ $SP }
 hud-skill-unlck_sceptre_title = Desbloquear Cetro
 hud-skill-unlck_sceptre = Desbloquear Habilidades de Cetro{ $SP }
-hud-skill-dodge_title = Esquiva
-hud-skill-dodge = Rolagens de esquiva são ativadas com o clique do meio, garantindo imunidade temporária a ataques corpo a corpo quando rolando
-hud-skill-roll_energy_title = Custo de Stamina da Rolagem
-hud-skill-roll_energy = Rolar usa { $boost }% menos de stamina{ $SP }
-hud-skill-roll_speed_title = Velocidade da Rolagem
-hud-skill-roll_speed = Rola { $boost }% mais rápido{ $SP }
-hud-skill-roll_dur_title = Duração da Rolagem
-hud-skill-roll_dur = Rolagem dura { $boost }% mais tempo{ $SP }
 hud-skill-climbing_title = Escalada
 hud-skill-climbing = Pular mais alto
 hud-skill-climbing_cost_title = Custo da Escalada

@@ -154,7 +154,6 @@ npc-speech-villager_adventurous =
     .a1 = Me gustaría ir a explorar una cueva cuando me haya hecho más fuerte.
 npc-speech-villager_closed =
     .a0 = No eres de por aquí, ¿verdad?
-    .a1 = ¿No te parece que nuestra aldea es la mejor?
     .a2 = Dicen que las setas son beneficiosas para tu salud. Yo nunca me las como.
     .a3 = ¿Qué ser o no ser? Creo que me voy a hacer granjero.
 npc-speech-villager_conscientious =
@@ -299,3 +298,17 @@ npc-speech-welcome-aboard =
 npc-speech-tell_monster =
     .a0 = Dicen que hay { $body } hacia el { $dir }, { $dist }...
     .a1 = ¿Te crees una persona dura de pelar? Hay { $body } hacia el { $dir }.
+# NPC site hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $site represents hard-coded site in the world
+npc-speech-site =
+    .a0 = ¿No te parece que nuestra aldea es la mejor?
+    .a1 = ¡Bienvenido a { $site }!
+    .a2 = { $site } es una buena aldea en la que vivir.
+# NPC reactions
+npc-speech-night =
+    .a0 = ¡Las linternas son útiles para viajar cuando es de noche!
+    .a1 = Espero que estemos solos en esta oscuridad...
+    .a2 = ¡Bu!

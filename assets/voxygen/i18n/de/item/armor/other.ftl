@@ -9,7 +9,7 @@ lantern-blue = Kalte blaue Laterne
 lantern-geode_purp = Violette Geode
     .desc = Strahlt ein beruhigendes Schimmern aus, das beim Beruhigen deiner Nerven hilft.
 lantern-green = Limettenschalen-Laterne
-    .desc = Sie hat eine Öffnung, in die ein Ring passen könnte …
+    .desc = Sie hat eine Öffnung, in die ein Ring passen könnte ...
 lantern-polaris = Polaris
     .desc = Weihnachtslaterne.
 lantern-pumpkin = Schauerlicher Kürbis
@@ -58,3 +58,17 @@ armor-misc-bag-mindflayer_spellbag = Mindflayer-Zauberbeutel
     .desc =
         Du kannst fast die böse Anwesenheit eines
         Mindflayers durch den Stoff strömen spüren.
+armor-misc-bag-reliable_backpack = Bewährter Rucksack
+    .desc = Er wird dich nie im Stich lassen.
+armor-misc-bag-reliable_leather_pack = Bewährter Ledersack
+    .desc = Er wird dich nie im Stich lassen.
+armor-misc-bag-tiny_red_pouch = Kleines rotes Täschchen
+    .desc = Hergestellt aus mehreren Flicken gefärbten Stoffes.
+armor-misc-bag-troll_hide_pack = Trollfellsack
+    .desc = Es wurden definitiv Trolle bei der Herstellung verletzt.
+armor-misc-bag-tiny_leather_pouch = Kleines Ledertäschchen
+    .desc = Eine kleine zuverlässige Ledertasche.
+armor-misc-bag-sturdy_red_backpack = Stabile rote Satteltasche
+    .desc = Eine wirklich zuverlässige und große Tasche, bestickt mit Amethyst und dickem Leder.
+armor-misc-bag-woven_red_bag = Gewebter Roter Beutel
+    .desc = Eine mittelgroße rote Tasche. Obwohl sie ziemlich zugekramt wirkt.

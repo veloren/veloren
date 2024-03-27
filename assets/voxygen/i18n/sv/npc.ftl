@@ -13,8 +13,7 @@ npc-speech-villager_adventurous =
     .a0 = Jag hoppas göra min egen glidare en dag.
     .a1 = Jag skulle vilja utforska någon grotta när jag blir starkare.
 npc-speech-villager_closed =
-    .a0 = Du är inte härifrån äru?
-    .a1 = Tycker inte du att vår by är den bästa?
+    .a0 = Du är inte härifrån är du?
     .a2 = De påstår att svampar är bra för hälsan. Själv äter jag dem aldrig.
     .a3 = Att vara, eller inte vara? Jag tror jag ska bli en bonde.
 npc-speech-villager_conscientious =
@@ -288,3 +287,17 @@ npc-speech-dist_near = nära
 npc-speech-dist_near_to = väldigt nära
 # NPC proposals
 npc-speech-arena = Vi sätter oss där borta!
+# NPC site hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $site represents hard-coded site in the world
+npc-speech-site =
+    .a0 = Tycker inte du att vår by är den bästa?
+    .a1 = Välkommen till { $site }!
+    .a2 = { $site } är en trevlig by att bo i.
+# NPC reactions
+npc-speech-night =
+    .a0 = Lyktor är användbara för att komma runt på natten!
+    .a1 = Jag hoppas att vi är ensamma i mörkret...
+    .a2 = Boo!

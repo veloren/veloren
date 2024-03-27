@@ -26,3 +26,4 @@ char_selection-starting_site_prev = Предыдущий
 char_selection-starting_site_name = { $name }
 char_selection-starting_site_next = Следующий
 char_selection-starting_site_kind = Тип: { $kind }
+char_selection-rules = Правила

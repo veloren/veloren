@@ -6,10 +6,6 @@ hud-skill-req_sp =
 
     Nécessite { $number } PC
 hud-skill-set_as_exp_bar = Définir comme bar d'expérience
-hud-skill-inc_health_title = Augmentation de Santé
-hud-skill-inc_health = Augmente les points de vie max de { $boost }{ $SP }
-hud-skill-inc_energy_title = Augmentation d'Endurance
-hud-skill-inc_energy = Augmente les points d'endurance max de { $boost }{ $SP }
 hud-skill-unlck_sword_title = Maniement de l'Épée
 hud-skill-unlck_sword = Débloque l'arbre de compétence pour l'épée{ $SP }
 hud-skill-unlck_axe_title = Maniement de la Hache
@@ -22,14 +18,6 @@ hud-skill-unlck_staff_title = Maniement du Bâton
 hud-skill-unlck_staff = Débloque l'arbre de compétence pour le bâton{ $SP }
 hud-skill-unlck_sceptre_title = Maniement du Sceptre
 hud-skill-unlck_sceptre = Débloque l'arbre de compétence pour le sceptre{ $SP }
-hud-skill-dodge_title = Roulade
-hud-skill-dodge = Esquivez les attaques de mélée en faisant des roulades.
-hud-skill-roll_energy_title = Coût d'Endurance de la Roulade
-hud-skill-roll_energy = Rouler coûte { $boost }% moins d'endurance{ $SP }
-hud-skill-roll_speed_title = Vitesse de la Roulade
-hud-skill-roll_speed = Rouler { $boost }% plus vite{ $SP }
-hud-skill-roll_dur_title = Durée de la Roulade
-hud-skill-roll_dur = Augmente de { $boost }% la durée de la roulade{ $SP }
 hud-skill-climbing_title = Escalade
 hud-skill-climbing = Capacité à escalader des surfaces
 hud-skill-climbing_cost_title = Coût d'endurance de l'Escalade

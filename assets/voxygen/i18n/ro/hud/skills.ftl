@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     Necesită { $number } PA
-hud-skill-inc_health_title = Mărește Viața
-hud-skill-inc_health = Mărește capacitatea vietii cu { $boost }{ $SP }
-hud-skill-inc_energy_title = Mărește Energia
-hud-skill-inc_energy = Marește capacitatea energiei cu { $boost }{ $SP }
 hud-skill-unlck_sword_title = Deblochează Sabia
 hud-skill-unlck_sword = Deblochează copacul abilitaților pentru sabie{ $SP }
 hud-skill-unlck_axe_title = Deblochează Topor
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = Deblochează Toiag
 hud-skill-unlck_staff = Deblochează copacul abilitaților pentru toiag{ $SP }
 hud-skill-unlck_sceptre_title = Deblochează Sceptru
 hud-skill-unlck_sceptre = Deblochează copacul abilitaților pentru sceptru{ $SP }
-hud-skill-dodge_title = Evită
-hud-skill-dodge = Rostogoliri evazive sunt efectuate cu clicul-mijlociu, și acordă imunitate temporară la atacurile corp la corp (iframes) în timp ce te rostogolești.
-hud-skill-roll_energy_title = Costul de Energie pentru Rostogolire
-hud-skill-roll_energy = Rostogolorea foloseste cu { $boost }% mai putina energie{ $SP }
-hud-skill-roll_speed_title = Viteza Rostogolirii
-hud-skill-roll_speed = Rostogoleste-te de { $boost }% mai repede{ $SP }
-hud-skill-roll_dur_title = Durata Rostogolirii
-hud-skill-roll_dur = Rotogoleste-te de { $boost }% mai mult{ $SP }
 hud-skill-climbing_title = Cățărare
 hud-skill-climbing = Sarind mai sus
 hud-skill-climbing_cost_title = Costul Cățărării

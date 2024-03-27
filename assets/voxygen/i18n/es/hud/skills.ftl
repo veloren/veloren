@@ -20,13 +20,9 @@ hud-skill-set_as_exp_bar = Mostrar progreso en barra de experiencia
 
 ## Salud
 
-hud-skill-inc_health_title = Aumentar salud
-hud-skill-inc_health = Aumenta la salud máxima en { $boost } puntos.{ $SP }
 
 ## Energía
 
-hud-skill-inc_energy_title = Aumentar energía
-hud-skill-inc_energy = Aumenta la energía máxima en { $boost } puntos.{ $SP }
 
 ## Competencia con armas
 
@@ -45,14 +41,6 @@ hud-skill-unlck_sceptre = Desbloquea el árbol de habilidades del cetro.{ $SP }
 
 ## Esquiva
 
-hud-skill-dodge_title = Esquivar
-hud-skill-dodge = Ruedas por el suelo para darte un breve período de invulnerabilidad contra los ataques enemigos.
-hud-skill-roll_energy_title = Coste de energía para esquivar
-hud-skill-roll_energy = Esquivar consume un { $boost } % menos de energía.{ $SP }
-hud-skill-roll_speed_title = Velocidad al esquivar
-hud-skill-roll_speed = Te desplazas un { $boost } % más rápido al rodar por el suelo.{ $SP }
-hud-skill-roll_dur_title = Duración de esquiva
-hud-skill-roll_dur = Tu esquiva dura un { $boost } % más.{ $SP }
 
 ## Escalada
 

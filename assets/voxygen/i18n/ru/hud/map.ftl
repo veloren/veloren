@@ -39,3 +39,6 @@ hud-map-gnarling = Форт Гнарлингов
 hud-map-chapel_site = Морская часовня
 hud-map-placed_by = Метка установлена { $name }
 hud-map-df_mine = Шахта
+hud-map-terracotta = Терракотовые Руины
+hud-map-haniwa = Катакомбы Ханива
+hud-map-adlet = Крепость Адлетов

@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     { $number }SP必要
-hud-skill-inc_health_title = 体力追加
-hud-skill-inc_health = 体力の最大値を{ $boost }増加 { $SP }
-hud-skill-inc_energy_title = スタミナ追加
-hud-skill-inc_energy = スタミナ最大値を{ $boost }増加 { $SP }
 hud-skill-unlck_sword_title = 剣解除
 hud-skill-unlck_sword = 剣のスキルツリーを解除 { $SP }
 hud-skill-unlck_axe_title = 斧解除
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = 杖解除
 hud-skill-unlck_staff = 杖のスキルツリーを解除 { $SP }
 hud-skill-unlck_sceptre_title = セプター解除
 hud-skill-unlck_sceptre = セプターのスキルツリーを解除 { $SP }
-hud-skill-dodge_title = 回避
-hud-skill-dodge = 近接攻撃を素早く避ける { $SP }
-hud-skill-roll_energy_title = ローリング スタミナコスト
-hud-skill-roll_energy = ローリングのスタミナ消費を{ $boost }%減少 { $SP }
-hud-skill-roll_speed_title = ローリング 速度
-hud-skill-roll_speed = ローリングの速度を{ $boost }%加速 { $SP }
-hud-skill-roll_dur_title = ローリング 時間
-hud-skill-roll_dur = ローリングの時間を{ $boost }%延長 { $SP }
 hud-skill-climbing_title = よじ登り
 hud-skill-climbing = より高く登ります
 hud-skill-climbing_cost_title = よじ登り コスト
