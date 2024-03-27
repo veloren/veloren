@@ -8,3 +8,7 @@ sprite-wood-item-hardwood = Bûches de bois dur
     .desc = Bûches très épaisses et robustes. On peut s'en servir pour fabriquer des armes en bois.
 sprite-wood-item-ironwood = Bûches de bois de fer
     .desc = Un bois particulièrement robuste. On peut s'en servir pour fabriquer des armes en bois.
+sprite-wood-item-eldwood = Bûches de bois d'Eld
+    .desc = Vieilles bûches qui dégagent de la magie. On peut s'en servir pour fabriquer des armes en bois.
+sprite-crafting_ing-bowl = Bol
+    .desc = Un simple bol pour préparer les repas.

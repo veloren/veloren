@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     Requereix { $number } PH
-hud-skill-inc_health_title = Augmentar Salut
-hud-skill-inc_health = Augmenta la Salut màxima en { $boost }{ $SP }
-hud-skill-inc_energy_title = Augmentar Energia
-hud-skill-inc_energy = Augmenta l'Energia Màxima en { $boost }{ $SP }
 hud-skill-unlck_sword_title = Desbloquejar Espasa
 hud-skill-unlck_sword = Desbloqueja l'arbre d'habilitats de l'espasa{ $SP }
 hud-skill-unlck_axe_title = Desbloquejar Destral
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = Desbloquejar Bastó
 hud-skill-unlck_staff = Desbloqueja l'arbre d'habilitats del bastó{ $SP }
 hud-skill-unlck_sceptre_title = Desbloquejar Ceptre
 hud-skill-unlck_sceptre = Desbloqueja l'arbre d'habilitats del ceptre{ $SP }
-hud-skill-dodge_title = Esquivar
-hud-skill-dodge = Les tombarelles evasives s'activen fent clic al botó central del ratolí i ofereixen immunitat temporal als atacs físics mentre rodes.
-hud-skill-roll_energy_title = Cost Energètic de les Tombarelles
-hud-skill-roll_energy = Fer tombarelles utilitza { $boost }% menys energia{ $SP }
-hud-skill-roll_speed_title = Velocitat de les Tombarelles
-hud-skill-roll_speed = Les tombarelles són un { $boost }% més ràpides{ $SP }
-hud-skill-roll_dur_title = Durada de la Tombarella
-hud-skill-roll_dur = Les tombarelles duren un { $boost }% més{ $SP }
 hud-skill-climbing_title = Escalar
 hud-skill-climbing = Salta des de llocs ben alts
 hud-skill-climbing_cost_title = Cost de l'Escalada

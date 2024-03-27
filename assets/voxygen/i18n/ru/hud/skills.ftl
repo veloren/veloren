@@ -6,10 +6,6 @@ hud-skill-req_sp =
 
     Необходимо { $number } SP
 hud-skill-set_as_exp_bar = Установить как шкалу опыта
-hud-skill-inc_health_title = Повышение здоровья
-hud-skill-inc_health = Увеличивает максимальное здоровье на { $boost }{ $SP }
-hud-skill-inc_energy_title = Повышение энергии
-hud-skill-inc_energy = Увеличивает максимальную энергию на { $boost }{ $SP }
 hud-skill-unlck_sword_title = Разблокировать меч
 hud-skill-unlck_sword = Разблокировать древо навыков владения мечом{ $SP }
 hud-skill-unlck_axe_title = Разблокировать топор
@@ -22,14 +18,6 @@ hud-skill-unlck_staff_title = Разблокировать посох
 hud-skill-unlck_staff = Разблокировать древо навыков владения посохом{ $SP }
 hud-skill-unlck_sceptre_title = Разблокировать скипетр
 hud-skill-unlck_sceptre = Разблокировать древо навыков владения скипетром{ $SP }
-hud-skill-dodge_title = Перекат
-hud-skill-dodge = Перекаты активируются средней кнопкой мыши, во время них вы игнорируете урон почти от всех атак ближнего боя.
-hud-skill-roll_energy_title = Расход энергии
-hud-skill-roll_energy = Перекат использует на { $boost }% меньше энергии{ $SP }
-hud-skill-roll_speed_title = Скорость
-hud-skill-roll_speed = Перекат на { $boost }% быстрее{ $SP }
-hud-skill-roll_dur_title = Продолжительность переката
-hud-skill-roll_dur = Перекат на { $boost }% дольше{ $SP }
 hud-skill-climbing_title = Скалолазание
 hud-skill-climbing = Высота прыжка на вершине подъема больше
 hud-skill-climbing_cost_title = Расход энергии
@@ -171,3 +159,18 @@ hud-skill-pick_strike_oregain_title = Больше руды
 hud-skill-pick_strike_oregain = Шанс на получение бонусной руды ({ $boost }% за каждый уровень){ $SP }
 hud-skill-pick_strike_gemgain_title = Больше самоцветов
 hud-skill-pick_strike_gemgain = Шанс на получение бонусных самоцветов ({ $boost }% за каждый уровень){ $SP }
+# Internal terms, currently only used in es
+# If we remove them here, they also get auto-removed in es,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-hud-skill-sc_wardaura_title = ""
+# Internal terms, currently only used in es
+# If we remove them here, they also get auto-removed in es,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-hud-skill-bow_shotgun_title = ""
+# Internal terms, currently only used in es
+# If we remove them here, they also get auto-removed in es,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-hud-skill-st_shockwave_title = ""

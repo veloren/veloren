@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     需要 { $number } 技能点
-hud-skill-inc_health_title = 增强生命
-hud-skill-inc_health = 最大生命值提高{ $boost }{ $SP }
-hud-skill-inc_energy_title = 增强耐力/法力
-hud-skill-inc_energy = 最大耐力提升{ $boost }{ $SP }
 hud-skill-unlck_sword_title = 解锁双手剑专精
 hud-skill-unlck_sword = 解锁双手剑技能树{ $SP }
 hud-skill-unlck_axe_title = 解锁双手斧专精
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = 解锁火焰法杖专精
 hud-skill-unlck_staff = 解锁火焰法杖技能树{ $SP }
 hud-skill-unlck_sceptre_title = 解锁生命权杖专精
 hud-skill-unlck_sceptre = 解锁生命权杖技能树{ $SP }
-hud-skill-dodge_title = 闪避
-hud-skill-dodge = 翻滚可以躲避敌人的攻击{ $SP }
-hud-skill-roll_energy_title = 体术(翻滚)
-hud-skill-roll_energy = 减少每次翻滚需要消耗的耐力{ $boost }%{ $SP }
-hud-skill-roll_speed_title = 迅捷
-hud-skill-roll_speed = 加快{ $boost }%的翻滚速度{ $SP }
-hud-skill-roll_dur_title = 飞身跃入
-hud-skill-roll_dur = 翻滚可躲避敌人攻击的时间延长{ $boost }%{ $SP }
 hud-skill-set_as_exp_bar = 设置为当前经验条
 hud-skill-climbing_title = 攀爬
 hud-skill-climbing = 你能够攀爬岩壁

@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     { $number } KP kell hozzá
-hud-skill-inc_health_title = Életerő növelése
-hud-skill-inc_health = Maximális életerő növelése { $boost } ponttal{ $SP }
-hud-skill-inc_energy_title = Energia növelése
-hud-skill-inc_energy = Maximális energia növelése { $boost } ponttal{ $SP }
 hud-skill-unlck_sword_title = Kard feloldása
 hud-skill-unlck_sword = Kard képességfájának feloldása{ $SP }
 hud-skill-unlck_axe_title = Fejsze feloldása
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = Mágusbot feloldása
 hud-skill-unlck_staff = Mágusbot képességfájának feloldása{ $SP }
 hud-skill-unlck_sceptre_title = Varázsjogar feloldása
 hud-skill-unlck_sceptre = Varázsjogar képességfájának feloldása{ $SP }
-hud-skill-dodge_title = Kitérés
-hud-skill-dodge = A kitérőbukfencet görgőkattintással lehet aktiválni. A gurulás ideje alatt nem lehet megsebezni téged közelharci támadással.
-hud-skill-roll_energy_title = Bukfencezés energiaigénye
-hud-skill-roll_energy = A bukfencezés { $boost }%-kal kevesebb energiát használ{ $SP }
-hud-skill-roll_speed_title = Bukfencezés sebessége
-hud-skill-roll_speed = { $boost }%-kal gyorsabb bukfencezés{ $SP }
-hud-skill-roll_dur_title = Bukfencezés időtartama
-hud-skill-roll_dur = { $boost }%-kal tovább tartó bukfencezés{ $SP }
 hud-skill-climbing_title = Mászás
 hud-skill-climbing = Magasabbra jutás
 hud-skill-climbing_cost_title = Mászás energiaigénye

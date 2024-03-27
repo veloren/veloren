@@ -1,7 +1,7 @@
 object-potion_agility = Trank der Beweglichkeit
     .desc = Fliegt, ihr Dummköpfe!
 object-curious_potion = Seltsamer Trank
-    .desc = Ich frage mich, was der bewirkt …
+    .desc = Ich frage mich, was der bewirkt ...
 object-potion_big = Großer Trank
     .desc = Kostbare Medizin, die bisher größte Verjüngungsflasche.
 object-potion_combustion = Trank der Verbrennung

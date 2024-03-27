@@ -6,10 +6,6 @@ hud-skill-req_sp =
 
     { $number } 포인트 필요함
 hud-skill-set_as_exp_bar = 경험치바로 설정하기
-hud-skill-inc_health_title = 체력 증가
-hud-skill-inc_health = 최대 체력 { $boost }만큼 증가{ $SP }
-hud-skill-inc_energy_title = 기력 증가
-hud-skill-inc_energy = 최대 기력 { $boost }만큼 증가{ $SP }
 hud-skill-unlck_sword_title = 검 해금
 hud-skill-unlck_sword = 검 스킬트리 해금{ $SP }
 hud-skill-unlck_axe_title = 도끼 해금
@@ -22,14 +18,6 @@ hud-skill-unlck_staff_title = 지팡이 해금
 hud-skill-unlck_staff = 지팡이 스킬트리 해금{ $SP }
 hud-skill-unlck_sceptre_title = 마법홀 해금
 hud-skill-unlck_sceptre = 마법홀 스킬트리 해금{ $SP }
-hud-skill-dodge_title = 회피
-hud-skill-dodge = 회피 구르기는 마우스 가운데 클릭으로 쓸수 있으며 구르는 동안 무적 판정이 있다.
-hud-skill-roll_energy_title = 구르기 기력 소모
-hud-skill-roll_energy = 구르기가 { $boost }% 적게 기력을 소모한다{ $SP }
-hud-skill-roll_speed_title = 구르기 속도
-hud-skill-roll_speed = 구르기가 { $boost }% 빨라진다{ $SP }
-hud-skill-roll_dur_title = 구르기 시간
-hud-skill-roll_dur = { $boost }% 더 오랫동안 구른다{ $SP }
 hud-skill-climbing_title = 벽타기
 hud-skill-climbing = 더 높이 올라간다
 hud-skill-climbing_cost_title = 벽타기 기력 소모

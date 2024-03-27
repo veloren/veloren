@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     Kostua: { $number } AP
-hud-skill-inc_health_title = Osasuna areagotu
-hud-skill-inc_health = Gehienezko osasuna { $boost } areagotzen du{ $SP }
-hud-skill-inc_energy_title = Energia areagotu
-hud-skill-inc_energy = Gehienezko energia { $boost } areagotzen du{ $SP }
 hud-skill-unlck_sword_title = Ezpata desblokeatu
 hud-skill-unlck_sword = Ezpataren abilezia zuhaitza desblokeatzen du{ $SP }
 hud-skill-unlck_axe_title = Aizkora desblokeatu
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = Makila desblokeatu
 hud-skill-unlck_staff = Makilaren abilezia zuhaitza desblokeatzen du{ $SP }
 hud-skill-unlck_sceptre_title = Zetroa desblokeatu
 hud-skill-unlck_sceptre = Zetroaren abilezia zuhaitza desblokeatzen du{ $SP }
-hud-skill-dodge_title = Saihesketa
-hud-skill-dodge = Saihesketak erdiko klik-arekin egiten dira, eta gorputzez-gorputzeko erasoenganako aldi baterako immunitatea (iframe-ak) eskaintzen dute.
-hud-skill-roll_energy_title = Saihesketaren energia balioa
-hud-skill-roll_energy = Saihesketak %{ $boost } energia gutxiago erabiltzen du{ $SP }
-hud-skill-roll_speed_title = Sahiesketaren abiadura
-hud-skill-roll_speed = Saihestu %{ $boost } azkarrago{ $SP }
-hud-skill-roll_dur_title = Saihesketaren iraupena
-hud-skill-roll_dur = Saihestu %{ $boost } denbora gehiagoz{ $SP }
 hud-skill-climbing_title = Eskalada
 hud-skill-climbing = Gorago jauzi egin
 hud-skill-climbing_cost_title = Eskalatzearen balioa

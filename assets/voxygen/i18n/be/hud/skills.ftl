@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     Патрабуе { $number } АУ
-hud-skill-inc_health_title = Павелічэнне здароўя
-hud-skill-inc_health = Павялічвае макс. здароўе на { $boost }{ $SP }
-hud-skill-inc_energy_title = Павелічэнне энергіі
-hud-skill-inc_energy = Павялічвае макс. энергію на { $boost }{ $SP }
 hud-skill-unlck_sword_title = Валоданне мячом
 hud-skill-unlck_sword = Адчыняе дрэва навыкаў валодання мячом{ $SP }
 hud-skill-unlck_axe_title = Валоданне сякерай
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = Валоданне посахам
 hud-skill-unlck_staff = Адчыняе дрэва навыкаў валодання посахам{ $SP }
 hud-skill-unlck_sceptre_title = Валоданне скіпетрам
 hud-skill-unlck_sceptre = Адчыняе дрэва навыкаў валодання скіпетрам{ $SP }
-hud-skill-dodge_title = Перакат
-hud-skill-dodge = Вы робіцеся няўразлівымі на некаторы перыяд падчас перакату.
-hud-skill-roll_energy_title = Кошт перакату
-hud-skill-roll_energy = Перакат патрабуе на { $boost }% менш энергіі{ $SP }
-hud-skill-roll_speed_title = Хуткасць перакату
-hud-skill-roll_speed = Перакочвайцеся на { $boost }% хутчэй{ $SP }
-hud-skill-roll_dur_title = Працягласць перакату
-hud-skill-roll_dur = Перакочвайцеся на { $boost }% даўжэй{ $SP }
 hud-skill-climbing_title = Скалалажанне
 hud-skill-climbing = Імкніся вышэй
 hud-skill-climbing_cost_title = Кошт скалалажання

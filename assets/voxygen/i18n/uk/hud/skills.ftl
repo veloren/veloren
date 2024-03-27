@@ -6,10 +6,6 @@ hud-skill-req_sp =
 
     Необхідно { $number } ОУ
 hud-skill-set_as_exp_bar = Встановити як шкалу досвіду
-hud-skill-inc_health_title = Збільшення здоров'я
-hud-skill-inc_health = Збільшує максимальне здоров'я на { $boost }{ $SP }
-hud-skill-inc_energy_title = Збільшення енергії
-hud-skill-inc_energy = Збільшує максимальну енергію на { $boost }{ $SP }
 hud-skill-unlck_sword_title = Меч
 hud-skill-unlck_sword = Відкриває дерево навичок володіння мечем{ $SP }
 hud-skill-unlck_axe_title = Сокира
@@ -22,14 +18,6 @@ hud-skill-unlck_staff_title = Посох
 hud-skill-unlck_staff = Відкриває дерево навичок володіння посохом{ $SP }
 hud-skill-unlck_sceptre_title = Цілющий скіпетр
 hud-skill-unlck_sceptre = Відкриває дерево навичок володіння цілющим скіпетром{ $SP }
-hud-skill-dodge_title = Ухил
-hud-skill-dodge = Станьте невразливим до ближніх атак під час перекиду
-hud-skill-roll_energy_title = Енергоспоживання перекиду
-hud-skill-roll_energy = Перекид споживає на { $boost }% менше енергії{ $SP }
-hud-skill-roll_speed_title = Швидкість перекиду
-hud-skill-roll_speed = Перекид виконується на { $boost }% швидше{ $SP }
-hud-skill-roll_dur_title = Тривалість перекиду
-hud-skill-roll_dur = Дозволяє котитись на { $boost }% довше{ $SP }
 hud-skill-climbing_title = Лазiння
 hud-skill-climbing = Стрибай вище
 hud-skill-climbing_cost_title = Витрати на лазiння

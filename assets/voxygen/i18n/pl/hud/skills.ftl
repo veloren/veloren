@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     Wymaga { $number } punktów rozwoju
-hud-skill-inc_health_title = Zwiększ Zdrowie
-hud-skill-inc_health = Zwiększa Maksymalne Zdrowie o { $boost }{ $SP }
-hud-skill-inc_energy_title = Zwiększ Wytrzymałość
-hud-skill-inc_energy = Zwiększ Maksymalną Wytrzymałość o { $boost }{ $SP }
 hud-skill-unlck_sword_title = Odblokuj miecz
 hud-skill-unlck_sword = Odblokowuje umiejętności powiązane z mieczem{ $SP }
 hud-skill-unlck_axe_title = Odblokuj topór
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = Odblokuj kostur
 hud-skill-unlck_staff = Odblokowuje umiejętności powiązane z kosturem{ $SP }
 hud-skill-unlck_sceptre_title = Odblokuj kostur druida
 hud-skill-unlck_sceptre = Odblokowuje umiejętności powiązane z kosturem druida{ $SP }
-hud-skill-dodge_title = Unik (przewrót)
-hud-skill-dodge = Umożliwia unikanie ataków przeciwników (dodaje klatki nieśmiertelności){ $SP }
-hud-skill-roll_energy_title = Przewrót - koszt
-hud-skill-roll_energy = Przewrót kosztuje { $boost }% mniej wytrzymałości{ $SP }
-hud-skill-roll_speed_title = Przewrót - prędkość
-hud-skill-roll_speed = Przewrót jest { $boost }% szybszy{ $SP }
-hud-skill-roll_dur_title = Przewrót - długość (czas)
-hud-skill-roll_dur = Przewrót trwa { $boost }% dłużej{ $SP }
 hud-skill-climbing_title = Wspinaczka
 hud-skill-climbing = Wskakuj wyżej (?)
 hud-skill-climbing_cost_title = Wspinaczka - koszt

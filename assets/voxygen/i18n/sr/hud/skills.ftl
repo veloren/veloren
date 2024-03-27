@@ -5,8 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     Потребно { $number } ВП
-hud-skill-inc_health_title = Повећање Здравља
-hud-skill-inc_health = Повећава максимално здравље за { $boost }{ $SP }
 hud-skill-unlck_sword_title = Откључај Мач
 hud-skill-unlck_sword = Откључава стабло мач вештина{ $SP }
 hud-skill-unlck_axe_title = Откључај Секиру
@@ -19,12 +17,6 @@ hud-skill-unlck_staff_title = Откључај Штап
 hud-skill-unlck_staff = Откључава стабло штап вештина{ $SP }
 hud-skill-unlck_sceptre_title = Откључај Жезло
 hud-skill-unlck_sceptre = Откључава стабло жезло вештина{ $SP }
-hud-skill-dodge_title = Котрљање
-hud-skill-dodge = Котрљање се активира средњим кликом, и омогућава привремени имунитет на нападе (iframes) док се котрљаш.
-hud-skill-roll_speed_title = Брзина Котрљања
-hud-skill-roll_speed = Котрљање је { $boost }% брже{ $SP }
-hud-skill-roll_dur_title = Трајање Котрљања
-hud-skill-roll_dur = Котрљање траје { $boost }% дуже{ $SP }
 hud-skill-climbing_title = Пењање
 hud-skill-climbing = Већи Скок
 hud-skill-climbing_cost_title = Цена Пењања

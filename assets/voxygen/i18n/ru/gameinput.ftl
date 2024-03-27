@@ -72,3 +72,7 @@ gameinput-muteinactivemaster = Выключить звук (неактивное
 gameinput-mutemusic = Выключить музыку
 gameinput-mutesfx = Выключить звуки эффектов
 gameinput-muteambience = Выключить звуки окружения
+gameinput-zoomin = Приближение камеры
+gameinput-zoomout = Отдаление камеры
+gameinput-stayfollow = Ждать/Следовать
+gameinput-togglewalk = Ходьба

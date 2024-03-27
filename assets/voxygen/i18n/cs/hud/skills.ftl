@@ -5,10 +5,6 @@ hud-skill-req_sp =
     { "\u000A" }
 
     Vyžaduje { $number } bodů
-hud-skill-inc_health_title = Zvýší Zdraví
-hud-skill-inc_health = Zvýší maximální zdraví o { $boost }{ $SP }
-hud-skill-inc_energy_title = Zvýší Energii
-hud-skill-inc_energy = Zvýší Energii o { $boost }{ $SP }
 hud-skill-unlck_sword_title = Odemknutí Meče
 hud-skill-unlck_sword = Odemkne strom dovedností pro meče{ $SP }
 hud-skill-unlck_axe_title = Odemknutí Sekery
@@ -21,14 +17,6 @@ hud-skill-unlck_staff_title = Odemknutí Hole
 hud-skill-unlck_staff = Odemkne strom dovedností pro hůl{ $SP }
 hud-skill-unlck_sceptre_title = Odemknutí Žezla
 hud-skill-unlck_sceptre = Odemkne strom dovedností pro žezlo{ $SP }
-hud-skill-dodge_title = Vyhnutí
-hud-skill-dodge = Vyhnutí se aktivuje stiskem prostředního tlačítka myši a zajišťuje dočasnou imunitu vůči útokům zblízka (iframes) během kutálení.
-hud-skill-roll_energy_title = Spotřeba Energie pro Kotrmelec
-hud-skill-roll_energy = Kotrmelec použije o { $boost }% méně energie{ $SP }
-hud-skill-roll_speed_title = Rychlost Kotrmelce
-hud-skill-roll_speed = Kotrmelec je o { $boost }% rychlejší{ $SP }
-hud-skill-roll_dur_title = Délka Kotrmelce
-hud-skill-roll_dur = Kotrmelec je delší o { $boost }%{ $SP }
 hud-skill-climbing_title = Lezení
 hud-skill-climbing = Skočíš výš
 hud-skill-climbing_cost_title = Cena Lezení

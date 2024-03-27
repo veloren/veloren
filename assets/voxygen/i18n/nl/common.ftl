@@ -20,7 +20,7 @@ common-create = Aanmaken
 common-okay = Oké
 common-accept = Aanvaarden
 common-decline = Afwijzen
-common-disclaimer = Disclaimer
+common-disclaimer = Vrijwaring
 common-cancel = Annuleren
 common-none = Geen
 common-error = Fout
@@ -38,7 +38,7 @@ common-connection_lost =
     Verbinding verloren!
     Is de server opniew opgestart?
     Is je client nog up to date?
-common-species-orc = Orc
+common-species-orc = Ork
 common-species-human = Mens
 common-species-dwarf = Dwerg
 common-species-elf = Elf

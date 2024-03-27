@@ -237,7 +237,7 @@ npc-speech-villager_under_attack =
 npc-speech-villager_enemy_killed =
     .a0 = Ich habe den Feind vernichtet!
     .a1 = Endlich Frieden!
-    .a2 = … also, wo war ich stehengeblieben?
+    .a2 = ... also, wo war ich stehengeblieben?
 npc-speech-menacing =
     .a0 = Ich warne dich!
     .a1 = Komm nicht näher oder ich greife an!
@@ -359,3 +359,17 @@ npc-speech-guard_thought =
     .a0 = Mein Bruder ist unterwegs, gegen Ogre zu kämpfen. Was bleibt für mich? Wachdienst...
     .a1 = Nur noch eine Patrouille, dann kann ich nach Hause.
     .a2 = Kein Bandit kommt an mir vorbei.
+# NPC reactions
+npc-speech-night =
+    .a0 = Laternen sind nützlich, um nachts voranzukommen!
+    .a1 = Ich hoffe, wir sind alleine hier im Dunkeln ...
+    .a2 = Buu!
+# NPC site hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $site represents hard-coded site in the world
+npc-speech-site =
+    .a0 = Glaubst du nicht auch, dass unser Dorf das beste ist?
+    .a1 = Willkommen in { $site } !
+    .a2 = { $site } ist ein schönes Dorf zum Leben.

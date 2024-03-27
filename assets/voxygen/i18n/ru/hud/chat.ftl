@@ -73,3 +73,11 @@ hud-loot-pickup-msg =
     }
 hud-chat-goodbye = До свидания!
 hud-chat-connection_lost = Соединение потеряно. Выход через { $time } секунд.
+# Npc /tell messages, no gender info, sadly
+hud-chat-tell-from-npc = От [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to = К [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from = От [{ $alias }]: { $msg }
+# Npc /tell messages, no gender info, sadly
+hud-chat-tell-to-npc = К [{ $alias }]: { $msg }
