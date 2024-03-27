@@ -114,6 +114,18 @@ impl Lod {
                     lod::ObjectKind::SavannahPit,
                     make_lod_object("savannah_pit", renderer),
                 ),
+                (
+                    lod::ObjectKind::TerracottaPalace,
+                    make_lod_object("terracotta_palace", renderer),
+                ),
+                (
+                    lod::ObjectKind::TerracottaHouse,
+                    make_lod_object("terracotta_house", renderer),
+                ),
+                (
+                    lod::ObjectKind::TerracottaYard,
+                    make_lod_object("terracotta_yard", renderer),
+                ),
             ]
             .into(),
         }
