@@ -723,6 +723,21 @@ impl World {
                                 Rgb::black(),
                                 lod::ObjectKind::TerracottaYard,
                             )),
+                            site2::plot::PlotKind::AirshipDock(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::AirshipDock,
+                            )),
+                            site2::plot::PlotKind::CoastalHouse(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::CoastalHouse,
+                            )),
+                            site2::plot::PlotKind::CoastalWorkshop(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::CoastalWorkshop,
+                            )),
                             _ => None,
                         })
                     })
