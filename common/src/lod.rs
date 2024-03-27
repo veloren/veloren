@@ -37,6 +37,9 @@ pub enum ObjectKind {
     TerracottaPalace,
     TerracottaHouse,
     TerracottaYard,
+    AirshipDock,
+    CoastalHouse,
+    CoastalWorkshop,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
