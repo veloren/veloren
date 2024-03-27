@@ -697,6 +697,32 @@ impl World {
                                 Rgb::black(),
                                 lod::ObjectKind::Arena,
                             )),
+                            site2::plot::PlotKind::SavannahHut(_)
+                            | site2::plot::PlotKind::SavannahWorkshop(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::SavannahHut,
+                            )),
+                            site2::plot::PlotKind::SavannahPit(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::SavannahPit,
+                            )),
+                            site2::plot::PlotKind::TerracottaPalace(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::TerracottaPalace,
+                            )),
+                            site2::plot::PlotKind::TerracottaHouse(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::TerracottaHouse,
+                            )),
+                            site2::plot::PlotKind::TerracottaYard(_) => Some((
+                                site.tile_wpos(plot.root_tile),
+                                Rgb::black(),
+                                lod::ObjectKind::TerracottaYard,
+                            )),
                             _ => None,
                         })
                     })
