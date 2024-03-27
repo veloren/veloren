@@ -434,3 +434,6 @@ common-abilities-hammer-upheaval = Upheaval
 common-abilities-hammer-dual_upheaval = Upheaval
     .desc =
         Slam your hammers into your foes, knocking them into the air and leaving them vulnerable to staggers.
+common-abilities-hammer-rampart = Rampart
+    .desc =
+        Strike the ground, causing very mild tectonic uplift which protects your allies from attacks.

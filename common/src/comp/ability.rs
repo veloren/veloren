@@ -735,7 +735,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
             | CharacterState::Transform(_)
-            | CharacterState::Wallrun(_) => Self::Other,
+            | CharacterState::Wallrun(_)
+            | CharacterState::StaticAura(_) => Self::Other,
         }
     }
 }
@@ -974,6 +975,19 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    StaticAura {
+        buildup_duration: f32,
+        cast_duration: f32,
+        recover_duration: f32,
+        energy_cost: f32,
+        targets: combat::GroupTarget,
+        auras: Vec<aura::AuraBuffConstructor>,
+        aura_duration: Option<Secs>,
+        range: f32,
+        sprite_info: Option<static_aura::SpriteInfo>,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
     Blink {
         buildup_duration: f32,
         recover_duration: f32,
@@ -1146,7 +1160,12 @@ impl CharacterAbility {
         };
         from_meta
             && match self {
-                CharacterAbility::Roll { energy_cost, .. } => {
+                CharacterAbility::Roll { energy_cost, .. }
+                | CharacterAbility::StaticAura {
+                    energy_cost,
+                    sprite_info: Some(_),
+                    ..
+                } => {
                     data.physics.on_ground.is_some()
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
@@ -1160,6 +1179,11 @@ impl CharacterAbility {
                 | CharacterAbility::RiposteMelee { energy_cost, .. }
                 | CharacterAbility::ComboMelee2 {
                     energy_cost_per_strike: energy_cost,
+                    ..
+                }
+                | CharacterAbility::StaticAura {
+                    energy_cost,
+                    sprite_info: None,
                     ..
                 } => update.energy.try_change_by(-*energy_cost).is_ok(),
                 // Consumes energy within state, so value only checked before entering state
@@ -1610,6 +1634,39 @@ impl CharacterAbility {
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
+            StaticAura {
+                ref mut buildup_duration,
+                ref mut cast_duration,
+                ref mut recover_duration,
+                targets: _,
+                ref mut auras,
+                aura_duration: _,
+                ref mut range,
+                ref mut energy_cost,
+                ref mut sprite_info,
+                meta: _,
+            } => {
+                *buildup_duration /= stats.speed;
+                *cast_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                auras.iter_mut().for_each(
+                    |aura::AuraBuffConstructor {
+                         kind: _,
+                         ref mut strength,
+                         duration: _,
+                         category: _,
+                     }| {
+                        *strength *= stats.diminished_buff_strength();
+                    },
+                );
+                *range *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
+                *sprite_info = sprite_info.map(|mut si| {
+                    si.summon_distance.0 *= stats.range;
+                    si.summon_distance.1 *= stats.range;
+                    si
+                });
+            },
             Blink {
                 ref mut buildup_duration,
                 ref mut recover_duration,
@@ -1793,7 +1850,8 @@ impl CharacterAbility {
             }
             | DiveMelee { energy_cost, .. }
             | RiposteMelee { energy_cost, .. }
-            | RapidMelee { energy_cost, .. } => *energy_cost,
+            | RapidMelee { energy_cost, .. }
+            | StaticAura { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -1856,7 +1914,8 @@ impl CharacterAbility {
             | Music { .. }
             | BasicSummon { .. }
             | SpriteSummon { .. }
-            | Transform { .. } => 0,
+            | Transform { .. }
+            | StaticAura { .. } => 0,
         }
     }
 
@@ -1889,7 +1948,8 @@ impl CharacterAbility {
             | DiveMelee { meta, .. }
             | RiposteMelee { meta, .. }
             | RapidMelee { meta, .. }
-            | Transform { meta, .. } => *meta,
+            | Transform { meta, .. }
+            | StaticAura { meta, .. } => *meta,
         }
     }
 
@@ -2674,6 +2734,33 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::StaticAura {
+                buildup_duration,
+                cast_duration,
+                recover_duration,
+                targets,
+                auras,
+                aura_duration,
+                range,
+                energy_cost: _,
+                sprite_info,
+                meta: _,
+            } => CharacterState::StaticAura(static_aura::Data {
+                static_data: static_aura::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    cast_duration: Duration::from_secs_f32(*cast_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    targets: *targets,
+                    auras: auras.clone(),
+                    aura_duration: *aura_duration,
+                    range: *range,
+                    ability_info,
+                    sprite_info: *sprite_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                achieved_radius: sprite_info.map(|si| si.summon_distance.0.floor() as i32 - 1),
             }),
             CharacterAbility::Blink {
                 buildup_duration,

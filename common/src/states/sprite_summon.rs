@@ -117,99 +117,29 @@ impl CharacterBehavior for Data {
                     let timer_frac =
                         self.timer.as_secs_f32() / self.static_data.cast_duration.as_secs_f32();
 
-                    // Determines distance from summoner sprites should be created. Goes outward
-                    // with time.
-                    let summon_distance = timer_frac
-                        * (self.static_data.summon_distance.1 - self.static_data.summon_distance.0)
-                        + self.static_data.summon_distance.0;
-                    let summon_distance = summon_distance.round() as i32;
-
-                    // Only summons sprites if summon distance is greater than achieved radius
-                    for radius in self.achieved_radius..=summon_distance {
-                        // 1 added to make range correct, too lazy to add 1 to both variables above
-                        let radius = radius + 1;
-                        // Creates a spiral iterator for the newly achieved radius
-                        let spiral = Spiral2d::with_edge_radius(radius);
-                        for point in spiral {
-                            // If square is in the angle and is not sparse, generate sprite
-                            if data
-                                .ori
-                                .look_vec()
-                                .xy()
-                                .angle_between(point.as_())
-                                .to_degrees()
-                                <= (self.static_data.angle / 2.0)
-                                && !thread_rng().gen_bool(self.static_data.sparseness)
-                            {
-                                let anchor_pos = match self.static_data.anchor {
-                                    SpriteSummonAnchor::Summoner => data.pos.0,
-                                    // Use the selected target position, falling back to the
-                                    // summoner position
-                                    SpriteSummonAnchor::Target => {
-                                        target_pos().unwrap_or(data.pos.0)
-                                    },
-                                };
-                                // The coordinates of where the sprite is created
-                                let sprite_pos = Vec3::new(
-                                    anchor_pos.x.floor() as i32 + point.x,
-                                    anchor_pos.y.floor() as i32 + point.y,
-                                    anchor_pos.z.floor() as i32,
-                                );
-
-                                // Check for collision in z up to 10 blocks up or down
-                                let (obstacle_z, obstale_z_result) = data
-                                    .terrain
-                                    .ray(
-                                        sprite_pos.map(|x| x as f32 + 0.5) + Vec3::unit_z() * 10.0,
-                                        sprite_pos.map(|x| x as f32 + 0.5) - Vec3::unit_z() * 10.0,
-                                    )
-                                    .until(|b| {
-                                        // Until reaching a solid block that is not the created
-                                        // sprite
-                                        Block::is_solid(b)
-                                            && b.get_sprite() != Some(self.static_data.sprite)
-                                    })
-                                    .cast();
-
-                                let z = match self.static_data.sprite {
-                                    // z height - 1 to delete sprite layer below caster
-                                    SpriteKind::Empty => {
-                                        sprite_pos.z + (10.5 - obstacle_z).ceil() as i32 - 1
-                                    },
-                                    _ => {
-                                        sprite_pos.z
-                                            + if let (SpriteSummonAnchor::Target, Ok(None)) =
-                                                (&self.static_data.anchor, obstale_z_result)
-                                            {
-                                                0
-                                            } else {
-                                                (10.5 - obstacle_z).ceil() as i32
-                                            }
-                                    },
-                                };
-
-                                // Location sprite will be created
-                                let sprite_pos = Vec3::new(sprite_pos.x, sprite_pos.y, z);
-                                // Layers of sprites
-                                let layers = match self.static_data.sprite {
-                                    SpriteKind::SeaUrchin => 2,
-                                    _ => 1,
-                                };
-                                for i in 0..layers {
-                                    // Send server event to create sprite
-                                    output_events.emit_server(CreateSpriteEvent {
-                                        pos: Vec3::new(sprite_pos.x, sprite_pos.y, z + i),
-                                        sprite: self.static_data.sprite,
-                                        del_timeout: self.static_data.del_timeout,
-                                    });
-                                }
-                            }
-                        }
-                    }
+                    let anchor_pos = match self.static_data.anchor {
+                        SpriteSummonAnchor::Summoner => data.pos.0,
+                        // Use the selected target position, falling back to the
+                        // summoner position
+                        SpriteSummonAnchor::Target => target_pos().unwrap_or(data.pos.0),
+                    };
+                    let achieved_radius = create_sprites(
+                        data,
+                        output_events,
+                        self.static_data.sprite,
+                        timer_frac,
+                        self.static_data.summon_distance,
+                        self.achieved_radius,
+                        self.static_data.angle,
+                        self.static_data.sparseness,
+                        anchor_pos,
+                        matches!(self.static_data.anchor, SpriteSummonAnchor::Target),
+                        self.static_data.del_timeout,
+                    );
 
                     update.character = CharacterState::SpriteSummon(Data {
                         timer: tick_attack_or_default(data, self.timer, None),
-                        achieved_radius: summon_distance,
+                        achieved_radius,
                         ..*self
                     });
                     // Send local event used for frontend shenanigans
@@ -269,4 +199,95 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+/// Returns achieved radius
+pub fn create_sprites(
+    data: &JoinData,
+    output_events: &mut OutputEvents,
+    sprite: SpriteKind,
+    timer_frac: f32,
+    summon_distance: (f32, f32),
+    achieved_radius: i32,
+    angle: f32,
+    sparseness: f64,
+    anchor_pos: Vec3<f32>,
+    stack_sprites: bool,
+    del_timeout: Option<(f32, f32)>,
+) -> i32 {
+    // Determines distance from summoner sprites should be created. Goes outward
+    // with time.
+    let summon_distance = timer_frac * (summon_distance.1 - summon_distance.0) + summon_distance.0;
+    let summon_distance = summon_distance.round() as i32;
+
+    // Only summons sprites if summon distance is greater than achieved radius
+    for radius in achieved_radius..=summon_distance {
+        // 1 added to make range correct, too lazy to add 1 to both variables above
+        let radius = radius + 1;
+        // Creates a spiral iterator for the newly achieved radius
+        let spiral = Spiral2d::with_edge_radius(radius);
+        for point in spiral {
+            // If square is in the angle and is not sparse, generate sprite
+            if data
+                .ori
+                .look_vec()
+                .xy()
+                .angle_between(point.as_())
+                .to_degrees()
+                <= (angle / 2.0)
+                && !thread_rng().gen_bool(sparseness)
+            {
+                // The coordinates of where the sprite is created
+                let sprite_pos = Vec3::new(
+                    anchor_pos.x.floor() as i32 + point.x,
+                    anchor_pos.y.floor() as i32 + point.y,
+                    anchor_pos.z.floor() as i32,
+                );
+
+                // Check for collision in z up to 10 blocks up or down
+                let (obstacle_z, obstacle_z_result) = data
+                    .terrain
+                    .ray(
+                        sprite_pos.map(|x| x as f32 + 0.5) + Vec3::unit_z() * 10.0,
+                        sprite_pos.map(|x| x as f32 + 0.5) - Vec3::unit_z() * 10.0,
+                    )
+                    .until(|b| {
+                        // Until reaching a solid block that is not the created
+                        // sprite
+                        Block::is_solid(b) && b.get_sprite() != Some(sprite)
+                    })
+                    .cast();
+
+                let z = match sprite {
+                    // z height - 1 to delete sprite layer below caster
+                    SpriteKind::Empty => sprite_pos.z + (10.5 - obstacle_z).ceil() as i32 - 1,
+                    _ => {
+                        sprite_pos.z
+                            + if let (true, Ok(None)) = (stack_sprites, obstacle_z_result) {
+                                0
+                            } else {
+                                (10.5 - obstacle_z).ceil() as i32
+                            }
+                    },
+                };
+
+                // Location sprite will be created
+                let sprite_pos = Vec3::new(sprite_pos.x, sprite_pos.y, z);
+                // Layers of sprites
+                let layers = match sprite {
+                    SpriteKind::SeaUrchin => 2,
+                    _ => 1,
+                };
+                for i in 0..layers {
+                    // Send server event to create sprite
+                    output_events.emit_server(CreateSpriteEvent {
+                        pos: Vec3::new(sprite_pos.x, sprite_pos.y, z + i),
+                        sprite,
+                        del_timeout,
+                    });
+                }
+            }
+        }
+    }
+    summon_distance
 }

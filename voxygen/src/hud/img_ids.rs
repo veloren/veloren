@@ -330,6 +330,7 @@ image_ids! {
         hammer_helm_crusher: "voxygen.element.skills.hammer.helm_crusher",
         hammer_iron_tempest: "voxygen.element.skills.hammer.iron_tempest",
         hammer_upheaval: "voxygen.element.skills.hammer.upheaval",
+        hammer_rampart: "voxygen.element.skills.hammer.rampart",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

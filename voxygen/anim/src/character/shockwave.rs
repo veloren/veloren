@@ -3,6 +3,7 @@ use super::{
     hammer_start, twist_back, twist_forward, CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;
+use std::f32::consts::PI;
 
 pub struct Input {
     pub attack: bool,
@@ -135,6 +136,28 @@ impl Animation for ShockwaveAnimation {
                 next.control.orientation.rotate_z(move2 * 1.2);
                 next.control.position += Vec3::new(-16.0, 0.0, 0.0) * move2;
                 next.chest.orientation.rotate_x(-0.8 * move2);
+            },
+            Some("common.abilities.hammer.rampart") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.control.orientation.rotate_x(move1 * 0.6);
+                next.control.orientation.rotate_y(move1 * -PI / 2.0);
+                next.hand_l.orientation.rotate_y(move1 * -PI);
+                next.hand_r.orientation.rotate_y(move1 * -PI);
+                next.control.position += Vec3::new(-5.0, 0.0, 30.0) * move1;
+
+                next.control.position += Vec3::new(0.0, 0.0, -10.0) * move2;
+                next.torso.orientation.rotate_x(move2 * -0.6);
+                next.control.orientation.rotate_x(move2 * 0.6);
             },
             _ => {},
         }

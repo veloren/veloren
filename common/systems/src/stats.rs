@@ -167,7 +167,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
-                | CharacterState::RapidMelee(_) => {
+                | CharacterState::RapidMelee(_)
+                | CharacterState::StaticAura(_) => {
                     if energy.needs_regen_rate_reset() {
                         energy.reset_regen_rate();
                     }

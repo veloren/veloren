@@ -653,6 +653,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.hammer.dual_iron_tempest" => imgs.hammer_iron_tempest,
         "common.abilities.hammer.upheaval" => imgs.hammer_upheaval,
         "common.abilities.hammer.dual_upheaval" => imgs.hammer_upheaval,
+        "common.abilities.hammer.rampart" => imgs.hammer_rampart,
         // Bow
         "common.abilities.bow.charged" => imgs.bow_m1,
         "common.abilities.bow.repeater" => imgs.bow_m2,

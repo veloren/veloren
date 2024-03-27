@@ -33,6 +33,7 @@ pub mod sit;
 pub mod skate;
 pub mod sprite_interact;
 pub mod sprite_summon;
+pub mod static_aura;
 pub mod stunned;
 pub mod talk;
 pub mod transform;

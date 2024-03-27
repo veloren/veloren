@@ -1,0 +1,23 @@
+StaticAura(
+    buildup_duration: 0.4,
+    cast_duration: 0.3,
+    recover_duration: 0.4,
+    energy_cost: 20,
+    targets: InGroup,
+    auras: [
+        (
+            kind: ProtectingWard,
+            strength: 0.3,
+            duration: Some(1),
+            category: Magical,
+        ),
+    ],
+    aura_duration: Some(20),
+    range: 10.0,
+    sprite_info: Some((
+        sprite: Stones2,
+        del_timeout: Some((19, 3)),
+        summon_distance: (7, 10),
+        sparseness: 0.97,
+    )),
+)

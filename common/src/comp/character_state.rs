@@ -52,6 +52,7 @@ event_emitters! {
         knockback: event::KnockbackEvent,
         sprite_light: event::ToggleSpriteLightEvent,
         transform: event::TransformEvent,
+        create_aura_entity: event::CreateAuraEntityEvent,
     }
 }
 
@@ -142,6 +143,9 @@ pub enum CharacterState {
     BasicBeam(basic_beam::Data),
     /// Creates an aura that persists as long as you are actively casting
     BasicAura(basic_aura::Data),
+    /// Creates an aura that is attached to a pseudo entity, so it doesn't move
+    /// with you Optionally allows for sprites to be created as well
+    StaticAura(static_aura::Data),
     /// A short teleport that targets either a position or entity
     Blink(blink::Data),
     /// Summons creatures that fight for the caster
@@ -211,6 +215,7 @@ impl CharacterState {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
+                | CharacterState::StaticAura(_)
         )
     }
 
@@ -276,6 +281,7 @@ impl CharacterState {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
+                | CharacterState::StaticAura(_)
         )
     }
 
@@ -532,6 +538,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => data.behavior(j, output_events),
             CharacterState::RapidMelee(data) => data.behavior(j, output_events),
             CharacterState::Transform(data) => data.behavior(j, output_events),
+            CharacterState::StaticAura(data) => data.behavior(j, output_events),
         }
     }
 
@@ -586,6 +593,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RapidMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::Transform(data) => data.handle_event(j, output_events, action),
+            CharacterState::StaticAura(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -639,6 +647,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RapidMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Transform(data) => Some(data.static_data.ability_info),
+            CharacterState::StaticAura(data) => Some(data.static_data.ability_info),
         }
     }
 
@@ -684,6 +693,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => Some(data.stage_section),
             CharacterState::RapidMelee(data) => Some(data.stage_section),
             CharacterState::Transform(data) => Some(data.stage_section),
+            CharacterState::StaticAura(data) => Some(data.stage_section),
         }
     }
 
@@ -868,6 +878,12 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
+            CharacterState::StaticAura(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                action: Some(data.static_data.cast_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
         }
     }
 
@@ -913,6 +929,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => Some(data.timer),
             CharacterState::RapidMelee(data) => Some(data.timer),
             CharacterState::Transform(data) => Some(data.timer),
+            CharacterState::StaticAura(data) => Some(data.timer),
         }
     }
 
@@ -973,6 +990,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(_) => Some(AttackSource::Melee),
             CharacterState::RapidMelee(_) => Some(AttackSource::Melee),
             CharacterState::Transform(_) => None,
+            CharacterState::StaticAura(_) => None,
         }
     }
 }

@@ -12,9 +12,9 @@ use common::{
         WaypointArea,
     },
     event::{
-        CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent, CreateShipEvent,
-        CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent, InitializeSpectatorEvent,
-        ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
+        CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
+        CreateShipEvent, CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent,
+        InitializeSpectatorEvent, ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -487,5 +487,18 @@ pub fn handle_create_object(
         .maybe_with(item)
         .maybe_with(light_emitter)
         .maybe_with(stats)
+        .build();
+}
+
+pub fn handle_create_aura_entity(server: &mut Server, ev: CreateAuraEntityEvent) {
+    server
+        .state
+        .ecs_mut()
+        .create_entity_synced()
+        .with(ev.pos)
+        .with(comp::Vel(Vec3::zero()))
+        .with(comp::Ori::default())
+        .with(ev.auras)
+        .with(comp::Alignment::Owned(ev.creator_uid))
         .build();
 }
