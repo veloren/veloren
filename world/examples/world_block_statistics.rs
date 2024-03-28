@@ -21,7 +21,7 @@ use std::{
 };
 use vek::*;
 use veloren_world::{
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     World,
 };
 
@@ -63,7 +63,7 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
     println!("Loading world");
     let pool = ThreadPoolBuilder::new().build().unwrap();
     let (world, index) = World::generate(
-        59686,
+        DEFAULT_WORLD_SEED,
         WorldOpts {
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),

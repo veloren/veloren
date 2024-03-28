@@ -3,14 +3,14 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rayon::ThreadPoolBuilder;
 use veloren_world::{
     layer,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     CanvasInfo, Land, World,
 };
 
 fn cave(c: &mut Criterion) {
     let pool = ThreadPoolBuilder::new().build().unwrap();
     let (world, index) = World::generate(
-        230,
+        DEFAULT_WORLD_SEED,
         WorldOpts {
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),

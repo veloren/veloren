@@ -15,7 +15,7 @@ use tracing_subscriber::{
 };
 use vek::*;
 use veloren_world::{
-    sim::{self, get_horizon_map, sample_pos, sample_wpos, WorldOpts},
+    sim::{self, get_horizon_map, sample_pos, sample_wpos, WorldOpts, DEFAULT_WORLD_SEED},
     util::Sampler,
     ColumnSample, World, CONFIG,
 };
@@ -43,7 +43,7 @@ fn main() {
     _map_file.push(map_file);
 
     let (world, index) = World::generate(
-        5284,
+        DEFAULT_WORLD_SEED,
         WorldOpts {
             seed_elements: false,
             world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),

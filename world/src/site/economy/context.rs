@@ -336,7 +336,7 @@ mod tests {
         execute_with_tracing(Level::INFO, || {
             let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
             info!("init");
-            let seed = 59686;
+            let seed = sim::DEFAULT_WORLD_SEED;
             let opts = sim::WorldOpts {
                 seed_elements: true,
                 world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
@@ -362,7 +362,7 @@ mod tests {
         execute_with_tracing(Level::INFO, || {
             let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
             info!("init");
-            let seed = 59686;
+            let seed = sim::DEFAULT_WORLD_SEED;
             let opts = sim::WorldOpts {
                 seed_elements: true,
                 world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
@@ -502,7 +502,7 @@ mod tests {
         execute_with_tracing(Level::ERROR, || {
             let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
             info!("init");
-            let seed = 59686;
+            let seed = sim::DEFAULT_WORLD_SEED;
             let opts = sim::WorldOpts {
                 seed_elements: true,
                 world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),

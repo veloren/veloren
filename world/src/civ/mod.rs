@@ -278,7 +278,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..115) {
+                let (loc, kind) = match ctx.rng.gen_range(0..90) {
                     0..=4 => {
                         if index.features().site2_giant_trees {
                             (
@@ -304,7 +304,7 @@ impl Civs {
                             )
                         }
                     },
-                    5..=10 => (
+                    5..=15 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -314,7 +314,7 @@ impl Civs {
                         )?,
                         SiteKind::Gnarling,
                     ),
-                    11..=16 => (
+                    16..=20 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -324,7 +324,7 @@ impl Civs {
                         )?,
                         SiteKind::ChapelSite,
                     ),
-                    17..=22 => (
+                    21..=27 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -334,7 +334,7 @@ impl Civs {
                         )?,
                         SiteKind::Adlet,
                     ),
-                    23..=35 => (
+                    28..=38 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -344,7 +344,7 @@ impl Civs {
                         )?,
                         SiteKind::PirateHideout,
                     ),
-                    36..=42 => (
+                    39..=45 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -354,7 +354,7 @@ impl Civs {
                         )?,
                         SiteKind::JungleRuin,
                     ),
-                    43..=49 => (
+                    46..=55 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -364,7 +364,7 @@ impl Civs {
                         )?,
                         SiteKind::RockCircle,
                     ),
-                    50..=59 => (
+                    56..=66 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -374,7 +374,7 @@ impl Civs {
                         )?,
                         SiteKind::TrollCave,
                     ),
-                    60..=69 => (
+                    67..=72 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -384,7 +384,7 @@ impl Civs {
                         )?,
                         SiteKind::Camp,
                     ),
-                    70..=74 => (
+                    73..=76 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -394,7 +394,7 @@ impl Civs {
                         )?,
                         SiteKind::Haniwa,
                     ),
-                    75..=85 => (
+                    77..=79 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -404,7 +404,7 @@ impl Civs {
                         )?,
                         SiteKind::Terracotta,
                     ),
-                    /*86..=91 => (
+                    /*80..=86 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -414,7 +414,7 @@ impl Civs {
                         )?,
                         SiteKind::DwarvenMine,
                     ),
-                    92..=97 => (
+                    86..=97 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -945,10 +945,10 @@ impl Civs {
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         // TODO: specify SiteKind based on where a suitable location is found
         let kind = match ctx.rng.gen_range(0..64) {
-            0..=10 => SiteKind::CliffTown,
-            11..=12 => SiteKind::DesertCity,
-            13..=18 => SiteKind::SavannahPit,
-            19..=36 => SiteKind::CoastalTown,
+            0..=8 => SiteKind::CliffTown,
+            9..=17 => SiteKind::DesertCity,
+            18..=23 => SiteKind::SavannahPit,
+            24..=33 => SiteKind::CoastalTown,
             _ => SiteKind::Refactor,
         };
         let world_dims = ctx.sim.get_aabr();
@@ -1558,11 +1558,7 @@ impl Civs {
     }
 
     fn tree_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Castle => Some(s.center),
-            _ if s.is_settlement() => Some(s.center),
-            _ => None,
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn castle_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
