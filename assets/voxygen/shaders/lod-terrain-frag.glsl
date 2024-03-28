@@ -122,7 +122,7 @@ void main() {
     float f_ao = 1.0;
     vec3 voxel_norm = f_norm;
     const float VOXELIZE_DIST = 2000;
-    float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) * (1.0 / VOXELIZE_DIST), 0, 1);
+    float voxelize_factor = clamp(1.0 - (distance(cam_pos.xy, f_pos.xy) - view_distance.x) * (1.0 / VOXELIZE_DIST), 0, 1);
     vec3 cam_dir = cam_to_frag;
     #ifdef EXPERIMENTAL_NOLODVOXELS
         vec3 side_norm = normalize(vec3(my_norm.xy, 0.01));
