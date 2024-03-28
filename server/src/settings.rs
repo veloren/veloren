@@ -30,11 +30,10 @@ use std::{
     path::{Path, PathBuf},
 };
 use tracing::{error, warn};
-use world::sim::FileOpts;
+use world::sim::{FileOpts, DEFAULT_WORLD_SEED};
 
 use self::server_description::ServerDescription;
 
-const DEFAULT_WORLD_SEED: u32 = 230;
 const CONFIG_DIR: &str = "server_config";
 const SETTINGS_FILENAME: &str = "settings.ron";
 const WHITELIST_FILENAME: &str = "whitelist.ron";

@@ -1,6 +1,6 @@
 use std::time::Instant;
 use veloren_world::{
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     World,
 };
 
@@ -9,7 +9,7 @@ fn main() {
 
     let start = Instant::now();
     let (world, index) = World::generate(
-        0,
+        DEFAULT_WORLD_SEED,
         WorldOpts {
             seed_elements: true,
             // Load default map from assets.

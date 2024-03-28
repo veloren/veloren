@@ -146,7 +146,7 @@ use crate::{chat::ChatCache, persistence::character_loader::CharacterScreenRespo
 use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
 pub use world::{
-    sim::{FileOpts, GenOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    sim::{FileOpts, GenOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     IndexOwned, World,
 };
 

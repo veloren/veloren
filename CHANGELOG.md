@@ -105,6 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dropped items now merge dynamically (including non-stackables).
 - You no longer need to unlock health, energy and roll skills to get to max.
 - Rolls now don't skip recovery, and instead have increased buildup during ability interrupts.
+- Changed default world map
 
 ### Removed
 

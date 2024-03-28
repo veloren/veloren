@@ -29,7 +29,7 @@ use tracing::{debug, trace};
 use vek::*;
 use veloren_world::{
     civ::SiteKind,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     World,
 };
 
@@ -682,7 +682,7 @@ fn main() {
     common_frontend::init_stdout(None);
     println!("Loading world");
     let (world, index) = World::generate(
-        59686,
+        DEFAULT_WORLD_SEED,
         WorldOpts {
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),

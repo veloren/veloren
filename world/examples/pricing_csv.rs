@@ -9,7 +9,7 @@ use strum::IntoEnumIterator;
 use vek::Vec2;
 use veloren_world::{
     index::Index,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     World,
 };
 
@@ -162,7 +162,7 @@ fn main() {
     println!("Loading world");
     let pool = ThreadPoolBuilder::new().build().unwrap();
     let (world, index) = World::generate(
-        59686,
+        DEFAULT_WORLD_SEED,
         WorldOpts {
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),

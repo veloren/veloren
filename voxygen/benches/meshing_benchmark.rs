@@ -15,7 +15,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
     // Generate chunks here to test
     let (world, index) = World::generate(
-        42,
+        sim::DEFAULT_WORLD_SEED,
         sim::WorldOpts {
             // NOTE: If this gets too expensive, we can turn it off.
             // TODO: Consider an option to turn off all erosion as well, or even provide altitude

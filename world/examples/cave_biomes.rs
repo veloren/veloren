@@ -6,14 +6,14 @@ use veloren_world::{
         self,
         cave::{Biome, LAYERS},
     },
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
+    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     CanvasInfo, Land, World,
 };
 
 fn main() {
     let pool = ThreadPoolBuilder::new().build().unwrap();
     let (world, index) = World::generate(
-        230,
+        DEFAULT_WORLD_SEED,
         WorldOpts {
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),

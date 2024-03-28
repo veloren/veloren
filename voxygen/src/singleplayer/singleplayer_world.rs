@@ -6,7 +6,7 @@ use std::{
 
 use common::{assets::ASSETS_PATH, consts::DAY_LENGTH_DEFAULT};
 use serde::{Deserialize, Serialize};
-use server::{FileOpts, GenOpts, DEFAULT_WORLD_MAP};
+use server::{FileOpts, GenOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED};
 use tracing::error;
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -84,7 +84,7 @@ fn migrate_old_singleplayer(from: &Path, to: &Path) {
             return;
         }
 
-        let mut seed = 0;
+        let mut seed = DEFAULT_WORLD_SEED;
         let mut day_length = DAY_LENGTH_DEFAULT;
         let (map_file, gen_opts) = fs::read_to_string(to.join("server_config/settings.ron"))
             .ok()
@@ -238,7 +238,7 @@ impl SingleplayerWorlds {
             name: "New World".to_string(),
             gen_opts: None,
             day_length: DAY_LENGTH_DEFAULT,
-            seed: 0,
+            seed: DEFAULT_WORLD_SEED,
             is_generated: false,
             map_path: path.join("map.bin"),
             path,
