@@ -90,9 +90,9 @@ void main() {
     float voxelize_factor = clamp(1.0 - (distance(cam_pos.xy, f_pos.xy) - view_distance.x) * (1.0 / VOXELIZE_DIST), 0, 1.0);
     vec3 cam_dir = cam_to_frag;
     #ifdef EXPERIMENTAL_NOLODVOXELS
-        vec3 side_norm = normalize(vec3(f_norm.xy, 0));
-        vec3 top_norm = vec3(0, 0, 1);
-        voxel_norm = normalize(mix(side_norm, top_norm, cam_dir.z));
+        //vec3 side_norm = normalize(vec3(f_norm.xy, 0));
+        //vec3 top_norm = vec3(0, 0, 1);
+        voxel_norm = f_norm;//normalize(mix(side_norm, top_norm, cam_dir.z));
     #else
         float base_surf_depth = lod_voxel_noise(f_pos);
         float t = -1.5 + base_surf_depth;

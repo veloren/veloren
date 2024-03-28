@@ -443,6 +443,8 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     #ifdef EXPERIMENTAL_PHOTOREALISTIC
         vec3 lrf = light_reflection_factor(norm, dir, -norm, k_d, vec3(0.0), alpha, voxel_norm, voxel_lighting);
     #else
+        // In practice, for gameplay purposes, we often want extra light at earlier and later times, so we use a
+        // non-physical LRF to boost light during dawn and dusk.
         float lrf = pow(dot(norm, vec3(0, 0, 1)) + 1, 2) * 0.25;
     #endif
     vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * lrf;
