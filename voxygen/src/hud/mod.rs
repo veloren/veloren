@@ -5264,6 +5264,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Bloodfeast => imgs.buff_plus_0,
         BuffKind::Berserk => imgs.buff_reckless,
         BuffKind::ScornfulTaunt => imgs.buff_scornfultaunt,
+        BuffKind::Tenacity => imgs.buff_tenacity,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,

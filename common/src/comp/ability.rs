@@ -3038,6 +3038,9 @@ impl StatAdj {
             StatField::EffectPower => {
                 stats.effect_power += add;
             },
+            StatField::BuffStrength => {
+                stats.buff_strength += add;
+            },
         }
         stats
     }
@@ -3057,6 +3060,7 @@ pub enum StatContext {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum StatField {
     EffectPower,
+    BuffStrength,
 }
 
 // TODO: Later move over things like energy and combo into here

@@ -331,6 +331,7 @@ image_ids! {
         hammer_iron_tempest: "voxygen.element.skills.hammer.iron_tempest",
         hammer_upheaval: "voxygen.element.skills.hammer.upheaval",
         hammer_rampart: "voxygen.element.skills.hammer.rampart",
+        hammer_tenacity: "voxygen.element.skills.hammer.tenacity",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
@@ -806,6 +807,7 @@ image_ids! {
         buff_flame: "voxygen.element.de_buffs.buff_flame",
         buff_frigid: "voxygen.element.de_buffs.buff_frigid",
         buff_scornfultaunt: "voxygen.element.de_buffs.buff_scornfultaunt",
+        buff_tenacity: "voxygen.element.de_buffs.buff_tenacity",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",

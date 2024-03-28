@@ -1034,6 +1034,7 @@ pub enum CombatRequirement {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum DamagedEffect {
     Combo(i32),
+    Energy(f32),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

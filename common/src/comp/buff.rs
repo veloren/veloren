@@ -27,7 +27,9 @@ new_key_type! { pub struct BuffKey; }
     Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize, PartialOrd, Ord, EnumIter, Enum,
 )]
 pub enum BuffKind {
-    // Buffs
+    // =================
+    //       BUFFS
+    // =================
     /// Restores health/time for some period.
     /// Strength should be the healing per second.
     Regeneration,
@@ -115,9 +117,9 @@ pub enum BuffKind {
     /// generated when damaged, and decreases movement speed.
     /// Damage resistance increases non-linearly with strength, 0.5 is 50% and
     /// 1.0 is 67%. Poise resistance increases non-linearly with strength, 0.5
-    /// is 50% and 1.0 is 67%. Movement speed decreases linearly with strength,
-    /// 0.5 is 50% and 1.0 is 33%. Combo generation is linear with strength, 1.0
-    /// is 5 combo generated on being hit.
+    /// is 50% and 1.0 is 67%. Movement speed is decreased to 50%. Combo
+    /// generation is linear with strength, 1.0 is 5 combo generated on being
+    /// hit.
     Defiance,
     /// Increases both attack damage, vulnerability to damage, attack speed, and
     /// movement speed Damage increases linearly with strength, 1.0 is a
@@ -133,7 +135,15 @@ pub enum BuffKind {
     /// strength, 0.5 is +50% and 1.0 is +100% strength. Reckless buff reward
     /// strength is equal to scornful taunt buff strength.
     ScornfulTaunt,
-    // Debuffs
+    /// Increases damage resistance, causes energy to be generated when damaged,
+    /// and decreases movement speed. Damage resistance increases non-linearly
+    /// with strength, 0.5 is 50% and 1.0 is 67%. Energy generation is linear
+    /// with strength, 1.0 is 10 energy per hit. Movement speed is decreased to
+    /// 70%.
+    Tenacity,
+    // =================
+    //      DEBUFFS
+    // =================
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
     Burning,
@@ -197,7 +207,9 @@ pub enum BuffKind {
     /// Scales linearly with strength, 1.0 leads to 100% more poise damage
     /// received
     Staggered,
-    // Complex, non-obvious buffs
+    // =================
+    //      COMPLEX
+    // =================
     /// Changed into another body.
     Polymorphed,
 }
@@ -248,7 +260,8 @@ impl BuffKind {
             | BuffKind::Defiance
             | BuffKind::Bloodfeast
             | BuffKind::Berserk
-            | BuffKind::ScornfulTaunt => BuffDescriptor::SimplePositive,
+            | BuffKind::ScornfulTaunt
+            | BuffKind::Tenacity => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -482,7 +495,7 @@ impl BuffKind {
             BuffKind::Defiance => vec![
                 BuffEffect::DamageReduction(nn_scaling(data.strength)),
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
-                BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
+                BuffEffect::MovementSpeed(0.5),
                 BuffEffect::DamagedEffect(DamagedEffect::Combo(
                     (data.strength * 5.0).round() as i32
                 )),
@@ -513,6 +526,11 @@ impl BuffKind {
             ],
             BuffKind::Concussion => vec![BuffEffect::DisableAuxiliaryAbilities],
             BuffKind::Staggered => vec![BuffEffect::PoiseReduction(-data.strength)],
+            BuffKind::Tenacity => vec![
+                BuffEffect::DamageReduction(nn_scaling(data.strength)),
+                BuffEffect::MovementSpeed(0.7),
+                BuffEffect::DamagedEffect(DamagedEffect::Energy(data.strength * 10.0)),
+            ],
         }
     }
 

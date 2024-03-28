@@ -102,6 +102,28 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<StartTeleportingEvent>(builder);
 }
 
+event_emitters! {
+    struct ReadExplosionEvents[ExplosionEmitters] {
+        health_change: HealthChangeEvent,
+        energy_change: EnergyChangeEvent,
+        poise_change: PoiseChangeEvent,
+        sound: SoundEvent,
+        parry_hook: ParryHookEvent,
+        kockback: KnockbackEvent,
+        entity_attack_hoow: EntityAttackedHookEvent,
+        combo_change: ComboChangeEvent,
+        buff: BuffEvent,
+        bonk: BonkEvent,
+    }
+
+    struct ReadEntityAttackedHookEvents[EntityAttackedHookEmitters] {
+        buff: BuffEvent,
+        combo_change: ComboChangeEvent,
+        knockback: KnockbackEvent,
+        energy_change: EnergyChangeEvent,
+    }
+}
+
 pub fn handle_delete(server: &mut Server, DeleteEvent(entity): DeleteEvent) {
     let _ = server
         .state_mut()
@@ -968,21 +990,6 @@ impl ServerEvent for RespawnEvent {
     }
 }
 
-event_emitters! {
-    struct ReadExplosionEvents[ExplosionEmitters] {
-        health_change: HealthChangeEvent,
-        energy_change: EnergyChangeEvent,
-        poise_change: PoiseChangeEvent,
-        sound: SoundEvent,
-        parry_hook: ParryHookEvent,
-        kockback: KnockbackEvent,
-        entity_attack_hoow: EntityAttackedHookEvent,
-        combo_change: ComboChangeEvent,
-        buff: BuffEvent,
-        bonk: BonkEvent,
-    }
-}
-
 #[derive(SystemData)]
 pub struct ExplosionData<'a> {
     entities: Entities<'a>,
@@ -1838,55 +1845,35 @@ impl ServerEvent for TeleportToEvent {
     }
 }
 
+#[derive(SystemData)]
+pub struct EntityAttackedHookData<'a> {
+    entities: Entities<'a>,
+    trades: Write<'a, Trades>,
+    id_maps: Read<'a, IdMaps>,
+    time: Read<'a, Time>,
+    event_busses: ReadEntityAttackedHookEvents<'a>,
+    outcomes: Read<'a, EventBus<Outcome>>,
+    character_states: WriteStorage<'a, CharacterState>,
+    poises: WriteStorage<'a, Poise>,
+    agents: WriteStorage<'a, Agent>,
+    positions: ReadStorage<'a, Pos>,
+    uids: ReadStorage<'a, Uid>,
+    clients: ReadStorage<'a, Client>,
+    stats: ReadStorage<'a, Stats>,
+}
+
 impl ServerEvent for EntityAttackedHookEvent {
-    type SystemData<'a> = (
-        Entities<'a>,
-        Write<'a, Trades>,
-        Read<'a, IdMaps>,
-        Read<'a, Time>,
-        Read<'a, EventBus<BuffEvent>>,
-        Read<'a, EventBus<ComboChangeEvent>>,
-        Read<'a, EventBus<KnockbackEvent>>,
-        Read<'a, EventBus<Outcome>>,
-        WriteStorage<'a, CharacterState>,
-        WriteStorage<'a, Poise>,
-        WriteStorage<'a, Agent>,
-        ReadStorage<'a, Pos>,
-        ReadStorage<'a, Uid>,
-        ReadStorage<'a, Client>,
-        ReadStorage<'a, Stats>,
-    );
+    type SystemData<'a> = EntityAttackedHookData<'a>;
 
     /// Intended to handle things that should happen for any successful attack,
     /// regardless of the damages and effects specific to that attack
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (
-            entities,
-            mut trades,
-            id_maps,
-            time,
-            buff_events,
-            combo_change_events,
-            knockback_events,
-            outcomes,
-            mut character_states,
-            mut poises,
-            mut agents,
-            positions,
-            uids,
-            clients,
-            stats,
-        ): Self::SystemData<'_>,
-    ) {
-        let mut buff_emitter = buff_events.emitter();
-        let mut combo_change_emitter = combo_change_events.emitter();
-        let mut knockback_emitter = knockback_events.emitter();
+    fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
+        let mut emitters = data.event_busses.get_emitters();
+        let mut outcomes = data.outcomes.emitter();
 
-        let mut outcomes = outcomes.emitter();
         for ev in events {
             if let Some(attacker) = ev.attacker {
-                buff_emitter.emit(BuffEvent {
+                emitters.emit(BuffEvent {
                     entity: attacker,
                     buff_change: buff::BuffChange::RemoveByCategory {
                         all_required: vec![buff::BuffCategory::RemoveOnAttack],
@@ -1896,10 +1883,13 @@ impl ServerEvent for EntityAttackedHookEvent {
                 });
             }
 
-            if let Some((mut char_state, mut poise, pos)) =
-                (&mut character_states, &mut poises, &positions)
-                    .lend_join()
-                    .get(ev.entity, &entities)
+            if let Some((mut char_state, mut poise, pos)) = (
+                &mut data.character_states,
+                &mut data.poises,
+                &data.positions,
+            )
+                .lend_join()
+                .get(ev.entity, &data.entities)
             {
                 // Interrupt sprite interaction and item use if any attack is applied to entity
                 if matches!(
@@ -1912,14 +1902,14 @@ impl ServerEvent for EntityAttackedHookEvent {
                         poise_state.poise_effect(was_wielded)
                     {
                         // Reset poise if there is some stunned state to apply
-                        poise.reset(*time, stunned_duration);
+                        poise.reset(*data.time, stunned_duration);
                         *char_state = stunned_state;
                         outcomes.emit(Outcome::PoiseChange {
                             pos: pos.0,
                             state: poise_state,
                         });
                         if let Some(impulse_strength) = impulse_strength {
-                            knockback_emitter.emit(KnockbackEvent {
+                            emitters.emit(KnockbackEvent {
                                 entity: ev.entity,
                                 impulse: impulse_strength * *poise.knockback(),
                             });
@@ -1929,21 +1919,21 @@ impl ServerEvent for EntityAttackedHookEvent {
             }
 
             // Remove potion/saturation buff if attacked
-            buff_emitter.emit(BuffEvent {
+            emitters.emit(BuffEvent {
                 entity: ev.entity,
                 buff_change: buff::BuffChange::RemoveByKind(BuffKind::Potion),
             });
-            buff_emitter.emit(BuffEvent {
+            emitters.emit(BuffEvent {
                 entity: ev.entity,
                 buff_change: buff::BuffChange::RemoveByKind(BuffKind::Saturation),
             });
 
             // If entity was in an active trade, cancel it
-            if let Some(uid) = uids.get(ev.entity) {
-                if let Some(trade) = trades.entity_trades.get(uid).copied() {
-                    trades
+            if let Some(uid) = data.uids.get(ev.entity) {
+                if let Some(trade) = data.trades.entity_trades.get(uid).copied() {
+                    data.trades
                         .decline_trade(trade, *uid)
-                        .and_then(|uid| id_maps.uid_entity(uid))
+                        .and_then(|uid| data.id_maps.uid_entity(uid))
                         .map(|entity_b| {
                             // Notify both parties that the trade ended
                             let mut notify_trade_party = |entity| {
@@ -1951,12 +1941,12 @@ impl ServerEvent for EntityAttackedHookEvent {
                                 // trade invite, since right now it
                                 // may seems like their request was
                                 // purposefully declined, rather than e.g. being interrupted.
-                                if let Some(client) = clients.get(entity) {
+                                if let Some(client) = data.clients.get(entity) {
                                     client.send_fallible(ServerGeneral::FinishedTrade(
                                         TradeResult::Declined,
                                     ));
                                 }
-                                if let Some(agent) = agents.get_mut(entity) {
+                                if let Some(agent) = data.agents.get_mut(entity) {
                                     agent.inbox.push_back(AgentEvent::FinishedTrade(
                                         TradeResult::Declined,
                                     ));
@@ -1968,14 +1958,20 @@ impl ServerEvent for EntityAttackedHookEvent {
                 }
             }
 
-            if let Some(stats) = stats.get(ev.entity) {
+            if let Some(stats) = data.stats.get(ev.entity) {
                 for effect in &stats.effects_on_damaged {
                     use combat::DamagedEffect;
                     match effect {
                         DamagedEffect::Combo(c) => {
-                            combo_change_emitter.emit(ComboChangeEvent {
+                            emitters.emit(ComboChangeEvent {
                                 entity: ev.entity,
                                 change: *c,
+                            });
+                        },
+                        DamagedEffect::Energy(e) => {
+                            emitters.emit(EnergyChangeEvent {
+                                entity: ev.entity,
+                                change: *e,
                             });
                         },
                     }

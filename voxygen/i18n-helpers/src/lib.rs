@@ -396,7 +396,8 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
         | BuffKind::Defiance
         | BuffKind::Bloodfeast
         | BuffKind::Berserk
-        | BuffKind::ScornfulTaunt => {
+        | BuffKind::ScornfulTaunt
+        | BuffKind::Tenacity => {
             tracing::error!("Player was killed by a positive buff!");
             "mysterious"
         },

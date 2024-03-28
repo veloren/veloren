@@ -1,6 +1,6 @@
 use super::{
     super::{vek::*, Animation},
-    CharacterSkeleton, SkeletonAttr,
+    hammer_start, CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
 use core::f32::consts::{PI, TAU};
@@ -391,6 +391,30 @@ impl Animation for SelfBuffAnimation {
 
                 next.head.orientation.rotate_x(tension * 0.3);
                 next.control.position += Vec3::new(0.0, 0.0, tension * 2.0);
+            },
+            Some("common.abilities.hammer.tenacity") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.control.orientation.rotate_x(move1 * 0.6);
+                next.control.orientation.rotate_y(move1 * 0.9);
+                next.control.orientation.rotate_x(move1 * -0.6);
+                next.chest.orientation.rotate_x(move1 * 0.4);
+                next.control.position += Vec3::new(0.0, 4.0, 3.0) * move1;
+
+                next.control.position += Vec3::new(
+                    (move2 * 50.0).sin(),
+                    (move2 * 67.0).sin(),
+                    (move2 * 83.0).sin(),
+                );
             },
             _ => {},
         }
