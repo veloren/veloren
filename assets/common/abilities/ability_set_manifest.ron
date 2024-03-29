@@ -216,7 +216,7 @@
                     ((), (Hammer(Upheaval), "common.abilities.hammer.upheaval")),
                 ],
             ),
-            // Simple(Hammer(Thunderclap), "common.abilities.hammer.thunderclap"),
+            Simple(Hammer(Thunderclap), "common.abilities.hammer.thunderclap"),
             // Simple(Hammer(SeismicShock), "common.abilities.hammer.seismic_shock"),
             Contextualized(
                 pseudo_id: "common.abilities.hammer.heavy_whorl",

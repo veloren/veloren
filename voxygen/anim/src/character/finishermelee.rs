@@ -507,6 +507,32 @@ impl Animation for FinisherMeleeAnimation {
                 next.control.orientation.rotate_z(move2 * -1.0);
                 next.control.position += Vec3::new(-12.0, 0.0, -8.0) * move2;
             },
+            Some("common.abilities.hammer.thunderclap") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.control.orientation.rotate_x(2.4 * move1);
+                next.control.orientation.rotate_z(move1 * PI / 2.0);
+                next.control.orientation.rotate_x(-0.6 * move1);
+                next.control.position += Vec3::new(-8.0, 6.0, 24.0) * move1;
+                next.chest.orientation.rotate_x(move1 * 0.5);
+                next.torso.position += Vec3::new(0.0, 0.0, 8.0) * move1;
+
+                next.torso.position += Vec3::new(0.0, 0.0, -8.0) * move2;
+                next.chest.orientation.rotate_x(-1.5 * move2);
+                next.belt.orientation.rotate_x(0.3 * move2);
+                next.shorts.orientation.rotate_x(0.6 * move2);
+                next.control.orientation.rotate_x(-3.0 * move2);
+                next.control.position += Vec3::new(0.0, 0.0, -16.0) * move2;
+            },
             _ => {},
         }
 

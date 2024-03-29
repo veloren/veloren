@@ -440,3 +440,6 @@ common-abilities-hammer-rampart = Rampart
 common-abilities-hammer-tenacity = Tenacity
     .desc =
         Hold yourself strong as you withstand attack after attack, managing to keep attacking all the while.
+common-abilities-hammer-thunderclap = Thunderclap
+    .desc =
+        Unleash a devastating, adrenaline-fueled overhead strike against your foe.
