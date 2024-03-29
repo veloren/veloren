@@ -333,6 +333,7 @@ image_ids! {
         hammer_rampart: "voxygen.element.skills.hammer.rampart",
         hammer_tenacity: "voxygen.element.skills.hammer.tenacity",
         hammer_thunderclap: "voxygen.element.skills.hammer.thunderclap",
+        hammer_seismic_shock: "voxygen.element.skills.hammer.seismic_shock",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

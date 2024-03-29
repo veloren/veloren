@@ -943,6 +943,10 @@ pub enum CharacterAbility {
         timing: shockwave::Timing,
         emit_outcome: bool,
         #[serde(default)]
+        minimum_combo: u32,
+        #[serde(default)]
+        combo_consumption: ComboConsumption,
+        #[serde(default)]
         meta: AbilityMeta,
     },
     BasicBeam {
@@ -1174,7 +1178,6 @@ impl CharacterAbility {
                 | CharacterAbility::BasicRanged { energy_cost, .. }
                 | CharacterAbility::ChargedRanged { energy_cost, .. }
                 | CharacterAbility::ChargedMelee { energy_cost, .. }
-                | CharacterAbility::Shockwave { energy_cost, .. }
                 | CharacterAbility::BasicBlock { energy_cost, .. }
                 | CharacterAbility::RiposteMelee { energy_cost, .. }
                 | CharacterAbility::ComboMelee2 {
@@ -1216,6 +1219,11 @@ impl CharacterAbility {
                 | CharacterAbility::SelfBuff {
                     energy_cost,
                     combo_cost: minimum_combo,
+                    ..
+                }
+                | CharacterAbility::Shockwave {
+                    energy_cost,
+                    minimum_combo,
                     ..
                 } => {
                     data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
@@ -1569,6 +1577,8 @@ impl CharacterAbility {
                 ref mut damage_effect,
                 timing: _,
                 emit_outcome: _,
+                minimum_combo: _,
+                combo_consumption: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1892,6 +1902,10 @@ impl CharacterAbility {
             }
             | SelfBuff {
                 combo_cost: combo, ..
+            }
+            | Shockwave {
+                minimum_combo: combo,
+                ..
             } => *combo,
             BasicMelee { .. }
             | BasicRanged { .. }
@@ -1902,7 +1916,6 @@ impl CharacterAbility {
             | LeapShockwave { .. }
             | ChargedMelee { .. }
             | ChargedRanged { .. }
-            | Shockwave { .. }
             | BasicBlock { .. }
             | ComboMelee2 { .. }
             | DiveMelee { .. }
@@ -2645,6 +2658,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 damage_effect,
                 timing,
                 emit_outcome,
+                minimum_combo,
+                combo_consumption,
                 meta: _,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
@@ -2667,6 +2682,9 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ori_rate: *ori_rate,
                     timing: *timing,
                     emit_outcome: *emit_outcome,
+                    minimum_combo: *minimum_combo,
+                    combo_on_use: data.combo.map_or(0, |c| c.counter()),
+                    combo_consumption: *combo_consumption,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

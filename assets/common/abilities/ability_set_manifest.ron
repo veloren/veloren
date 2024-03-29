@@ -217,7 +217,7 @@
                 ],
             ),
             Simple(Hammer(Thunderclap), "common.abilities.hammer.thunderclap"),
-            // Simple(Hammer(SeismicShock), "common.abilities.hammer.seismic_shock"),
+            Simple(Hammer(SeismicShock), "common.abilities.hammer.seismic_shock"),
             Contextualized(
                 pseudo_id: "common.abilities.hammer.heavy_whorl",
                 abilities: [

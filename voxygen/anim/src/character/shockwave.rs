@@ -159,6 +159,33 @@ impl Animation for ShockwaveAnimation {
                 next.torso.orientation.rotate_x(move2 * -0.6);
                 next.control.orientation.rotate_x(move2 * 0.6);
             },
+            Some("common.abilities.hammer.seismic_shock") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                next.control.orientation.rotate_x(move1 * 2.5);
+                next.control.position += Vec3::new(0.0, 0.0, 28.0) * move1;
+                next.head.orientation.rotate_x(move1 * 0.3);
+                next.chest.orientation.rotate_x(move1 * 0.3);
+                next.belt.orientation.rotate_x(move1 * -0.2);
+                next.shorts.orientation.rotate_x(move1 * -0.3);
+
+                next.control.orientation.rotate_z(move2 * 2.0);
+                next.control.orientation.rotate_x(move2 * -4.0);
+                next.control.position += Vec3::new(-6.0, 0.0, -30.0) * move2;
+                next.head.orientation.rotate_x(move2 * -0.9);
+                next.chest.orientation.rotate_x(move2 * -0.5);
+                next.belt.orientation.rotate_x(move2 * 0.2);
+                next.shorts.orientation.rotate_x(move2 * 0.4);
+            },
             _ => {},
         }
 

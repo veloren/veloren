@@ -443,3 +443,6 @@ common-abilities-hammer-tenacity = Tenacity
 common-abilities-hammer-thunderclap = Thunderclap
     .desc =
         Unleash a devastating, adrenaline-fueled overhead strike against your foe.
+common-abilities-hammer-seismic_shock = Seismic Shock
+    .desc =
+        After buildup up enough momentum in your hammer, strike the ground with enough force that it erupts outward, throwing your foes into the air.
