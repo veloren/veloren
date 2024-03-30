@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [0.16.0] - 2024-03-30
+
+### Added
+
 - Esperanto translation.
 - Complete Spanish (Spain) translation.
 - Item quantity sort in player inventory.
@@ -1297,7 +1307,8 @@ images) and also when using the voxel minimap view (where a medium size image is
 
 > Note: 0.1.0 was part of the legacy engine.
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.15.0&to=master
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.16.0&to=master
+[0.16.0]: https://gitlab.com/veloren/veloren/compare?from=v0.15.0&to=v0.16.0
 [0.15.0]: https://gitlab.com/veloren/veloren/compare?from=v0.14.0&to=v0.15.0
 [0.14.0]: https://gitlab.com/veloren/veloren/compare?from=v0.13.0&to=v0.14.0
 [0.13.0]: https://gitlab.com/veloren/veloren/compare?from=v0.12.0&to=v0.13.0
