@@ -446,3 +446,6 @@ common-abilities-hammer-thunderclap = Thunderclap
 common-abilities-hammer-seismic_shock = Seismic Shock
     .desc =
         After buildup up enough momentum in your hammer, strike the ground with enough force that it erupts outward, throwing your foes into the air.
+common-abilities-hammer-earthshaker = Earthshaker
+    .desc =
+        Slam the head of your blood-soaked hammer into the ground, unleashing a shockwave that knocks the wind out of everyone around you.
