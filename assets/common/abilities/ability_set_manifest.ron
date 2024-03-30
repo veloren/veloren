@@ -238,7 +238,7 @@
             Simple(Hammer(Rampart), "common.abilities.hammer.rampart"),
             Simple(Hammer(Tenacity), "common.abilities.hammer.tenacity"),
             Simple(Hammer(Earthshaker), "common.abilities.hammer.earthshaker"),
-            // Simple(Hammer(Judgement), "common.abilities.hammer.judgement"),
+            Simple(Hammer(Judgement), "common.abilities.hammer.judgement"),
         ],
     ),
     Tool(Bow): (

@@ -449,3 +449,6 @@ common-abilities-hammer-seismic_shock = Seismic Shock
 common-abilities-hammer-earthshaker = Earthshaker
     .desc =
         Slam the head of your blood-soaked hammer into the ground, unleashing a shockwave that knocks the wind out of everyone around you.
+common-abilities-hammer-judgement = Judgement
+    .desc =
+        Bring your hammer down on your foe with all your weight, potentially killing them outright if they are staggered.
