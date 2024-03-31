@@ -1,4 +1,4 @@
-#version 430 core
+#version 440 core
 
 #define FIGURE_SHADER
 
@@ -56,6 +56,7 @@ layout (std140, set = 2, binding = 0)
 uniform u_locals {
     vec4 pos_a;
     vec4 pos_b;
+    float rope_length;
 };
 
 layout(location = 0) out vec4 tgt_color;

@@ -9,6 +9,7 @@ pub struct Locals {
     pos_a: [f32; 4],
     pos_b: [f32; 4],
     rope_length: f32,
+    _padding: [f32; 3],
 }
 
 impl Locals {
@@ -17,6 +18,7 @@ impl Locals {
             pos_a: pos_a.with_w(0.0).into_array(),
             pos_b: pos_b.with_w(0.0).into_array(),
             rope_length,
+            _padding: [0.0; 3],
         }
     }
 }
