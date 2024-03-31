@@ -325,6 +325,7 @@ pub enum ServerChatCommand {
     Buff,
     Build,
     Campfire,
+    ClearPersistedTerrain,
     CreateLocation,
     DebugColumn,
     DebugWays,
@@ -532,6 +533,11 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Campfire => cmd(vec![], "Spawns a campfire", Some(Admin)),
+            ServerChatCommand::ClearPersistedTerrain => cmd(
+                vec![Integer("radius", 6, Required)],
+                "Clears nearby persisted terrain",
+                Some(Admin),
+            ),
             ServerChatCommand::DebugColumn => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
                 "Prints some debug information about a column",
@@ -632,9 +638,11 @@ impl ServerChatCommand {
                 Some(Moderator),
             ),
             ServerChatCommand::Kill => cmd(vec![], "Kill yourself", None),
-            ServerChatCommand::KillNpcs => {
-                cmd(vec![Flag("--also-pets")], "Kill the NPCs", Some(Admin))
-            },
+            ServerChatCommand::KillNpcs => cmd(
+                vec![Float("radius", 100.0, Optional), Flag("--also-pets")],
+                "Kill the NPCs",
+                Some(Admin),
+            ),
             ServerChatCommand::Kit => cmd(
                 vec![Enum("kit_name", KITS.to_vec(), Required)],
                 "Place a set of items into your inventory.",
@@ -715,8 +723,8 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::ReloadChunks => cmd(
-                vec![],
-                "Reloads all chunks loaded on the server",
+                vec![Integer("radius", 6, Optional)],
+                "Reloads chunks loaded on the server",
                 Some(Admin),
             ),
             ServerChatCommand::RemoveLights => cmd(
@@ -980,6 +988,7 @@ impl ServerChatCommand {
             ServerChatCommand::Buff => "buff",
             ServerChatCommand::Build => "build",
             ServerChatCommand::Campfire => "campfire",
+            ServerChatCommand::ClearPersistedTerrain => "clear_persisted_terrain",
             ServerChatCommand::DebugColumn => "debug_column",
             ServerChatCommand::DebugWays => "debug_ways",
             ServerChatCommand::DisconnectAllPlayers => "disconnect_all_players",
