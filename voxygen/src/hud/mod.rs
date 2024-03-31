@@ -5269,8 +5269,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
 
 pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> Option<Cow<str>> {
     let i18n_key = match sprite {
-        SpriteKind::Empty => return None,
-        SpriteKind::GlassBarrier => return None,
+        SpriteKind::Empty | SpriteKind::GlassBarrier => return None,
         SpriteKind::Anvil => "hud-crafting-anvil",
         SpriteKind::Cauldron => "hud-crafting-cauldron",
         SpriteKind::CookingPot => "hud-crafting-cooking_pot",
@@ -5295,6 +5294,11 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::Grave => "common-sprite-grave",
         SpriteKind::ChairSingle | SpriteKind::ChairDouble => "common-sprite-chair",
         SpriteKind::Crate => "common-sprite-crate",
+        SpriteKind::HangingSign => "common-sprite-signboard",
+        SpriteKind::StreetLamp => "common-sprite-street_lamp",
+        SpriteKind::Lantern => "common-sprite-lantern",
+        SpriteKind::SeashellLantern => "common-sprite-seashell_lantern",
+        SpriteKind::FireBowlGround => "common-sprite-firebowl_ground",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(localized_strings.get_msg(i18n_key))
