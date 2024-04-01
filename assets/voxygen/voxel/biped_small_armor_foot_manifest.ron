@@ -248,5 +248,13 @@
                  vox_spec: ("npc.jiangshi.foot_r", (-2.0, -3.0, -8.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.treasure_egg.foot.treasure_egg": (
+            left: (
+                vox_spec: ("npc.treasure_egg.male.foot_r", (-1.0, -1.5, -4.0)),
+            ),
+            right: (
+                vox_spec: ("npc.treasure_egg.male.foot_r", (-1.0, -1.5, -4.0)),
+            )
+        ),
     },
 ))

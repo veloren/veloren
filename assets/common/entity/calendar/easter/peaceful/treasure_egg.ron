@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    name: Name("Treasure Egg"),
+    body: RandomWith("treasure_egg"),
+    alignment: Alignment(Wild),
+    loot: LootTable("common.loot_tables.calendar.easter.treasure_egg"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.world.treasure_egg.treasure_egg"),
+        )),    ),
+    meta: [],
+)

@@ -340,6 +340,12 @@
             "common.items.npc_armor.biped_small.bushly.hand.bushly",
         ): "common-items-npc_armor-biped_small-bushly-hand-bushly",
         Simple(
+            "common.items.npc_armor.biped_small.treasure_egg.chest.treasure_egg",
+        ): "common-items-npc_armor-biped_small-treasure_egg-chest-treasure_egg",
+        Simple(
+            "common.items.npc_armor.biped_small.treasure_egg.foot.treasure_egg",
+        ): "common-items-npc_armor-biped_small-treasure_egg-foot-treasure_egg",
+        Simple(
             "common.items.npc_armor.biped_small.clockwork.foot.clockwork",
         ): "common-items-npc_armor-biped_small-clockwork-foot-clockwork",
         Simple(
@@ -1207,6 +1213,12 @@
             "common.items.armor.misc.head.bandana.thief",
         ): "armor-misc-head-bandana-thief",
         Simple(
+            "common.items.armor.misc.head.hare_hat",
+        ): "armor-misc-head-hare_hat",
+        Simple(
+            "common.items.armor.misc.head.cat_capuche",
+        ): "armor-misc-head-cat_capuche",
+        Simple(
             "common.items.armor.misc.pants.hunting",
         ): "armor-misc-pants-grayscale",
         Simple(
@@ -2019,6 +2031,9 @@
         Simple(
             "common.items.utility.bomb",
         ): "object-bomb",
+        Simple(
+            "common.items.utility.surprise_egg",
+        ): "object-surprise_egg",
         Simple(
             "common.items.utility.coins",
         ): "object-v-coin",

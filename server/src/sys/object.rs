@@ -98,6 +98,12 @@ impl<'a> System<'a> for Sys {
                         });
                     }
                 },
+                Object::SurpriseEgg { .. } => {
+                    if physics.is_some_and(|physics| physics.on_surface().is_some()) {
+                        emitters.emit(DeleteEvent(entity));
+                        outcome_bus.emit_now(Outcome::SurpriseEgg { pos: pos.0 });
+                    }
+                },
                 Object::Firework { owner, reagent } => {
                     if vel.0.z < 0.0 {
                         const ENABLE_RECURSIVE_FIREWORKS: bool = true;

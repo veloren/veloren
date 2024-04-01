@@ -112,6 +112,7 @@ pub enum ParticleMode {
     ClayShrapnel = 58,
     Airflow = 59,
     Spore = 60,
+    SurpriseEgg = 61,
 }
 
 impl ParticleMode {

@@ -2988,6 +2988,14 @@
         "voxel.armor.miner.helmet",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
+    Simple("common.items.armor.misc.head.hare_hat"): VoxTrans(
+        "voxel.armor.misc.head.hare_hat",
+        (0.0, 2.0, -0.0), (-110.0, 210.0,15.0), 1.4,
+    ),
+    Simple("common.items.armor.misc.head.cat_capuche"): VoxTrans(
+        "voxel.armor.misc.head.cat_capuche",
+        (0.0, 2.0, -0.0), (-110.0, 210.0,15.0), 1.4,
+    ),
     // Rings
     Simple("common.items.armor.misc.ring.scratched"): VoxTrans(
         "voxel.armor.misc.ring.scratched",
@@ -3355,6 +3363,10 @@
     // Throwables
     Simple("common.items.utility.bomb"): VoxTrans(
         "voxel.object.bomb",
+        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+    ),
+    Simple("common.items.utility.surprise_egg"): VoxTrans(
+        "voxel.object.surprise_egg",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Simple("common.items.utility.firework_blue"): VoxTrans(

@@ -367,6 +367,7 @@ impl<'a> From<&'a Body> for Psyche {
                     biped_small::Species::Haniwa => 0.1,
                     biped_small::Species::Sahagin => 0.1,
                     biped_small::Species::Myrmidon => 0.0,
+                    biped_small::Species::TreasureEgg => 9.9,
                     biped_small::Species::Husk
                     | biped_small::Species::Boreal
                     | biped_small::Species::Clockwork

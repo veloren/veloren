@@ -753,6 +753,8 @@
     Simple("common.items.armor.misc.head.helmet"): "voxel.armor.misc.head.helmet",
     Simple("common.items.armor.misc.head.gnarling_mask"): "voxel.armor.misc.head.gnarling_mask_drop",
     Simple("common.items.armor.miner.helmet"): "voxel.armor.miner.helmet",
+    Simple("common.items.armor.misc.head.hare_hat"): "voxel.armor.misc.head.hare_hat",
+    Simple("common.items.armor.misc.head.cat_capuche"): "voxel.armor.misc.head.cat_capuche",
     // Rings
     Simple("common.items.armor.misc.ring.scratched"): "voxel.armor.misc.ring.scratched",
     Simple("common.items.armor.misc.ring.gold"): "voxel.armor.misc.ring.gold",
@@ -849,6 +851,7 @@
     Simple("common.items.food.tomatosalad"): "voxel.sprite.food.salad_tomato",
     // Throwables
     Simple("common.items.utility.bomb"): "voxel.object.bomb",
+    Simple("common.items.utility.surprise_egg"): "voxel.object.surprise_egg",
     Simple("common.items.utility.firework_blue"): "voxel.weapon.projectile.fireworks_blue-0",
     Simple("common.items.utility.firework_green"): "voxel.weapon.projectile.fireworks_green-0",
     Simple("common.items.utility.firework_purple"): "voxel.weapon.projectile.fireworks_purple-0",

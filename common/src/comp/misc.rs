@@ -26,6 +26,9 @@ pub enum Object {
         requires_no_aggro: bool,
         buildup_time: Secs,
     },
+    SurpriseEgg {
+        owner: Option<Uid>,
+    },
 }
 
 impl Component for Object {

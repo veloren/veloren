@@ -1,0 +1,5 @@
+#![enable(implicit_some)]
+(
+    chest: Item("common.items.npc_armor.biped_small.treasure_egg.chest.treasure_egg"),
+    feet: Item("common.items.npc_armor.biped_small.treasure_egg.foot.treasure_egg"),
+)

@@ -1,0 +1,5 @@
+[
+    (2.0, Item("common.items.utility.surprise_egg")),
+    (0.5, MultiDrop(Item("common.items.utility.coins"), 50, 250)),
+    (0.5, Item("common.items.armor.misc.head.hare_hat")),
+]

@@ -89,6 +89,7 @@ subtitle-instrument_wildskin_drum = Wildskin Drum playing
 subtitle-pickup_instrument = Pickup instrument
 
 subtitle-explosion = Explosion
+subtitle-surprise_egg = Divine Sound
 
 subtitle-arrow_shot = Arrow released
 subtitle-arrow_miss = Arrow miss

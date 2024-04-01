@@ -97,6 +97,7 @@ const int PHOENIX_BUILD_UP_AIM = 57;
 const int CLAY_SHRAPNEL = 58;
 const int AIRFLOW = 59;
 const int SPORE = 60;
+const int SURPRISE_EGG = 61;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1027,6 +1028,19 @@ void main() {
                 vec3(0.4 + 0.4 * abs(sin(lifetime))),
                 vec4(vec3(0.8, 6.0 + rand6 * 1.75, 7.5 + (1.75 + rand5 * 0.5)), 1),
                 spin_in_axis(vec3(rand1, rand2, rand3), rand4 * 1.5 + lifetime)
+            );
+            break;
+        case SURPRISE_EGG:
+            f_reflect = 0.0;
+            // sparks should flicker, so it stops glowing for 18% of time 4 times per second, same thing used in 4th float of RGBA vector
+            float egg_color1 = 2 + 1 * rand2 + 2 * step(0.18, fract(tick.x*4));
+            float egg_color2 = 0 + 1 * rand2 + 4 * step(0.18, fract(tick.x*4));
+            float egg_color3 = 2 + 6 * step(0.18, fract(tick.x*4));
+            attr = Attr(
+                spiral_motion(vec3(0, 0, 5), abs(rand0) + abs(rand1) * percent() * 4.0, percent(), 8.0 * abs(rand2), rand3),
+                vec3((2.5 * (1 - slow_start(0.05)))),
+                vec4(egg_color1, egg_color2, egg_color3, 0.5 + 0.5 * step(0.18, fract(tick.x*4))),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
         default:
