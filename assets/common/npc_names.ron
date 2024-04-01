@@ -1221,6 +1221,10 @@
                 keyword: "jiangshi",
                 generic: "Jiangshi",
             ),
+            treasure_egg: (
+                keyword: "treasure_egg",
+                generic: "Treasure Egg",
+            ),
         )
     ),
     fish_small: (

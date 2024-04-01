@@ -307,6 +307,12 @@ common-items-npc_armor-biped_small-bushly-chest-bushly = Bushly
 common-items-npc_armor-biped_small-bushly-hand-bushly = Mandragora
     .desc = Ceremonial attire used by members.
 
+common-items-npc_armor-biped_small-treasure_egg-chest-treasure_egg = Treasure Egg Chest
+    .desc = Treasure Egg Chest
+
+common-items-npc_armor-biped_small-treasure_egg-foot-treasure_egg = Treasure Egg Foot
+    .desc = Treasure Egg Foot
+
 common-items-npc_armor-biped_small-clockwork-foot-clockwork = Clockwork Foot
     .desc = Clockwork Foot.
 

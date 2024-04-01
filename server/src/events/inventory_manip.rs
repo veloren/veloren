@@ -1065,7 +1065,7 @@ impl ServerEvent for InventoryManipEvent {
                 vel: comp::Vel(vel),
                 body: match kind {
                     item::Throwable::Bomb => comp::object::Body::Bomb,
-                    item::Throwable::Mine => comp::object::Body::Mine,
+                    item::Throwable::SurpriseEgg => comp::object::Body::SurpriseEgg,
                     item::Throwable::Firework(reagent) => comp::object::Body::for_firework(reagent),
                     item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
                 },
@@ -1075,7 +1075,9 @@ impl ServerEvent for InventoryManipEvent {
                         owner: Some(owner),
                         reagent,
                     }),
-                    item::Throwable::Mine => Some(comp::Object::Bomb { owner: Some(owner) }),
+                    item::Throwable::SurpriseEgg => {
+                        Some(comp::Object::SurpriseEgg { owner: Some(owner) })
+                    },
                     item::Throwable::TrainingDummy => None,
                 },
                 light_emitter: match kind {

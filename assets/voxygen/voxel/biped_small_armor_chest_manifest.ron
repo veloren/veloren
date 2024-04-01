@@ -96,5 +96,8 @@
         "common.items.npc_armor.biped_small.jiangshi.chest.jiangshi": (
             vox_spec: ("npc.jiangshi.chest", (-7.0, -4.0, -4.0)),
         ),
+        "common.items.npc_armor.biped_small.treasure_egg.chest.treasure_egg": (
+            vox_spec: ("npc.treasure_egg.male.chest", (-4.0, -4.0, 0.0)),
+        ),
     },
 ))

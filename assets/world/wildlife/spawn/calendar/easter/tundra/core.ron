@@ -1,0 +1,14 @@
+SpawnEntry (
+    name: "Easter Tundra Core",
+    note: "Easter NPCs",
+    rules: [
+        Pack(
+            groups: [
+                (1, (1, 1, "common.entity.calendar.easter.peaceful.treasure_egg")),
+            ],
+            spawn_mode: Land,
+            calendar_events: Some([Easter]),
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

@@ -1091,4 +1091,14 @@
             central: ("armor.empty"),
         )
     ),
+    SurpriseEgg: (
+        bone0: (
+            offset: (-5.5, -5.5, 0.0),
+            central: ("object.surprise_egg"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

@@ -182,6 +182,7 @@ pub enum SfxEvent {
     PortalActivated,
     TeleportedByPortal,
     FromTheAshes,
+    SurpriseEgg,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -460,6 +461,10 @@ impl SfxMgr {
             },
             Outcome::GroundSlam { pos, .. } | Outcome::ClayGolemDash { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GroundSlam);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
+            Outcome::SurpriseEgg { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SurpriseEgg);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
             Outcome::LaserBeam { pos, .. } => {

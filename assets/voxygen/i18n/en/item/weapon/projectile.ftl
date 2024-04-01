@@ -18,3 +18,6 @@ weapon-projectile-fireworks_white = Firework White
 
 weapon-projectile-fireworks_yellow = Firework Yellow
     .desc = The Great Doctor passed away after testing this contraption indoors.
+
+object-surprise_egg = Surprise Egg
+    .desc = Explosive Easter Special.

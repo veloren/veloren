@@ -34,7 +34,7 @@ use vek::Rgb;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Throwable {
     Bomb,
-    Mine,
+    SurpriseEgg,
     TrainingDummy,
     Firework(Reagent),
 }

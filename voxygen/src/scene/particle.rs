@@ -351,6 +351,16 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::SurpriseEgg { pos, .. } => {
+                self.particles.resize_with(self.particles.len() + 50, || {
+                    Particle::new(
+                        Duration::from_millis(1000),
+                        time,
+                        ParticleMode::SurpriseEgg,
+                        *pos,
+                    )
+                });
+            },
             Outcome::FlashFreeze { pos, .. } => {
                 self.particles.resize_with(
                     self.particles.len()

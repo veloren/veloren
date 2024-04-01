@@ -549,6 +549,7 @@ impl Body {
                 biped_small::Species::Flamekeeper => Vec3::new(5.0, 5.0, 10.0),
                 biped_small::Species::ShamanicSpirit => Vec3::new(1.3, 2.0, 2.3),
                 biped_small::Species::Jiangshi => Vec3::new(1.3, 1.8, 2.5),
+                biped_small::Species::TreasureEgg => Vec3::new(1.1, 1.1, 1.4),
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
             Body::BirdLarge(body) => match body.species {

@@ -121,6 +121,7 @@ make_case_elim!(
         TerracottaStatue = 106,
         TerracottaDemolisherBomb = 107,
         BoltBesieger = 108,
+        SurpriseEgg = 109,
     }
 );
 
@@ -131,7 +132,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 109] = [
+pub const ALL_OBJECTS: [Body; 110] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -241,6 +242,7 @@ pub const ALL_OBJECTS: [Body; 109] = [
     Body::Pebble,
     Body::TerracottaStatue,
     Body::BoltBesieger,
+    Body::SurpriseEgg,
 ];
 
 impl From<Body> for super::Body {
@@ -359,6 +361,7 @@ impl Body {
             Body::Pebble => "pebble",
             Body::TerracottaStatue => "terracotta_statue",
             Body::BoltBesieger => "besieger_bolt",
+            Body::SurpriseEgg => "surprise_egg",
         }
     }
 
@@ -391,8 +394,9 @@ impl Body {
             | Body::AdletSpear
             | Body::AdletTrap
             | Body::Flamethrower => 500.0,
-            Body::Bomb | Body::Mine => 2000.0, // I have no idea what it's supposed to be
-            Body::Crate => 300.0,              // a lot of wood and maybe some contents
+            Body::Bomb | Body::Mine | Body::SurpriseEgg => 2000.0, /* I have no idea what it's */
+            // supposed to be
+            Body::Crate => 300.0, // a lot of wood and maybe some contents
             Body::Scarecrow => 900.0,
             Body::TrainingDummy => 2000.0,
             Body::Snowball => 0.9 * WATER_DENSITY,
@@ -425,7 +429,7 @@ impl Body {
             | Body::Pebble
             | Body::BoltBesieger => 1.0,
             Body::SpitPoison => 100.0,
-            Body::Bomb | Body::DagonBomb | Body::TerracottaDemolisherBomb => {
+            Body::Bomb | Body::DagonBomb | Body::SurpriseEgg | Body::TerracottaDemolisherBomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
             },
             Body::Campfire | Body::CampfireLit | Body::BarrelOrgan | Body::TerracottaStatue => {

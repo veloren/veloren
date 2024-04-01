@@ -301,6 +301,12 @@ armor-misc-head-bandana-red = Red Bandana
 armor-misc-head-bandana-thief = Thief Bandana
     .desc = Common bandit's mask.
 
+armor-misc-head-hare_hat = Hare Hat
+    .desc = Easter Special
+
+armor-misc-head-cat_capuche = Cat Capuche
+    .desc = April Fools Special
+
 armor-misc-pants-grayscale = Hunting Pants
     .desc = Crafted from soft, supple leather.
 
