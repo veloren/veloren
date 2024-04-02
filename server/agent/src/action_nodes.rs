@@ -165,7 +165,7 @@ impl<'a> AgentData<'a> {
         let climbing_out_of_water = self.physics_state.in_liquid().map_or(false, |h| h < 1.0)
             && bearing.z > 0.0
             && self.physics_state.on_wall.is_some();
-        self.jump_if(bearing.z > 1.5 || climbing_out_of_water, controller);
+        self.jump_if(bearing.z > 1.5 || climbing_out_of_water || self.traversal_config.can_fly, controller);
         controller.inputs.move_z = bearing.z;
         if bearing.z > 0.0 {
             controller.inputs.climb = Some(comp::Climb::Up);
@@ -285,7 +285,6 @@ impl<'a> AgentData<'a> {
                         },
                     ) {
                         self.traverse(controller, bearing, speed.min(speed_factor));
-                        self.jump_if(self.traversal_config.can_fly, controller);
 
                         let height_offset = bearing.z
                             + if self.traversal_config.can_fly {
