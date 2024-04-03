@@ -1,6 +1,6 @@
 hud-group = Groupe
 hud-group-invite_to_join = { $name } vous a invité dans son groupe !
-hud-group-invite_to_trade = [{ $name }] souhaiterait faire un échange avec vous !
+hud-group-invite_to_trade = { "[" }{ $name }] souhaiterait faire un échange avec vous.
 hud-group-invite = Inviter
 hud-group-kick = Exclure
 hud-group-assign_leader = Assigner un Chef

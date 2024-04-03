@@ -1,2 +1,2 @@
-hud-sct-experience = { $amount } адз. досведу
+hud-sct-experience = { $amount } ХР
 hud-sct-block = БЛОК

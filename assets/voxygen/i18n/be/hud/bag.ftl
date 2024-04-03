@@ -9,7 +9,7 @@ hud-bag-shoulders = Плечы
 hud-bag-chest = Грудзі
 hud-bag-hands = Рукі
 hud-bag-lantern = Ліхтар
-hud-bag-glider = Дэльтаплан
+hud-bag-glider = Планёр
 hud-bag-belt = Пояс
 hud-bag-ring = Пярсцёнак
 hud-bag-back = Спіна
@@ -33,7 +33,11 @@ hud-bag-combat_rating_desc =
 hud-bag-protection_desc = Паглынанне шкоды вашай бранёй.
 hud-bag-stun_res_desc =
     Супраціўленне аглушэнню паслядоўнымі ўдарамі.
-    Аднаўляецца, як энергія.
+    Аднаўляецца як энергія.
 hud-bag-sort_by_name = Сартаваць па назве
 hud-bag-sort_by_quality = Сартаваць па якасці
 hud-bag-sort_by_category = Сартаваць па катэгорыі
+hud-bag-stealth = Скрытнасць
+hud-bag-sort_by_quantity = Сартаваць па Колькасці
+hud-bag-sort_by_tag = Сартаваць па Тэгу
+hud-bag-backpack = Заплечнік

@@ -78,3 +78,32 @@ npc-speech-villager_under_attack =
     .a76 = Vær så snill ikke gjør dette igjen!
     .a77 = Vakter, kast dette mennesket i havet!
     .a78 = Jeg får min tarasque til å etterfølge deg!
+# Generic NPC messages
+npc-speech-villager_conscientious =
+    .a0 = Jeg kjeder meg ikke. Det er alltid noe å gjøre.
+    .a1 = Jeg håper det regner snart. Hadde vært bra for avlingen.
+# Generic NPC messages
+npc-speech-villager_busybody =
+    .a0 = Folk burde snakke mindre og jobbe mer.
+# Generic NPC messages
+npc-speech-villager =
+    .a0 = Jeg elsker ost.
+# Generic NPC messages
+npc-speech-villager_adventurous =
+    .a0 = Jeg har lyst å lage min egen hang glider en dag.
+    .a1 = Jeg vil gjerne dra på grottevandring når jeg er sterkere.
+# Generic NPC messages
+npc-speech-villager_extroverted =
+    .a0 = Du vil ikke tro hva jeg gjorde i helgen!
+    .a1 = God morgen til deg!
+    .a2 = Hva synes du om været?
+    .a3 = Jeg er helt gal etter ost!
+    .a4 = Ikke glem kjeksen!
+    .a5 = Jeg elsker dverg ost. Jeg skulle ønske jeg kunne lage det.
+    .a6 = Jeg hadde en vidunderlig drøm om ost i natt. Hva tror du det betyr?
+    .a7 = Jeg elsker honning! Og jeg hater bier.
+# Generic NPC messages
+npc-speech-villager_unconscientious =
+    .a0 = Det er tid for frokost nummer to!
+    .a1 = Jeg skulle ønske at huset mitt ikke var så rotete. Men da måtte jeg ha ryddet! Haha!
+    .a2 = Hvor var det jeg la den tingen...

@@ -12,3 +12,7 @@ sprite-wood-item-eldwood = Bûches de bois d'Eld
     .desc = Vieilles bûches qui dégagent de la magie. On peut s'en servir pour fabriquer des armes en bois.
 sprite-crafting_ing-bowl = Bol
     .desc = Un simple bol pour préparer les repas.
+sprite-crafting_ing-abyssal_heart = Cœur abyssal
+    .desc = Source du pouvoir des dagons.
+sprite-wood-item-wood = Bûches de bois
+    .desc = Rondins de bois réguliers et robustes. Elles peuvent être utilisées pour fabriquer des armes en bois.

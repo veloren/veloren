@@ -1,6 +1,6 @@
 armor-tabard_admin = Накидка Админа
     .desc = С большой силой приходит большая ответственность.
-armor-misc-back-admin = Накидка Админа
+armor-misc-back-admin = Плащ Админа
     .desc =
         С большой силой приходит
         большая ответственность.
@@ -8,12 +8,12 @@ armor-tabard-admin_tabard = Накидка Админа
     .desc =
         С большой силой приходит
         большая ответственность.
-armor-misc-back-admin_back = Накидка Админа
+armor-misc-back-admin_back = Плащ Админа
     .desc =
         С большой силой приходит
         большая ответственность.
-armor-velorite-back = Велоритовая Накидка Админа
-    .desc = Куда снова подевал свой банхамер?
+armor-velorite-back = Велоритовый Плащ Админа
+    .desc = Куда я снова подевал свой банхамер?
 armor-velorite-belt = Велоритовый Пояс
     .desc = { "" }
 armor-velorite-boots = Велоритовые Сапоги
@@ -34,7 +34,7 @@ object-item_cheese = Золотой Сыр
     .desc = Говорят, боги едят его, чтобы получить вечную молодость.
 weapon-tool-broom_belzeshrub_purple = Белзешраб - Метла Бог
     .desc = Вы можете услышать, как она хихикает, когда вы слишком сильно ударяетесь о землю...
-armor-velorite-shoulder = Велоритовая Мантия
+armor-velorite-shoulder = Велоритовые Наплечники
     .desc = { "" }
 other-glider-vroom-debug = Врум Дельтаплан
     .desc = Происходит врууум.

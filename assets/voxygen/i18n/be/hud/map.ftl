@@ -31,3 +31,9 @@ hud-map-zoom_minimap_explanation =
      лепей бачыць вобласть вакол сябе
 hud-map-gnarling = Форт Гнарлінгаў
 hud-map-placed_by = Змешчана { $name }
+hud-map-df_mine = Шахта
+hud-map-chapel_site = Марская Капліца
+hud-map-adlet = Цытадэль Адлетаў
+hud-map-terracotta = Тэракотавыя Руіны
+hud-map-bridge = Мост
+hud-map-haniwa = Катакомбы Ханіва

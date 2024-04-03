@@ -14,7 +14,6 @@ npc-speech-villager_adventurous =
     .a1 = J'aimerais explorer les cavernes quand je serai plus fort.
 npc-speech-villager_closed =
     .a0 = Tu n'es pas du coin, n'est-ce-pas ?
-    .a1 = Tu ne penses pas que notre village est le meilleur ?
     .a2 = Ils disent que les champignons sont bons pour la santé. Je n'en ai jamais mangé personnellement.
     .a3 = Être, ou ne pas être? Je pense que je deviendrai un fermier.
 npc-speech-villager_conscientious =

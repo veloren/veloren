@@ -54,3 +54,4 @@ gameinput-fly = Fly
 gameinput-sneak = Snik
 gameinput-swimdown = Svøm nedover
 gameinput-swimup = Svøm oppover
+gameinput-block = Blokk

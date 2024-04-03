@@ -12,3 +12,5 @@ weapon-projectile-fireworks_white = Weißes Feuerwerk
     .desc = Funkelt wie die Sterne.
 weapon-projectile-fireworks_blue = Blaues Feuerwerk
     .desc = Empfohlener Abstand: 42 Chonks.
+object-surprise_egg = Überraschungsei
+    .desc = Explosives Oster-Spezial.
