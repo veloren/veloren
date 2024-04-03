@@ -61,8 +61,8 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
         ;
     }
 
-    float CLOUD_DEPTH = (view_distance.w - view_distance.z) * (0.2 + sqrt(cloud_tendency) * 0.5);
-    float cloud_alt = alt + CLOUD_DEPTH * 2 + 1000.0;
+    float CLOUD_DEPTH = (view_distance.w - view_distance.z) * (0.14 + sqrt(cloud_tendency) * 0.35);
+    float cloud_alt = alt + CLOUD_DEPTH * 2 + 1500.0;
 
     //vec2 cloud_attr = get_cloud_heights(wind_pos.xy);
     float sun_access = 0.0;
@@ -181,14 +181,14 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
     const uint QUALITY = 2u;
 #endif
 
-const float STEP_SCALE = DIST_CAP / (10.0 * float(QUALITY));
+const float STEP_SCALE = DIST_CAP / (1000.0 * float(QUALITY));
 
 float step_to_dist(float step, float quality) {
-    return pow(step, 2) * STEP_SCALE / quality;
+    return pow(step, 4) * STEP_SCALE / quality;
 }
 
 float dist_to_step(float dist, float quality) {
-    return pow(dist / STEP_SCALE * quality, 0.5);
+    return pow(dist / STEP_SCALE * quality, 0.25);
 }
 
 // This *MUST* go here: when clouds are enabled, it relies on the declaration of `clouds_at` above. Sadly, GLSL doesn't

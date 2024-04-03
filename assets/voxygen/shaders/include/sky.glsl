@@ -316,11 +316,11 @@ vec3 lightning_at(vec3 wpos) {
 // cam_attenuation is the total light attenuation due to the substance for beams between the point and the camera.
 // surface_alt is the altitude of the attenuating surface.
 float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, vec3 norm, vec3 dir, vec3 wpos, vec3 mu, vec3 cam_attenuation, float surface_alt, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 voxel_norm, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
-    const vec3 SUN_AMBIANCE = MU_SCATTER;//0.23;/* / 1.8*/;// 0.1 / 3.0;
+    const vec3 SUN_AMBIANCE = MU_SCATTER;
     #ifdef EXPERIMENTAL_PHOTOREALISTIC
         const vec3 MOON_AMBIANCE = MU_SCATTER;
     #else
-        // Boost moon ambiance, because we don't properly compensate for pupil dilation (which should occur *before* HDR,
+        // Boost ambiance, because we don't properly compensate for pupil dilation (which should occur *before* HDR,
         // not in the end user's eye). Also, real nights are too dark to be fun.
         const vec3 MOON_AMBIANCE = vec3(0.15, 0.25, 0.23) * 5;
     #endif
@@ -440,7 +440,14 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     vec3 R_t_r = R_d + R_r;
 
     // vec3 half_vec = normalize(-norm + dir);
-    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * light_reflection_factor(norm, /*norm*//*dir*/dir, /*-norm*/-/*dir*/norm, /*k_d*/k_d/* * (1.0 - k_s)*/, /*k_s*/vec3(0.0), alpha, voxel_norm, voxel_lighting);
+    #ifdef EXPERIMENTAL_PHOTOREALISTIC
+        vec3 lrf = light_reflection_factor(norm, dir, -norm, k_d, vec3(0.0), alpha, voxel_norm, voxel_lighting);
+    #else
+        // In practice, for gameplay purposes, we often want extra light at earlier and later times, so we use a
+        // non-physical LRF to boost light during dawn and dusk.
+        float lrf = pow(dot(norm, vec3(0, 0, 1)) + 1, 2) * 0.25;
+    #endif
+    vec3 light_frac = R_t_b * (sun_chroma * SUN_AMBIANCE + moon_chroma * MOON_AMBIANCE) * lrf;
     // vec3 light_frac = /*vec3(1.0)*//*H_d * */
     //     SUN_AMBIANCE * /*sun_light*/sun_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_sun) * 0.5), vec3(k_s * (1.0 - cos_sun) * 0.5), alpha) +
     //     MOON_AMBIANCE * /*sun_light*/moon_chroma * light_reflection_factor(norm, dir, /*vec3(0, 0, -1.0)*/-norm, vec3((1.0 + cos_moon) * 0.5), vec3(k_s * (1.0 - cos_moon) * 0.5), alpha);
