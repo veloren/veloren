@@ -2267,6 +2267,7 @@ pub fn transform_entity(
             set_or_remove_component(server, entity, Some(skill_set))?;
             set_or_remove_component(server, entity, Some(poise))?;
             set_or_remove_component(server, entity, health)?;
+            set_or_remove_component(server, entity, Some(comp::Energy::new(body)))?;
             set_or_remove_component(server, entity, Some(body))?;
             set_or_remove_component(server, entity, Some(body.mass()))?;
             set_or_remove_component(server, entity, Some(body.density()))?;

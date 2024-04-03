@@ -88,6 +88,9 @@ command-transform-invalid-presence = Cannot transform in the current presence
 command-aura-invalid-buff-parameters = Invalid buff parameters for aura
 command-aura-spawn = Spawned new aura attached to entity
 command-aura-spawn-new-entity = Spawned new aura
+command-reloaded-chunks = Reloaded { $reloaded } chunks
+command-server-no-experimental-terrain-persistence = Server was compiled without terrain persistence enabled
+command-experimental-terrain-persistence-disabled = Experimental terrain persistence is disabled
 
 # Unreachable/untestable but added for consistency
 

@@ -540,12 +540,15 @@ impl State {
     }
 
     /// Removes every chunk of the terrain.
-    pub fn clear_terrain(&mut self) {
+    pub fn clear_terrain(&mut self) -> usize {
         let removed_chunks = &mut self.ecs.write_resource::<TerrainChanges>().removed_chunks;
 
-        self.terrain_mut().drain().for_each(|(key, _)| {
-            removed_chunks.insert(key);
-        });
+        self.terrain_mut()
+            .drain()
+            .map(|(key, _)| {
+                removed_chunks.insert(key);
+            })
+            .count()
     }
 
     /// Insert the provided chunk into this state's terrain.
@@ -570,7 +573,7 @@ impl State {
 
     /// Remove the chunk with the given key from this state's terrain, if it
     /// exists.
-    pub fn remove_chunk(&mut self, key: Vec2<i32>) {
+    pub fn remove_chunk(&mut self, key: Vec2<i32>) -> bool {
         if self
             .ecs
             .write_resource::<TerrainGrid>()
@@ -581,6 +584,10 @@ impl State {
                 .write_resource::<TerrainChanges>()
                 .removed_chunks
                 .insert(key);
+
+            true
+        } else {
+            false
         }
     }
 

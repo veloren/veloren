@@ -15,7 +15,7 @@ use std::{
 use tracing::{debug, error, info, warn};
 use vek::*;
 
-const MAX_BLOCK_CACHE: usize = 5_000_000;
+const MAX_BLOCK_CACHE: usize = 64_000_000;
 
 pub struct TerrainPersistence {
     path: PathBuf,
@@ -157,11 +157,8 @@ impl TerrainPersistence {
 
     pub fn unload_chunk(&mut self, key: Vec2<i32>) {
         if let Some(LoadedChunk { chunk, modified }) = self.chunks.remove(&key) {
-            match (self.cached_chunks.peek(&key), modified) {
-                (Some(_), false) => {},
-                _ => {
-                    self.cached_chunks.insert(key, chunk.clone());
-                },
+            if modified || self.cached_chunks.peek(&key).is_none() {
+                self.cached_chunks.insert(key, chunk.clone());
             }
 
             // Prevent any uneccesarry IO when nothing in this chunk has changed
@@ -169,20 +166,38 @@ impl TerrainPersistence {
                 return;
             }
 
-            let bytes = match bincode::serialize::<version::Current>(&chunk.prepare_raw()) {
-                Err(err) => {
-                    error!("Failed to serialize chunk data: {:?}", err);
-                    return;
-                },
-                Ok(bytes) => bytes,
-            };
+            if chunk.blocks.is_empty() {
+                let path = self.path_for(key);
 
-            let atomic_file =
-                AtomicFile::new(self.path_for(key), OverwriteBehavior::AllowOverwrite);
-            if let Err(err) = atomic_file.write(|file| file.write_all(&bytes)) {
-                error!("Failed to write chunk data to file: {:?}", err);
+                if path.is_file() {
+                    if let Err(error) = std::fs::remove_file(&path) {
+                        error!(?error, ?path, "Failed to remove file for empty chunk");
+                    }
+                }
+            } else {
+                let bytes = match bincode::serialize::<version::Current>(&chunk.prepare_raw()) {
+                    Err(err) => {
+                        error!("Failed to serialize chunk data: {:?}", err);
+                        return;
+                    },
+                    Ok(bytes) => bytes,
+                };
+
+                let atomic_file =
+                    AtomicFile::new(self.path_for(key), OverwriteBehavior::AllowOverwrite);
+                if let Err(err) = atomic_file.write(|file| file.write_all(&bytes)) {
+                    error!("Failed to write chunk data to file: {:?}", err);
+                }
             }
         }
+    }
+
+    pub fn clear_chunk(&mut self, chunk: Vec2<i32>) {
+        self.cached_chunks.remove(&chunk);
+        self.chunks.insert(chunk, LoadedChunk {
+            chunk: Chunk::default(),
+            modified: true,
+        });
     }
 
     pub fn unload_all(&mut self) {
@@ -202,10 +217,6 @@ impl TerrainPersistence {
             .insert(pos - key * TerrainChunk::RECT_SIZE.map(|e| e as i32), block);
         if old_block != Some(block) {
             loaded_chunk.modified = true;
-
-            if old_block.is_none() {
-                self.cached_chunks.limiter_mut().add_block();
-            }
         }
     }
 }
@@ -237,9 +248,6 @@ impl Chunk {
 }
 
 /// LRU limiter that limits by the number of blocks
-///
-/// > **Warning**: Make sure to call [`add_block`] and [`remove_block`] when
-/// > performing direct mutations to a chunk
 struct ByBlockLimiter {
     /// Maximum number of blocks that can be contained
     block_limit: usize,
@@ -251,7 +259,7 @@ impl Limiter<Vec2<i32>, Chunk> for ByBlockLimiter {
     type KeyToInsert<'a> = Vec2<i32>;
     type LinkType = u32;
 
-    fn is_over_the_limit(&self, _length: usize) -> bool { false }
+    fn is_over_the_limit(&self, _length: usize) -> bool { self.counted_blocks > self.block_limit }
 
     fn on_insert(
         &mut self,
@@ -279,7 +287,9 @@ impl Limiter<Vec2<i32>, Chunk> for ByBlockLimiter {
     ) -> bool {
         let old_size = old_chunk.len() as isize; // I assume chunks are never larger than a few thousand blocks anyways, cast should be OK
         let new_size = new_chunk.len() as isize;
-        let new_total = self.counted_blocks.wrapping_add_signed(new_size - old_size);
+        let new_total = self
+            .counted_blocks
+            .saturating_add_signed(new_size - old_size);
 
         if new_total > self.block_limit {
             false
@@ -306,10 +316,6 @@ impl ByBlockLimiter {
             counted_blocks: 0,
         }
     }
-
-    /// This function should only be used when it is guaranteed that a block has
-    /// been added
-    fn add_block(&mut self) { self.counted_blocks += 1; }
 }
 
 /// # Adding a new chunk format version

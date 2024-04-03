@@ -53,12 +53,13 @@ use common::{
     parse_cmd_args,
     resources::{BattleMode, PlayerPhysicsSettings, ProgramTime, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
+    spiral::Spiral2d,
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
     tether::Tethered,
     uid::Uid,
     vol::ReadVol,
-    weather, Damage, DamageKind, DamageSource, Explosion, GroupTarget, LoadoutBuilder,
-    RadiusEffect,
+    weather, CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, GroupTarget,
+    LoadoutBuilder, RadiusEffect,
 };
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
@@ -145,6 +146,7 @@ fn do_command(
         ServerChatCommand::Buff => handle_buff,
         ServerChatCommand::Build => handle_build,
         ServerChatCommand::Campfire => handle_spawn_campfire,
+        ServerChatCommand::ClearPersistedTerrain => handle_clear_persisted_terrain,
         ServerChatCommand::DebugColumn => handle_debug_column,
         ServerChatCommand::DebugWays => handle_debug_ways,
         ServerChatCommand::DisconnectAllPlayers => handle_disconnect_all_players,
@@ -2010,6 +2012,57 @@ fn handle_spawn_campfire(
     Ok(())
 }
 
+#[cfg(feature = "persistent_world")]
+fn handle_clear_persisted_terrain(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let Some(radius) = parse_cmd_args!(args, i32) else {
+        return Err(Content::Plain(action.help_string()));
+    };
+    // Clamp the radius to prevent accidentally passing too large radiuses
+    let radius = radius.clamp(0, 64);
+
+    let pos = position(server, target, "target")?;
+    let chunk_key = server.state.terrain().pos_key(pos.0.as_());
+
+    let mut terrain_persistence2 = server
+        .state
+        .ecs()
+        .try_fetch_mut::<crate::terrain_persistence::TerrainPersistence>();
+    if let Some(ref mut terrain_persistence) = terrain_persistence2 {
+        for offset in Spiral2d::with_radius(radius) {
+            let chunk_key = chunk_key + offset;
+            terrain_persistence.clear_chunk(chunk_key);
+        }
+
+        drop(terrain_persistence2);
+        reload_chunks_inner(server, pos.0, Some(radius));
+
+        Ok(())
+    } else {
+        Err(Content::localized(
+            "command-experimental-terrain-persistence-disabled",
+        ))
+    }
+}
+
+#[cfg(not(feature = "persistent_world"))]
+fn handle_clear_persisted_terrain(
+    _server: &mut Server,
+    _client: EcsEntity,
+    _target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    Err(Content::localized(
+        "command-server-no-experimental-terrain-persistence",
+    ))
+}
+
 fn handle_safezone(
     server: &mut Server,
     client: EcsEntity,
@@ -2413,15 +2466,20 @@ fn parse_alignment(owner: Uid, alignment: &str) -> CmdResult<Alignment> {
 fn handle_kill_npcs(
     server: &mut Server,
     client: EcsEntity,
-    _target: EcsEntity,
+    target: EcsEntity,
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let kill_pets = if let Some(kill_option) = parse_cmd_args!(args, String) {
+    let (radius, options) = parse_cmd_args!(args, f32, String);
+    let kill_pets = if let Some(kill_option) = options {
         kill_option.contains("--also-pets")
     } else {
         false
     };
+
+    let position = radius
+        .map(|_| position(server, target, "target"))
+        .transpose()?;
 
     let to_kill = {
         let ecs = server.state.ecs();
@@ -2432,40 +2490,78 @@ fn handle_kill_npcs(
         let alignments = ecs.read_storage::<Alignment>();
         let rtsim_entities = ecs.read_storage::<common::rtsim::RtSimEntity>();
         let mut rtsim = ecs.write_resource::<crate::rtsim::RtSim>();
+        let spatial_grid;
 
-        (
-            &entities,
-            &healths,
-            !&players,
-            alignments.maybe(),
-            &positions,
-        )
-            .join()
-            .filter_map(|(entity, _health, (), alignment, pos)| {
-                let should_kill = kill_pets
-                    || if let Some(Alignment::Owned(owned)) = alignment {
-                        ecs.entity_from_uid(*owned)
-                            .map_or(true, |owner| !players.contains(owner))
-                    } else {
-                        true
-                    };
+        let mut iter_a;
+        let mut iter_b;
 
-                if should_kill {
-                    if let Some(rtsim_entity) = rtsim_entities.get(entity).copied() {
-                        rtsim.hook_rtsim_actor_death(
-                            &ecs.read_resource::<Arc<world::World>>(),
-                            ecs.read_resource::<world::IndexOwned>().as_index_ref(),
-                            Actor::Npc(rtsim_entity.0),
-                            Some(pos.0),
-                            None,
-                        );
-                    }
-                    Some(entity)
+        let iter: &mut dyn Iterator<
+            Item = (
+                EcsEntity,
+                &comp::Health,
+                (),
+                Option<&comp::Alignment>,
+                &comp::Pos,
+            ),
+        > = if let (Some(radius), Some(position)) = (radius, position) {
+            spatial_grid = ecs.read_resource::<CachedSpatialGrid>();
+            iter_a = spatial_grid
+                .0
+                .in_circle_aabr(position.0.xy(), radius)
+                .filter_map(|entity| {
+                    (
+                        &entities,
+                        &healths,
+                        !&players,
+                        alignments.maybe(),
+                        &positions,
+                    )
+                        .lend_join()
+                        .get(entity, &entities)
+                })
+                .filter(move |(_, _, _, _, pos)| {
+                    pos.0.distance_squared(position.0) <= radius.powi(2)
+                });
+
+            &mut iter_a as _
+        } else {
+            iter_b = (
+                &entities,
+                &healths,
+                !&players,
+                alignments.maybe(),
+                &positions,
+            )
+                .join();
+
+            &mut iter_b as _
+        };
+
+        iter.filter_map(|(entity, _health, (), alignment, pos)| {
+            let should_kill = kill_pets
+                || if let Some(Alignment::Owned(owned)) = alignment {
+                    ecs.entity_from_uid(*owned)
+                        .map_or(true, |owner| !players.contains(owner))
                 } else {
-                    None
+                    true
+                };
+
+            if should_kill {
+                if let Some(rtsim_entity) = rtsim_entities.get(entity).copied() {
+                    rtsim.hook_rtsim_actor_death(
+                        &ecs.read_resource::<Arc<world::World>>(),
+                        ecs.read_resource::<world::IndexOwned>().as_index_ref(),
+                        Actor::Npc(rtsim_entity.0),
+                        Some(pos.0),
+                        None,
+                    );
                 }
-            })
-            .collect::<Vec<_>>()
+                Some(entity)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>()
     };
     let count = to_kill.len();
     for entity in to_kill {
@@ -3605,20 +3701,60 @@ fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skillset::SkillGroupKin
     }
 }
 
+fn reload_chunks_inner(server: &mut Server, pos: Vec3<f32>, radius: Option<i32>) -> usize {
+    let mut removed = 0;
+
+    if let Some(radius) = radius {
+        let chunk_key = server.state.terrain().pos_key(pos.as_());
+
+        for key_offset in Spiral2d::with_radius(radius) {
+            let chunk_key = chunk_key + key_offset;
+
+            #[cfg(feature = "persistent_world")]
+            server
+                .state
+                .ecs()
+                .try_fetch_mut::<crate::terrain_persistence::TerrainPersistence>()
+                .map(|mut terrain_persistence| terrain_persistence.unload_chunk(chunk_key));
+            if server.state.remove_chunk(chunk_key) {
+                removed += 1;
+            }
+        }
+    } else {
+        #[cfg(feature = "persistent_world")]
+        server
+            .state
+            .ecs()
+            .try_fetch_mut::<crate::terrain_persistence::TerrainPersistence>()
+            .map(|mut terrain_persistence| terrain_persistence.unload_all());
+        removed = server.state.clear_terrain();
+    }
+
+    removed
+}
+
 fn handle_reload_chunks(
     server: &mut Server,
-    _client: EcsEntity,
-    _target: EcsEntity,
-    _args: Vec<String>,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    #[cfg(feature = "persistent_world")]
-    server
-        .state
-        .ecs()
-        .try_fetch_mut::<crate::terrain_persistence::TerrainPersistence>()
-        .map(|mut terrain_persistence| terrain_persistence.unload_all());
-    server.state.clear_terrain();
+    let radius = parse_cmd_args!(args, i32);
+
+    let pos = position(server, target, "target")?.0;
+    let removed = reload_chunks_inner(server, pos, radius.map(|radius| radius.clamp(0, 64)));
+
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            Content::localized_with_args("command-reloaded-chunks", [(
+                "reloaded",
+                removed.to_string(),
+            )]),
+        ),
+    );
 
     Ok(())
 }
