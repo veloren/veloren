@@ -1,13 +1,29 @@
 [
-    // Gear
-    (0.5, LootTable("common.loot_tables.weapons.components.tier-4")),
-    (0.25, LootTable("common.loot_tables.weapons.tier-4")),
-    (0.25, LootTable("common.loot_tables.armor.tier-4")),
-    (0.1, Item("common.items.armor.misc.head.spikeguard")),
-    // Currency
-    (3.0, MultiDrop(Item("common.items.utility.coins"), 500, 1000)),
-    // Consumables
-    (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8)),
-    // Food
-    (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 5)),
+    (1.0, All([
+        Lottery([
+            // Gear
+            (0.5, LootTable("common.loot_tables.weapons.components.tier-4")),
+            (0.25, LootTable("common.loot_tables.weapons.tier-4")),
+            (0.25, LootTable("common.loot_tables.armor.tier-4")),
+            (0.1, Item("common.items.armor.misc.head.spikeguard")),
+            // Currency
+            (3.0, MultiDrop(Item("common.items.utility.coins"), 500, 1000)),
+            // Consumables
+            (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8)),
+            // Food
+            (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 5)),
+        ]),
+        Lottery([
+            (0.6, Nothing),
+            (0.1, MultiDrop(Item("common.items.utility.bomb"), 2, 3)),
+            (0.3, Lottery([
+                (1.0, MultiDrop(Item("common.items.utility.firework_yellow"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_red"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_green"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_blue"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_purple"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_white"), 3, 5)),
+            ]))
+        ])
+    ])),
 ]

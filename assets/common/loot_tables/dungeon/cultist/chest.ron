@@ -1,12 +1,28 @@
 [
-    // Gear
-    (0.25, LootTable("common.loot_tables.weapons.cultist")),
-    (0.25, LootTable("common.loot_tables.armor.cultist")),
-    // Currency
-    (3.0, MultiDrop(Item("common.items.utility.coins"), 1000, 2000)),
-    // Consumables
-    (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8)),
-    (0.1, MultiDrop(Item("common.items.food.spore_corruption"), 1, 3)),
-    // Food
-    (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 3, 6)),
+    (1.0, All([
+        Lottery([
+            // Gear
+            (0.25, LootTable("common.loot_tables.weapons.cultist")),
+            (0.25, LootTable("common.loot_tables.armor.cultist")),
+            // Currency
+            (3.0, MultiDrop(Item("common.items.utility.coins"), 1000, 2000)),
+            // Consumables
+            (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8)),
+            (0.1, MultiDrop(Item("common.items.food.spore_corruption"), 1, 3)),
+            // Food
+            (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 3, 6)),
+        ]),
+        Lottery([
+            (0.6, Nothing),
+            (0.1, MultiDrop(Item("common.items.utility.bomb"), 2, 3)),
+            (0.3, Lottery([
+                (1.0, MultiDrop(Item("common.items.utility.firework_yellow"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_red"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_green"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_blue"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_purple"), 3, 5)),
+                (1.0, MultiDrop(Item("common.items.utility.firework_white"), 3, 5)),
+            ]))
+        ])
+    ])),
 ]
