@@ -534,7 +534,7 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::Campfire => cmd(vec![], "Spawns a campfire", Some(Admin)),
             ServerChatCommand::ClearPersistedTerrain => cmd(
-                vec![Integer("radius", 6, Required)],
+                vec![Integer("chunk_radius", 6, Required)],
                 "Clears nearby persisted terrain",
                 Some(Admin),
             ),
@@ -723,7 +723,7 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::ReloadChunks => cmd(
-                vec![Integer("radius", 6, Optional)],
+                vec![Integer("chunk_radius", 6, Optional)],
                 "Reloads chunks loaded on the server",
                 Some(Admin),
             ),

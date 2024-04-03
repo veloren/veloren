@@ -2023,7 +2023,8 @@ fn handle_clear_persisted_terrain(
     let Some(radius) = parse_cmd_args!(args, i32) else {
         return Err(Content::Plain(action.help_string()));
     };
-    let radius = radius.min(64);
+    // Clamp the radius to prevent accidentally passing too large radiuses
+    let radius = radius.clamp(0, 64);
 
     let pos = position(server, target, "target")?;
     let chunk_key = server.state.terrain().pos_key(pos.0.as_());
@@ -3742,7 +3743,7 @@ fn handle_reload_chunks(
     let radius = parse_cmd_args!(args, i32);
 
     let pos = position(server, target, "target")?.0;
-    let removed = reload_chunks_inner(server, pos, radius.map(|radius| radius.min(64)));
+    let removed = reload_chunks_inner(server, pos, radius.map(|radius| radius.clamp(0, 64)));
 
     server.notify_client(
         client,

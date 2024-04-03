@@ -246,9 +246,6 @@ impl Chunk {
 }
 
 /// LRU limiter that limits by the number of blocks
-///
-/// > **Warning**: Make sure to call [`add_block`] and [`remove_block`] when
-/// > performing direct mutations to a chunk
 struct ByBlockLimiter {
     /// Maximum number of blocks that can be contained
     block_limit: usize,
@@ -288,7 +285,9 @@ impl Limiter<Vec2<i32>, Chunk> for ByBlockLimiter {
     ) -> bool {
         let old_size = old_chunk.len() as isize; // I assume chunks are never larger than a few thousand blocks anyways, cast should be OK
         let new_size = new_chunk.len() as isize;
-        let new_total = self.counted_blocks.wrapping_add_signed(new_size - old_size);
+        let new_total = self
+            .counted_blocks
+            .saturating_add_signed(new_size - old_size);
 
         if new_total > self.block_limit {
             false
