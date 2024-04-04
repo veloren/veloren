@@ -1,4 +1,8 @@
-*/Cargo.toml @xMAC94x
-Cargo.toml @xMAC94x
-rust-toolchain @xMAC94x
-.gitlab/scripts/* @xMAC94x
+[xMAC94x] @xMAC94x
+*/Cargo.toml
+Cargo.toml
+rust-toolchain
+.gitlab/scripts/*
+
+[Other]
+/.mailmap @LunarEclipse363
