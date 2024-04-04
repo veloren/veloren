@@ -15,15 +15,7 @@
         ]),
         Lottery([
             (0.6, Nothing),
-            (0.1, MultiDrop(Item("common.items.utility.bomb"), 2, 3)),
-            (0.3, Lottery([
-                (1.0, MultiDrop(Item("common.items.utility.firework_yellow"), 3, 5)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_red"), 3, 5)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_green"), 3, 5)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_blue"), 3, 5)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_purple"), 3, 5)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_white"), 3, 5)),
-            ]))
+            (0.4, LootTable("common.loot_tables.consumables.pyrotechnics")),
         ])
     ])),
 ]

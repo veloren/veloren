@@ -2,17 +2,6 @@
     (1.0, All([
         // Key
         Item("common.items.keys.terracotta_key_door"),
-        Lottery([
-            (0.3, Nothing),
-            (0.4, MultiDrop(Item("common.items.utility.bomb"), 3, 5)),
-            (0.3, Lottery([
-                (1.0, MultiDrop(Item("common.items.utility.firework_red"), 4, 6)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_green"), 4, 6)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_blue"), 4, 6)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_purple"), 4, 6)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_yellow"), 4, 6)),
-                (1.0, MultiDrop(Item("common.items.utility.firework_white"), 4, 6)),
-            ])),
-        ])
+        MultiDrop(LootTable("common.loot_tables.consumables.pyrotechnics"), 2, 2),
     ])),
 ]
