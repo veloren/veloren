@@ -21,3 +21,14 @@ hud-trade-tooltip_hint_2 = <Ctrl-Click каб ураўнаважыць кошт 
 hud-trade-your_offer = Ваша прапанова
 hud-trade-their_offer = Іх прапанова
 hud-trade-amount_input = Абярыце рэч
+hud-trade-buy =
+    Кошт куплі: { $coin_num ->
+        [1] адна манета
+       *[other] { $coin_formatted } манет
+    }
+hud-trade-sell =
+    Кошт прадажы: { $coin_num ->
+        [1] адна манета
+       *[other] { $coin_formatted } манет
+    }
+hud-confirm-trade-for-nothing = Вы сапраўды жадаеце аддаць гэтыя рэчы дарма?

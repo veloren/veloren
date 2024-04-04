@@ -56,3 +56,7 @@ body-npc-speech-biped_large-terracotta_besieger = en terrakottabelägrare
 body-npc-speech-biped_large-gigas_frost = en gigas frost
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-tidal_warrior = en tidvattenkrigare
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-husk_brute = en husk brute
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-adlet_elder = en adlet elder

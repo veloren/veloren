@@ -10,7 +10,7 @@ common-abilities-sceptre-wardingaura = Аура защиты
     .desc = Защищает ваших союзников от вражеских атак.
 common-abilities-sword-crippling_gouge = Выколотка
     .desc =
-        Наносит противнике кровоточащую рану.
+        Наносит противнику кровоточащую рану.
         Переводит в калечащую стойку.
 common-abilities-sword-heavy_fortitude = Сильная выдержка
     .desc = Вы сохраняете устойчивость, чтобы последующие несколько ударов вас не пошатнули.
@@ -21,7 +21,7 @@ common-abilities-sword-agile_double_slash = Быстрый двойной уда
 veloren-core-pseudo_abilities-sword-double_slash = Двойной удар
     .desc = Комбинация из двух ударов
 # Sword abilities
-common-abilities-sword-crippling_double_slash = Калечащий двойной удар
+common-abilities-sword-crippling_double_slash = Калечащий Двойной Удар
     .desc = Двойной удар, который может наложить кровотечение на врага.
 # Internal terms, currently only used in zh-Hans.
 # If we remove them here, they also get auto-removed in zh-Hans,
@@ -64,25 +64,25 @@ common-abilities-sword-crippling_double_slash = Калечащий двойно�
 # See https://github.com/WeblateOrg/weblate/issues/9895
 -defensive_state = ""
 # Sword abilities
-common-abilities-sword-cleaving_double_slash = Рассекающий двойной удар
+common-abilities-sword-cleaving_double_slash = Рассекающий Двойной Удар
     .desc = Двойной удар, способный рассечь несколько врагов.
 # Sword abilities
-veloren-core-pseudo_abilities-sword-secondary_ability = Вспомогательная способность меча
+veloren-core-pseudo_abilities-sword-secondary_ability = Вспомогательная Способность Меча
     .desc = Способность, назначенная на клавишу вспомогательной атаки.
 # Sword abilities
-common-abilities-sword-basic_thrust = Базовый выпад
+common-abilities-sword-basic_thrust = Базовый Выпад
     .desc = Заряженная атака более мощная.
 # Sword abilities
-common-abilities-sword-heavy_slam = Тяжелый слэм
+common-abilities-sword-heavy_slam = Тяжелый Слэм
     .desc = Сильный удар сверху, который можно зарядить, чтобы сильнее ошеломить врага.
 # Sword abilities
 common-abilities-sword-agile_perforate = Шквал
     .desc = Стремительный шквал легких ударов.
 # Sword abilities
 common-abilities-sword-agile_dual_perforate = Шквал
-    .desc = Стремительный шквал легких ударов обоими мечами.
+    .desc = Стремительный шквал легких ударов обоими клинками.
 # Sword abilities
-common-abilities-sword-crippling_deep_rend = Глубокий разрыв
+common-abilities-sword-crippling_deep_rend = Глубокий Разрыв
     .desc = Удар по раненному противнику, наносит больше урона истекающим кровью врагам.
 # Internal terms, currently only used in zh-Hans.
 # If we remove them here, they also get auto-removed in zh-Hans,
@@ -251,7 +251,7 @@ common-abilities-sword-agile_skewer = Подвижная Шпажка
 common-abilities-sword-defensive_skewer = Защитная Шпажка
     .desc = Парирующий, колющий выпад.
 # Sword abilities
-common-abilities-sword-basic_mighty_strike = Могучий удар
+common-abilities-sword-basic_mighty_strike = Могучий Удар
     .desc =
         Сильный удар.
         Требуется умеренное количество комбо-очков.
@@ -269,4 +269,4 @@ common-abilities-debug-glide_boost = Вруум
     .desc = Дает вам силу достучаться до небес.
 # Sword abilities
 common-abilities-sword-defensive_vital_jab = Контратакующий Джеб
-    .desc = Быстро заряженный джеб, который наносит больше урона противникам удар которых вы парировали.
+    .desc = Быстро заряженный джеб, наносит больше урона противникам, удар которых вы парировали.

@@ -12,48 +12,46 @@ main-notice =
 
     - Il s'agit d'une version alpha très jeune. Attendez-vous à des bugs, un gameplay non terminé, des mécaniques non peaufinées et des fonctionalités manquantes.
 
-    - Si vous avez des retours constructifs ou avez detecté un bug, vous pouvez nous contacter via Reddit, GitLab ou notre serveur communautaire Discord.
+    - Si vous avez des retours constructifs ou avez detecté un bug, vous pouvez nous contacter via sur notre dépôt GitLab et sur notre serveur Discord ou Matrix.
 
-    - Veloren est un logiciel open-source sous licence GPL3. Cela signifie que vous êtes libre de jouer, modifier et redistribuer le jeu comme il vous semble (licence contaminante sous GPL 3 pour toute modification)
+    - Veloren est un jeu open source. Vous êtes libre de jouer, de modifier et de redistribuer le jeu conformément à la version 3 de la licence publique générale GNU.
 
     - Veloren est un projet communautaire à but non-lucratif développé par des bénévoles.
-    Si vous appréciez ce jeu, vous êtes les bienvenus pour rejoindre les équipes de développement ou d'artistes!
+    Si vous appréciez ce jeu, vous êtes les bienvenus pour rejoindre l'une de nos équipes !
 
     Merci d'avoir pris le temps de lire cette annonce, nous espérons que vous apprécierez le jeu!
 
-    ~ L'équipe de Veloren
+    ~ L'équipe de développement
 main-login_process =
-    Information sur la procédure de connexion:
+    À propos du mode multijoueur:
 
-    Vous devez à présent posséder un compte
-    afin de jouer sur les serveurs avec authentification.
+    Veuillez noter que vous avez besoin d'un compte pour jouer sur des serveurs où l'authentification est activée.
 
-    Vous pouvez créer un compte à l'adresse 
-
-    https://veloren.net/account/.
-main-login-server_not_found = Serveur introuvable
-main-login-authentication_error = Erreur d'authentification sur le serveur
-main-login-internal_error = Erreur interne du client (Certainement suite à la suppression d'un personnage)
-main-login-failed_auth_server_url_invalid = Échec de connexion au serveur d'authentification
+    Vous pouvez créer un compte à l'adresse:
+    https://veloren.net/account/
+main-login-server_not_found = Serveur introuvable.
+main-login-authentication_error = Erreur d'authentification sur le serveur.
+main-login-internal_error = Erreur interne du client. Remarque : le personnage du joueur a peut-être été supprimé.
+main-login-failed_auth_server_url_invalid = Échec de connexion au serveur d'authentification.
 main-login-insecure_auth_scheme = Le schéma d'authentification HTTP n'est PAS pris en charge. Ce n'est pas sécurisé ! À des fins de développement, HTTP est autorisé pour 'localhost' ou les build de débogage.
-main-login-server_full = Serveur plein
-main-login-untrusted_auth_server = Le serveur d'authentification n'est pas de confiance
-main-login-outdated_client_or_server = ServeurPasContent: Les versions sont probablement incompatibles, verifiez les mises à jour.
-main-login-timeout = DélaiEcoulé: Le serveur n'a pas répondu à temps. (Surchage ou problèmes réseau).
-main-login-server_shut_down = Extinction du Serveur
-main-login-network_error = Problème Réseau
+main-login-server_full = Serveur plein.
+main-login-untrusted_auth_server = Le serveur d'authentification n'est pas de confiance.
+main-login-outdated_client_or_server = ServerWentMad: Les versions sont probablement incompatibles, vérifiez les mises à jour.
+main-login-timeout = Timeout: Le serveur n'a pas répondu à temps. Remarque : il se peut que le serveur soit actuellement surchargé ou qu'il y ait des problèmes sur le réseau.
+main-login-server_shut_down = Extinction du Serveur.
+main-login-network_error = Problème Réseau.
 main-login-network_wrong_version = Le serveur fonctionne avec une version différente de la vôtre. Vérifiez votre version et mettez votre jeu à jour.
-main-login-failed_sending_request = Demande d'authentification serveur échouée
-main-login-invalid_character = Le personnage sélectionné n'est pas valide
-main-login-client_crashed = Le client a planté
-main-login-not_on_whitelist = Vous devez être ajouté à la liste blanche par un Admin pour pouvoir entrer
-main-login-banned = Vous avez été banni pour la raison suivante
-main-login-kicked = Vous avez été exclu pour la raison suivante
+main-login-failed_sending_request = Demande d'authentification serveur échouée.
+main-login-invalid_character = Le personnage sélectionné n'est pas valide.
+main-login-client_crashed = Le client a planté.
+main-login-not_on_whitelist = Vous ne figurez pas dans la liste blanche du serveur que vous avez tenté de rejoindre.
+main-login-banned = Vous avez été banni pour la raison suivante:
+main-login-kicked = Vous avez été exclu pour la raison suivante:
 main-login-select_language = Sélectionnez une langue
 main-login-client_version = Version du client
 main-login-server_version = Version du serveur
 main-login-client_init_failed = Le client n'a pas réussi à s'initialiser: { $init_fail_reason }
-main-login-username_bad_characters = Le pseudo contient des caractères invalides! (Seulement alphanumériques, '_' et '-' sont autorisés)
+main-login-username_bad_characters = Le pseudo contient des caractères invalides! (Seulement alphanumériques, '_' et '-' sont autorisés).
 main-login-username_too_long = Pseudo trop long! La taille maximum est: { $max_len }
 main-servers-select_server = Sélectionnez un serveur
 main-servers-singleplayer_error = Échec de connexion au serveur interne: { $sp_error }
@@ -111,5 +109,5 @@ main-singleplayer-world_name = Nom du monde
 main-singleplayer-map_scale = Échelle verticale
 main-singleplayer-map_erosion_quality = Qualité de l'érosion
 main-singleplayer-generate_and_play = Générer et Jouer
-main-server-rules = Ce serveur a des règles qui souvent être acceptées
-main-server-rules-seen-before = Ces règles ont changés depuis la dernière fois que vous les avez accepté
+main-server-rules = Ce serveur a des règles qui souvent être acceptées.
+main-server-rules-seen-before = Ces règles ont changés depuis la dernière fois que vous les avez accepté.

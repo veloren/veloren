@@ -2,7 +2,7 @@
 
 buff-heal = Soin
     .desc = Régénère progressivement des points de vie.
-    .stat = Restaure { $str_total } points de vie
+    .stat = Restaure { $str_total } points de vie.
 
 ## Potion
 
@@ -23,7 +23,7 @@ buff-campfire_heal = Soin autour d'un feu de camp
 
 buff-energy_regen = Régénération d'Endurance
     .desc = Régénération de l'Endurance plus rapide.
-    .stat = Restaure { $str_total } d'Endurance
+    .stat = Restaure { $str_total } d'Endurance.
 
 ## Augmentation de Santé
 
@@ -31,7 +31,7 @@ buff-increase_max_health = Augmentation de Santé
     .desc = Vos point de vie maximum sont augmentés.
     .stat =
         Augmente les points de vie max
-        de { $strength }
+        de { $strength }.
 
 ## Augmentation d'Endurance
 

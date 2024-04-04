@@ -1,0 +1,1 @@
+gameinput-primary = Ataque Básico

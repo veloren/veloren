@@ -1,0 +1,16 @@
+weapon-projectile-fireworks_blue = Сіні Феерверк
+    .desc = Рэкамендаваная адлегласць: 42 блока.
+weapon-projectile-fireworks_green = Зялёны Феерверк
+    .desc = Ашчаджвай дрэвы.
+weapon-projectile-fireworks_purple = Фіялетавы Феерверк
+    .desc = Любімы феерверк культыстаў.
+weapon-projectile-fireworks_red = Чырвоны Феерверк
+    .desc = Людзі час ад часу выкарыстоўваюць іх у якасці паходні, ў крайнім выпадку.
+weapon-projectile-fireworks_white = Белы Феерверк
+    .desc = Іскрыць як зорка.
+weapon-projectile-fireworks_yellow = Жоўты Феерверк
+    .desc = Вялікі доктар памёр пасля таго, як выпрабаваў гэтае прыстасаванне ў памяшканні.
+object-surprise_egg = Яйка-Сюрпрыз
+    .desc = Спецыяльны Вялікадзенны Выбух.
+object-bomb = Бомба
+    .desc = Выбухная прылада, парыўнікі любяць яе!

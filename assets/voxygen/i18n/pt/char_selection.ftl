@@ -14,3 +14,4 @@ char_selection-hair_color = Cor do cabelo
 char_selection-eye_color = Cor dos olhos
 char_selection-skin = Cor da pele
 char_selection-accessories = Acessórios
+char_selection-loading_characters = Carregando personagens…

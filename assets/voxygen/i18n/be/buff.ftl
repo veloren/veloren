@@ -37,3 +37,22 @@ buff-increase_max_health =
     .stat = Павышае максімальную энергію на { $strength }
 buff-text-over_seconds = на працягу { $dur_secs } сек.
 buff-text-for_seconds = на працягу { $dur_secs } сек.
+# Agility
+buff-agility = Спрыт
+    .desc = Вы перамяшчаецеся хутчэй, але наносіце меньш шкоды, і атрымліваеце больш страт.
+    .stat =
+        Павялічвае хуткасць бегу на { $strength } %.
+        Сіла атакі і абароны кардынальна памяншаюцца.
+# Energy Regen
+buff-energy_regen = Аднаўленне Энергіі
+    .desc = Аднаўленне энергіі ідзе хутчэй.
+    .stat = Аднаўляе { $str_total } энергіі.
+# Poisoned
+buff-poisoned = Атручэнне
+    .desc = Вы адчуваеце як ваша жыццё гасне…
+# Fortitude
+buff-fortitude = Трываласць
+    .desc = Вы можаце вытрымліваць аглушаючыя ўдары.
+# Parried
+buff-parried = Парыраванне
+    .desc = Вашую атаку парыравалі, аднаўленне замаруджана.

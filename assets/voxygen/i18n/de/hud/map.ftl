@@ -35,6 +35,6 @@ hud-map-gnarling = Gnarling Festung
 hud-map-chapel_site = Meereskapelle
 hud-map-adlet = Adlet Festung
 hud-map-placed_by = Platziert von { $name }
-hud-map-haniwa = Haniwa Katakomben
+hud-map-haniwa = Haniwa-Katakomben
 hud-map-terracotta = Terrakottaruinen
 hud-map-df_mine = Bergwerk

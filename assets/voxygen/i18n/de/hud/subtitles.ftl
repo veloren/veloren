@@ -143,3 +143,4 @@ subtitle-lavapool = Lavasee
 subtitle-utterance-wyvern-hurt = Wyvern verletzt
 subtitle-utterance-wyvern-angry = Wyvern brüllt
 subtitle-utterance-phoenix-hurt = Phoenix verletzt
+subtitle-surprise_egg = Göttlicher Klang
