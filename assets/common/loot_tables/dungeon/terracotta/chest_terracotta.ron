@@ -2,6 +2,9 @@
     (1.0, All([
         // Key
         Item("common.items.keys.terracotta_key_door"),
-        MultiDrop(LootTable("common.loot_tables.consumables.pyrotechnics"), 2, 2),
+        Lottery([
+            (0.4, Nothing),
+            (0.6, LootTable("common.loot_tables.consumables.pyrotechnics")),
+        ]),
     ])),
 ]
