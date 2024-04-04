@@ -1,4 +1,10 @@
 [
-    // Key
-    (1.0, Item("common.items.keys.terracotta_key_door")),
+    (1.0, All([
+        // Key
+        Item("common.items.keys.terracotta_key_door"),
+        Lottery([
+            (0.4, Nothing),
+            (0.6, LootTable("common.loot_tables.consumables.pyrotechnics")),
+        ]),
+    ])),
 ]
