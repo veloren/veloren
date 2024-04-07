@@ -26,6 +26,8 @@ use crate::{
     LoadoutBuilder,
 };
 
+use super::FrontendItem;
+
 pub mod item;
 pub mod loadout;
 pub mod loadout_builder;
@@ -255,20 +257,25 @@ impl Inventory {
     /// called
     pub fn next_sort_order(&self) -> InventorySortOrder { self.next_sort_order }
 
-    /// Adds a new item to the first fitting group of the inventory or starts a
-    /// new group. Returns the item in an error if no space was found, otherwise
-    /// returns the found slot.
-    pub fn push(&mut self, mut item: Item) -> Result<(), Item> {
+    /// Adds a new item to the fitting slots of the inventory or starts a
+    /// new group. Returns the item in an error if no space was found.
+    ///
+    /// WARNING: This **may** make inventory modifications if `Err(item)` is
+    /// returned. The second tuple field in the error is the number of items
+    /// that were successfully inserted into the inventory.
+    pub fn push(&mut self, mut item: Item) -> Result<(), (Item, Option<NonZeroU32>)> {
         // If the item is stackable, we can increase the amount of other equal items up
         // to max_amount before inserting a new item if there is still a remaining
         // amount (caused by overflow or no other equal stackable being present in the
         // inventory).
         if item.is_stackable() {
+            let total_amount = item.amount();
+
             let remaining = self
                 .slots_mut()
                 .filter_map(Option::as_mut)
                 .filter(|s| *s == &item)
-                .try_fold(item.amount(), |remaining, current| {
+                .try_fold(total_amount, |remaining, current| {
                     debug_assert_eq!(
                         item.max_amount(),
                         current.max_amount(),
@@ -301,13 +308,13 @@ impl Inventory {
                 item.set_amount(remaining)
                     .expect("Remaining is known to be > 0");
                 self.insert(item)
+                    .map_err(|item| (item, NonZeroU32::new(total_amount - remaining)))
             } else {
                 Ok(())
             }
         } else {
-            // No existing item to stack with or item not stackable, put the item in a new
-            // slot
-            self.insert(item)
+            // The item isn't stackable, insert it directly
+            self.insert(item).map_err(|item| (item, None))
         }
     }
 
@@ -317,7 +324,7 @@ impl Inventory {
         // Vec doesn't allocate for zero elements so this should be cheap
         let mut leftovers = Vec::new();
         for item in items {
-            if let Err(item) = self.push(item) {
+            if let Err((item, _)) = self.push(item) {
                 leftovers.push(item);
             }
         }
@@ -341,7 +348,7 @@ impl Inventory {
         let mut leftovers = Vec::new();
         for item in &mut items {
             if self.contains(&item).not() {
-                if let Err(overflow) = self.push(item) {
+                if let Err((overflow, _)) = self.push(item) {
                     leftovers.push(overflow);
                 }
             } // else drop item if it was already in
@@ -593,7 +600,8 @@ impl Inventory {
         }
     }
 
-    /// Takes an amount of items from a slot
+    /// Takes an amount of items from a slot. If the amount to take is larger
+    /// than the item amount, the item amount will be returned instead.
     pub fn take_amount(
         &mut self,
         inv_slot_id: InvSlotId,
@@ -602,23 +610,17 @@ impl Inventory {
         msm: &MaterialStatManifest,
     ) -> Option<Item> {
         if let Some(Some(item)) = self.slot_mut(inv_slot_id) {
-            // We can return at most item.amount()
-            let return_amount = amount.get().min(item.amount());
-
-            if item.is_stackable() && item.amount() > 1 && return_amount != item.amount() {
+            if item.is_stackable() && item.amount() > amount.get() {
                 let mut return_item = item.duplicate(ability_map, msm);
+                let return_amount = amount.get();
+                // Will never overflow since we know item.amount() > amount.get()
+                let new_amount = item.amount() - return_amount;
+
                 return_item
                     .set_amount(return_amount)
-                    .expect("We know that 0 < return_amount <= item.amount()");
-
-                let new_amount = item
-                    .amount()
-                    .checked_sub(return_amount)
-                    .expect("This subtraction must succeed because return_amount < item.amount()");
-                item.set_amount(new_amount).expect(
-                    "The result of item.amount() - return_amount must be > 0 since return_amount \
-                     < item.amount()",
-                );
+                    .expect("We know that 0 < return_amount < item.amount()");
+                item.set_amount(new_amount)
+                    .expect("new_amount must be > 0 since return item is < item.amount");
 
                 Some(return_item)
             } else {
@@ -784,13 +786,16 @@ impl Inventory {
     /// picked up and pushing them to the inventory to ensure that items
     /// containing items aren't inserted into the inventory as this is not
     /// currently supported.
-    pub fn pickup_item(&mut self, mut item: Item) -> Result<(), Item> {
+    ///
+    /// WARNING: The `Err(_)` variant may still cause inventory modifications,
+    /// note on [`Inventory::push`]
+    pub fn pickup_item(&mut self, mut item: Item) -> Result<(), (Item, Option<NonZeroU32>)> {
         if item.is_stackable() {
             return self.push(item);
         }
 
         if self.free_slots() < item.populated_slots() + 1 {
-            return Err(item);
+            return Err((item, None));
         }
 
         // Unload any items contained within the item, and push those items and the item
@@ -1104,7 +1109,7 @@ pub enum InventoryUpdateEvent {
     Given,
     Swapped,
     Dropped,
-    Collected(Item),
+    Collected(FrontendItem),
     BlockCollectFailed {
         pos: Vec3<i32>,
         reason: CollectFailedReason,

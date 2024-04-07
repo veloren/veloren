@@ -99,7 +99,7 @@ const PING_ROLLING_AVERAGE_SECS: usize = 10;
 #[derive(Debug)]
 pub enum Event {
     Chat(comp::ChatMsg),
-    GroupInventoryUpdate(comp::Item, Uid),
+    GroupInventoryUpdate(comp::FrontendItem, Uid),
     InviteComplete {
         target: Uid,
         answer: InviteAnswer,

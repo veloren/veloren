@@ -376,11 +376,13 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
     for who in [0, 1].iter().cloned() {
         for (slot, quantity) in trade.offers[who].iter() {
             if let Some(quantity) = NonZeroU32::new(*quantity) {
-                inventories
+                if let Some(item) = inventories
                     .get_mut(entities[who])
                     .expect(invmsg)
                     .take_amount(*slot, quantity, &ability_map, &msm)
-                    .map(|item| items[who].push(item));
+                {
+                    items[who].push(item);
+                }
             }
         }
     }

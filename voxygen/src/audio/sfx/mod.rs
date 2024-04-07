@@ -87,7 +87,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         beam, biped_large, biped_small, bird_large, golem, humanoid,
-        item::{item_key::ItemKey, AbilitySpec, ItemDefinitionId, ItemKind, ToolKind},
+        item::{item_key::ItemKey, AbilitySpec, ItemDefinitionId, ItemDesc, ItemKind, ToolKind},
         object,
         poise::PoiseState,
         quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType, Health,

@@ -242,8 +242,7 @@ impl ServerEvent for InventoryManipEvent {
 
                     let (item, reinsert_item) = item.pick_up();
 
-                    // NOTE: We dup the item for message purposes.
-                    let item_msg = item.duplicate(&data.ability_map, &data.msm);
+                    let mut item_msg = item.frontend_item(&data.ability_map, &data.msm);
 
                     // Next, we try to equip the picked up item
                     let event = match inventory.try_equip(item).or_else(|returned_item| {
@@ -251,7 +250,7 @@ impl ServerEvent for InventoryManipEvent {
                         // attempt to add the item to the entity's inventory
                         inventory.pickup_item(returned_item)
                     }) {
-                        Err(returned_item) => {
+                        Err((returned_item, inserted)) => {
                             // If we had a `reinsert_item`, merge returned_item into it
                             let returned_item = if let Some(mut reinsert_item) = reinsert_item {
                                 reinsert_item
@@ -271,10 +270,39 @@ impl ServerEvent for InventoryManipEvent {
                             data.items
                                 .insert(item_entity, returned_item)
                                 .expect(ITEM_ENTITY_EXPECT_MESSAGE);
-                            comp::InventoryUpdate::new(InventoryUpdateEvent::EntityCollectFailed {
-                                entity: pickup_uid,
-                                reason: CollectFailedReason::InventoryFull,
-                            })
+
+                            // If the item was partially picked up, send a loot annoucement.
+                            if let Some(inserted) = inserted {
+                                // Update the frontend item to the new amount
+                                item_msg
+                                    .set_amount(inserted.get())
+                                    .expect("Inserted must be > 0 and <= item.max_amount()");
+
+                                if let Some(group_id) = data.groups.get(entity) {
+                                    announce_loot_to_group(
+                                        group_id,
+                                        entity,
+                                        item_msg.duplicate(&data.ability_map, &data.msm),
+                                        &data.clients,
+                                        &data.uids,
+                                        &data.groups,
+                                        &data.alignments,
+                                        &data.entities,
+                                        &data.ability_map,
+                                        &data.msm,
+                                    );
+                                }
+                                comp::InventoryUpdate::new(InventoryUpdateEvent::Collected(
+                                    item_msg,
+                                ))
+                            } else {
+                                comp::InventoryUpdate::new(
+                                    InventoryUpdateEvent::EntityCollectFailed {
+                                        entity: pickup_uid,
+                                        reason: CollectFailedReason::InventoryFull,
+                                    },
+                                )
+                            }
                         },
                         Ok(_) => {
                             // We succeeded in picking up the item, so we may now delete its old
@@ -334,33 +362,41 @@ impl ServerEvent for InventoryManipEvent {
                                 for item in
                                     flatten_counted_items(&items, &data.ability_map, &data.msm)
                                 {
-                                    // NOTE: We dup the item for message purposes.
-                                    let item_msg = item.duplicate(&data.ability_map, &data.msm);
-                                    match inventory.push(item) {
-                                        Ok(_) => {
-                                            if let Some(group_id) = data.groups.get(entity) {
-                                                announce_loot_to_group(
-                                                    group_id,
-                                                    entity,
-                                                    item_msg
-                                                        .duplicate(&data.ability_map, &data.msm),
-                                                    &data.clients,
-                                                    &data.uids,
-                                                    &data.groups,
-                                                    &data.alignments,
-                                                    &data.entities,
-                                                    &data.ability_map,
-                                                    &data.msm,
+                                    let mut item_msg =
+                                        item.frontend_item(&data.ability_map, &data.msm);
+                                    let do_announce = match inventory.push(item) {
+                                        Ok(_) => true,
+                                        Err((item, inserted)) => {
+                                            drop_items.push(item);
+                                            if let Some(inserted) = inserted {
+                                                // Update the amount of the frontend item
+                                                item_msg.set_amount(inserted.get()).expect(
+                                                    "Inserted must be > 0 and <= item.max_amount()",
                                                 );
+                                                true
+                                            } else {
+                                                false
                                             }
-                                            inventory_update
-                                                .push(InventoryUpdateEvent::Collected(item_msg));
                                         },
-                                        // The item we created was in some sense "fake" so it's safe
-                                        // to drop it.
-                                        Err(_) => {
-                                            drop_items.push(item_msg);
-                                        },
+                                    };
+
+                                    if do_announce {
+                                        if let Some(group_id) = data.groups.get(entity) {
+                                            announce_loot_to_group(
+                                                group_id,
+                                                entity,
+                                                item_msg.duplicate(&data.ability_map, &data.msm),
+                                                &data.clients,
+                                                &data.uids,
+                                                &data.groups,
+                                                &data.alignments,
+                                                &data.entities,
+                                                &data.ability_map,
+                                                &data.msm,
+                                            );
+                                        }
+                                        inventory_update
+                                            .push(InventoryUpdateEvent::Collected(item_msg));
                                     }
                                 }
                             }
@@ -978,7 +1014,7 @@ impl ServerEvent for InventoryManipEvent {
                     let items_were_crafted = if let Some(crafted_items) = crafted_items {
                         let mut dropped: Vec<PickupItem> = Vec::new();
                         for item in crafted_items {
-                            if let Err(item) = inventory.push(item) {
+                            if let Err((item, _inserted)) = inventory.push(item) {
                                 let item = PickupItem::new(item, *data.program_time);
                                 if let Some(can_merge) =
                                     dropped.iter_mut().find(|other| other.can_merge(&item))
@@ -1116,7 +1152,7 @@ fn within_pickup_range<S: FindDist<find_dist::Cylinder>>(
 fn announce_loot_to_group(
     group_id: &Group,
     entity: EcsEntity,
-    item: comp::Item,
+    item: comp::FrontendItem,
     clients: &ReadStorage<Client>,
     uids: &ReadStorage<Uid>,
     groups: &ReadStorage<comp::Group>,

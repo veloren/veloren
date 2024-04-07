@@ -163,7 +163,7 @@ pub enum ServerGeneral {
     /// currently pending
     InvitePending(Uid),
     /// Update the HUD of the clients in the group
-    GroupInventoryUpdate(comp::Item, Uid),
+    GroupInventoryUpdate(comp::FrontendItem, Uid),
     /// Note: this could potentially include all the failure cases such as
     /// inviting yourself in which case the `InvitePending` message could be
     /// removed and the client could consider their invite pending until
