@@ -445,6 +445,28 @@ impl<'a> AgentData<'a> {
                 None => {},
             }
 
+            let owner_uid = self.alignment.and_then(|alignment| match alignment {
+                Alignment::Owned(owner_uid) => Some(owner_uid),
+                _ => None,
+            });
+
+            let owner = owner_uid.and_then(|owner_uid| get_entity_by_id(*owner_uid, read_data));
+
+            let is_being_pet = owner
+                .and_then(|owner| read_data.char_states.get(owner))
+                .map_or(false, |char_state| match char_state {
+                    CharacterState::Pet(petting_data) => {
+                        petting_data.static_data.target_uid == *self.uid
+                    },
+                    _ => false,
+                });
+
+            let is_in_range = owner
+                .and_then(|owner| read_data.positions.get(owner))
+                .map_or(false, |pos| {
+                    pos.0.distance_squared(self.pos.0) < MAX_MOUNT_RANGE.powi(2)
+                });
+
             // Idle NPCs should try to jump on the shoulders of their owner, sometimes.
             if read_data.is_riders.contains(*self.entity) {
                 if rng.gen_bool(0.0001) {
@@ -452,10 +474,9 @@ impl<'a> AgentData<'a> {
                 } else {
                     break 'activity;
                 }
-            } else if let Some(Alignment::Owned(owner_uid)) = self.alignment
-                && let Some(owner) = get_entity_by_id(*owner_uid, read_data)
-                && let Some(pos) = read_data.positions.get(owner)
-                && pos.0.distance_squared(self.pos.0) < MAX_MOUNT_RANGE.powi(2)
+            } else if let Some(owner_uid) = owner_uid
+                && is_in_range
+                && !is_being_pet
                 && rng.gen_bool(0.01)
             {
                 controller.push_event(ControlEvent::Mount(*owner_uid));

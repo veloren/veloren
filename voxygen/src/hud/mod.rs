@@ -2465,38 +2465,48 @@ impl Hud {
                             ]
                         },
                         Some(comp::Alignment::Owned(owner))
-                            if Some(*owner) == client.uid()
-                                && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
+                            if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
                         {
                             let mut options = Vec::new();
                             if is_mount.is_none() {
-                                options.push((
-                                    GameInput::Trade,
-                                    i18n.get_msg("hud-trade").to_string(),
-                                ));
-                                if !client.is_riding()
-                                    && is_mountable(body, bodies.get(client.entity()))
-                                {
+                                if Some(*owner) == client.uid() {
                                     options.push((
-                                        GameInput::Mount,
-                                        i18n.get_msg("hud-mount").to_string(),
+                                        GameInput::Trade,
+                                        i18n.get_msg("hud-trade").to_string(),
+                                    ));
+                                    if !client.is_riding()
+                                        && is_mountable(body, bodies.get(client.entity()))
+                                    {
+                                        options.push((
+                                            GameInput::Mount,
+                                            i18n.get_msg("hud-mount").to_string(),
+                                        ));
+                                    }
+
+                                    let is_staying = character_activity
+                                        .map_or(false, |activity| activity.is_pet_staying);
+
+                                    options.push((
+                                        GameInput::StayFollow,
+                                        i18n.get_msg(if is_staying {
+                                            "hud-follow"
+                                        } else {
+                                            "hud-stay"
+                                        })
+                                        .to_string(),
                                     ));
                                 }
 
-                                let is_staying = character_activity
-                                    .map_or(false, |activity| activity.is_pet_staying);
-
+                                // Anyone can pet a tamed animal
                                 options.push((
-                                    GameInput::StayFollow,
-                                    i18n.get_msg(if is_staying {
-                                        "hud-follow"
-                                    } else {
-                                        "hud-stay"
-                                    })
-                                    .to_string(),
+                                    GameInput::Interact,
+                                    i18n.get_msg("hud-pet").to_string(),
                                 ));
                             }
                             options
+                        },
+                        Some(comp::Alignment::Tame) => {
+                            vec![(GameInput::Interact, i18n.get_msg("hud-pet").to_string())]
                         },
                         _ => Vec::new(),
                     },

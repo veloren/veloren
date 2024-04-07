@@ -6,6 +6,7 @@ use crate::{
     },
     resources::Time,
     states::behavior::{CharacterBehavior, JoinData},
+    uid::Uid,
 };
 use serde::{Deserialize, Serialize};
 
@@ -93,6 +94,12 @@ impl CharacterBehavior for Data {
     fn dance(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_dance(data, &mut update);
+        update
+    }
+
+    fn pet(&self, data: &JoinData, _: &mut OutputEvents, target_uid: Uid) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_pet(data, &mut update, target_uid);
         update
     }
 

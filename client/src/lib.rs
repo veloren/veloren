@@ -1419,6 +1419,16 @@ impl Client {
         }
     }
 
+    pub fn do_pet(&mut self, target_entity: EcsEntity) {
+        if self.is_dead() {
+            return;
+        }
+
+        if let Some(target_uid) = self.state.read_component_copied(target_entity) {
+            self.control_action(ControlAction::Pet { target_uid });
+        }
+    }
+
     pub fn npc_interact(&mut self, npc_entity: EcsEntity, subject: Subject) {
         // If we're dead, exit before sending message
         if self.is_dead() {

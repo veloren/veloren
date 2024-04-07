@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Petting animals tamed by you or someone else!
+
 ### Changed
 
 - Fireworks and bombs are (again) available from chests (Sahagin and above).

@@ -23,6 +23,7 @@ pub mod idle;
 pub mod leap_melee;
 pub mod leap_shockwave;
 pub mod music;
+pub mod pet;
 pub mod rapid_melee;
 pub mod repeater_ranged;
 pub mod riposte_melee;
