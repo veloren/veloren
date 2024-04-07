@@ -181,6 +181,9 @@ pub enum ControlAction {
     Unwield,
     Sit,
     Dance,
+    Pet {
+        target_uid: Uid,
+    },
     Sneak,
     Stand,
     Talk,

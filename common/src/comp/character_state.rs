@@ -102,6 +102,7 @@ pub enum CharacterState {
     Sit,
     Dance,
     Talk,
+    Pet(pet::Data),
     Glide(glide::Data),
     GlideWield(glide_wield::Data),
     /// A stunned state
@@ -315,6 +316,7 @@ impl CharacterState {
             CharacterState::Climb(_)
                 | CharacterState::Equipping(_)
                 | CharacterState::Dance
+                | CharacterState::Pet(_)
                 | CharacterState::Glide(_)
                 | CharacterState::GlideWield(_)
                 | CharacterState::Talk
@@ -508,6 +510,7 @@ impl CharacterState {
             CharacterState::Stunned(data) => data.behavior(j, output_events),
             CharacterState::Sit => sit::Data::behavior(&sit::Data, j, output_events),
             CharacterState::Dance => dance::Data::behavior(&dance::Data, j, output_events),
+            CharacterState::Pet(data) => data.behavior(j, output_events),
             CharacterState::BasicBlock(data) => data.behavior(j, output_events),
             CharacterState::Roll(data) => data.behavior(j, output_events),
             CharacterState::Wielding(data) => data.behavior(j, output_events),
@@ -562,6 +565,7 @@ impl CharacterState {
             CharacterState::Dance => {
                 states::dance::Data::handle_event(&dance::Data, j, output_events, action)
             },
+            CharacterState::Pet(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicBlock(data) => data.handle_event(j, output_events, action),
             CharacterState::Roll(data) => data.handle_event(j, output_events, action),
             CharacterState::Wielding(data) => data.handle_event(j, output_events, action),
@@ -618,6 +622,7 @@ impl CharacterState {
             CharacterState::Stunned(_) => None,
             CharacterState::Sit => None,
             CharacterState::Dance => None,
+            CharacterState::Pet(_) => None,
             CharacterState::BasicBlock(data) => Some(data.static_data.ability_info),
             CharacterState::Roll(data) => Some(data.static_data.ability_info),
             CharacterState::Wielding(_) => None,
@@ -663,6 +668,7 @@ impl CharacterState {
             CharacterState::Stunned(data) => Some(data.stage_section),
             CharacterState::Sit => None,
             CharacterState::Dance => None,
+            CharacterState::Pet(_) => None,
             CharacterState::BasicBlock(data) => Some(data.stage_section),
             CharacterState::Roll(data) => Some(data.stage_section),
             CharacterState::Equipping(_) => Some(StageSection::Buildup),
@@ -712,6 +718,7 @@ impl CharacterState {
             }),
             CharacterState::Sit => None,
             CharacterState::Dance => None,
+            CharacterState::Pet(_) => None,
             CharacterState::BasicBlock(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
                 recover: Some(data.static_data.recover_duration),
@@ -901,6 +908,7 @@ impl CharacterState {
             CharacterState::Stunned(data) => Some(data.timer),
             CharacterState::Sit => None,
             CharacterState::Dance => None,
+            CharacterState::Pet(_) => None,
             CharacterState::BasicBlock(data) => Some(data.timer),
             CharacterState::Roll(data) => Some(data.timer),
             CharacterState::Wielding(_) => None,
@@ -946,6 +954,7 @@ impl CharacterState {
             CharacterState::Stunned(_) => None,
             CharacterState::Sit => None,
             CharacterState::Dance => None,
+            CharacterState::Pet(_) => None,
             CharacterState::BasicBlock(_) => None,
             CharacterState::Roll(_) => None,
             CharacterState::Wielding(_) => None,

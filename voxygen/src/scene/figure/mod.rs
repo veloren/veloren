@@ -2112,6 +2112,22 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::Pet(s) => {
+                            let target_entity = id_maps.uid_entity(s.static_data.target_uid);
+                            let target_pos = target_entity.and_then(|target_entity| {
+                                ecs.read_component::<Pos>()
+                                    .get(target_entity)
+                                    .map(|pos| pos.0)
+                            });
+
+                            anim::character::PetAnimation::update_skeleton(
+                                &target_base,
+                                (pos.0, target_pos, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::Music(s) => {
                             anim::character::MusicAnimation::update_skeleton(
                                 &target_base,

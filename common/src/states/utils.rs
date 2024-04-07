@@ -15,15 +15,16 @@ use crate::{
         },
         quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
-        theropod, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction, Melee,
-        StateUpdate,
+        theropod, Alignment, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction,
+        Melee, Pos, StateUpdate,
     },
-    consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
+    consts::{FRIC_GROUND, GRAVITY, MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     event::{BuffEvent, ChangeStanceEvent, ComboChangeEvent, InventoryManipEvent, LocalEvent},
     mounting::Volume,
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
     terrain::{Block, TerrainGrid, UnlockKind},
+    uid::Uid,
     util::Dir,
     vol::ReadVol,
 };
@@ -880,6 +881,34 @@ pub fn attempt_sit(data: &JoinData<'_>, update: &mut StateUpdate) {
 pub fn attempt_dance(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
         update.character = CharacterState::Dance;
+    }
+}
+
+pub fn can_perform_pet(position: Pos, target_position: Pos, target_alignment: Alignment) -> bool {
+    let within_distance = position.0.distance_squared(target_position.0) <= MAX_MOUNT_RANGE.powi(2);
+    let valid_alignment = matches!(target_alignment, Alignment::Owned(_) | Alignment::Tame);
+
+    within_distance && valid_alignment
+}
+
+pub fn attempt_pet(data: &JoinData<'_>, update: &mut StateUpdate, target_uid: Uid) {
+    let can_pet = data
+        .id_maps
+        .uid_entity(target_uid)
+        .and_then(|target_entity| {
+            data.prev_phys_caches
+                .get(target_entity)
+                .and_then(|prev_phys| prev_phys.pos)
+                .zip(data.alignments.get(target_entity))
+        })
+        .map_or(false, |(target_position, target_alignment)| {
+            can_perform_pet(*data.pos, target_position, *target_alignment)
+        });
+
+    if can_pet && data.physics.on_ground.is_some() && data.body.is_humanoid() {
+        update.character = CharacterState::Pet(pet::Data {
+            static_data: pet::StaticData { target_uid },
+        });
     }
 }
 

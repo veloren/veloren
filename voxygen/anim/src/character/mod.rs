@@ -20,6 +20,7 @@ pub mod jump;
 pub mod leapmelee;
 pub mod mount;
 pub mod music;
+pub mod pet;
 pub mod rapidmelee;
 pub mod repeater;
 pub mod ripostemelee;
@@ -51,10 +52,11 @@ pub use self::{
     dance::DanceAnimation, dash::DashAnimation, divemelee::DiveMeleeAnimation,
     equip::EquipAnimation, finishermelee::FinisherMeleeAnimation, glidewield::GlideWieldAnimation,
     gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
-    mount::MountAnimation, music::MusicAnimation, rapidmelee::RapidMeleeAnimation,
-    repeater::RepeaterAnimation, ripostemelee::RiposteMeleeAnimation, roll::RollAnimation,
-    run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
-    shoot::ShootAnimation, sit::SitAnimation, sleep::SleepAnimation, sneak::SneakAnimation,
+    mount::MountAnimation, music::MusicAnimation, pet::PetAnimation,
+    rapidmelee::RapidMeleeAnimation, repeater::RepeaterAnimation,
+    ripostemelee::RiposteMeleeAnimation, roll::RollAnimation, run::RunAnimation,
+    selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
+    sit::SitAnimation, sleep::SleepAnimation, sneak::SneakAnimation,
     sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation,
     staggered::StaggeredAnimation, stand::StandAnimation, steer::SteerAnimation,
     stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,

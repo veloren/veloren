@@ -3,18 +3,18 @@ use crate::{
         self,
         character_state::OutputEvents,
         item::{tool::AbilityMap, MaterialStatManifest},
-        ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, ControlAction,
-        Controller, ControllerInputs, Density, Energy, Health, InputAttr, InputKind, Inventory,
-        InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, Scale, SkillSet, Stance, StateUpdate,
-        Stats, Vel,
+        ActiveAbilities, Alignment, Beam, Body, CharacterActivity, CharacterState, Combo,
+        ControlAction, Controller, ControllerInputs, Density, Energy, Health, InputAttr, InputKind,
+        Inventory, InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, PreviousPhysCache, Scale,
+        SkillSet, Stance, StateUpdate, Stats, Vel,
     },
     link::Is,
     mounting::{Rider, VolumeRider},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
-    uid::Uid,
+    uid::{IdMaps, Uid},
 };
-use specs::{storage::FlaggedAccessMut, Entity, LazyUpdate};
+use specs::{storage::FlaggedAccessMut, Entity, LazyUpdate, Read, ReadStorage};
 use vek::*;
 
 pub trait CharacterBehavior {
@@ -48,6 +48,14 @@ pub trait CharacterBehavior {
         StateUpdate::from(data)
     }
     fn dance(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn pet(
+        &self,
+        data: &JoinData,
+        _output_events: &mut OutputEvents,
+        _target_uid: Uid,
+    ) -> StateUpdate {
         StateUpdate::from(data)
     }
     fn sneak(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
@@ -96,6 +104,7 @@ pub trait CharacterBehavior {
             ControlAction::Unwield => self.unwield(data, output_events),
             ControlAction::Sit => self.sit(data, output_events),
             ControlAction::Dance => self.dance(data, output_events),
+            ControlAction::Pet { target_uid } => self.pet(data, output_events, target_uid),
             ControlAction::Sneak => {
                 if data.mount_data.is_none() && data.volume_mount_data.is_none() {
                     self.sneak(data, output_events)
@@ -149,6 +158,9 @@ pub struct JoinData<'a> {
     pub mount_data: Option<&'a Is<Rider>>,
     pub volume_mount_data: Option<&'a Is<VolumeRider>>,
     pub stance: Option<&'a Stance>,
+    pub id_maps: &'a Read<'a, IdMaps>,
+    pub alignments: &'a ReadStorage<'a, Alignment>,
+    pub prev_phys_caches: &'a ReadStorage<'a, PreviousPhysCache>,
 }
 
 pub struct JoinStruct<'a> {
@@ -179,6 +191,9 @@ pub struct JoinStruct<'a> {
     pub mount_data: Option<&'a Is<Rider>>,
     pub volume_mount_data: Option<&'a Is<VolumeRider>>,
     pub stance: Option<&'a Stance>,
+    pub id_maps: &'a Read<'a, IdMaps>,
+    pub alignments: &'a ReadStorage<'a, Alignment>,
+    pub prev_phys_caches: &'a ReadStorage<'a, PreviousPhysCache>,
 }
 
 impl<'a> JoinData<'a> {
@@ -223,6 +238,9 @@ impl<'a> JoinData<'a> {
             mount_data: j.mount_data,
             volume_mount_data: j.volume_mount_data,
             stance: j.stance,
+            id_maps: j.id_maps,
+            alignments: j.alignments,
+            prev_phys_caches: j.prev_phys_caches,
         }
     }
 }

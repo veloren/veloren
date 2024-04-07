@@ -28,6 +28,7 @@ use common::{
     mounting::{Mount, VolumePos},
     outcome::Outcome,
     recipe,
+    states::utils::can_perform_pet,
     terrain::{Block, BlockKind},
     trade::TradeResult,
     util::{Dir, Plane},
@@ -1074,6 +1075,22 @@ impl PlayState for SessionState {
                                                     .state()
                                                     .read_component_cloned::<comp::Body>(*entity);
 
+                                                let pettable = client
+                                                    .state()
+                                                    .read_component_cloned::<comp::Pos>(*entity)
+                                                    .zip(client.state().read_component_cloned::<comp::Alignment>(*entity))
+                                                    .zip(client.state().read_component_cloned::<comp::Pos>(client.entity()))
+                                                    .map_or(
+                                                        false,
+                                                        |((target_position, target_alignment), client_position)| {
+                                                            can_perform_pet(
+                                                                client_position,
+                                                                target_position,
+                                                                target_alignment,
+                                                            )
+                                                        },
+                                                    );
+
                                                 if client
                                                     .state()
                                                     .ecs()
@@ -1097,6 +1114,8 @@ impl PlayState for SessionState {
                                                     .flatten()
                                                 {
                                                     client.activate_portal(portal_uid);
+                                                } else if pettable {
+                                                    client.do_pet(*entity);
                                                 } else {
                                                     client.npc_interact(*entity, Subject::Regular);
                                                 }

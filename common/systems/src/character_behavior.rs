@@ -9,7 +9,7 @@ use common::{
         inventory::item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, Controller, Density,
         Energy, Health, Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos,
-        Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
+        PreviousPhysCache, Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
     },
     event::{self, EventBus, KnockbackEvent, LocalEvent},
     link::Is,
@@ -21,7 +21,7 @@ use common::{
         idle,
     },
     terrain::TerrainGrid,
-    uid::Uid,
+    uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
 
@@ -53,6 +53,7 @@ pub struct ReadData<'a> {
     terrain: ReadExpect<'a, TerrainGrid>,
     inventories: ReadStorage<'a, Inventory>,
     stances: ReadStorage<'a, Stance>,
+    prev_phys_caches: ReadStorage<'a, PreviousPhysCache>,
 }
 
 /// ## Character Behavior System
@@ -74,6 +75,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Controller>,
         WriteStorage<'a, Poise>,
         Read<'a, EventBus<Outcome>>,
+        Read<'a, IdMaps>,
     );
 
     const NAME: &'static str = "character_behavior";
@@ -94,6 +96,7 @@ impl<'a> System<'a> for Sys {
             mut controllers,
             mut poises,
             outcomes,
+            id_maps,
         ): Self::SystemData,
     ) {
         let mut local_emitter = read_data.local_bus.emitter();
@@ -217,6 +220,9 @@ impl<'a> System<'a> for Sys {
                 mount_data: read_data.is_riders.get(entity),
                 volume_mount_data: read_data.is_volume_riders.get(entity),
                 stance: read_data.stances.get(entity),
+                id_maps: &id_maps,
+                alignments: &read_data.alignments,
+                prev_phys_caches: &read_data.prev_phys_caches,
             };
 
             for action in actions {
