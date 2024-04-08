@@ -23,13 +23,24 @@ use vek::*;
 
 use crate::hud::Subtitle;
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Listener {
     pub pos: Vec3<f32>,
     pub ori: Vec3<f32>,
 
     ear_left_rpos: Vec3<f32>,
     ear_right_rpos: Vec3<f32>,
+}
+
+impl Default for Listener {
+    fn default() -> Self {
+        Self {
+            pos: Default::default(),
+            ori: Default::default(),
+            ear_left_rpos: Vec3::unit_x(),
+            ear_right_rpos: -Vec3::unit_x(),
+        }
+    }
 }
 
 /// Holds information about the system audio devices and internal channels used
