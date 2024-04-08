@@ -331,7 +331,6 @@ fn idle<S: State>() -> impl Action<S> + Clone {
 
 /// Try to walk toward a 3D position without caring for obstacles.
 fn goto<S: State>(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Action<S> {
-    const STEP_DIST: f32 = 24.0;
     const WAYPOINT_DIST: f32 = 12.0;
 
     just(move |ctx, waypoint: &mut Option<Vec3<f32>>| {
