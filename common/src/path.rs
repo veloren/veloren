@@ -87,6 +87,8 @@ pub struct TraversalConfig {
     pub can_climb: bool,
     /// Whether the agent can fly.
     pub can_fly: bool,
+    /// Whether chunk containing target position is currently loaded
+    pub is_target_loaded: bool,
 }
 
 const DIAGONALS: [Vec2<i32>; 8] = [
@@ -125,7 +127,7 @@ impl Route {
             let next1 = self.next(1).unwrap_or(next0);
 
             // Stop using obstructed paths
-            if !walkable(vol, next1) {
+            if !walkable(vol, next0) || !walkable(vol, next1) {
                 return None;
             }
 
@@ -387,7 +389,7 @@ impl Chaser {
             // theory this shouldn't happen, but in practice the world is full
             // of unpredictable obstacles that are more than willing to mess up
             // our day. TODO: Come up with a better heuristic for this
-            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete {
+            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete && traversal_cfg.is_target_loaded {
                 None
             } else if thread_rng().gen::<f32>() < 0.001 {
                 self.route = None;
@@ -420,6 +422,7 @@ impl Chaser {
                 .unwrap_or(true)
                 || self.astar.is_some()
                 || self.route.is_none()
+                || !traversal_cfg.is_target_loaded
             {
                 self.last_search_tgt = Some(tgt);
 
@@ -540,6 +543,12 @@ where
         get_walkable_z(endf.map(|e| e.floor() as i32)),
     ) {
         (Some(start), Some(end)) => (start, end),
+
+        // Special case for partially loaded path finding
+        (Some(start), None) if !traversal_cfg.is_target_loaded => {
+            (start, endf.map(|e| e.floor() as i32))
+        },
+
         _ => return (None, false),
     };
 
@@ -608,7 +617,7 @@ where
                     .filter(|_| {
                         vol.get(pos - Vec3::unit_z())
                             .map(|b| !b.is_liquid())
-                            .unwrap_or(true)
+                            .unwrap_or(traversal_cfg.is_target_loaded)
                             || traversal_cfg.can_climb
                             || traversal_cfg.can_fly
                     })
@@ -622,17 +631,17 @@ where
                         || vol
                             .get(pos + Vec3::unit_z() * 2)
                             .map(|b| !b.is_solid())
-                            .unwrap_or(true))
+                            .unwrap_or(traversal_cfg.is_target_loaded))
                         && (dir.z < 2
                             || vol
                                 .get(pos + Vec3::unit_z() * 3)
                                 .map(|b| !b.is_solid())
-                                .unwrap_or(true))
+                                .unwrap_or(traversal_cfg.is_target_loaded))
                         && (dir.z >= 0
                             || vol
                                 .get(pos + *dir + Vec3::unit_z() * 2)
                                 .map(|b| !b.is_solid())
-                                .unwrap_or(true)))
+                                .unwrap_or(traversal_cfg.is_target_loaded)))
             })
             .map(|(pos, dir)| {
                 let destination = pos + dir;
@@ -651,28 +660,34 @@ where
     let satisfied = |pos: &Vec3<i32>| pos == &end;
 
     let mut new_astar = match astar.take() {
-        None => Astar::new(25_000, start, DefaultHashBuilder::default()),
+        None => Astar::new(
+            if traversal_cfg.is_target_loaded {
+                // Normal mode
+                25_000
+            } else {
+                // Most of the times we would need to plot within current chunk,
+                // so half of intra-site limit should be enough in most cases
+                500
+            },
+            start,
+            DefaultHashBuilder::default(),
+        ),
         Some(astar) => astar,
     };
 
     let path_result = new_astar.poll(100, heuristic, neighbors, satisfied);
 
-    *astar = Some(new_astar);
-
     match path_result {
-        PathResult::Path(path, _cost) => {
-            *astar = None;
-            (Some(path), true)
+        PathResult::Path(path, _cost) => (Some(path), true),
+        PathResult::None(path) => (Some(path), false),
+        PathResult::Exhausted(path) => (Some(path), false),
+
+        PathResult::Pending => {
+            // Keep astar for the next iteration
+            *astar = Some(new_astar);
+
+            (None, false)
         },
-        PathResult::None(path) => {
-            *astar = None;
-            (Some(path), false)
-        },
-        PathResult::Exhausted(path) => {
-            *astar = None;
-            (Some(path), false)
-        },
-        PathResult::Pending => (None, false),
     }
 }
 

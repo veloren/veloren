@@ -66,7 +66,7 @@ struct DefaultState {
 
 fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathResult<Vec2<i32>> {
     let heuristic = |tile: &Vec2<i32>, _: &Vec2<i32>| tile.as_::<f32>().distance(end.as_());
-    let mut astar = Astar::new(1000, start, BuildHasherDefault::<FxHasher64>::default());
+    let mut astar = Astar::new(1_000, start, BuildHasherDefault::<FxHasher64>::default());
 
     let transition = |a: Vec2<i32>, b: Vec2<i32>| {
         let distance = a.as_::<f32>().distance(b.as_());
@@ -212,7 +212,7 @@ fn path_site(
     }
 }
 
-fn path_towns(
+fn path_between_towns(
     start: SiteId,
     end: SiteId,
     sites: &Sites,
@@ -344,9 +344,7 @@ fn goto<S: State>(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Ac
 
         // Get the next waypoint on the route toward the goal
         let waypoint = waypoint.get_or_insert_with(|| {
-            let rpos = wpos - ctx.npc.wpos;
-            let len = rpos.magnitude();
-            let wpos = ctx.npc.wpos + (rpos / len) * len.min(STEP_DIST);
+            // let rpos = wpos - ctx.npc.wpos;
 
             wpos.with_z(ctx.world.sim().get_surface_alt_approx(wpos.xy().as_()))
         });
@@ -397,7 +395,12 @@ fn goto_flying<S: State>(
     .stop_if(move |ctx: &mut NpcCtx| {
         ctx.npc.wpos.xy().distance_squared(wpos.xy()) < goal_dist.powi(2)
     })
-    .debug(move || format!("goto {}, {}, {}", wpos.x, wpos.y, wpos.z))
+    .debug(move || {
+        format!(
+            "goto flying ({}, {}, {}), goal dist {}",
+            wpos.x, wpos.y, wpos.z, goal_dist
+        )
+    })
     .map(|_, _| {})
 }
 
@@ -406,7 +409,12 @@ fn goto_flying<S: State>(
 fn goto_2d<S: State>(wpos2d: Vec2<f32>, speed_factor: f32, goal_dist: f32) -> impl Action<S> {
     now(move |ctx, _| {
         let wpos = wpos2d.with_z(ctx.world.sim().get_surface_alt_approx(wpos2d.as_()));
-        goto(wpos, speed_factor, goal_dist)
+        goto(wpos, speed_factor, goal_dist).debug(move || {
+            format!(
+                "goto 2d ({}, {}), z {}, goal dist {}",
+                wpos2d.x, wpos2d.y, wpos.z, goal_dist
+            )
+        })
     })
 }
 
@@ -431,6 +439,12 @@ fn goto_2d_flying<S: State>(
             waypoint_dist,
             height_offset,
         )
+        .debug(move || {
+            format!(
+                "goto 2d flying ({}, {}), goal dist {}",
+                wpos2d.x, wpos2d.y, goal_dist
+            )
+        })
     })
 }
 
@@ -439,6 +453,7 @@ where
     F: FnMut(&mut NpcCtx) -> Option<Vec2<f32>> + Clone + Send + Sync + 'static,
 {
     until(move |ctx, next_point: &mut F| {
+        // Pick next waypoint, return if path ended
         let wpos = next_point(ctx)?;
 
         let wpos_site = |wpos: Vec2<f32>| {
@@ -448,13 +463,24 @@ where
                 .and_then(|chunk| chunk.sites.first().copied())
         };
 
-        // If we're traversing within a site, to intra-site pathfinding
+        let wpos_sites_contain = |wpos: Vec2<f32>, site: Id<world::site::Site>| {
+            ctx.world
+                .sim()
+                .get(wpos.as_().wpos_to_cpos())
+                .map(|chunk| chunk.sites.contains(&site))
+                .unwrap_or(false)
+        };
+
+        let npc_wpos = ctx.npc.wpos;
+
+        // If we're traversing within a site, do intra-site pathfinding
         if let Some(site) = wpos_site(wpos) {
             let mut site_exit = wpos;
-            while let Some(next) = next_point(ctx).filter(|next| wpos_site(*next) == Some(site)) {
+            while let Some(next) = next_point(ctx).filter(|next| wpos_sites_contain(*next, site)) {
                 site_exit = next;
             }
 
+            // Navigate through the site to the site exit
             if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
                 Some(Either::Left(
                     seq(path.into_iter().map(move |wpos| goto_2d(wpos, 1.0, 8.0))).then(goto_2d(
@@ -464,13 +490,34 @@ where
                     )),
                 ))
             } else {
-                Some(Either::Right(goto_2d(site_exit, speed_factor, 8.0)))
+                // No intra-site path found, just attempt to move towards the exit node
+                Some(Either::Right(
+                    goto_2d(site_exit, speed_factor, 8.0)
+                        .debug(move || {
+                            format!(
+                                "direct from {}, {}, ({}) to site exit at {}, {}",
+                                npc_wpos.x, npc_wpos.y, npc_wpos.z, site_exit.x, site_exit.y
+                            )
+                        })
+                        .boxed(),
+                ))
             }
         } else {
-            Some(Either::Right(goto_2d(wpos, speed_factor, 8.0)))
+            // We're in the middle of a road, just go to the next waypoint
+            Some(Either::Right(
+                goto_2d(wpos, speed_factor, 8.0)
+                    .debug(move || {
+                        format!(
+                            "from {}, {}, ({}) to the next waypoint at {}, {}",
+                            npc_wpos.x, npc_wpos.y, npc_wpos.z, wpos.x, wpos.y
+                        )
+                    })
+                    .boxed(),
+            ))
         }
     })
     .with_state(next_point)
+    .debug(|| "traverse points")
 }
 
 /// Try to travel to a site. Where practical, paths will be taken.
@@ -483,7 +530,7 @@ fn travel_to_point<S: State>(wpos: Vec2<f32>, speed_factor: f32) -> impl Action<
         let mut points = (1..n as usize + 1).map(move |i| start + diff * (i as f32 / n));
         traverse_points(move |_| points.next(), speed_factor)
     })
-    .debug(|| "travel to point")
+    .debug(move || format!("travel to point {}, {}", wpos.x, wpos.y))
 }
 
 /// Try to travel to a site. Where practical, paths will be taken.
@@ -496,16 +543,16 @@ fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Action<
         // If we're currently in a site, try to find a path to the target site via
         // tracks
         if let Some(current_site) = ctx.npc.current_site
-            && let Some(tracks) = path_towns(current_site, tgt_site, sites, ctx.world)
+            && let Some(tracks) = path_between_towns(current_site, tgt_site, sites, ctx.world)
         {
 
-            let mut nodes = tracks.path
+            let mut path_nodes = tracks.path
                 .into_iter()
                 .flat_map(move |(track_id, reversed)| (0..)
                     .map(move |node_idx| (node_idx, track_id, reversed)));
 
             traverse_points(move |ctx| {
-                let (node_idx, track_id, reversed) = nodes.next()?;
+                let (node_idx, track_id, reversed) = path_nodes.next()?;
                 let nodes = &ctx.world.civs().tracks.get(track_id).path().nodes;
 
                 // Handle the case where we walk paths backward
@@ -568,7 +615,7 @@ fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Action<
             //     .boxed()
         } else if let Some(site) = sites.get(tgt_site) {
             // If all else fails, just walk toward the target site in a straight line
-            travel_to_point(site.wpos.map(|e| e as f32 + 0.5), speed_factor).boxed()
+            travel_to_point(site.wpos.map(|e| e as f32 + 0.5), speed_factor).debug(|| "travel to point fallback").boxed()
         } else {
             // If we can't find a way to get to the site at all, there's nothing more to be done
             finish().boxed()
