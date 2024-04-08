@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- NPC path-finding, especially for merchants and travellers is now less dumb.
 
 ## [0.16.0] - 2024-03-30
 
