@@ -917,7 +917,7 @@ impl Body {
             Body::BipedLarge(biped_large) => match biped_large.species {
                 biped_large::Species::Ogre => 380,
                 biped_large::Species::Cyclops => 1000,
-                biped_large::Species::Wendigo => 380,
+                biped_large::Species::Wendigo => 300,
                 biped_large::Species::Cavetroll => 340,
                 biped_large::Species::Mountaintroll => 340,
                 biped_large::Species::Swamptroll => 340,

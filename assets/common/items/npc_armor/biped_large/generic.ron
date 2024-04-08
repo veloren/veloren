@@ -5,7 +5,6 @@ ItemDef(
         kind: Chest,
         stats: Direct((
             protection: Some(Normal(65.0)),
-            poise_resilience: Some(Normal(10.0)),
         )),
     )),
     quality: Moderate,
