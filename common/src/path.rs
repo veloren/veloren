@@ -404,7 +404,7 @@ impl Chaser {
             // our day. TODO: Come up with a better heuristic for this
             if end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete && traversal_cfg.is_target_loaded {
                 None
-            } else if thread_rng().gen::<f32>() < 0.001 {
+            } else if thread_rng().gen::<f32>() < 0.01 {
                 self.route = None;
                 None
             } else {
