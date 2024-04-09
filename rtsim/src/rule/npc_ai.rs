@@ -343,8 +343,6 @@ fn goto<S: State>(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> impl Ac
 
         // Get the next waypoint on the route toward the goal
         let waypoint = waypoint.get_or_insert_with(|| {
-            // let rpos = wpos - ctx.npc.wpos;
-
             wpos.with_z(ctx.world.sim().get_surface_alt_approx(wpos.xy().as_()))
         });
 
