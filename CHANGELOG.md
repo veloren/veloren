@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Fireworks and bombs are (again) available from chests (Sahagin and above).
+- Increased brinestone armor recipe cost and repair cost.
 
 ### Removed
 

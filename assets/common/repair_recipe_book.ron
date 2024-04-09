@@ -1061,6 +1061,62 @@ recipes: {
             (Item("common.items.mineral.ore.velorite"), 2),
         ],
     ),
+    ItemDefId("common.items.armor.brinestone.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.brinestone"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+        ItemDefId("common.items.armor.brinestone.crown"): (
+        inputs: [
+            (Item("common.items.crafting_ing.brinestone"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.brinestone.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.brinestone"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.brinestone.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.brinestone"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 12),
+            (Item("common.items.mineral.ore.velorite"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.brinestone.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.brinestone"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.brinestone.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.brinestone"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.brinestone.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.brinestone"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.brinestone.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.brinestone"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
     // ARMOR/CULTIST
     ItemDefId("common.items.armor.cultist.back"): (
         inputs: [
