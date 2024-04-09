@@ -131,13 +131,26 @@ impl Route {
                 return None;
             }
 
-            let be_precise = DIAGONALS.iter().any(|pos| {
+            // If, in any direction, there is a column of open air of several blocks
+            let open_space_nearby = DIAGONALS.iter().any(|pos| {
                 (-1..2).all(|z| {
                     vol.get(next0 + Vec3::new(pos.x, pos.y, z))
                         .map(|b| !b.is_solid())
                         .unwrap_or(false)
                 })
             });
+
+            // If, in any direction, there is a solid wall
+            let wall_nearby = DIAGONALS.iter().any(|pos| {
+                (0..2).all(|z| {
+                    vol.get(next0 + Vec3::new(pos.x, pos.y, z))
+                        .map(|b| b.is_solid())
+                        .unwrap_or(true)
+                })
+            });
+
+            // Unwalkable obstacles, such as walls or open space can affect path-finding
+            let be_precise = open_space_nearby | wall_nearby;
 
             // Map position of node to middle of block
             let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
