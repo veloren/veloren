@@ -39,18 +39,18 @@ buff-increase_max_energy = Augmentation d'Endurance
     .desc = Votre énergie maximale est augmentée.
     .stat =
         Augmente les points d'endurance max
-        de { $strength }
+        de { $strength }.
 
 ## Invulnérabilité
 
 buff-invulnerability = Invulnérabilité
     .desc = Vous ne pouvez pas être blessé par une attaque.
-    .stat = Rend invincible
+    .stat = Rend invincible.
 
 ## Aura de Protection
 
 buff-protectingward = Aura de Protection
-    .desc = Vous êtes protégé, d'une quelconque façon, des attaques ennemies
+    .desc = Vous êtes protégé, d'une quelconque façon, des attaques ennemies.
 
 ## Frénésie
 
@@ -164,3 +164,6 @@ buff-agility = Agilité
 # Heatstroke
 buff-heatstroke = Coup de chaleur
     .desc = Vous avez été exposé à la chaleur et vous avez pris un coup de chaud. Votre récupération d'énergie et vitesse de mouvement sont réduits. Détendez vous.
+# Poisoned
+buff-poisoned = Empoisonné(e)
+    .desc = Vous sentez votre vitalité vous échapper…

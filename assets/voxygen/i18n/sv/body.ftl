@@ -59,4 +59,8 @@ body-npc-speech-biped_large-tidal_warrior = en tidvattenkrigare
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-husk_brute = en husk brute
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-adlet_elder = en adlet elder
+body-npc-speech-biped_large-adlet_elder = en adlet äldre
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_pursuer = en terrakottaförföljare
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-cursekeeper = terrakottaförföljare

@@ -18,12 +18,12 @@ hud-trade-result-declined = Échange décliné.
 hud-trade-result-nospace = Pas assez d'espace libre pour compléter l'échange.
 hud-trade-buy =
     Prix d'achat: { $coin_num ->
-        [one] une pièce
+        [1] une pièce
        *[other] { $coin_formatted } pièces
     }
 hud-trade-sell =
     Prix de vente: { $coin_num ->
-        [one] une pièce.
+        [1] une pièce
        *[other] { $coin_formatted } pièces
     }
 hud-trade-tooltip_hint_1 = <Shift-Clique pour Ajouter/Retirer de l'échange.>

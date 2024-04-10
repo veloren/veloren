@@ -48,7 +48,7 @@ common-connection_lost =
     Connexion perdue !
     Le serveur a-t-il redémarré ?
     Le client est-il à jour ?
-common-species-orc = Orc
+common-species-orc = Orque
 common-species-human = Humain
 common-species-dwarf = Nain
 common-species-elf = Elfe
@@ -116,3 +116,8 @@ common-sprite-crate = Boite
 common-stats-durability = Durabilité
 common-tool-shovel = Pelle
 common-stats-effect-power = Puissance d'effet
+common-sprite-signboard = Panneau d'affichage
+common-sprite-street_lamp = Lampes de rue
+common-sprite-lantern = Lanterne
+common-sprite-seashell_lantern = Lanterne coquillage
+common-sprite-firebowl_ground = Bol à feu

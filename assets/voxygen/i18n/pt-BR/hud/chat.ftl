@@ -1,7 +1,7 @@
 ## Eventos de Jogadores
 
 hud-chat-online_msg = { "[" }{ $name }] está online.
-hud-chat-offline_msg = { $name } está offline
+hud-chat-offline_msg = { $name } ficou offline
 
 ## Avisos(buff)
 ## Mortes(buff)
@@ -55,12 +55,31 @@ hud-chat-default_death_msg = { "[" }{ $name }] morreu
 hud-chat-all = Todos
 hud-chat-chat_tab_hover_tooltip = Clique direito para configurar
 hud-loot-pickup-msg =
-    { $actor ->
-        [You] Você pegou
-       *[other] { $actor } pegou
-    } { $amount ->
-        [one] { $item }
-       *[other] { $amount }x { $item }
+    { $amount ->
+        [1] { $actor } pegou { $item }
+       *[other] { $actor } pegou { $amount }x { $item }
     }
 hud-chat-goodbye = Até Logo!
 hud-chat-connection_lost = Conexão perdida. Expulsando em { $time } segundos.
+# Generic messages
+hud-chat-message-in-group-with-name = ({ $group }) [{ $alias }] { $name }: { $msg }
+# Npc /tell messages, no gender info, sadly
+hud-chat-tell-to-npc = Para [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-to = Para [{ $alias }]: { $msg }
+# Npc /tell messages, no gender info, sadly
+hud-chat-tell-from-npc = De [{ $alias }]: { $msg }
+# Generic messages
+hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }
+# Player /tell messages, $user_gender should be available
+hud-chat-tell-from = Para [{ $alias }]: { $msg }
+# Generic messages
+hud-chat-message = { "[" }{ $alias }]: { $msg }
+# HUD Pickup message
+hud-loot-pickup-msg-you =
+    { $amount ->
+        [1] Você pegou { $item }
+       *[other] Você pegou { $amount }x { $item }
+    }
+# Generic messages
+hud-chat-message-with-name = { "[" }{ $alias }] { $name }: { $msg }

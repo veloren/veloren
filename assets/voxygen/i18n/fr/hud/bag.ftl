@@ -30,8 +30,8 @@ hud-bag-stun_res = Résistance aux étourdissements
 hud-bag-stealth = Discrétion
 hud-bag-combat_rating_desc =
     Calculé depuis votre
-    équipement et votre santé
-hud-bag-protection_desc = Réduction des dégâts de votre armure
+    équipement et votre santé.
+hud-bag-protection_desc = Réduction des dégâts de votre armure.
 hud-bag-stun_res_desc =
     Résistance contre les effets d'étourdissements après plusieurs coups reçus.
     Se régénère tout comme l'Endurance.
