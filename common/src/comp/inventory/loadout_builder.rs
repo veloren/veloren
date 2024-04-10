@@ -1092,6 +1092,8 @@ impl LoadoutBuilder {
                 | biped_large::Species::Blueoni
                 | biped_large::Species::Redoni
                 | biped_large::Species::Cavetroll
+                | biped_large::Species::Mountaintroll
+                | biped_large::Species::Swamptroll
                 | biped_large::Species::Wendigo => {
                     Some("common.items.npc_armor.biped_large.generic")
                 },
