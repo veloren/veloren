@@ -16,7 +16,7 @@ weapon-bow-velorite-debug = Велоритовий Лук Адміна
     .desc = Наповнений силою Велориту.
 weapon-sword-frost-admin_sword = Великий Меч Адміна
     .desc = Чи не мав би він бути банхамером?
-armor-velorite-shoulder = Велоритова Накидка
+armor-velorite-shoulder = Велоритові Наплічники
     .desc = { "" }
 armor-velorite-hands = Велоритові Рукавиці
     .desc = { "" }
@@ -30,3 +30,9 @@ armor-tabard-admin_tabard = Накидка Адміна
     .desc =
         З великою силою приходить
         велика відповідальність.
+armor-misc-back-admin_back = Плащ Адміна
+    .desc =
+        З великою силою приходить
+        велика відповідальність.
+other-glider-vroom-debug = Вжух Глайдер
+    .desc = робить вжух

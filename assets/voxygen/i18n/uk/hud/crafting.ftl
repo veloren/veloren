@@ -40,7 +40,7 @@ hud-crafting-dismantle_explanation =
 
     Натисніть на предмет двічі, щоб
     його розібрати.
-hud-crafting-modular_desc = Частини предметів для створення зброї.
+hud-crafting-modular_desc = Частини предметів для створення зброї
 hud-crafting-mod_weap_prim_slot_title = Основний компонент зброї
 hud-crafting-mod_weap_prim_slot_desc = Покладіть основний компонент зброї сюди (Наприклад, лезо меча, наконечник сокири або кінцівку лука).
 hud-crafting-mod_weap_sec_slot_title = Другорядний компонент зброї

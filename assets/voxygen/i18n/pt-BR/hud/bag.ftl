@@ -34,8 +34,10 @@ hud-bag-combat_rating_desc =
 hud-bag-protection_desc = Redução de dano por armadura
 hud-bag-stun_res_desc =
     Resistência à paralisia provocada por golpes consecutivos.
-    Regenera como Stamina.
+    Regenera como Energia.
 hud-bag-sort_by_name = Ordenar por Nome
 hud-bag-sort_by_quality = Ordenar por Qualidade
 hud-bag-sort_by_category = Ordenar por Categoria
 hud-bag-sort_by_tag = Ordenar por Tag
+hud-bag-sort_by_quantity = Ordenar por Quantidade
+hud-bag-backpack = Mochila

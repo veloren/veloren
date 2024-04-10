@@ -143,3 +143,4 @@ subtitle-instrument_steeldrum = Гра на сталевому барабані
 subtitle-instrument_shamisen = Гра на шямісені
 subtitle-attack-fuse_charge = Шипіння запобіжника
 subtitle-lavapool = Лавовий басейн
+subtitle-surprise_egg = Божественний Звук

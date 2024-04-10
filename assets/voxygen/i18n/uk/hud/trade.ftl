@@ -6,15 +6,13 @@ hud-trade-phase2_description =
     Торговий процес тепер замкнений і
     ви маєте змогу перевірити угоду.
 hud-trade-phase3_description = Угода опрацьовується.
-hud-trade-persons_offer =
-    Пропозиція
-    { $playername }
+hud-trade-persons_offer = Пропозиція від { $playername }
 hud-trade-has_accepted =
     { $playername }
      дав згоду
 hud-trade-accept = Прийняти
 hud-trade-decline = Відмовитись
-hud-trade-invite_sent = Пропозиція торгувати надіслана до { $playername }
+hud-trade-invite_sent = Пропозиція торгувати надіслана до { $playername }.
 hud-trade-result-completed = Торгівля завершилась успішно.
 hud-trade-result-declined = Торгівля розірвана.
 hud-trade-result-nospace = Недостатньо місця щоб завершити торг.

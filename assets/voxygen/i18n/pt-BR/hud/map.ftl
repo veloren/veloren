@@ -18,7 +18,7 @@ hud-map-bridge = Ponte
 hud-map-dungeon = Masmorra
 hud-map-difficulty_dungeon =
     Dificuldade da
-    
+
     Masmorra: { $difficulty }
 hud-map-drag = Arrastar
 hud-map-zoom = Zoom
@@ -35,3 +35,6 @@ hud-map-gnarling = Fortificação Retorcida
 hud-map-chapel_site = Capela Marítima
 hud-map-placed_by = Marcado por { $name }
 hud-map-adlet = Fortaleza Adlet
+hud-map-terracotta = Ruínas de Terracota
+hud-map-df_mine = Mina
+hud-map-haniwa = Catacumba Haniwa

@@ -1,2 +1,2 @@
-hud-sct-experience = { $amount } Досвід
+hud-sct-experience = { $amount } ОД
 hud-sct-block = ЗАБЛОКОВАНО

@@ -12,3 +12,5 @@ object-bomb = Bomb
     .desc = En högst explosiv enhet, demolerare älskar dem!
 weapon-projectile-fireworks_red = Fyverkeri Röd
     .desc = Människor använder ibland dessa som nödbloss i svåra situationer.
+object-surprise_egg = Överraskningsägg
+    .desc = Explosiv Påskspecial.

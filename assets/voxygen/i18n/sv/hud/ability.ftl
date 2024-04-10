@@ -215,80 +215,80 @@ common-abilities-sword-cleaving_dual_whirlwind_slice = Virvelvindssnitt
     .desc =
         Hugg cirkulärt alla fiender runtom dig med båda svärd.
         Påbörjar klyvande hållning.
-common-abilities-sword-cleaving_earth_splitter = Jordsklyvare
+common-abilities-sword-cleaving_earth_splitter = Jordklyvare
     .desc =
-        Klyv jorden, om detta används medan du faller kommer det ha en mycket starkare inverkan
-        Påbörjar klyvande hållning
+        Klyv jorden, om detta används medan du faller kommer det ha en mycket starkare inverkan.
+        Påbörjar klyvande hållning.
 common-abilities-sword-heavy_fortitude = Uthållighet
     .desc =
-        Ökar ditt vacklingsmotstånd och medan du tar mer skada kommer dina attacker göra att fiender vacklar mer
-        Kräver tung hållning
+        Ökar ditt vacklingsmotstånd och medan du tar mer skada kommer dina attacker vara mer vacklande.
+        Kräver tung hållning.
 common-abilities-sword-heavy_pillar_thrust = Pelarstöt
     .desc =
-        Stick ditt svärd genom fienden, hela vägen ner i marken, är effektivare om detta används medan du faller
-        Kräver tung hållning
+        Stick ditt svärd genom fienden, hela vägen ner i marken, är effektivare om detta används medan du faller.
+        Kräver tung hållning.
 common-abilities-sword-agile_dancing_edge = Dansande Egg
     .desc =
-        Rör dig och attacker snabbare
-        Kräver smidigt hållning
-common-abilities-sword-agile_flurry = Virrvarr
+        Rör dig och attackera snabbare.
+        Kräver smidig hållning.
+common-abilities-sword-agile_flurry = Flurry
     .desc =
-        Flera snabba hugg
-        Kräver smidigt hållning
+        Flera snabba hugg,
+        Kräver smidig hållning.
 common-abilities-sword-agile_dual_flurry = Flurry
     .desc =
-        Flera snabba hugg med båda svärd
-        Kräver smidigt hållning
+        Flera snabba hugg med båda svärd.
+        Kräver smidig hållning.
 common-abilities-sword-defensive_stalwart_sword = Stabilt Svärd
     .desc =
-        Skaka av dig de flesta attackerna, inkommande skada är reducerad
-        Kräver defensiv hållning
+        Skaka av dig de flesta attackerna, inkommande skada är reducerad.
+        Kräver defensiv hållning.
 common-abilities-sword-defensive_deflect = Deflektera
     .desc =
-        En manöver snabb nog att blockera projektiler
-        Kräver defensiv hållning
+        En manöver snabb nog att blockera projektiler.
+        Kräver defensiv hållning.
 common-abilities-sword-crippling_eviscerate = Slit isär
     .desc =
-        Sliter upp sår mer, gör mer skada mot förlamade fiender
-        Kräver förlamande hållning
+        Sliter upp sår mer, gör mer skada mot förlamade fiender.
+        Kräver förlamande hållning.
 common-abilities-sword-crippling_bloody_gash = Blodigt Jack
     .desc =
-        Hugg grymt en redan blödande skada, gör mer skada mot blödande fiender
-        Kräver förlamande hållning
-common-abilities-sword-cleaving_blade_fever = Bladsfeber
+        Hugg grymt en redan blödande skada, gör mer skada mot blödande fiender.
+        Kräver förlamande hållning.
+common-abilities-sword-cleaving_blade_fever = Bladfeber
     .desc =
-        Attackera mer hämningslöst vilket ökar kraften i dina hugg medan det lämnar dig öppen för inkommande attacker
-        Kräver klyvande hållning
+        Attackera mer hämningslöst vilket ökar kraften i dina hugg medan det lämnar dig öppen för inkommande attacker.
+        Kräver klyvande hållning.
 common-abilities-sword-cleaving_sky_splitter = Himmelsklyvare
     .desc =
-        Ett kraftfullt hugg som till och med sägs kunna klyva himmelen, men kommer klyva genom fiender
-        Kräver klyvande hållning
+        Ett kraftfullt hugg som till och med sägs kunna klyva himlen, men kommer klyva genom fiender.
+        Kräver klyvande hållning.
 -heavy_stance = ""
 -agile_stance = ""
 common-abilities-axe-execute = Avrätta
     .desc =
-        Ett förödande slag som ofta är känd att vara fatal
-        Kräver 30 kombo för användning
-        Uppgraderar automatiskt till maelstrom vid 50 kombo om upplåst
+        Ett förödande slag som ofta är känd att vara fatal.
+        Kräver 30 kombo att använda.
+        Uppgraderar automatiskt till maelstrom vid 50 kombo om upplåst.
 common-abilities-axe-berserk = Bärsärk
-    .desc = Ökar din styrka dock med kostnaden av att lämna dig sårbar
+    .desc = Ökar din styrka dock med kostnaden av att lämna dig sårbar.
 common-abilities-axe-brutal_swing = Brutal Sving
-    .desc = En snurrande klyvning runt om dig
+    .desc = En snurrande klyvning runt om dig.
 common-abilities-axe-maelstrom = Maelstrom
     .desc =
-        Slå allt i din närhet med ett förödande, snurrande slag
-        Uppgraderar automatisk från avrätta vid 50 kombo
+        Slå allt i din närhet med ett förödande, snurrande slag.
+        Uppgraderar automatisk från avrätta vid 50 kombo.
 # Axe abilities
 common-abilities-axe-triple_chop = Tripellhugg
-    .desc = Tre snabba slag
-common-abilities-axe-cleave = Klyva
-    .desc = Ett nergående hugg som kan bygga multikombo
+    .desc = Tre snabba slag.
+common-abilities-axe-cleave = Klyv
+    .desc = Ett nergående hugg som kan bygga multikombo.
 common-abilities-axe-plunder = Plunder
-    .desc = Ta snabba steg mot din fiende, och stjäl deras balans med ett slag
+    .desc = Ta snabba steg mot din fiende, och stjäl deras balans med ett slag.
 common-abilities-axe-fracture = Fraktur
     .desc =
-        Ett förlamande slag som hindrar din fiendes rörelse
-        Skalar med kombo vid aktivering, konsumerar hälften av kombo
+        Ett förlamande slag som hindrar din fiendes rörelse.
+        Skalar med kombo vid aktivering, konsumerar hälften av kombo.
 common-abilities-debug-evolve = Utveckla
     .desc = Du blir ett bättre själv.
 # Debug abilities
@@ -297,3 +297,98 @@ common-abilities-debug-glide_speeder = Vroom
 # Debug abilities
 common-abilities-debug-glide_boost = Vroom
     .desc = Ger dig kraften att nå himlen.
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-agile_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-crippling_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cleaving_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-basic_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-heavy_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-defensive_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-crippling_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cleaving_state = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-double_slash = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-modified_depending_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-crescent_slash = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-fell_strike = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-skewer = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cascade = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-cross_cut = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-requires_moderate_combo = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-require_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-defensive_stance = ""
+# Internal terms, currently only used in zh-Hans.
+# If we remove them here, they also get auto-removed in zh-Hans,
+# so please keep them, even when not used in English file.
+# See https://github.com/WeblateOrg/weblate/issues/9895
+-enter_stance = ""

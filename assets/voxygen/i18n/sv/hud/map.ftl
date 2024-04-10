@@ -34,7 +34,7 @@ hud-map-zoom_minimap_explanation =
     området runtom dig i högre detalj
 hud-map-gnarling = Gnarlingsfästning
 hud-map-chapel_site = Sjökapell
-hud-map-adlet = Adletsfort
+hud-map-adlet = Adletfort
 hud-map-placed_by = Placerad av { $name }
 hud-map-terracotta = Terrakottaruinerna
 hud-map-haniwa = Haniwakatakomb

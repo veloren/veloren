@@ -1,4 +1,4 @@
-hud-do_not_show_on_startup = Не показувати після запуску
+hud-do_not_show_on_startup = Не показувати це при запуску
 hud-show_tips = Показувати підказки
 hud-quests = Завдання
 hud-you_died = Вам гаплик
@@ -8,17 +8,17 @@ hud-inventory_full = Інвентар повний
 hud-someone_else = комусь іншому
 hud-another_group = іншій групі
 hud-owned_by_for_secs = Належить { $name } протягом { $secs } секунд
-hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] Елементи керування
+hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] Прив'язки клавіш
 hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] Ліхтар
 hud-press_key_to_show_debug_info_fmt = Натисніть { $key } для відображення технічної інформації
-hud-press_key_to_toggle_keybindings_fmt = Натисніть { $key } для відображення елементів керування
+hud-press_key_to_toggle_keybindings_fmt = Натисніть { $key } для відображення прив'язки клавіш
 hud-press_key_to_toggle_debug_info_fmt = Натисніть { $key } для відображення технічної інформації
-hud_items_lost_dur = Ваші екіпіровані предмети втратили Міцність
+hud_items_lost_dur = Ваші екіпіровані предмети втратили Міцність.
 hud-press_key_to_respawn = Натисніть { $key }, щоб відновитись біля останньої відвіданого вогнища.
 hud-tutorial_btn = Туторіал
 hud-tutorial_click_here = Натисни [ { $key } ] щоб мати змогу тицьнути цю кнопку!
 hud-tutorial_elements = Ремесло
-hud-temp_quest_headline = Вітання, Мандрівник!
+hud-temp_quest_headline = Вітання, мандрівниче!
 hud-temp_quest_text =
     Щоб розпочати свою подорож, можете погуляти по цьому селищу і зібрати собі припасів.
 
@@ -65,7 +65,7 @@ hud-portal = Портал
 hud-init-stage-singleplayer = Старт сервера одиночної гри...
 hud-init-stage-server-db-migrations = { "[" }{ -server }]: Міграція бази даних...
 hud-init-stage-server-db-vacuum = { "[" }{ -server }]: Очистка бази даних...
-hud-init-stage-server-worldsim-erosion = { "[" }{ -server }]: Ерозія { $percentage }%
+hud-init-stage-server-worldsim-erosion = { "[" }{ -server }]: Ерозія { $percentage } %
 hud-init-stage-server-worldciv-civcreate = { "[" }{ -server }]: Згенеровано { $generated } з { $total } цивілізацій
 hud-init-stage-server-worldciv-site = { "[" }{ -server }]: Генерую місця...
 hud-init-stage-server-economysim = { "[" }{ -server }]: Симулюю економіку...
