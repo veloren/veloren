@@ -9,7 +9,7 @@
 [![discord](https://badgen.net/discord/members/veloren-community-449602562165833758?icon=discord&label=discord)](https://discord.gg/veloren-community-449602562165833758)
 [![matrix](https://badgen.net/matrix/members/veloren-space/matrix.org)](https://matrix.to/#/#veloren-space:fachschaften.org)
 
-<a href="https://opencollective.com/veloren/donate" target="_blank">
+<a href="https://opencollective.com/veloren/donate?interval=month&amount=5" target="_blank">
   <img src="https://opencollective.com/veloren/contribute/button@2x.png?color=blue" width="29%" />
 </a>
 
@@ -81,7 +81,7 @@ If you prefer to compile the game yourself, follow the instructions in our [book
 
 ## Credit
 
-Our Weblate instance is hosted by [Codeberg](https://codeberg.org/).
+Our Weblate project is hosted by [Codeberg](https://codeberg.org/).
 
 Many thanks to:
 

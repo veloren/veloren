@@ -1,80 +1,94 @@
-# Rust
-target
+# Project-specific
+## Veloren
+*.log
+*.rar
+assets/tweak/
+maps
+notes.md
+notes.txt
+run.sh
+screenshots
+server_settings.ron
+settings.ron
+temp
+todo.md
+todo.txt
+userdata
 
-# Vim
+## Allow asset hud settings
+!assets/voxygen/i18n/*/hud/settings.ron
 
+## Export data
+*.csv
+img-export/**/*.png
+
+## Game data stored with SQLite
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+## Plugins
+/assets/plugins/*
+
+
+# Integrated development environments (IDEs) and text editors
+## Eclipse
+.project
+
+## JetBrains
+**/.idea/
+**/*.iml
+
+## Vim and Neovim
 **/.nvimrc
 **/*.vi
 **/*.vim
 **/*.swp
 **/*tags
 
-# IntelliJ
-
-**/.idea/
-**/*.iml
-
-# VSCode
+## Visual Studio Code
 .vscode/
-/.vscode/*
 !/.vscode/launch.json
 *.code-workspace
 
-# Eclipse
 
-.project
-
-# Veloren
-*.rar
-*.log
-assets/tweak/
-settings.ron
-server_settings.ron
-run.sh
-maps
-screenshots
-notes.md
-notes.txt
-todo.md
-todo.txt
-userdata
-temp
-
-# Profiling and traces
-heaptrack.*
-cargo-timing*
-flamegraph.*
-perf.*
-wgpu-trace/
-
-# allow asset hud settings
-!assets/voxygen/i18n/*/hud/settings.ron
-
-# Export data
-*.csv
-img-export/**/*.png
-
-# Game data
-*.sqlite
-*.sqlite-journal
-*.sqlite-wal
-*.sqlite-shm
-
-# direnv
-/.direnv
-/.envrc
-*.bat
-
-# Mac
+# Operating systems
+## macOS
 .DS_Store
 
-# Nix
+## NixOS
 nix/result*
 /result*
 /shell.nix
 
-# Bash
+
+# Programming and scripting languages
+## Bash
 .history
 
-# Plugins
-/assets/plugins/*
+## Rust
+target
+
+
+# Shell extensions
+## direnv
+/.envrc
+/.direnv
+
+
+# Profiling and tracing tools
+## Cargo build with --timings option
+cargo-timing*
+
+## FlameGraph
+flamegraph.*
+
+## heaptrack
+heaptrack.*
+
+## perf tool for Linux
+perf.*
+
+## wgpu with the "trace" feature enabled
+wgpu-trace/
