@@ -200,6 +200,7 @@ impl<'a> System<'a> for Sys {
                         min_tgt_dist: scale * moving_body.map_or(1.0, |body| body.max_radius()),
                         can_climb: moving_body.map_or(false, Body::can_climb),
                         can_fly: moving_body.map_or(false, |b| b.fly_thrust().is_some()),
+                        is_target_loaded: true,
                     };
                     let health_fraction = health.map_or(1.0, Health::fraction);
 
