@@ -2595,12 +2595,12 @@ DrawerMedium: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.drawer_medium-0",
-            offset: (-11.0, -5.0, 0.0),
+            offset: (-11.5, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.furniture.drawer_medium-1",
-            offset: (-11.0, -5.0, 0.0),
+            offset: (-11.5, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -2894,7 +2894,7 @@ WardrobeDouble: Some((
         ),
         (
             model: "voxygen.voxel.sprite.furniture.wardrobe_double-1",
-            offset: (-10.5, -6.0, 0.0),
+            offset: (-10.5, -6.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -2905,7 +2905,7 @@ WardrobeSingle: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wardrobe_single-0",
-            offset: (-5.5, -6.0, 0.0),
+            offset: (-5.5, -6.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
