@@ -10,6 +10,7 @@ be-dyn-lib = []
 
 [dependencies]
 common = { package = "veloren-common", path = "../../common"}
+common-base = { package = "veloren-common-base", path = "../../common/base" }
 common-dynlib = { package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
 rtsim = { package = "veloren-rtsim", path = "../../rtsim" }
 
@@ -18,3 +19,4 @@ vek = { workspace = true }
 rand = { workspace = true, features = ["small_rng"] }
 itertools = { workspace = true }
 lazy_static = { workspace = true }
+tracing = { workspace = true }

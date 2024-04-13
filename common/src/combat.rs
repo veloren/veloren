@@ -62,6 +62,7 @@ pub const MAX_MELEE_POISE_PRECISION: f32 = 0.5;
 pub const MAX_BLOCK_POISE_COST: f32 = 25.0;
 pub const PARRY_BONUS_MULTIPLIER: f32 = 2.0;
 pub const FALLBACK_BLOCK_STRENGTH: f32 = 5.0;
+pub const BEHIND_TARGET_ANGLE: f32 = 45.0;
 
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
@@ -658,9 +659,8 @@ impl Attack {
                     target.char_state.map_or(false, |cs| cs.is_stunned())
                 },
                 CombatRequirement::BehindTarget => {
-                    const REQUIRED_ANGLE: f32 = 45.0;
                     if let Some(ori) = target.ori {
-                        ori.look_vec().angle_between(dir.with_z(0.0)) < REQUIRED_ANGLE
+                        ori.look_vec().angle_between(dir.with_z(0.0)) < BEHIND_TARGET_ANGLE
                     } else {
                         false
                     }
