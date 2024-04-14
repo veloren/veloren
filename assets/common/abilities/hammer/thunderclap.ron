@@ -5,7 +5,7 @@ FinisherMelee(
     recover_duration: 0.7,
     melee_constructor: (
         kind: Bash(
-            damage: 100,
+            damage: 80,
             poise: 100,
             knockback: 0,
             energy_regen: 0,

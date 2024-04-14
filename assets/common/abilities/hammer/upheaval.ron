@@ -8,7 +8,7 @@ BasicMelee(
         kind: Bash(
             damage: 20,
             poise: 20,
-            knockback: 40,
+            knockback: 0,
             energy_regen: 0,
         ),
         range: 3,
@@ -19,6 +19,13 @@ BasicMelee(
             strength: Value(0.5),
             chance: 1.0,
         ))),
+        attack_effect: Some((
+            Knockback((
+                direction: Up,
+                strength: 30,
+            )),
+            AnyDamage,
+        )),
     ),
     ori_modifier: 0.2,
 )

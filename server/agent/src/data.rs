@@ -717,7 +717,7 @@ impl AbilityData {
                 energy: *energy_cost,
                 angle: *shockwave_angle,
                 range: *shockwave_speed * *shockwave_duration,
-                combo: *minimum_combo,
+                combo: minimum_combo.unwrap_or(0),
             },
             StaticAura { energy_cost, .. } => Self::StaticAura {
                 energy: *energy_cost,

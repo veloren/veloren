@@ -1169,7 +1169,12 @@ impl Damage {
         } else {
             0.0
         };
-        1.0 - (1.0 - inventory_dr) * (1.0 - stats_dr)
+        // Return 100% if either DR is at 100% (admin tabard or safezone buff)
+        if protection.is_none() || stats_dr >= 1.0 {
+            1.0
+        } else {
+            1.0 - (1.0 - inventory_dr) * (1.0 - stats_dr)
+        }
     }
 
     pub fn calculate_health_change(

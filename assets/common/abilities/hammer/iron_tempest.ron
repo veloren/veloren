@@ -4,8 +4,8 @@ RapidMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Bash(
-            damage: 12,
-            poise: 15,
+            damage: 8,
+            poise: 10,
             knockback: 3,
             energy_regen: 0,
         ),

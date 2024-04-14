@@ -5,7 +5,7 @@ FinisherMelee(
     recover_duration: 0.3,
     melee_constructor: (
         kind: Bash(
-            damage: 20,
+            damage: 25,
             poise: 0,
             knockback: 0,
             energy_regen: 0,
@@ -13,7 +13,7 @@ FinisherMelee(
         range: 4.0,
         angle: 15.0,
         attack_effect: Some((Poise(50), BehindTarget)),
-        precision_flank_multipliers: (front: 1.0, side: 1.0, back: 2.0),
+        precision_flank_multipliers: (front: 1.0, side: 1.0, back: 3.0),
     ),
     minimum_combo: 10,
     combo_consumption: Cost,

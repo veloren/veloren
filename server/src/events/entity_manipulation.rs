@@ -1570,20 +1570,22 @@ impl ServerEvent for AuraEvent {
         (mut auras, mut entered_auras): Self::SystemData<'_>,
     ) {
         for ev in events {
-            if let (Some(mut auras), Some(mut entered_auras)) =
-                (auras.get_mut(ev.entity), entered_auras.get_mut(ev.entity))
-            {
-                use aura::AuraChange;
-                match ev.aura_change {
-                    AuraChange::Add(new_aura) => {
+            use aura::AuraChange;
+            match ev.aura_change {
+                AuraChange::Add(new_aura) => {
+                    if let Some(mut auras) = auras.get_mut(ev.entity) {
                         auras.insert(new_aura);
-                    },
-                    AuraChange::RemoveByKey(keys) => {
+                    }
+                },
+                AuraChange::RemoveByKey(keys) => {
+                    if let Some(mut auras) = auras.get_mut(ev.entity) {
                         for key in keys {
                             auras.remove(key);
                         }
-                    },
-                    AuraChange::EnterAura(uid, key, variant) => {
+                    }
+                },
+                AuraChange::EnterAura(uid, key, variant) => {
+                    if let Some(mut entered_auras) = entered_auras.get_mut(ev.entity) {
                         entered_auras
                             .auras
                             .entry(variant)
@@ -1591,8 +1593,10 @@ impl ServerEvent for AuraEvent {
                                 entered_auras.insert((uid, key));
                             })
                             .or_insert_with(|| <_ as Into<_>>::into([(uid, key)]));
-                    },
-                    AuraChange::ExitAura(uid, key, variant) => {
+                    }
+                },
+                AuraChange::ExitAura(uid, key, variant) => {
+                    if let Some(mut entered_auras) = entered_auras.get_mut(ev.entity) {
                         if let Some(entered_auras_variant) = entered_auras.auras.get_mut(&variant) {
                             entered_auras_variant.remove(&(uid, key));
 
@@ -1600,8 +1604,8 @@ impl ServerEvent for AuraEvent {
                                 entered_auras.auras.remove(&variant);
                             }
                         }
-                    },
-                }
+                    }
+                },
             }
         }
     }

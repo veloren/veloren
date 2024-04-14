@@ -126,6 +126,7 @@ impl CharacterBehavior for Data {
                         auras: Auras::new(auras),
                         pos: *data.pos,
                         creator_uid: *data.uid,
+                        duration: self.static_data.aura_duration,
                     });
                     update.character = CharacterState::StaticAura(Data {
                         static_data: self.static_data.clone(),

@@ -8,8 +8,8 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
-        Alignment, BehaviorCapability, ItemDrops, LightEmitter, Ori, Pos, TradingBehavior, Vel,
-        WaypointArea,
+        Alignment, BehaviorCapability, ItemDrops, LightEmitter, Ori, Pos, Projectile,
+        TradingBehavior, Vel, WaypointArea,
     },
     event::{
         CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
@@ -25,6 +25,7 @@ use common::{
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
+use std::time::Duration;
 use vek::{Rgb, Vec3};
 
 use super::group_manip::update_map_markers;
@@ -491,7 +492,7 @@ pub fn handle_create_object(
 }
 
 pub fn handle_create_aura_entity(server: &mut Server, ev: CreateAuraEntityEvent) {
-    server
+    let mut entity = server
         .state
         .ecs_mut()
         .create_entity_synced()
@@ -499,6 +500,20 @@ pub fn handle_create_aura_entity(server: &mut Server, ev: CreateAuraEntityEvent)
         .with(comp::Vel(Vec3::zero()))
         .with(comp::Ori::default())
         .with(ev.auras)
-        .with(comp::Alignment::Owned(ev.creator_uid))
-        .build();
+        .with(comp::Alignment::Owned(ev.creator_uid));
+
+    // If a duration is specified, create a projectile component for the entity
+    if let Some(dur) = ev.duration {
+        let projectile = Projectile {
+            hit_solid: Vec::new(),
+            hit_entity: Vec::new(),
+            time_left: Duration::from_secs_f64(dur.0),
+            owner: Some(ev.creator_uid),
+            ignore_group: true,
+            is_sticky: false,
+            is_point: false,
+        };
+        entity = entity.with(projectile);
+    }
+    entity.build();
 }

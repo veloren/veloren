@@ -13,6 +13,7 @@ BasicMelee(
         ),
         range: 3,
         angle: 360,
+        multi_target: Some(Normal),
         simultaneous_hits: 2,
     ),
     ori_modifier: 0.2,

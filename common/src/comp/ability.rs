@@ -942,8 +942,7 @@ pub enum CharacterAbility {
         damage_effect: Option<CombatEffect>,
         timing: shockwave::Timing,
         emit_outcome: bool,
-        #[serde(default)]
-        minimum_combo: u32,
+        minimum_combo: Option<u32>,
         #[serde(default)]
         combo_consumption: ComboConsumption,
         #[serde(default)]
@@ -1220,13 +1219,17 @@ impl CharacterAbility {
                     energy_cost,
                     combo_cost: minimum_combo,
                     ..
-                }
-                | CharacterAbility::Shockwave {
+                } => {
+                    data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
+                        && update.energy.try_change_by(-*energy_cost).is_ok()
+                },
+                CharacterAbility::Shockwave {
                     energy_cost,
                     minimum_combo,
                     ..
                 } => {
-                    data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
+                    data.combo
+                        .map_or(false, |c| c.counter() >= minimum_combo.unwrap_or(0))
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 CharacterAbility::DiveMelee {
@@ -1902,11 +1905,11 @@ impl CharacterAbility {
             }
             | SelfBuff {
                 combo_cost: combo, ..
-            }
-            | Shockwave {
+            } => *combo,
+            Shockwave {
                 minimum_combo: combo,
                 ..
-            } => *combo,
+            } => combo.unwrap_or(0),
             BasicMelee { .. }
             | BasicRanged { .. }
             | RepeaterRanged { .. }

@@ -391,7 +391,7 @@ common-abilities-hammer-tremor = Tremor
         Strike the earth with enough force that the ground beneath your foes trembles.
 common-abilities-hammer-vigorous_bash = Vigorous Bash
     .desc =
-        Use the head of your hammer to quickly strike your foes.
+        Use the head of your hammer to quickly strike your foes, giving a surge of adrenaline if the target is off balance.
 common-abilities-hammer-heavy_whorl = Heavy Whorl
     .desc =
         You strike all foes surrounding you with your hammer.

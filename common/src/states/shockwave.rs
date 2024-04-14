@@ -59,7 +59,7 @@ pub struct StaticData {
     pub ori_rate: f32,
     /// Timing of shockwave
     pub timing: Timing,
-    pub minimum_combo: u32,
+    pub minimum_combo: Option<u32>,
     pub combo_on_use: u32,
     pub combo_consumption: ComboConsumption,
 }
@@ -197,11 +197,11 @@ impl CharacterBehavior for Data {
 
 impl Data {
     fn attack(&self, data: &JoinData, output_events: &mut OutputEvents) {
-        self.static_data.combo_consumption.consume(
-            data,
-            output_events,
-            self.static_data.minimum_combo,
-        );
+        if let Some(min_combo) = self.static_data.minimum_combo {
+            self.static_data
+                .combo_consumption
+                .consume(data, output_events, min_combo);
+        }
 
         let poise = AttackEffect::new(
             Some(GroupTarget::OutOfGroup),

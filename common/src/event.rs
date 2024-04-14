@@ -12,6 +12,7 @@ use crate::{
     lottery::LootSpec,
     mounting::VolumePos,
     outcome::Outcome,
+    resources::Secs,
     rtsim::RtSimEntity,
     terrain::SpriteKind,
     trade::{TradeAction, TradeId},
@@ -437,6 +438,7 @@ pub struct CreateAuraEntityEvent {
     pub auras: comp::Auras,
     pub pos: Pos,
     pub creator_uid: Uid,
+    pub duration: Option<Secs>,
 }
 
 pub struct EventBus<E> {
