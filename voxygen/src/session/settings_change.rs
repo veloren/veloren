@@ -49,7 +49,6 @@ pub enum Chat {
 pub enum Control {
     ChangeBinding(GameInput),
     RemoveBinding(GameInput),
-    ToggleKeybindingMode,
     ResetKeyBindings,
 }
 #[derive(Clone)]
@@ -362,9 +361,6 @@ impl SettingsChange {
                 },
                 Control::RemoveBinding(game_input) => {
                     settings.controls.remove_binding(game_input);
-                },
-                Control::ToggleKeybindingMode => {
-                    global_state.window.toggle_keybinding_mode();
                 },
                 Control::ResetKeyBindings => {
                     settings.controls = ControlSettings::default();

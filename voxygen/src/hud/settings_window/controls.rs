@@ -22,7 +22,7 @@ widget_ids! {
         window_r,
         window_scrollbar,
         reset_controls_button,
-        keybinding_mode_button,
+        keybind_helper,
         controls_alignment_rectangle,
         controls_texts[],
         controls_buttons[],
@@ -174,16 +174,15 @@ impl<'a> Widget for Controls<'a> {
             };
             let text_width = text_widget.get_w(ui).unwrap_or(0.0);
             text_widget.set(text_id, ui);
-            if button_widget
+            button_widget
                 .right_from(text_id, 350.0 - text_width)
-                .set(button_id, ui)
-                .was_clicked()
-            {
-                if self.global_state.window.keybinding_mode {
-                    events.push(ChangeBinding(game_input));
-                } else {
-                    events.push(RemoveBinding(game_input));
-                }
+                .set(button_id, ui);
+
+            for _ in ui.widget_input(button_id).clicks().left() {
+                events.push(ChangeBinding(game_input));
+            }
+            for _ in ui.widget_input(button_id).clicks().right() {
+                events.push(RemoveBinding(game_input));
             }
             // Set the previous id to the current one for the next cycle
             previous_element_id = Some(text_id);
@@ -224,26 +223,16 @@ impl<'a> Widget for Controls<'a> {
             })
             .unwrap_or(0.0);
 
-        let toggle_widget = Button::new()
-            .label(if self.global_state.window.keybinding_mode {
-                "remap"
-            } else {
-                "clear"
-            })
-            .label_color(TEXT_COLOR)
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .label_font_size(self.fonts.cyri.scale(15))
-            .w(100.0)
-            .rgba(0.0, 0.0, 0.0, 0.0)
-            .border_rgba(0.0, 0.0, 0.0, 255.0)
-            .label_y(Relative::Scalar(1.0));
-        if toggle_widget
-            .top_right_with_margins_on(state.ids.window, offset + 10.0, 15.0)
-            .set(state.ids.keybinding_mode_button, ui)
-            .was_clicked()
-        {
-            events.push(ToggleKeybindingMode);
-        }
+        let keybind_helper_text = self
+            .localized_strings
+            .get_msg("hud-settings-keybind-helper");
+        let keybind_helper = Text::new(&keybind_helper_text)
+            .color(TEXT_COLOR)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(18));
+        keybind_helper
+            .top_right_with_margins_on(state.ids.window, offset + 5.0, 10.0)
+            .set(state.ids.keybind_helper, ui);
 
         // Add an empty text widget to simulate some bottom margin, because conrod sucks
         if let Some(prev_id) = previous_element_id {
