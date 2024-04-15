@@ -1306,6 +1306,9 @@
             "common.items.armor.misc.ring.topaz",
         ): "armor-misc-ring-topaz",
         Simple(
+            "common.items.armor.misc.ring.abyssal_ring",
+        ): "armor-misc-ring-abyssal_ring",
+        Simple(
             "common.items.armor.misc.bag.heavy_seabag",
         ): "armor-misc-bag-heavy_seabag",
         Simple(

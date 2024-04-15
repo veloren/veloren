@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Petting animals tamed by you or someone else!
 - Updated furniture sprites.
+- Added Abyssal rings
 
 ### Changed
 

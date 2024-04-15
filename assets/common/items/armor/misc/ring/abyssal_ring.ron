@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Abyssal Ring",
+    legacy_description: "A pearl ring crudely held together with gold and coral.",
+    kind: Armor((
+        kind: Ring,
+        stats: Direct((
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(1.5)),
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+)
