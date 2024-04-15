@@ -163,7 +163,7 @@ void main() {
             * SCALE_FACTOR;
 
         if (model_wind_sway > 0.0) {
-            vec2 center = sprite_pos.xy + 0.5;
+            vec2 center = sprite_pos.xy;
             vec4 min_entity = nearest_entity(vec3(center, sprite_pos.z), 0.0);
 
             const float PUSH_FACTOR = 5;
