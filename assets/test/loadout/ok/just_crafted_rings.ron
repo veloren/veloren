@@ -8,6 +8,7 @@
         (1, Item("common.items.armor.misc.ring.ruby")),
         (1, Item("common.items.armor.misc.ring.sapphire")),
         (1, Item("common.items.armor.misc.ring.topaz")),
+        (1, Item("common.items.armor.misc.ring.abyssal_ring")),
     ]),
     ring2: Choice([
         (1, Item("common.items.armor.misc.ring.amethyst")),
@@ -17,5 +18,6 @@
         (1, Item("common.items.armor.misc.ring.ruby")),
         (1, Item("common.items.armor.misc.ring.sapphire")),
         (1, Item("common.items.armor.misc.ring.topaz")),
+        (1, Item("common.items.armor.misc.ring.abyssal_ring")),
     ]),
 )

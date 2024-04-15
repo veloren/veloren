@@ -391,6 +391,9 @@ armor-misc-ring-scratched = Scratched Ring
 armor-misc-ring-topaz = Topaz Ring
     .desc = A copper ring with a topaz gem.
 
+armor-misc-ring-abyssal_ring = Abyssal Ring
+    .desc = A pearl ring crudely held together with gold and coral.
+
 armor-misc-back-backpack-traveler = Traveler's Backpack
     .desc = Comfortable and with enough capacity, its a hoarder's best friend.
 

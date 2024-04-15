@@ -2028,6 +2028,15 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
+    "abyssal_ring": (
+        output: ("common.items.armor.misc.ring.abyssal_ring", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.coral_branch"), 2, false),
+            (Item("common.items.mineral.ingot.gold"), 1, false),
+            (Item("common.items.crafting_ing.pearl"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
 /// LANTERN
     "black_lantern": (
         output: ("common.items.lantern.black_0", 1),

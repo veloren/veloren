@@ -765,6 +765,7 @@
     Simple("common.items.armor.misc.ring.ruby"): "voxel.armor.misc.ring.ruby",
     Simple("common.items.armor.misc.ring.diamond"): "voxel.armor.misc.ring.diamond",
     Simple("common.items.armor.cultist.ring"): "voxel.armor.cultist.ring",
+    Simple("common.items.armor.misc.ring.abyssal_ring"): "voxel.armor.misc.ring.abyssal_ring",
     // Necks
     Simple("common.items.armor.misc.neck.ankh_of_life"): "voxel.armor.misc.neck.ankh_of_life",
     Simple("common.items.armor.misc.neck.carcanet_of_wrath"): "voxel.armor.misc.neck.carcanet_of_wrath",

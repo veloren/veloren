@@ -3029,6 +3029,10 @@
         "voxel.armor.misc.ring.diamond",
         (0.0, 0.0, 0.0), (45.0, 20.0, 0.0), 0.9,
     ),
+    Simple("common.items.armor.misc.ring.abyssal_ring"): VoxTrans(
+        "voxel.armor.misc.ring.abyssal_ring",
+        (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
+    ),
     Simple("common.items.armor.cultist.ring"): VoxTrans(
         "voxel.armor.cultist.ring",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
