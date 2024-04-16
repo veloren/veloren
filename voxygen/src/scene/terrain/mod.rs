@@ -1,4 +1,4 @@
-pub mod sprite;
+mod sprite;
 mod watcher;
 
 use self::sprite::SpriteSpec;
