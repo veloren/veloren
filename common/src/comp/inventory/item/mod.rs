@@ -475,6 +475,11 @@ pub struct Item {
     durability_lost: Option<u32>,
 }
 
+/// Newtype around [`Item`] used for frontend events to prevent it accidentally
+/// being used for anything other than frontend events
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct FrontendItem(Item);
+
 // An item that is dropped into the world an can be picked up. It can stack with
 // other items of the same type regardless of the stack limit, when picked up
 // the last item from the list is popped
@@ -1034,6 +1039,16 @@ impl Item {
         ))
     }
 
+    /// Creates a [`FrontendItem`] out of this item for frontend use
+    #[must_use]
+    pub fn frontend_item(
+        &self,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> FrontendItem {
+        FrontendItem(self.duplicate(ability_map, msm))
+    }
+
     /// Duplicates an item, creating an exact copy but with a new item ID
     #[must_use]
     pub fn duplicate(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Self {
@@ -1532,6 +1547,19 @@ impl Item {
     }
 }
 
+impl FrontendItem {
+    /// See [`Item::duplicate`], the returned item will still be a
+    /// [`FrontendItem`]
+    #[must_use]
+    pub fn duplicate(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Self {
+        FrontendItem(self.0.duplicate(ability_map, msm))
+    }
+
+    pub fn set_amount(&mut self, amount: u32) -> Result<(), OperationFailure> {
+        self.0.set_amount(amount)
+    }
+}
+
 impl PickupItem {
     pub fn new(item: Item, time: ProgramTime) -> Self {
         Self {
@@ -1724,6 +1752,42 @@ impl ItemDesc for Item {
 
     fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
         self.stats_durability_multiplier()
+    }
+}
+
+impl ItemDesc for FrontendItem {
+    fn description(&self) -> &str {
+        #[allow(deprecated)]
+        self.0.description()
+    }
+
+    fn name(&self) -> Cow<str> {
+        #[allow(deprecated)]
+        self.0.name()
+    }
+
+    fn kind(&self) -> Cow<ItemKind> { self.0.kind() }
+
+    fn amount(&self) -> NonZeroU32 { self.0.amount }
+
+    fn quality(&self) -> Quality { self.0.quality() }
+
+    fn num_slots(&self) -> u16 { self.0.num_slots() }
+
+    fn item_definition_id(&self) -> ItemDefinitionId<'_> { self.0.item_definition_id() }
+
+    fn tags(&self) -> Vec<ItemTag> { self.0.tags() }
+
+    fn is_modular(&self) -> bool { self.0.is_modular() }
+
+    fn components(&self) -> &[Item] { self.0.components() }
+
+    fn has_durability(&self) -> bool { self.0.has_durability() }
+
+    fn durability_lost(&self) -> Option<u32> { self.0.durability_lost() }
+
+    fn stats_durability_multiplier(&self) -> DurabilityMultiplier {
+        self.0.stats_durability_multiplier()
     }
 }
 

@@ -7,7 +7,10 @@ use super::{
 use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
 use common::{
-    comp::inventory::item::{Item, ItemDesc, ItemI18n, MaterialStatManifest, Quality},
+    comp::{
+        inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
+        FrontendItem,
+    },
     uid::Uid,
 };
 use common_net::sync::WorldSyncExt;
@@ -18,7 +21,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, num::NonZeroU32};
 
 widget_ids! {
     struct Ids{
@@ -107,8 +110,8 @@ impl<'a> LootScroller<'a> {
 
 #[derive(Debug, PartialEq)]
 pub struct LootMessage {
-    pub item: Item,
-    pub amount: u32,
+    pub item: FrontendItem,
+    pub amount: NonZeroU32,
     pub taken_by: Uid,
 }
 
@@ -179,7 +182,9 @@ impl<'a> Widget for LootScroller<'a> {
                             m.item.item_definition_id() == message.item.item_definition_id()
                                 && m.taken_by == message.taken_by
                         }) {
-                            self.new_messages[i].amount += message.amount;
+                            self.new_messages[i].amount = self.new_messages[i]
+                                .amount
+                                .saturating_add(message.amount.get());
                             false
                         } else {
                             true
@@ -393,7 +398,7 @@ impl<'a> Widget for LootScroller<'a> {
                             "hud-loot-pickup-msg-you",
                             &i18n::fluent_args! {
                                   "gender" => user_gender,
-                                  "amount" => amount,
+                                  "amount" => amount.get(),
                                   "item" => {
                                       let (name, _) =
                                           util::item_text(&item, self.localized_strings, self.item_i18n);
@@ -407,7 +412,7 @@ impl<'a> Widget for LootScroller<'a> {
                             &i18n::fluent_args! {
                                   "gender" => user_gender,
                                   "actor" => target_name,
-                                  "amount" => amount,
+                                  "amount" => amount.get(),
                                   "item" => {
                                       let (name, _) =
                                           util::item_text(&item, self.localized_strings, self.item_i18n);

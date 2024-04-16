@@ -71,7 +71,7 @@ use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::{thread_rng, Rng};
 use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, LendJoin, WorldExt};
-use std::{fmt::Write, ops::DerefMut, str::FromStr, sync::Arc, time::Duration};
+use std::{fmt::Write, num::NonZeroU32, ops::DerefMut, str::FromStr, sync::Arc, time::Duration};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
 use world::util::{Sampler, LOCALITY};
@@ -2691,7 +2691,7 @@ fn push_item(
     item_id: KitEntry,
     quantity: u32,
     server: &Server,
-    push: &mut dyn FnMut(Item) -> Result<(), Item>,
+    push: &mut dyn FnMut(Item) -> Result<(), (Item, Option<NonZeroU32>)>,
 ) -> CmdResult<()> {
     let items = match item_id {
         KitEntry::Spec(KitSpec::Item(item_id)) => vec![

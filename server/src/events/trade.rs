@@ -16,7 +16,7 @@ use common_net::{
 };
 use hashbrown::{hash_map::Entry, HashMap};
 use specs::{world::WorldExt, Entity as EcsEntity};
-use std::cmp::Ordering;
+use std::{cmp::Ordering, num::NonZeroU32};
 use tracing::{error, trace};
 use world::IndexOwned;
 
@@ -375,13 +375,14 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
     let msm = ecs.read_resource::<MaterialStatManifest>();
     for who in [0, 1].iter().cloned() {
         for (slot, quantity) in trade.offers[who].iter() {
-            // Take the items one by one, to benefit from Inventory's stack handling
-            for _ in 0..*quantity {
-                inventories
+            if let Some(quantity) = NonZeroU32::new(*quantity) {
+                if let Some(item) = inventories
                     .get_mut(entities[who])
                     .expect(invmsg)
-                    .take(*slot, &ability_map, &msm)
-                    .map(|item| items[who].push(item));
+                    .take_amount(*slot, quantity, &ability_map, &msm)
+                {
+                    items[who].push(item);
+                }
             }
         }
     }

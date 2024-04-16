@@ -28,7 +28,7 @@ fn push_full() {
     assert_eq!(
         inv.push(TEST_ITEMS[0].duplicate(ability_map, msm))
             .unwrap_err(),
-        TEST_ITEMS[0].duplicate(ability_map, msm)
+        (TEST_ITEMS[0].duplicate(ability_map, msm), None)
     )
 }
 
