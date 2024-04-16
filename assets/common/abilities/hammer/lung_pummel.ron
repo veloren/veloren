@@ -7,7 +7,7 @@ FinisherMelee(
         kind: Bash(
             damage: 20,
             poise: 20,
-            knockback: 12,
+            knockback: 6,
             energy_regen: 0,
         ),
         range: 4.0,

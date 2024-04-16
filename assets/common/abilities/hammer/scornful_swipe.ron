@@ -13,9 +13,12 @@ BasicMelee(
         ),
         range: 3.0,
         angle: 15.0,
+        damage_effect: SelfBuff((
+            kind: ScornfulTaunt,
+            dur_secs: 20.0,
+            strength: Value(0.5),
+            chance: 1.0,
+        )),
     ),
     ori_modifier: 0.6,
-    meta: (
-        init_event: Some(GainBuff(kind: ScornfulTaunt, strength: 0.5, duration: Some(20.0))),
-    ),
 )

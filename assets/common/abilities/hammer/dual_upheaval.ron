@@ -23,7 +23,7 @@ BasicMelee(
         attack_effect: Some((
             Knockback((
                 direction: Up,
-                strength: 20,
+                strength: 10,
             )),
             AnyDamage,
         )),

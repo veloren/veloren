@@ -594,6 +594,21 @@ impl Attack {
                                 });
                             }
                         },
+                        CombatEffect::SelfBuff(b) => {
+                            if let Some(attacker) = attacker {
+                                if rng.gen::<f32>() < b.chance {
+                                    emitters.emit(BuffEvent {
+                                        entity: attacker.entity,
+                                        buff_change: BuffChange::Add(b.to_self_buff(
+                                            time,
+                                            attacker,
+                                            applied_damage,
+                                            strength_modifier,
+                                        )),
+                                    });
+                                }
+                            }
+                        },
                     }
                 }
             }
@@ -788,7 +803,23 @@ impl Attack {
                     },
                     // Only has an effect when attached to a damage
                     CombatEffect::BuffsVulnerable(_, _) => {},
+                    // Only has an effect when attached to a damage
                     CombatEffect::StunnedVulnerable(_) => {},
+                    CombatEffect::SelfBuff(b) => {
+                        if let Some(attacker) = attacker {
+                            if rng.gen::<f32>() < b.chance {
+                                emitters.emit(BuffEvent {
+                                    entity: target.entity,
+                                    buff_change: BuffChange::Add(b.to_self_buff(
+                                        time,
+                                        attacker,
+                                        accumulated_damage,
+                                        strength_modifier,
+                                    )),
+                                });
+                            }
+                        }
+                    },
                 }
             }
         }
@@ -978,6 +1009,8 @@ pub enum CombatEffect {
     // TODO: Maybe try to make it do something if tied to attack, not sure if it should double
     // count in that instance?
     StunnedVulnerable(f32),
+    /// Applies buff to yourself after attack is applied
+    SelfBuff(CombatBuff),
 }
 
 impl CombatEffect {
@@ -1016,6 +1049,17 @@ impl CombatEffect {
             CombatEffect::StunnedVulnerable(v) => {
                 CombatEffect::StunnedVulnerable(v * stats.effect_power)
             },
+            CombatEffect::SelfBuff(CombatBuff {
+                kind,
+                dur_secs,
+                strength,
+                chance,
+            }) => CombatEffect::SelfBuff(CombatBuff {
+                kind,
+                dur_secs,
+                strength: strength * stats.buff_strength,
+                chance,
+            }),
         }
     }
 }
@@ -1356,6 +1400,35 @@ impl CombatBuff {
             time,
             dest_info,
             attacker_info.and_then(|a| a.mass),
+        )
+    }
+
+    fn to_self_buff(
+        self,
+        time: Time,
+        attacker_info: AttackerInfo,
+        damage: f32,
+        strength_modifier: f32,
+    ) -> Buff {
+        // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
+        let source = BuffSource::Character {
+            by: attacker_info.uid,
+        };
+        let dest_info = DestInfo {
+            stats: attacker_info.stats,
+            mass: attacker_info.mass,
+        };
+        Buff::new(
+            self.kind,
+            BuffData::new(
+                self.strength.to_strength(damage, strength_modifier),
+                Some(Secs(self.dur_secs as f64)),
+            ),
+            Vec::new(),
+            source,
+            time,
+            dest_info,
+            attacker_info.mass,
         )
     }
 }

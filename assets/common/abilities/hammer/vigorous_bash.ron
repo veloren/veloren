@@ -5,7 +5,7 @@ ComboMelee2(
                 kind: Bash(
                     damage: 15,
                     poise: 15,
-                    knockback: 5,
+                    knockback: 3,
                     energy_regen: 0,
                 ),
                 range: 4.0,

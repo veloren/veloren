@@ -8,7 +8,7 @@ RiposteMelee(
         kind: Bash(
             damage: 20,
             poise: 30,
-            knockback: 10,
+            knockback: 5,
             energy_regen: 0,
         ),
         range: 4.0,

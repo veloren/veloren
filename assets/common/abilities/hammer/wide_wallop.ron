@@ -12,7 +12,7 @@ ChargedMelee(
             kind: Bash(
                 damage: 40,
                 poise: 100,
-                knockback: 20,
+                knockback: 2,
                 energy_regen: 30,
             ))),
         range: 4.5,

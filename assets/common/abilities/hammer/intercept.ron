@@ -10,14 +10,14 @@ DashMelee(
         kind: Bash(
             damage: 8,
             poise: 12,
-            knockback: 8,
+            knockback: 0,
             energy_regen: 0,
         ),
         scaled: Some((
             kind: Bash(
                 damage: 12,
                 poise: 18,
-                knockback: 12,
+                knockback: 7.5,
                 energy_regen: 0,
             ))),
         range: 4.0,
