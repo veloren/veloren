@@ -1474,22 +1474,22 @@ fn write_column<R: Rng>(
                         .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(3), biome.crystal * 0.005) {
                         Some(SpriteKind::CrystalLow)
-                    } else if rand.chance(wpos2d.with_z(13), biome.fire * 0.001) {
+                    } else if rand.chance(wpos2d.with_z(13), biome.fire * 0.0006) {
                         [
                             (SpriteKind::Pyrebloom, 0.3),
                             (SpriteKind::Bloodstone, 0.3),
-                            (SpriteKind::Gold, 0.15),
+                            (SpriteKind::Gold, 0.2),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
-                        .map(|s| s.0)
+                        .map(|(s, _)| *s)
                     } else if biome.icy > 0.5 && rand.chance(wpos2d.with_z(23), biome.icy * 0.005) {
                         Some(SpriteKind::IceCrystal)
                     } else if biome.icy > 0.5
                         && rand.chance(wpos2d.with_z(31), biome.icy * biome.mineral * 0.005)
                     {
                         Some(SpriteKind::GlowIceCrystal)
-                    } else if rand.chance(wpos2d.with_z(5), 0.0025) {
+                    } else if rand.chance(wpos2d.with_z(5), 0.0015) {
                         [
                             (Some(SpriteKind::VeloriteFrag), 0.3),
                             (Some(SpriteKind::Velorite), 0.15),
@@ -1517,7 +1517,7 @@ fn write_column<R: Rng>(
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
                         .and_then(|s| s.0)
-                    } else if rand.chance(wpos2d.with_z(7), 0.01) {
+                    } else if rand.chance(wpos2d.with_z(7), 0.007) {
                         let shallow = close(biome.depth, 0.0, 0.4, 3);
                         let middle = close(biome.depth, 0.5, 0.4, 3);
                         //let deep = close(biome.depth, 1.0, 0.4); // TODO: Use this for deep only
@@ -1526,7 +1526,7 @@ fn write_column<R: Rng>(
                             (Some(SpriteKind::Stones), 1.5),
                             (Some(SpriteKind::Copper), shallow),
                             (Some(SpriteKind::Tin), shallow),
-                            (Some(SpriteKind::Iron), shallow * 0.5),
+                            (Some(SpriteKind::Iron), shallow * 0.6),
                             (Some(SpriteKind::Coal), middle * 0.25),
                             (Some(SpriteKind::Cobalt), middle * 0.1),
                             (Some(SpriteKind::Silver), middle * 0.05),

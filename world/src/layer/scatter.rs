@@ -389,7 +389,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
                     BlockKind::Earth | BlockKind::Grass | BlockKind::Rock | BlockKind::Sand
                 )
             },
-            f: |chunk, _| ((chunk.rockiness - 0.5).max(0.0) * 1.5e-3, None),
+            f: |chunk, _| ((chunk.rockiness - 0.5).max(0.0) * 0.85e-3, None),
         },
         ScatterConfig {
             kind: Tin,
@@ -400,7 +400,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
                     BlockKind::Earth | BlockKind::Grass | BlockKind::Rock | BlockKind::Sand
                 )
             },
-            f: |chunk, _| ((chunk.rockiness - 0.5).max(0.0) * 1.5e-3, None),
+            f: |chunk, _| ((chunk.rockiness - 0.5).max(0.0) * 0.85e-3, None),
         },
         // Don't spawn Mushrooms in snowy regions
         ScatterConfig {

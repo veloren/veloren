@@ -213,6 +213,7 @@ pub fn apply_trains_to(
     }
 }
 
+// FIXME: Unused, remove this
 pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
