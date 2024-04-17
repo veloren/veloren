@@ -1,0 +1,16 @@
+object-bomb = Bomba
+    .desc = Um dispositivo altamente explosivo, demolicionistas adoram ele!
+weapon-projectile-fireworks_blue = Fogo de Artifício Azul
+    .desc = Distância recomendada: 42 metros.
+weapon-projectile-fireworks_green = Fogo de Artifício Verde
+    .desc = Cuidado com as árvores.
+weapon-projectile-fireworks_purple = Fogo de Artfício Roxo
+    .desc = Favorito do culto.
+weapon-projectile-fireworks_red = Fogo de Artifício Vermelho
+    .desc = Humanos usam como sinalizador as vezes.
+weapon-projectile-fireworks_white = Fogo de Artifício Branco
+    .desc = Brilha brilha estrelinha.
+weapon-projectile-fireworks_yellow = Fogo de Artificio Amarelo
+    .desc = O Grande Doutor faleceu após testar esta belezura dentro de casa.
+object-surprise_egg = Ovo Surpresa
+    .desc = Explosivo Especial da Páscoa.

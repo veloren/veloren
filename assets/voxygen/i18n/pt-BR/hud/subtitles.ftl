@@ -4,14 +4,12 @@ subtitle-bees = Zumbido das abelhas
 subtitle-owl = Coruja ululando
 subtitle-running_water = Água corrente
 subtitle-lightning = Trovão
-
 subtitle-footsteps_grass = Passos na grama
 subtitle-footsteps_earth = Passos na terra
 subtitle-footsteps_rock = Passos na pedra
 subtitle-footsteps_snow = Passos na neve
 subtitle-pickup_item = Item coletado
 subtitle-pickup_failed = Falha na coleta
-
 subtitle-glider_open = Planador equipado
 subtitle-glider_close = Planador desequipado
 subtitle-glide = Planando
@@ -20,52 +18,41 @@ subtitle-swim = Nadando
 subtitle-climb = Escalando
 subtitle-damage = Dano
 subtitle-death = Morte
-
 subtitle-wield_bow = Arco equipado
 subtitle-unwield_bow = Arco desequipado
 subtitle-pickup_bow = Arco coletado
-
 subtitle-wield_sword = Espada equipada
 subtitle-unwield_sword = Espada desequipada
 subtitle-sword_attack = Espada balançada
 subtitle-pickup_sword = Espada coletada
-
 subtitle-wield_axe = Machado equipado
 subtitle-unwield_axe = Machado desequipado
 subtitle-axe_attack = Machado balançado
 subtitle-pickup_axe = Machado coletado
-
 subtitle-wield_hammer = Martelo equipado
 subtitle-unwield_hammer = Martelo desequipado
 subtitle-hammer_attack = Martelo balançado
 subtitle-pickup_hammer = Martelo coletado
-
 subtitle-wield_staff = Cajado equipado
 subtitle-unwield_staff = Cajado desequipado
 subtitle-fire_shot = Disparo de cajado
 subtitle-staff_attack = Disparo de cajado
 subtitle-pickup_staff = Cajado coletado
-
 subtitle-wield_sceptre = Cetro equipado
 subtitle-unwield_sceptre = Cetro desequipado
 subtitle-sceptre_heal = Aura de cura do cetro
 subtitle-pickup_sceptre = Cetro coletado
-
 subtitle-wield_dagger = Adaga equipada
 subtitle-uwield_dagger = Adaga desequipada
 subtitle-dagger_attack = Adaga balançada
 subtitle-pickup_dagger = Adaga coletada
-
 subtitle-wield_shield = Escudo equipado
 subtitle-unwield_shield = Escudo desequipado
 subtitle-shield_attack = Escudo empurrado
 subtitle-pickup_shield = Escudo coletado
-
 subtitle-pickup_pick = Picareta coletada
 subtitle-pickup_gemstone = Pedra preciosa coletada
-
 subtitle-instrument_organ = Órgão tocando
-
 subtitle-wield_instrument = Instrumento equipado
 subtitle-unwield_instrument = Instrumento desequipado
 subtitle-instrument_double_bass = Contrabaixo tocando
@@ -76,3 +63,55 @@ subtitle-instrument_icy_talharpa = Talharpa gélida tocando
 subtitle-instrument_kalimba = Kalimba tocando
 subtitle-instrument_melodica = Melódica tocando
 subtitle-instrument_lute = Alaúde tocando
+subtitle-portal-activated = Portal Ativado
+subtitle-portal-teleported = Teleportado pelo portal
+subtitle-lavapool = Poço de lava
+subtitle-instrument_shamisen = Samisém tocando
+subtitle-instrument_dark_guitar = Violão Sombrio tocando
+subtitle-instrument_washboard = Tábua de lavar tocando
+subtitle-instrument_wildskin_drum = Bombo Legüero tocando
+subtitle-pickup_instrument = Empunhar instrumento
+subtitle-instrument_guitar = Violão tocando
+subtitle-surprise_egg = Som Divino
+subtitle-instrument_steeldrum = Tambor de língua tocando
+subtitle-instrument_sitar = Cítara tocando
+subtitle-arrow_miss = Flecha errou
+subtitle-explosion = Explosão
+subtitle-arrow_shot = Flecha lançada
+subtitle-skill_point = Ponto de Habilidade adquirido
+subtitle-arrow_hit = Flecha acertou
+subtitle-sceptre_beam = Feixe de cetro
+subtitle-flame_thrower = Lança-chamas
+subtitle-break_block = Bloco destruído
+subtitle-attack_blocked = Ataque bloqueado
+subtitle-parry = Aparado
+subtitle-interrupted = Interrompido
+subtitle-stunned = Atordoado
+subtitle-knocked_down = Derrubado
+subtitle-attack-cyclops_charge = Carga do Cíclope
+subtitle-dazed = Desorientado
+subtitle-utterance-antelope-hurt = Antelope chorando
+subtitle-utterance-truffler-calm = Truffler grunhindo
+subtitle-utterance-human-greeting = Saudação
+subtitle-utterance-wyvern-angry = Wyvern rugindo
+subtitle-utterance-wyvern-hurt = Wyvern ferido
+subtitle-utterance-phoenix-angry = Fenix gritando
+subtitle-utterance-phoenix-hurt = Fenix ferida
+subtitle-utterance-wolf-hurt = Lobo choramingando
+subtitle-utterance-wolf-angry = Wendigo rugindo
+subtitle-attack-ground_slam = Bate-estaca
+subtitle-attack-laser_beam = Raio laser
+subtitle-utterance-biped_large-hurt = Fortemente ferido
+subtitle-utterance-human-hurt = Humano ferido
+subtitle-utterance-lion-hurt = Leão rugindo
+subtitle-utterance-mandroga-hurt = Mandroga gritando
+subtitle-utterance-maneater-hurt = Maneater arrotando
+subtitle-utterance-marlin-hurt = Marlin ferido
+subtitle-utterance-mindflayer-hurt = Devorador de Mentes ferido
+subtitle-utterance-dagon-hurt = Dagon ferido
+subtitle-utterance-asp-angry = Asp sibilando
+subtitle-utterance-asp-calm = Asp coachando
+subtitle-utterance-asp-hurt = Asp ferido
+subtitle-utterance-wendigo-angry = Wendigo gritando
+subtitle-utterance-wendigo-calm = Wendigo murmurando
+subtitle-attack-fuse_charge = Fuse chiando

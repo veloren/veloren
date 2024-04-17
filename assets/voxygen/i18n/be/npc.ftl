@@ -2,19 +2,18 @@ npc-speech-villager =
     .a0 = Мне вельмі падабаецца сыр.
 npc-speech-villager_open =
     .a0 = Цікава, пра што думае Катаблепас, калі есць траву?.
-    .a1 = Як ты лічыш, чаму Святлівыя рэшткі свецяцца?
-    .a2 = Ці ты ведаеш пра лютых Земных акул? Я чуў, што яны жывуць у пустэльнях.
+    .a1 = Як ты лічыш, чаму Святлівыя Рэшткі свецяцца?
+    .a2 = Ці ты ведаеш пра лютых Земных Акул? Я чуў, што яны жывуць у пустэльнях.
     .a3 = Цікава, што там па іншы бок гор...
     .a4 = Я пакінуў трохі сыру ў свайго сваяка. Цяпер нават не ведаю, ці ён яшчэ існуе. Я называю яго сырам Шродзінгера.
     .a5 = Ці лавілі вы калісьці светлячка?
     .a6 = Кажуць, у пячорах можна знайсці ўсялякія каштоўныя камяні.
-    .a7 = Я не магу зразумець, адкуль прыходзяць гэтыя Саўрокі.
+    .a7 = Я не магу зразумець, адкуль прыходзяць гэтыя саўрокі.
 npc-speech-villager_adventurous =
-    .a0 = Спадзяюся, што аднойчы я змайструю свой уласны дэльтаплан.
+    .a0 = Спадзяюся, што аднойчы я змайструю свой уласны планёр.
     .a1 = Калі стану мацнейшым, я пайду ў паход, даследаваць пячоры.
 npc-speech-villager_closed =
     .a0 = Хто ты гэткі? Не тутэйшы? Дзе радзіўся, дзе хрысціўся?
-    .a1 = Ці ты згодны, што нашая вёска найлепшая?
     .a2 = Кажуць, што грыбы вельмі карысныя для здароўя. Ніколі іх не еў, шчыра кажучы.
     .a3 = Быць або не быць? Думаю, буду земляробам.
 npc-speech-villager_conscientious =
@@ -69,8 +68,8 @@ npc-speech-villager_decline_trade =
     .a1 = Гандаль? Нібы ў мяне ёсць нешта цікавае.
     .a2 = Мая хата - мая, і я яе ні за якія грошы не аддам.
 npc-speech-merchant_advertisement =
-    .a0 = Ці жадаеце пагандляваць?
-    .a1 = Жадаеце пагандляваць са мною?
+    .a0 = Ці жадаеш пагандляваць?
+    .a1 = Жадаеш пагандляваць са мною?
     .a2 = У мяне шмат тавараў. Хочаш зірнуць?
 npc-speech-merchant_busy =
     .a0 = Пачакайце, калі ласка, у мяне не дваццаць рук.
@@ -208,3 +207,136 @@ npc-speech-cultist_low_health_fleeing =
     .a3 = Я цябе пракляну ў тагасветным жыцці!
     .a4 = Мне трэба перадыхнуць!
     .a5 = Яны занадта дужыя!
+# NPC site hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $site represents hard-coded site in the world
+npc-speech-site =
+    .a0 = Табе не здаецца, што наша вёска лепшая?
+    .a1 = Вітаем у { $site } !
+    .a2 = { $site } - вёска, у якой прыемна жыць.
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_north_east = паўночны ўсходзе
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_east = усходзе
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_south_east = паўднёвы ўсходзе
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_south = поўдзень
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_south_west = паўднёвы захад
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_west = захадзе
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_north_west = паўночны захад
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_very_far = вельмі далёка
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_far = далёка
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_ahead = на некаторым аддаленні
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_near = недалёка
+# Distance hints, used ONLY in npc-speech-tell* above
+npc-speech-dist_near_to = паблізу
+# NPC reactions
+npc-speech-witness_murder =
+    .a0 = Забойца!
+    .a1 = Як ты мог гэта зрабіць?
+    .a2 = Ааааа!
+# NPC reactions
+npc-speech-witness_death =
+    .a0 = Не!
+    .a1 = Гэта жахліва!
+    .a2 = А божухна!
+# NPC reactions
+npc-speech-night =
+    .a0 = Ліхтары зручныя каб перамяшчацца ноччу!
+    .a1 = Я спадзяюся, што мы адны ў цемры...
+    .a2 = Бу!
+# Generic NPC messages
+npc-speech-merchant_trade_cancelled_hostile =
+    .a0 = Прабачце што перапыняю, але ў нас ёсць праблема, якую трэба вырашыць!
+    .a1 = Мы пагандлюем пазней, спачатку трэба паклапаціцца пра гэта!
+# Generic NPC messages
+npc-speech-moving_on =
+    .a0 = Я дастаткова выдаткаваў часу тут, пара адпраўляцца ў { $site }!
+# Generic NPC messages
+npc-speech-night_time =
+    .a0 = Цёмна, яас вяртацца да хаты.
+    .a1 = Я стаміўся.
+    .a2 = Ложак вабіць мяне!
+# Generic NPC messages
+npc-speech-day_time =
+    .a0 = Пачынаецца новы дзень!
+    .a1 = Ніколі не любіў прачынацца...
+# Generic NPC messages
+npc-speech-start_hunting =
+    .a0 = Час палявання!
+# Generic NPC messages
+npc-speech-merchant_sell_undirected =
+    .a0 = Усе мае тавары найвышэйшай якасці!
+    .a1 = Хто-небудзь хоча купіць мае тавары?
+    .a2 = У мяне лепшыя прапановы ў горадзе.
+    .a3 = Шукаеш прыпасы? Я цябе пакрыю.
+# Direction hints, used ONLY in npc-speech-tell* above
+npc-speech-dir_north = поўначы
+# Generic NPC messages
+npc-speech-ambush =
+    .a0 = Неразумна падарожнічаць аднаму!
+    .a1 = Як скрасці цукерку ў дзіцяці!
+# Generic NPC messages
+npc-speech-villager_busy =
+    .a0 = Выбачай, я не магу размаўляць з табой зараз.
+    .a1 = Паразмаўляем пазней, я заняты.
+# Generic NPC messages
+npc-speech-prisoner =
+    .a0 = Калі ласка, знайдзіце ключ!
+    .a1 = Патрапіць у пастку - гэта не весела.
+    .a2 = Гэтаму Кардыналу нельга давяраць.
+    .a3 = Гэтыя Кліры задумалі нешта нядобрае.
+# NPC reactions
+npc-speech-welcome-aboard =
+    .a0 = Вітаем на борце!
+    .a1 = Магу я пабачыць ваш квіток?... Проста жартую, гэта бясплатна!
+    .a2 = Прыемнай паездкі!
+# Generic NPC messages
+npc-speech-migrating =
+    .a0 = Мне больш не прыемна жыць тут. Прыйшоў час пераехаць у { $site }.
+    .a1 = Прыйшоў час рухацца да { $site }, мне абрыдла гэтае месца.
+# Generic NPC messages
+npc-speech-merchant_sell_directed =
+    .a0 = Ты, там! Цябе патрэбен новы як-яго-там?
+    .a1 = Ты галодны? Я ўпэўнены, што ў мяне ёсьць сыр які ты можаш купіць.
+    .a2 = Ты выглядаеш так, быццам бы цябе спатрэбіліся новыя даспехі!
+# NPC site hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $site represents hard-coded site in the world
+npc-speech-tell_site =
+    .a0 = Ты быў у { $site }? Гэта на { $dir } адсюль!
+    .a1 = Табе варта як небудзь наведаць { $site }.
+    .a2 = Калі прайсці { $dist } на { $dir }, то можна патрапіць у { $site }.
+    .a3 = На { $dir } ты знойдзеш { $site }, гэта { $dist }.
+# Generic NPC messages
+npc-speech-guard_thought =
+    .a0 = Мой брат змагаецца з ограмі. Што выбраў я? Каравульную службу...
+    .a1 = Яшчэ адзін патруль, і потым я змагу адправіцца да хаты.
+    .a2 = Ніякім бандытам мяне не абысці.
+# NPC monster hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $body references body-npc-speech-* variables in `body` component
+npc-speech-tell_monster =
+    .a0 = Кажуць, што { $body } знаходзіцца на { $dir }, { $dist }...
+    .a1 = Лічыш сабе крутым? На { $body } ёсць { $dir }.
+# NPC proposals
+npc-speech-arena = Давай сядзім там!
+# NPC reactions
+npc-speech-witness_enemy_murder =
+    .a0 = Мой Герой!
+    .a1 = Нарэшце нехта зрабіў гэта!
+    .a2 = Ура!

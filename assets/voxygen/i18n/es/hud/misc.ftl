@@ -80,3 +80,4 @@ hud-init-stage-client-starting-client = { "[" }{ -client }]: Preparando al clien
 hud-steer = Conducir
 hud-init-stage-server-spotgen = { "[" }{ -server }]: Generando sitios...
 hud-lay = Tumbarse
+hud-pet = Acariciar

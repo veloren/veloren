@@ -560,3 +560,7 @@ armor-cloth-silken-shoulder = Sobrehombros
     .desc = Tejidos con cariño por un sastre diestro.
 armor-cloth-druid-shoulder = Hombreras de druida
     .desc = Estas hombreras muy ligeras cuentan con la esencia de la naturaleza.
+armor-misc-head-hare_hat = Sombrero de liebre
+    .desc = Un sombrero especial de la Pascua
+armor-misc-head-cat_capuche = Capucha de gato
+    .desc = Una capucha especial del Día de los Inocentes

@@ -12,3 +12,5 @@ weapon-projectile-fireworks_white = Fuegos artificiales blancos
     .desc = Brillan como las estrellas.
 weapon-projectile-fireworks_yellow = Fuegos artificiales amarillos
     .desc = La Gran Doctora falleció tras probar artilujio en espacio interior.
+object-surprise_egg = Huevo sorpresa
+    .desc = Explosiva sorpresa de Pascua.
