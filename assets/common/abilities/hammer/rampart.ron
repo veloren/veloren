@@ -2,7 +2,7 @@ StaticAura(
     buildup_duration: 0.4,
     cast_duration: 0.3,
     recover_duration: 0.4,
-    energy_cost: 20,
+    energy_cost: 30,
     targets: InGroup,
     auras: [
         (
@@ -12,7 +12,7 @@ StaticAura(
             category: Magical,
         ),
     ],
-    aura_duration: Some(20),
+    aura_duration: Some(15),
     range: 10.0,
     sprite_info: Some((
         sprite: Stones2,
