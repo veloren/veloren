@@ -17,13 +17,13 @@ hud-trade-result-completed = Troca concluída com sucesso.
 hud-trade-result-declined = Troca cancelada.
 hud-trade-result-nospace = Espaço insuficiente para completar a troca.
 hud-trade-buy =
-    Buy Price: { $coin_num ->
-        [one] uma moeda
-       *[other] { $coin_formatted } moedas
+    Preço de compra: { $coin_num ->
+        [1] uma moeda
+       *[outro] { $coin_formatted }  moedas
     }
 hud-trade-sell =
     Sell Price: { $coin_num ->
-        [one] uma moeda
+        [1] uma moeda
        *[other] { $coin_formatted } moedas
     }
 hud-trade-tooltip_hint_1 = <Shift-Click para Adicionar/Remover da troca.>
@@ -31,3 +31,4 @@ hud-trade-tooltip_hint_2 = <Ctrl-Click para Equilibrar a troca.>
 hud-trade-your_offer = Sua oferta
 hud-trade-their_offer = Oferta do outro
 hud-trade-amount_input = Selecione um item
+hud-confirm-trade-for-nothing = Deseja realmente dar estes itens a troco de nada?

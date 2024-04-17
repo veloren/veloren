@@ -1,8 +1,8 @@
 weapon-tool-fishing_rod_blue = Вуда
     .desc = Пахне рыбай.
-weapon-tool-shovel_green = Лапата
+weapon-tool-shovel_green = Рыдлёўка
     .desc = Пакрыта гноям.
-weapon-tool-shovel_gold = Лапата
+weapon-tool-shovel_gold = Рыдлёўка
     .desc = Яна была нядаўна ачышчана.
 weapon-tool-pickaxe_green = Кірка
     .desc = Мае абламаны край.

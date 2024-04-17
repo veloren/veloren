@@ -143,3 +143,4 @@ subtitle-attack-fuse_charge = Sonido de mecha
 subtitle-attack-icy_spikes = Carámbanos de hielo
 subtitle-utterance-wyvern-angry = Wyvern rugiendo
 subtitle-utterance-asp-hurt = Áspid herido
+subtitle-surprise_egg = Sonido divino

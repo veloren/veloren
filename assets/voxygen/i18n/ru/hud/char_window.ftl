@@ -1,4 +1,4 @@
-character_window-character_name = Имя персонажа
+character_window-character_name = Имя Персонажа
 character_window-character_stats =
     Выносливость
 

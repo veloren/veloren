@@ -14,7 +14,6 @@ npc-speech-villager_adventurous =
     .a1 = Eu gostaria de explorar uma caverna quando eu ficar mais forte.
 npc-speech-villager_closed =
     .a0 = Você não é daqui, né?
-    .a1 = Você não acha nossa vila a melhor de todas?
     .a2 = Eles dizem que cogumelos são bons para sua saúde. Nunca comi.
     .a3 = Ser, ou não ser? Eu acho que vou ser um fazendeiro.
 npc-speech-villager_conscientious =
@@ -74,7 +73,7 @@ npc-speech-villager_busy =
 npc-speech-merchant_advertisement =
     .a0 = Está interessado em fazer uma troca comigo?
     .a1 = Você quer negociar comigo?
-    .a2 = Eu tenho muitos produtos, você quer dar uma olhada?
+    .a2 = Eu tenho muitos produtos. Você quer dar uma olhada?
 npc-speech-merchant_busy =
     .a0 = Espere, por favor. Sou apenas uma pessoa.
     .a1 = Só um momento, deixe-me terminar.
@@ -251,7 +250,7 @@ npc-speech-merchant_sell_directed =
     .a1 = Tá com fome? Tenho certeza que tenho queijo pra vender...
     .a2 = Tá precisando de uma nova armadura?! Tenho as melhores!
 npc-speech-tell_site =
-    .a0 = Você já visitou { $site }? Fica a { $dir } daqui!
+    .a0 = Há { $site } a { $dir } daqui. Você já visitou?
     .a1 = Você deveria ir para { $site } qualquer hora...
     .a2 = Se você for { $dist } para { $dir }, consegue chegar em { $site }.
     .a3 = Para o { $dir } você encontra { $site }, é { $dist }.
@@ -270,16 +269,37 @@ npc-speech-witness_death =
     .a0 = Não!
     .a1 = Isso é terrível!
     .a2 = Meu Deus!
-npc-speech-dir_north = norte
-npc-speech-dir_north_east = nordeste
-npc-speech-dir_east = leste
-npc-speech-dir_south_east = sudeste
-npc-speech-dir_south = sul
-npc-speech-dir_south_west = sudoeste
-npc-speech-dir_west = oeste
-npc-speech-dir_north_west = noroeste
+npc-speech-dir_north = para o norte
+npc-speech-dir_north_east = para o nordeste
+npc-speech-dir_east = para o leste
+npc-speech-dir_south_east = para o sudeste
+npc-speech-dir_south = para o sul
+npc-speech-dir_south_west = para o sudoeste
+npc-speech-dir_west = para o oeste
+npc-speech-dir_north_west = para o noroeste
 npc-speech-dist_very_far = muito longe
 npc-speech-dist_far = longe
 npc-speech-dist_ahead = um pouco longe
 npc-speech-dist_near = perto
 npc-speech-dist_near_to = muito perto
+# NPC site hints
+# Available variables:
+# - $dir references npc-speech-dir-* variables below
+# - $dist references npc-speech-dist-* variables below
+# - $site represents hard-coded site in the world
+npc-speech-site =
+    .a0 = Você não acha que nossa aldeia é a melhor delas?
+    .a1 = Bem-vindo a { $site } !
+    .a2 = { $site } é uma aldeia agradável para viver.
+# NPC reactions
+npc-speech-welcome-aboard =
+    .a0 = Bem-vindo a bordo!
+    .a1 = Posso ver seu bilhete... to zoando, é grátis!
+    .a2 = Tenha uma ótima viagem!
+# NPC reactions
+npc-speech-night =
+    .a0 = Lamparinas são úteis durante a noite!
+    .a1 = Espero que estejamos sozinhos no escuro...
+    .a2 = Boo!
+# NPC proposals
+npc-speech-arena = Vamos sentar ali!
