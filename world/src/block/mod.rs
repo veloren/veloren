@@ -389,6 +389,14 @@ pub fn block_from_structure(
                 }),
             ));
         },
+        StructureBlock::RedwoodWood => {
+            let wpos = pos + structure_pos;
+            if (wpos.x / 2 + wpos.y) % 5 > 1 && ((wpos.x + 1) / 2 + wpos.y + 2) % 5 > 1 {
+                Some(Block::new(BlockKind::Wood, Rgb::new(80, 40, 10)))
+            } else {
+                Some(Block::new(BlockKind::Wood, Rgb::new(110, 55, 10)))
+            }
+        },
     };
 
     Some((block?, None))
