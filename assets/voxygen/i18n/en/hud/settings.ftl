@@ -144,6 +144,9 @@ hud-settings-language_send_to_server = Send the configured language to servers (
 hud-settings-awaitingkey = Press a key...
 hud-settings-unbound = None
 hud-settings-reset_keybinds = Reset to defaults
+hud-settings-keybind-helper =
+    M1 to set
+    M2 to unset
 hud-settings-chat_tabs = Chat Tabs
 hud-settings-label = Label:
 hud-settings-delete = Delete
