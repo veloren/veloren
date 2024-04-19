@@ -52,6 +52,7 @@ make_case_elim!(
         MapleLeaves = 32,
         CherryLeaves = 33,
         AutumnLeaves = 34,
+        RedwoodWood = 35,
     }
 );
 

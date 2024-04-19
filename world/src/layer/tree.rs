@@ -87,6 +87,7 @@ pub fn apply_trees_to(
     canvas.foreach_col(|canvas, wpos2d, col| {
         let trees = tree_cache.get(wpos2d, |wpos, seed| {
             let scale = 1.0;
+            let crowding = col.tree_density;
             let inhabited = false;
             let forest_kind = *info
                 .chunks()
@@ -126,7 +127,7 @@ pub fn apply_trees_to(
                         },
                         ForestKind::Oak => {
                             break 'model TreeModel::Procedural(ProceduralTree::generate(
-                                TreeConfig::oak(&mut RandomPerm::new(seed), scale),
+                                TreeConfig::oak(&mut RandomPerm::new(seed), scale, crowding),
                                 &mut RandomPerm::new(seed),
                             ));
                         },
@@ -138,7 +139,7 @@ pub fn apply_trees_to(
                         },
                         ForestKind::Chestnut => {
                             break 'model TreeModel::Procedural(ProceduralTree::generate(
-                                TreeConfig::chestnut(&mut RandomPerm::new(seed), scale),
+                                TreeConfig::chestnut(&mut RandomPerm::new(seed), scale, crowding),
                                 &mut RandomPerm::new(seed),
                             ));
                         },
@@ -188,7 +189,7 @@ pub fn apply_trees_to(
                         },
                         ForestKind::Mapletree => {
                             break 'model TreeModel::Procedural(ProceduralTree::generate(
-                                TreeConfig::oak(&mut RandomPerm::new(seed), scale),
+                                TreeConfig::oak(&mut RandomPerm::new(seed), scale, crowding),
                                 &mut RandomPerm::new(seed),
                             ));
                         },
@@ -200,7 +201,7 @@ pub fn apply_trees_to(
                         },
                         ForestKind::AutumnTree => {
                             break 'model TreeModel::Procedural(ProceduralTree::generate(
-                                TreeConfig::autumn_tree(&mut RandomPerm::new(seed), scale),
+                                TreeConfig::oak(&mut RandomPerm::new(seed), scale, crowding),
                                 &mut RandomPerm::new(seed),
                             ));
                         },
@@ -378,21 +379,21 @@ pub struct TreeConfig {
 }
 
 impl TreeConfig {
-    pub fn oak(rng: &mut impl Rng, scale: f32) -> Self {
+    pub fn oak(rng: &mut impl Rng, scale: f32, crowding: f32) -> Self {
         let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
-            trunk_len: 9.0 * scale,
-            trunk_radius: 2.0 * scale,
-            branch_child_len: 0.9,
+            trunk_len: 11.0 * scale,
+            trunk_radius: 1.5 * scale,
+            branch_child_len: 0.75,
             branch_child_radius: 0.75,
             branch_child_radius_lerp: true,
-            leaf_radius: 2.5 * log_scale..3.25 * log_scale,
+            leaf_radius: 2.0 * log_scale..2.5 * log_scale,
             leaf_radius_scaled: 0.0,
-            straightness: 0.45,
+            straightness: 0.3 + crowding * 0.3,
             max_depth: 4,
-            splits: 2.25..3.25,
+            splits: 4.25..6.25,
             split_range: 0.75..1.5,
             branch_len_bias: 0.0,
             leaf_vertical_scale: 1.0,
@@ -533,7 +534,7 @@ impl TreeConfig {
 
         Self {
             trunk_len: 45.0 * scale,
-            trunk_radius: 1.8 * scale,
+            trunk_radius: 1.3 * scale,
             branch_child_len: 0.4,
             branch_child_radius: 0.6,
             branch_child_radius_lerp: true,
@@ -602,7 +603,7 @@ impl TreeConfig {
         }
     }
 
-    pub fn chestnut(rng: &mut impl Rng, scale: f32) -> Self {
+    pub fn chestnut(rng: &mut impl Rng, scale: f32, crowding: f32) -> Self {
         let scale = scale * (0.85 + rng.gen::<f32>().powi(4) * 0.3);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
@@ -614,7 +615,7 @@ impl TreeConfig {
             branch_child_radius_lerp: true,
             leaf_radius: 1.5 * log_scale..2.0 * log_scale,
             leaf_radius_scaled: 0.0,
-            straightness: 0.3,
+            straightness: 0.25 + crowding * 0.2,
             max_depth: 5,
             splits: 3.5..4.25,
             split_range: 0.5..1.25,
@@ -658,26 +659,25 @@ impl TreeConfig {
 
     pub fn redwood(rng: &mut impl Rng, scale: f32) -> Self {
         let scale = scale * (1.0 + rng.gen::<f32>().powi(4) * 0.5);
-        let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
             trunk_len: 80.0 * scale,
-            trunk_radius: 3.25 * scale,
-            branch_child_len: 0.25 / scale,
-            branch_child_radius: 0.0,
+            trunk_radius: 2.75 * scale,
+            branch_child_len: 0.25,
+            branch_child_radius: 0.3,
             branch_child_radius_lerp: false,
-            leaf_radius: 2.0..3.0,
-            leaf_radius_scaled: 1.5 * log_scale,
+            leaf_radius: 1.3..1.5,
+            leaf_radius_scaled: 0.0,
             straightness: -0.3,
-            max_depth: 1,
+            max_depth: 2,
             splits: 45.0 * scale..50.0 * scale,
-            split_range: 0.45..1.2,
+            split_range: 0.4..1.2,
             branch_len_bias: 0.75,
-            leaf_vertical_scale: 0.45,
+            leaf_vertical_scale: 0.6,
             proportionality: 1.0,
             inhabited: false,
             hanging_sprites: &[(0.001, SpriteKind::Beehive)],
-            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(110, 55, 10)),
+            trunk_block: StructureBlock::RedwoodWood,
         }
     }
 
@@ -727,31 +727,6 @@ impl TreeConfig {
             inhabited: false,
             hanging_sprites: &[],
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(69, 37, 17)),
-        }
-    }
-
-    pub fn autumn_tree(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
-        let log_scale = 1.0 + scale.log2().max(0.0);
-
-        Self {
-            trunk_len: 9.0 * scale,
-            trunk_radius: 2.0 * scale,
-            branch_child_len: 0.9,
-            branch_child_radius: 0.75,
-            branch_child_radius_lerp: true,
-            leaf_radius: 2.5 * log_scale..3.25 * log_scale,
-            leaf_radius_scaled: 0.0,
-            straightness: 0.45,
-            max_depth: 4,
-            splits: 2.25..3.25,
-            split_range: 0.75..1.5,
-            branch_len_bias: 0.0,
-            leaf_vertical_scale: 1.0,
-            proportionality: 0.0,
-            inhabited: false,
-            hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00007, SpriteKind::Beehive)],
-            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
         }
     }
 }
