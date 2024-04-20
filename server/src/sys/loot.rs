@@ -35,7 +35,11 @@ impl<'a> System<'a> for Sys {
                         LootOwnerKind::Player(uid) => id_maps
                             .uid_entity(uid)
                             .map_or(true, |entity| !entities.is_alive(entity)),
-                        LootOwnerKind::Group(group) => group_manager.group_info(group).is_none(),
+                        LootOwnerKind::Group(group) => {
+                            // Special alignment groups (NPC and ENEMY) aren't tracked by the group
+                            // manager, check them separately here
+                            !group.is_special() && group_manager.group_info(group).is_none()
+                        },
                     }
             })
             .map(|(entity, _)| entity)

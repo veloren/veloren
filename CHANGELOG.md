@@ -27,9 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-- NPC path-finding, especially for merchants and travellers is now less dumb.
 
+- NPC path-finding, especially for merchants and travellers is now less dumb.
 - Moderate buff to wild large bipeds, to bring in line with other balancing
+- Loot protection for solo players and NPCs works again
 
 ## [0.16.0] - 2024-03-30
 
