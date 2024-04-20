@@ -532,3 +532,9 @@ impl GroupManager {
         });
     }
 }
+
+impl Group {
+    /// Returns whether this is one of the special npc or enemy groups
+    // FIXME: These groups are a HACK
+    pub fn is_special(&self) -> bool { *self == NPC || *self == ENEMY }
+}

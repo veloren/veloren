@@ -592,13 +592,11 @@ impl ServerEvent for DestroyEvent {
 
                 false
             } else {
-                if let Some((_agent, uid, pos, alignment, vel, body)) = (
+                if let Some((_agent, pos, alignment, vel)) = (
                     &data.agents,
-                    &data.uids,
                     &data.positions,
                     data.alignments.maybe(),
                     data.velocities.maybe(),
-                    data.bodies.maybe(),
                 )
                     .lend_join()
                     .get(ev.entity, &data.entities)
@@ -614,16 +612,16 @@ impl ServerEvent for DestroyEvent {
                         // Remove entries where zero exp was awarded - this happens because some
                         // entities like Object bodies don't give EXP.
                         let mut item_receivers = HashMap::new();
-                        for (_entity, exp, group) in exp_awards {
+                        for (entity, exp, group) in exp_awards {
                             if exp >= f32::EPSILON {
                                 let loot_owner = if let Some(group) = group {
                                     Some(LootOwnerKind::Group(group))
                                 } else {
-                                    let uid = body.and_then(|body| {
+                                    let uid = data.bodies.get(entity).and_then(|body| {
                                         // Only humanoids are awarded loot ownership - if the winner
                                         // was a non-humanoid NPC the loot will be free-for-all
                                         if matches!(body, Body::Humanoid(_)) {
-                                            Some(*uid)
+                                            data.uids.get(entity).copied()
                                         } else {
                                             None
                                         }
@@ -655,12 +653,14 @@ impl ServerEvent for DestroyEvent {
                                     );
                                     Some(LootOwner::new(loot_owner, false))
                                 } else {
+                                    debug!("No loot owner");
                                     None
                                 },
                             })
                         };
 
                         if item_receivers.is_empty() {
+                            debug!("No item receivers");
                             for item in flatten_counted_items(&items, &data.ability_map, &data.msm)
                             {
                                 spawn_item(item, None)
