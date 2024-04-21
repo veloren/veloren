@@ -3,8 +3,11 @@ use common::event::RequestSiteInfoEvent;
 use common_net::msg::{world_msg::EconomyInfo, ServerGeneral};
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
-use specs::{DispatcherBuilder, ReadExpect, ReadStorage};
+#[cfg(feature = "worldgen")]
+use specs::ReadExpect;
+use specs::{DispatcherBuilder, ReadStorage};
 use std::collections::HashMap;
+#[cfg(feature = "worldgen")]
 use world::IndexOwned;
 
 use super::{event_dispatch, ServerEvent};

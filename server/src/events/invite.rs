@@ -18,12 +18,15 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_net::msg::{InviteAnswer, ServerGeneral};
+#[cfg(feature = "worldgen")]
+use specs::ReadExpect;
 use specs::{
-    shred, DispatcherBuilder, Entities, Entity, Read, ReadExpect, ReadStorage, SystemData, Write,
-    WriteStorage,
+    shred, DispatcherBuilder, Entities, Entity, Read, ReadStorage, SystemData, Write, WriteStorage,
 };
 use std::time::{Duration, Instant};
 use tracing::{error, warn};
+#[cfg(feature = "worldgen")]
+use world::IndexOwned;
 
 /// Time before invite times out
 const INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(31);
@@ -222,7 +225,8 @@ pub struct InviteResponseData<'a> {
     entities: Entities<'a>,
     group_manager: Write<'a, GroupManager>,
     trades: Write<'a, Trades>,
-    index: ReadExpect<'a, world::IndexOwned>,
+    #[cfg(feature = "worldgen")]
+    index: ReadExpect<'a, IndexOwned>,
     id_maps: Read<'a, IdMaps>,
     invites: WriteStorage<'a, Invite>,
     pending_invites: WriteStorage<'a, PendingInvites>,

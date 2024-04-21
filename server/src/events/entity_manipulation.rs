@@ -1,3 +1,5 @@
+#[cfg(feature = "worldgen")]
+use crate::rtsim::RtSim;
 use crate::{
     client::Client,
     comp::{
@@ -9,11 +11,12 @@ use crate::{
     error,
     events::entity_creation::handle_create_npc,
     pet::tame_pet,
-    rtsim::RtSim,
     state_ext::StateExt,
     sys::terrain::{NpcData, SpawnEntityData, SAFE_ZONE_RADIUS},
     Server, Settings, SpawnPoint,
 };
+#[cfg(feature = "worldgen")]
+use common::rtsim::{Actor, RtSimEntity};
 use common::{
     combat,
     combat::{AttackSource, DamageContributor},
@@ -46,7 +49,6 @@ use common::{
     mounting::{Rider, VolumeRider},
     outcome::{HealthChangeInfo, Outcome},
     resources::{ProgramTime, Secs, Time},
-    rtsim::{Actor, RtSimEntity},
     spiral::Spiral2d,
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
@@ -60,14 +62,18 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
 use hashbrown::HashSet;
 use rand::Rng;
+#[cfg(feature = "worldgen")]
+use specs::WriteExpect;
 use specs::{
     shred, DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, Read,
-    ReadExpect, ReadStorage, SystemData, WorldExt, Write, WriteExpect, WriteStorage,
+    ReadExpect, ReadStorage, SystemData, WorldExt, Write, WriteStorage,
 };
-use std::{collections::HashMap, iter, sync::Arc, time::Duration};
+#[cfg(feature = "worldgen")] use std::sync::Arc;
+use std::{collections::HashMap, iter, time::Duration};
 use tracing::{debug, warn};
 use vek::{Vec2, Vec3};
-use world::World;
+#[cfg(feature = "worldgen")]
+use world::{IndexOwned, World};
 
 use super::{event_dispatch, ServerEvent};
 
@@ -286,14 +292,17 @@ fn handle_exp_gain(
 #[derive(SystemData)]
 pub struct DestroyEventData<'a> {
     entities: Entities<'a>,
+    #[cfg(feature = "worldgen")]
     rtsim: WriteExpect<'a, RtSim>,
     id_maps: Read<'a, IdMaps>,
     msm: ReadExpect<'a, MaterialStatManifest>,
     ability_map: ReadExpect<'a, AbilityMap>,
     time: Read<'a, Time>,
     program_time: ReadExpect<'a, ProgramTime>,
+    #[cfg(feature = "worldgen")]
     world: ReadExpect<'a, Arc<World>>,
-    index: ReadExpect<'a, world::IndexOwned>,
+    #[cfg(feature = "worldgen")]
+    index: ReadExpect<'a, IndexOwned>,
     areas_container: Read<'a, AreasContainer<NoDurabilityArea>>,
     outcomes: Read<'a, EventBus<Outcome>>,
     create_item_drop: Read<'a, EventBus<CreateItemDropEvent>>,
@@ -319,7 +328,9 @@ pub struct DestroyEventData<'a> {
     alignments: ReadStorage<'a, Alignment>,
     stats: ReadStorage<'a, Stats>,
     agents: ReadStorage<'a, Agent>,
+    #[cfg(feature = "worldgen")]
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, Presence>,
 }
 
@@ -712,6 +723,7 @@ impl ServerEvent for DestroyEvent {
                 }
             }
 
+            #[cfg(feature = "worldgen")]
             let entity_as_actor = |entity| {
                 if let Some(rtsim_entity) = data.rtsim_entities.get(entity).copied() {
                     Some(Actor::Npc(rtsim_entity.0))
@@ -723,25 +735,27 @@ impl ServerEvent for DestroyEvent {
                     None
                 }
             };
+            #[cfg(feature = "worldgen")]
             let actor = entity_as_actor(ev.entity);
 
+            #[cfg(feature = "worldgen")]
             if let Some(actor) = actor {
                 data.rtsim.hook_rtsim_actor_death(
-                &data.world,
-                data.index.as_index_ref(),
-                actor,
-                data.positions.get(ev.entity).map(|p| p.0),
-                ev.cause
-                    .by
-                    .as_ref()
-                    .and_then(
-                        |(DamageContributor::Solo(entity_uid)
-                         | DamageContributor::Group { entity_uid, .. })| {
-                            data.id_maps.uid_entity(*entity_uid)
-                        },
-                    )
-                    .and_then(entity_as_actor),
-            );
+                    &data.world,
+                    data.index.as_index_ref(),
+                    actor,
+                    data.positions.get(ev.entity).map(|p| p.0),
+                    ev.cause
+                        .by
+                        .as_ref()
+                        .and_then(
+                            |(DamageContributor::Solo(entity_uid)
+                             | DamageContributor::Group { entity_uid, .. })| {
+                                data.id_maps.uid_entity(*entity_uid)
+                            },
+                        )
+                        .and_then(entity_as_actor),
+                );
             }
 
             if should_delete {

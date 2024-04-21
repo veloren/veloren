@@ -208,6 +208,7 @@ fn main() -> io::Result<()> {
     let protocols_and_addresses = server_settings.gameserver_protocols.clone();
     let web_port = &settings.web_address.port();
     // Create server
+    #[cfg_attr(not(feature = "worldgen"), allow(unused_mut))]
     let mut server = Server::new(
         server_settings,
         editable_settings,
@@ -263,8 +264,8 @@ fn main() -> io::Result<()> {
         "Server is ready to accept connections."
     );
 
+    #[cfg(feature = "worldgen")]
     if let Some(bench) = bench {
-        #[cfg(feature = "worldgen")]
         server.create_centered_persister(bench.view_distance);
     }
 
@@ -367,8 +368,8 @@ fn server_loop(
                 }) => {
                     server.remove_admin(&username);
                 },
+                #[cfg(feature = "worldgen")]
                 Message::LoadArea { view_distance } => {
-                    #[cfg(feature = "worldgen")]
                     server.create_centered_persister(view_distance);
                 },
                 Message::SqlLogMode { mode } => {

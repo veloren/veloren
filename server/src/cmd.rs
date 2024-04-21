@@ -1,6 +1,8 @@
 //! # Implementing new commands.
 //! To implement a new command provide a handler function
 //! in [do_command].
+#[cfg(feature = "worldgen")]
+use crate::weather::WeatherJob;
 use crate::{
     client::Client,
     location::Locations,
@@ -10,7 +12,6 @@ use crate::{
         SettingError, WhitelistInfo, WhitelistRecord,
     },
     sys::terrain::SpawnEntityData,
-    weather::WeatherJob,
     wiring,
     wiring::OutputFormula,
     Server, Settings, StateExt,
@@ -54,13 +55,15 @@ use common::{
     resources::{BattleMode, PlayerPhysicsSettings, ProgramTime, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     spiral::Spiral2d,
-    terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize},
+    terrain::{Block, BlockKind, CoordinateConversions, SpriteKind},
     tether::Tethered,
     uid::Uid,
     vol::ReadVol,
-    weather, CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, GroupTarget,
-    LoadoutBuilder, RadiusEffect,
+    CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, GroupTarget, LoadoutBuilder,
+    RadiusEffect,
 };
+#[cfg(feature = "worldgen")]
+use common::{terrain::TerrainChunkSize, weather};
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
@@ -74,6 +77,7 @@ use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, LendJoin,
 use std::{fmt::Write, num::NonZeroU32, ops::DerefMut, str::FromStr, sync::Arc, time::Duration};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
+#[cfg(feature = "worldgen")]
 use world::util::{Sampler, LOCALITY};
 
 use common::comp::Alignment;
@@ -929,8 +933,20 @@ fn handle_goto(
     }
 }
 
+#[cfg(not(feature = "worldgen"))]
+fn handle_site(
+    _server: &mut Server,
+    _client: EcsEntity,
+    _target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    Err("Unsupported without worldgen enabled".into())
+}
+
 /// TODO: Add autocompletion if possible (might require modifying enum to handle
 /// dynamic values).
+#[cfg(feature = "worldgen")]
 fn handle_site(
     server: &mut Server,
     _client: EcsEntity,
@@ -938,7 +954,6 @@ fn handle_site(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    #[cfg(feature = "worldgen")]
     if let (Some(dest_name), dismount_volume) = parse_cmd_args!(args, String, bool) {
         let site = server
             .world
@@ -964,9 +979,6 @@ fn handle_site(
     } else {
         Err(Content::Plain(action.help_string()))
     }
-
-    #[cfg(not(feature = "worldgen"))]
-    Ok(())
 }
 
 fn handle_respawn(
@@ -3475,9 +3487,9 @@ fn handle_join_faction(
 
 #[cfg(not(feature = "worldgen"))]
 fn handle_debug_column(
-    server: &mut Server,
-    client: EcsEntity,
-    target: EcsEntity,
+    _server: &mut Server,
+    _client: EcsEntity,
+    _target: EcsEntity,
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
@@ -3569,9 +3581,9 @@ cliff_height {:?} "#,
 
 #[cfg(not(feature = "worldgen"))]
 fn handle_debug_ways(
-    server: &mut Server,
-    client: EcsEntity,
-    target: EcsEntity,
+    _server: &mut Server,
+    _client: EcsEntity,
+    _target: EcsEntity,
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
@@ -4728,6 +4740,18 @@ fn handle_delete_location(
     }
 }
 
+#[cfg(not(feature = "worldgen"))]
+fn handle_weather_zone(
+    _server: &mut Server,
+    _client: EcsEntity,
+    _target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    Err("Unsupported without worldgen enabled".into())
+}
+
+#[cfg(feature = "worldgen")]
 fn handle_weather_zone(
     server: &mut Server,
     client: EcsEntity,

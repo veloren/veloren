@@ -1,4 +1,4 @@
-use std::sync::Arc;
+#[cfg(feature = "worldgen")] use std::sync::Arc;
 
 use common::{
     comp::{self, pet::is_mountable},
@@ -6,12 +6,15 @@ use common::{
     event::{MountEvent, MountVolumeEvent, UnmountEvent},
     link::Is,
     mounting::{Mounting, Rider, VolumeMounting, VolumeRider},
-    rtsim::RtSimEntity,
-    uid::{IdMaps, Uid},
+    uid::Uid,
 };
+#[cfg(feature = "worldgen")]
+use common::{rtsim::RtSimEntity, uid::IdMaps};
 use specs::WorldExt;
 
-use crate::{rtsim::RtSim, state_ext::StateExt, Server};
+#[cfg(feature = "worldgen")]
+use crate::rtsim::RtSim;
+use crate::{state_ext::StateExt, Server};
 
 pub fn within_mounting_range(
     player_position: Option<&comp::Pos>,

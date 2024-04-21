@@ -18,6 +18,7 @@ use hashbrown::{hash_map::Entry, HashMap};
 use specs::{world::WorldExt, Entity as EcsEntity};
 use std::{cmp::Ordering, num::NonZeroU32};
 use tracing::{error, trace};
+#[cfg(feature = "worldgen")]
 use world::IndexOwned;
 
 pub fn notify_agent_simple(
@@ -30,6 +31,7 @@ pub fn notify_agent_simple(
     }
 }
 
+#[cfg(feature = "worldgen")]
 fn notify_agent_prices(
     mut agents: specs::WriteStorage<Agent>,
     index: &IndexOwned,
@@ -104,7 +106,10 @@ pub(super) fn handle_process_trade_action(
                 } else {
                     let mut entities: [Option<specs::Entity>; 2] = [None, None];
                     let mut inventories: [Option<ReducedInventory>; 2] = [None, None];
+                    #[cfg(feature = "worldgen")]
                     let mut prices = None;
+                    #[cfg(not(feature = "worldgen"))]
+                    let prices = None;
                     let agents = server.state.ecs().read_storage::<Agent>();
                     // sadly there is no map and collect on arrays
                     for i in 0..2 {

@@ -41,7 +41,7 @@ pub mod sys;
 pub mod terrain_persistence;
 #[cfg(not(feature = "worldgen"))] mod test_world;
 
-mod weather;
+#[cfg(feature = "worldgen")] mod weather;
 
 pub mod wiring;
 
@@ -73,6 +73,8 @@ use crate::{
 use censor::Censor;
 #[cfg(not(feature = "worldgen"))]
 use common::grid::Grid;
+#[cfg(feature = "worldgen")]
+use common::terrain::TerrainChunkSize;
 use common::{
     assets::AssetExt,
     calendar::Calendar,
@@ -90,7 +92,7 @@ use common::{
     rtsim::RtSimEntity,
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
-    terrain::{TerrainChunk, TerrainChunkSize},
+    terrain::TerrainChunk,
     vol::RectRasterableVol,
 };
 use common_base::prof_span;
@@ -117,15 +119,12 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+#[cfg(not(feature = "worldgen"))]
+use test_world::{IndexOwned, World};
 use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace, warn};
 use vek::*;
 pub use world::{civ::WorldCivStage, sim::WorldSimStage, WorldGenerateStage};
-#[cfg(not(feature = "worldgen"))]
-use {
-    common_net::msg::WorldMapMsg,
-    test_world::{IndexOwned, World},
-};
 
 use crate::{
     persistence::{DatabaseSettings, SqlLogMode},
@@ -308,7 +307,7 @@ impl Server {
         #[cfg(feature = "worldgen")]
         let map = world.get_map_data(index.as_index_ref(), &pools);
         #[cfg(not(feature = "worldgen"))]
-        let map = WorldMapMsg {
+        let map = common_net::msg::WorldMapMsg {
             dimensions_lg: Vec2::zero(),
             max_height: 1.0,
             rgba: Grid::new(Vec2::new(1, 1), 1),
@@ -320,16 +319,18 @@ impl Server {
             default_chunk: Arc::new(world.generate_oob_chunk()),
         };
 
+        #[cfg(feature = "worldgen")]
+        let map_size_lg = world.sim().map_size_lg();
+        #[cfg(not(feature = "worldgen"))]
+        let map_size_lg = world.map_size_lg();
+
         let lod = lod::Lod::from_world(&world, index.as_index_ref(), &pools);
 
         report_stage(ServerInitStage::StartingSystems);
 
         let mut state = State::server(
             Arc::clone(&pools),
-            #[cfg(feature = "worldgen")]
-            world.sim().map_size_lg(),
-            #[cfg(not(feature = "worldgen"))]
-            common::terrain::map::MapSizeLg::new(Vec2::one()).unwrap(),
+            map_size_lg,
             Arc::clone(&map.default_chunk),
             |dispatcher_builder| {
                 add_local_systems(dispatcher_builder);
@@ -494,7 +495,7 @@ impl Server {
             #[cfg(feature = "worldgen")]
             let size = world.sim().get_size();
             #[cfg(not(feature = "worldgen"))]
-            let size = Vec2::new(40, 40);
+            let size = world.map_size_lg().chunks().map(u32::from);
 
             let world_size = size.map(|e| e as i32) * TerrainChunk::RECT_SIZE.map(|e| e as i32);
             let world_aabb = Aabb {

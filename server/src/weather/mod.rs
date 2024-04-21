@@ -10,6 +10,7 @@ pub use tick::WeatherJob;
 /// How often the weather is updated, in seconds
 const WEATHER_DT: f32 = 5.0;
 
+#[cfg(feature = "worldgen")]
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<tick::Sys>(dispatch_builder, &[]);
 }
