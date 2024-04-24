@@ -1,5 +1,5 @@
-hud-bag-inventory = { $playername }s packning
-hud-bag-stats_title = Statistik för { $playername }
+hud-bag-inventory = { $playername }s Packning
+hud-bag-stats_title = { $playername }s Statistik
 hud-bag-armor = Rustning
 hud-bag-stats = Statistik
 hud-bag-head = Huvud
@@ -17,8 +17,8 @@ hud-bag-legs = Ben
 hud-bag-feet = Fötter
 hud-bag-mainhand = Förstahand
 hud-bag-offhand = Andrahand
-hud-bag-inactive_mainhand = Inaktiv förstahand
-hud-bag-inactive_offhand = Inaktiv andrahand
+hud-bag-inactive_mainhand = Inaktiv Förstahand
+hud-bag-inactive_offhand = Inaktiv Andrahand
 hud-bag-swap_equipped_weapons_title = Byt plats på dragna vapen
 hud-bag-swap_equipped_weapons_desc = Tryck { $key }
 hud-bag-bag = Säck
@@ -31,7 +31,7 @@ hud-bag-stealth = Smygning
 hud-bag-combat_rating_desc =
     Beräknas från din
     utrustning och hälsa.
-hud-bag-protection_desc = skademinskning från rustning.
+hud-bag-protection_desc = Skademinskning från rustning.
 hud-bag-stun_res_desc =
     Motståndskraft mot att bli överväldigad efter upprepade slag.
     Regenereras likt energi.

@@ -176,3 +176,6 @@ hud-settings-combat_music = Kampfmusik
 hud-settings-language_send_to_server = Sende die eingestellte Sprache an Server (für Übersetzungsregeln und MOTD-Nachrichten)
 hud-settings-enable_poise_bar = Gleichgewichts-Leiste aktivieren
 hud-settings-walking_speed_behavior = Laufgeschwindigkeits-Verhalten
+hud-settings-keybind-helper =
+    M1 zum Setzen
+    M2 zum Deaktivieren

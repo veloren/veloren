@@ -162,3 +162,6 @@ hud-settings-prefix_switch_point = Siffergräns för SI-prefixbyte
 hud-settings-aim_offset_x = Horisontell siktförskjutning
 hud-settings-aim_offset_y = Vertikal siktförskjutning
 hud-settings-slots = Platser
+hud-settings-keybind-helper =
+    M1 för att sätta
+    M2 för att avsätta

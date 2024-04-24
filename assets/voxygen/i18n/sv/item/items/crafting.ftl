@@ -108,3 +108,11 @@ sprite-mineral-ingot-steel = Ståltacka
         En legering mellan järn och kål som är mycket tuffare än dess komponenter.
 
         Kan användas när man tillverkar metallvapen.
+sprite-wood-item-hardwood = Hårdträstockar
+    .desc = Extra tjocka och robusta stockar. Kan användas när man tillverkar trävapen.
+sprite-wood-item-eldwood = Eldsträstockar
+    .desc = Gammla stockar som emanerar magi. Kan användas när man tillverkar trävapen.
+sprite-wood-item-frostwood = Frostträstockar
+    .desc = Kylig trä som kommer från kalla biomer. Kylande vid beröring. Kan användas när man tillverkar trävapen.
+sprite-wood-item-ironwood = Järnträstockar
+    .desc = En särskilt robust trä. Kan användas när man tillverkar trävapen.
