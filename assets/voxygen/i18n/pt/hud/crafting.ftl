@@ -1,0 +1,1 @@
+hud-crafting-recipes = Receitas

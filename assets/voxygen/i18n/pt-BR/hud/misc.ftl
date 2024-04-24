@@ -33,7 +33,7 @@ hud-temp_quest_text =
     Assim que você se sentir pronto, tente adquirir equipamentos melhores dos desafios marcados para você no mapa!
 hud-spell = Magias
 hud-diary = Diário
-hud-free_look_indicator = Câmera livre ativada.  Pressione { $key } para desabilitar.
+hud-free_look_indicator = Câmera livre ativada. Pressione { $key } para desabilitar.
 hud-camera_clamp_indicator = Trava vertical de câmera ativada. Pressione { $key } para desabilitar.
 hud-auto_walk_indicator = Caminhar/Nadar automático ativado
 hud-zoom_lock_indicator-remind = Zoom travado
@@ -80,3 +80,4 @@ hud-init-stage-server-spotgen = { "[" }{ -server }]: Gerando pontos...
 hud-init-stage-client-load-init-data = { "[" }{ -client }]: Carregando dados de inicialização do servidor...
 hud-init-stage-server-db-migrations = { "[" }{ -server }]: Aplicando migrações de banco de dados...
 hud-init-stage-client-connection-establish = { "[" }{ -client }]: Estabelecendo conexão com o servidor...
+hud-pet = Acariciar

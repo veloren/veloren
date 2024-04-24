@@ -43,3 +43,4 @@ main-login-network_error = Error de rede
 main-login-failed_sending_request = Pedido ao servidor de autenticação falhou
 main-login-client_crashed = O cliente crashou
 main-login-select_language = Seleccione uma língua
+main-server = Servidor

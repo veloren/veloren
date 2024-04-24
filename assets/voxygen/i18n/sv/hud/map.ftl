@@ -23,11 +23,11 @@ hud-map-difficulty_dungeon =
     Svårighet: { $difficulty }
 hud-map-drag = Dra
 hud-map-zoom = Zooma
-hud-map-mid_click = Markera landmärke
+hud-map-mid_click = Markera Landmärke
 hud-map-recenter = Omcentrera
 hud-map-marked_location = Markerad Plats
 hud-map-marked_location_remove = Klicka för att ta bort
-hud-map-change_map_mode = Ändra kartläge
+hud-map-change_map_mode = Ändra Kartläge
 hud-map-toggle_minimap_voxel = Växla Minikartans Voxelvy
 hud-map-zoom_minimap_explanation =
     Zooma in Minikartan för att se

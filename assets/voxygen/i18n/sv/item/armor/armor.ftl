@@ -88,3 +88,5 @@ armor-misc-ring-emerald = Smaragdring
     .desc = En koboltring med en smaragdsten.
 armor-misc-ring-sapphire = Safirring
     .desc = En järnring med en safirsten.
+armor-hide-leather-foot = Läderstövlar
+    .desc = Kvick som vinden.

@@ -162,3 +162,6 @@ hud-settings-present_mode-vsync_adaptive = Vsync Adaptativo
 hud-settings-slots = Espaços
 hud-settings-aim_offset_x = Desvio de Mira Horizontal
 hud-settings-combat_music = Música de Combate
+hud-settings-keybind-helper =
+    M1 para configurar
+    M2 para limpar
