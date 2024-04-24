@@ -8,8 +8,8 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
-        Alignment, BehaviorCapability, ItemDrops, LightEmitter, Ori, Pos, Projectile,
-        TradingBehavior, Vel, WaypointArea,
+        Alignment, BehaviorCapability, ItemDrops, LightEmitter, Ori, Pos, TradingBehavior, Vel,
+        WaypointArea,
     },
     event::{
         CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
@@ -492,6 +492,7 @@ pub fn handle_create_object(
 }
 
 pub fn handle_create_aura_entity(server: &mut Server, ev: CreateAuraEntityEvent) {
+    let time = *server.state.ecs().read_resource::<Time>();
     let mut entity = server
         .state
         .ecs_mut()
@@ -504,16 +505,11 @@ pub fn handle_create_aura_entity(server: &mut Server, ev: CreateAuraEntityEvent)
 
     // If a duration is specified, create a projectile component for the entity
     if let Some(dur) = ev.duration {
-        let projectile = Projectile {
-            hit_solid: Vec::new(),
-            hit_entity: Vec::new(),
-            time_left: Duration::from_secs_f64(dur.0),
-            owner: Some(ev.creator_uid),
-            ignore_group: true,
-            is_sticky: false,
-            is_point: false,
+        let object = comp::Object::DeleteAfter {
+            spawned_at: time,
+            timeout: Duration::from_secs_f64(dur.0),
         };
-        entity = entity.with(projectile);
+        entity = entity.with(object);
     }
     entity.build();
 }
