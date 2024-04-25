@@ -124,6 +124,7 @@ use test_world::{IndexOwned, World};
 use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace, warn};
 use vek::*;
+use veloren_query_server::server::QueryServer;
 pub use world::{civ::WorldCivStage, sim::WorldSimStage, WorldGenerateStage};
 
 use crate::{
@@ -595,6 +596,28 @@ impl Server {
                     }
                 },
             }
+        }
+
+        if let Some(addr) = settings.query_address {
+            use veloren_query_server::proto::ServerInfo;
+
+            let (query_server_info_tx, query_server_info_rx) =
+                tokio::sync::watch::channel(ServerInfo {
+                    git_hash: *sys::server_info::GIT_HASH,
+                    players_count: 0,
+                    player_cap: settings.max_players,
+                    battlemode: settings.gameplay.battle_mode.into(),
+                });
+            let mut query_server = QueryServer::new(addr, query_server_info_rx);
+            let query_server_metrics = Arc::new(tokio::sync::RwLock::new(
+                veloren_query_server::server::Metrics::default(),
+            ));
+            let query_server_metrics2 = Arc::clone(&query_server_metrics);
+            runtime.spawn(async move {
+                _ = query_server.run(query_server_metrics2).await;
+            });
+            state.ecs_mut().insert(query_server_info_tx);
+            state.ecs_mut().insert(query_server_metrics);
         }
 
         runtime.block_on(network.listen(ListenAddr::Mpsc(14004)))?;

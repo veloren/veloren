@@ -7104,6 +7104,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "veloren-query-server"
+version = "0.1.0"
+dependencies = [
+ "protocol",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "veloren-rtsim"
 version = "0.10.0"
 dependencies = [
@@ -7171,6 +7181,7 @@ dependencies = [
  "veloren-common-state",
  "veloren-common-systems",
  "veloren-network",
+ "veloren-query-server",
  "veloren-rtsim",
  "veloren-server-agent",
  "veloren-world",
@@ -7222,16 +7233,6 @@ dependencies = [
  "veloren-server",
  "veloren-server-agent",
  "veloren-world",
-]
-
-[[package]]
-name = "veloren-server-query"
-version = "0.1.0"
-dependencies = [
- "protocol",
- "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

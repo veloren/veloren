@@ -1,5 +1,5 @@
 [package]
-name = "veloren-server-query"
+name = "veloren-query-server"
 version = "0.1.0"
 authors = ["crabman <vlrncrabman+veloren@gmail.com>", "XVar <atomyc@gmail.com>"]
 edition = "2021"
