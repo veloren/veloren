@@ -13,6 +13,7 @@ members = [
     "common/state",
     "common/systems",
     "common/frontend",
+    "common/query_server",
     "client",
     "client/i18n",
     "rtsim",

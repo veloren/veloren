@@ -2026,6 +2026,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "error-chain"
+version = "0.12.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d2f06b9cac1506ece98fe3231e3cc9c4410ec3d5b1f24ae1c8946f0742cdefc"
+dependencies = [
+ "backtrace",
+ "version_check",
+]
+
+[[package]]
 name = "error-code"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4796,6 +4806,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "protocol"
+version = "3.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13cfa9ba37e0183f87fb14b82f23fc76494c458c72469d95b8a8eec75ad5f191"
+dependencies = [
+ "byteorder",
+ "error-chain",
+ "num-traits",
+ "protocol-derive",
+]
+
+[[package]]
+name = "protocol-derive"
+version = "3.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28647f30298898ead966b51e9aee5c74e4ac709ce5ca554378fde187fd3f7e47"
+dependencies = [
+ "proc-macro2 1.0.79",
+ "quote 1.0.35",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "psm"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7189,6 +7222,16 @@ dependencies = [
  "veloren-server",
  "veloren-server-agent",
  "veloren-world",
+]
+
+[[package]]
+name = "veloren-server-query"
+version = "0.1.0"
+dependencies = [
+ "protocol",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
