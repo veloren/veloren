@@ -1,12 +1,13 @@
 use crate::{
     chunk_generator::ChunkGenerator,
-    metrics::{EcsSystemMetrics, JobMetrics, PhysicsMetrics, TickMetrics},
+    metrics::{EcsSystemMetrics, JobMetrics, PhysicsMetrics, QueryServerMetrics, TickMetrics},
     HwStats, Tick, TickStart,
 };
 use common::{resources::TimeOfDay, slowjob::SlowJobPool, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, SysMetrics, System};
-use specs::{Entities, Join, Read, ReadExpect};
+use specs::{Entities, Join, Read, ReadExpect, Write};
 use std::time::Instant;
+use veloren_query_server::server::Metrics as RawQueryServerMetrics;
 
 /// This system exports metrics
 #[derive(Default)]
@@ -27,6 +28,8 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TickMetrics>,
         ReadExpect<'a, PhysicsMetrics>,
         ReadExpect<'a, JobMetrics>,
+        Write<'a, Option<RawQueryServerMetrics>>,
+        ReadExpect<'a, QueryServerMetrics>,
     );
 
     const NAME: &'static str = "metrics";
@@ -50,6 +53,8 @@ impl<'a> System<'a> for Sys {
             export_tick,
             export_physics,
             export_jobs,
+            mut raw_query_server,
+            export_query_server,
         ): Self::SystemData,
     ) {
         const NANOSEC_PER_SEC: f64 = std::time::Duration::from_secs(1).as_nanos() as f64;
@@ -165,5 +170,9 @@ impl<'a> System<'a> for Sys {
             .system_length_hist
             .with_label_values(&["metrics"])
             .observe(len as f64 / NANOSEC_PER_SEC);
+
+        if let Some(query_server_metrics) = raw_query_server.as_mut() {
+            export_query_server.apply(query_server_metrics.reset());
+        }
     }
 }

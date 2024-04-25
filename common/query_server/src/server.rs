@@ -1,4 +1,5 @@
 use std::{
+    future::Future,
     io,
     net::{Ipv4Addr, SocketAddr, SocketAddrV4},
     sync::Arc,
@@ -72,7 +73,11 @@ impl QueryServer {
             };
 
             if let Err(error) = self
-                .process_datagram(msg_buf, remote_addr, &mut new_metrics)
+                .process_datagram(
+                    msg_buf,
+                    remote_addr,
+                    (&mut new_metrics, Arc::clone(&metrics)),
+                )
                 .await
             {
                 debug!(?error, "Error while processing datagram");
@@ -104,35 +109,50 @@ impl QueryServer {
         &mut self,
         datagram: &[u8],
         remote: SocketAddr,
-        metrics: &mut Metrics,
+        (new_metrics, metrics): (&mut Metrics, Arc<RwLock<Metrics>>),
     ) -> Result<(), tokio::io::Error> {
         let Ok(packet): Result<QueryServerRequest, _> =
             self.pipeline.receive_from(&mut io::Cursor::new(datagram))
         else {
-            metrics.invalid_packets += 1;
+            new_metrics.invalid_packets += 1;
             return Ok(());
         };
 
         trace!(?packet, "Received packet");
 
+        async fn timed<'a, F: Future<Output = O> + 'a, O>(
+            fut: F,
+            metrics: &'a Arc<RwLock<Metrics>>,
+        ) -> Option<O> {
+            if let Ok(res) = timeout(RESPONSE_SEND_TIMEOUT, fut).await {
+                Some(res)
+            } else {
+                metrics.write().await.timed_out_responses += 1;
+                None
+            }
+        }
         match packet {
             QueryServerRequest::Ping(Ping) => {
-                metrics.ping_requests += 1;
+                new_metrics.ping_requests += 1;
                 tokio::task::spawn(async move {
-                    _ = timeout(
-                        RESPONSE_SEND_TIMEOUT,
-                        Self::send_response(QueryServerResponse::Pong(Pong), remote),
+                    timed(
+                        Self::send_response(QueryServerResponse::Pong(Pong), remote, &metrics),
+                        &metrics,
                     )
                     .await;
                 });
             },
             QueryServerRequest::ServerInfo(_) => {
-                metrics.info_requests += 1;
+                new_metrics.info_requests += 1;
                 let server_info = *self.server_info.borrow();
                 tokio::task::spawn(async move {
-                    _ = timeout(
-                        RESPONSE_SEND_TIMEOUT,
-                        Self::send_response(QueryServerResponse::ServerInfo(server_info), remote),
+                    timed(
+                        Self::send_response(
+                            QueryServerResponse::ServerInfo(server_info),
+                            remote,
+                            &metrics,
+                        ),
+                        &metrics,
                     )
                     .await;
                 });
@@ -142,7 +162,11 @@ impl QueryServer {
         Ok(())
     }
 
-    async fn send_response(response: QueryServerResponse, addr: SocketAddr) {
+    async fn send_response(
+        response: QueryServerResponse,
+        addr: SocketAddr,
+        metrics: &Arc<RwLock<Metrics>>,
+    ) {
         let Ok(socket) =
             UdpSocket::bind(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0))).await
         else {
@@ -157,10 +181,10 @@ impl QueryServer {
         _ = pipeline.send_to(&mut io::Cursor::new(&mut buf), &response);
         match socket.send_to(&buf, addr).await {
             Ok(_) => {
-                // TODO: Sent responses metric
+                metrics.write().await.sent_responses += 1;
             },
             Err(err) => {
-                // TODO: Failed response metric
+                metrics.write().await.failed_responses += 1;
                 debug!(?err, "Failed to send query server response");
             },
         }
@@ -195,6 +219,6 @@ impl std::ops::AddAssign for Metrics {
 }
 
 impl Metrics {
-    /// Resets all metrics to 0
-    pub fn reset(&mut self) { *self = Self::default(); }
+    /// Resets all metrics to 0 and returns previous ones
+    pub fn reset(&mut self) -> Self { std::mem::take(self) }
 }

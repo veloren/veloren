@@ -5,7 +5,7 @@ use std::{
 };
 
 use tokio::sync::{watch, RwLock};
-use veloren_server_query::{
+use veloren_query_server::{
     client::QueryClient,
     proto::{ServerBattleMode, ServerInfo},
     server::{Metrics, QueryServer},

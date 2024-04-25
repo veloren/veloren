@@ -70,6 +70,18 @@ pub struct ServerEventMetrics {
     pub event_count: IntCounterVec,
 }
 
+pub struct QueryServerMetrics {
+    pub received_packets: IntGauge,
+    pub dropped_packets: IntGauge,
+    pub invalid_packets: IntGauge,
+    pub proccessing_errors: IntGauge,
+    pub ping_requests: IntGauge,
+    pub info_requests: IntGauge,
+    pub sent_responses: IntGauge,
+    pub failed_responses: IntGauge,
+    pub timed_out_responses: IntGauge,
+}
+
 impl PhysicsMetrics {
     pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
         let entity_entity_collision_checks_count = IntCounter::with_opts(Opts::new(
@@ -415,7 +427,7 @@ impl TickMetrics {
 }
 
 impl ServerEventMetrics {
-    pub fn new(registry: &Registry) -> Result<Self, Box<dyn Error>> {
+    pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
         let event_count = IntCounterVec::new(
             Opts::new("event_count", "number of ServerEvents handled"),
             &["event"],
@@ -423,5 +435,93 @@ impl ServerEventMetrics {
         registry.register(Box::new(event_count.clone()))?;
 
         Ok(Self { event_count })
+    }
+}
+
+impl QueryServerMetrics {
+    pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
+        let received_packets = IntGauge::with_opts(Opts::new(
+            "query_server::received_packets",
+            "Total amount of received packets by the query server",
+        ))?;
+        let dropped_packets = IntGauge::with_opts(Opts::new(
+            "query_server::dropped_packets",
+            "Amount of dropped packets received by the query server (too short or invalid header)",
+        ))?;
+        let invalid_packets = IntGauge::with_opts(Opts::new(
+            "query_server::invalid_packets",
+            "Amount of unparseable packets received by the query server",
+        ))?;
+        let proccessing_errors = IntGauge::with_opts(Opts::new(
+            "query_server::proccessing_errors",
+            "Amount of errors that occured while processing a query server request",
+        ))?;
+        let ping_requests = IntGauge::with_opts(Opts::new(
+            "query_server::ping_requests",
+            "Amount of ping requests received by the query server",
+        ))?;
+        let info_requests = IntGauge::with_opts(Opts::new(
+            "query_server::info_requests",
+            "Amount of server info requests received by the query server",
+        ))?;
+        let sent_responses = IntGauge::with_opts(Opts::new(
+            "query_server::sent_responses",
+            "Amount of responses sent by the query server",
+        ))?;
+        let failed_responses = IntGauge::with_opts(Opts::new(
+            "query_server::failed_responses",
+            "Amount of responses which failed to be sent by the query server",
+        ))?;
+        let timed_out_responses = IntGauge::with_opts(Opts::new(
+            "query_server::timed_out_responses",
+            "Amount of responses which timed out",
+        ))?;
+
+        registry.register(Box::new(received_packets.clone()))?;
+        registry.register(Box::new(dropped_packets.clone()))?;
+        registry.register(Box::new(invalid_packets.clone()))?;
+        registry.register(Box::new(proccessing_errors.clone()))?;
+        registry.register(Box::new(ping_requests.clone()))?;
+        registry.register(Box::new(info_requests.clone()))?;
+        registry.register(Box::new(sent_responses.clone()))?;
+        registry.register(Box::new(failed_responses.clone()))?;
+        registry.register(Box::new(timed_out_responses.clone()))?;
+
+        Ok(Self {
+            received_packets,
+            dropped_packets,
+            invalid_packets,
+            proccessing_errors,
+            ping_requests,
+            info_requests,
+            sent_responses,
+            failed_responses,
+            timed_out_responses,
+        })
+    }
+
+    pub fn apply(
+        &self,
+        veloren_query_server::server::Metrics {
+            received_packets,
+            dropped_packets,
+            invalid_packets,
+            proccessing_errors,
+            ping_requests,
+            info_requests,
+            sent_responses,
+            failed_responses,
+            timed_out_responses,
+        }: veloren_query_server::server::Metrics,
+    ) {
+        self.received_packets.set(received_packets as i64);
+        self.dropped_packets.set(dropped_packets as i64);
+        self.invalid_packets.set(invalid_packets as i64);
+        self.proccessing_errors.set(proccessing_errors as i64);
+        self.ping_requests.set(ping_requests as i64);
+        self.info_requests.set(info_requests as i64);
+        self.sent_responses.set(sent_responses as i64);
+        self.failed_responses.set(failed_responses as i64);
+        self.timed_out_responses.set(timed_out_responses as i64);
     }
 }
