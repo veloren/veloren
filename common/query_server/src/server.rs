@@ -6,7 +6,7 @@ use std::{
     time::Duration,
 };
 
-use protocol::wire::{self, dgram};
+use protocol::Parcel;
 use tokio::{
     net::UdpSocket,
     sync::{watch, RwLock},
@@ -15,7 +15,7 @@ use tokio::{
 use tracing::{debug, trace};
 
 use crate::proto::{
-    Ping, Pong, QueryServerRequest, QueryServerResponse, ServerInfo, VELOREN_HEADER,
+    QueryServerRequest, QueryServerResponse, ServerInfo, MAX_REQUEST_SIZE, VELOREN_HEADER,
 };
 
 const RESPONSE_SEND_TIMEOUT: Duration = Duration::from_secs(2);
@@ -23,7 +23,7 @@ const RESPONSE_SEND_TIMEOUT: Duration = Duration::from_secs(2);
 pub struct QueryServer {
     pub addr: SocketAddr,
     server_info: watch::Receiver<ServerInfo>,
-    pipeline: dgram::Pipeline<QueryServerRequest, wire::middleware::pipeline::Default>,
+    settings: protocol::Settings,
 }
 
 #[derive(Default, Clone, Copy, Debug)]
@@ -32,7 +32,6 @@ pub struct Metrics {
     pub dropped_packets: u32,
     pub invalid_packets: u32,
     pub proccessing_errors: u32,
-    pub ping_requests: u32,
     pub info_requests: u32,
     pub sent_responses: u32,
     pub failed_responses: u32,
@@ -44,15 +43,17 @@ impl QueryServer {
         Self {
             addr,
             server_info,
-            pipeline: crate::create_pipeline(),
+            settings: Default::default(),
         }
     }
 
     pub async fn run(&mut self, metrics: Arc<RwLock<Metrics>>) -> Result<(), tokio::io::Error> {
         let socket = UdpSocket::bind(self.addr).await?;
 
-        let mut buf = Box::new([0; 1024]);
+        let mut buf = Box::new([0; MAX_REQUEST_SIZE]);
         loop {
+            *buf = [0; MAX_REQUEST_SIZE];
+
             let Ok((len, remote_addr)) = socket.recv_from(&mut *buf).await.inspect_err(|err| {
                 debug!("Error while receiving from query server socket: {err:?}")
             }) else {
@@ -66,7 +67,8 @@ impl QueryServer {
 
             let raw_msg_buf = &buf[..len];
             let msg_buf = if Self::validate_datagram(raw_msg_buf) {
-                &raw_msg_buf[VELOREN_HEADER.len()..]
+                // Require 2 extra bytes for version (currently unused)
+                &raw_msg_buf[(VELOREN_HEADER.len() + 2)..]
             } else {
                 new_metrics.dropped_packets += 1;
                 continue;
@@ -83,18 +85,16 @@ impl QueryServer {
                 debug!(?error, "Error while processing datagram");
             }
 
-            *buf = [0; 1024];
-
             // Update metrics at the end of eath packet
-            let mut metrics = metrics.write().await;
-            *metrics += new_metrics;
+            *metrics.write().await += new_metrics;
         }
     }
 
     // Header must be discarded after this validation passes
     fn validate_datagram(data: &[u8]) -> bool {
         let len = data.len();
-        if len < VELOREN_HEADER.len() + 1 {
+        // Require 2 extra bytes for version (currently unused)
+        if len < VELOREN_HEADER.len() + 3 {
             trace!(?len, "Datagram too short");
             false
         } else if data[0..VELOREN_HEADER.len()] != VELOREN_HEADER {
@@ -112,7 +112,7 @@ impl QueryServer {
         (new_metrics, metrics): (&mut Metrics, Arc<RwLock<Metrics>>),
     ) -> Result<(), tokio::io::Error> {
         let Ok(packet): Result<QueryServerRequest, _> =
-            self.pipeline.receive_from(&mut io::Cursor::new(datagram))
+            <QueryServerRequest as Parcel>::read(&mut io::Cursor::new(datagram), &self.settings)
         else {
             new_metrics.invalid_packets += 1;
             return Ok(());
@@ -132,16 +132,6 @@ impl QueryServer {
             }
         }
         match packet {
-            QueryServerRequest::Ping(Ping) => {
-                new_metrics.ping_requests += 1;
-                tokio::task::spawn(async move {
-                    timed(
-                        Self::send_response(QueryServerResponse::Pong(Pong), remote, &metrics),
-                        &metrics,
-                    )
-                    .await;
-                });
-            },
             QueryServerRequest::ServerInfo(_) => {
                 new_metrics.info_requests += 1;
                 let server_info = *self.server_info.borrow();
@@ -174,11 +164,13 @@ impl QueryServer {
             return;
         };
 
-        let mut buf = Vec::new();
-
-        let mut pipeline = crate::create_pipeline();
-
-        _ = pipeline.send_to(&mut io::Cursor::new(&mut buf), &response);
+        let buf = if let Ok(data) =
+            <QueryServerResponse as Parcel>::raw_bytes(&response, &Default::default())
+        {
+            data
+        } else {
+            Vec::new()
+        };
         match socket.send_to(&buf, addr).await {
             Ok(_) => {
                 metrics.write().await.sent_responses += 1;
@@ -199,7 +191,6 @@ impl std::ops::AddAssign for Metrics {
             dropped_packets,
             invalid_packets,
             proccessing_errors,
-            ping_requests,
             info_requests,
             sent_responses,
             failed_responses,
@@ -210,7 +201,6 @@ impl std::ops::AddAssign for Metrics {
         self.dropped_packets += dropped_packets;
         self.invalid_packets += invalid_packets;
         self.proccessing_errors += proccessing_errors;
-        self.ping_requests += ping_requests;
         self.info_requests += info_requests;
         self.sent_responses += sent_responses;
         self.failed_responses += failed_responses;

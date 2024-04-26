@@ -12,7 +12,7 @@ use veloren_query_server::{
 };
 
 const DEFAULT_SERVER_INFO: ServerInfo = ServerInfo {
-    git_hash: ['\0'; 10],
+    git_hash: ['\0'; 8],
     players_count: 100,
     player_cap: 300,
     battlemode: ServerBattleMode::GlobalPvE,
@@ -30,19 +30,18 @@ async fn main() {
     tokio::task::spawn(async move { server.run(metrics2).await.unwrap() });
 
     let client = QueryClient { addr };
-    let ping = client.ping().await.unwrap();
-    let info = client.server_info().await.unwrap();
+    let (info, ping) = client.server_info().await.unwrap();
 
     println!("Ping = {}ms", ping.as_millis());
     println!("Server info: {info:?}");
-    println!("Metrics = {:#?}", metrics.read().await);
     assert_eq!(info, DEFAULT_SERVER_INFO);
 
     let start = Instant::now();
 
     for _i in 0..10000 {
-        client.ping().await.unwrap();
+        client.server_info().await.unwrap();
     }
 
+    println!("Metrics = {:#?}", metrics.read().await);
     dbg!(start.elapsed());
 }

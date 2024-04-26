@@ -75,7 +75,6 @@ pub struct QueryServerMetrics {
     pub dropped_packets: IntGauge,
     pub invalid_packets: IntGauge,
     pub proccessing_errors: IntGauge,
-    pub ping_requests: IntGauge,
     pub info_requests: IntGauge,
     pub sent_responses: IntGauge,
     pub failed_responses: IntGauge,
@@ -456,10 +455,6 @@ impl QueryServerMetrics {
             "query_server::proccessing_errors",
             "Amount of errors that occured while processing a query server request",
         ))?;
-        let ping_requests = IntGauge::with_opts(Opts::new(
-            "query_server::ping_requests",
-            "Amount of ping requests received by the query server",
-        ))?;
         let info_requests = IntGauge::with_opts(Opts::new(
             "query_server::info_requests",
             "Amount of server info requests received by the query server",
@@ -481,7 +476,6 @@ impl QueryServerMetrics {
         registry.register(Box::new(dropped_packets.clone()))?;
         registry.register(Box::new(invalid_packets.clone()))?;
         registry.register(Box::new(proccessing_errors.clone()))?;
-        registry.register(Box::new(ping_requests.clone()))?;
         registry.register(Box::new(info_requests.clone()))?;
         registry.register(Box::new(sent_responses.clone()))?;
         registry.register(Box::new(failed_responses.clone()))?;
@@ -492,7 +486,6 @@ impl QueryServerMetrics {
             dropped_packets,
             invalid_packets,
             proccessing_errors,
-            ping_requests,
             info_requests,
             sent_responses,
             failed_responses,
@@ -507,7 +500,6 @@ impl QueryServerMetrics {
             dropped_packets,
             invalid_packets,
             proccessing_errors,
-            ping_requests,
             info_requests,
             sent_responses,
             failed_responses,
@@ -518,7 +510,6 @@ impl QueryServerMetrics {
         self.dropped_packets.set(dropped_packets as i64);
         self.invalid_packets.set(invalid_packets as i64);
         self.proccessing_errors.set(proccessing_errors as i64);
-        self.ping_requests.set(ping_requests as i64);
         self.info_requests.set(info_requests as i64);
         self.sent_responses.set(sent_responses as i64);
         self.failed_responses.set(failed_responses as i64);

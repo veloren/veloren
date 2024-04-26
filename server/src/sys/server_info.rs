@@ -9,7 +9,7 @@ use crate::{client::Client, Settings, Tick};
 const INFO_SEND_INTERVAL: u64 = 60;
 
 lazy_static! {
-    pub static ref GIT_HASH: [char; 10] = common::util::GIT_HASH[..10]
+    pub static ref GIT_HASH: [char; 8] = common::util::GIT_HASH[..8]
         .chars()
         .collect::<Vec<_>>()
         .try_into()
@@ -23,7 +23,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, Tick>,
         Read<'a, Settings>,
-        Read<'a, Option<tokio::sync::watch::Sender<ServerInfo>>>,
+        Option<Read<'a, tokio::sync::watch::Sender<ServerInfo>>>,
         ReadStorage<'a, Client>,
     );
 
