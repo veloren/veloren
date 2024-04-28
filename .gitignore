@@ -62,6 +62,9 @@ nix/result*
 /result*
 /shell.nix
 
+## KDE
+.directory
+
 
 # Programming and scripting languages
 ## Bash
