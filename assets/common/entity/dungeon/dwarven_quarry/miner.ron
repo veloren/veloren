@@ -3,8 +3,7 @@
     name: Name("Greedy Miner"),
     body: RandomWith("dwarf"),
     alignment: Alignment(Enemy),
-    // TODO Add custom loot table
-    loot: LootTable("common.loot_tables.humanoids.dwarf_graverobber"),
+    loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.miner"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.dwarven_quarry.greedy_miner"),

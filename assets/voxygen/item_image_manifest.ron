@@ -1593,6 +1593,10 @@
         "voxel.lantern.polaris",
     (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
     ),
+    Simple("common.items.lantern.delvers_lamp"): VoxTrans(
+        "voxel.lantern.delvers_lamp",
+    (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    ),
     // Farming Equipment
     Simple("common.items.weapons.tool.broom"): VoxTrans(
         "voxel.weapon.tool.broom-0",
@@ -2827,15 +2831,15 @@
     //Orichalcum Set
     Simple("common.items.armor.mail.orichalcum.chest"): VoxTrans(
         "voxel.armor.mail.orichalcum",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 2,
     ),
     Simple("common.items.armor.mail.orichalcum.pants"): VoxTrans(
         "voxel.armor.mail.orichalcum",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9, 6,
     ),
     Simple("common.items.armor.mail.orichalcum.belt"): VoxTrans(
         "voxel.armor.mail.orichalcum",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 2,
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
     ),
     Simple("common.items.armor.mail.orichalcum.foot"): VoxTrans(
         "voxel.armor.mail.orichalcum",
@@ -2847,11 +2851,15 @@
     ),
     Simple("common.items.armor.mail.orichalcum.shoulder"): VoxTrans(
         "voxel.armor.mail.orichalcum",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 5,
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 7,
     ),
     Simple("common.items.armor.mail.orichalcum.back"): VoxTrans(
         "voxel.armor.mail.orichalcum",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 6,
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0,
+    ),
+    Simple("common.items.armor.mail.orichalcum.head"): VoxTrans(
+        "voxel.armor.mail.orichalcum",
+        (0.0, 2.0, -0.0), (-110.0, 210.0,15.0), 1.4, 5
     ),
     //misc
     Simple("common.items.armor.misc.pants.hunting"): VoxTrans(
@@ -3690,6 +3698,10 @@
         "voxel.sprite.mineral.ore.coal",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
+    Simple("common.items.mineral.ore.ancient_gold"): VoxTrans(
+        "voxel.sprite.mineral.ore.ancient_gold",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
+    ),
     Simple("common.items.crafting_ing.honey"): VoxTrans(
         "voxel.object.honey",
         (1.0, 0.0, 0.0), (-20.0, 20.0, -30.0), 0.9,
@@ -3760,6 +3772,14 @@
     ),
     Simple("common.items.crafting_ing.glacial_crystal"): VoxTrans(
         "voxel.object.glacial_crystal",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.alkahest"): VoxTrans(
+        "voxel.sprite.crafting_ing.alkahest",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.dwarven_battery"): VoxTrans(
+        "voxel.sprite.crafting_ing.dwarven_battery",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Gliders
@@ -4970,31 +4990,11 @@
         "voxel.object.key_glass",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
-    Simple("common.items.keys.quarry_keys.ancient"): VoxTrans(
+    Simple("common.items.keys.quarry_keys.forge_key"): VoxTrans(
         "voxel.object.key_rusty-0",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
-    Simple("common.items.keys.quarry_keys.backdoor"): VoxTrans(
-        "voxel.object.key_rusty-0",
-        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
-    ),
-    Simple("common.items.keys.quarry_keys.cyclops_eye"): VoxTrans(
-       "voxel.sprite.crafting_ing.animal_misc.grim_eyeball",
-        (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
-    ),
-    Simple("common.items.keys.quarry_keys.flamekeeper_left"): VoxTrans(
-        "element.items.keeper_goggle",
-        (0.0, 0.0, 0.0), (-100.0, 230.0, 12.0), 0.8,
-    ),
-    Simple("common.items.keys.quarry_keys.flamekeeper_right"): VoxTrans(
-        "element.items.keeper_goggle",
-        (0.0, 0.0, 0.0), (-100.0, 230.0, 12.0), 0.8,
-    ),
-    Simple("common.items.keys.quarry_keys.overseer"): VoxTrans(
-        "voxel.object.key_rusty-0",
-        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
-    ),
-    Simple("common.items.keys.quarry_keys.smelting"): VoxTrans(
+    Simple("common.items.keys.quarry_keys.miner_key"): VoxTrans(
         "voxel.object.key_rusty-0",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),

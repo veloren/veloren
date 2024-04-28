@@ -1,0 +1,8 @@
+[
+    // Crafting Ingredients
+    (4.0, LootTable("common.loot_tables.materials.common")),
+    // Consumables
+    (2.0, Item("common.items.consumable.potion_minor")),
+    // Gold
+    (2.0, MultiDrop(Item("common.items.utility.coins"), 25, 50)),
+]

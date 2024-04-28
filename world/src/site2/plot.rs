@@ -110,7 +110,7 @@ pub enum PlotKind {
     RockCircle(RockCircle),
     TrollCave(TrollCave),
     Camp(Camp),
-    //DwarvenMine(DwarvenMine),
+    DwarvenMine(DwarvenMine),
     TerracottaPalace(TerracottaPalace),
     TerracottaHouse(TerracottaHouse),
     TerracottaYard(TerracottaYard),

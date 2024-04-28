@@ -1,15 +1,18 @@
 use crate::{
     combat,
+    combat::{Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
     comp::{
-        character_state::OutputEvents, tool::Stats, CharacterState, MeleeConstructor, StateUpdate,
+        character_state::OutputEvents, item::Reagent, tool::Stats, CharacterState,
+        MeleeConstructor, StateUpdate,
     },
-    event::LocalEvent,
+    event::{ExplosionEvent, LocalEvent},
     outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         combo_melee2,
         utils::*,
     },
+    Explosion, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -184,6 +187,33 @@ impl CharacterBehavior for Data {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
+                    if self.static_data.specifier == Some(FrontendSpecifier::IronGolemFist) {
+                        let damage = AttackDamage::new(
+                            Damage {
+                                source: DamageSource::Explosion,
+                                kind: Crushing,
+                                value: 10.0,
+                            },
+                            Some(GroupTarget::OutOfGroup),
+                            rand::random(),
+                        );
+                        let attack = Attack::default().with_damage(damage);
+                        let explosion = Explosion {
+                            effects: vec![RadiusEffect::Attack(attack)],
+                            radius: data.body.max_radius() * 10.0,
+                            reagent: Some(Reagent::Yellow),
+                            min_falloff: 0.5,
+                        };
+                        let pos =
+                            data.pos.0 + (*data.ori.look_dir() * (data.body.max_radius() * 3.0));
+                        let explosition =
+                            Vec3::new(pos.x, pos.y, pos.z + (data.body.height() / 2.0));
+                        output_events.emit_server(ExplosionEvent {
+                            pos: explosition,
+                            explosion,
+                            owner: Some(*data.uid),
+                        });
+                    }
                 } else if self.start_next_strike {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.completed_strikes += 1;
@@ -253,4 +283,5 @@ fn next_strike(data: &JoinData, update: &mut StateUpdate) {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     ClayGolemDash,
+    IronGolemFist,
 }

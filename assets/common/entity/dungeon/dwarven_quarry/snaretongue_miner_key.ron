@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Snaretongue"),
+    body: RandomWith("snaretongue"),
+    alignment: Alignment(Enemy),
+    loot: Item("common.items.keys.quarry_keys.miner_key"),
+        inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

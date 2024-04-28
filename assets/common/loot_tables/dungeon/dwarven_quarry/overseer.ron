@@ -1,7 +1,0 @@
-[
-  (1, All([
-        Item("common.items.keys.quarry_keys.overseer"),
-        MultiDrop(Item("common.items.crafting_ing.hide.plate"), 1, 2),
-        ],
-   )),
-]

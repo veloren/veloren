@@ -22,6 +22,9 @@ lantern-pumpkin = Eerie Pumpkin
 lantern-red = Red Lantern
     .desc = Caution: contents hot.
 
+lantern-delvers_lamp = Delver's Lamp
+    .desc = Perfect for mining.
+
 glider-basic_red = Red Cloth Glider
     .desc = A simple glider, but with a striking red color.
 

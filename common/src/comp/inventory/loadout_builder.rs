@@ -563,6 +563,9 @@ fn default_main_tool(body: &Body) -> Item {
             golem::Species::Mogwai => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.mogwai",
             )),
+            golem::Species::IronGolem => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.iron_golem_fist",
+            )),
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -647,8 +650,8 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_low::Species::Dagon => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.dagon",
             )),
-            quadruped_low::Species::HermitAlligator => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.hermit_alligator",
+            quadruped_low::Species::Snaretongue => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.snaretongue",
             )),
             quadruped_low::Species::Crocodile
             | quadruped_low::Species::SeaCrocodile
@@ -864,14 +867,17 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::Cursekeeper, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.cursekeeper_sceptre",
             )),
+            (biped_large::Species::Forgemaster, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.hammer.forgemaster_hammer",
+            )),
         },
         Body::Object(body) => match body {
             object::Body::Crossbow => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.turret",
             )),
-            object::Body::Flamethrower => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.flamethrower",
-            )),
+            object::Body::Flamethrower | object::Body::Lavathrower => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.flamethrower"),
+            ),
             object::Body::BarrelOrgan => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.organ",
             )),
@@ -917,8 +923,8 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_small::Species::Flamekeeper, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.flamekeeper_staff",
             )),
-            (biped_small::Species::Clockwork, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.clockwork",
+            (biped_small::Species::IronDwarf, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.iron_dwarf",
             )),
             (biped_small::Species::ShamanicSpirit, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.shamanic_spirit",
@@ -1000,7 +1006,7 @@ pub struct LoadoutBuilder(Loadout);
 pub enum Preset {
     HuskSummon,
     BorealSummon,
-    ClockworkSummon,
+    IronDwarfSummon,
     ShamanicSpiritSummon,
     JiangshiSummon,
 }
@@ -1121,6 +1127,9 @@ impl LoadoutBuilder {
                 | biped_large::Species::Cursekeeper => {
                     Some("common.items.npc_armor.biped_large.terracotta")
                 },
+                biped_large::Species::Forgemaster => {
+                    Some("common.items.npc_armor.biped_large.forgemaster")
+                },
                 _ => None,
             },
             Body::BirdLarge(body) => match body.species {
@@ -1140,6 +1149,7 @@ impl LoadoutBuilder {
                 golem::Species::WoodGolem => Some("common.items.npc_armor.golem.woodgolem"),
                 golem::Species::AncientEffigy => Some("common.items.npc_armor.golem.ancienteffigy"),
                 golem::Species::Mogwai => Some("common.items.npc_armor.golem.mogwai"),
+                golem::Species::IronGolem => Some("common.items.npc_armor.golem.irongolem"),
                 _ => None,
             },
             Body::QuadrupedLow(body) => match body.species {
@@ -1256,9 +1266,9 @@ impl LoadoutBuilder {
                 self =
                     self.with_asset_expect("common.loadout.world.boreal.boreal_warrior", rng, None);
             },
-            Preset::ClockworkSummon => {
+            Preset::IronDwarfSummon => {
                 self = self.with_asset_expect(
-                    "common.loadout.dungeon.dwarven_quarry.clockwork",
+                    "common.loadout.dungeon.dwarven_quarry.iron_dwarf",
                     rng,
                     None,
                 );

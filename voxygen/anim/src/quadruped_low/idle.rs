@@ -58,15 +58,18 @@ impl Animation for IdleAnimation {
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_y(slow * 0.03);
+        if s_a.tongue_for_tail {
+            next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
+            next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
+        } else {
+            next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
+            next.tail_front.orientation =
+                Quaternion::rotation_x(0.15) * Quaternion::rotation_z(slowalt * 0.12);
 
-        next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
-        next.tail_front.orientation =
-            Quaternion::rotation_x(0.15) * Quaternion::rotation_z(slowalt * 0.12);
-
-        next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-        next.tail_rear.orientation =
-            Quaternion::rotation_z(slowalt * 0.12) * Quaternion::rotation_x(-0.12);
-
+            next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
+            next.tail_rear.orientation =
+                Quaternion::rotation_z(slowalt * 0.12) * Quaternion::rotation_x(-0.12);
+        }
         next.foot_fl.position = Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
         next.foot_fl.orientation = Quaternion::rotation_y(slow * -0.05);
 

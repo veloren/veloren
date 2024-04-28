@@ -224,12 +224,12 @@
                 vox_spec: ("npc.irrwurz.male.hand_r", (0.0, -3.5, -7.0)),
             )
         ),
-        "common.items.npc_armor.biped_small.clockwork.hand.clockwork": (
+        "common.items.npc_armor.biped_small.iron_dwarf.hand.iron_dwarf": (
             left: (
-                vox_spec: ("npc.clockwork.hand_r", (-6.0, -3.5, -8.5)),
+                vox_spec: ("npc.iron_dwarf.hand_r", (-6.0, -3.5, -8.5)),
             ),
             right: (
-                 vox_spec: ("npc.clockwork.hand_r", (0.0, -3.5, -8.5)),
+                 vox_spec: ("npc.iron_dwarf.hand_r", (0.0, -3.5, -8.5)),
             )
         ),
         "common.items.npc_armor.biped_small.flamekeeper.hand.flamekeeper": (

@@ -29,6 +29,9 @@ pub struct StaticData {
     pub melee_constructor: MeleeConstructor,
     /// Adjusts turning rate during the attack
     pub ori_modifier: f32,
+    /// Used to indicate to the frontend what ability this is for any special
+    /// effects
+    pub frontend_specifier: Option<FrontendSpecifier>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -167,4 +170,9 @@ fn reset_state(
         update,
         data.static_data.ability_info.input,
     );
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum FrontendSpecifier {
+    FlameTornado,
 }

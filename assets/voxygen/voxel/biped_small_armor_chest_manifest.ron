@@ -84,8 +84,8 @@
         "common.items.npc_armor.biped_small.irrwurz.chest.irrwurz": (
             vox_spec: ("npc.irrwurz.male.chest", (-7.5, -7.5, 0.0)),
         ),
-        "common.items.npc_armor.biped_small.clockwork.chest.clockwork": (
-            vox_spec: ("npc.clockwork.chest", (-5.0, -6.0, -6.0)),
+        "common.items.npc_armor.biped_small.iron_dwarf.chest.iron_dwarf": (
+            vox_spec: ("npc.iron_dwarf.chest", (-5.0, -6.0, -6.0)),
         ),
         "common.items.npc_armor.biped_small.flamekeeper.chest.flamekeeper": (
             vox_spec: ("npc.flamekeeper.chest", (-6.0, -11.0, -5.5)),

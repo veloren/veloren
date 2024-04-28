@@ -1,0 +1,16 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.dwarven_quarry.prefab.dwarven_quarry-1-after_forgemaster",
+        center: (12, 7, 0),
+        custom_indices: {
+            8: Filled(Air, (r: 255, g: 255, b: 255)),
+            212: Filled(Air, (r: 255, g: 255, b: 255)), // half open Gate
+//            216: Sprite(KeyDoor),
+            216: Filled(Air, (r: 255, g: 255, b: 255)),
+            213: Filled(Air, (r: 255, g: 255, b: 255)),
+            136: Sprite(Lantern),
+         },
+    ),
+]

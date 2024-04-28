@@ -33,11 +33,14 @@ impl Animation for JumpAnimation {
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
+        if s_a.tongue_for_tail {
+            next.tail_front.scale = Vec3::one() * 0.1;
+            next.tail_rear.scale = Vec3::one() * 0.1;
+        } else {
+            next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
 
-        next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
-
-        next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-
+            next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
+        }
         next.foot_fl.position = Vec3::new(-s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);
 
         next.foot_fr.position = Vec3::new(s_a.feet_f.0, s_a.feet_f.1, s_a.feet_f.2);

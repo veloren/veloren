@@ -423,7 +423,7 @@ impl Site {
         site
     }
 
-    /*pub fn generate_mine(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_mine(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
         let mut site = Site {
             origin,
@@ -456,7 +456,7 @@ impl Site {
         });
 
         site
-    }  */
+    }
 
     pub fn generate_citadel(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
@@ -2073,8 +2073,7 @@ impl Site {
                 PlotKind::SavannahWorkshop(savannah_workshop) => {
                     savannah_workshop.render_collect(self, canvas)
                 },
-                //PlotKind::DwarvenMine(_dwarven_mine) => dwarven_mine.render_collect(self,
-                // canvas),
+                PlotKind::DwarvenMine(dwarven_mine) => dwarven_mine.render_collect(self, canvas),
                 PlotKind::TerracottaPalace(terracotta_palace) => {
                     terracotta_palace.render_collect(self, canvas)
                 },

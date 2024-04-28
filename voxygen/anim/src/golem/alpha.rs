@@ -29,7 +29,8 @@ impl Animation for AlphaAnimation {
             Some(
                 "common.abilities.custom.stonegolemfist.spin"
                 | "common.abilities.custom.woodgolem.spin"
-                | "common.abilities.custom.coralgolem.spin",
+                | "common.abilities.custom.coralgolem.spin"
+                | "common.abilities.custom.irongolemfist.spin",
             ) => {
                 let (movement1, movement2, movement3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),

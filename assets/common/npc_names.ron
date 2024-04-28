@@ -1009,6 +1009,10 @@
             cursekeeper: (
                 keyword: "cursekeeper",
                 generic: "Cursekeeper"
+            ),
+            forgemaster: (
+                keyword: "forgemaster",
+                generic: "Forgemaster"
             )
         )
     ),
@@ -1051,6 +1055,10 @@
             coralgolem: (
                 keyword: "coralgolem",
                 generic: "Coral Golem"
+            ),
+            irongolem: (
+                keyword: "irongolem",
+                generic: "IronGolem"
             )
         )
     ),
@@ -1153,9 +1161,9 @@
                 keyword: "gnome",
                 generic: "Gnome"
             ),
-            clockwork: (
-                keyword: "clockwork",
-                generic: "Clockwork"
+            iron_dwarf: (
+                keyword: "iron_dwarf",
+                generic: "Iron Dwarf"
             ),
             flamekeeper: (
                 keyword: "flamekeeper",
@@ -1325,9 +1333,9 @@
                 keyword: "alligator",
                 generic: "Alligator"
             ),
-            hermit_alligator: (
-                keyword: "hermit_alligator",
-                generic: "Hermit Alligator"
+            snaretongue: (
+                keyword: "snaretongue",
+                generic: "Snaretongue"
             ),
             salamander: (
                 keyword: "salamander",

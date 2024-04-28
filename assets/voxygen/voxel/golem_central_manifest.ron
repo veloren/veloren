@@ -305,4 +305,40 @@
             central: ("armor.empty"),
         ),
     ),
+    (IronGolem, Male): (
+        head: (
+            offset: (-6.5, -7.0, -0.0),
+            central: ("npc.irongolem.male.head"),
+        ),
+        jaw: (
+            offset: (-3.5, -4.0, -0.0),
+            central: ("armor.empty"),
+        ),
+        torso_upper: (
+            offset: (-10.5, -11.5, -10.5),
+            central: ("npc.irongolem.male.chest_upper"),
+        ),
+        torso_lower: (
+            offset: (-10.5, -8.0, -10.0),
+            central: ("npc.irongolem.male.chest_lower"),
+        ),
+    ),
+    (IronGolem, Female): (
+        head: (
+            offset: (-6.5, -7.0, -0.0),
+            central: ("npc.irongolem.male.head"),
+        ),
+        jaw: (
+            offset: (-3.5, -4.0, -0.0),
+            central: ("armor.empty"),
+        ),
+        torso_upper: (
+            offset: (-10.5, -11.5, -10.5),
+            central: ("npc.irongolem.male.chest_upper"),
+        ),
+        torso_lower: (
+            offset: (-10.5, -8.0, -10.0),
+            central: ("npc.irongolem.male.chest_lower"),
+        ),
+    ),
 })

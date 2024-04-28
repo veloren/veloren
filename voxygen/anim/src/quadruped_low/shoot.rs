@@ -32,7 +32,7 @@ impl Animation for ShootAnimation {
 
         let twitch1 = (movement1 * 18.0).sin();
         match ability_id {
-            Some("common.abilities.custom.dwarves.hermit_alligator.bombs") => {
+            Some("common.abilities.custom.dwarves.snaretongue.bombs") => {
                 next.head_upper.position =
                     Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1 - movement1 * 2.0);
                 next.head_upper.orientation =
@@ -51,11 +51,9 @@ impl Animation for ShootAnimation {
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1 * 0.5);
                 next.chest.orientation = Quaternion::rotation_x(0.0 + movement1 * 0.1);
 
-                next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
-                next.tail_front.orientation = Quaternion::rotation_x(movement1 * -0.4);
+                next.tail_front.scale = Vec3::one() * 0.1;
+                next.tail_rear.scale = Vec3::one() * 0.1;
 
-                next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-                next.tail_rear.orientation = Quaternion::rotation_x(movement1 * -0.4);
                 next.foot_fl.orientation = Quaternion::rotation_x(movement1 * -0.2);
 
                 next.foot_fr.orientation = Quaternion::rotation_x(movement1 * -0.2);

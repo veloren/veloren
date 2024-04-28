@@ -238,10 +238,11 @@ pub enum Tactic {
     Deadwood,
     Mandragora,
     WoodGolem,
+    IronGolem,
     GnarlingChieftain,
     OrganAura,
     Dagon,
-    HermitAlligator,
+    Snaretongue,
     Cardinal,
     SeaBishop,
     Roshwalr,
@@ -251,6 +252,7 @@ pub enum Tactic {
     Cyclops,
     IceDrake,
     Flamekeeper,
+    Forgemaster,
 
     // Adlets
     AdletHunter,

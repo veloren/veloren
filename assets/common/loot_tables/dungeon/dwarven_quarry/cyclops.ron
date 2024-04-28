@@ -1,8 +1,0 @@
-[
-  (1.0, All([
-        Item("common.items.keys.quarry_keys.cyclops_eye"),
-        MultiDrop(Item("common.items.utility.coins"), 200, 500),
-        MultiDrop(Item("common.items.mineral.ingot.iron"), 5, 10),
-        ],
-   )),
-]

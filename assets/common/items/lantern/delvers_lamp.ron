@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Delver's Lamp",
+    legacy_description: "Perfect for mining.",
+    kind: Lantern(
+        (
+            color: (r: 0, g: 216, b: 255),
+            strength_thousandths: 8000,
+            flicker_thousandths: 600,
+        ),
+    ),
+    quality: Legendary,
+    tags: [Utility],
+)

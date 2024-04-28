@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Name("Lava Thrower"),
+    body: Exact(Object(Lavathrower)),
+    alignment: Alignment(Enemy),
+    loot: Item("common.items.crafting_ing.twigs"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    agent: (
+        aggro_range_multiplier: 6.0,
+    ),
+    meta: [],
+)

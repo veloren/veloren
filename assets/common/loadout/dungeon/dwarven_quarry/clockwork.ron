@@ -1,8 +1,0 @@
-#![enable(implicit_some)]
-(
-    head: Item("common.items.npc_armor.biped_small.clockwork.head.clockwork"),
-    chest: Item("common.items.npc_armor.biped_small.clockwork.chest.clockwork"),
-    gloves: Item("common.items.npc_armor.biped_small.clockwork.hand.clockwork"),
-    legs: Item("common.items.npc_armor.biped_small.clockwork.pants.clockwork"),
-    feet: Item("common.items.npc_armor.biped_small.clockwork.foot.clockwork"),
-)

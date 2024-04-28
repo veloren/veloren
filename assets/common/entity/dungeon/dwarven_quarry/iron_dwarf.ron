@@ -1,0 +1,17 @@
+#![enable(implicit_some)]
+(
+    name: Name("Iron Dwarf"),
+    body: RandomWith("iron_dwarf"),
+    alignment: Alignment(Enemy),
+    loot: Nothing,
+    inventory: (
+        loadout: Inline((
+            active_hands: InHands((Item("common.items.npc_weapons.unique.iron_dwarf"), None)),
+            inherit: Asset("common.loadout.dungeon.dwarven_quarry.iron_dwarf"),
+        )),
+    ),
+    agent: (
+        idle_wander_factor: 0.1,
+    ),
+    meta: [],
+)

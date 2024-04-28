@@ -58,6 +58,12 @@ sprite-crafting_ing-sentient_seed = Sentient Seed
 sprite-crafting_ing-sticky_thread = Sticky Thread
     .desc = A messy spider extract, but a tailor may have use for it.
 
+sprite-crafting_ing-alkahest = Alkahest
+    .desc = Alchemical solvent.
+
+sprite-crafting_ing-dwarven_battery = Dwarven Battery
+    .desc = Container of magical energy.
+
 sprite-rocks-rock-0 = Stones
     .desc = Pebbles from the ground, nothing out of the ordinary.
 
@@ -262,6 +268,9 @@ sprite-mineral-ore-silver = Silver Ore
 
 sprite-mineral-ore-tin = Tin Ore
     .desc = A silvery metal. One of the components of bronze.
+
+sprite-mineral-ore-ancient_gold = Ancient Gold
+    .desc = Ancient ingot of gold, soaked in magical energies.
 
 sprite-velorite-velorite_ore = Velorite
     .desc = A bizarre, oddly shimmering ore, its origin seems to be shrouded in mystery.

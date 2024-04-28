@@ -363,6 +363,14 @@
             Simple(None, "common.abilities.custom.stonegolemfist.spin"),
         ],
     ),
+    Custom("Iron Golem"): (
+        primary: Simple(None, "common.abilities.custom.irongolemfist.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.irongolemfist.shockwave"),
+        abilities: [
+            Simple(None, "common.abilities.custom.irongolemfist.iron_pike_bomb"),
+            Simple(None, "common.abilities.custom.irongolemfist.spin"),
+        ],
+    ),
     Custom("Beast Claws"): (
         primary: Simple(None, "common.abilities.custom.beastclaws.basic"),
         secondary: Simple(None, "common.abilities.custom.beastclaws.basic"),
@@ -598,9 +606,7 @@
     Custom("Organ"): (
         primary: Simple(None, "common.abilities.custom.organ.organaura"),
         secondary: Simple(None, "common.abilities.custom.organ.organaura"),
-        abilities: [
-            Simple(None, "common.abilities.custom.arthropods.weevil.threadshot"),
-        ],
+        abilities: [],
     ),
     Custom("Haniwa Sentry"): (
         primary: Simple(None, "common.abilities.custom.turret.flamethrower"),
@@ -617,28 +623,39 @@
         ],
     ),
     Custom("Flamekeeper"): (
-        primary: Simple(None, "common.abilities.custom.dwarves.flamekeeper.lava_mortar"),
+        primary: Simple(None, "common.abilities.custom.dwarves.flamekeeper.mines"),
         secondary: Simple(None, "common.abilities.custom.dwarves.flamekeeper.flamecrush"),
         abilities: [
-            Simple(None, "common.abilities.custom.dwarves.flamekeeper.summon_flamethrower"),
-            Simple(None, "common.abilities.custom.dwarves.flamekeeper.summon_clockwork"),
+            Simple(None, "common.abilities.custom.dwarves.flamekeeper.summon_lavathrower"),
             Simple(None, "common.abilities.custom.dwarves.flamekeeper.flamethrower"),
             Simple(None, "common.abilities.custom.dwarves.flamekeeper.lavawave"),
             Simple(None, "common.abilities.custom.dwarves.flamekeeper.mines"),
         ],
     ),
-    Custom("Clockwork"): (
-        primary: Simple(None, "common.abilities.custom.dwarves.clockwork.singlestrike"),
-        secondary: Simple(None, "common.abilities.custom.dwarves.clockwork.triplestrike"),
+    Custom("Forgemaster"): (
+        primary: Simple(None, "common.abilities.custom.dwarves.forgemaster.lava_mortar"),
+        secondary: Simple(None, "common.abilities.custom.dwarves.forgemaster.flamecrush"),
+        abilities: [
+            Simple(None, "common.abilities.custom.dwarves.forgemaster.summon_iron_dwarf"),
+            Simple(None, "common.abilities.custom.dwarves.forgemaster.groundislava1"),
+            Simple(None, "common.abilities.custom.dwarves.forgemaster.flamethrower"),
+            Simple(None, "common.abilities.custom.dwarves.forgemaster.lavawave"),
+            Simple(None, "common.abilities.custom.dwarves.forgemaster.groundislava2"),
+            Simple(None, "common.abilities.custom.dwarves.forgemaster.teleport"),
+        ],
+    ),
+    Custom("IronDwarf"): (
+        primary: Simple(None, "common.abilities.custom.dwarves.iron_dwarf.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.dwarves.iron_dwarf.triplestrike"),
         abilities: [],
     ),
-    Custom("HermitAlligator"): (
-        primary: Simple(None, "common.abilities.custom.dwarves.hermit_alligator.tail"),
-        secondary: Simple(None, "common.abilities.custom.dwarves.hermit_alligator.wave"),
+    Custom("Snaretongue"): (
+        primary: Simple(None, "common.abilities.custom.dwarves.snaretongue.tongue"),
+        secondary: Simple(None, "common.abilities.custom.dwarves.snaretongue.wave"),
         abilities: [
-            Simple(None, "common.abilities.custom.dwarves.hermit_alligator.bombs"),
-            Simple(None, "common.abilities.custom.dwarves.hermit_alligator.beam"),
-            Simple(None, "common.abilities.custom.dwarves.hermit_alligator.heal"),
+            Simple(None, "common.abilities.custom.dwarves.snaretongue.bombs"),
+            Simple(None, "common.abilities.custom.dwarves.snaretongue.beam"),
+            Simple(None, "common.abilities.custom.dwarves.snaretongue.heal"),
         ],
     ),
     Custom("Minotaur"): (

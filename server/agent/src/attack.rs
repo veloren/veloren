@@ -1988,6 +1988,54 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    pub fn handle_iron_golem_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        _tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        enum ActionStateTimers {
+            AttackTimer = 0,
+        }
+
+        let home = agent.patrol_origin.unwrap_or(self.pos.0.round());
+
+        let attack_select =
+            if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 3.0 {
+                0
+            } else if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 4.5 {
+                1
+            } else {
+                2
+            };
+        if attack_data.in_min_range() {
+            controller.inputs.move_dir = Vec2::zero();
+            controller.push_basic_input(InputKind::Primary);
+        } else {
+            match attack_select {
+                0 => {
+                    // firebolt
+                    controller.push_basic_input(InputKind::Ability(0))
+                },
+                1 => {
+                    // spin
+                    controller.push_basic_input(InputKind::Ability(1))
+                },
+                _ => {
+                    // shockwave
+                    controller.push_basic_input(InputKind::Secondary)
+                },
+            };
+        };
+        agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
+        if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] > 7.5 {
+            agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] = 0.0;
+        };
+        self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn handle_circle_charge_attack(
         &self,
@@ -2887,7 +2935,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    pub fn handle_flamekeeper_attack(
+    pub fn handle_forgemaster_attack(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
@@ -2902,8 +2950,104 @@ impl<'a> AgentData<'a> {
         enum FCounters {
             SummonThreshold = 0,
         }
-        enum Conditions {
-            AttackToggle = 0,
+        enum Timers {
+            AttackRand = 0,
+        }
+        if agent.combat_state.timers[Timers::AttackRand as usize] > 10.0 {
+            agent.combat_state.timers[Timers::AttackRand as usize] = 0.0;
+        }
+
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
+        };
+        let home = agent.patrol_origin.unwrap_or(self.pos.0.round());
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // Teleport back to home position if we're too far from our home position but in
+        // range of the blink ability
+        if (5f32.powi(2)..100f32.powi(2)).contains(&home.distance_squared(self.pos.0)) {
+            controller.push_action(ControlAction::StartInput {
+                input: InputKind::Ability(5),
+                target_entity: None,
+                select_pos: Some(home),
+            });
+        } else if !agent.combat_state.initialized {
+            // Sets counter at start of combat, using `condition` to keep track of whether
+            // it was already initialized
+            agent.combat_state.counters[FCounters::SummonThreshold as usize] =
+                1.0 - SUMMON_THRESHOLD;
+            agent.combat_state.initialized = true;
+        } else if health_fraction < agent.combat_state.counters[FCounters::SummonThreshold as usize]
+        {
+            // Summon IronDwarfs at particular thresholds of health
+            controller.push_basic_input(InputKind::Ability(0));
+
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.combat_state.counters[FCounters::SummonThreshold as usize] -=
+                    SUMMON_THRESHOLD;
+            }
+        } else {
+            // If target is in melee range use flamecrush and lawawave
+            if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
+                if agent.combat_state.timers[Timers::AttackRand as usize] < 3.5 {
+                    // flamecrush
+                    controller.push_basic_input(InputKind::Secondary);
+                } else {
+                    // lavawave
+                    controller.push_basic_input(InputKind::Ability(3));
+                }
+                // If target is in mid range use lavawave, flamethrower and
+                // groundislava1
+            } else if attack_data.dist_sqrd < MID_RANGE.powi(2) && line_of_sight_with_target() {
+                if agent.combat_state.timers[Timers::AttackRand as usize] > 6.5 {
+                    controller.push_basic_input(InputKind::Ability(1));
+                } else if agent.combat_state.timers[Timers::AttackRand as usize] > 3.5 {
+                    // lavawave
+                    controller.push_basic_input(InputKind::Ability(3));
+                } else if agent.combat_state.timers[Timers::AttackRand as usize] > 2.5 {
+                    // lavamortar
+                    controller.push_basic_input(InputKind::Primary);
+                } else {
+                    // flamethrower
+                    controller.push_basic_input(InputKind::Ability(2));
+                }
+                // If target is beyond mid range use lavamortar and
+                // groundislava2
+            } else if attack_data.dist_sqrd > MID_RANGE.powi(2) {
+                if agent.combat_state.timers[Timers::AttackRand as usize] > 6.5 {
+                    controller.push_basic_input(InputKind::Ability(4));
+                } else {
+                    // lavamortar
+                    controller.push_basic_input(InputKind::Primary);
+                }
+            }
+            agent.combat_state.timers[Timers::AttackRand as usize] += read_data.dt.0;
+        }
+        self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+    }
+
+    pub fn handle_flamekeeper_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const MELEE_RANGE: f32 = 6.0;
+        const MID_RANGE: f32 = 25.0;
+        const SUMMON_THRESHOLD: f32 = 0.2;
+
+        enum FCounters {
+            SummonThreshold = 0,
         }
         enum Timers {
             AttackRand = 0,
@@ -2932,45 +3076,40 @@ impl<'a> AgentData<'a> {
             agent.combat_state.initialized = true;
         } else if health_fraction < agent.combat_state.counters[FCounters::SummonThreshold as usize]
         {
-            // Summon Flamethrowers or Clockworks at particular thresholds of health
-
-            if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {
-                // summon Flamethrowers
-                controller.push_basic_input(InputKind::Ability(0));
-            } else {
-                // summon Clockworks
-                controller.push_basic_input(InputKind::Ability(1));
-            }
+            // Summon Flamethrowers at particular thresholds of health
+            controller.push_basic_input(InputKind::Ability(0));
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.combat_state.counters[FCounters::SummonThreshold as usize] -=
                     SUMMON_THRESHOLD;
-                agent.combat_state.conditions[Conditions::AttackToggle as usize] =
-                    !agent.combat_state.conditions[Conditions::AttackToggle as usize];
             }
         } else {
             // If target is in melee range use flamecrush
             if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
-                // flamecrush
-                controller.push_basic_input(InputKind::Secondary);
+                if agent.combat_state.timers[Timers::AttackRand as usize] < 3.5 {
+                    // flamecrush
+                    controller.push_basic_input(InputKind::Secondary);
+                } else {
+                    // lavawave
+                    controller.push_basic_input(InputKind::Ability(2));
+                }
                 // If target is in mid range use mines, lavawave, flamethrower
             } else if attack_data.dist_sqrd < MID_RANGE.powi(2) && line_of_sight_with_target() {
                 if agent.combat_state.timers[Timers::AttackRand as usize] > 3.5 {
                     // lavawave
-                    controller.push_basic_input(InputKind::Ability(3));
+                    controller.push_basic_input(InputKind::Ability(2));
                 } else if agent.combat_state.timers[Timers::AttackRand as usize] > 2.5 {
                     // mines
-                    controller.push_basic_input(InputKind::Ability(4));
+                    controller.push_basic_input(InputKind::Ability(3));
                 } else {
                     // flamethrower
-                    controller.push_basic_input(InputKind::Ability(2));
+                    controller.push_basic_input(InputKind::Ability(1));
                 }
                 // If target is beyond mid range use lavamortar
             } else if attack_data.dist_sqrd > MID_RANGE.powi(2) {
                 // lavamortar
                 controller.push_basic_input(InputKind::Primary);
             }
-            // path towards home
             self.path_toward_target(
                 agent,
                 controller,
@@ -5011,7 +5150,7 @@ impl<'a> AgentData<'a> {
         self.path_toward_target(agent, controller, tgt_data.pos.0, read_data, path, None);
     }
 
-    pub fn handle_hermit_alligator_attack(
+    pub fn handle_snaretongue_attack(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
@@ -5025,9 +5164,9 @@ impl<'a> AgentData<'a> {
         if *attack_timer > 2.5 {
             *attack_timer = 0.0;
         }
-        // if target gets very close, use tail attack and shockwave
+        // if target gets very close, use tongue attack and shockwave
         if attack_data.dist_sqrd < attack_data.min_attack_dist.powi(2) {
-            if *attack_timer > 1.0 {
+            if *attack_timer > 0.5 {
                 controller.push_basic_input(InputKind::Primary);
                 *attack_timer += read_data.dt.0;
             } else {

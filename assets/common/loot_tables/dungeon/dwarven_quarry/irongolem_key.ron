@@ -1,0 +1,7 @@
+[
+  (1, All([
+        Item("common.items.keys.quarry_keys.miner_key"),
+        MultiDrop(Item("common.items.crafting_ing.dwarven_battery"), 1, 2),
+        ],
+   )),
+]

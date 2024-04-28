@@ -364,10 +364,11 @@ impl Body {
                 | biped_large::Species::TerracottaPunisher
                 | biped_large::Species::TerracottaPursuer
                 | biped_large::Species::Cursekeeper => 380.0,
+                biped_large::Species::Forgemaster => 1600.0,
                 _ => 400.0,
             },
             Body::BipedSmall(body) => match body.species {
-                biped_small::Species::Clockwork => 1000.0,
+                biped_small::Species::IronDwarf => 1000.0,
                 biped_small::Species::Flamekeeper => 1000.0,
                 _ => 50.0,
             },
@@ -410,7 +411,7 @@ impl Body {
             Body::ItemDrop(item_drop) => item_drop.mass().0,
             Body::QuadrupedLow(body) => match body.species {
                 quadruped_low::Species::Alligator => 360.0, // ~✅
-                quadruped_low::Species::HermitAlligator => 1000.0,
+                quadruped_low::Species::Snaretongue => 280.0,
                 quadruped_low::Species::Asp => 300.0,
                 // saltwater crocodiles can weigh around 1 ton, but our version is the size of an
                 // alligator or smaller, so whatever
@@ -533,6 +534,7 @@ impl Body {
                 biped_large::Species::TerracottaPunisher => Vec3::new(3.3, 2.5, 3.8),
                 biped_large::Species::TerracottaPursuer => Vec3::new(3.3, 2.5, 3.8),
                 biped_large::Species::Cursekeeper => Vec3::new(3.8, 3.0, 5.0),
+                biped_large::Species::Forgemaster => Vec3::new(6.5, 5.0, 8.0),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -545,10 +547,10 @@ impl Body {
                 biped_small::Species::Boreal => Vec3::new(1.3, 2.0, 2.5),
                 biped_small::Species::Bushly => Vec3::new(1.2, 1.3, 1.6),
                 biped_small::Species::Irrwurz => Vec3::new(1.5, 1.5, 2.0),
-                biped_small::Species::Clockwork => Vec3::new(1.3, 2.0, 2.5),
-                biped_small::Species::Flamekeeper => Vec3::new(5.0, 5.0, 10.0),
+                biped_small::Species::IronDwarf => Vec3::new(1.3, 2.0, 2.5),
                 biped_small::Species::ShamanicSpirit => Vec3::new(1.3, 2.0, 2.3),
                 biped_small::Species::Jiangshi => Vec3::new(1.3, 1.8, 2.5),
+                biped_small::Species::Flamekeeper => Vec3::new(1.5, 1.5, 2.5),
                 biped_small::Species::TreasureEgg => Vec3::new(1.1, 1.1, 1.4),
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
@@ -637,7 +639,7 @@ impl Body {
                 quadruped_low::Species::Elbst => Vec3::new(1.7, 4.0, 1.3),
                 quadruped_low::Species::Tortoise => Vec3::new(1.7, 2.7, 1.5),
                 quadruped_low::Species::Driggle => Vec3::new(1.6, 2.7, 1.0),
-                quadruped_low::Species::HermitAlligator => Vec3::new(2.0, 7.7, 1.8),
+                quadruped_low::Species::Snaretongue => Vec3::new(2.0, 2.8, 1.6),
                 _ => Vec3::new(1.0, 1.6, 1.3),
             },
             Body::Ship(ship) => ship.dimensions(),
@@ -783,8 +785,6 @@ impl Body {
                 },
                 Body::BipedSmall(body) => match body.species {
                     biped_small::Species::Husk => 3.0,
-                    biped_small::Species::Clockwork => 2.0,
-                    biped_small::Species::Flamekeeper => 4.0,
                     _ => 2.0,
                 },
                 _ => 2.0,
@@ -942,6 +942,7 @@ impl Body {
                 | biped_large::Species::TerracottaPunisher
                 | biped_large::Species::TerracottaPursuer => 300,
                 biped_large::Species::Cursekeeper => 3000,
+                biped_large::Species::Forgemaster => 10000,
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -952,17 +953,18 @@ impl Body {
                 biped_small::Species::Myrmidon => 100,
                 biped_small::Species::Husk => 50,
                 biped_small::Species::Boreal => 100,
-                biped_small::Species::Clockwork => 250,
-                biped_small::Species::Flamekeeper => 10000,
+                biped_small::Species::IronDwarf => 250,
                 biped_small::Species::Irrwurz => 100,
                 biped_small::Species::ShamanicSpirit => 240,
                 biped_small::Species::Jiangshi => 250,
+                biped_small::Species::Flamekeeper => 2000,
                 _ => 60,
             },
             Body::Object(object) => match object {
                 object::Body::TrainingDummy => 1000,
                 object::Body::Crossbow => 80,
                 object::Body::Flamethrower => 80,
+                object::Body::Lavathrower => 80,
                 object::Body::BarrelOrgan => 500,
                 object::Body::HaniwaSentry => 60,
                 object::Body::SeaLantern => 100,
@@ -979,6 +981,7 @@ impl Body {
                 golem::Species::CoralGolem => 550,
                 golem::Species::AncientEffigy => 250,
                 golem::Species::Mogwai => 500,
+                golem::Species::IronGolem => 2500,
                 _ => 1000,
             },
             Body::Theropod(theropod) => match theropod.species {
@@ -1011,7 +1014,6 @@ impl Body {
                 quadruped_low::Species::Tortoise => 120,
                 // T3A
                 quadruped_low::Species::Dagon => 1200,
-                quadruped_low::Species::HermitAlligator => 2000,
                 quadruped_low::Species::Icedrake => 640,
                 quadruped_low::Species::Lavadrake => 460,
                 quadruped_low::Species::Maneater => 800,
@@ -1022,6 +1024,7 @@ impl Body {
                 quadruped_low::Species::Sandshark => 550,
                 // T3B
                 quadruped_low::Species::Basilisk => 1300,
+                quadruped_low::Species::Snaretongue => 1500,
                 _ => 70,
             },
             Body::Arthropod(arthropod) => match arthropod.species {
@@ -1066,7 +1069,7 @@ impl Body {
                     b.species,
                     biped_small::Species::Husk
                         | biped_small::Species::Boreal
-                        | biped_small::Species::Clockwork
+                        | biped_small::Species::IronDwarf
                         | biped_small::Species::Haniwa
                         | biped_small::Species::ShamanicSpirit
                         | biped_small::Species::Jiangshi
@@ -1103,17 +1106,20 @@ impl Body {
             BuffKind::Burning => match self {
                 Body::Golem(g) => matches!(
                     g.species,
-                    golem::Species::Gravewarden | golem::Species::AncientEffigy
+                    golem::Species::Gravewarden
+                        | golem::Species::AncientEffigy
+                        | golem::Species::IronGolem
                 ),
                 Body::BipedSmall(b) => matches!(
                     b.species,
                     biped_small::Species::Haniwa
                         | biped_small::Species::Flamekeeper
-                        | biped_small::Species::Clockwork
+                        | biped_small::Species::IronDwarf
                 ),
                 Body::Object(object) => matches!(
                     object,
                     object::Body::HaniwaSentry
+                        | object::Body::Lavathrower
                         | object::Body::Flamethrower
                         | object::Body::TerracottaStatue
                 ),
@@ -1134,7 +1140,9 @@ impl Body {
                 Body::Arthropod(b) => matches!(b.species, arthropod::Species::Moltencrawler),
                 Body::BipedLarge(b) => matches!(
                     b.species,
-                    biped_large::Species::Cyclops | biped_large::Species::Minotaur
+                    biped_large::Species::Cyclops
+                        | biped_large::Species::Minotaur
+                        | biped_large::Species::Forgemaster
                 ),
                 _ => false,
             },
@@ -1194,7 +1202,7 @@ impl Body {
                 _ => 1.0,
             },
             Body::BipedSmall(b) => match b.species {
-                biped_small::Species::Clockwork => 2.0,
+                biped_small::Species::IronDwarf => 2.0,
                 biped_small::Species::Flamekeeper => 4.0,
                 _ => 1.0,
             },
@@ -1203,7 +1211,7 @@ impl Body {
                 _ => 1.0,
             },
             Body::QuadrupedLow(b) => match b.species {
-                quadruped_low::Species::HermitAlligator => 2.0,
+                quadruped_low::Species::Snaretongue => 2.0,
                 _ => 1.0,
             },
             Body::QuadrupedSmall(b) => match b.species {
@@ -1235,12 +1243,12 @@ impl Body {
             Body::BipedLarge(biped_large) => match biped_large.species {
                 biped_large::Species::Mindflayer => 320,
                 biped_large::Species::Minotaur => 280,
+                biped_large::Species::Forgemaster => 250,
                 biped_large::Species::Gigasfrost => 800,
                 _ => 250,
             },
             Body::BipedSmall(b) => match b.species {
-                biped_small::Species::Clockwork => 250,
-                biped_small::Species::Flamekeeper => 250,
+                biped_small::Species::IronDwarf | biped_small::Species::Flamekeeper => 250,
                 _ => 100,
             },
             Body::BirdLarge(b) => match b.species {
@@ -1296,7 +1304,7 @@ impl Body {
                 | quadruped_low::Species::SeaCrocodile
                 | quadruped_low::Species::Alligator
                 | quadruped_low::Species::Sandshark
-                | quadruped_low::Species::HermitAlligator
+                | quadruped_low::Species::Snaretongue
                 | quadruped_low::Species::Asp => 160,
                 quadruped_low::Species::Tortoise
                 | quadruped_low::Species::Rocksnapper

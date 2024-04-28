@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Dwarven Battery",
+    legacy_description: "Container of magical energy.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Legendary,
+    tags: [],
+)

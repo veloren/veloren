@@ -111,6 +111,7 @@ subtitle-attack-cyclops_charge = Cyclops charge
 subtitle-attack-fuse_charge = Fuse sizzling
 subtitle-giga_roar = Frost gigas roar
 subtitle-deep_laugh = Deep Laugh
+subtitle-bleep = Beep Bleep
 subtitle-attack-flash_freeze = Flash freeze
 subtitle-attack-icy_spikes = Icy spikes
 subtitle-attack-ice_crack = Ice crack

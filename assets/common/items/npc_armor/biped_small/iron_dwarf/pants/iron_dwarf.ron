@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Iron Dwarf Pants",
+    legacy_description: "Iron Dwarf Pants",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct((
+            protection: Some(Normal(4.5)),
+            poise_resilience: Some(Normal(3.0)),
+            precision_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

@@ -1,0 +1,10 @@
+SpriteSummon(
+    buildup_duration: 2.5,
+    cast_duration: 0.5,
+    recover_duration: 0.9,
+    sprite: FireBlock,
+    del_timeout: Some((4, 4)),
+    summon_distance: (30, 70.0),
+    sparseness: 0.0,
+    angle: 360,
+)

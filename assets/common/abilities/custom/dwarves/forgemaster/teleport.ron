@@ -1,0 +1,6 @@
+Blink(
+    buildup_duration: 0.1,
+    recover_duration: 0.1,
+    max_range: 100.0,
+    frontend_specifier: Some(FlameThrower),
+)

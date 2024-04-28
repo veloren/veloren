@@ -1081,6 +1081,7 @@ impl<'a> AgentData<'a> {
                             "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
                             "Bow Simple" | "Boreal Bow" => Tactic::Bow,
                             "Stone Golem" | "Coral Golem" => Tactic::StoneGolem,
+                            "Iron Golem" => Tactic::IronGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
                                 radius: 3,
                                 circle_time: 2,
@@ -1138,6 +1139,7 @@ impl<'a> AgentData<'a> {
                             "Jiangshi" => Tactic::Jiangshi,
                             "Mindflayer" => Tactic::Mindflayer,
                             "Flamekeeper" => Tactic::Flamekeeper,
+                            "Forgemaster" => Tactic::Forgemaster,
                             "Minotaur" => Tactic::Minotaur,
                             "Cyclops" => Tactic::Cyclops,
                             "Dullahan" => Tactic::Dullahan,
@@ -1154,7 +1156,7 @@ impl<'a> AgentData<'a> {
                             "Cardinal" => Tactic::Cardinal,
                             "Sea Bishop" => Tactic::SeaBishop,
                             "Dagon" => Tactic::Dagon,
-                            "HermitAlligator" => Tactic::HermitAlligator,
+                            "Snaretongue" => Tactic::Snaretongue,
                             "Dagonite" => Tactic::ArthropodAmbush,
                             "Gnarling Dagger" => Tactic::SimpleBackstab,
                             "Gnarling Blowgun" => Tactic::ElevatedRanged,
@@ -1400,6 +1402,9 @@ impl<'a> AgentData<'a> {
             Tactic::StoneGolem => {
                 self.handle_stone_golem_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
+            Tactic::IronGolem => {
+                self.handle_iron_golem_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::CircleCharge {
                 radius,
                 circle_time,
@@ -1519,6 +1524,9 @@ impl<'a> AgentData<'a> {
             ),
             Tactic::Flamekeeper => {
                 self.handle_flamekeeper_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::Forgemaster => {
+                self.handle_forgemaster_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::BirdLargeFire => self.handle_birdlarge_fire_attack(
                 agent,
@@ -1644,8 +1652,8 @@ impl<'a> AgentData<'a> {
             Tactic::Dagon => {
                 self.handle_dagon_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
-            Tactic::HermitAlligator => {
-                self.handle_hermit_alligator_attack(agent, controller, &attack_data, read_data)
+            Tactic::Snaretongue => {
+                self.handle_snaretongue_attack(agent, controller, &attack_data, read_data)
             },
             Tactic::SimpleBackstab => {
                 self.handle_simple_backstab(agent, controller, &attack_data, tgt_data, read_data)

@@ -95,6 +95,7 @@ fn base_ori_interp(body: &Body) -> f32 {
         Body::Object(object) => match object {
             object::Body::Crossbow
             | object::Body::Flamethrower
+            | object::Body::Lavathrower
             | object::Body::HaniwaSentry
             | object::Body::TerracottaStatue => 100.0,
             _ => 10.0,

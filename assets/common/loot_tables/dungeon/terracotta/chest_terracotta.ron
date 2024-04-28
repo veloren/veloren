@@ -3,8 +3,8 @@
         // Key
         Item("common.items.keys.terracotta_key_door"),
         Lottery([
-            (0.4, Nothing),
-            (0.6, LootTable("common.loot_tables.consumables.pyrotechnics")),
+            (1.0, Nothing),
+            (0.5, Item("common.items.mineral.ore.ancient_gold")),
         ]),
     ])),
 ]

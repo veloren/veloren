@@ -40,8 +40,8 @@ impl Animation for ComboAnimation {
                     | "common.abilities.custom.irrwurz.singlestrike"
                     | "common.abilities.custom.husk.singlestrike"
                     | "common.abilities.custom.husk.triplestrike"
-                    | "common.abilities.custom.dwarves.clockwork.singlestrike"
-                    | "common.abilities.custom.dwarves.clockwork.triplestrike",
+                    | "common.abilities.custom.dwarves.iron_dwarf.singlestrike"
+                    | "common.abilities.custom.dwarves.iron_dwarf.triplestrike",
                 ) => {
                     let (move1, move2) = if strike == current_strike {
                         match stage_section {

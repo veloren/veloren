@@ -1500,11 +1500,10 @@ impl ServerEvent for BonkEvent {
                                         Some(SpriteKind::Beehive) => comp::object::Body::Hive,
                                         Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
                                         Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
-                                        Some(SpriteKind::Mine) => comp::object::Body::Mine,
                                         _ => comp::object::Body::Pouch,
                                     },
                                     object: match block.get_sprite() {
-                                        Some(SpriteKind::Bomb) | Some(SpriteKind::Mine) => {
+                                        Some(SpriteKind::Bomb) => {
                                             Some(comp::Object::Bomb { owner: ev.owner })
                                         },
                                         _ => None,
@@ -1514,17 +1513,6 @@ impl ServerEvent for BonkEvent {
                                     stats: None,
                                 });
                             }
-                        } else if let Some(SpriteKind::Mine) = block.get_sprite() {
-                            // Some objects can't be reclaimed as items but still have bonk effects
-                            create_object_emitter.emit(CreateObjectEvent {
-                                pos: Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
-                                vel: comp::Vel::default(),
-                                body: comp::object::Body::Bomb,
-                                object: Some(comp::Object::Bomb { owner: ev.owner }),
-                                item: None,
-                                light_emitter: None,
-                                stats: None,
-                            });
                         }
                     }
                 }

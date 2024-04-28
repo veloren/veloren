@@ -87,12 +87,21 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                     // Send local event used for frontend shenanigans
-                    if self.static_data.sprite == SpriteKind::Empty {
-                        output_events.emit_local(LocalEvent::CreateOutcome(
-                            Outcome::TerracottaStatueCharge {
+                    match self.static_data.sprite {
+                        SpriteKind::Empty => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::TerracottaStatueCharge {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
+                                },
+                            ));
+                        },
+                        SpriteKind::FireBlock => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Charge {
                                 pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
-                            },
-                        ));
+                            }));
+                        },
+                        _ => {},
                     }
                 } else {
                     // Transitions to recover section of stage
@@ -222,6 +231,11 @@ impl CharacterBehavior for Data {
                         SpriteKind::IronSpike => {
                             output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Whoosh {
                                 pos: data.pos.0,
+                            }));
+                        },
+                        SpriteKind::FireBlock => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Bleep {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
                             }));
                         },
                         _ => {},

@@ -65,6 +65,7 @@ impl Body {
             Species::TerracottaPunisher => "body-npc-speech-biped_large-terracotta_punisher",
             Species::TerracottaPursuer => "body-npc-speech-biped_large-terracotta_pursuer",
             Species::Cursekeeper => "body-npc-speech-biped_large-cursekeeper",
+            Species::Forgemaster => "body-npc-speech-biped_large-forgemaster",
         };
 
         Some(Content::localized(key))
@@ -111,6 +112,7 @@ make_case_elim!(
         TerracottaPunisher = 28,
         TerracottaPursuer = 29,
         Cursekeeper = 30,
+        Forgemaster = 31,
     }
 );
 
@@ -150,6 +152,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub terracotta_punisher: SpeciesMeta,
     pub terracotta_pursuer: SpeciesMeta,
     pub cursekeeper: SpeciesMeta,
+    pub forgemaster: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -189,11 +192,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::TerracottaPunisher => &self.terracotta_punisher,
             Species::TerracottaPursuer => &self.terracotta_pursuer,
             Species::Cursekeeper => &self.cursekeeper,
+            Species::Forgemaster => &self.forgemaster,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 31] = [
+pub const ALL_SPECIES: [Species; 32] = [
     Species::Ogre,
     Species::Cyclops,
     Species::Wendigo,
@@ -225,6 +229,7 @@ pub const ALL_SPECIES: [Species; 31] = [
     Species::TerracottaPunisher,
     Species::TerracottaPursuer,
     Species::Cursekeeper,
+    Species::Forgemaster,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

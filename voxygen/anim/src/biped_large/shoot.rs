@@ -232,6 +232,64 @@ impl Animation for ShootAnimation {
                     next.shoulder_r.orientation =
                         Quaternion::rotation_x(move1 * 1.4) * Quaternion::rotation_y(move1 * -0.5);
                 },
+                Some(
+                    "common.abilities.custom.dwarves.forgemaster.lava_mortar"
+                    | "common.abilities.custom.dwarves.forgemaster.mines",
+                ) => {
+                    let (move1base, move2shake, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => {
+                            ((anim_time.powf(0.25)).min(1.0), 0.0, 0.0, 0.0)
+                        },
+                        Some(StageSection::Action) => (
+                            1.0,
+                            (anim_time * 15.0 + PI).sin(),
+                            (anim_time.powf(0.1)).min(1.0),
+                            0.0,
+                        ),
+                        Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1 = move1base * pullback;
+                    let _move2 = move2base * pullback;
+                    next.control_l.position = Vec3::new(-1.0, 3.0, 6.0);
+                    next.control_r.position =
+                        Vec3::new(-1.0 + move1 * 5.0, 2.0 + move1 * 1.0, 2.0 + move1 * 8.0);
+
+                    next.control.position = Vec3::new(
+                        -3.0 + move1 * -5.0,
+                        -2.0 + s_a.grip.0 / 1.2 + move1 * 3.0 + move2shake * 1.0,
+                        8.0 + -s_a.grip.0 / 2.0 + move1 * -2.0,
+                    );
+                    next.head.orientation =
+                        Quaternion::rotation_x(move1 * -0.2) * Quaternion::rotation_y(move1 * 0.2);
+                    next.jaw.orientation = Quaternion::rotation_x(0.0);
+
+                    next.control_l.orientation =
+                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.5);
+                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.4)
+                        * Quaternion::rotation_y(1.0)
+                        * Quaternion::rotation_z(move1 * 1.2 + move2shake * 0.5);
+
+                    next.control.orientation = Quaternion::rotation_x(-0.2 + move1 * -0.1)
+                        * Quaternion::rotation_y(-0.1 + move1 * 0.3);
+                    next.shoulder_l.position = Vec3::new(
+                        -s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothorir * 1.0,
+                    );
+                    next.shoulder_l.orientation = Quaternion::rotation_x(
+                        move1 * 0.2 + 0.3 + 0.8 * speednorm + (footrotr * -0.2),
+                    );
+                    next.shoulder_r.position = Vec3::new(
+                        s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothoril * 1.0,
+                    );
+                    next.shoulder_r.orientation = Quaternion::rotation_x(
+                        move1 * 0.2 + 1.1 + 0.6 * speednorm + (footrotl * -0.2),
+                    );
+                },
                 _ => {},
             },
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {

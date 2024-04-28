@@ -142,7 +142,7 @@ common-items-npc_weapons-unique-cardinal = Caduceo
 common-items-npc_weapons-unique-clay_golem_fist = Pugni del golem d'argilla
     .desc = Yeet
 
-common-items-npc_weapons-unique-clockwork = Orologeria
+common-items-npc_weapons-unique-iron_dwarf = Orologeria
     .desc = {""}
 
 common-items-npc_weapons-unique-cloudwyvern = Viverna delle nuvole
