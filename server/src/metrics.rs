@@ -79,6 +79,7 @@ pub struct QueryServerMetrics {
     pub sent_responses: IntGauge,
     pub failed_responses: IntGauge,
     pub timed_out_responses: IntGauge,
+    pub ratelimited: IntGauge,
 }
 
 impl PhysicsMetrics {
@@ -471,6 +472,10 @@ impl QueryServerMetrics {
             "query_server::timed_out_responses",
             "Amount of responses which timed out",
         ))?;
+        let ratelimited = IntGauge::with_opts(Opts::new(
+            "query_server::ratelimited",
+            "Ratelimited requests to the query server",
+        ))?;
 
         registry.register(Box::new(received_packets.clone()))?;
         registry.register(Box::new(dropped_packets.clone()))?;
@@ -480,6 +485,7 @@ impl QueryServerMetrics {
         registry.register(Box::new(sent_responses.clone()))?;
         registry.register(Box::new(failed_responses.clone()))?;
         registry.register(Box::new(timed_out_responses.clone()))?;
+        registry.register(Box::new(ratelimited.clone()))?;
 
         Ok(Self {
             received_packets,
@@ -490,6 +496,7 @@ impl QueryServerMetrics {
             sent_responses,
             failed_responses,
             timed_out_responses,
+            ratelimited,
         })
     }
 
@@ -504,6 +511,7 @@ impl QueryServerMetrics {
             sent_responses,
             failed_responses,
             timed_out_responses,
+            ratelimited,
         }: veloren_query_server::server::Metrics,
     ) {
         self.received_packets.set(received_packets as i64);
@@ -514,5 +522,6 @@ impl QueryServerMetrics {
         self.sent_responses.set(sent_responses as i64);
         self.failed_responses.set(failed_responses as i64);
         self.timed_out_responses.set(timed_out_responses as i64);
+        self.ratelimited.set(ratelimited as i64);
     }
 }

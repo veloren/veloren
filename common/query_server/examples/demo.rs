@@ -5,6 +5,7 @@ use std::{
 };
 
 use tokio::sync::{watch, RwLock};
+use tracing::error;
 use veloren_query_server::{
     client::QueryClient,
     proto::{ServerBattleMode, ServerInfo},
@@ -38,8 +39,10 @@ async fn main() {
 
     let start = Instant::now();
 
-    for _i in 0..10000 {
-        client.server_info().await.unwrap();
+    for _i in 0..32 {
+        if let Err(error) = client.server_info().await {
+            error!(?error, "Server info request error");
+        }
     }
 
     println!("Metrics = {:#?}", metrics.read().await);

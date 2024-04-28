@@ -17,9 +17,12 @@ use tokio::{
 };
 use tracing::{debug, trace};
 
-use crate::proto::{
-    QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
-    ServerInfo, MAX_REQUEST_SIZE, VELOREN_HEADER,
+use crate::{
+    proto::{
+        QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
+        ServerInfo, MAX_REQUEST_SIZE, VELOREN_HEADER,
+    },
+    ratelimit::{RateLimiter, ReducedIpAddr},
 };
 
 const RESPONSE_SEND_TIMEOUT: Duration = Duration::from_secs(2);
@@ -29,6 +32,7 @@ pub struct QueryServer {
     pub addr: SocketAddr,
     server_info: watch::Receiver<ServerInfo>,
     settings: protocol::Settings,
+    ratelimit: RateLimiter,
 }
 
 #[derive(Default, Clone, Copy, Debug)]
@@ -41,6 +45,7 @@ pub struct Metrics {
     pub sent_responses: u32,
     pub failed_responses: u32,
     pub timed_out_responses: u32,
+    pub ratelimited: u32,
 }
 
 impl QueryServer {
@@ -48,6 +53,7 @@ impl QueryServer {
         Self {
             addr,
             server_info,
+            ratelimit: RateLimiter::new(30),
             settings: Default::default(),
         }
     }
@@ -107,6 +113,8 @@ impl QueryServer {
                     last_secret_refresh = now;
                     secrets = gen_secret();
                 }
+
+                self.ratelimit.maintain(now);
             }
         }
     }
@@ -148,7 +156,7 @@ impl QueryServer {
         #[allow(deprecated)]
         let real_p = {
             let mut hasher = SipHasher::new_with_keys(secrets.0, secrets.1);
-            remote.ip().hash(&mut hasher);
+            ReducedIpAddr::from(remote.ip()).hash(&mut hasher);
             hasher.finish()
         };
 
@@ -173,6 +181,12 @@ impl QueryServer {
                 .await;
             });
 
+            return Ok(());
+        }
+
+        if !self.ratelimit.can_request(remote.ip().into()) {
+            trace!("Ratelimited request");
+            new_metrics.ratelimited += 1;
             return Ok(());
         }
 
@@ -242,6 +256,7 @@ impl std::ops::AddAssign for Metrics {
             sent_responses,
             failed_responses,
             timed_out_responses,
+            ratelimited,
         }: Self,
     ) {
         self.received_packets += received_packets;
@@ -252,6 +267,7 @@ impl std::ops::AddAssign for Metrics {
         self.sent_responses += sent_responses;
         self.failed_responses += failed_responses;
         self.timed_out_responses += timed_out_responses;
+        self.ratelimited += ratelimited;
     }
 }
 
