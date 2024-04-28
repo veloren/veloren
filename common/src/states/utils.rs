@@ -114,6 +114,7 @@ impl Body {
                 biped_large::Species::Cultistwarlord => 110.0,
                 biped_large::Species::Cultistwarlock => 90.0,
                 biped_large::Species::Gigasfrost => 45.0,
+                biped_large::Species::Forgemaster => 100.0,
                 _ => 80.0,
             },
             Body::BirdMedium(_) => 80.0,
@@ -130,6 +131,7 @@ impl Body {
             Body::ItemDrop(_) => 0.0,
             Body::Golem(body) => match body.species {
                 golem::Species::ClayGolem => 120.0,
+                golem::Species::IronGolem => 100.0,
                 _ => 60.0,
             },
             Body::Theropod(theropod) => match theropod.species {
@@ -163,7 +165,7 @@ impl Body {
                 quadruped_low::Species::Deadwood => 110.0,
                 quadruped_low::Species::Mossdrake => 100.0,
                 quadruped_low::Species::Driggle => 120.0,
-                quadruped_low::Species::HermitAlligator => 65.0,
+                quadruped_low::Species::Snaretongue => 120.0,
             },
             Body::Ship(ship::Body::Carriage) => 40.0,
             Body::Ship(_) => 0.0,

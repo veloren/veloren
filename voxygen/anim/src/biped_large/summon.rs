@@ -253,6 +253,36 @@ impl Animation for SummonAnimation {
                 },
                 _ => {},
             },
+            Some(ToolKind::Hammer) => match ability_id {
+                Some("common.abilities.custom.dwarves.forgemaster.summon_iron_dwarf") => {
+                    next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+                    next.hand_l.position = Vec3::new(
+                        -s_a.hand.0 - 3.0 * move1,
+                        s_a.hand.1 + 4.0,
+                        s_a.hand.2 + 6.0 * move1,
+                    );
+                    next.hand_r.position = Vec3::new(
+                        s_a.hand.0 + 3.0 * move1,
+                        s_a.hand.1 + 4.0,
+                        s_a.hand.2 + 6.0 * move1,
+                    );
+                    next.shoulder_l.orientation =
+                        Quaternion::rotation_x(move1 * 1.4) * Quaternion::rotation_y(move1 * 0.5);
+                    next.shoulder_r.orientation =
+                        Quaternion::rotation_x(move1 * 1.4) * Quaternion::rotation_y(move1 * -0.5);
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.25 + move2 * -0.25)
+                        * Quaternion::rotation_z(move1 * 0.25);
+                    next.hand_l.orientation =
+                        Quaternion::rotation_x(move1 * 1.0) * Quaternion::rotation_y(move1 * 1.4);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(move1 * 1.0) * Quaternion::rotation_y(move1 * -1.4);
+                    next.foot_l.orientation = Quaternion::rotation_x(move1 * 0.3 + move2 * -0.3);
+                    next.foot_r.orientation = Quaternion::rotation_x(move1 * 0.3 + move2 * -0.3);
+                },
+                _ => {},
+            },
             _ => {},
         }
 

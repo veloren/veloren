@@ -211,7 +211,7 @@ impl World {
                                 civ::SiteKind::Tree | civ::SiteKind::GiantTree => world_msg::SiteKind::Tree,
                                 // TODO: Maybe change?
                                 civ::SiteKind::Gnarling => world_msg::SiteKind::Gnarling,
-                                //civ::SiteKind::DwarvenMine => world_msg::SiteKind::DwarvenMine,
+                                civ::SiteKind::DwarvenMine => world_msg::SiteKind::DwarvenMine,
                                 civ::SiteKind::ChapelSite => world_msg::SiteKind::ChapelSite,
                                 civ::SiteKind::Terracotta => world_msg::SiteKind::Terracotta,
                                 civ::SiteKind::Citadel => world_msg::SiteKind::Castle,

@@ -107,40 +107,48 @@
             lateral: ("npc.alligator.male.foot_br", false),
         ),
     ),
-    (HermitAlligator, Male): (
+    (Snaretongue, Male): (
         front_left: (
-            offset: (-7.0, 0.0, -4.0),
-            lateral: ("npc.hermit_alligator.male.foot_fr", false),
+            offset: (-8.0, 0.0, -10.0),
+            lateral: ("npc.snaretongue.male.snaretongue", false),
+            model_index: 6,
         ),
         front_right: (
-            offset: (-0.0, 0.0, -4.0),
-            lateral: ("npc.hermit_alligator.male.foot_fr", false),
+            offset: (-0.0, 0.0, -10.0),
+            lateral: ("npc.snaretongue.male.snaretongue", false),
+            model_index: 6,
         ),
         back_left: (
-            offset: (-8.0, 0.0, -4.0),
-            lateral: ("npc.hermit_alligator.male.foot_br", false),
+            offset: (-15.0, -8.0, -11.0),
+            lateral: ("npc.snaretongue.male.snaretongue", false),
+            model_index: 8,
         ),
         back_right: (
-            offset: (-0.0, 0.0, -4.0),
-            lateral: ("npc.hermit_alligator.male.foot_br", false),
+            offset: (-0.0, -8.0, -11.0),
+            lateral: ("npc.snaretongue.male.snaretongue", false),
+            model_index: 8,
         ),
     ),
-    (HermitAlligator, Female): (
+    (Snaretongue, Female): (
         front_left: (
-            offset: (-7.0, 0.0, -4.0),
-            lateral: ("npc.hermit_alligator.male.foot_fr", false),
+            offset: (-8.0, 0.0, -10.0),
+            lateral: ("npc.snaretongue.male.snaretongue", false),
+            model_index: 6,
         ),
         front_right: (
-            offset: (-0.0, 0.0, -4.0),
-            lateral: ("npc.hermit_alligator.male.foot_fr", false),
+            offset: (-0.0, 0.0, -10.0),
+            lateral: ("npc.snaretongue.male.snaretongue", false),
+            model_index: 6,
         ),
         back_left: (
-            offset: (-8.0, 0.0, -4.0),
-            lateral: ("npc.hermit_alligator.male.foot_br", false),
+            offset: (-15.0, -8.0, -11.0),
+            lateral: ("npc.snaretongue.male.snaretongue", false),
+            model_index: 8,
         ),
         back_right: (
-            offset: (-0.0, 0.0, -4.0),
-            lateral: ("npc.hermit_alligator.male.foot_br", false),
+            offset: (-0.0, -8.0, -11.0),
+            lateral: ("npc.snaretongue.male.snaretongue", false),
+            model_index: 8,
         ),
     ),
     (Salamander, Male): (

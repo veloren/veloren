@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Alkahest",
+    legacy_description: "Alchemical solvent.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Legendary,
+    tags: [],
+)

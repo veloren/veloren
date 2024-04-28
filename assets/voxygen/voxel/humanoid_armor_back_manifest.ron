@@ -145,7 +145,7 @@
             color: None
         ),
         "common.items.armor.mail.orichalcum.back": (
-            vox_spec: ("armor.mail.orichalcum", (-5.0, -4.5, -12.5), 6),
+            vox_spec: ("armor.mail.orichalcum", (-5.0, -4.5, -12.5), 0),
             color: None
         ),
         "common.items.armor.merchant.back": (

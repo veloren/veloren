@@ -69,8 +69,7 @@ sprites! {
         SmokeDummy = 0x01,
         Bomb       = 0x02,
         FireBlock  = 0x03, // FireBlock for Burning Buff
-        Mine       = 0x04,
-        HotSurface = 0x05,
+        HotSurface = 0x04,
     },
     // Furniture. In the future, we might add an attribute to customise material
     // TODO: Remove sizes and variants, represent with attributes
@@ -555,7 +554,6 @@ impl SpriteKind {
             SpriteKind::MagicalSeal => 1.0,
             SpriteKind::Helm => 1.7,
             SpriteKind::Sign => 17.0 / 11.0,
-            SpriteKind::Mine => 2.0 / 11.0,
             SpriteKind::SmithingTable => 13.0 / 11.0,
             SpriteKind::Forge0 => 17.0 / 11.0,
             SpriteKind::GearWheel0 => 3.0 / 11.0,

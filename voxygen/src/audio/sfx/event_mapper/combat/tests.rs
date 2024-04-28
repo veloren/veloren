@@ -92,6 +92,7 @@ fn maps_basic_melee() {
                 },
                 ori_modifier: 1.0,
                 ability_info: empty_ability_info(),
+                frontend_specifier: None,
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Action,

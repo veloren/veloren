@@ -164,6 +164,12 @@ pub enum Outcome {
     ClayGolemDash {
         pos: Vec3<f32>,
     },
+    Bleep {
+        pos: Vec3<f32>,
+    },
+    Charge {
+        pos: Vec3<f32>,
+    },
 }
 
 impl Outcome {
@@ -185,6 +191,8 @@ impl Outcome {
             | Outcome::Whoosh { pos }
             | Outcome::Swoosh { pos }
             | Outcome::Slash { pos }
+            | Outcome::Bleep { pos }
+            | Outcome::Charge { pos }
             | Outcome::IceSpikes { pos }
             | Outcome::Steam { pos }
             | Outcome::FireShockwave { pos }

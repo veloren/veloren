@@ -8,7 +8,7 @@ BasicMelee(
         kind: Bash(
             damage: 100.0,
             poise: 0.0,
-            knockback: 10.0,
+            knockback: 15.0,
             energy_regen: 10.0,
         ),
         range: 5.0,

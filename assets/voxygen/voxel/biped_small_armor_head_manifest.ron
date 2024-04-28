@@ -79,8 +79,8 @@
         "common.items.npc_armor.biped_small.boreal.head.warrior": (
             vox_spec: ("npc.boreal.warrior.head", (-8.0, -6.0, -8.0)),
         ),
-        "common.items.npc_armor.biped_small.clockwork.head.clockwork": (
-            vox_spec: ("npc.clockwork.head", (-6.0, -5.0, -8.5)),
+        "common.items.npc_armor.biped_small.iron_dwarf.head.iron_dwarf": (
+            vox_spec: ("npc.iron_dwarf.head", (-6.0, -5.0, -8.5)),
         ),
         "common.items.npc_armor.biped_small.flamekeeper.head.flamekeeper": (
             vox_spec: ("npc.flamekeeper.head", (-8.0, -7.0, -10.0)),

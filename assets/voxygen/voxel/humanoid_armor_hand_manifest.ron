@@ -406,7 +406,7 @@
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.orichalcum", (-1.5, -2.5, -3.5), 4),
+                vox_spec: ("armor.mail.orichalcum", (-0.5, -2.5, -3.5), 4),
                 color: None
             )
         ),

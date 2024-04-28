@@ -181,7 +181,7 @@
             color: None
         ),
         "common.items.armor.mail.orichalcum.belt":(
-            vox_spec: ("armor.mail.orichalcum", (-4.0, -3.5, 1.0), 2),
+            vox_spec: ("armor.mail.orichalcum", (-4.0, -3.5, 1.0), 1),
             color: None
         ),
         "common.items.armor.cardinal.belt": (

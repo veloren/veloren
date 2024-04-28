@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Orichalcum Helmet",
+    legacy_description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
+    kind: Armor((
+        kind: Head,
+        stats: FromSet("Orichalcum"),
+    )),
+    quality: Legendary,
+    tags: [
+        Material(Orichalcum),
+        SalvageInto(Orichalcum, 3),
+    ],
+)

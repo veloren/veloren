@@ -1,0 +1,16 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.3,
+    recover_duration: 0.5,
+    projectile: Mine(
+        damage: 25.0,
+        radius: 5.0,
+        min_falloff: 0.75,
+    ),
+    projectile_body: Object(IronPikeBomb),
+    projectile_light: None,
+    projectile_speed: 500.0,
+    num_projectiles: 3,
+    projectile_spread: 0.3,
+    move_efficiency: 0.3,
+)

@@ -145,7 +145,7 @@ common-items-npc_weapons-unique-cardinal = Caduceus
 common-items-npc_weapons-unique-clay_golem_fist = Clay Golem Fists
     .desc = Yeet.
 
-common-items-npc_weapons-unique-clockwork = Clockwork
+common-items-npc_weapons-unique-iron_dwarf = IronDwarf
     .desc = testing123
 
 common-items-npc_weapons-unique-cloudwyvern = Cloud Wyvern
@@ -195,6 +195,15 @@ common-items-npc_weapons-unique-terracotta_demolisher_fist = Terracotta Demolish
 
 common-items-npc_weapons-unique-terracotta_statue = Terracotta Statue
     .desc = Terracotta Statue
+
+common-items-npc_weapons-unique-iron_golem_fist = Iron Golem Fists
+    .desc = Yeet
+
+common-items-npc_weapons-hammer-forgemaster_hammer = Forgemaster Hammer
+    .desc = Yeet
+
+common-items-npc_weapons-unique-snaretongue = Snaretongue
+    .desc = Yeet
 
 common-items-npc_weapons-unique-flamethrower = Flamethrower
     .desc = Throwing Flames

@@ -98,6 +98,7 @@ const int CLAY_SHRAPNEL = 58;
 const int AIRFLOW = 59;
 const int SPORE = 60;
 const int SURPRISE_EGG = 61;
+const int FLAME_TORNADO = 62;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1040,6 +1041,15 @@ void main() {
                 spiral_motion(vec3(0, 0, 5), abs(rand0) + abs(rand1) * percent() * 4.0, percent(), 8.0 * abs(rand2), rand3),
                 vec3((2.5 * (1 - slow_start(0.05)))),
                 vec4(egg_color1, egg_color2, egg_color3, 0.5 + 0.5 * step(0.18, fract(tick.x*4))),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case FLAME_TORNADO:
+            f_reflect = 0.0;
+            attr = Attr(
+                spiral_motion(vec3(0, 0, 3), abs(rand0) * 3 + percent() * 70.0, percent(), -8.0 + (rand0 * 3), rand1 * 360.),
+                vec3((-2.5 * (1 - slow_start(0.05)))),
+                vec4(6, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;

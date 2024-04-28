@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Name("Forgemaster"),
+    body: RandomWith("forgemaster"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.forgemaster"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    agent: (
+        idle_wander_factor: 0.0,
+    ),
+    meta: [],
+)

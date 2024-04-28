@@ -7,7 +7,7 @@ use crate::{
         beam,
         body::{biped_large, bird_large, golem},
         character_state::OutputEvents,
-        object::Body::Flamethrower,
+        object::Body::{Flamethrower, Lavathrower},
         Body, CharacterState, Ori, StateUpdate,
     },
     event::LocalEvent,
@@ -102,14 +102,17 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                     if let Body::Object(object) = data.body {
-                        if object == &Flamethrower {
-                            // Send local event used for frontend shenanigans
-                            output_events.emit_local(LocalEvent::CreateOutcome(
-                                Outcome::FlamethrowerCharge {
-                                    pos: data.pos.0
-                                        + *data.ori.look_dir() * (data.body.max_radius()),
-                                },
-                            ));
+                        match object {
+                            &Flamethrower | &Lavathrower => {
+                                // Send local event used for frontend shenanigans
+                                output_events.emit_local(LocalEvent::CreateOutcome(
+                                    Outcome::FlamethrowerCharge {
+                                        pos: data.pos.0
+                                            + *data.ori.look_dir() * (data.body.max_radius()),
+                                    },
+                                ));
+                            },
+                            _ => {},
                         }
                     };
                 } else {

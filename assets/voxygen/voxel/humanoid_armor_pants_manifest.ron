@@ -209,7 +209,7 @@
             color: None
         ),
         "common.items.armor.mail.orichalcum.pants": (
-            vox_spec: ("armor.mail.orichalcum", (-6.0, -3.5, -1.0), 1),
+            vox_spec: ("armor.mail.orichalcum", (-6.0, -3.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.cardinal.pants": (

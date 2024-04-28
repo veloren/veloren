@@ -1,8 +1,7 @@
 [
   (1, All([
-        Item("common.items.keys.quarry_keys.flamekeeper_left"),
-        Item("common.items.keys.quarry_keys.flamekeeper_right"),
-        MultiDrop(Item("common.items.crafting_ing.hide.plate"), 1, 2),
+        MultiDrop(Item("common.items.keys.quarry_keys.miner_key"), 2, 2),        
+        MultiDrop(Item("common.items.crafting_ing.alkahest"), 1, 1),        
         ],
    )),
 ]

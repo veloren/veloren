@@ -1,0 +1,26 @@
+BasicMelee(
+    energy_cost: 0,
+    buildup_duration: 0.2,
+    swing_duration: 0.3,
+    recover_duration: 0.1,
+    melee_constructor: (
+        kind: Bash(
+            damage: 25,
+            poise: 10,
+            knockback: 15,
+            energy_regen: 0,
+        ),
+        range: 55.5,
+        angle: 360,
+        multi_target: Some(Normal),
+        damage_effect: Some(Buff((
+            kind: Poisoned,
+            dur_secs: 3,
+            strength: DamageFraction(0.1),
+            chance: 1.0,
+        ))),
+    ),
+    hit_timing: 0.5,
+    ori_modifier: 1.0,
+    frontend_specifier: Some(FlameTornado),
+)

@@ -122,6 +122,7 @@ pub struct SkeletonAttr {
     lean: (f32, f32),
     scaler: f32,
     tempo: f32,
+    tongue_for_tail: bool,
 }
 
 impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -149,6 +150,7 @@ impl Default for SkeletonAttr {
             lean: (0.0, 0.0),
             scaler: 0.0,
             tempo: 0.0,
+            tongue_for_tail: false,
         }
     }
 }
@@ -180,7 +182,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deadwood, _) => (2.0, -3.0),
                 (Mossdrake, _) => (7.0, 8.0),
                 (Driggle, _) => (3.0, 4.0),
-                (HermitAlligator, _) => (0.5, 2.0),
+                (Snaretongue, _) => (7.0, 5.5),
             },
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),
@@ -205,7 +207,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deadwood, _) => (0.0, 0.0),
                 (Mossdrake, _) => (9.0, -6.0),
                 (Driggle, _) => (6.0, -3.0),
-                (HermitAlligator, _) => (9.0, 0.25),
+                (Snaretongue, _) => (8.5, 0.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Crocodile, _) => (2.5, -3.0),
@@ -230,7 +232,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deadwood, _) => (-1.0, 4.0),
                 (Mossdrake, _) => (3.0, -5.0),
                 (Driggle, _) => (-2.0, -5.0),
-                (HermitAlligator, _) => (2.5, -2.0),
+                (Snaretongue, _) => (-7.0, -7.0),
             },
             chest: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.0, 5.0),
@@ -255,7 +257,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deadwood, _) => (0.0, 12.0),
                 (Mossdrake, _) => (0.0, 16.5),
                 (Driggle, _) => (0.0, 8.0),
-                (HermitAlligator, _) => (0.0, 5.0),
+                (Snaretongue, _) => (-8.0, 9.0),
             },
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
@@ -280,7 +282,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deadwood, _) => (-15.0, 4.0),
                 (Mossdrake, _) => (-12.0, -2.0),
                 (Driggle, _) => (-4.0, 0.0),
-                (HermitAlligator, _) => (-13.0, -1.0),
+                (Snaretongue, _) => (5.0, 0.0),
             },
             tail_front: match (body.species, body.body_type) {
                 (Crocodile, _) => (-6.0, 0.0),
@@ -305,7 +307,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deadwood, _) => (-1.0, 4.0),
                 (Mossdrake, _) => (-7.0, -4.5),
                 (Driggle, _) => (-5.5, -4.0),
-                (HermitAlligator, _) => (-5.0, 0.0),
+                (Snaretongue, _) => (5.0, -2.0),
             },
             feet_f: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, 6.0, -1.0),
@@ -330,7 +332,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deadwood, _) => (3.5, 4.0, -5.0),
                 (Mossdrake, _) => (4.5, 4.0, -6.5),
                 (Driggle, _) => (4.5, 2.5, -4.0),
-                (HermitAlligator, _) => (4.5, 4.25, -1.0),
+                (Snaretongue, _) => (6.5, 6.5, 1.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, -6.0, -1.0),
@@ -355,7 +357,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Deadwood, _) => (3.5, -6.0, -5.0),
                 (Mossdrake, _) => (3.5, -8.0, -6.5),
                 (Driggle, _) => (3.5, -3.5, -5.0),
-                (HermitAlligator, _) => (4.5, -5.5, -1.0),
+                (Snaretongue, _) => (1.5, 1.5, 2.0),
             },
             lean: match (body.species, body.body_type) {
                 (Pangolin, _) => (0.4, 0.0),
@@ -380,7 +382,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Icedrake, _) => 1.12,
                 (Basilisk, _) => 1.3,
                 (Mossdrake, _) => 1.12,
-                (HermitAlligator, _) => 2.0,
+                (Snaretongue, _) => 1.0,
                 _ => 0.9,
             },
             tempo: match (body.species, body.body_type) {
@@ -402,9 +404,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Icedrake, _) => 1.1,
                 (Basilisk, _) => 0.8,
                 (Mossdrake, _) => 1.1,
-                (HermitAlligator, _) => 0.7,
+                (Snaretongue, _) => 0.7,
                 _ => 1.0,
             },
+            // bool to special case Snaretongue
+            tongue_for_tail: matches!(body.species, Snaretongue),
         }
     }
 }
@@ -433,7 +437,7 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Deadwood, _) => (0.0, -2.0, -3.0),
         (Mossdrake, _) => (0.0, 2.0, -0.5),
         (Driggle, _) => (0.0, 2.0, 0.0),
-        (HermitAlligator, _) => (0.0, 2.5, 3.0),
+        (Snaretongue, _) => (0.0, 2.0, 0.0),
     }
     .into()
 }

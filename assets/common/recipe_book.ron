@@ -291,8 +291,9 @@
     "orichalcum_ingot": (
         output: ("common.items.mineral.ingot.orichalcum", 2),
         inputs: [
-            (Item("common.items.mineral.ingot.gold"), 1, false),
-            (Item("common.items.mineral.ingot.silver"), 1, false),
+            (Item("common.items.mineral.ingot.copper"), 2, false),
+            (Item("common.items.crafting_ing.alkahest"), 1, false),
+            (Item("common.items.mineral.ore.ancient_gold"), 1, false),
         ],
         craft_sprite: Some(Forge),
     ),
@@ -1677,6 +1678,17 @@
         ],
         craft_sprite: Some(Anvil),
     ),
+    "orichalcum_head": (
+        output: ("common.items.armor.mail.orichalcum.head", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.orichalcum"), 10, false),
+            (Item("common.items.mineral.ingot.cobalt"), 2, false),
+            (Item("common.items.crafting_ing.hide.plate"), 4, false),
+            (Item("common.items.mineral.gem.diamond"), 3, false),
+            (Item("common.items.mineral.gem.sapphire"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
     //ARMOR/BRINESTONE
     "brinestone_back": (
         output: ("common.items.armor.brinestone.back", 1),
@@ -2051,6 +2063,17 @@
             inputs: [
                 (Item("common.items.crafting_ing.glacial_crystal"), 3, false),
                 (Item("common.items.crafting_ing.animal_misc.icy_fang"), 16, false),
+                (Item("common.items.crafting_ing.pearl"), 1, false),
+                (Item("common.items.tool.craftsman_hammer"), 0, false),
+            ],
+            craft_sprite: Some(CraftingBench),
+            is_recycling: false,
+        ),
+    "delvers_lamp": (
+            output: ("common.items.lantern.delvers_lamp", 1),
+            inputs: [
+                (Item("common.items.crafting_ing.dwarven_battery"), 1, false),
+                (Item("common.items.crafting_ing.twigs"), 16, false),
                 (Item("common.items.crafting_ing.pearl"), 1, false),
                 (Item("common.items.tool.craftsman_hammer"), 0, false),
             ],

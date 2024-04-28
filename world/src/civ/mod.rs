@@ -278,7 +278,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..90) {
+                let (loc, kind) = match ctx.rng.gen_range(0..95) {
                     0..=4 => {
                         if index.features().site2_giant_trees {
                             (
@@ -404,7 +404,7 @@ impl Civs {
                         )?,
                         SiteKind::Terracotta,
                     ),
-                    /*80..=86 => (
+                    80..=86 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -414,7 +414,7 @@ impl Civs {
                         )?,
                         SiteKind::DwarvenMine,
                     ),
-                    86..=97 => (
+                    /*86..=97 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -479,7 +479,7 @@ impl Civs {
                 SiteKind::RockCircle => (8i32, 3.0),
                 SiteKind::TrollCave => (4i32, 1.5),
                 SiteKind::Camp => (4i32, 1.5),
-                //SiteKind::DwarvenMine => (8i32, 3.0),
+                SiteKind::DwarvenMine => (8i32, 3.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -629,11 +629,11 @@ impl Civs {
                         &mut rng,
                         wpos,
                     )),
-                    /*SiteKind::DwarvenMine => WorldSite::dwarven_mine(site2::Site::generate_mine(
+                    SiteKind::DwarvenMine => WorldSite::dwarven_mine(site2::Site::generate_mine(
                         &Land::from_sim(ctx.sim),
                         &mut rng,
                         wpos,
-                    )),*/
+                    )),
                     SiteKind::ChapelSite => WorldSite::chapel_site(
                         site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
@@ -1962,7 +1962,7 @@ pub enum SiteKind {
     RockCircle,
     TrollCave,
     Camp,
-    //DwarvenMine,
+    DwarvenMine,
     JungleRuin,
 }
 
@@ -2008,12 +2008,12 @@ impl SiteKind {
                         && chunk.tree_density > 0.75
                 },
                 SiteKind::Adlet => chunk.temp < -0.2 && chunk.cliff_height > 25.0,
-                /*SiteKind::DwarvenMine => {
+                SiteKind::DwarvenMine => {
                     matches!(chunk.get_biome(), BiomeKind::Forest | BiomeKind::Desert)
                         && !chunk.near_cliffs()
                         && !chunk.river.near_water()
                         && on_flat_terrain()
-                },*/
+                },
                 SiteKind::Haniwa => {
                     on_land()
                         && on_flat_terrain()

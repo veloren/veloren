@@ -1,0 +1,7 @@
+[
+  (1, All([
+        MultiDrop(Item("common.items.crafting_ing.alkahest"), 1, 1),
+        MultiDrop(Item("common.items.crafting_ing.dwarven_battery"), 1, 2),
+        ],
+   )),
+]

@@ -78,10 +78,7 @@ impl Animation for SummonAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
         match active_tool_kind {
             Some(ToolKind::Staff) => match ability_id {
-                Some(
-                    "common.abilities.custom.dwarves.flamekeeper.summon_flamethrower"
-                    | "common.abilities.custom.dwarves.flamekeeper.summon_clockwork",
-                ) => {
+                Some("common.abilities.custom.dwarves.flamekeeper.summon_lavathrower") => {
                     next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 3.0, 3.0);
                     next.control_r.position = Vec3::new(
                         12.0 + s_a.grip.0 * 2.0,

@@ -13,7 +13,7 @@ ChatGPT: Improving Code Quality, Speeding up finding Syntax Errors
 
 use super::*;
 use crate::{site2::gen::PrimitiveTransform, Land};
-use common::{generation::SpecialEntity, terrain::Structure as PrefabStructure};
+use common::terrain::Structure as PrefabStructure;
 use rand::prelude::*;
 use vek::*;
 
@@ -91,7 +91,7 @@ impl Structure for DwarvenMine {
         let mining_site_pos: Vec3<i32> = hallway1_pos + Vec3::new(-5, 28, 21);
         render_prefab(mining_site_path, mining_site_pos, painter);
         // After Mining
-        let after_mining_path = "site_structures.dwarves.after_flamekeeper";
+        let after_mining_path = "site_structures.dwarves.after_forgemaster";
         let after_mining_pos: Vec3<i32> = mining_site_pos + Vec3::new(-12, -9, -3);
         render_prefab(
             after_mining_path,
@@ -106,10 +106,10 @@ impl Structure for DwarvenMine {
         let excavation_site_path = "site_structures.dwarves.excavation_site";
         let excavation_site_pos: Vec3<i32> = hallway2_pos + Vec3::new(-35, 83, -10);
         render_prefab(excavation_site_path, excavation_site_pos, painter);
-        // Flamekeeper Boss
-        let flamekeeper_boss_path = "site_structures.dwarves.flamekeeper_boss";
-        let flamekeeper_boss_pos: Vec3<i32> = excavation_site_pos + Vec3::new(115, 0, -17);
-        render_prefab(flamekeeper_boss_path, flamekeeper_boss_pos, painter);
+        // Forgemaster Boss
+        let forgemaster_boss_path = "site_structures.dwarves.forgemaster_boss";
+        let forgemaster_boss_pos: Vec3<i32> = excavation_site_pos + Vec3::new(115, 0, -17);
+        render_prefab(forgemaster_boss_path, forgemaster_boss_pos, painter);
         // Cleansing Room
         let cleansing_room_path = "site_structures.dwarves.cleansing_room";
         let cleansing_room_pos: Vec3<i32> = excavation_site_pos + Vec3::new(-47, -125, 6);
@@ -118,28 +118,16 @@ impl Structure for DwarvenMine {
         let smelting_room_path = "site_structures.dwarves.smelting_room";
         let smelting_room_pos: Vec3<i32> = cleansing_room_pos + Vec3::new(49, -6, 0);
         render_prefab(smelting_room_path, smelting_room_pos, painter);
-        // Flamekeeper Room
-        let flamekeeper_path = "site_structures.dwarves.flamekeeper_room";
-        let flamekeeper_pos: Vec3<i32> = smelting_room_pos + Vec3::new(8, 36, 10);
-        render_prefab(flamekeeper_path, flamekeeper_pos, painter);
+        // Forgemaster Room
+        let forgemaster_path = "site_structures.dwarves.forgemaster_room";
+        let forgemaster_pos: Vec3<i32> = smelting_room_pos + Vec3::new(8, 36, 10);
+        render_prefab(forgemaster_path, forgemaster_pos, painter);
 
         // Spawn random NPCs/Rotated Sprites
         let random_entities: Vec<(Vec3<i32>, u8)> = vec![
-            // Excavation Room
-            (
-                excavation_site_pos + Vec3::new(1, 42, 20) + Vec3::new(-4, -86, -10),
-                4,
-            ),
-            // Near Dwarven Defense
-            (excavation_site_pos + Vec3::new(-37, 35, 10), 0),
-            // Smelting Room under stairs
-            (smelting_room_pos + Vec3::new(-9, 11, 3), 0),
-            (smelting_room_pos + Vec3::new(19, 11, 3), 0),
-            // Treasure Rooms near Captain
-            (flamekeeper_pos + Vec3::new(-16, 12, 1), 0),
-            (flamekeeper_pos + Vec3::new(-16, 19, 1), 0),
-            // Hallway back to the top
-            (hallway1_pos + Vec3::new(-11, -5, 1), 4),
+            (forgemaster_pos + Vec3::new(11, 20, 1), 0),
+            (forgemaster_pos + Vec3::new(0, 20, 1), 0),
+            (forgemaster_pos + Vec3::new(-11, 20, 1), 0),
         ];
 
         for (pos, rot) in random_entities {
@@ -148,27 +136,18 @@ impl Structure for DwarvenMine {
 
         //Entities
         let miner = "common.entity.dungeon.dwarven_quarry.miner";
-        let clockwork = "common.entity.dungeon.dwarven_quarry.clockwork";
+        let iron_dwarf = "common.entity.dungeon.dwarven_quarry.iron_dwarf";
         let turret = "common.entity.dungeon.dwarven_quarry.turret";
-        let flamethrower = "common.entity.dungeon.dwarven_quarry.flamethrower";
+        let lavathrower = "common.entity.dungeon.dwarven_quarry.lavathrower";
         let mine_guard = "common.entity.dungeon.dwarven_quarry.mine_guard";
-        let overseer = "common.entity.dungeon.dwarven_quarry.overseer";
         let flamekeeper = "common.entity.dungeon.dwarven_quarry.flamekeeper";
-        let captain = "common.entity.dungeon.dwarven_quarry.captain";
-        let minotaur = "common.entity.dungeon.dwarven_quarry.minotaur";
-        let hoplite = "common.entity.dungeon.dwarven_quarry.hoplite";
-        let marksman = "common.entity.dungeon.dwarven_quarry.marksman";
-        let sniper = "common.entity.dungeon.dwarven_quarry.sniper";
-        let strategian = "common.entity.dungeon.dwarven_quarry.strategian";
-        let cyclops = "common.entity.dungeon.dwarven_quarry.cyclops";
-        let alligator = "common.entity.dungeon.dwarven_quarry.alligator";
+        let forgemaster = "common.entity.dungeon.dwarven_quarry.forgemaster";
+        let irongolem = "common.entity.dungeon.dwarven_quarry.irongolem";
+        let irongolem_key = "common.entity.dungeon.dwarven_quarry.irongolem_key";
+        let snaretongue_forge_key = "common.entity.dungeon.dwarven_quarry.snaretongue_forge_key";
+        let snaretongue_miner_key = "common.entity.dungeon.dwarven_quarry.snaretongue_miner_key";
 
         let entrance_offset: Vec3<f32> = (20.0, -20.0, 45.0).into();
-        // Spawn waypoint
-        let waypoint_pos = (entrance_pos + Vec3::new(1, -1, 4)).map(|x| x as f32) + entrance_offset;
-        painter
-            .spawn(EntityInfo::at(waypoint_pos.map(|e| e)).into_special(SpecialEntity::Waypoint));
-
         let miner_pos: Vec<(Vec3<f32>, &str)> = vec![
             // Entrance
             (
@@ -185,18 +164,6 @@ impl Structure for DwarvenMine {
                 miner,
             ),
             (
-                hallway0_pos.map(|x| x as f32) + Vec3::new(10.0, -6.0, 16.0),
-                miner,
-            ),
-            (
-                hallway0_pos.map(|x| x as f32) + Vec3::new(-10.0, -4.0, 10.0),
-                miner,
-            ),
-            (
-                hallway0_pos.map(|x| x as f32) + Vec3::new(-10.0, -6.0, 10.0),
-                miner,
-            ),
-            (
                 hallway0_pos.map(|x| x as f32) + Vec3::new(-10.0, -4.0, 10.0),
                 miner,
             ),
@@ -210,107 +177,50 @@ impl Structure for DwarvenMine {
                 miner,
             ),
             (
-                hallway0_pos.map(|x| x as f32) + Vec3::new(-30.0, -6.0, 0.0),
-                miner,
-            ),
-            (
                 hallway0_pos.map(|x| x as f32) + Vec3::new(-46.0, -4.0, -5.0),
-                miner,
-            ),
-            (
-                hallway0_pos.map(|x| x as f32) + Vec3::new(-46.0, -6.0, -5.0),
                 miner,
             ),
             // Mining
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(12.0, -5.0, 0.0),
-                miner,
+                mining_site_pos.map(|x| x as f32) + Vec3::new(14.0, 17.0, 10.0),
+                flamekeeper,
             ),
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(16.0, -5.0, 0.0),
-                miner,
+                mining_site_pos.map(|x| x as f32) + Vec3::new(14.0, 27.0, 8.0),
+                mine_guard,
             ),
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(28.0, -5.0, 0.0),
-                miner,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(28.0, 0.0, 0.0),
-                miner,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(32.0, 0.0, 0.0),
-                clockwork,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(34.0, 32.0, 0.0),
+                mining_site_pos.map(|x| x as f32) + Vec3::new(-4.0, 32.0, 8.0),
                 turret,
             ),
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(28.0, 6.0, 10.0),
-                mine_guard,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(28.0, 10.0, 10.0),
-                mine_guard,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(-8.0, 32.0, 0.0),
+                mining_site_pos.map(|x| x as f32) + Vec3::new(32.0, 32.0, 10.0),
                 turret,
             ),
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(27.0, 21.0, 10.0),
+                mining_site_pos.map(|x| x as f32) + Vec3::new(14.0, 32.0, 10.0),
                 mine_guard,
             ),
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(27.0, 25.0, 10.0),
-                mine_guard,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(-8.0, 22.0, 0.0),
+                mining_site_pos.map(|x| x as f32) + Vec3::new(-8.0, 0.0, 10.0),
                 miner,
             ),
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(-4.0, 22.0, 0.0),
+                mining_site_pos.map(|x| x as f32) + Vec3::new(36.0, 0.0, 10.0),
                 miner,
             ),
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(-4.0, 18.0, 0.0),
-                clockwork,
+                mining_site_pos.map(|x| x as f32) + Vec3::new(-8.0, 15.0, 0.0),
+                iron_dwarf,
             ),
             (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(-8.0, 5.0, 0.0),
-                miner,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(-4.0, 5.0, 0.0),
-                miner,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(-4.0, 2.0, 0.0),
-                mine_guard,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(11.0, 18.0, 0.0),
-                overseer,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(10.0, 14.0, 0.0),
-                mine_guard,
-            ),
-            (
-                mining_site_pos.map(|x| x as f32) + Vec3::new(12.0, 14.0, 0.0),
-                mine_guard,
+                mining_site_pos.map(|x| x as f32) + Vec3::new(36.0, 15.0, 0.0),
+                iron_dwarf,
             ),
             // After Mining
-
             // Hallway 2
             (
                 hallway2_pos.map(|x| x as f32) + Vec3::new(-4.0, -22.0, 20.0),
-                miner,
-            ),
-            (
-                hallway2_pos.map(|x| x as f32) + Vec3::new(-6.0, -22.0, 20.0),
                 miner,
             ),
             (
@@ -318,269 +228,110 @@ impl Structure for DwarvenMine {
                 miner,
             ),
             (
-                hallway2_pos.map(|x| x as f32) + Vec3::new(-6.0, 7.0, 10.0),
-                miner,
-            ),
-            (
                 hallway2_pos.map(|x| x as f32) + Vec3::new(-5.0, 30.0, 0.0),
-                mine_guard,
-            ),
-            (
-                hallway2_pos.map(|x| x as f32) + Vec3::new(-3.0, 30.0, 0.0),
                 mine_guard,
             ),
             // Excavation Site
             (
                 hallway2_pos.map(|x| x as f32) + Vec3::new(0.0, 44.0, 0.0),
-                clockwork,
+                iron_dwarf,
             ),
             (
                 hallway2_pos.map(|x| x as f32) + Vec3::new(2.0, 44.0, 0.0),
-                clockwork,
+                lavathrower,
             ),
             (
-                hallway2_pos.map(|x| x as f32) + Vec3::new(0.0, 40.0, 0.0),
-                clockwork,
+                forgemaster_boss_pos.map(|x| x as f32) + Vec3::new(23.0, 1.0, 20.0),
+                forgemaster,
             ),
+            // lavathrower on wood railing
             (
-                hallway2_pos.map(|x| x as f32) + Vec3::new(2.0, 40.0, 0.0),
-                clockwork,
+                excavation_site_pos.map(|x| x as f32) + Vec3::new(0.0, -25.0, 18.0),
+                lavathrower,
             ),
+            // lavathrower, turret & miner on corner platforms
             (
-                flamekeeper_boss_pos.map(|x| x as f32) + Vec3::new(23.0, 3.0, 20.0),
-                flamekeeper,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(2.0, -10.0, 18.0),
-                flamethrower,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(2.0, -16.0, 18.0),
-                flamethrower,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(2.0, -12.0, 18.0),
+                excavation_site_pos.map(|x| x as f32) + Vec3::new(50.0, 42.0, 25.0),
                 mine_guard,
             ),
             (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(2.0, -14.0, 18.0),
-                mine_guard,
-            ),
-            // Guards before keeper
-            // First Group
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(30.0, 10.0, 10.0),
-                clockwork,
+                excavation_site_pos.map(|x| x as f32) + Vec3::new(48.0, 40.0, 12.0),
+                turret,
             ),
             (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(30.0, 15.0, 10.0),
-                clockwork,
+                excavation_site_pos.map(|x| x as f32) + Vec3::new(44.0, 50.0, 15.0),
+                lavathrower,
+            ),
+            // lavathrower and turret on ridge (forgemaster side)
+            (
+                excavation_site_pos.map(|x| x as f32) + Vec3::new(50.0, 18.0, 18.0),
+                turret,
             ),
             (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(32.0, 10.0, 10.0),
-                clockwork,
+                excavation_site_pos.map(|x| x as f32) + Vec3::new(50.0, 10.0, 18.0),
+                lavathrower,
             ),
+            // Lavaroom Exit
             (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(32.0, 15.0, 10.0),
-                clockwork,
-            ),
-            // Group before boss
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(40.0, 20.0, 10.0),
-                clockwork,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(40.0, 25.0, 10.0),
-                clockwork,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(42.0, 20.0, 10.0),
-                clockwork,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(42.0, 25.0, 10.0),
-                clockwork,
-            ),
-            // Stairs
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(1.0, 42.0, 20.0),
-                mine_guard,
+                excavation_site_pos.map(|x| x as f32) + Vec3::new(-1.0, 44.0, 20.0),
+                lavathrower,
             ),
             (
                 excavation_site_pos.map(|x| x as f32) + Vec3::new(-1.0, 42.0, 20.0),
                 mine_guard,
             ),
-            // Minotaur
+            // Iron Golem
             (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(-30.0, -48.0, 10.0),
-                minotaur,
+                excavation_site_pos.map(|x| x as f32) + Vec3::new(-30.0, -12.0, 8.0),
+                irongolem_key,
             ),
             // Cleansing Room
-            // Cyclops
+            // Snaretongue
             (
-                cleansing_room_pos.map(|x| x as f32) + Vec3::new(16.0, 45.0, 5.0),
-                cyclops,
+                cleansing_room_pos.map(|x| x as f32) + Vec3::new(-10.0, -5.0, 10.0),
+                snaretongue_forge_key,
             ),
-            // Alligator
             (
                 cleansing_room_pos.map(|x| x as f32) + Vec3::new(-14.0, 60.0, -10.0),
-                alligator,
+                snaretongue_miner_key,
             ),
             // Smelting Room
             (
-                smelting_room_pos.map(|x| x as f32) + Vec3::new(-5.0, -10.0, 5.0),
-                flamethrower,
+                smelting_room_pos.map(|x| x as f32) + Vec3::new(-8.0, -2.0, 5.0),
+                lavathrower,
             ),
             (
-                smelting_room_pos.map(|x| x as f32) + Vec3::new(15.0, -10.0, 5.0),
-                flamethrower,
+                smelting_room_pos.map(|x| x as f32) + Vec3::new(20.0, -10.0, 5.0),
+                lavathrower,
             ),
             // Treasure Room
+            // Iron Golem
             (
-                flamekeeper_pos.map(|x| x as f32) + Vec3::new(11.0, 20.0, 2.0),
-                flamethrower,
-            ),
-            (
-                flamekeeper_pos.map(|x| x as f32) + Vec3::new(11.0, 20.0, 8.0),
-                captain,
+                forgemaster_pos.map(|x| x as f32) + Vec3::new(0.0, 4.0, 3.0),
+                irongolem,
             ),
         ];
 
         // Entity Groups
         let entity_group_positions = vec![
-            // Entrance
-            (
-                entrance_pos.map(|x| x as f32) + Vec3::new(2.0, -16.0, 1.0),
-                vec![miner],
-                2,
-                5.0,
-                3.0,
-            ),
-            // An
-            // Excavation Site
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(4.0, 20.0, 10.0),
-                vec![miner, clockwork, mine_guard],
-                4,
-                5.0,
-                3.0,
-            ),
-            // Ancient Corridor
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(-20.0, -35.0, 10.0),
-                vec![hoplite, marksman, strategian],
-                4,
-                5.0,
-                4.0,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(-35.0, -35.0, 10.0),
-                vec![hoplite, marksman, strategian],
-                4,
-                5.0,
-                4.0,
-            ),
-            //
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(-20.0, -20.0, 10.0),
-                vec![hoplite, marksman, strategian],
-                4,
-                5.0,
-                4.0,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(-35.0, -20.0, 10.0),
-                vec![hoplite, marksman, strategian],
-                4,
-                5.0,
-                4.0,
-            ),
-            //
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(-20.0, -5.0, 10.0),
-                vec![hoplite, marksman, strategian],
-                4,
-                5.0,
-                4.0,
-            ),
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(-35.0, -5.0, 10.0),
-                vec![hoplite, marksman, strategian],
-                4,
-                5.0,
-                4.0,
-            ),
-            //Dwarven Defense
-            (
-                excavation_site_pos.map(|x| x as f32) + Vec3::new(-28.0, 15.0, 10.0),
-                vec![miner, clockwork, mine_guard],
-                8,
-                5.0,
-                4.0,
-            ),
-            // Cleansing Room First
-            (
-                cleansing_room_pos.map(|x| x as f32) + Vec3::new(12.0, 60.0, 5.0),
-                vec![hoplite, marksman, strategian],
-                4,
-                5.0,
-                4.0,
-            ),
-            (
-                cleansing_room_pos.map(|x| x as f32) + Vec3::new(27.0, 60.0, 5.0),
-                vec![hoplite, marksman, strategian],
-                4,
-                5.0,
-                4.0,
-            ),
-            // Cleansing Room Second
-            (
-                cleansing_room_pos.map(|x| x as f32) + Vec3::new(20.0, 18.0, 5.0),
-                vec![sniper],
-                2,
-                5.0,
-                4.0,
-            ),
-            (
-                cleansing_room_pos.map(|x| x as f32) + Vec3::new(-2.0, 18.0, 5.0),
-                vec![sniper],
-                2,
-                5.0,
-                4.0,
-            ),
-            (
-                cleansing_room_pos.map(|x| x as f32) + Vec3::new(-2.0, -3.0, 5.0),
-                vec![sniper],
-                2,
-                5.0,
-                4.0,
-            ),
-            (
-                cleansing_room_pos.map(|x| x as f32) + Vec3::new(19.0, -3.0, 5.0),
-                vec![sniper],
-                2,
-                5.0,
-                4.0,
-            ),
             // Smelting Room
             (
-                smelting_room_pos.map(|x| x as f32) + Vec3::new(-5.0, -10.0, 5.0),
-                vec![clockwork],
-                4,
+                smelting_room_pos.map(|x| x as f32) + Vec3::new(26.0, -10.0, 5.0),
+                vec![iron_dwarf],
+                2,
                 5.0,
                 4.0,
             ),
             (
-                smelting_room_pos.map(|x| x as f32) + Vec3::new(20.0, -10.0, 5.0),
-                vec![clockwork],
-                4,
+                smelting_room_pos.map(|x| x as f32) + Vec3::new(6.0, 2.0, 12.0),
+                vec![iron_dwarf],
+                2,
                 5.0,
                 4.0,
             ),
-            // Treasure Room
             (
-                flamekeeper_pos.map(|x| x as f32) + Vec3::new(10.0, 10.0, 3.0),
-                vec![miner, clockwork, mine_guard],
+                smelting_room_pos.map(|x| x as f32) + Vec3::new(8.0, -10.0, 18.0),
+                vec![miner, iron_dwarf, mine_guard],
                 4,
                 5.0,
                 4.0,
@@ -588,22 +339,50 @@ impl Structure for DwarvenMine {
             // Staircase Back up
             (
                 hallway1_pos.map(|x| x as f32) + Vec3::new(-5.0, 2.0, 0.0),
-                vec![miner, clockwork, mine_guard],
-                4,
+                vec![miner, iron_dwarf, mine_guard],
+                2,
                 5.0,
                 4.0,
             ),
             (
                 hallway1_pos.map(|x| x as f32) + Vec3::new(-20.0, 10.0, 0.0),
-                vec![miner, clockwork, mine_guard],
-                4,
+                vec![miner, iron_dwarf, mine_guard],
+                2,
                 5.0,
                 4.0,
             ),
             (
                 hallway1_pos.map(|x| x as f32) + Vec3::new(4.0, 15.0, 0.0),
-                vec![miner, clockwork, mine_guard],
-                4,
+                vec![miner, iron_dwarf, mine_guard],
+                2,
+                5.0,
+                4.0,
+            ),
+            (
+                hallway1_pos.map(|x| x as f32) + Vec3::new(-5.0, -8.0, 18.0),
+                vec![miner, iron_dwarf, mine_guard],
+                3,
+                5.0,
+                4.0,
+            ),
+            (
+                hallway1_pos.map(|x| x as f32) + Vec3::new(-5.0, -8.0, 30.0),
+                vec![miner, iron_dwarf, mine_guard],
+                3,
+                5.0,
+                4.0,
+            ),
+            (
+                hallway1_pos.map(|x| x as f32) + Vec3::new(-20.0, 18.0, 10.0),
+                vec![miner, iron_dwarf, mine_guard],
+                3,
+                5.0,
+                4.0,
+            ),
+            (
+                hallway1_pos.map(|x| x as f32) + Vec3::new(4.0, 15.0, 12.0),
+                vec![miner, iron_dwarf, mine_guard],
+                3,
                 5.0,
                 4.0,
             ),
@@ -621,12 +400,6 @@ impl Structure for DwarvenMine {
                 entity_distance,
             );
         }
-
-        /*
-           ^-x
-        < -y +y>
-
-         */
 
         for (pos, entity) in miner_pos {
             spawn_entity(pos, painter, entity);
@@ -689,18 +462,13 @@ fn spawn_random_entity(pos: Vec3<i32>, painter: &Painter, rot: u8) {
     let entities = [
         "common.entity.dungeon.dwarven_quarry.miner",
         "common.entity.dungeon.dwarven_quarry.turret",
-        "common.entity.dungeon.dwarven_quarry.clockwork",
+        "common.entity.dungeon.dwarven_quarry.iron_dwarf",
     ];
 
     let sprites = [
-        SpriteKind::FireBowlGround,
-        SpriteKind::Bones,
         SpriteKind::Anvil,
-        SpriteKind::Gold,
         SpriteKind::Forge,
         SpriteKind::RepairBench,
-        SpriteKind::CommonLockedChest,
-        SpriteKind::DungeonChest4,
         SpriteKind::DungeonChest5,
     ];
 

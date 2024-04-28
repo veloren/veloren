@@ -160,6 +160,43 @@ impl Animation for ComboAnimation {
                     },
                     _ => {},
                 },
+                Some("common.abilities.custom.dwarves.snaretongue.tongue") => {
+                    let (movement1base, movement2base, movement3) = match stage_section {
+                        StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),
+                        StageSection::Action => (1.0, anim_time.powi(4), 0.0),
+                        StageSection::Recover => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - movement3;
+                    let subtract = global_time - timer;
+                    let check = subtract - subtract.trunc();
+                    let mirror = (check - 0.5).signum();
+                    let twitch3 = (mirror * movement3 * 9.0).sin();
+                    let movement1 = mirror * movement1base * pullback;
+                    let movement2 = mirror * movement2base * pullback;
+                    let movement1abs = movement1base * pullback;
+                    let movement2abs = movement2base * pullback;
+
+                    next.head_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+                    next.head_lower.orientation =
+                        Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.4)
+                            * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -0.7);
+
+                    next.jaw.orientation =
+                        Quaternion::rotation_x(movement2abs * -0.8 + movement3 * -0.6);
+                    next.chest.orientation =
+                        Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)
+                            * Quaternion::rotation_z(movement1 * -0.2 + movement2 * 0.6);
+
+                    next.tail_front.position = Vec3::new(
+                        0.0,
+                        s_a.tail_front.0 + (4.0 * s_a.tail_front.0 * movement2abs),
+                        s_a.tail_front.1,
+                    );
+                    next.tail_rear.position =
+                        Vec3::new(0.0, 3.0 * s_a.tail_rear.0 * movement2abs, s_a.tail_rear.1);
+                    next.tail_front.orientation = Quaternion::rotation_x(movement3 * 0.15);
+                },
                 _ => {},
             }
         }

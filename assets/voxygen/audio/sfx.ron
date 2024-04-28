@@ -1486,6 +1486,13 @@
             threshold: 1.2,
             subtitle: "subtitle-deep_laugh",
         ),
+        Bleep: (
+            files: [
+                    "voxygen.audio.sfx.abilities.bleep",
+                ],
+            threshold: 1.8,
+            subtitle: "subtitle-bleep",
+        ),        
         FlashFreeze: (
             files: [
                     "voxygen.audio.sfx.abilities.minotaur_smash_2",

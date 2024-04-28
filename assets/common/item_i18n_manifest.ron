@@ -61,6 +61,9 @@
             "common.items.npc_armor.golem.mogwai",
         ): "common-items-npc_armor-golem-mogwai",
         Simple(
+            "common.items.npc_armor.golem.irongolem",
+        ): "common-items-npc_armor-golem-irongolem",
+        Simple(
             "common.items.npc_armor.biped_small.myrmidon.foot.hoplite",
         ): "common-items-npc_armor-biped_small-myrmidon-foot-hoplite",
         Simple(
@@ -346,20 +349,20 @@
             "common.items.npc_armor.biped_small.treasure_egg.foot.treasure_egg",
         ): "common-items-npc_armor-biped_small-treasure_egg-foot-treasure_egg",
         Simple(
-            "common.items.npc_armor.biped_small.clockwork.foot.clockwork",
-        ): "common-items-npc_armor-biped_small-clockwork-foot-clockwork",
+            "common.items.npc_armor.biped_small.iron_dwarf.foot.iron_dwarf",
+        ): "common-items-npc_armor-biped_small-iron_dwarf-foot-iron_dwarf",
         Simple(
-            "common.items.npc_armor.biped_small.clockwork.head.clockwork",
-        ): "common-items-npc_armor-biped_small-clockwork-head-clockwork",
+            "common.items.npc_armor.biped_small.iron_dwarf.head.iron_dwarf",
+        ): "common-items-npc_armor-biped_small-iron_dwarf-head-iron_dwarf",
         Simple(
-            "common.items.npc_armor.biped_small.clockwork.pants.clockwork",
-        ): "common-items-npc_armor-biped_small-clockwork-pants-clockwork",
+            "common.items.npc_armor.biped_small.iron_dwarf.pants.iron_dwarf",
+        ): "common-items-npc_armor-biped_small-iron_dwarf-pants-iron_dwarf",
         Simple(
-            "common.items.npc_armor.biped_small.clockwork.chest.clockwork",
-        ): "common-items-npc_armor-biped_small-clockwork-chest-clockwork",
+            "common.items.npc_armor.biped_small.iron_dwarf.chest.iron_dwarf",
+        ): "common-items-npc_armor-biped_small-iron_dwarf-chest-iron_dwarf",
         Simple(
-            "common.items.npc_armor.biped_small.clockwork.hand.clockwork",
-        ): "common-items-npc_armor-biped_small-clockwork-hand-clockwork",
+            "common.items.npc_armor.biped_small.iron_dwarf.hand.iron_dwarf",
+        ): "common-items-npc_armor-biped_small-iron_dwarf-hand-iron_dwarf",
         Simple(
             "common.items.npc_armor.biped_small.haniwa.foot.archer",
         ): "common-items-npc_armor-biped_small-haniwa-foot-archer",
@@ -673,6 +676,9 @@
             "common.items.npc_armor.biped_large.terracotta",
         ): "common-items-npc_armor-biped_large-terracotta",
         Simple(
+            "common.items.npc_armor.biped_large.forgemaster",
+        ): "common-items-npc_armor-biped_large-forgemaster",
+        Simple(
             "common.items.keys.bone_key",
         ): "object-key-bone",
         Simple(
@@ -691,26 +697,11 @@
             "common.items.keys.rusty_tower_key",
         ): "object-key-rusty",
         Simple(
-            "common.items.keys.quarry_keys.ancient",
-        ): "object-key-quarry-ancient",
+            "common.items.keys.quarry_keys.miner_key",
+        ): "object-key-miner",
         Simple(
-            "common.items.keys.quarry_keys.backdoor",
-        ): "object-key-quarry-backdoor",
-        Simple(
-            "common.items.keys.quarry_keys.cyclops_eye",
-        ): "object-key-cyclops_eyeball",
-        Simple(
-            "common.items.keys.quarry_keys.flamekeeper_left",
-        ): "object-key-quarry-keeper_goggle_left",
-        Simple(
-            "common.items.keys.quarry_keys.flamekeeper_right",
-        ): "object-key-quarry-keeper_goggle_right",
-        Simple(
-            "common.items.keys.quarry_keys.overseer",
-        ): "object-key-quarry-overseer",
-        Simple(
-            "common.items.keys.quarry_keys.smelting",
-        ): "object-key-quarry-smelting",
+            "common.items.keys.quarry_keys.forge_key",
+        ): "object-key-forge",
         Simple(
             "common.items.weapons.shield.shield_1",
         ): "weapon-shield-wood-0",
@@ -1669,6 +1660,9 @@
             "common.items.armor.mail.orichalcum.shoulder",
         ): "armor-mail-orichalcum-5",
         Simple(
+            "common.items.armor.mail.orichalcum.head",
+        ): "armor-mail-orichalcum-7",
+        Simple(
             "common.items.armor.mail.steel.back",
         ): "armor-mail-steel-back",
         Simple(
@@ -2232,6 +2226,9 @@
             "common.items.mineral.ore.tin",
         ): "sprite-mineral-ore-tin",
         Simple(
+            "common.items.mineral.ore.ancient_gold",
+        ): "sprite-mineral-ore-ancient_gold",
+        Simple(
             "common.items.mineral.ore.velorite",
         ): "sprite-velorite-velorite_ore",
         Simple(
@@ -2557,8 +2554,17 @@
             "common.items.npc_weapons.unique.clay_golem_fist",
         ): "common-items-npc_weapons-unique-clay_golem_fist",
         Simple(
-            "common.items.npc_weapons.unique.clockwork",
-        ): "common-items-npc_weapons-unique-clockwork",
+            "common.items.npc_weapons.unique.iron_golem_fist",
+        ): "common-items-npc_weapons-unique-iron_golem_fist",
+        Simple(
+            "common.items.npc_weapons.hammer.forgemaster_hammer",
+        ): "common-items-npc_weapons-hammer-forgemaster_hammer",
+        Simple(
+            "common.items.npc_weapons.unique.snaretongue",
+        ): "common-items-npc_weapons-unique-snaretongue",
+        Simple(
+            "common.items.npc_weapons.unique.iron_dwarf",
+        ): "common-items-npc_weapons-unique-iron_dwarf",
         Simple(
             "common.items.npc_weapons.unique.cloudwyvern",
         ): "common-items-npc_weapons-unique-cloudwyvern",
@@ -2619,9 +2625,6 @@
         Simple(
             "common.items.npc_weapons.unique.haniwa_sentry",
         ): "common-items-npc_weapons-unique-haniwa_sentry",
-        Simple(
-            "common.items.npc_weapons.unique.hermit_alligator",
-        ): "common-items-npc_weapons-unique-hermit_alligator",
         Simple(
             "common.items.npc_weapons.unique.husk",
         ): "common-items-npc_weapons-unique-husk",
@@ -3094,6 +3097,15 @@
             "common.items.crafting_ing.sticky_thread",
         ): "sprite-crafting_ing-sticky_thread",
         Simple(
+            "common.items.crafting_ing.alkahest",
+        ): "sprite-crafting_ing-alkahest",
+        Simple(
+            "common.items.crafting_ing.dwarven_battery",
+        ): "sprite-crafting_ing-dwarven_battery",
+        Simple(
+            "common.items.crafting_ing.dwarven_battery",
+        ): "sprite-crafting_ing-dwarven_battery",
+        Simple(
             "common.items.crafting_ing.stones",
         ): "sprite-rocks-rock-0",
         Simple(
@@ -3246,6 +3258,9 @@
         Simple(
             "common.items.lantern.polaris",
         ): "lantern-polaris",
+        Simple(
+            "common.items.lantern.delvers_lamp",
+        ): "lantern-delvers_lamp",
         Simple(
             "common.items.lantern.pumpkin",
         ): "lantern-pumpkin",

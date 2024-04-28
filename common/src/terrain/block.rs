@@ -431,7 +431,6 @@ impl Block {
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => 16,
                 SpriteKind::SeaDecorEmblem => 12,
                 SpriteKind::SeaDecorBlock | SpriteKind::HaniwaKeyDoor => 10,
-                SpriteKind::Mine => 2,
                 _ => return None,
             },
         };
@@ -584,11 +583,7 @@ impl Block {
     pub fn is_bonkable(&self) -> bool {
         match self.get_sprite() {
             Some(
-                SpriteKind::Apple
-                | SpriteKind::Beehive
-                | SpriteKind::Coconut
-                | SpriteKind::Bomb
-                | SpriteKind::Mine,
+                SpriteKind::Apple | SpriteKind::Beehive | SpriteKind::Coconut | SpriteKind::Bomb,
             ) => self.is_solid(),
             _ => false,
         }

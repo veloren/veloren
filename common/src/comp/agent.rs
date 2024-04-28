@@ -370,7 +370,7 @@ impl<'a> From<&'a Body> for Psyche {
                     biped_small::Species::TreasureEgg => 9.9,
                     biped_small::Species::Husk
                     | biped_small::Species::Boreal
-                    | biped_small::Species::Clockwork
+                    | biped_small::Species::IronDwarf
                     | biped_small::Species::Flamekeeper
                     | biped_small::Species::Irrwurz
                     | biped_small::Species::ShamanicSpirit

@@ -1636,4 +1636,56 @@
             central: ("armor.empty"),
         )
     ),
+    (Forgemaster, Male): (
+        head: (
+            offset: (-8.0, -6.5, 0.0),
+            central: ("npc.forgemaster.male.head"),
+        ),
+        torso_upper: (
+            offset: (-21.0, -22.0, -12.0),
+            central: ("npc.forgemaster.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-8.0, -7.0, -10.0),
+            central: ("npc.forgemaster.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-3.0, 0.0, -3.5),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Forgemaster, Female): (
+        head: (
+            offset: (-8.0, -6.5, 0.0),
+            central: ("npc.forgemaster.male.head"),
+        ),
+        torso_upper: (
+            offset: (-21.0, -22.0, -12.0),
+            central: ("npc.forgemaster.male.torso_upper"),
+        ),
+        torso_lower: (
+            offset: (-8.0, -7.0, -10.0),
+            central: ("npc.forgemaster.male.torso_lower"),
+        ),
+        jaw: (
+            offset: (-3.0, 0.0, -3.5),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Ancient Gold",
+    legacy_description: "Ancient ingot of gold, soaked in magical energies.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Legendary,
+    tags: [],
+)

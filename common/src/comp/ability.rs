@@ -750,6 +750,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
+        frontend_specifier: Option<basic_melee::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -985,6 +986,7 @@ pub enum CharacterAbility {
         buildup_duration: f32,
         recover_duration: f32,
         max_range: f32,
+        frontend_specifier: Option<blink::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1127,6 +1129,7 @@ impl Default for CharacterAbility {
                 combo_gain: 1,
             },
             ori_modifier: 1.0,
+            frontend_specifier: None,
             meta: Default::default(),
         }
     }
@@ -1272,6 +1275,7 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 ori_modifier: _,
                 hit_timing: _,
+                frontend_specifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1630,6 +1634,7 @@ impl CharacterAbility {
                 ref mut buildup_duration,
                 ref mut recover_duration,
                 ref mut max_range,
+                frontend_specifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2320,6 +2325,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 melee_constructor,
                 ori_modifier,
+                frontend_specifier,
                 energy_cost: _,
                 meta: _,
             } => CharacterState::BasicMelee(basic_melee::Data {
@@ -2330,6 +2336,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     melee_constructor: *melee_constructor,
                     ori_modifier: *ori_modifier,
+                    frontend_specifier: *frontend_specifier,
                     ability_info,
                 },
                 timer: Duration::default(),
@@ -2824,12 +2831,14 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buildup_duration,
                 recover_duration,
                 max_range,
+                frontend_specifier,
                 meta: _,
             } => CharacterState::Blink(blink::Data {
                 static_data: blink::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     max_range: *max_range,
+                    frontend_specifier: *frontend_specifier,
                     ability_info,
                 },
                 timer: Duration::default(),

@@ -159,6 +159,9 @@ impl BlocksOfInterest {
                                 fires.push(pos);
                                 smokers.push(SmokerProperties::new(pos, FireplaceType::House));
                             },
+                            SpriteKind::FireBlock => {
+                                fire_bowls.push(pos);
+                            },
                             // Offset positions to account for block height.
                             // TODO: Is this a good idea?
                             SpriteKind::StreetLamp => fire_bowls.push(pos + Vec3::unit_z() * 2),

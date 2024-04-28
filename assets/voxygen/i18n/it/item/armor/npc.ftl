@@ -304,19 +304,19 @@ common-items-npc_armor-biped_small-bushly-chest-bushly = Folletto del bosco
 common-items-npc_armor-biped_small-bushly-hand-bushly = Mandragora
     .desc = Abito cerimoniale usato dai membri.
 
-common-items-npc_armor-biped_small-clockwork-foot-clockwork = Piede meccanico
+common-items-npc_armor-biped_small-iron_dwarf-foot-iron_dwarf = Piede meccanico
     .desc = Piede meccanico.
 
-common-items-npc_armor-biped_small-clockwork-head-clockwork = Testa meccanica
+common-items-npc_armor-biped_small-iron_dwarf-head-iron_dwarf = Testa meccanica
     .desc = Testa di orologeria.
 
-common-items-npc_armor-biped_small-clockwork-pants-clockwork = Pantaloni meccanici
+common-items-npc_armor-biped_small-iron_dwarf-pants-iron_dwarf = Pantaloni meccanici
     .desc = Pantaloni di orologeria.
 
-common-items-npc_armor-biped_small-clockwork-chest-clockwork = Corpetto meccanico
+common-items-npc_armor-biped_small-iron_dwarf-chest-iron_dwarf = Corpetto meccanico
     .desc = Petto di orologeria.
 
-common-items-npc_armor-biped_small-clockwork-hand-clockwork = Mano meccanica
+common-items-npc_armor-biped_small-iron_dwarf-hand-iron_dwarf = Mano meccanica
     .desc = Mano di orologeria.
 
 common-items-npc_armor-biped_small-haniwa-foot-archer = Arciere Haniwa

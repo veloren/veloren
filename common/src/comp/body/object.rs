@@ -122,6 +122,9 @@ make_case_elim!(
         TerracottaDemolisherBomb = 107,
         BoltBesieger = 108,
         SurpriseEgg = 109,
+        BubbleBomb = 110,
+        IronPikeBomb = 111,
+        Lavathrower = 112,
     }
 );
 
@@ -132,7 +135,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 110] = [
+pub const ALL_OBJECTS: [Body; 113] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -243,6 +246,9 @@ pub const ALL_OBJECTS: [Body; 110] = [
     Body::TerracottaStatue,
     Body::BoltBesieger,
     Body::SurpriseEgg,
+    Body::BubbleBomb,
+    Body::IronPikeBomb,
+    Body::Lavathrower,
 ];
 
 impl From<Body> for super::Body {
@@ -349,6 +355,7 @@ impl Body {
             Body::AdletSpear => "adlet_spear",
             Body::AdletTrap => "adlet_trap",
             Body::Flamethrower => "flamethrower",
+            Body::Lavathrower => "lavathrower",
             Body::Mine => "mine",
             Body::LightningBolt => "lightning_bolt",
             Body::SpearIcicle => "spear_icicle",
@@ -362,6 +369,8 @@ impl Body {
             Body::TerracottaStatue => "terracotta_statue",
             Body::BoltBesieger => "besieger_bolt",
             Body::SurpriseEgg => "surprise_egg",
+            Body::BubbleBomb => "bubble_bomb",
+            Body::IronPikeBomb => "iron_pike_bomb",
         }
     }
 
@@ -393,7 +402,8 @@ impl Body {
             | Body::SpectralSwordLarge
             | Body::AdletSpear
             | Body::AdletTrap
-            | Body::Flamethrower => 500.0,
+            | Body::Flamethrower
+            | Body::Lavathrower => 500.0,
             Body::Bomb | Body::Mine | Body::SurpriseEgg => 2000.0, /* I have no idea what it's */
             // supposed to be
             Body::Crate => 300.0, // a lot of wood and maybe some contents
@@ -427,6 +437,8 @@ impl Body {
             | Body::FireRainDrop
             | Body::ArrowClay
             | Body::Pebble
+            | Body::BubbleBomb
+            | Body::IronPikeBomb
             | Body::BoltBesieger => 1.0,
             Body::SpitPoison => 100.0,
             Body::Bomb | Body::DagonBomb | Body::SurpriseEgg | Body::TerracottaDemolisherBomb => {
@@ -454,7 +466,7 @@ impl Body {
             Body::CraftingBench => 100.0,
             Body::Crate => 50.0,
             Body::Crossbow => 200.0,
-            Body::Flamethrower => 200.0,
+            Body::Flamethrower | Body::Lavathrower => 200.0,
             Body::DoorSpooky => 20.0,
             Body::Drawer => 50.0,
             Body::FireworkBlue
@@ -523,6 +535,7 @@ impl Body {
             Body::SpectralSwordLarge => Vec3::new(0.2, 1.5, 0.1),
             Body::Crossbow => Vec3::new(3.0, 3.0, 1.5),
             Body::Flamethrower => Vec3::new(3.0, 3.0, 2.5),
+            Body::Lavathrower => Vec3::new(3.0, 3.0, 2.0),
             Body::HaniwaSentry => Vec3::new(0.8, 0.8, 1.4),
             Body::SeaLantern => Vec3::new(0.8, 0.8, 1.4),
             Body::Snowball => Vec3::broadcast(2.5),

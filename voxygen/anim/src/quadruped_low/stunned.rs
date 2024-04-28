@@ -20,7 +20,7 @@ impl Animation for StunnedAnimation {
         (_velocity, global_time, stage_section, timer): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
-        _s_a: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
@@ -50,9 +50,13 @@ impl Animation for StunnedAnimation {
 
         next.tail_front.orientation =
             Quaternion::rotation_x(0.15) * Quaternion::rotation_z(movement1 * -0.4);
-
-        next.tail_rear.orientation =
-            Quaternion::rotation_x(-0.12) * Quaternion::rotation_z(movement1 * -0.4);
+        if s_a.tongue_for_tail {
+            next.tail_front.scale = Vec3::one() * 0.1;
+            next.tail_rear.scale = Vec3::one() * 0.1;
+        } else {
+            next.tail_rear.orientation =
+                Quaternion::rotation_x(-0.12) * Quaternion::rotation_z(movement1 * -0.4);
+        }
         next
     }
 }

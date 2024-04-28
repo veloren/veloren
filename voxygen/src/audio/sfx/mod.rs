@@ -183,6 +183,8 @@ pub enum SfxEvent {
     TeleportedByPortal,
     FromTheAshes,
     SurpriseEgg,
+    Bleep,
+    Charge,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -227,7 +229,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
         },
         Body::QuadrupedLow(body) => match body.species {
             quadruped_low::Species::Maneater => VoiceKind::Maneater,
-            quadruped_low::Species::Alligator | quadruped_low::Species::HermitAlligator => {
+            quadruped_low::Species::Alligator | quadruped_low::Species::Snaretongue => {
                 VoiceKind::Alligator
             },
             quadruped_low::Species::SeaCrocodile => VoiceKind::SeaCrocodile,
@@ -484,6 +486,10 @@ impl SfxMgr {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FuseCharge);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
             },
+            Outcome::Charge { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::CyclopsCharge);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+            },
             Outcome::FlashFreeze { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlashFreeze);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
@@ -491,8 +497,8 @@ impl SfxMgr {
             Outcome::SummonedCreature { pos, body, .. } => {
                 match body {
                     Body::BipedSmall(body) => match body.species {
-                        biped_small::Species::Clockwork => {
-                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::DeepLaugh);
+                        biped_small::Species::IronDwarf => {
+                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Bleep);
                             audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                         },
                         biped_small::Species::Boreal => {
@@ -524,7 +530,7 @@ impl SfxMgr {
                         },
                         _ => {},
                     },
-                    Body::Object(object::Body::Flamethrower) => {
+                    Body::Object(object::Body::Lavathrower) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::DeepLaugh);
                         audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                     },
@@ -594,6 +600,10 @@ impl SfxMgr {
                         | object::Body::SpitPoison,
                     ) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FireShot);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
+                    },
+                    Body::Object(object::Body::IronPikeBomb | object::Body::BubbleBomb) => {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Whoosh);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
                     Body::Object(
@@ -833,6 +843,15 @@ impl SfxMgr {
             },
             Outcome::Slash { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SmashKlonk);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos.map(|e| e + 0.5),
+                    Some(3.0),
+                    underwater,
+                );
+            },
+            Outcome::Bleep { pos, .. } => {
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Bleep);
                 audio.emit_sfx(
                     sfx_trigger_item,
                     pos.map(|e| e + 0.5),

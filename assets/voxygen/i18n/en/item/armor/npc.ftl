@@ -19,6 +19,9 @@ common-items-npc_armor-golem-claygolem = Clay Golem Armor
 common-items-npc_armor-golem-woodgolem = Wood Golem Armor
     .desc = Yeet.
 
+common-items-npc_armor-golem-irongolem = Iron Golem Armor
+    .desc = Worn by iron golem.
+
 common-items-npc_armor-golem-ancienteffigy = Ancient Effigy Armor
     .desc = Worn by ancient effigy.
 
@@ -313,20 +316,20 @@ common-items-npc_armor-biped_small-treasure_egg-chest-treasure_egg = Treasure Eg
 common-items-npc_armor-biped_small-treasure_egg-foot-treasure_egg = Treasure Egg Foot
     .desc = Treasure Egg Foot
 
-common-items-npc_armor-biped_small-clockwork-foot-clockwork = Clockwork Foot
-    .desc = Clockwork Foot.
+common-items-npc_armor-biped_small-iron_dwarf-foot-iron_dwarf = Iron Dwarf Foot
+    .desc = Iron Dwarf Foot.
 
-common-items-npc_armor-biped_small-clockwork-head-clockwork = Clockwork Head
-    .desc = Clockwork Head.
+common-items-npc_armor-biped_small-iron_dwarf-head-iron_dwarf = Iron Dwarf Head
+    .desc = Iron Dwarf Head.
 
-common-items-npc_armor-biped_small-clockwork-pants-clockwork = Clockwork Pants
-    .desc = Clockwork Pants.
+common-items-npc_armor-biped_small-iron_dwarf-pants-iron_dwarf = Iron Dwarf Pants
+    .desc = Iron Dwarf Pants.
 
-common-items-npc_armor-biped_small-clockwork-chest-clockwork = Clockwork Chest
-    .desc = Clockwork Chest.
+common-items-npc_armor-biped_small-iron_dwarf-chest-iron_dwarf = Iron Dwarf Chest
+    .desc = Iron Dwarf Chest.
 
-common-items-npc_armor-biped_small-clockwork-hand-clockwork = Clockwork Hand
-    .desc = Clockwork Hand.
+common-items-npc_armor-biped_small-iron_dwarf-hand-iron_dwarf = Iron Dwarf Hand
+    .desc = Iron Dwarf Hand.
 
 common-items-npc_armor-biped_small-haniwa-foot-archer = Haniwa Archer
     .desc = Ceremonial attire used by members.
@@ -648,6 +651,9 @@ common-items-npc_armor-biped_large-warlord = Giant Warlord Chest
 
 common-items-npc_armor-biped_large-yeti = Yeti Hide
     .desc = Strong as Yeti itself.
+
+common-items-npc_armor-biped_large-forgemaster = Forge Master Armor
+    .desc = Worn by forgemaster.
 
 common-items-npc_armor-biped_large-haniwageneral = Haniwa General Uniform
     .desc = Has seen combat.

@@ -1,6 +1,6 @@
 ItemDef(
-    legacy_name: "Steeldrum",
-    legacy_description: "Steeldrum.",
+    legacy_name: "Steeltonguedrum",
+    legacy_description: "Steeltonguedrum.",
     kind: Tool((
         kind: Instrument,
         hands: Two,

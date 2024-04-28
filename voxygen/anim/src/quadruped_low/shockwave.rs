@@ -20,7 +20,7 @@ impl Animation for ShockwaveAnimation {
         (_velocity, global_time, stage_section, timer): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
-        _s_a: &SkeletonAttr,
+        s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
@@ -50,16 +50,20 @@ impl Animation for ShockwaveAnimation {
             * Quaternion::rotation_z(twitch3 * 0.2);
         next.chest.orientation = Quaternion::rotation_y(movement1 * 0.08 + movement2 * -0.15)
             * Quaternion::rotation_z(movement1 * 0.2 + movement2 * -0.3);
+        if s_a.tongue_for_tail {
+            next.tail_front.scale = Vec3::one() * 0.1;
+            next.tail_rear.scale = Vec3::one() * 0.1;
+        } else {
+            next.tail_front.orientation = Quaternion::rotation_x(0.15)
+                * Quaternion::rotation_z(movement1 * 0.2 + movement2 * 0.2)
+                * twitch3
+                * 0.8;
 
-        next.tail_front.orientation = Quaternion::rotation_x(0.15)
-            * Quaternion::rotation_z(movement1 * 0.2 + movement2 * 0.2)
-            * twitch3
-            * 0.8;
-
-        next.tail_rear.orientation = Quaternion::rotation_x(-0.12)
-            * Quaternion::rotation_z(movement1 * 0.2 + movement2 * 0.2)
-            * twitch3
-            * 0.8;
+            next.tail_rear.orientation = Quaternion::rotation_x(-0.12)
+                * Quaternion::rotation_z(movement1 * 0.2 + movement2 * 0.2)
+                * twitch3
+                * 0.8;
+        }
         next
     }
 }

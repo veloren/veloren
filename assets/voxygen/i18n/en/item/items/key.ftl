@@ -10,26 +10,11 @@ object-key-glass = Glass Key
 object-key-rusty = Rusty Tower Key
     .desc = Smells like magic with a bit of... cheese?
 
-object-key-quarry-ancient = Ancient Key
-    .desc = If you are lucky it works one more time before breaking.
+object-key-miner = Miner Key
+    .desc = Used to open doors. Will break after use.
 
-object-key-quarry-backdoor = Backdoor Key
-    .desc = If you are lucky it works one more time before breaking.
-
-object-key-quarry-overseer = Overseer Key
-    .desc = If you are lucky it works one more time before breaking.
-
-object-key-quarry-smelting = Smelting Room Key
-    .desc = If you are lucky it works one more time before breaking.
-
-object-key-quarry-keeper_goggle_left = Left Goggle-Glass
-    .desc = Looks like it could open a door...
-
-object-key-quarry-keeper_goggle_right = Right Goggle-Glass
-    .desc = Looks like it could open a door...
-
-object-key-cyclops_eyeball = Cyclops Eye
-    .desc = Looks like it could open an ancient mechanism.
+object-key-forge = Forge Key
+    .desc = Used to open doors. Will break after use.
 
 object-key-haniwa = Haniwa Keystone
     .desc = Used to open doors. Will break after use.

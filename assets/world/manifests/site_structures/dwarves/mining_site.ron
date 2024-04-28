@@ -11,6 +11,8 @@
             187: Filled(GlowingRock, (r: 62, g: 59, b: 146)),
             128: Sprite(Candle),
             136: Sprite(Lantern),
+            216: Sprite(KeyDoor),
+            213: Keyhole("common.items.keys.quarry_keys.miner_key"),
          },
     ),
 ]

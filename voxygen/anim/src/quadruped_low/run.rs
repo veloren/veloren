@@ -89,23 +89,26 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_x(x_tilt * 0.4);
 
         next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+        if s_a.tongue_for_tail {
+            next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
+            next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
+        } else {
+            next.tail_front.position = Vec3::new(
+                0.0,
+                s_a.tail_front.0 + s_a.lean.0 * 2.0,
+                s_a.tail_front.1 + s_a.lean.0 * 2.0,
+            );
+            next.tail_front.orientation =
+                Quaternion::rotation_z(shortalt * -0.18 * s_a.lean.1 + tilt * 1.8)
+                    * Quaternion::rotation_y(shortalt * -0.1)
+                    * Quaternion::rotation_x(0.06 - s_a.lean.0 * 1.2 + x_tilt * 0.2);
 
-        next.tail_front.position = Vec3::new(
-            0.0,
-            s_a.tail_front.0 + s_a.lean.0 * 2.0,
-            s_a.tail_front.1 + s_a.lean.0 * 2.0,
-        );
-        next.tail_front.orientation =
-            Quaternion::rotation_z(shortalt * -0.18 * s_a.lean.1 + tilt * 1.8)
-                * Quaternion::rotation_y(shortalt * -0.1)
-                * Quaternion::rotation_x(0.06 - s_a.lean.0 * 1.2 + x_tilt * 0.2);
-
-        next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
-        next.tail_rear.orientation =
-            Quaternion::rotation_z(shortalt * -0.25 * s_a.lean.1 + tilt * 1.6)
-                * Quaternion::rotation_y(shortalt * 0.08)
-                * Quaternion::rotation_x(-0.04 + x_tilt * 0.5);
-
+            next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
+            next.tail_rear.orientation =
+                Quaternion::rotation_z(shortalt * -0.25 * s_a.lean.1 + tilt * 1.6)
+                    * Quaternion::rotation_y(shortalt * 0.08)
+                    * Quaternion::rotation_x(-0.04 + x_tilt * 0.5);
+        }
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         next.chest.orientation = Quaternion::rotation_z(short * 0.13 + tilt * -1.9)
             * Quaternion::rotation_y(short * 0.12 + tilt * 0.7)
