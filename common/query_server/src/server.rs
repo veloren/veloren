@@ -1,12 +1,15 @@
+#[allow(deprecated)] use std::hash::SipHasher;
 use std::{
     future::Future,
+    hash::{Hash, Hasher},
     io,
     net::{Ipv4Addr, SocketAddr, SocketAddrV4},
     sync::Arc,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use protocol::Parcel;
+use rand::{thread_rng, Rng};
 use tokio::{
     net::UdpSocket,
     sync::{watch, RwLock},
@@ -15,10 +18,12 @@ use tokio::{
 use tracing::{debug, trace};
 
 use crate::proto::{
-    QueryServerRequest, QueryServerResponse, ServerInfo, MAX_REQUEST_SIZE, VELOREN_HEADER,
+    QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
+    ServerInfo, MAX_REQUEST_SIZE, VELOREN_HEADER,
 };
 
 const RESPONSE_SEND_TIMEOUT: Duration = Duration::from_secs(2);
+const SECRET_REGEN_INTERNVAL: Duration = Duration::from_secs(60);
 
 pub struct QueryServer {
     pub addr: SocketAddr,
@@ -50,6 +55,13 @@ impl QueryServer {
     pub async fn run(&mut self, metrics: Arc<RwLock<Metrics>>) -> Result<(), tokio::io::Error> {
         let socket = UdpSocket::bind(self.addr).await?;
 
+        let gen_secret = || {
+            let mut rng = thread_rng();
+            (rng.gen::<u64>(), rng.gen::<u64>())
+        };
+        let mut secrets = gen_secret();
+        let mut last_secret_refresh = Instant::now();
+
         let mut buf = Box::new([0; MAX_REQUEST_SIZE]);
         loop {
             *buf = [0; MAX_REQUEST_SIZE];
@@ -78,6 +90,7 @@ impl QueryServer {
                 .process_datagram(
                     msg_buf,
                     remote_addr,
+                    secrets,
                     (&mut new_metrics, Arc::clone(&metrics)),
                 )
                 .await
@@ -87,6 +100,14 @@ impl QueryServer {
 
             // Update metrics at the end of eath packet
             *metrics.write().await += new_metrics;
+
+            {
+                let now = Instant::now();
+                if now.duration_since(last_secret_refresh) > SECRET_REGEN_INTERNVAL {
+                    last_secret_refresh = now;
+                    secrets = gen_secret();
+                }
+            }
         }
     }
 
@@ -109,16 +130,27 @@ impl QueryServer {
         &mut self,
         datagram: &[u8],
         remote: SocketAddr,
+        secrets: (u64, u64),
         (new_metrics, metrics): (&mut Metrics, Arc<RwLock<Metrics>>),
     ) -> Result<(), tokio::io::Error> {
-        let Ok(packet): Result<QueryServerRequest, _> =
-            <QueryServerRequest as Parcel>::read(&mut io::Cursor::new(datagram), &self.settings)
+        let Ok(RawQueryServerRequest {
+            p: client_p,
+            request,
+        }) =
+            <RawQueryServerRequest as Parcel>::read(&mut io::Cursor::new(datagram), &self.settings)
         else {
             new_metrics.invalid_packets += 1;
             return Ok(());
         };
 
-        trace!(?packet, "Received packet");
+        trace!(?request, "Received packet");
+
+        #[allow(deprecated)]
+        let real_p = {
+            let mut hasher = SipHasher::new_with_keys(secrets.0, secrets.1);
+            remote.ip().hash(&mut hasher);
+            hasher.finish()
+        };
 
         async fn timed<'a, F: Future<Output = O> + 'a, O>(
             fut: F,
@@ -131,14 +163,29 @@ impl QueryServer {
                 None
             }
         }
-        match packet {
+
+        if real_p != client_p {
+            tokio::task::spawn(async move {
+                timed(
+                    Self::send_response(RawQueryServerResponse::P(real_p), remote, &metrics),
+                    &metrics,
+                )
+                .await;
+            });
+
+            return Ok(());
+        }
+
+        match request {
             QueryServerRequest::ServerInfo(_) => {
                 new_metrics.info_requests += 1;
                 let server_info = *self.server_info.borrow();
                 tokio::task::spawn(async move {
                     timed(
                         Self::send_response(
-                            QueryServerResponse::ServerInfo(server_info),
+                            RawQueryServerResponse::Response(QueryServerResponse::ServerInfo(
+                                server_info,
+                            )),
                             remote,
                             &metrics,
                         ),
@@ -153,7 +200,7 @@ impl QueryServer {
     }
 
     async fn send_response(
-        response: QueryServerResponse,
+        response: RawQueryServerResponse,
         addr: SocketAddr,
         metrics: &Arc<RwLock<Metrics>>,
     ) {
@@ -165,7 +212,7 @@ impl QueryServer {
         };
 
         let buf = if let Ok(data) =
-            <QueryServerResponse as Parcel>::raw_bytes(&response, &Default::default())
+            <RawQueryServerResponse as Parcel>::raw_bytes(&response, &Default::default())
         {
             data
         } else {

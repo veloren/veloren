@@ -6,11 +6,14 @@ use std::{
 
 use protocol::Parcel;
 use tokio::{net::UdpSocket, time::timeout};
+use tracing::trace;
 
 use crate::proto::{
-    QueryServerRequest, QueryServerResponse, ServerInfo, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE,
-    VELOREN_HEADER,
+    QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
+    ServerInfo, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE, VELOREN_HEADER,
 };
+
+const MAX_REQUEST_RETRIES: usize = 5;
 
 #[derive(Debug)]
 pub enum QueryClientError {
@@ -18,14 +21,18 @@ pub enum QueryClientError {
     Protocol(protocol::Error),
     InvalidResponse,
     Timeout,
+    ChallengeFailed,
 }
 
 pub struct QueryClient {
     pub addr: SocketAddr,
+    p: u64,
 }
 
 impl QueryClient {
-    pub async fn server_info(&self) -> Result<(ServerInfo, Duration), QueryClientError> {
+    pub fn new(addr: SocketAddr) -> Self { Self { addr, p: 0 } }
+
+    pub async fn server_info(&mut self) -> Result<(ServerInfo, Duration), QueryClientError> {
         self.send_query(QueryServerRequest::ServerInfo(Default::default()))
             .await
             .and_then(|(response, duration)| {
@@ -39,33 +46,50 @@ impl QueryClient {
     }
 
     async fn send_query(
-        &self,
+        &mut self,
         request: QueryServerRequest,
     ) -> Result<(QueryServerResponse, Duration), QueryClientError> {
         let socket = UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0)).await?;
 
-        let mut buf = Vec::with_capacity(VELOREN_HEADER.len() + 2 + MAX_REQUEST_SIZE);
-        buf.extend(VELOREN_HEADER);
-        // 2 extra bytes for version information, currently unused
-        buf.extend([0; 2]);
-        buf.extend(<QueryServerRequest as Parcel>::raw_bytes(
-            &request,
-            &Default::default(),
-        )?);
+        let mut tries = 0;
+        while tries < MAX_REQUEST_RETRIES {
+            tries += 1;
+            let mut buf = Vec::with_capacity(VELOREN_HEADER.len() + 2 + MAX_REQUEST_SIZE);
 
-        let query_sent = Instant::now();
-        socket.send_to(&buf, self.addr).await?;
+            buf.extend(VELOREN_HEADER);
+            // 2 extra bytes for version information, currently unused
+            buf.extend([0; 2]);
+            buf.extend(<RawQueryServerRequest as Parcel>::raw_bytes(
+                &RawQueryServerRequest { p: self.p, request },
+                &Default::default(),
+            )?);
 
-        let mut buf = vec![0; MAX_RESPONSE_SIZE];
-        let _ = timeout(Duration::from_secs(2), socket.recv_from(&mut buf))
-            .await
-            .map_err(|_| QueryClientError::Timeout)?
-            .map_err(|_| QueryClientError::Timeout)?;
+            let query_sent = Instant::now();
+            socket.send_to(&buf, self.addr).await?;
 
-        let packet =
-            <QueryServerResponse as Parcel>::read(&mut io::Cursor::new(buf), &Default::default())?;
+            let mut buf = vec![0; MAX_RESPONSE_SIZE];
+            let _ = timeout(Duration::from_secs(2), socket.recv_from(&mut buf))
+                .await
+                .map_err(|_| QueryClientError::Timeout)?
+                .map_err(|_| QueryClientError::Timeout)?;
 
-        Ok((packet, query_sent.elapsed()))
+            let packet = <RawQueryServerResponse as Parcel>::read(
+                &mut io::Cursor::new(buf),
+                &Default::default(),
+            )?;
+
+            match packet {
+                RawQueryServerResponse::Response(response) => {
+                    return Ok((response, query_sent.elapsed()));
+                },
+                RawQueryServerResponse::P(p) => {
+                    trace!(?p, "Resetting p");
+                    self.p = p
+                },
+            }
+        }
+
+        Err(QueryClientError::ChallengeFailed)
     }
 }
 

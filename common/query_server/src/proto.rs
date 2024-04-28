@@ -7,10 +7,26 @@ pub const MAX_RESPONSE_SIZE: usize = 256;
 #[derive(Protocol, Debug, Clone, Copy)]
 #[protocol(discriminant = "integer")]
 #[protocol(discriminator(u8))]
+pub struct RawQueryServerRequest {
+    pub p: u64,
+    pub request: QueryServerRequest,
+}
+
+#[derive(Protocol, Debug, Clone, Copy)]
+#[protocol(discriminant = "integer")]
+#[protocol(discriminator(u8))]
 #[allow(clippy::large_enum_variant)]
 pub enum QueryServerRequest {
     ServerInfo(ServerInfoRequest),
     // New requests should be added at the end to prevent breakage
+}
+
+#[derive(Protocol, Debug, Clone, Copy)]
+#[protocol(discriminant = "integer")]
+#[protocol(discriminator(u8))]
+pub enum RawQueryServerResponse {
+    Response(QueryServerResponse),
+    P(u64),
 }
 
 #[derive(Protocol, Debug, Clone, Copy)]

@@ -29,7 +29,7 @@ async fn main() {
 
     tokio::task::spawn(async move { server.run(metrics2).await.unwrap() });
 
-    let client = QueryClient { addr };
+    let mut client = QueryClient::new(addr);
     let (info, ping) = client.server_info().await.unwrap();
 
     println!("Ping = {}ms", ping.as_millis());
