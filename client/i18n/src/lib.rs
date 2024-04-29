@@ -236,6 +236,11 @@ pub struct LocalizationGuard {
 }
 
 impl LocalizationGuard {
+    /// Get a localized text from the given key in the fallback language.
+    pub fn try_fallback_msg(&self, key: &str) -> Option<Cow<str>> {
+        self.fallback.as_ref().and_then(|fb| fb.try_msg(key, None))
+    }
+
     /// Get a localized text from the given key
     ///
     /// First lookup is done in the active language, second in
@@ -243,7 +248,7 @@ impl LocalizationGuard {
     pub fn try_msg(&self, key: &str) -> Option<Cow<str>> {
         self.active
             .try_msg(key, None)
-            .or_else(|| self.fallback.as_ref().and_then(|fb| fb.try_msg(key, None)))
+            .or_else(|| self.try_fallback_msg(key))
     }
 
     /// Get a localized text from the given key
@@ -344,6 +349,54 @@ impl LocalizationGuard {
             })
     }
 
+    // Function to localize content for given language.
+    //
+    // Returns Ok(localized_text) if found no errors.
+    // Returns Err(broken_text) on failure.
+    //
+    // broken_text will have i18n keys in it, just i18n key if it was instant miss
+    // or text with missed keys inlined if it was missed down the chain.
+    fn get_content_for_lang(lang: &Language, content: &Content) -> Result<String, String> {
+        match content {
+            Content::Plain(text) => Ok(text.clone()),
+            Content::Key(key) => lang
+                .try_msg(key, None)
+                .map(Cow::into_owned)
+                .ok_or_else(|| key.to_string()),
+            Content::Attr(key, attr) => lang
+                .try_attr(key, attr, None)
+                .map(Cow::into_owned)
+                .ok_or_else(|| format!("{key}.{attr}")),
+            Content::Localized { key, seed, args } => {
+                // flag to detect failure down the chain
+                let mut is_arg_failure = false;
+
+                let mut fargs = FluentArgs::new();
+                for (k, arg) in args {
+                    let arg_val = match arg {
+                        LocalizationArg::Content(content) => {
+                            let arg_res = Self::get_content_for_lang(lang, content)
+                                .unwrap_or_else(|broken_text| {
+                                    is_arg_failure = true;
+                                    broken_text
+                                })
+                                .into();
+
+                            FluentValue::String(arg_res)
+                        },
+                        LocalizationArg::Nat(n) => FluentValue::from(n),
+                    };
+                    fargs.set(k, arg_val);
+                }
+
+                lang.try_variation(key, *seed, Some(&fargs))
+                    .map(Cow::into_owned)
+                    .ok_or_else(|| key.clone())
+                    .and_then(|text| if is_arg_failure { Err(text) } else { Ok(text) })
+            },
+        }
+    }
+
     /// Tries its best to localize compound message.
     ///
     /// # Example
@@ -383,55 +436,7 @@ impl LocalizationGuard {
     //
     // TODO: return Cow<str>?
     pub fn get_content(&self, content: &Content) -> String {
-        // Function to localize content for given language.
-        //
-        // Returns Ok(localized_text) if found no errors.
-        // Returns Err(broken_text) on failure.
-        //
-        // broken_text will have i18n keys in it, just i18n key if it was instant miss
-        // or text with missed keys inlined if it was missed down the chain.
-        fn get_content_for_lang(lang: &Language, content: &Content) -> Result<String, String> {
-            match content {
-                Content::Plain(text) => Ok(text.clone()),
-                Content::Key(key) => lang
-                    .try_msg(key, None)
-                    .map(Cow::into_owned)
-                    .ok_or_else(|| key.to_string()),
-                Content::Attr(key, attr) => lang
-                    .try_attr(key, attr, None)
-                    .map(Cow::into_owned)
-                    .ok_or_else(|| format!("{key}.{attr}")),
-                Content::Localized { key, seed, args } => {
-                    // flag to detect failure down the chain
-                    let mut is_arg_failure = false;
-
-                    let mut fargs = FluentArgs::new();
-                    for (k, arg) in args {
-                        let arg_val = match arg {
-                            LocalizationArg::Content(content) => {
-                                let arg_res = get_content_for_lang(lang, content)
-                                    .unwrap_or_else(|broken_text| {
-                                        is_arg_failure = true;
-                                        broken_text
-                                    })
-                                    .into();
-
-                                FluentValue::String(arg_res)
-                            },
-                            LocalizationArg::Nat(n) => FluentValue::from(n),
-                        };
-                        fargs.set(k, arg_val);
-                    }
-
-                    lang.try_variation(key, *seed, Some(&fargs))
-                        .map(Cow::into_owned)
-                        .ok_or_else(|| key.clone())
-                        .and_then(|text| if is_arg_failure { Err(text) } else { Ok(text) })
-                },
-            }
-        }
-
-        match get_content_for_lang(&self.active, content) {
+        match Self::get_content_for_lang(&self.active, content) {
             Ok(text) => text,
             // If localisation or some part of it failed, repeat with fallback.
             // If it did fail as well, it's probably because fallback was disabled,
@@ -440,9 +445,18 @@ impl LocalizationGuard {
             Err(broken_text) => self
                 .fallback
                 .as_ref()
-                .and_then(|fb| get_content_for_lang(fb, content).ok())
+                .and_then(|fb| Self::get_content_for_lang(fb, content).ok())
                 .unwrap_or(broken_text),
         }
+    }
+
+    pub fn get_content_fallback(&self, content: &Content) -> String {
+        self.fallback
+            .as_ref()
+            .map(|fb| Self::get_content_for_lang(fb, content))
+            .transpose()
+            .map(|msg| msg.unwrap_or_default())
+            .unwrap_or_else(|e| e)
     }
 
     /// NOTE: Exists for legacy reasons, avoid.

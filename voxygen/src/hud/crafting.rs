@@ -594,34 +594,48 @@ impl<'a> Widget for Crafting<'a> {
         // then unavailable ones, each sorted by quality and then alphabetically
         // In the tuple, "name" is the recipe book key, and "recipe.output.0.name()"
         // is the display name (as stored in the item descriptors)
+        fn content_contains(content: &common::comp::Content, s: &str) -> bool {
+            match content {
+                common::comp::Content::Plain(p) => p.contains(s),
+                common::comp::Content::Key(k) => k.contains(s),
+                common::comp::Content::Attr(k, _) => k.contains(s),
+                common::comp::Content::Localized { key, .. } => key.contains(s),
+            }
+        }
+        let search = |item: &Arc<ItemDef>| {
+            let (name_key, _) = item.i18n(self.item_i18n);
+            let fallback_name = self
+                .localized_strings
+                .get_content_fallback(&name_key)
+                .to_lowercase();
+            let name = self.localized_strings.get_content(&name_key).to_lowercase();
+
+            search_keys.iter().all(|&substring| {
+                name.contains(substring)
+                    || fallback_name.contains(substring)
+                    || content_contains(&name_key, substring)
+            })
+        };
         let mut ordered_recipes: Vec<_> = self
             .client
             .recipe_book()
             .iter()
             .filter(|(_, recipe)| match search_filter {
                 SearchFilter::None => {
-                    #[allow(deprecated)]
-                    let output_name = recipe.output.0.name().to_lowercase();
-                    search_keys
-                        .iter()
-                        .all(|&substring| output_name.contains(substring))
+                    search(&recipe.output.0)
                 },
                 SearchFilter::Input => recipe.inputs().any(|(input, _, _)| {
-                    let search = |input_name: &str| {
-                        let input_name = input_name.to_lowercase();
+                    let search_tag = |name: &str| {
                         search_keys
                             .iter()
-                            .all(|&substring| input_name.contains(substring))
+                            .all(|&substring| name.contains(substring))
                     };
-
                     match input {
-                        #[allow(deprecated)]
-                        RecipeInput::Item(def) => search(&def.name()),
-                        RecipeInput::Tag(tag) => search(tag.name()),
-                        RecipeInput::TagSameItem(tag) => search(tag.name()),
-                        #[allow(deprecated)]
+                        RecipeInput::Item(def) => search(def),
+                        RecipeInput::Tag(tag) => search_tag(tag.name()),
+                        RecipeInput::TagSameItem(tag) => search_tag(tag.name()),
                         RecipeInput::ListSameItem(defs) => {
-                            defs.iter().any(|def| search(&def.name()))
+                            defs.iter().any(search)
                         },
                     }
                 }),
