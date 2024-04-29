@@ -1329,6 +1329,7 @@ impl FigureMgr {
                             anim::character::AlphaAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    ability_id,
                                     hands,
                                     Some(s.stage_section),
                                     Some(s.static_data.ability_info),
@@ -1513,12 +1514,7 @@ impl FigureMgr {
 
                             anim::character::ChargeswingAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    hands,
-                                    ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                (ability_id, s.stage_section),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1615,9 +1611,7 @@ impl FigureMgr {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
+                                StageSection::Charge => stage_time,
                                 StageSection::Action => {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
@@ -1628,13 +1622,7 @@ impl FigureMgr {
                             };
                             anim::character::DashAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    hands,
-                                    ability_id,
-                                    time,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                (ability_id, s.stage_section),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1656,13 +1644,7 @@ impl FigureMgr {
                             };
                             anim::character::ShockwaveAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    Some(s.static_data.ability_info),
-                                    hands,
-                                    time,
-                                    rel_vel.magnitude(),
-                                    Some(s.stage_section),
-                                ),
+                                (ability_id, time, rel_vel.magnitude(), Some(s.stage_section)),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1682,15 +1664,34 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
+
+                            // ? Aura confirmed just shockwave
                             anim::character::ShockwaveAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    Some(s.static_data.ability_info),
-                                    hands,
-                                    time,
-                                    rel_vel.magnitude(),
-                                    Some(s.stage_section),
-                                ),
+                                (ability_id, time, rel_vel.magnitude(), Some(s.stage_section)),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
+                        CharacterState::StaticAura(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            let stage_progress = match s.stage_section {
+                                StageSection::Buildup => {
+                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                },
+                                StageSection::Action => {
+                                    stage_time / s.static_data.cast_duration.as_secs_f32()
+                                },
+                                StageSection::Recover => {
+                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                },
+                                _ => 0.0,
+                            };
+
+                            anim::character::ShockwaveAnimation::update_skeleton(
+                                &target_base,
+                                (ability_id, time, rel_vel.magnitude(), Some(s.stage_section)),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1716,13 +1717,7 @@ impl FigureMgr {
 
                             anim::character::LeapAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    hands,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                (s.stage_section,),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1829,38 +1824,6 @@ impl FigureMgr {
                                     time,
                                     rel_vel.magnitude(),
                                     Some(s.stage_section),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMeleeDeprecated(s) => {
-                            let stage_index = (s.stage - 1) as usize;
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress =
-                                if let Some(stage) = s.static_data.stage_data.get(stage_index) {
-                                    match s.stage_section {
-                                        StageSection::Buildup => {
-                                            stage_time / stage.base_buildup_duration.as_secs_f32()
-                                        },
-                                        StageSection::Action => {
-                                            stage_time / stage.base_swing_duration.as_secs_f32()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time / stage.base_recover_duration.as_secs_f32()
-                                        },
-                                        _ => 0.0,
-                                    }
-                                } else {
-                                    0.0
-                                };
-                            anim::character::AlphaAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    hands,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,

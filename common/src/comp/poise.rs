@@ -1,10 +1,8 @@
 use crate::{
-    combat::{DamageContributor, DamageSource},
+    combat::{compute_poise_resilience, DamageContributor, DamageSource},
     comp::{
-        self,
-        ability::Capability,
-        inventory::item::{armor::Protection, ItemKind, MaterialStatManifest},
-        CharacterState, Inventory, Stats,
+        self, ability::Capability, inventory::item::MaterialStatManifest, CharacterState,
+        Inventory, Stats,
     },
     resources::Time,
     states,
@@ -262,23 +260,7 @@ impl Poise {
         char_state: Option<&CharacterState>,
         stats: Option<&Stats>,
     ) -> f32 {
-        let protection = inventory.map_or(Some(0.0), |inv| {
-            inv.equipped_items()
-                .filter_map(|item| {
-                    if let ItemKind::Armor(armor) = &*item.kind() {
-                        armor
-                            .stats(msm, item.stats_durability_multiplier())
-                            .poise_resilience
-                    } else {
-                        None
-                    }
-                })
-                .map(|protection| match protection {
-                    Protection::Normal(protection) => Some(protection),
-                    Protection::Invincible => None,
-                })
-                .sum::<Option<f32>>()
-        });
+        let protection = compute_poise_resilience(inventory, msm);
         let from_inventory = match protection {
             Some(dr) => dr / (60.0 + dr.abs()),
             None => 1.0,

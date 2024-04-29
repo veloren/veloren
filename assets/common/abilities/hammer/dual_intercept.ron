@@ -1,0 +1,32 @@
+DashMelee(
+    energy_cost: 15,
+    energy_drain: 0,
+    forward_speed: 2.5,
+    buildup_duration: 0.2,
+    charge_duration: 1.5,
+    swing_duration: 0.1,
+    recover_duration: 0.3,
+    melee_constructor: (
+        kind: Bash(
+            damage: 6,
+            poise: 10,
+            knockback: 0,
+            energy_regen: 0,
+        ),
+        scaled: Some((
+            kind: Bash(
+                damage: 9,
+                poise: 15,
+                knockback: 5,
+                energy_regen: 0,
+            ))),
+        range: 4.0,
+        angle: 30.0,
+        multi_target: Some(Normal),
+    ),
+    ori_modifier: 0.1,
+    auto_charge: true,
+    meta: (
+        contextual_stats: Some((context: PoiseResilience(60.0), field: EffectPower)),
+    ),
+)

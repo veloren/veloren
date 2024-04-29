@@ -3201,6 +3201,7 @@ impl Hud {
                 combo,
                 char_states.get(entity),
                 stance,
+                stats.get(entity),
             )
             .set(self.ids.skillbar, ui_widgets)
             {
@@ -3731,6 +3732,7 @@ impl Hud {
                     &mut self.slot_manager,
                     self.pulse,
                     &context,
+                    stats.get(entity),
                 )
                 .set(self.ids.diary, ui_widgets)
                 {
@@ -5261,6 +5263,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Defiance => imgs.buff_defiance,
         BuffKind::Bloodfeast => imgs.buff_plus_0,
         BuffKind::Berserk => imgs.buff_reckless,
+        BuffKind::ScornfulTaunt => imgs.buff_scornfultaunt,
+        BuffKind::Tenacity => imgs.buff_tenacity,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_skull_0,
@@ -5274,6 +5278,10 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::PotionSickness => imgs.debuff_potionsickness_0,
         BuffKind::Polymorphed => imgs.debuff_polymorphed,
         BuffKind::Heatstroke => imgs.debuff_heatstroke_0,
+        BuffKind::Rooted => imgs.debuff_rooted,
+        BuffKind::Winded => imgs.debuff_winded,
+        BuffKind::Concussion => imgs.debuff_concussion,
+        BuffKind::Staggered => imgs.debuff_staggered,
     }
 }
 

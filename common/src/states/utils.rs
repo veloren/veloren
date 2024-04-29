@@ -3,7 +3,7 @@ use crate::{
     comp::{
         ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
-        buff::{BuffCategory, BuffChange},
+        buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource, DestInfo},
         character_state::OutputEvents,
         controller::InventoryManip,
         golem,
@@ -1298,7 +1298,14 @@ fn handle_ability(
                     Some(data.body),
                     Some(data.character),
                     &context,
+                    Some(data.stats),
                 )
+            })
+            .map(|(mut a, f, s)| {
+                if let Some(contextual_stats) = a.ability_meta().contextual_stats {
+                    a = a.adjusted_by_stats(contextual_stats.equivalent_stats(data))
+                }
+                (a, f, s)
             })
             .filter(|(ability, _, _)| ability.requirements_paid(data, update))
         {
@@ -1319,6 +1326,28 @@ fn handle_ability(
                         output_events.emit_server(ChangeStanceEvent {
                             entity: data.entity,
                             stance,
+                        });
+                    },
+                    AbilityInitEvent::GainBuff {
+                        kind,
+                        strength,
+                        duration,
+                    } => {
+                        let dest_info = DestInfo {
+                            stats: Some(data.stats),
+                            mass: Some(data.mass),
+                        };
+                        output_events.emit_server(BuffEvent {
+                            entity: data.entity,
+                            buff_change: BuffChange::Add(Buff::new(
+                                kind,
+                                BuffData::new(strength, duration),
+                                vec![BuffCategory::SelfBuff],
+                                BuffSource::Character { by: *data.uid },
+                                *data.time,
+                                dest_info,
+                                Some(data.mass),
+                            )),
                         });
                     },
                 }
@@ -1709,14 +1738,16 @@ pub enum ComboConsumption {
     #[default]
     All,
     Half,
+    Cost,
 }
 
 impl ComboConsumption {
-    pub fn consume(&self, data: &JoinData, output_events: &mut OutputEvents) {
+    pub fn consume(&self, data: &JoinData, output_events: &mut OutputEvents, cost: u32) {
         let combo = data.combo.map_or(0, |c| c.counter());
         let to_consume = match self {
             Self::All => combo,
             Self::Half => (combo + 1) / 2,
+            Self::Cost => cost,
         };
         output_events.emit_server(ComboChangeEvent {
             entity: data.entity,

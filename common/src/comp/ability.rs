@@ -14,7 +14,7 @@ use crate::{
             slot::EquipSlot,
             Inventory,
         },
-        melee::{MeleeConstructor, MeleeConstructorKind},
+        melee::{CustomCombo, MeleeConstructor, MeleeConstructorKind},
         projectile::ProjectileConstructor,
         skillset::{
             skills::{self, Skill, SKILL_MODIFIERS},
@@ -34,7 +34,7 @@ use crate::{
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use std::{borrow::Cow, convert::TryFrom, time::Duration};
+use std::{borrow::Cow, time::Duration};
 
 use super::shockwave::ShockwaveDodgeable;
 
@@ -167,18 +167,24 @@ impl ActiveAbilities {
         input: AbilityInput,
         inventory: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
+        stats: Option<&comp::Stats>,
     ) -> Ability {
         match input {
             AbilityInput::Guard => self.guard.into(),
             AbilityInput::Primary => self.primary.into(),
             AbilityInput::Secondary => self.secondary.into(),
             AbilityInput::Movement => self.movement.into(),
-            AbilityInput::Auxiliary(index) => self
-                .auxiliary_set(inventory, skill_set)
-                .get(index)
-                .copied()
-                .map(|a| a.into())
-                .unwrap_or(Ability::Empty),
+            AbilityInput::Auxiliary(index) => {
+                if stats.map_or(false, |s| s.disable_auxiliary_abilities) {
+                    Ability::Empty
+                } else {
+                    self.auxiliary_set(inventory, skill_set)
+                        .get(index)
+                        .copied()
+                        .map(|a| a.into())
+                        .unwrap_or(Ability::Empty)
+                }
+            },
         }
     }
 
@@ -192,9 +198,10 @@ impl ActiveAbilities {
         body: Option<&Body>,
         char_state: Option<&CharacterState>,
         context: &AbilityContext,
+        stats: Option<&comp::Stats>,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool, SpecifiedAbility)> {
-        let ability = self.get_ability(input, inv, Some(skill_set));
+        let ability = self.get_ability(input, inv, Some(skill_set), stats);
 
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
@@ -670,7 +677,6 @@ pub enum CharacterAbilityType {
     ChargedRanged,
     DashMelee(StageSection),
     BasicBlock,
-    ComboMeleeDeprecated(StageSection, u32),
     ComboMelee2(StageSection),
     FinisherMelee(StageSection),
     DiveMelee(StageSection),
@@ -697,9 +703,6 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::BasicBlock(_) => Self::BasicBlock,
             CharacterState::LeapMelee(data) => Self::LeapMelee(data.stage_section),
             CharacterState::LeapShockwave(data) => Self::LeapShockwave(data.stage_section),
-            CharacterState::ComboMeleeDeprecated(data) => {
-                Self::ComboMeleeDeprecated(data.stage_section, data.stage)
-            },
             CharacterState::ComboMelee2(data) => Self::ComboMelee2(data.stage_section),
             CharacterState::FinisherMelee(data) => Self::FinisherMelee(data.stage_section),
             CharacterState::DiveMelee(data) => Self::DiveMelee(data.stage_section),
@@ -732,7 +735,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
             | CharacterState::Transform(_)
-            | CharacterState::Wallrun(_) => Self::Other,
+            | CharacterState::Wallrun(_)
+            | CharacterState::StaticAura(_) => Self::Other,
         }
     }
 }
@@ -809,7 +813,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
-        charge_through: bool,
+        auto_charge: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -833,18 +837,6 @@ pub enum CharacterAbility {
         recover_duration: f32,
         roll_strength: f32,
         attack_immunities: AttackFilters,
-        #[serde(default)]
-        meta: AbilityMeta,
-    },
-    ComboMeleeDeprecated {
-        stage_data: Vec<combo_melee::Stage<f32>>,
-        initial_energy_gain: f32,
-        max_energy_gain: f32,
-        energy_increase: f32,
-        speed_increase: f32,
-        max_speed_increase: f32,
-        scales_from_combo: u32,
-        ori_modifier: f32,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -905,8 +897,7 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         specifier: Option<charged_melee::FrontendSpecifier>,
         damage_effect: Option<CombatEffect>,
-        #[serde(default)]
-        additional_combo: i32,
+        custom_combo: Option<CustomCombo>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -949,6 +940,11 @@ pub enum CharacterAbility {
         specifier: comp::shockwave::FrontendSpecifier,
         ori_rate: f32,
         damage_effect: Option<CombatEffect>,
+        timing: shockwave::Timing,
+        emit_outcome: bool,
+        minimum_combo: Option<u32>,
+        #[serde(default)]
+        combo_consumption: ComboConsumption,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -979,6 +975,19 @@ pub enum CharacterAbility {
         energy_cost: f32,
         scales_with_combo: bool,
         specifier: Option<aura::Specifier>,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
+    StaticAura {
+        buildup_duration: f32,
+        cast_duration: f32,
+        recover_duration: f32,
+        energy_cost: f32,
+        targets: combat::GroupTarget,
+        auras: Vec<aura::AuraBuffConstructor>,
+        aura_duration: Option<Secs>,
+        range: f32,
+        sprite_info: Option<static_aura::SpriteInfo>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1125,8 +1134,11 @@ impl Default for CharacterAbility {
                 angle: 15.0,
                 multi_target: None,
                 damage_effect: None,
+                attack_effect: None,
                 simultaneous_hits: 1,
-                combo_gain: 1,
+                custom_combo: None,
+                precision_flank_multipliers: Default::default(),
+                precision_flank_invert: false,
             },
             ori_modifier: 1.0,
             frontend_specifier: None,
@@ -1151,7 +1163,12 @@ impl CharacterAbility {
         };
         from_meta
             && match self {
-                CharacterAbility::Roll { energy_cost, .. } => {
+                CharacterAbility::Roll { energy_cost, .. }
+                | CharacterAbility::StaticAura {
+                    energy_cost,
+                    sprite_info: Some(_),
+                    ..
+                } => {
                     data.physics.on_ground.is_some()
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
@@ -1160,11 +1177,15 @@ impl CharacterAbility {
                 | CharacterAbility::BasicRanged { energy_cost, .. }
                 | CharacterAbility::ChargedRanged { energy_cost, .. }
                 | CharacterAbility::ChargedMelee { energy_cost, .. }
-                | CharacterAbility::Shockwave { energy_cost, .. }
                 | CharacterAbility::BasicBlock { energy_cost, .. }
                 | CharacterAbility::RiposteMelee { energy_cost, .. }
                 | CharacterAbility::ComboMelee2 {
                     energy_cost_per_strike: energy_cost,
+                    ..
+                }
+                | CharacterAbility::StaticAura {
+                    energy_cost,
+                    sprite_info: None,
                     ..
                 } => update.energy.try_change_by(-*energy_cost).is_ok(),
                 // Consumes energy within state, so value only checked before entering state
@@ -1202,6 +1223,15 @@ impl CharacterAbility {
                     data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
+                CharacterAbility::Shockwave {
+                    energy_cost,
+                    minimum_combo,
+                    ..
+                } => {
+                    data.combo
+                        .map_or(false, |c| c.counter() >= minimum_combo.unwrap_or(0))
+                        && update.energy.try_change_by(-*energy_cost).is_ok()
+                },
                 CharacterAbility::DiveMelee {
                     buildup_duration,
                     energy_cost,
@@ -1216,8 +1246,7 @@ impl CharacterAbility {
                     (data.physics.on_ground.is_none() || buildup_duration.is_some())
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
-                CharacterAbility::ComboMeleeDeprecated { .. }
-                | CharacterAbility::Boost { .. }
+                CharacterAbility::Boost { .. }
                 | CharacterAbility::GlideBoost { .. }
                 | CharacterAbility::BasicBeam { .. }
                 | CharacterAbility::Blink { .. }
@@ -1347,7 +1376,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ref mut melee_constructor,
                 ori_modifier: _,
-                charge_through: _,
+                auto_charge: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1388,22 +1417,6 @@ impl CharacterAbility {
                 *movement_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-            },
-            ComboMeleeDeprecated {
-                ref mut stage_data,
-                initial_energy_gain: _,
-                max_energy_gain: _,
-                energy_increase: _,
-                speed_increase: _,
-                max_speed_increase: _,
-                scales_from_combo: _,
-                ori_modifier: _,
-                meta: _,
-            } => {
-                *stage_data = stage_data
-                    .iter_mut()
-                    .map(|s| s.adjusted_by_stats(stats))
-                    .collect();
             },
             ComboMelee2 {
                 ref mut strikes,
@@ -1497,7 +1510,7 @@ impl CharacterAbility {
                 specifier: _,
                 ref mut damage_effect,
                 meta: _,
-                additional_combo: _,
+                custom_combo: _,
             } => {
                 *swing_duration /= stats.speed;
                 *buildup_strike = buildup_strike
@@ -1565,6 +1578,10 @@ impl CharacterAbility {
                 specifier: _,
                 ori_rate: _,
                 ref mut damage_effect,
+                timing: _,
+                emit_outcome: _,
+                minimum_combo: _,
+                combo_consumption: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1629,6 +1646,39 @@ impl CharacterAbility {
                 );
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
+            },
+            StaticAura {
+                ref mut buildup_duration,
+                ref mut cast_duration,
+                ref mut recover_duration,
+                targets: _,
+                ref mut auras,
+                aura_duration: _,
+                ref mut range,
+                ref mut energy_cost,
+                ref mut sprite_info,
+                meta: _,
+            } => {
+                *buildup_duration /= stats.speed;
+                *cast_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                auras.iter_mut().for_each(
+                    |aura::AuraBuffConstructor {
+                         kind: _,
+                         ref mut strength,
+                         duration: _,
+                         category: _,
+                     }| {
+                        *strength *= stats.diminished_buff_strength();
+                    },
+                );
+                *range *= stats.range;
+                *energy_cost /= stats.energy_efficiency;
+                *sprite_info = sprite_info.map(|mut si| {
+                    si.summon_distance.0 *= stats.range;
+                    si.summon_distance.1 *= stats.range;
+                    si
+                });
             },
             Blink {
                 ref mut buildup_duration,
@@ -1813,7 +1863,8 @@ impl CharacterAbility {
             }
             | DiveMelee { energy_cost, .. }
             | RiposteMelee { energy_cost, .. }
-            | RapidMelee { energy_cost, .. } => *energy_cost,
+            | RapidMelee { energy_cost, .. }
+            | StaticAura { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -1823,7 +1874,6 @@ impl CharacterAbility {
             },
             Boost { .. }
             | GlideBoost { .. }
-            | ComboMeleeDeprecated { .. }
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
@@ -1856,6 +1906,10 @@ impl CharacterAbility {
             | SelfBuff {
                 combo_cost: combo, ..
             } => *combo,
+            Shockwave {
+                minimum_combo: combo,
+                ..
+            } => combo.unwrap_or(0),
             BasicMelee { .. }
             | BasicRanged { .. }
             | RepeaterRanged { .. }
@@ -1865,7 +1919,6 @@ impl CharacterAbility {
             | LeapShockwave { .. }
             | ChargedMelee { .. }
             | ChargedRanged { .. }
-            | Shockwave { .. }
             | BasicBlock { .. }
             | ComboMelee2 { .. }
             | DiveMelee { .. }
@@ -1873,12 +1926,12 @@ impl CharacterAbility {
             | BasicBeam { .. }
             | Boost { .. }
             | GlideBoost { .. }
-            | ComboMeleeDeprecated { .. }
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
             | SpriteSummon { .. }
-            | Transform { .. } => 0,
+            | Transform { .. }
+            | StaticAura { .. } => 0,
         }
     }
 
@@ -1902,7 +1955,6 @@ impl CharacterAbility {
             | BasicBeam { meta, .. }
             | Boost { meta, .. }
             | GlideBoost { meta, .. }
-            | ComboMeleeDeprecated { meta, .. }
             | ComboMelee2 { meta, .. }
             | Blink { meta, .. }
             | BasicSummon { meta, .. }
@@ -1912,14 +1964,14 @@ impl CharacterAbility {
             | DiveMelee { meta, .. }
             | RiposteMelee { meta, .. }
             | RapidMelee { meta, .. }
-            | Transform { meta, .. } => *meta,
+            | Transform { meta, .. }
+            | StaticAura { meta, .. } => *meta,
         }
     }
 
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
-            Some(ToolKind::Hammer) => self.adjusted_by_hammer_skills(skillset),
             Some(ToolKind::Bow) => self.adjusted_by_bow_skills(skillset),
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
             Some(ToolKind::Sceptre) => self.adjusted_by_sceptre_skills(skillset),
@@ -1947,108 +1999,6 @@ impl CharacterAbility {
                 *swing_duration /= speed;
                 *recover_duration /= speed;
             }
-        }
-    }
-
-    fn adjusted_by_hammer_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
-        use skills::{HammerSkill::*, Skill::Hammer};
-
-        match self {
-            CharacterAbility::ComboMeleeDeprecated {
-                ref mut speed_increase,
-                ref mut max_speed_increase,
-                ref mut stage_data,
-                ref mut max_energy_gain,
-                ref mut scales_from_combo,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.hammer_tree.single_strike;
-
-                if let Ok(level) = skillset.skill_level(Hammer(SsKnockback)) {
-                    *stage_data = (*stage_data)
-                        .iter()
-                        .map(|s| s.modify_strike(modifiers.knockback.powi(level.into())))
-                        .collect::<Vec<_>>();
-                }
-                let speed_segments = f32::from(Hammer(SsSpeed).max_level());
-                let speed_level = f32::from(skillset.skill_level(Hammer(SsSpeed)).unwrap_or(0));
-                *speed_increase *= speed_level / speed_segments;
-                *max_speed_increase *= speed_level / speed_segments;
-
-                let energy_level = skillset.skill_level(Hammer(SsRegen)).unwrap_or(0);
-
-                let stages = u16::try_from(stage_data.len())
-                    .expect("number of stages can't be more than u16");
-
-                *max_energy_gain *= f32::from((energy_level + 1) * stages)
-                    / f32::from((Hammer(SsRegen).max_level() + 1) * stages);
-
-                *scales_from_combo = skillset.skill_level(Hammer(SsDamage)).unwrap_or(0).into();
-            },
-            CharacterAbility::ChargedMelee {
-                ref mut energy_drain,
-                ref mut charge_duration,
-                ref mut melee_constructor,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.hammer_tree.charged;
-
-                if let Some(MeleeConstructorKind::Bash {
-                    ref mut damage,
-                    ref mut knockback,
-                    ..
-                }) = melee_constructor.scaled.as_mut().map(|scaled| scaled.kind)
-                {
-                    if let Ok(level) = skillset.skill_level(Hammer(CDamage)) {
-                        *damage *= modifiers.scaled_damage.powi(level.into());
-                    }
-                    if let Ok(level) = skillset.skill_level(Hammer(CKnockback)) {
-                        *knockback *= modifiers.scaled_knockback.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(CDrain)) {
-                    *energy_drain *= modifiers.energy_drain.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(CSpeed)) {
-                    let charge_time = 1.0 / modifiers.charge_rate;
-                    *charge_duration *= charge_time.powi(level.into());
-                }
-            },
-            CharacterAbility::LeapMelee {
-                ref mut energy_cost,
-                ref mut forward_leap_strength,
-                ref mut vertical_leap_strength,
-                ref mut melee_constructor,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.hammer_tree.leap;
-                if let MeleeConstructorKind::Bash {
-                    ref mut damage,
-                    ref mut knockback,
-                    ..
-                } = melee_constructor.kind
-                {
-                    if let Ok(level) = skillset.skill_level(Hammer(LDamage)) {
-                        *damage *= modifiers.base_damage.powi(level.into());
-                    }
-                    if let Ok(level) = skillset.skill_level(Hammer(LKnockback)) {
-                        *knockback *= modifiers.knockback.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(LCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(LDistance)) {
-                    let strength = modifiers.leap_strength;
-                    *forward_leap_strength *= strength.powi(level.into());
-                    *vertical_leap_strength *= strength.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(LRange)) {
-                    melee_constructor.range += modifiers.range * f32::from(level);
-                }
-            },
-            _ => {},
         }
     }
 
@@ -2407,13 +2357,13 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 melee_constructor,
                 ori_modifier,
-                charge_through,
+                auto_charge,
                 meta: _,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
                     energy_drain: *energy_drain,
                     forward_speed: *forward_speed,
-                    charge_through: *charge_through,
+                    auto_charge: *auto_charge,
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
@@ -2424,9 +2374,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 auto_charge: false,
                 timer: Duration::default(),
-                charge_end_timer: Duration::from_secs_f32(*charge_duration),
                 stage_section: StageSection::Buildup,
-                exhausted: false,
             }),
             CharacterAbility::BasicBlock {
                 buildup_duration,
@@ -2477,34 +2425,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 was_wielded: false, // false by default. utils might set it to true
                 prev_aimed_dir: None,
                 is_sneaking: false,
-            }),
-            CharacterAbility::ComboMeleeDeprecated {
-                stage_data,
-                initial_energy_gain,
-                max_energy_gain,
-                energy_increase,
-                speed_increase,
-                max_speed_increase,
-                scales_from_combo,
-                ori_modifier,
-                meta: _,
-            } => CharacterState::ComboMeleeDeprecated(combo_melee::Data {
-                static_data: combo_melee::StaticData {
-                    num_stages: stage_data.len() as u32,
-                    stage_data: stage_data.iter().map(|stage| stage.to_duration()).collect(),
-                    initial_energy_gain: *initial_energy_gain,
-                    max_energy_gain: *max_energy_gain,
-                    energy_increase: *energy_increase,
-                    speed_increase: 1.0 - *speed_increase,
-                    max_speed_increase: *max_speed_increase,
-                    scales_from_combo: *scales_from_combo,
-                    ori_modifier: *ori_modifier,
-                    ability_info,
-                },
-                exhausted: false,
-                stage: 1,
-                timer: Duration::default(),
-                stage_section: StageSection::Buildup,
             }),
             CharacterAbility::ComboMelee2 {
                 strikes,
@@ -2613,7 +2533,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 specifier,
                 damage_effect,
-                additional_combo,
+                custom_combo,
                 meta: _,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
@@ -2629,7 +2549,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                     specifier: *specifier,
                     damage_effect: *damage_effect,
-                    additional_combo: *additional_combo,
+                    custom_combo: *custom_combo,
                 },
                 stage_section: if buildup_strike.is_some() {
                     StageSection::Buildup
@@ -2739,6 +2659,10 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 specifier,
                 ori_rate,
                 damage_effect,
+                timing,
+                emit_outcome,
+                minimum_combo,
+                combo_consumption,
                 meta: _,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
@@ -2759,6 +2683,11 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     damage_kind: *damage_kind,
                     specifier: *specifier,
                     ori_rate: *ori_rate,
+                    timing: *timing,
+                    emit_outcome: *emit_outcome,
+                    minimum_combo: *minimum_combo,
+                    combo_on_use: data.combo.map_or(0, |c| c.counter()),
+                    combo_consumption: *combo_consumption,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -2826,6 +2755,33 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::StaticAura {
+                buildup_duration,
+                cast_duration,
+                recover_duration,
+                targets,
+                auras,
+                aura_duration,
+                range,
+                energy_cost: _,
+                sprite_info,
+                meta: _,
+            } => CharacterState::StaticAura(static_aura::Data {
+                static_data: static_aura::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    cast_duration: Duration::from_secs_f32(*cast_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    targets: *targets,
+                    auras: auras.clone(),
+                    aura_duration: *aura_duration,
+                    range: *range,
+                    ability_info,
+                    sprite_info: *sprite_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                achieved_radius: sprite_info.map(|si| si.summon_distance.0.floor() as i32 - 1),
             }),
             CharacterAbility::Blink {
                 buildup_duration,
@@ -3074,7 +3030,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct AbilityMeta {
     #[serde(default)]
@@ -3084,6 +3040,52 @@ pub struct AbilityMeta {
     pub init_event: Option<AbilityInitEvent>,
     #[serde(default)]
     pub requirements: AbilityRequirements,
+    /// Adjusts stats of ability when activated based on context.
+    // If we ever add more, I guess change to a vec? Or maybe just an array if we want to keep
+    // AbilityMeta small?
+    pub contextual_stats: Option<StatAdj>,
+}
+
+impl StatAdj {
+    pub fn equivalent_stats(&self, data: &JoinData) -> Stats {
+        let mut stats = Stats::one();
+        let add = match self.context {
+            StatContext::PoiseResilience(base) => {
+                let poise_res = combat::compute_poise_resilience(data.inventory, data.msm);
+                poise_res.unwrap_or(0.0) / base
+            },
+        };
+        match self.field {
+            StatField::EffectPower => {
+                stats.effect_power += add;
+            },
+            StatField::BuffStrength => {
+                stats.buff_strength += add;
+            },
+            StatField::Power => {
+                stats.power += add;
+            },
+        }
+        stats
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StatAdj {
+    pub context: StatContext,
+    pub field: StatField,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum StatContext {
+    PoiseResilience(f32),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum StatField {
+    EffectPower,
+    BuffStrength,
+    Power,
 }
 
 // TODO: Later move over things like energy and combo into here
@@ -3154,9 +3156,14 @@ impl Stance {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum AbilityInitEvent {
     EnterStance(Stance),
+    GainBuff {
+        kind: buff::BuffKind,
+        strength: f32,
+        duration: Option<Secs>,
+    },
 }
 
 impl Default for Stance {

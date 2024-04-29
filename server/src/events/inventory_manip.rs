@@ -107,6 +107,7 @@ pub struct InventoryManipData<'a> {
     agents: ReadStorage<'a, comp::Agent>,
     pets: ReadStorage<'a, comp::Pet>,
     velocities: ReadStorage<'a, comp::Vel>,
+    masses: ReadStorage<'a, comp::Mass>,
 }
 
 impl ServerEvent for InventoryManipEvent {
@@ -663,6 +664,8 @@ impl ServerEvent for InventoryManipEvent {
                                         &data.msm,
                                         data.character_states.get(entity),
                                         data.stats.get(entity),
+                                        data.masses.get(entity),
+                                        None,
                                     );
                                 }
                             },
@@ -678,6 +681,8 @@ impl ServerEvent for InventoryManipEvent {
                                         &data.msm,
                                         data.character_states.get(entity),
                                         data.stats.get(entity),
+                                        data.masses.get(entity),
+                                        None,
                                     );
                                 }
                             },
@@ -692,6 +697,8 @@ impl ServerEvent for InventoryManipEvent {
                                     &data.msm,
                                     data.character_states.get(entity),
                                     data.stats.get(entity),
+                                    data.masses.get(entity),
+                                    None,
                                 );
                             },
                         }

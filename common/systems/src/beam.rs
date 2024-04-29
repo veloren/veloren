@@ -3,8 +3,8 @@ use common::{
     comp::{
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
-        Alignment, Beam, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
-        Player, Pos, Scale, Stats,
+        Alignment, Beam, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory,
+        Mass, Ori, Player, Pos, Scale, Stats,
     },
     event::{self, EmitExt, EventBus},
     event_emitters,
@@ -63,6 +63,7 @@ pub struct ReadData<'a> {
     entered_auras: ReadStorage<'a, EnteredAuras>,
     outcomes: Read<'a, EventBus<Outcome>>,
     events: ReadAttackEvents<'a>,
+    masses: ReadStorage<'a, Mass>,
 }
 
 /// This system is responsible for handling beams that heal or do damage
@@ -230,6 +231,7 @@ impl<'a> System<'a> for Sys {
                                 combo: read_data.combos.get(entity),
                                 inventory: read_data.inventories.get(entity),
                                 stats: read_data.stats.get(entity),
+                                mass: read_data.masses.get(entity),
                             });
 
                             let target_info = TargetInfo {
@@ -243,6 +245,7 @@ impl<'a> System<'a> for Sys {
                                 char_state: read_data.character_states.get(target),
                                 energy: read_data.energies.get(target),
                                 buffs: read_data.buffs.get(target),
+                                mass: read_data.masses.get(target),
                             };
 
                             let target_dodging = read_data
@@ -263,6 +266,8 @@ impl<'a> System<'a> for Sys {
                             let precision_from_flank = combat::precision_mult_from_flank(
                                 beam.bezier.ctrl - beam.bezier.start,
                                 target_info.ori,
+                                Default::default(),
+                                false,
                             );
 
                             let precision_from_time = {

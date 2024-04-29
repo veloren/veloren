@@ -25,5 +25,5 @@ DashMelee(
     swing_duration: 0.1,
     recover_duration: 0.8,
     ori_modifier: 0.1,
-    charge_through: false,
+    auto_charge: false,
 )

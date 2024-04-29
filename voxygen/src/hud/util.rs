@@ -197,6 +197,8 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Defiance => "buff-defiance",
         BuffKind::Bloodfeast => "buff-bloodfeast",
         BuffKind::Berserk => "buff-berserk",
+        BuffKind::ScornfulTaunt => "buff-scornfultaunt",
+        BuffKind::Tenacity => "buff-tenacity",
         // Debuffs
         BuffKind::Bleeding => "buff-bleed",
         BuffKind::Cursed => "buff-cursed",
@@ -209,6 +211,10 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Parried => "buff-parried",
         BuffKind::PotionSickness => "buff-potionsickness",
         BuffKind::Heatstroke => "buff-heatstroke",
+        BuffKind::Rooted => "buff-rooted",
+        BuffKind::Winded => "buff-winded",
+        BuffKind::Concussion => "buff-concussion",
+        BuffKind::Staggered => "buff-staggered",
         // Neutral
         BuffKind::Polymorphed => "buff-polymorphed",
     }
@@ -318,7 +324,13 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Defiance
                         | BuffKind::Bloodfeast
                         | BuffKind::Berserk
-                        | BuffKind::Heatstroke => Cow::Borrowed(""),
+                        | BuffKind::Heatstroke
+                        | BuffKind::ScornfulTaunt
+                        | BuffKind::Rooted
+                        | BuffKind::Winded
+                        | BuffKind::Concussion
+                        | BuffKind::Staggered
+                        | BuffKind::Tenacity => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -368,7 +380,13 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             | BuffKind::Defiance
                             | BuffKind::Bloodfeast
                             | BuffKind::Berserk
-                            | BuffKind::Heatstroke => Cow::Borrowed(""),
+                            | BuffKind::Heatstroke
+                            | BuffKind::ScornfulTaunt
+                            | BuffKind::Rooted
+                            | BuffKind::Winded
+                            | BuffKind::Concussion
+                            | BuffKind::Staggered
+                            | BuffKind::Tenacity => Cow::Borrowed(""),
                         }
                     } else if let BuffKind::Saturation
                     | BuffKind::Regeneration
@@ -619,9 +637,31 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.axe.bulkhead" => imgs.axe_bulkhead,
         "common.abilities.axe.capsize" => imgs.axe_capsize,
         // Hammer
-        "common.abilities.hammer.singlestrike" => imgs.twohhammer_m1,
-        "common.abilities.hammer.charged" => imgs.hammergolf,
-        "common.abilities.hammer.leap" => imgs.hammerleap,
+        "common.abilities.hammer.solid_smash" => imgs.hammer_solid_smash,
+        "common.abilities.hammer.wide_wallop" => imgs.hammer_wide_wallop,
+        "common.abilities.hammer.scornful_swipe" => imgs.hammer_scornful_swipe,
+        "common.abilities.hammer.tremor" => imgs.hammer_tremor,
+        "common.abilities.hammer.vigorous_bash" => imgs.hammer_vigorous_bash,
+        "common.abilities.hammer.heavy_whorl" => imgs.hammer_heavy_whorl,
+        "common.abilities.hammer.dual_heavy_whorl" => imgs.hammer_heavy_whorl,
+        "common.abilities.hammer.intercept" => imgs.hammer_intercept,
+        "common.abilities.hammer.dual_intercept" => imgs.hammer_intercept,
+        "common.abilities.hammer.retaliate" => imgs.hammer_retaliate,
+        "common.abilities.hammer.spine_cracker" => imgs.hammer_spine_cracker,
+        "common.abilities.hammer.breach" => imgs.hammer_breach,
+        "common.abilities.hammer.pile_driver" => imgs.hammer_pile_driver,
+        "common.abilities.hammer.lung_pummel" => imgs.hammer_lung_pummel,
+        "common.abilities.hammer.helm_crusher" => imgs.hammer_helm_crusher,
+        "common.abilities.hammer.iron_tempest" => imgs.hammer_iron_tempest,
+        "common.abilities.hammer.dual_iron_tempest" => imgs.hammer_iron_tempest,
+        "common.abilities.hammer.upheaval" => imgs.hammer_upheaval,
+        "common.abilities.hammer.dual_upheaval" => imgs.hammer_upheaval,
+        "common.abilities.hammer.rampart" => imgs.hammer_rampart,
+        "common.abilities.hammer.tenacity" => imgs.hammer_tenacity,
+        "common.abilities.hammer.thunderclap" => imgs.hammer_thunderclap,
+        "common.abilities.hammer.seismic_shock" => imgs.hammer_seismic_shock,
+        "common.abilities.hammer.earthshaker" => imgs.hammer_earthshaker,
+        "common.abilities.hammer.judgement" => imgs.hammer_judgement,
         // Bow
         "common.abilities.bow.charged" => imgs.bow_m1,
         "common.abilities.bow.repeater" => imgs.bow_m2,

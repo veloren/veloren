@@ -395,7 +395,9 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
         | BuffKind::Sunderer
         | BuffKind::Defiance
         | BuffKind::Bloodfeast
-        | BuffKind::Berserk => {
+        | BuffKind::Berserk
+        | BuffKind::ScornfulTaunt
+        | BuffKind::Tenacity => {
             tracing::error!("Player was killed by a positive buff!");
             "mysterious"
         },
@@ -405,7 +407,11 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
         | BuffKind::Parried
         | BuffKind::PotionSickness
         | BuffKind::Polymorphed
-        | BuffKind::Heatstroke => {
+        | BuffKind::Heatstroke
+        | BuffKind::Rooted
+        | BuffKind::Winded
+        | BuffKind::Concussion
+        | BuffKind::Staggered => {
             tracing::error!("Player was killed by a debuff that doesn't do damage!");
             "mysterious"
         },

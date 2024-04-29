@@ -1,6 +1,6 @@
 use super::{
     super::{vek::*, Animation},
-    CharacterSkeleton, SkeletonAttr,
+    hammer_start, twist_back, twist_forward, CharacterSkeleton, SkeletonAttr,
 };
 use common::states::utils::{AbilityInfo, StageSection};
 
@@ -27,6 +27,7 @@ impl Animation for RiposteMeleeAnimation {
         next.main.orientation = Quaternion::rotation_z(0.0);
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
+
         if matches!(stage_section, Some(StageSection::Action)) {
             next.main_weapon_trail = true;
             next.off_weapon_trail = true;
@@ -77,6 +78,29 @@ impl Animation for RiposteMeleeAnimation {
                     .rotate_z(move2_slow * -3.0 + move2 * 1.0);
                 next.control.position +=
                     Vec3::new(move2_slow * 11.0, move2_slow * -4.0, move2_slow * -6.0);
+            },
+            Some("common.abilities.hammer.retaliate") => {
+                hammer_start(&mut next, s_a);
+                let (move1, move2, move3) = match stage_section {
+                    Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                    Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                    Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                    _ => (0.0, 0.0, 0.0),
+                };
+                let pullback = 1.0 - move3;
+                let move1 = move1 * pullback;
+                let move2 = move2 * pullback;
+
+                twist_back(&mut next, move1, 0.6, 0.2, 0.0, 0.3);
+                next.control.orientation.rotate_x(move1 * 1.5);
+                next.control.orientation.rotate_y(move1 * 0.4);
+                next.control.position += Vec3::new(0.0, 0.0, 16.0) * move1;
+
+                twist_forward(&mut next, move2, 2.1, 0.6, 0.4, 0.9);
+                next.control.orientation.rotate_y(move2 * 2.0);
+                next.control.orientation.rotate_x(move2 * -2.5);
+                next.control.orientation.rotate_z(move2 * -0.6);
+                next.control.position += Vec3::new(6.0, -10.0, -14.0) * move2;
             },
             _ => {},
         }

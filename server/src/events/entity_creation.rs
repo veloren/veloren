@@ -12,9 +12,9 @@ use common::{
         WaypointArea,
     },
     event::{
-        CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent, CreateShipEvent,
-        CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent, InitializeSpectatorEvent,
-        ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
+        CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
+        CreateShipEvent, CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent,
+        InitializeSpectatorEvent, ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -25,6 +25,7 @@ use common::{
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
+use std::time::Duration;
 use vek::{Rgb, Vec3};
 
 use super::group_manip::update_map_markers;
@@ -488,4 +489,27 @@ pub fn handle_create_object(
         .maybe_with(light_emitter)
         .maybe_with(stats)
         .build();
+}
+
+pub fn handle_create_aura_entity(server: &mut Server, ev: CreateAuraEntityEvent) {
+    let time = *server.state.ecs().read_resource::<Time>();
+    let mut entity = server
+        .state
+        .ecs_mut()
+        .create_entity_synced()
+        .with(ev.pos)
+        .with(comp::Vel(Vec3::zero()))
+        .with(comp::Ori::default())
+        .with(ev.auras)
+        .with(comp::Alignment::Owned(ev.creator_uid));
+
+    // If a duration is specified, create a projectile component for the entity
+    if let Some(dur) = ev.duration {
+        let object = comp::Object::DeleteAfter {
+            spawned_at: time,
+            timeout: Duration::from_secs_f64(dur.0),
+        };
+        entity = entity.with(object);
+    }
+    entity.build();
 }

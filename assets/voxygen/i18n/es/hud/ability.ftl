@@ -258,8 +258,6 @@ common-abilities-sword-defensive_disengage = Retirada defensiva
 # Habilidades de arco
 common-abilities-debug-possess = Flecha de posesión
     .desc = Dispara una flecha que te permite controlar a tu objetivo.
-common-abilities-hammer-leap = Golpe de la perdición
-    .desc = Salta hacia la posición del cursor para atacar a un enemigo con retroceso.
 common-abilities-bow-shotgun = Ráfaga
     .desc = Lanza una ráfaga de flechas.
 # Habilidades de bastón

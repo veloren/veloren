@@ -1,7 +1,8 @@
 use crate::{
     combat::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
-        CombatRequirement, Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
+        CombatRequirement, Damage, DamageKind, DamageSource, FlankMults, GroupTarget, Knockback,
+        KnockbackDir,
     },
     comp::{
         buff::BuffKind,
@@ -23,6 +24,8 @@ pub struct Melee {
     pub multi_target: Option<MultiTarget>,
     pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
     pub simultaneous_hits: u32,
+    pub precision_flank_multipliers: FlankMults,
+    pub precision_flank_invert: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -51,7 +54,6 @@ impl Component for Melee {
 }
 
 fn default_simultaneous_hits() -> u32 { 1 }
-fn default_combo_gain() -> i32 { 1 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scaled {
@@ -74,10 +76,20 @@ pub struct MeleeConstructor {
     pub angle: f32,
     pub multi_target: Option<MultiTarget>,
     pub damage_effect: Option<CombatEffect>,
+    pub attack_effect: Option<(CombatEffect, CombatRequirement)>,
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
-    #[serde(default = "default_combo_gain")]
-    pub combo_gain: i32,
+    pub custom_combo: Option<CustomCombo>,
+    #[serde(default)]
+    pub precision_flank_multipliers: FlankMults,
+    #[serde(default)]
+    pub precision_flank_invert: bool,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct CustomCombo {
+    pub additional: i32,
+    pub requirement: Option<CombatRequirement>,
 }
 
 impl MeleeConstructor {
@@ -129,8 +141,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -140,7 +151,6 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo(self.combo_gain)
             },
             Stab {
                 damage,
@@ -180,8 +190,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -191,7 +200,6 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo(self.combo_gain)
             },
             Bash {
                 damage,
@@ -223,8 +231,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -234,7 +241,6 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo(self.combo_gain)
             },
             Hook {
                 damage,
@@ -271,8 +277,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: pull,
                         direction: KnockbackDir::Towards,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -281,7 +286,6 @@ impl MeleeConstructor {
                     .with_precision(precision_mult)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo(self.combo_gain)
             },
             NecroticVortex {
                 damage,
@@ -310,8 +314,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: pull,
                         direction: KnockbackDir::Towards,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -319,7 +322,6 @@ impl MeleeConstructor {
                     .with_damage(damage)
                     .with_precision(precision_mult)
                     .with_effect(knockback)
-                    .with_combo(self.combo_gain)
             },
             SonicWave {
                 damage,
@@ -348,8 +350,7 @@ impl MeleeConstructor {
                     CombatEffect::Knockback(Knockback {
                         strength: knockback,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
@@ -358,8 +359,29 @@ impl MeleeConstructor {
                     .with_precision(precision_mult)
                     .with_effect(poise)
                     .with_effect(knockback)
-                    .with_combo(self.combo_gain)
             },
+        };
+
+        let attack = if let Some((effect, requirement)) = self.attack_effect {
+            let effect = AttackEffect::new(Some(GroupTarget::OutOfGroup), effect)
+                .with_requirement(requirement);
+            attack.with_effect(effect)
+        } else {
+            attack
+        };
+
+        let attack = match self.custom_combo {
+            None => attack.with_combo_increment(),
+            Some(CustomCombo {
+                additional,
+                requirement: None,
+            }) => attack.with_combo(1 + additional),
+            Some(CustomCombo {
+                additional,
+                requirement: Some(req),
+            }) => attack
+                .with_combo_increment()
+                .with_combo_requirement(additional, req),
         };
 
         Melee {
@@ -371,6 +393,8 @@ impl MeleeConstructor {
             multi_target: self.multi_target,
             break_block: None,
             simultaneous_hits: self.simultaneous_hits,
+            precision_flank_multipliers: self.precision_flank_multipliers,
+            precision_flank_invert: self.precision_flank_invert,
         }
     }
 
@@ -517,8 +541,8 @@ impl MeleeConstructor {
     }
 
     #[must_use]
-    pub fn with_combo(mut self, combo: i32) -> Self {
-        self.combo_gain = combo;
+    pub fn custom_combo(mut self, custom: Option<CustomCombo>) -> Self {
+        self.custom_combo = custom;
         self
     }
 }
@@ -569,52 +593,59 @@ impl MeleeConstructorKind {
             Slash {
                 ref mut damage,
                 ref mut poise,
-                knockback: _,
+                ref mut knockback,
                 energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
             },
             Stab {
                 ref mut damage,
                 ref mut poise,
-                knockback: _,
+                ref mut knockback,
                 energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
             },
             Bash {
                 ref mut damage,
                 ref mut poise,
-                knockback: _,
+                ref mut knockback,
                 energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
             },
             Hook {
                 ref mut damage,
                 ref mut poise,
-                pull: _,
+                ref mut pull,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *pull *= stats.effect_power;
             },
             NecroticVortex {
                 ref mut damage,
-                pull: _,
-                lifesteal: _,
+                ref mut pull,
+                ref mut lifesteal,
             } => {
                 *damage *= stats.power;
+                *pull *= stats.effect_power;
+                *lifesteal *= stats.effect_power;
             },
             SonicWave {
                 ref mut damage,
                 ref mut poise,
-                knockback: _,
+                ref mut knockback,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
             },
         }
         self

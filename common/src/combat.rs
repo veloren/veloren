@@ -2,7 +2,7 @@ use crate::{
     comp::{
         ability::Capability,
         aura::{AuraKindVariant, EnteredAuras},
-        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
+        buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource, DestInfo},
         inventory::{
             item::{
                 armor::Protection,
@@ -13,7 +13,7 @@ use crate::{
         },
         skillset::SkillGroupKind,
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, HealthChange,
-        Inventory, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
+        Inventory, Mass, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
     },
     event::{
         BuffEvent, ComboChangeEvent, EmitExt, EnergyChangeEvent, EntityAttackedHookEvent,
@@ -62,6 +62,7 @@ pub const MAX_MELEE_POISE_PRECISION: f32 = 0.5;
 pub const MAX_BLOCK_POISE_COST: f32 = 25.0;
 pub const PARRY_BONUS_MULTIPLIER: f32 = 2.0;
 pub const FALLBACK_BLOCK_STRENGTH: f32 = 5.0;
+pub const BEHIND_TARGET_ANGLE: f32 = 45.0;
 
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
@@ -72,6 +73,7 @@ pub struct AttackerInfo<'a> {
     pub combo: Option<&'a Combo>,
     pub inventory: Option<&'a Inventory>,
     pub stats: Option<&'a Stats>,
+    pub mass: Option<&'a Mass>,
 }
 
 pub struct TargetInfo<'a> {
@@ -85,6 +87,7 @@ pub struct TargetInfo<'a> {
     pub char_state: Option<&'a CharacterState>,
     pub energy: Option<&'a Energy>,
     pub buffs: Option<&'a Buffs>,
+    pub mass: Option<&'a Mass>,
 }
 
 #[derive(Clone, Copy)]
@@ -136,11 +139,15 @@ impl Attack {
     }
 
     #[must_use]
-    pub fn with_combo(self, combo: i32) -> Self {
+    pub fn with_combo_requirement(self, combo: i32, requirement: CombatRequirement) -> Self {
         self.with_effect(
-            AttackEffect::new(None, CombatEffect::Combo(combo))
-                .with_requirement(CombatRequirement::AnyDamage),
+            AttackEffect::new(None, CombatEffect::Combo(combo)).with_requirement(requirement),
         )
+    }
+
+    #[must_use]
+    pub fn with_combo(self, combo: i32) -> Self {
+        self.with_combo_requirement(combo, CombatRequirement::AnyDamage)
     }
 
     #[must_use]
@@ -460,8 +467,8 @@ impl Attack {
                                     entity: target.entity,
                                     buff_change: BuffChange::Add(b.to_buff(
                                         time,
-                                        attacker.map(|a| a.uid),
-                                        target.stats,
+                                        attacker,
+                                        target,
                                         applied_damage,
                                         strength_modifier,
                                     )),
@@ -587,6 +594,21 @@ impl Attack {
                                 });
                             }
                         },
+                        CombatEffect::SelfBuff(b) => {
+                            if let Some(attacker) = attacker {
+                                if rng.gen::<f32>() < b.chance {
+                                    emitters.emit(BuffEvent {
+                                        entity: attacker.entity,
+                                        buff_change: BuffChange::Add(b.to_self_buff(
+                                            time,
+                                            attacker,
+                                            applied_damage,
+                                            strength_modifier,
+                                        )),
+                                    });
+                                }
+                            }
+                        },
                     }
                 }
             }
@@ -648,6 +670,19 @@ impl Attack {
                 CombatRequirement::TargetHasBuff(buff) => {
                     target.buffs.map_or(false, |buffs| buffs.contains(*buff))
                 },
+                CombatRequirement::TargetPoised => {
+                    target.char_state.map_or(false, |cs| cs.is_stunned())
+                },
+                CombatRequirement::BehindTarget => {
+                    if let Some(ori) = target.ori {
+                        ori.look_vec().angle_between(dir.with_z(0.0)) < BEHIND_TARGET_ANGLE
+                    } else {
+                        false
+                    }
+                },
+                CombatRequirement::TargetBlocking => target.char_state.map_or(false, |cs| {
+                    cs.is_block(attack_source) || cs.is_parry(attack_source)
+                }),
             });
             if requirements_met {
                 is_applied = true;
@@ -679,8 +714,8 @@ impl Attack {
                                 entity: target.entity,
                                 buff_change: BuffChange::Add(b.to_buff(
                                     time,
-                                    attacker.map(|a| a.uid),
-                                    target.stats,
+                                    attacker,
+                                    target,
                                     accumulated_damage,
                                     strength_modifier,
                                 )),
@@ -768,7 +803,23 @@ impl Attack {
                     },
                     // Only has an effect when attached to a damage
                     CombatEffect::BuffsVulnerable(_, _) => {},
+                    // Only has an effect when attached to a damage
                     CombatEffect::StunnedVulnerable(_) => {},
+                    CombatEffect::SelfBuff(b) => {
+                        if let Some(attacker) = attacker {
+                            if rng.gen::<f32>() < b.chance {
+                                emitters.emit(BuffEvent {
+                                    entity: target.entity,
+                                    buff_change: BuffChange::Add(b.to_self_buff(
+                                        time,
+                                        attacker,
+                                        accumulated_damage,
+                                        strength_modifier,
+                                    )),
+                                });
+                            }
+                        }
+                    },
                 }
             }
         }
@@ -958,6 +1009,8 @@ pub enum CombatEffect {
     // TODO: Maybe try to make it do something if tied to attack, not sure if it should double
     // count in that instance?
     StunnedVulnerable(f32),
+    /// Applies buff to yourself after attack is applied
+    SelfBuff(CombatBuff),
 }
 
 impl CombatEffect {
@@ -996,21 +1049,46 @@ impl CombatEffect {
             CombatEffect::StunnedVulnerable(v) => {
                 CombatEffect::StunnedVulnerable(v * stats.effect_power)
             },
+            CombatEffect::SelfBuff(CombatBuff {
+                kind,
+                dur_secs,
+                strength,
+                chance,
+            }) => CombatEffect::SelfBuff(CombatBuff {
+                kind,
+                dur_secs,
+                strength: strength * stats.buff_strength,
+                chance,
+            }),
         }
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum CombatRequirement {
     AnyDamage,
     Energy(f32),
     Combo(u32),
     TargetHasBuff(BuffKind),
+    TargetPoised,
+    BehindTarget,
+    TargetBlocking,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum DamagedEffect {
     Combo(i32),
+    Energy(f32),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum DeathEffect {
+    /// Adds buff to the attacker that killed this entity
+    AttackerBuff {
+        kind: BuffKind,
+        strength: f32,
+        duration: Option<Secs>,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
@@ -1135,7 +1213,12 @@ impl Damage {
         } else {
             0.0
         };
-        1.0 - (1.0 - inventory_dr) * (1.0 - stats_dr)
+        // Return 100% if either DR is at 100% (admin tabard or safezone buff)
+        if protection.is_none() || stats_dr >= 1.0 {
+            1.0
+        } else {
+            1.0 - (1.0 - inventory_dr) * (1.0 - stats_dr)
+        }
     }
 
     pub fn calculate_health_change(
@@ -1291,16 +1374,20 @@ impl CombatBuff {
     fn to_buff(
         self,
         time: Time,
-        uid: Option<Uid>,
-        tgt_stats: Option<&Stats>,
+        attacker_info: Option<AttackerInfo>,
+        target_info: &TargetInfo,
         damage: f32,
         strength_modifier: f32,
     ) -> Buff {
         // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
-        let source = if let Some(uid) = uid {
+        let source = if let Some(uid) = attacker_info.map(|a| a.uid) {
             BuffSource::Character { by: uid }
         } else {
             BuffSource::Unknown
+        };
+        let dest_info = DestInfo {
+            stats: target_info.stats,
+            mass: target_info.mass,
         };
         Buff::new(
             self.kind,
@@ -1311,7 +1398,37 @@ impl CombatBuff {
             Vec::new(),
             source,
             time,
-            tgt_stats,
+            dest_info,
+            attacker_info.and_then(|a| a.mass),
+        )
+    }
+
+    fn to_self_buff(
+        self,
+        time: Time,
+        attacker_info: AttackerInfo,
+        damage: f32,
+        strength_modifier: f32,
+    ) -> Buff {
+        // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
+        let source = BuffSource::Character {
+            by: attacker_info.uid,
+        };
+        let dest_info = DestInfo {
+            stats: attacker_info.stats,
+            mass: attacker_info.mass,
+        };
+        Buff::new(
+            self.kind,
+            BuffData::new(
+                self.strength.to_strength(damage, strength_modifier),
+                Some(Secs(self.dur_secs as f64)),
+            ),
+            Vec::new(),
+            source,
+            time,
+            dest_info,
+            attacker_info.mass,
         )
     }
 }
@@ -1585,13 +1702,76 @@ pub fn compute_protection(
     })
 }
 
+/// Computes the total resilience provided from armor. Is used to determine the
+/// reduction applied to poise damage received by an entity. None indicates that
+/// the armor equipped makes the entity invulnerable to poise damage.
+pub fn compute_poise_resilience(
+    inventory: Option<&Inventory>,
+    msm: &MaterialStatManifest,
+) -> Option<f32> {
+    inventory.map_or(Some(0.0), |inv| {
+        inv.equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &*item.kind() {
+                    armor
+                        .stats(msm, item.stats_durability_multiplier())
+                        .poise_resilience
+                } else {
+                    None
+                }
+            })
+            .map(|protection| match protection {
+                Protection::Normal(protection) => Some(protection),
+                Protection::Invincible => None,
+            })
+            .sum::<Option<f32>>()
+    })
+}
+
 /// Used to compute the precision multiplier achieved by flanking a target
-pub fn precision_mult_from_flank(attack_dir: Vec3<f32>, target_ori: Option<&Ori>) -> Option<f32> {
-    let angle = target_ori.map(|t_ori| t_ori.look_dir().angle_between(attack_dir));
+pub fn precision_mult_from_flank(
+    attack_dir: Vec3<f32>,
+    target_ori: Option<&Ori>,
+    precision_flank_multipliers: FlankMults,
+    precision_flank_invert: bool,
+) -> Option<f32> {
+    let angle = target_ori.map(|t_ori| {
+        t_ori.look_dir().angle_between(if precision_flank_invert {
+            -attack_dir
+        } else {
+            attack_dir
+        })
+    });
     match angle {
-        Some(angle) if angle < FULL_FLANK_ANGLE => Some(MAX_BACK_FLANK_PRECISION),
-        Some(angle) if angle < PARTIAL_FLANK_ANGLE => Some(MAX_SIDE_FLANK_PRECISION),
+        Some(angle) if angle < FULL_FLANK_ANGLE => Some(
+            MAX_BACK_FLANK_PRECISION
+                * if precision_flank_invert {
+                    precision_flank_multipliers.front
+                } else {
+                    precision_flank_multipliers.back
+                },
+        ),
+        Some(angle) if angle < PARTIAL_FLANK_ANGLE => {
+            Some(MAX_SIDE_FLANK_PRECISION * precision_flank_multipliers.side)
+        },
         Some(_) | None => None,
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct FlankMults {
+    pub back: f32,
+    pub front: f32,
+    pub side: f32,
+}
+
+impl Default for FlankMults {
+    fn default() -> Self {
+        FlankMults {
+            back: 1.0,
+            front: 1.0,
+            side: 1.0,
+        }
     }
 }
 

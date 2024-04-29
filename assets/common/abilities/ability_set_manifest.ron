@@ -193,10 +193,52 @@
     ),
     Tool(Hammer): (
         guard: Some(Simple(None, "common.abilities.hammer.basic_guard")),
-        primary: Simple(None, "common.abilities.hammer.singlestrike"),
-        secondary: Simple(None, "common.abilities.hammer.charged"),
+        primary: Simple(None, "common.abilities.hammer.solid_smash"),
+        secondary: Simple(None, "common.abilities.hammer.wide_wallop"),
         abilities: [
-            Simple(Some(Hammer(UnlockLeap)), "common.abilities.hammer.leap"),
+            Simple(Hammer(ScornfulSwipe), "common.abilities.hammer.scornful_swipe"),
+            Simple(Hammer(Tremor), "common.abilities.hammer.tremor"),
+            Simple(Hammer(VigorousBash), "common.abilities.hammer.vigorous_bash"),
+            Simple(Hammer(Retaliate), "common.abilities.hammer.retaliate"),
+            Simple(Hammer(SpineCracker), "common.abilities.hammer.spine_cracker"),
+            Simple(Hammer(Breach), "common.abilities.hammer.breach"),
+            Contextualized(
+                pseudo_id: "common.abilities.hammer.iron_tempest",
+                abilities: [
+                    ((dual_wielding_same_kind: true), (Hammer(IronTempest), "common.abilities.hammer.dual_iron_tempest")),
+                    ((), (Hammer(IronTempest), "common.abilities.hammer.iron_tempest")),
+                ],
+            ),
+            Contextualized(
+                pseudo_id: "common.abilities.hammer.upheaval",
+                abilities: [
+                    ((dual_wielding_same_kind: true), (Hammer(Upheaval), "common.abilities.hammer.dual_upheaval")),
+                    ((), (Hammer(Upheaval), "common.abilities.hammer.upheaval")),
+                ],
+            ),
+            Simple(Hammer(Thunderclap), "common.abilities.hammer.thunderclap"),
+            Simple(Hammer(SeismicShock), "common.abilities.hammer.seismic_shock"),
+            Contextualized(
+                pseudo_id: "common.abilities.hammer.heavy_whorl",
+                abilities: [
+                    ((dual_wielding_same_kind: true), (Hammer(HeavyWhorl), "common.abilities.hammer.dual_heavy_whorl")),
+                    ((), (Hammer(HeavyWhorl), "common.abilities.hammer.heavy_whorl")),
+                ],
+            ),
+            Contextualized(
+                pseudo_id: "common.abilities.hammer.intercept",
+                abilities: [
+                    ((dual_wielding_same_kind: true), (Hammer(Intercept), "common.abilities.hammer.dual_intercept")),
+                    ((), (Hammer(Intercept), "common.abilities.hammer.intercept")),
+                ],
+            ),
+            Simple(Hammer(PileDriver), "common.abilities.hammer.pile_driver"),
+            Simple(Hammer(LungPummel), "common.abilities.hammer.lung_pummel"),
+            Simple(Hammer(HelmCrusher), "common.abilities.hammer.helm_crusher"),
+            Simple(Hammer(Rampart), "common.abilities.hammer.rampart"),
+            Simple(Hammer(Tenacity), "common.abilities.hammer.tenacity"),
+            Simple(Hammer(Earthshaker), "common.abilities.hammer.earthshaker"),
+            Simple(Hammer(Judgement), "common.abilities.hammer.judgement"),
         ],
     ),
     Tool(Bow): (
@@ -863,7 +905,7 @@
         abilities: [],
     ),
     Custom("Golf Club"): (
-        primary: Simple(None, "common.abilities.hammer.singlestrike"),
+        primary: Simple(None, "common.abilities.tool.golf_club.charged"),
         secondary: Simple(None, "common.abilities.tool.golf_club.charged"),
         abilities: [],
     ),

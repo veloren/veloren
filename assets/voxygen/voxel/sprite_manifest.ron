@@ -2953,6 +2953,21 @@
     ],
     wind_sway: 0.0,
 ),
+(Stones2, ()): (
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.rocks.rock-0",
+            offset: (-3.0, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.rocks.rock-2",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+),
 // Twigs
 (Twigs, ()): (
     variations: [

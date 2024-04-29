@@ -1,7 +1,5 @@
 common-abilities-debug-possess = ลูกธนูเข้าสิง
     .desc = ยิงลูกธนูอาบยาพิศ ใช้ควบคุมเป้าหมาย
-common-abilities-hammer-leap = ทุบแห่งหายนะ
-    .desc = โจมตีในวงกล้างพร้องกับทำให้ศัตรูกระเด็น ทุบในตำแหน่งที่เลงไว้
 common-abilities-bow-shotgun = รัว
     .desc = ยิงลูกธนูรัวๆ
 common-abilities-staff-fireshockwave = วงแหวนแห่งไฟ

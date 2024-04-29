@@ -121,8 +121,24 @@ buff-berserk = Berserk
 ## Heatstroke
 buff-heatstroke = Heatstroke
     .desc = You were exposed to heat and now suffer from heatstroke. Your energy reward and movement speed are cut down. Chill.
-
-
+## Scornful Taunt
+buff-scornfultaunt = Scornful Taunt
+    .desc = You scornfully taunt your enemies, granting you bolstered fortitude and stamina. However, your death will bolster your killer.
+## Rooted
+buff-rooted = Rooted
+    .desc = You are stuck in place and cannot move.
+## Winded
+buff-winded = Winded
+    .desc = You can barely breathe hampering how much energy you can recover and how quickly you can move.
+## Concussion
+buff-concussion = Concussion
+    .desc = You have been hit hard on the head and have trouble focusing, preventing you from using some of your more complex attacks.
+## Staggered
+buff-staggered = Staggered
+    .desc = You are off balance and more susceptible to heavy attacks.
+## Tenacity
+buff-tenacity = Tenacity
+    .desc = You are not only able to shrug off heavier attacks, they energize you as well. However you are also slower.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

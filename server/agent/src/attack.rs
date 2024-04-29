@@ -4,6 +4,7 @@ use crate::{
     util::{entities_have_line_of_sight, handle_attack_aggression},
 };
 use common::{
+    combat::{self, AttackSource},
     comp::{
         ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance, BASE_ABILITY_LIMIT},
         buff::BuffKind,
@@ -278,43 +279,375 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        enum ActionStateTimers {
-            TimerHandleHammerAttack = 0,
+        if !agent.combat_state.initialized {
+            agent.combat_state.initialized = true;
+            let available_tactics = {
+                let mut tactics = Vec::new();
+                let try_tactic = |skill, tactic, tactics: &mut Vec<HammerTactics>| {
+                    if self.skill_set.has_skill(Skill::Hammer(skill)) {
+                        tactics.push(tactic);
+                    }
+                };
+                try_tactic(
+                    HammerSkill::Thunderclap,
+                    HammerTactics::AttackExpert,
+                    &mut tactics,
+                );
+                try_tactic(
+                    HammerSkill::Judgement,
+                    HammerTactics::SupportExpert,
+                    &mut tactics,
+                );
+                if tactics.is_empty() {
+                    try_tactic(
+                        HammerSkill::IronTempest,
+                        HammerTactics::AttackAdvanced,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        HammerSkill::Rampart,
+                        HammerTactics::SupportAdvanced,
+                        &mut tactics,
+                    );
+                }
+                if tactics.is_empty() {
+                    try_tactic(
+                        HammerSkill::Retaliate,
+                        HammerTactics::AttackIntermediate,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        HammerSkill::PileDriver,
+                        HammerTactics::SupportIntermediate,
+                        &mut tactics,
+                    );
+                }
+                if tactics.is_empty() {
+                    try_tactic(
+                        HammerSkill::Tremor,
+                        HammerTactics::AttackSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        HammerSkill::HeavyWhorl,
+                        HammerTactics::SupportSimple,
+                        &mut tactics,
+                    );
+                }
+                if tactics.is_empty() {
+                    try_tactic(
+                        HammerSkill::ScornfulSwipe,
+                        HammerTactics::Simple,
+                        &mut tactics,
+                    );
+                }
+                if tactics.is_empty() {
+                    tactics.push(HammerTactics::Unskilled);
+                }
+                tactics
+            };
+
+            let tactic = available_tactics
+                .choose(rng)
+                .copied()
+                .unwrap_or(HammerTactics::Unskilled);
+
+            agent.combat_state.int_counters[IntCounters::Tactic as usize] = tactic as u8;
+
+            let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
+            let set_ability = |controller: &mut Controller, slot, skill| {
+                controller.push_event(ControlEvent::ChangeAbility {
+                    slot,
+                    auxiliary_key,
+                    new_ability: AuxiliaryAbility::MainWeapon(skill),
+                });
+            };
+            let mut set_random = |controller: &mut Controller, slot, options: &mut Vec<usize>| {
+                if options.is_empty() {
+                    return;
+                }
+                let i = rng.gen_range(0..options.len());
+                set_ability(controller, slot, options.swap_remove(i));
+            };
+
+            match tactic {
+                HammerTactics::Unskilled => {},
+                HammerTactics::Simple => {
+                    // Scornful swipe
+                    set_ability(controller, 0, 0);
+                },
+                HammerTactics::AttackSimple => {
+                    // Scornful swipe
+                    set_ability(controller, 0, 0);
+                    // Tremor or vigorous bash
+                    set_ability(controller, 1, rng.gen_range(1..3));
+                },
+                HammerTactics::AttackIntermediate => {
+                    // Scornful swipe
+                    set_ability(controller, 0, 0);
+                    // Tremor or vigorous bash
+                    set_ability(controller, 1, rng.gen_range(1..3));
+                    // Retaliate, spine cracker, or breach
+                    set_ability(controller, 2, rng.gen_range(3..6));
+                },
+                HammerTactics::AttackAdvanced => {
+                    // Scornful swipe, tremor, vigorous bash, retaliate, spine cracker, or breach
+                    let mut options = vec![0, 1, 2, 3, 4, 5];
+                    set_random(controller, 0, &mut options);
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_ability(controller, 3, rng.gen_range(6..8));
+                },
+                HammerTactics::AttackExpert => {
+                    // Scornful swipe, tremor, vigorous bash, retaliate, spine cracker, breach, iron
+                    // tempest, or upheaval
+                    let mut options = vec![0, 1, 2, 3, 4, 5, 6, 7];
+                    set_random(controller, 0, &mut options);
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_random(controller, 3, &mut options);
+                    set_ability(controller, 4, rng.gen_range(8..10));
+                },
+                HammerTactics::SupportSimple => {
+                    // Scornful swipe
+                    set_ability(controller, 0, 0);
+                    // Heavy whorl or intercept
+                    set_ability(controller, 1, rng.gen_range(10..12));
+                },
+                HammerTactics::SupportIntermediate => {
+                    // Scornful swipe
+                    set_ability(controller, 0, 0);
+                    // Heavy whorl or intercept
+                    set_ability(controller, 1, rng.gen_range(10..12));
+                    // Retaliate, spine cracker, or breach
+                    set_ability(controller, 2, rng.gen_range(12..15));
+                },
+                HammerTactics::SupportAdvanced => {
+                    // Scornful swipe, heavy whorl, intercept, pile driver, lung pummel, or helm
+                    // crusher
+                    let mut options = vec![0, 10, 11, 12, 13, 14];
+                    set_random(controller, 0, &mut options);
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_ability(controller, 3, rng.gen_range(15..17));
+                },
+                HammerTactics::SupportExpert => {
+                    // Scornful swipe, heavy whorl, intercept, pile driver, lung pummel, helm
+                    // crusher, rampart, or tenacity
+                    let mut options = vec![0, 10, 11, 12, 13, 14, 15, 16];
+                    set_random(controller, 0, &mut options);
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_random(controller, 3, &mut options);
+                    set_ability(controller, 4, rng.gen_range(17..19));
+                },
+            }
+
+            agent.combat_state.int_counters[IntCounters::ActionMode as usize] =
+                ActionMode::Reckless as u8;
         }
-        let has_leap = || {
-            self.skill_set
-                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-        };
 
-        let has_energy = |need| self.energy.current() > need;
+        enum IntCounters {
+            Tactic = 0,
+            ActionMode = 1,
+        }
 
-        let use_leap = |controller: &mut Controller| {
-            controller.push_basic_input(InputKind::Ability(0));
-        };
+        enum Timers {
+            GuardedCycle = 0,
+            PosTimeOut = 1,
+        }
 
-        if attack_data.in_min_range() && attack_data.angle < 45.0 {
-            controller.inputs.move_dir = Vec2::zero();
-            if agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] > 4.0
-            {
-                controller.push_cancel_input(InputKind::Secondary);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] =
-                    0.0;
-            } else if agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize]
-                > 3.0
-            {
-                controller.push_basic_input(InputKind::Secondary);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
-            } else if has_leap() && has_energy(50.0) && rng.gen_bool(0.9) {
-                use_leap(controller);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
+        enum Conditions {
+            GuardedDefend = 0,
+            RollingBreakThrough = 1,
+        }
+
+        enum FloatCounters {
+            GuardedTimer = 0,
+        }
+
+        enum Positions {
+            GuardedCover = 0,
+            Flee = 1,
+        }
+
+        let attempt_attack = handle_attack_aggression(
+            self,
+            agent,
+            controller,
+            attack_data,
+            tgt_data,
+            read_data,
+            rng,
+            Timers::PosTimeOut as usize,
+            Timers::GuardedCycle as usize,
+            FloatCounters::GuardedTimer as usize,
+            IntCounters::ActionMode as usize,
+            Conditions::GuardedDefend as usize,
+            Conditions::RollingBreakThrough as usize,
+            Positions::GuardedCover as usize,
+            Positions::Flee as usize,
+        );
+
+        let attack_failed = if attempt_attack {
+            let primary = self.extract_ability(AbilityInput::Primary);
+            let secondary = self.extract_ability(AbilityInput::Secondary);
+            let abilities = [
+                self.extract_ability(AbilityInput::Auxiliary(0)),
+                self.extract_ability(AbilityInput::Auxiliary(1)),
+                self.extract_ability(AbilityInput::Auxiliary(2)),
+                self.extract_ability(AbilityInput::Auxiliary(3)),
+                self.extract_ability(AbilityInput::Auxiliary(4)),
+            ];
+            let could_use_input = |input, desired_energy| match input {
+                InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                    p.could_use(attack_data, self, tgt_data, read_data, desired_energy)
+                }),
+                InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                    s.could_use(attack_data, self, tgt_data, read_data, desired_energy)
+                }),
+                InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                    let ability = self.active_abilities.get_ability(
+                        AbilityInput::Auxiliary(x),
+                        Some(self.inventory),
+                        Some(self.skill_set),
+                        self.stats,
+                    );
+                    let additional_conditions = match ability {
+                        Ability::MainWeaponAux(0) => self
+                            .buffs
+                            .map_or(false, |buffs| !buffs.contains(BuffKind::ScornfulTaunt)),
+                        Ability::MainWeaponAux(2) => {
+                            tgt_data.char_state.map_or(false, |cs| cs.is_stunned())
+                        },
+                        Ability::MainWeaponAux(4) => tgt_data.ori.map_or(false, |ori| {
+                            ori.look_vec().angle_between(tgt_data.pos.0 - self.pos.0)
+                                < combat::BEHIND_TARGET_ANGLE
+                        }),
+                        Ability::MainWeaponAux(5) => tgt_data.char_state.map_or(false, |cs| {
+                            cs.is_block(AttackSource::Melee) || cs.is_parry(AttackSource::Melee)
+                        }),
+                        Ability::MainWeaponAux(7) => tgt_data
+                            .buffs
+                            .map_or(false, |buffs| !buffs.contains(BuffKind::Staggered)),
+                        Ability::MainWeaponAux(12) => tgt_data
+                            .buffs
+                            .map_or(false, |buffs| !buffs.contains(BuffKind::Rooted)),
+                        Ability::MainWeaponAux(13) => tgt_data
+                            .buffs
+                            .map_or(false, |buffs| !buffs.contains(BuffKind::Winded)),
+                        Ability::MainWeaponAux(14) => tgt_data
+                            .buffs
+                            .map_or(false, |buffs| !buffs.contains(BuffKind::Concussion)),
+                        Ability::MainWeaponAux(15) => self
+                            .buffs
+                            .map_or(false, |buffs| !buffs.contains(BuffKind::ProtectingWard)),
+                        _ => true,
+                    };
+                    a.could_use(attack_data, self, tgt_data, read_data, desired_energy)
+                        && additional_conditions
+                }),
+                _ => false,
+            };
+            let continue_current_input = |current_input, next_input: &mut Option<InputKind>| {
+                if matches!(current_input, InputKind::Secondary) {
+                    let charging =
+                        matches!(self.char_state.stage_section(), Some(StageSection::Charge));
+                    let charged = self
+                        .char_state
+                        .durations()
+                        .and_then(|durs| durs.charge)
+                        .zip(self.char_state.timer())
+                        .map_or(false, |(dur, timer)| timer > dur);
+                    if !(charging && charged) {
+                        *next_input = Some(InputKind::Secondary);
+                    }
+                } else {
+                    *next_input = Some(current_input);
+                }
+            };
+            let current_input = self.char_state.ability_info().map(|ai| ai.input);
+            let ability_preferences = AbilityPreferences {
+                desired_energy: 40.0,
+                combo_scaling_buildup: 0,
+            };
+            let mut next_input = None;
+            if let Some(input) = current_input {
+                continue_current_input(input, &mut next_input);
             } else {
-                controller.push_basic_input(InputKind::Primary);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
+                match HammerTactics::from_u8(
+                    agent.combat_state.int_counters[IntCounters::Tactic as usize],
+                ) {
+                    HammerTactics::Unskilled => {
+                        if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    HammerTactics::Simple => {
+                        if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    HammerTactics::AttackSimple | HammerTactics::SupportSimple => {
+                        if could_use_input(InputKind::Ability(0), ability_preferences) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    HammerTactics::AttackIntermediate | HammerTactics::SupportIntermediate => {
+                        let random_ability = InputKind::Ability(rng.gen_range(0..3));
+                        if could_use_input(random_ability, ability_preferences) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    HammerTactics::AttackAdvanced | HammerTactics::SupportAdvanced => {
+                        let random_ability = InputKind::Ability(rng.gen_range(0..5));
+                        if could_use_input(random_ability, ability_preferences) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    HammerTactics::AttackExpert | HammerTactics::SupportExpert => {
+                        let random_ability = InputKind::Ability(rng.gen_range(0..5));
+                        if could_use_input(random_ability, ability_preferences) {
+                            next_input = Some(random_ability);
+                        } else if rng.gen_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                }
+            }
+            if let Some(input) = next_input {
+                if could_use_input(input, ability_preferences) {
+                    controller.push_basic_input(input);
+                    false
+                } else {
+                    true
+                }
+            } else {
+                true
             }
         } else {
+            false
+        };
+
+        if attack_failed && attack_data.dist_sqrd > 1.5_f32.powi(2) {
             self.path_toward_target(
                 agent,
                 controller,
@@ -323,28 +656,6 @@ impl<'a> AgentData<'a> {
                 Path::Separate,
                 None,
             );
-
-            if attack_data.dist_sqrd < 32.0f32.powi(2)
-                && has_leap()
-                && has_energy(50.0)
-                && entities_have_line_of_sight(
-                    self.pos,
-                    self.body,
-                    self.scale,
-                    tgt_data.pos,
-                    tgt_data.body,
-                    tgt_data.scale,
-                    read_data,
-                )
-            {
-                use_leap(controller);
-            }
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && rng.gen::<f32>() < 0.02
-            {
-                controller.push_basic_input(InputKind::Roll);
-            }
         }
     }
 
@@ -1651,6 +1962,7 @@ impl<'a> AgentData<'a> {
                     self.body,
                     Some(self.char_state),
                     &context,
+                    self.stats,
                 )
                 .map_or(Default::default(), |a| a.0)
         };
@@ -4609,10 +4921,6 @@ impl<'a> AgentData<'a> {
         enum ActionStateTimers {
             TimerHandleHammerAttack = 0,
         }
-        let has_leap = || {
-            self.skill_set
-                .has_skill(Skill::Hammer(HammerSkill::UnlockLeap))
-        };
 
         let has_energy = |need| self.energy.current() > need;
 
@@ -4633,7 +4941,7 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Secondary);
                 agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
                     read_data.dt.0;
-            } else if has_leap() && has_energy(50.0) && rng.gen_bool(0.9) {
+            } else if has_energy(50.0) && rng.gen_bool(0.9) {
                 use_leap(controller);
                 agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
                     read_data.dt.0;
@@ -4653,7 +4961,6 @@ impl<'a> AgentData<'a> {
             );
 
             if attack_data.dist_sqrd < 32.0f32.powi(2)
-                && has_leap()
                 && has_energy(50.0)
                 && entities_have_line_of_sight(
                     self.pos,

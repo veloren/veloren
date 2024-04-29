@@ -12,6 +12,7 @@ use crate::{
     lottery::LootSpec,
     mounting::VolumePos,
     outcome::Outcome,
+    resources::Secs,
     rtsim::RtSimEntity,
     terrain::SpriteKind,
     trade::{TradeAction, TradeId},
@@ -433,6 +434,13 @@ pub struct RequestPluginsEvent {
     pub plugins: Vec<PluginHash>,
 }
 
+pub struct CreateAuraEntityEvent {
+    pub auras: comp::Auras,
+    pub pos: Pos,
+    pub creator_uid: Uid,
+    pub duration: Option<Secs>,
+}
+
 pub struct EventBus<E> {
     queue: Mutex<VecDeque<E>>,
 }
@@ -556,6 +564,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<ToggleSpriteLightEvent>::default());
     ecs.insert(EventBus::<TransformEvent>::default());
     ecs.insert(EventBus::<RequestPluginsEvent>::default());
+    ecs.insert(EventBus::<CreateAuraEntityEvent>::default());
 }
 
 /// Define ecs read data for event busses. And a way to convert them all to

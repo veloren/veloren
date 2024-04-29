@@ -22,5 +22,5 @@ ChargedMelee(
     swing_duration: 0.1,
     hit_timing: 0.2,
     recover_duration: 0.2,
-    additional_combo: 4,
+    custom_combo: Some((additional: 4)),
 )

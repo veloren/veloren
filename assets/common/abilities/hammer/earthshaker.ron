@@ -1,0 +1,25 @@
+FinisherMelee(
+    energy_cost: 0,
+    buildup_duration: 0.4,
+    swing_duration: 0.2,
+    recover_duration: 0.7,
+    melee_constructor: (
+        kind: Bash(
+            damage: 40,
+            poise: 50,
+            knockback: 10,
+            energy_regen: 0,
+        ),
+        range: 6.0,
+        angle: 360.0,
+        multi_target: Some(Normal),
+        damage_effect: Some(Buff((
+            kind: Winded,
+            dur_secs: 15.0,
+            strength: Value(5.0),
+            chance: 1.0,
+        ))),
+    ),
+    minimum_combo: 20,
+    combo_consumption: Cost,
+)

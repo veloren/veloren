@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Flecha Marionete
     .desc = Atira uma flecha venenosa que deixa você controlar seu alvo.
-common-abilities-hammer-leap = Golpe da Ruína
-    .desc = Um Ataque em Área que inflige Empurrão. Salta na direção do cursor do mouse.
 common-abilities-bow-shotgun = Estrondo
     .desc = Atira uma sequência de flechas
 common-abilities-staff-fireshockwave = Anel de Fogo

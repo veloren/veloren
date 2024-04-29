@@ -18,8 +18,7 @@ use crate::{
 #[cfg(feature = "worldgen")]
 use common::rtsim::{Actor, RtSimEntity};
 use common::{
-    combat,
-    combat::{AttackSource, DamageContributor},
+    combat::{self, AttackSource, DamageContributor, DeathEffect},
     comp::{
         self,
         aura::{self, EnteredAuras},
@@ -101,6 +100,28 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<RemoveLightEmitterEvent>(builder);
     event_dispatch::<TeleportToPositionEvent>(builder);
     event_dispatch::<StartTeleportingEvent>(builder);
+}
+
+event_emitters! {
+    struct ReadExplosionEvents[ExplosionEmitters] {
+        health_change: HealthChangeEvent,
+        energy_change: EnergyChangeEvent,
+        poise_change: PoiseChangeEvent,
+        sound: SoundEvent,
+        parry_hook: ParryHookEvent,
+        kockback: KnockbackEvent,
+        entity_attack_hoow: EntityAttackedHookEvent,
+        combo_change: ComboChangeEvent,
+        buff: BuffEvent,
+        bonk: BonkEvent,
+    }
+
+    struct ReadEntityAttackedHookEvents[EntityAttackedHookEmitters] {
+        buff: BuffEvent,
+        combo_change: ComboChangeEvent,
+        knockback: KnockbackEvent,
+        energy_change: EnergyChangeEvent,
+    }
 }
 
 pub fn handle_delete(server: &mut Server, DeleteEvent(entity): DeleteEvent) {
@@ -332,6 +353,8 @@ pub struct DestroyEventData<'a> {
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
     #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, Presence>,
+    buff_events: Read<'a, EventBus<BuffEvent>>,
+    masses: ReadStorage<'a, comp::Mass>,
 }
 
 /// Handle an entity dying. If it is a player, it will send a message to all
@@ -346,6 +369,7 @@ impl ServerEvent for DestroyEvent {
         let mut create_item_drop = data.create_item_drop.emitter();
         let mut delete_emitter = data.delete_event.emitter();
         let mut outcomes_emitter = data.outcomes.emitter();
+        let mut buff_emitter = data.buff_events.emitter();
         for ev in events {
             // TODO: Investigate duplicate `Destroy` events (but don't remove this).
             // If the entity was already deleted, it can't be destroyed again.
@@ -381,6 +405,46 @@ impl ServerEvent for DestroyEvent {
                 .get(ev.entity, &data.entities)
             {
                 outcomes_emitter.emit(Outcome::Death { pos: pos.0 });
+            }
+
+            // Handle any effects on death
+            if let Some(killed_stats) = data.stats.get(ev.entity) {
+                let attacker_entity = ev.cause.by.and_then(|x| data.id_maps.uid_entity(x.uid()));
+                let killed_uid = data.uids.get(ev.entity);
+                let attacker_stats = attacker_entity.and_then(|e| data.stats.get(e));
+                let attacker_mass = attacker_entity.and_then(|e| data.masses.get(e));
+                for effect in killed_stats.effects_on_death.iter() {
+                    match effect {
+                        DeathEffect::AttackerBuff {
+                            kind,
+                            strength,
+                            duration,
+                        } => {
+                            if let Some(attacker) = attacker_entity {
+                                let dest_info = buff::DestInfo {
+                                    stats: attacker_stats,
+                                    mass: attacker_mass,
+                                };
+                                buff_emitter.emit(BuffEvent {
+                                    entity: attacker,
+                                    buff_change: buff::BuffChange::Add(buff::Buff::new(
+                                        *kind,
+                                        buff::BuffData::new(*strength, *duration),
+                                        vec![],
+                                        if let Some(uid) = killed_uid {
+                                            BuffSource::Character { by: *uid }
+                                        } else {
+                                            BuffSource::World
+                                        },
+                                        *data.time,
+                                        dest_info,
+                                        data.masses.get(ev.entity),
+                                    )),
+                                });
+                            }
+                        },
+                    }
+                }
             }
 
             // Chat message
@@ -926,95 +990,54 @@ impl ServerEvent for RespawnEvent {
     }
 }
 
-event_emitters! {
-    struct ReadExplosionEvents[ExplosionEmitters] {
-        health_change: HealthChangeEvent,
-        energy_change: EnergyChangeEvent,
-        poise_change: PoiseChangeEvent,
-        sound: SoundEvent,
-        parry_hook: ParryHookEvent,
-        kockback: KnockbackEvent,
-        entity_attack_hoow: EntityAttackedHookEvent,
-        combo_change: ComboChangeEvent,
-        buff: BuffEvent,
-        bonk: BonkEvent,
-    }
+#[derive(SystemData)]
+pub struct ExplosionData<'a> {
+    entities: Entities<'a>,
+    block_change: Write<'a, BlockChange>,
+    settings: Read<'a, Settings>,
+    time: Read<'a, Time>,
+    id_maps: Read<'a, IdMaps>,
+    spatial_grid: Read<'a, CachedSpatialGrid>,
+    terrain: ReadExpect<'a, TerrainGrid>,
+    msm: ReadExpect<'a, MaterialStatManifest>,
+    event_busses: ReadExplosionEvents<'a>,
+    outcomes: Read<'a, EventBus<Outcome>>,
+    groups: ReadStorage<'a, Group>,
+    auras: ReadStorage<'a, Auras>,
+    positions: ReadStorage<'a, Pos>,
+    players: ReadStorage<'a, Player>,
+    energies: ReadStorage<'a, Energy>,
+    combos: ReadStorage<'a, comp::Combo>,
+    inventories: ReadStorage<'a, Inventory>,
+    alignments: ReadStorage<'a, Alignment>,
+    entered_auras: ReadStorage<'a, EnteredAuras>,
+    buffs: ReadStorage<'a, comp::Buffs>,
+    stats: ReadStorage<'a, comp::Stats>,
+    healths: ReadStorage<'a, Health>,
+    bodies: ReadStorage<'a, Body>,
+    orientations: ReadStorage<'a, comp::Ori>,
+    character_states: ReadStorage<'a, CharacterState>,
+    uids: ReadStorage<'a, Uid>,
+    masses: ReadStorage<'a, comp::Mass>,
 }
 
 impl ServerEvent for ExplosionEvent {
-    type SystemData<'a> = (
-        Entities<'a>,
-        Write<'a, BlockChange>,
-        Read<'a, Settings>,
-        Read<'a, Time>,
-        Read<'a, IdMaps>,
-        Read<'a, CachedSpatialGrid>,
-        ReadExpect<'a, TerrainGrid>,
-        ReadExpect<'a, MaterialStatManifest>,
-        ReadExplosionEvents<'a>,
-        Read<'a, EventBus<Outcome>>,
-        ReadStorage<'a, Group>,
-        ReadStorage<'a, Auras>,
-        ReadStorage<'a, Pos>,
-        ReadStorage<'a, Player>,
-        ReadStorage<'a, Energy>,
-        ReadStorage<'a, comp::Combo>,
-        ReadStorage<'a, Inventory>,
-        ReadStorage<'a, Alignment>,
-        ReadStorage<'a, EnteredAuras>,
-        ReadStorage<'a, comp::Buffs>,
-        ReadStorage<'a, comp::Stats>,
-        ReadStorage<'a, Health>,
-        ReadStorage<'a, Body>,
-        ReadStorage<'a, comp::Ori>,
-        ReadStorage<'a, CharacterState>,
-        ReadStorage<'a, Uid>,
-    );
+    type SystemData<'a> = ExplosionData<'a>;
 
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (
-            entities,
-            mut block_change,
-            settings,
-            time,
-            id_maps,
-            spatial_grid,
-            terrain,
-            msm,
-            event_busses,
-            outcomes,
-            groups,
-            auras,
-            positions,
-            players,
-            energies,
-            combos,
-            inventories,
-            alignments,
-            entered_auras,
-            buffs,
-            stats,
-            healths,
-            bodies,
-            orientations,
-            character_states,
-            uids,
-        ): Self::SystemData<'_>,
-    ) {
-        let mut emitters = event_busses.get_emitters();
-        let mut outcome_emitter = outcomes.emitter();
+    fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
+        let mut emitters = data.event_busses.get_emitters();
+        let mut outcome_emitter = data.outcomes.emitter();
 
         // TODO: Faster RNG?
         let mut rng = rand::thread_rng();
 
         for ev in events {
-            let owner_entity = ev.owner.and_then(|uid| id_maps.uid_entity(uid));
+            let owner_entity = ev.owner.and_then(|uid| data.id_maps.uid_entity(uid));
 
             let explosion_volume = 6.25 * ev.explosion.radius;
 
             emitters.emit(SoundEvent {
-                sound: Sound::new(SoundKind::Explosion, ev.pos, explosion_volume, time.0),
+                sound: Sound::new(SoundKind::Explosion, ev.pos, explosion_volume, data.time.0),
             });
 
             let outcome_power = ev.explosion.radius;
@@ -1070,14 +1093,15 @@ impl ServerEvent for ExplosionEvent {
                         const RAYS: usize = 500;
 
                         // Prevent block colour changes within the radius of a safe zone aura
-                        if spatial_grid
+                        if data
+                            .spatial_grid
                             .0
                             .in_circle_aabr(ev.pos.xy(), SAFE_ZONE_RADIUS)
                             .filter_map(|entity| {
-                                auras
+                                data.auras
                                     .get(entity)
                                     .and_then(|entity_auras| {
-                                        positions.get(entity).map(|pos| (entity_auras, pos))
+                                        data.positions.get(entity).map(|pos| (entity_auras, pos))
                                     })
                                     .and_then(|(entity_auras, pos)| {
                                         entity_auras
@@ -1111,7 +1135,8 @@ impl ServerEvent for ExplosionEvent {
                             )
                             .normalized();
 
-                            let _ = terrain
+                            let _ = data
+                                .terrain
                                 .ray(ev.pos, ev.pos + dir * color_range)
                                 .until(|_| rng.gen::<f32>() < 0.05)
                                 .for_each(|_: &Block, pos| touched_blocks.push(pos))
@@ -1119,14 +1144,14 @@ impl ServerEvent for ExplosionEvent {
                         }
 
                         for block_pos in touched_blocks {
-                            if let Ok(block) = terrain.get(block_pos) {
+                            if let Ok(block) = data.terrain.get(block_pos) {
                                 if !matches!(block.kind(), BlockKind::Lava | BlockKind::GlowingRock)
                                     && (
                                         // Check that owner is not player or explosion_burn_marks by
                                         // players
                                         // is enabled
-                                        owner_entity.map_or(true, |e| players.get(e).is_none())
-                                            || settings.gameplay.explosion_burn_marks
+                                        owner_entity.map_or(true, |e| data.players.get(e).is_none())
+                                            || data.settings.gameplay.explosion_burn_marks
                                     )
                                 {
                                     let diff2 =
@@ -1149,7 +1174,7 @@ impl ServerEvent for ExplosionEvent {
                                         color[0] = (r as u8).max(30);
                                         color[1] = (g as u8).max(30);
                                         color[2] = (b as u8).max(30);
-                                        block_change
+                                        data.block_change
                                             .set(block_pos, Block::new(block.kind(), color));
                                     }
                                 }
@@ -1177,7 +1202,8 @@ impl ServerEvent for ExplosionEvent {
 
                             let from = ev.pos;
                             let to = ev.pos + dir * power;
-                            let _ = terrain
+                            let _ = data
+                                .terrain
                                 .ray(from, to)
                                 .while_(|block: &Block| {
                                     ray_energy -= block.explode_power().unwrap_or(0.0)
@@ -1193,7 +1219,7 @@ impl ServerEvent for ExplosionEvent {
                                 })
                                 .for_each(|block: &Block, pos| {
                                     if block.explode_power().is_some() {
-                                        block_change.set(pos, block.into_vacant());
+                                        data.block_change.set(pos, block.into_vacant());
                                     }
                                 })
                                 .cast();
@@ -1206,14 +1232,14 @@ impl ServerEvent for ExplosionEvent {
                             health_b,
                             (body_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
                         ) in (
-                            &entities,
-                            &positions,
-                            &healths,
+                            &data.entities,
+                            &data.positions,
+                            &data.healths,
                             (
-                                bodies.maybe(),
-                                orientations.maybe(),
-                                character_states.maybe(),
-                                &uids,
+                                data.bodies.maybe(),
+                                data.orientations.maybe(),
+                                data.character_states.maybe(),
+                                &data.uids,
                             ),
                         )
                             .join()
@@ -1236,7 +1262,8 @@ impl ServerEvent for ExplosionEvent {
 
                             // Cast a ray from the explosion to the entity to check visibility
                             if strength > 0.0
-                                && (terrain
+                                && (data
+                                    .terrain
                                     .ray(ev.pos, pos_b.0)
                                     .until(Block::is_opaque)
                                     .cast()
@@ -1247,8 +1274,8 @@ impl ServerEvent for ExplosionEvent {
                             {
                                 // See if entities are in the same group
                                 let same_group = owner_entity
-                                    .and_then(|e| groups.get(e))
-                                    .map(|group_a| Some(group_a) == groups.get(entity_b))
+                                    .and_then(|e| data.groups.get(e))
+                                    .map(|group_a| Some(group_a) == data.groups.get(entity_b))
                                     .unwrap_or(Some(entity_b) == owner_entity);
 
                                 let target_group = if same_group {
@@ -1268,25 +1295,27 @@ impl ServerEvent for ExplosionEvent {
                                         combat::AttackerInfo {
                                             entity,
                                             uid,
-                                            group: groups.get(entity),
-                                            energy: energies.get(entity),
-                                            combo: combos.get(entity),
-                                            inventory: inventories.get(entity),
-                                            stats: stats.get(entity),
+                                            group: data.groups.get(entity),
+                                            energy: data.energies.get(entity),
+                                            combo: data.combos.get(entity),
+                                            inventory: data.inventories.get(entity),
+                                            stats: data.stats.get(entity),
+                                            mass: data.masses.get(entity),
                                         }
                                     });
 
                                 let target_info = combat::TargetInfo {
                                     entity: entity_b,
                                     uid: *uid_b,
-                                    inventory: inventories.get(entity_b),
-                                    stats: stats.get(entity_b),
+                                    inventory: data.inventories.get(entity_b),
+                                    stats: data.stats.get(entity_b),
                                     health: Some(health_b),
                                     pos: pos_b.0,
                                     ori: ori_b_maybe,
                                     char_state: char_state_b_maybe,
-                                    energy: energies.get(entity_b),
-                                    buffs: buffs.get(entity_b),
+                                    energy: data.energies.get(entity_b),
+                                    buffs: data.buffs.get(entity_b),
+                                    mass: data.masses.get(entity_b),
                                 };
 
                                 let target_dodging = char_state_b_maybe
@@ -1295,17 +1324,17 @@ impl ServerEvent for ExplosionEvent {
                                 let allow_friendly_fire =
                                     owner_entity.is_some_and(|owner_entity| {
                                         combat::allow_friendly_fire(
-                                            &entered_auras,
+                                            &data.entered_auras,
                                             owner_entity,
                                             entity_b,
                                         )
                                     });
                                 // PvP check
                                 let permit_pvp = combat::permit_pvp(
-                                    &alignments,
-                                    &players,
-                                    &entered_auras,
-                                    &id_maps,
+                                    &data.alignments,
+                                    &data.players,
+                                    &data.entered_auras,
+                                    &data.id_maps,
                                     owner_entity,
                                     entity_b,
                                 );
@@ -1324,7 +1353,7 @@ impl ServerEvent for ExplosionEvent {
                                     attack_options,
                                     strength,
                                     combat::AttackSource::Explosion,
-                                    *time,
+                                    *data.time,
                                     &mut emitters,
                                     |o| outcome_emitter.emit(o),
                                     &mut rng,
@@ -1335,7 +1364,7 @@ impl ServerEvent for ExplosionEvent {
                     },
                     RadiusEffect::Entity(mut effect) => {
                         for (entity_b, pos_b, body_b_maybe) in
-                            (&entities, &positions, bodies.maybe()).join()
+                            (&data.entities, &data.positions, data.bodies.maybe()).join()
                         {
                             let strength = if let Some(body) = body_b_maybe {
                                 cylinder_sphere_strength(
@@ -1362,38 +1391,41 @@ impl ServerEvent for ExplosionEvent {
                             // This can be changed later.
                             let permit_pvp = || {
                                 combat::permit_pvp(
-                                    &alignments,
-                                    &players,
-                                    &entered_auras,
-                                    &id_maps,
+                                    &data.alignments,
+                                    &data.players,
+                                    &data.entered_auras,
+                                    &data.id_maps,
                                     owner_entity,
                                     entity_b,
                                 ) || owner_entity.map_or(true, |entity_a| entity_a == entity_b)
                             };
                             if strength > 0.0 {
-                                let is_alive = healths.get(entity_b).map_or(true, |h| !h.is_dead);
+                                let is_alive =
+                                    data.healths.get(entity_b).map_or(true, |h| !h.is_dead);
 
                                 if is_alive {
                                     effect.modify_strength(strength);
                                     if !effect.is_harm() || permit_pvp() {
                                         emit_effect_events(
                                             &mut emitters,
-                                            *time,
+                                            *data.time,
                                             entity_b,
                                             effect.clone(),
                                             ev.owner.map(|owner| {
                                                 (
                                                     owner,
-                                                    id_maps
+                                                    data.id_maps
                                                         .uid_entity(owner)
-                                                        .and_then(|e| groups.get(e))
+                                                        .and_then(|e| data.groups.get(e))
                                                         .copied(),
                                                 )
                                             }),
-                                            inventories.get(entity_b),
-                                            &msm,
-                                            character_states.get(entity_b),
-                                            stats.get(entity_b),
+                                            data.inventories.get(entity_b),
+                                            &data.msm,
+                                            data.character_states.get(entity_b),
+                                            data.stats.get(entity_b),
+                                            data.masses.get(entity_b),
+                                            owner_entity.and_then(|e| data.masses.get(e)),
                                         );
                                     }
                                 }
@@ -1416,6 +1448,8 @@ pub fn emit_effect_events(
     msm: &MaterialStatManifest,
     char_state: Option<&CharacterState>,
     stats: Option<&Stats>,
+    tgt_mass: Option<&comp::Mass>,
+    source_mass: Option<&comp::Mass>,
 ) {
     let damage_contributor = source.map(|(uid, group)| DamageContributor::new(uid, group));
     match effect {
@@ -1448,17 +1482,24 @@ pub fn emit_effect_events(
             );
             emitters.emit(HealthChangeEvent { entity, change })
         },
-        common::effect::Effect::Buff(buff) => emitters.emit(BuffEvent {
-            entity,
-            buff_change: comp::BuffChange::Add(comp::Buff::new(
-                buff.kind,
-                buff.data,
-                buff.cat_ids,
-                comp::BuffSource::Item,
-                time,
+        common::effect::Effect::Buff(buff) => {
+            let dest_info = buff::DestInfo {
                 stats,
-            )),
-        }),
+                mass: tgt_mass,
+            };
+            emitters.emit(BuffEvent {
+                entity,
+                buff_change: comp::BuffChange::Add(comp::Buff::new(
+                    buff.kind,
+                    buff.data,
+                    buff.cat_ids,
+                    comp::BuffSource::Item,
+                    time,
+                    dest_info,
+                    source_mass,
+                )),
+            });
+        },
     }
 }
 
@@ -1529,20 +1570,22 @@ impl ServerEvent for AuraEvent {
         (mut auras, mut entered_auras): Self::SystemData<'_>,
     ) {
         for ev in events {
-            if let (Some(mut auras), Some(mut entered_auras)) =
-                (auras.get_mut(ev.entity), entered_auras.get_mut(ev.entity))
-            {
-                use aura::AuraChange;
-                match ev.aura_change {
-                    AuraChange::Add(new_aura) => {
+            use aura::AuraChange;
+            match ev.aura_change {
+                AuraChange::Add(new_aura) => {
+                    if let Some(mut auras) = auras.get_mut(ev.entity) {
                         auras.insert(new_aura);
-                    },
-                    AuraChange::RemoveByKey(keys) => {
+                    }
+                },
+                AuraChange::RemoveByKey(keys) => {
+                    if let Some(mut auras) = auras.get_mut(ev.entity) {
                         for key in keys {
                             auras.remove(key);
                         }
-                    },
-                    AuraChange::EnterAura(uid, key, variant) => {
+                    }
+                },
+                AuraChange::EnterAura(uid, key, variant) => {
+                    if let Some(mut entered_auras) = entered_auras.get_mut(ev.entity) {
                         entered_auras
                             .auras
                             .entry(variant)
@@ -1550,8 +1593,10 @@ impl ServerEvent for AuraEvent {
                                 entered_auras.insert((uid, key));
                             })
                             .or_insert_with(|| <_ as Into<_>>::into([(uid, key)]));
-                    },
-                    AuraChange::ExitAura(uid, key, variant) => {
+                    }
+                },
+                AuraChange::ExitAura(uid, key, variant) => {
+                    if let Some(mut entered_auras) = entered_auras.get_mut(ev.entity) {
                         if let Some(entered_auras_variant) = entered_auras.auras.get_mut(&variant) {
                             entered_auras_variant.remove(&(uid, key));
 
@@ -1559,8 +1604,8 @@ impl ServerEvent for AuraEvent {
                                 entered_auras.auras.remove(&variant);
                             }
                         }
-                    },
-                }
+                    }
+                },
             }
         }
     }
@@ -1705,11 +1750,12 @@ impl ServerEvent for ParryHookEvent {
         WriteStorage<'a, CharacterState>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, comp::Mass>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (time, energy_change_events, buff_events, mut character_states, uids, stats): Self::SystemData<'_>,
+        (time, energy_change_events, buff_events, mut character_states, uids, stats, masses): Self::SystemData<'_>,
     ) {
         let mut energy_change_emitter = energy_change_events.emitter();
         let mut buff_emitter = buff_events.emitter();
@@ -1749,13 +1795,18 @@ impl ServerEvent for ParryHookEvent {
                 } else {
                     BuffSource::World
                 };
+                let dest_info = buff::DestInfo {
+                    stats: stats.get(attacker),
+                    mass: masses.get(attacker),
+                };
                 let buff = buff::Buff::new(
                     BuffKind::Parried,
                     data,
                     vec![buff::BuffCategory::Physical],
                     source,
                     *time,
-                    stats.get(attacker),
+                    dest_info,
+                    masses.get(ev.defender),
                 );
                 buff_emitter.emit(BuffEvent {
                     entity: attacker,
@@ -1798,55 +1849,35 @@ impl ServerEvent for TeleportToEvent {
     }
 }
 
+#[derive(SystemData)]
+pub struct EntityAttackedHookData<'a> {
+    entities: Entities<'a>,
+    trades: Write<'a, Trades>,
+    id_maps: Read<'a, IdMaps>,
+    time: Read<'a, Time>,
+    event_busses: ReadEntityAttackedHookEvents<'a>,
+    outcomes: Read<'a, EventBus<Outcome>>,
+    character_states: WriteStorage<'a, CharacterState>,
+    poises: WriteStorage<'a, Poise>,
+    agents: WriteStorage<'a, Agent>,
+    positions: ReadStorage<'a, Pos>,
+    uids: ReadStorage<'a, Uid>,
+    clients: ReadStorage<'a, Client>,
+    stats: ReadStorage<'a, Stats>,
+}
+
 impl ServerEvent for EntityAttackedHookEvent {
-    type SystemData<'a> = (
-        Entities<'a>,
-        Write<'a, Trades>,
-        Read<'a, IdMaps>,
-        Read<'a, Time>,
-        Read<'a, EventBus<BuffEvent>>,
-        Read<'a, EventBus<ComboChangeEvent>>,
-        Read<'a, EventBus<KnockbackEvent>>,
-        Read<'a, EventBus<Outcome>>,
-        WriteStorage<'a, CharacterState>,
-        WriteStorage<'a, Poise>,
-        WriteStorage<'a, Agent>,
-        ReadStorage<'a, Pos>,
-        ReadStorage<'a, Uid>,
-        ReadStorage<'a, Client>,
-        ReadStorage<'a, Stats>,
-    );
+    type SystemData<'a> = EntityAttackedHookData<'a>;
 
     /// Intended to handle things that should happen for any successful attack,
     /// regardless of the damages and effects specific to that attack
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (
-            entities,
-            mut trades,
-            id_maps,
-            time,
-            buff_events,
-            combo_change_events,
-            knockback_events,
-            outcomes,
-            mut character_states,
-            mut poises,
-            mut agents,
-            positions,
-            uids,
-            clients,
-            stats,
-        ): Self::SystemData<'_>,
-    ) {
-        let mut buff_emitter = buff_events.emitter();
-        let mut combo_change_emitter = combo_change_events.emitter();
-        let mut knockback_emitter = knockback_events.emitter();
+    fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
+        let mut emitters = data.event_busses.get_emitters();
+        let mut outcomes = data.outcomes.emitter();
 
-        let mut outcomes = outcomes.emitter();
         for ev in events {
             if let Some(attacker) = ev.attacker {
-                buff_emitter.emit(BuffEvent {
+                emitters.emit(BuffEvent {
                     entity: attacker,
                     buff_change: buff::BuffChange::RemoveByCategory {
                         all_required: vec![buff::BuffCategory::RemoveOnAttack],
@@ -1856,10 +1887,13 @@ impl ServerEvent for EntityAttackedHookEvent {
                 });
             }
 
-            if let Some((mut char_state, mut poise, pos)) =
-                (&mut character_states, &mut poises, &positions)
-                    .lend_join()
-                    .get(ev.entity, &entities)
+            if let Some((mut char_state, mut poise, pos)) = (
+                &mut data.character_states,
+                &mut data.poises,
+                &data.positions,
+            )
+                .lend_join()
+                .get(ev.entity, &data.entities)
             {
                 // Interrupt sprite interaction and item use if any attack is applied to entity
                 if matches!(
@@ -1872,14 +1906,14 @@ impl ServerEvent for EntityAttackedHookEvent {
                         poise_state.poise_effect(was_wielded)
                     {
                         // Reset poise if there is some stunned state to apply
-                        poise.reset(*time, stunned_duration);
+                        poise.reset(*data.time, stunned_duration);
                         *char_state = stunned_state;
                         outcomes.emit(Outcome::PoiseChange {
                             pos: pos.0,
                             state: poise_state,
                         });
                         if let Some(impulse_strength) = impulse_strength {
-                            knockback_emitter.emit(KnockbackEvent {
+                            emitters.emit(KnockbackEvent {
                                 entity: ev.entity,
                                 impulse: impulse_strength * *poise.knockback(),
                             });
@@ -1889,21 +1923,21 @@ impl ServerEvent for EntityAttackedHookEvent {
             }
 
             // Remove potion/saturation buff if attacked
-            buff_emitter.emit(BuffEvent {
+            emitters.emit(BuffEvent {
                 entity: ev.entity,
                 buff_change: buff::BuffChange::RemoveByKind(BuffKind::Potion),
             });
-            buff_emitter.emit(BuffEvent {
+            emitters.emit(BuffEvent {
                 entity: ev.entity,
                 buff_change: buff::BuffChange::RemoveByKind(BuffKind::Saturation),
             });
 
             // If entity was in an active trade, cancel it
-            if let Some(uid) = uids.get(ev.entity) {
-                if let Some(trade) = trades.entity_trades.get(uid).copied() {
-                    trades
+            if let Some(uid) = data.uids.get(ev.entity) {
+                if let Some(trade) = data.trades.entity_trades.get(uid).copied() {
+                    data.trades
                         .decline_trade(trade, *uid)
-                        .and_then(|uid| id_maps.uid_entity(uid))
+                        .and_then(|uid| data.id_maps.uid_entity(uid))
                         .map(|entity_b| {
                             // Notify both parties that the trade ended
                             let mut notify_trade_party = |entity| {
@@ -1911,12 +1945,12 @@ impl ServerEvent for EntityAttackedHookEvent {
                                 // trade invite, since right now it
                                 // may seems like their request was
                                 // purposefully declined, rather than e.g. being interrupted.
-                                if let Some(client) = clients.get(entity) {
+                                if let Some(client) = data.clients.get(entity) {
                                     client.send_fallible(ServerGeneral::FinishedTrade(
                                         TradeResult::Declined,
                                     ));
                                 }
-                                if let Some(agent) = agents.get_mut(entity) {
+                                if let Some(agent) = data.agents.get_mut(entity) {
                                     agent.inbox.push_back(AgentEvent::FinishedTrade(
                                         TradeResult::Declined,
                                     ));
@@ -1928,14 +1962,20 @@ impl ServerEvent for EntityAttackedHookEvent {
                 }
             }
 
-            if let Some(stats) = stats.get(ev.entity) {
+            if let Some(stats) = data.stats.get(ev.entity) {
                 for effect in &stats.effects_on_damaged {
                     use combat::DamagedEffect;
                     match effect {
                         DamagedEffect::Combo(c) => {
-                            combo_change_emitter.emit(ComboChangeEvent {
+                            emitters.emit(ComboChangeEvent {
                                 entity: ev.entity,
                                 change: *c,
+                            });
+                        },
+                        DamagedEffect::Energy(e) => {
+                            emitters.emit(EnergyChangeEvent {
+                                entity: ev.entity,
+                                change: *e,
                             });
                         },
                     }

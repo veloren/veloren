@@ -46,15 +46,13 @@ fn charged_melee_grid(ui: &mut Ui, data: &charged_melee::Data) {
 
 fn dash_melee_grid(ui: &mut Ui, data: &dash_melee::Data) {
     Grid::new("selected_entity_dash_melee_grid")
-            .spacing([40.0, 4.0])
-            .max_col_width(100.0)
-            .striped(true)
-            .show(ui, |ui| #[rustfmt::skip] {
+        .spacing([40.0, 4.0])
+        .max_col_width(100.0)
+        .striped(true)
+        .show(ui, |ui| #[rustfmt::skip] {
                 two_col_row(ui, "Auto Charge", if data.auto_charge { "True" } else { "False " });
                 two_col_row(ui, "Timer", format!("{}ms", data.timer.as_millis()));
                 two_col_row(ui, "Stage Section", data.stage_section.to_string());
-                two_col_row(ui, "Exhausted", if data.exhausted { "True" } else { "False " });
-                two_col_row(ui, "Charge End Timer", format!("{}ms", data.charge_end_timer.as_millis()));
             });
 }
 
