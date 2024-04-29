@@ -71,15 +71,16 @@ pub struct ServerEventMetrics {
 }
 
 pub struct QueryServerMetrics {
-    pub received_packets: IntGauge,
-    pub dropped_packets: IntGauge,
-    pub invalid_packets: IntGauge,
-    pub proccessing_errors: IntGauge,
-    pub info_requests: IntGauge,
-    pub sent_responses: IntGauge,
-    pub failed_responses: IntGauge,
-    pub timed_out_responses: IntGauge,
-    pub ratelimited: IntGauge,
+    pub received_packets: IntCounter,
+    pub dropped_packets: IntCounter,
+    pub invalid_packets: IntCounter,
+    pub proccessing_errors: IntCounter,
+    pub info_requests: IntCounter,
+    pub ping_requests: IntCounter,
+    pub sent_responses: IntCounter,
+    pub failed_responses: IntCounter,
+    pub timed_out_responses: IntCounter,
+    pub ratelimited: IntCounter,
 }
 
 impl PhysicsMetrics {
@@ -440,39 +441,43 @@ impl ServerEventMetrics {
 
 impl QueryServerMetrics {
     pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
-        let received_packets = IntGauge::with_opts(Opts::new(
+        let received_packets = IntCounter::with_opts(Opts::new(
             "query_server::received_packets",
             "Total amount of received packets by the query server",
         ))?;
-        let dropped_packets = IntGauge::with_opts(Opts::new(
+        let dropped_packets = IntCounter::with_opts(Opts::new(
             "query_server::dropped_packets",
             "Amount of dropped packets received by the query server (too short or invalid header)",
         ))?;
-        let invalid_packets = IntGauge::with_opts(Opts::new(
+        let invalid_packets = IntCounter::with_opts(Opts::new(
             "query_server::invalid_packets",
             "Amount of unparseable packets received by the query server",
         ))?;
-        let proccessing_errors = IntGauge::with_opts(Opts::new(
+        let proccessing_errors = IntCounter::with_opts(Opts::new(
             "query_server::proccessing_errors",
             "Amount of errors that occured while processing a query server request",
         ))?;
-        let info_requests = IntGauge::with_opts(Opts::new(
+        let info_requests = IntCounter::with_opts(Opts::new(
             "query_server::info_requests",
             "Amount of server info requests received by the query server",
         ))?;
-        let sent_responses = IntGauge::with_opts(Opts::new(
+        let ping_requests = IntCounter::with_opts(Opts::new(
+            "query_server::ping_requests",
+            "Amount of server ping requests received by the query server",
+        ))?;
+        let sent_responses = IntCounter::with_opts(Opts::new(
             "query_server::sent_responses",
             "Amount of responses sent by the query server",
         ))?;
-        let failed_responses = IntGauge::with_opts(Opts::new(
+        let failed_responses = IntCounter::with_opts(Opts::new(
             "query_server::failed_responses",
             "Amount of responses which failed to be sent by the query server",
         ))?;
-        let timed_out_responses = IntGauge::with_opts(Opts::new(
+        let timed_out_responses = IntCounter::with_opts(Opts::new(
             "query_server::timed_out_responses",
             "Amount of responses which timed out",
         ))?;
-        let ratelimited = IntGauge::with_opts(Opts::new(
+        let ratelimited = IntCounter::with_opts(Opts::new(
             "query_server::ratelimited",
             "Ratelimited requests to the query server",
         ))?;
@@ -482,6 +487,7 @@ impl QueryServerMetrics {
         registry.register(Box::new(invalid_packets.clone()))?;
         registry.register(Box::new(proccessing_errors.clone()))?;
         registry.register(Box::new(info_requests.clone()))?;
+        registry.register(Box::new(ping_requests.clone()))?;
         registry.register(Box::new(sent_responses.clone()))?;
         registry.register(Box::new(failed_responses.clone()))?;
         registry.register(Box::new(timed_out_responses.clone()))?;
@@ -493,6 +499,7 @@ impl QueryServerMetrics {
             invalid_packets,
             proccessing_errors,
             info_requests,
+            ping_requests,
             sent_responses,
             failed_responses,
             timed_out_responses,
@@ -508,20 +515,22 @@ impl QueryServerMetrics {
             invalid_packets,
             proccessing_errors,
             info_requests,
+            ping_requests,
             sent_responses,
             failed_responses,
             timed_out_responses,
             ratelimited,
         }: veloren_query_server::server::Metrics,
     ) {
-        self.received_packets.set(received_packets as i64);
-        self.dropped_packets.set(dropped_packets as i64);
-        self.invalid_packets.set(invalid_packets as i64);
-        self.proccessing_errors.set(proccessing_errors as i64);
-        self.info_requests.set(info_requests as i64);
-        self.sent_responses.set(sent_responses as i64);
-        self.failed_responses.set(failed_responses as i64);
-        self.timed_out_responses.set(timed_out_responses as i64);
-        self.ratelimited.set(ratelimited as i64);
+        self.received_packets.inc_by(received_packets as u64);
+        self.dropped_packets.inc_by(dropped_packets as u64);
+        self.invalid_packets.inc_by(invalid_packets as u64);
+        self.proccessing_errors.inc_by(proccessing_errors as u64);
+        self.info_requests.inc_by(info_requests as u64);
+        self.ping_requests.inc_by(ping_requests as u64);
+        self.sent_responses.inc_by(sent_responses as u64);
+        self.failed_responses.inc_by(failed_responses as u64);
+        self.timed_out_responses.inc_by(timed_out_responses as u64);
+        self.ratelimited.inc_by(ratelimited as u64);
     }
 }

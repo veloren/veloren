@@ -1,13 +1,17 @@
 use protocol::Protocol;
 
-pub const VELOREN_HEADER: [u8; 7] = [b'v', b'e', b'l', b'o', b'r', b'e', b'n'];
-pub const MAX_REQUEST_SIZE: usize = 300;
-pub const MAX_RESPONSE_SIZE: usize = 256;
+pub(crate) const VERSION: u16 = 0;
+pub(crate) const VELOREN_HEADER: [u8; 7] = [b'v', b'e', b'l', b'o', b'r', b'e', b'n'];
+// The actual maximum size of packets will be `MAX_REQUEST_SIZE +
+// VELOREN_HEADER.len() + 2` (2 added for currently unused version).
+// NOTE: The actual maximum size must never exceed 1200 or we risk getting near
+// MTU limits for some networks.
+pub(crate) const MAX_REQUEST_SIZE: usize = 300;
+pub(crate) const MAX_RESPONSE_SIZE: usize = 256;
 
 #[derive(Protocol, Debug, Clone, Copy)]
-#[protocol(discriminant = "integer")]
-#[protocol(discriminator(u8))]
-pub struct RawQueryServerRequest {
+pub(crate) struct RawQueryServerRequest {
+    /// See comment on [`RawQueryServerResponse::P`]
     pub p: u64,
     pub request: QueryServerRequest,
 }
@@ -17,15 +21,22 @@ pub struct RawQueryServerRequest {
 #[protocol(discriminator(u8))]
 #[allow(clippy::large_enum_variant)]
 pub enum QueryServerRequest {
-    ServerInfo(ServerInfoRequest),
+    ServerInfo,
+    Ping,
     // New requests should be added at the end to prevent breakage
 }
 
 #[derive(Protocol, Debug, Clone, Copy)]
 #[protocol(discriminant = "integer")]
 #[protocol(discriminator(u8))]
-pub enum RawQueryServerResponse {
+pub(crate) enum RawQueryServerResponse {
     Response(QueryServerResponse),
+    /// This is used as a challenge to prevent IP address spoofing by verifying
+    /// that the client can receive from the source address.
+    ///
+    /// Any request to the server must include this value to be processed,
+    /// otherwise this response will be returned (giving clients a value to pass
+    /// for later requests).
     P(u64),
 }
 
@@ -34,18 +45,14 @@ pub enum RawQueryServerResponse {
 #[protocol(discriminator(u8))]
 pub enum QueryServerResponse {
     ServerInfo(ServerInfo),
+    Pong,
     // New responses should be added at the end to prevent breakage
-}
-
-#[derive(Protocol, Debug, Clone, Copy)]
-pub struct ServerInfoRequest {
-    // Padding to prevent amplification attacks
-    pub _padding: [u8; 256],
 }
 
 #[derive(Protocol, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ServerInfo {
-    pub git_hash: [char; 8],
+    pub git_hash: u32,
+    pub git_version: i64,
     pub players_count: u16,
     pub player_cap: u16,
     pub battlemode: ServerBattleMode,
@@ -59,12 +66,4 @@ pub enum ServerBattleMode {
     GlobalPvP,
     GlobalPvE,
     PerPlayer,
-}
-
-impl Default for ServerInfoRequest {
-    fn default() -> Self { ServerInfoRequest { _padding: [0; 256] } }
-}
-
-impl ServerInfo {
-    pub fn git_hash(&self) -> String { String::from_iter(&self.git_hash) }
 }

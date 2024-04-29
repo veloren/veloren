@@ -6,8 +6,10 @@ use crate::{
 use common::{resources::TimeOfDay, slowjob::SlowJobPool, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, SysMetrics, System};
 use specs::{Entities, Join, Read, ReadExpect};
-use std::{sync::Arc, time::Instant};
-use tokio::sync::RwLock;
+use std::{
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 use veloren_query_server::server::Metrics as RawQueryServerMetrics;
 
 /// This system exports metrics
@@ -29,8 +31,8 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TickMetrics>,
         ReadExpect<'a, PhysicsMetrics>,
         ReadExpect<'a, JobMetrics>,
-        Option<Read<'a, Arc<RwLock<RawQueryServerMetrics>>>>,
-        Option<ReadExpect<'a, QueryServerMetrics>>,
+        Option<Read<'a, Arc<Mutex<RawQueryServerMetrics>>>>,
+        ReadExpect<'a, QueryServerMetrics>,
     );
 
     const NAME: &'static str = "metrics";
@@ -172,10 +174,12 @@ impl<'a> System<'a> for Sys {
             .with_label_values(&["metrics"])
             .observe(len as f64 / NANOSEC_PER_SEC);
 
-        if let (Some(query_server_metrics), Some(export_query_server)) =
-            (raw_query_server, export_query_server)
+        if let Some(Ok(metrics)) = raw_query_server
+            .as_ref()
+            // Hold the lock for the shortest time possible
+            .map(|m| m.lock().map(|mut metrics| metrics.reset()))
         {
-            export_query_server.apply(query_server_metrics.blocking_write().reset());
+            export_query_server.apply(metrics);
         }
     }
 }

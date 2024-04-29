@@ -34,24 +34,20 @@ impl RateLimiter {
 
     pub fn maintain(&mut self, now: Instant) {
         if now.duration_since(self.last_shift) > SHIFT_EVERY {
-            for (_, state) in self.states.iter_mut() {
-                state.shift();
-            }
-
             // Remove empty states
-            self.states.retain(|_, state| !state.is_empty());
+            self.states.retain(|_, state| {
+                state.shift();
+                !state.is_empty()
+            });
+            self.last_shift = now;
         }
     }
 
     pub fn can_request(&mut self, ip: ReducedIpAddr) -> bool {
         if let Some(state) = self.states.get_mut(&ip) {
-            if state.total() >= self.limit {
-                state.0[0] = state.0[0].saturating_add(1);
-                false
-            } else {
-                state.0[1] += 1;
-                true
-            }
+            state.0[0] = state.0[0].saturating_add(1);
+
+            state.total() < self.limit
         } else {
             self.states.insert(ip, IpState::default());
             true

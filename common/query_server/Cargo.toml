@@ -7,13 +7,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-server = ["dep:tokio", "dep:rand"]
-client = ["dep:tokio", "tokio/time"]
+server = ["dep:rand"]
+client = ["tokio/time"]
 example = ["tokio/macros", "tokio/rt-multi-thread", "dep:tracing-subscriber"]
 default = ["server", "client"]
 
 [dependencies]
-tokio = { workspace = true, optional = true, features = ["net", "sync"] }
+tokio = { workspace = true, features = ["net", "sync"] }
 protocol = { version = "3.4.0", default-features = false, features = ["derive"] }
 tracing-subscriber = { version = "0.3.7", optional = true }
 tracing = { workspace = true }

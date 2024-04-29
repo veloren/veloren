@@ -1,35 +1,29 @@
 #[allow(deprecated)] use std::hash::SipHasher;
 use std::{
-    future::Future,
     hash::{Hash, Hasher},
-    io,
-    net::{Ipv4Addr, SocketAddr, SocketAddrV4},
-    sync::Arc,
+    io::{self, ErrorKind},
+    net::SocketAddr,
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
 use protocol::Parcel;
 use rand::{thread_rng, Rng};
-use tokio::{
-    net::UdpSocket,
-    sync::{watch, RwLock},
-    time::timeout,
-};
-use tracing::{debug, trace};
+use tokio::{net::UdpSocket, sync::watch};
+use tracing::{debug, error, trace};
 
 use crate::{
     proto::{
         QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
-        ServerInfo, MAX_REQUEST_SIZE, VELOREN_HEADER,
+        ServerInfo, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE, VELOREN_HEADER, VERSION,
     },
     ratelimit::{RateLimiter, ReducedIpAddr},
 };
 
-const RESPONSE_SEND_TIMEOUT: Duration = Duration::from_secs(2);
-const SECRET_REGEN_INTERNVAL: Duration = Duration::from_secs(60);
+const SECRET_REGEN_INTERNVAL: Duration = Duration::from_secs(300);
 
 pub struct QueryServer {
-    pub addr: SocketAddr,
+    addr: SocketAddr,
     server_info: watch::Receiver<ServerInfo>,
     settings: protocol::Settings,
     ratelimit: RateLimiter,
@@ -42,6 +36,7 @@ pub struct Metrics {
     pub invalid_packets: u32,
     pub proccessing_errors: u32,
     pub info_requests: u32,
+    pub ping_requests: u32,
     pub sent_responses: u32,
     pub failed_responses: u32,
     pub timed_out_responses: u32,
@@ -49,17 +44,23 @@ pub struct Metrics {
 }
 
 impl QueryServer {
-    pub fn new(addr: SocketAddr, server_info: watch::Receiver<ServerInfo>) -> Self {
+    pub fn new(addr: SocketAddr, server_info: watch::Receiver<ServerInfo>, ratelimit: u16) -> Self {
         Self {
             addr,
             server_info,
-            ratelimit: RateLimiter::new(30),
+            ratelimit: RateLimiter::new(ratelimit),
             settings: Default::default(),
         }
     }
 
-    pub async fn run(&mut self, metrics: Arc<RwLock<Metrics>>) -> Result<(), tokio::io::Error> {
-        let socket = UdpSocket::bind(self.addr).await?;
+    /// This produces TRACE level logs for any packet received on the assigned
+    /// port. To prevent potentially unfettered log spam, disable the TRACE
+    /// level for this crate (when outside of debugging contexts).
+    ///
+    /// NOTE: TRACE and DEBUG levels are disabled by default for this crate when
+    /// using `veloren-common-frontend`.
+    pub async fn run(&mut self, metrics: Arc<Mutex<Metrics>>) -> Result<(), tokio::io::Error> {
+        let mut socket = UdpSocket::bind(self.addr).await?;
 
         let gen_secret = || {
             let mut rng = thread_rng();
@@ -70,12 +71,20 @@ impl QueryServer {
 
         let mut buf = Box::new([0; MAX_REQUEST_SIZE]);
         loop {
-            *buf = [0; MAX_REQUEST_SIZE];
-
-            let Ok((len, remote_addr)) = socket.recv_from(&mut *buf).await.inspect_err(|err| {
-                debug!("Error while receiving from query server socket: {err:?}")
-            }) else {
-                continue;
+            let (len, remote_addr) = match socket.recv_from(&mut *buf).await {
+                Ok(v) => v,
+                Err(e) if e.kind() == ErrorKind::NotConnected => {
+                    error!(
+                        ?e,
+                        "Query server connection was closed, re-binding to socket..."
+                    );
+                    socket = UdpSocket::bind(self.addr).await?;
+                    continue;
+                },
+                err => {
+                    debug!(?err, "Error while receiving from query server socket");
+                    continue;
+                },
             };
 
             let mut new_metrics = Metrics {
@@ -86,26 +95,19 @@ impl QueryServer {
             let raw_msg_buf = &buf[..len];
             let msg_buf = if Self::validate_datagram(raw_msg_buf) {
                 // Require 2 extra bytes for version (currently unused)
-                &raw_msg_buf[(VELOREN_HEADER.len() + 2)..]
+                &raw_msg_buf[2..(raw_msg_buf.len() - VELOREN_HEADER.len())]
             } else {
                 new_metrics.dropped_packets += 1;
                 continue;
             };
 
-            if let Err(error) = self
-                .process_datagram(
-                    msg_buf,
-                    remote_addr,
-                    secrets,
-                    (&mut new_metrics, Arc::clone(&metrics)),
-                )
-                .await
-            {
-                debug!(?error, "Error while processing datagram");
-            }
+            self.process_datagram(msg_buf, remote_addr, secrets, &mut new_metrics, &socket)
+                .await;
 
             // Update metrics at the end of eath packet
-            *metrics.write().await += new_metrics;
+            if let Ok(mut metrics) = metrics.lock() {
+                *metrics += new_metrics;
+            }
 
             {
                 let now = Instant::now();
@@ -123,11 +125,21 @@ impl QueryServer {
     fn validate_datagram(data: &[u8]) -> bool {
         let len = data.len();
         // Require 2 extra bytes for version (currently unused)
-        if len < VELOREN_HEADER.len() + 3 {
+        if len < MAX_RESPONSE_SIZE.max(VELOREN_HEADER.len() + 2) {
             trace!(?len, "Datagram too short");
             false
-        } else if data[0..VELOREN_HEADER.len()] != VELOREN_HEADER {
+        } else if len > (MAX_REQUEST_SIZE + VELOREN_HEADER.len() + 2) {
+            trace!(?len, "Datagram too large");
+            false
+        } else if data[(len - VELOREN_HEADER.len())..] != VELOREN_HEADER {
             trace!(?len, "Datagram header invalid");
+            false
+        // FIXME: Allow lower versions once proper versioning is added.
+        } else if u16::from_ne_bytes(data[..2].try_into().unwrap()) != VERSION {
+            trace!(
+                "Datagram has invalid version {:?}, current {VERSION:?}",
+                &data[..2]
+            );
             false
         } else {
             true
@@ -139,106 +151,117 @@ impl QueryServer {
         datagram: &[u8],
         remote: SocketAddr,
         secrets: (u64, u64),
-        (new_metrics, metrics): (&mut Metrics, Arc<RwLock<Metrics>>),
-    ) -> Result<(), tokio::io::Error> {
+        metrics: &mut Metrics,
+        socket: &UdpSocket,
+    ) {
         let Ok(RawQueryServerRequest {
             p: client_p,
             request,
         }) =
             <RawQueryServerRequest as Parcel>::read(&mut io::Cursor::new(datagram), &self.settings)
         else {
-            new_metrics.invalid_packets += 1;
-            return Ok(());
+            metrics.invalid_packets += 1;
+            return;
         };
 
         trace!(?request, "Received packet");
 
         #[allow(deprecated)]
         let real_p = {
+            // Use SipHash-2-4 to compute the `p` value from a server specific
+            // secret and the client's address.
+            //
+            // This is used to verify that packets are from an entity that can
+            // receive packets at the given address.
+            //
+            // Only use the first 64 bits from Ipv6 addresses since the latter
+            // 64 bits can change very frequently (as much as for every
+            // request).
             let mut hasher = SipHasher::new_with_keys(secrets.0, secrets.1);
             ReducedIpAddr::from(remote.ip()).hash(&mut hasher);
             hasher.finish()
         };
 
-        async fn timed<'a, F: Future<Output = O> + 'a, O>(
-            fut: F,
-            metrics: &'a Arc<RwLock<Metrics>>,
-        ) -> Option<O> {
-            if let Ok(res) = timeout(RESPONSE_SEND_TIMEOUT, fut).await {
-                Some(res)
-            } else {
-                metrics.write().await.timed_out_responses += 1;
-                None
-            }
-        }
-
         if real_p != client_p {
-            tokio::task::spawn(async move {
-                timed(
-                    Self::send_response(RawQueryServerResponse::P(real_p), remote, &metrics),
-                    &metrics,
-                )
-                .await;
-            });
+            Self::send_response(RawQueryServerResponse::P(real_p), remote, socket, metrics).await;
 
-            return Ok(());
+            return;
         }
 
         if !self.ratelimit.can_request(remote.ip().into()) {
             trace!("Ratelimited request");
-            new_metrics.ratelimited += 1;
-            return Ok(());
+            metrics.ratelimited += 1;
+            return;
         }
 
         match request {
-            QueryServerRequest::ServerInfo(_) => {
-                new_metrics.info_requests += 1;
+            QueryServerRequest::ServerInfo => {
+                metrics.info_requests += 1;
                 let server_info = *self.server_info.borrow();
-                tokio::task::spawn(async move {
-                    timed(
-                        Self::send_response(
-                            RawQueryServerResponse::Response(QueryServerResponse::ServerInfo(
-                                server_info,
-                            )),
-                            remote,
-                            &metrics,
-                        ),
-                        &metrics,
-                    )
-                    .await;
-                });
+                Self::send_response(
+                    RawQueryServerResponse::Response(QueryServerResponse::ServerInfo(server_info)),
+                    remote,
+                    socket,
+                    metrics,
+                )
+                .await;
+            },
+            QueryServerRequest::Ping => {
+                metrics.ping_requests += 1;
+                Self::send_response(
+                    RawQueryServerResponse::Response(QueryServerResponse::Pong),
+                    remote,
+                    socket,
+                    metrics,
+                )
+                .await;
             },
         }
-
-        Ok(())
     }
 
     async fn send_response(
         response: RawQueryServerResponse,
         addr: SocketAddr,
-        metrics: &Arc<RwLock<Metrics>>,
+        socket: &UdpSocket,
+        metrics: &mut Metrics,
     ) {
-        let Ok(socket) =
-            UdpSocket::bind(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0))).await
-        else {
-            debug!("Failed to create response socket");
-            return;
-        };
+        // TODO: Remove this extra padding once we add version information to requests
+        let mut buf = Vec::from(VERSION.to_ne_bytes());
 
-        let buf = if let Ok(data) =
-            <RawQueryServerResponse as Parcel>::raw_bytes(&response, &Default::default())
-        {
-            data
-        } else {
-            Vec::new()
-        };
-        match socket.send_to(&buf, addr).await {
-            Ok(_) => {
-                metrics.write().await.sent_responses += 1;
+        match <RawQueryServerResponse as Parcel>::raw_bytes(&response, &Default::default()) {
+            Ok(data) => {
+                buf.extend(data);
+
+                if buf.len() > MAX_RESPONSE_SIZE {
+                    error!(
+                        ?MAX_RESPONSE_SIZE,
+                        "Attempted to send a response larger than the maximum allowed size (size: \
+                         {}, response: {response:?})",
+                        buf.len()
+                    );
+                    #[cfg(debug_assertions)]
+                    panic!(
+                        "Attempted to send a response larger than the maximum allowed size (size: \
+                         {}, max: {}, response: {response:?})",
+                        buf.len(),
+                        MAX_RESPONSE_SIZE
+                    );
+                }
+
+                match socket.send_to(&buf, addr).await {
+                    Ok(_) => {
+                        metrics.sent_responses += 1;
+                    },
+                    Err(err) => {
+                        metrics.failed_responses += 1;
+                        debug!(?err, "Failed to send query server response");
+                    },
+                }
             },
-            Err(err) => {
-                metrics.write().await.failed_responses += 1;
-                debug!(?err, "Failed to send query server response");
+            Err(error) => {
+                trace!(?error, "Failed to serialize response");
+                #[cfg(debug_assertions)]
+                panic!("Serializing response failed: {error:?} ({response:?})");
             },
         }
     }
@@ -253,6 +276,7 @@ impl std::ops::AddAssign for Metrics {
             invalid_packets,
             proccessing_errors,
             info_requests,
+            ping_requests,
             sent_responses,
             failed_responses,
             timed_out_responses,
@@ -264,6 +288,7 @@ impl std::ops::AddAssign for Metrics {
         self.invalid_packets += invalid_packets;
         self.proccessing_errors += proccessing_errors;
         self.info_requests += info_requests;
+        self.ping_requests += ping_requests;
         self.sent_responses += sent_responses;
         self.failed_responses += failed_responses;
         self.timed_out_responses += timed_out_responses;
@@ -273,5 +298,7 @@ impl std::ops::AddAssign for Metrics {
 
 impl Metrics {
     /// Resets all metrics to 0 and returns previous ones
+    ///
+    /// Used by the consumer of the metrics.
     pub fn reset(&mut self) -> Self { std::mem::take(self) }
 }

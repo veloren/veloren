@@ -93,6 +93,7 @@ use common::{
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::TerrainChunk,
+    util::GIT_DATE_TIMESTAMP,
     vol::RectRasterableVol,
 };
 use common_base::prof_span;
@@ -116,7 +117,7 @@ use specs::{
 use std::{
     i32,
     ops::{Deref, DerefMut},
-    sync::Arc,
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 #[cfg(not(feature = "worldgen"))]
@@ -603,20 +604,24 @@ impl Server {
         if let Some(addr) = settings.query_address {
             use veloren_query_server::proto::ServerInfo;
 
+            const QUERY_SERVER_RATELIMIT: u16 = 120;
+
             let (query_server_info_tx, query_server_info_rx) =
                 tokio::sync::watch::channel(ServerInfo {
                     git_hash: *sys::server_info::GIT_HASH,
+                    git_version: *GIT_DATE_TIMESTAMP,
                     players_count: 0,
                     player_cap: settings.max_players,
                     battlemode: settings.gameplay.battle_mode.into(),
                 });
-            let mut query_server = QueryServer::new(addr, query_server_info_rx);
-            let query_server_metrics = Arc::new(tokio::sync::RwLock::new(
-                veloren_query_server::server::Metrics::default(),
-            ));
+            let mut query_server =
+                QueryServer::new(addr, query_server_info_rx, QUERY_SERVER_RATELIMIT);
+            let query_server_metrics =
+                Arc::new(Mutex::new(veloren_query_server::server::Metrics::default()));
             let query_server_metrics2 = Arc::clone(&query_server_metrics);
             runtime.spawn(async move {
-                _ = query_server.run(query_server_metrics2).await;
+                let err = query_server.run(query_server_metrics2).await.err();
+                error!(?err, "Query server stopped unexpectedly");
             });
             state.ecs_mut().insert(query_server_info_tx);
             state.ecs_mut().insert(query_server_metrics);

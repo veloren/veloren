@@ -75,6 +75,7 @@ where
         "refinery_core::traits::divergent=off",
         "veloren_server::persistence::character=info",
         "veloren_server::settings=info",
+        "veloren_query_server=info",
     ];
 
     for s in default_directives {
