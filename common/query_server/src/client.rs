@@ -21,21 +21,26 @@ pub enum QueryClientError {
     Io(tokio::io::Error),
     Protocol(protocol::Error),
     InvalidResponse,
-    InvalidVersion,
     Timeout,
     ChallengeFailed,
     RequestTooLarge,
+}
+
+struct ClientInitData {
+    p: u64,
+    #[allow(dead_code)]
+    server_max_version: u16,
 }
 
 /// The `p` field has to be requested from the server each time this client is
 /// constructed, if possible reuse this!
 pub struct QueryClient {
     pub addr: SocketAddr,
-    p: u64,
+    init: Option<ClientInitData>,
 }
 
 impl QueryClient {
-    pub fn new(addr: SocketAddr) -> Self { Self { addr, p: 0 } }
+    pub fn new(addr: SocketAddr) -> Self { Self { addr, init: None } }
 
     pub async fn server_info(&mut self) -> Result<(ServerInfo, Duration), QueryClientError> {
         self.send_query(QueryServerRequest::ServerInfo)
@@ -73,10 +78,20 @@ impl QueryClient {
             // 2 extra bytes for version information, currently unused
             buf.extend(VERSION.to_le_bytes());
             buf.extend({
-                let request_data = <RawQueryServerRequest as Parcel>::raw_bytes(
-                    &RawQueryServerRequest { p: self.p, request },
-                    &Default::default(),
-                )?;
+                let request_data = if let Some(init) = &self.init {
+                    // TODO: Use the maximum version supported by both the client and server once
+                    // new protocol versions are added
+                    <RawQueryServerRequest as Parcel>::raw_bytes(
+                        &RawQueryServerRequest { p: init.p, request },
+                        &Default::default(),
+                    )?
+                } else {
+                    // TODO: Use the legacy version here once new protocol versions are added
+                    <RawQueryServerRequest as Parcel>::raw_bytes(
+                        &RawQueryServerRequest { p: 0, request },
+                        &Default::default(),
+                    )?
+                };
                 if request_data.len() > MAX_REQUEST_SIZE {
                     warn!(
                         ?request,
@@ -103,14 +118,9 @@ impl QueryClient {
                 Err(QueryClientError::InvalidResponse)?
             }
 
-            // FIXME: Allow lower versions once proper versioning is added.
-            if u16::from_le_bytes(buf[..2].try_into().unwrap()) != VERSION {
-                Err(QueryClientError::InvalidVersion)?
-            }
-
             let packet = <RawQueryServerResponse as Parcel>::read(
                 // TODO: Remove this padding once version information is added to packets
-                &mut io::Cursor::new(&buf[2..buf_len]),
+                &mut io::Cursor::new(&buf[..buf_len]),
                 &Default::default(),
             )?;
 
@@ -118,9 +128,12 @@ impl QueryClient {
                 RawQueryServerResponse::Response(response) => {
                     return Ok((response, query_sent.elapsed()));
                 },
-                RawQueryServerResponse::P(p) => {
-                    trace!(?p, "Resetting p");
-                    self.p = p
+                RawQueryServerResponse::Init(init) => {
+                    trace!(?init, "Resetting p");
+                    self.init = Some(ClientInitData {
+                        p: init.p,
+                        server_max_version: init.max_supported_version,
+                    });
                 },
             }
         }

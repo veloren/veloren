@@ -9,8 +9,8 @@ edition = "2021"
 [features]
 server = ["dep:rand"]
 client = ["tokio/time"]
-example = ["tokio/macros", "tokio/rt-multi-thread", "dep:tracing-subscriber"]
-default = ["server", "client"]
+example = ["tokio/macros", "tokio/rt-multi-thread", "dep:tracing-subscriber", "client", "server"]
+default = []
 
 [dependencies]
 tokio = { workspace = true, features = ["net", "sync"] }

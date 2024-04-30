@@ -14,8 +14,9 @@ use tracing::{debug, error, trace};
 
 use crate::{
     proto::{
-        QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
-        ServerInfo, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE, VELOREN_HEADER, VERSION,
+        Init, QueryServerRequest, QueryServerResponse, RawQueryServerRequest,
+        RawQueryServerResponse, ServerInfo, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE, VELOREN_HEADER,
+        VERSION,
     },
     ratelimit::{RateLimiter, ReducedIpAddr},
 };
@@ -183,7 +184,16 @@ impl QueryServer {
         };
 
         if real_p != client_p {
-            Self::send_response(RawQueryServerResponse::P(real_p), remote, socket, metrics).await;
+            Self::send_response(
+                RawQueryServerResponse::Init(Init {
+                    p: real_p,
+                    max_supported_version: VERSION,
+                }),
+                remote,
+                socket,
+                metrics,
+            )
+            .await;
 
             return;
         }
@@ -225,30 +235,27 @@ impl QueryServer {
         socket: &UdpSocket,
         metrics: &mut Metrics,
     ) {
-        // TODO: Remove this extra padding once we add version information to requests
-        let mut buf = Vec::from(VERSION.to_ne_bytes());
-
+        // TODO: Once more versions are added, send the packet in the same version as
+        // the request here.
         match <RawQueryServerResponse as Parcel>::raw_bytes(&response, &Default::default()) {
             Ok(data) => {
-                buf.extend(data);
-
-                if buf.len() > MAX_RESPONSE_SIZE {
+                if data.len() > MAX_RESPONSE_SIZE {
                     error!(
                         ?MAX_RESPONSE_SIZE,
                         "Attempted to send a response larger than the maximum allowed size (size: \
                          {}, response: {response:?})",
-                        buf.len()
+                        data.len()
                     );
                     #[cfg(debug_assertions)]
                     panic!(
                         "Attempted to send a response larger than the maximum allowed size (size: \
                          {}, max: {}, response: {response:?})",
-                        buf.len(),
+                        data.len(),
                         MAX_RESPONSE_SIZE
                     );
                 }
 
-                match socket.send_to(&buf, addr).await {
+                match socket.send_to(&data, addr).await {
                     Ok(_) => {
                         metrics.sent_responses += 1;
                     },

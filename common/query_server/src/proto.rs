@@ -11,7 +11,7 @@ pub(crate) const MAX_RESPONSE_SIZE: usize = 256;
 
 #[derive(Protocol, Debug, Clone, Copy)]
 pub(crate) struct RawQueryServerRequest {
-    /// See comment on [`RawQueryServerResponse::P`]
+    /// See comment on [`Init::p`]
     pub p: u64,
     pub request: QueryServerRequest,
 }
@@ -27,17 +27,28 @@ pub enum QueryServerRequest {
 }
 
 #[derive(Protocol, Debug, Clone, Copy)]
-#[protocol(discriminant = "integer")]
-#[protocol(discriminator(u8))]
-pub(crate) enum RawQueryServerResponse {
-    Response(QueryServerResponse),
+pub(crate) struct Init {
     /// This is used as a challenge to prevent IP address spoofing by verifying
     /// that the client can receive from the source address.
     ///
     /// Any request to the server must include this value to be processed,
     /// otherwise this response will be returned (giving clients a value to pass
     /// for later requests).
-    P(u64),
+    pub p: u64,
+    /// The maximum supported protocol version by the server. The first request
+    /// to a server must always be done in the V0 protocol to query this value.
+    /// Following requests (when the version is known), can be done in the
+    /// maximum version or below, responses will be sent in the same version as
+    /// the requests.
+    pub max_supported_version: u16,
+}
+
+#[derive(Protocol, Debug, Clone, Copy)]
+#[protocol(discriminant = "integer")]
+#[protocol(discriminator(u8))]
+pub(crate) enum RawQueryServerResponse {
+    Response(QueryServerResponse),
+    Init(Init),
 }
 
 #[derive(Protocol, Debug, Clone, Copy)]
