@@ -9,6 +9,7 @@ services:
     ports:
       - "14004:14004"
       - "14005:14005"
+      - "14006:14006/udp"
     restart: on-failure:0
     volumes:
         - "./userdata:/opt/userdata"
