@@ -87,7 +87,6 @@ pub fn apply_trees_to(
     canvas.foreach_col(|canvas, wpos2d, col| {
         let trees = tree_cache.get(wpos2d, |wpos, seed| {
             let scale = 1.0;
-            let crowding = col.tree_density;
             let inhabited = false;
             let forest_kind = *info
                 .chunks()
@@ -96,6 +95,8 @@ pub fn apply_trees_to(
                 .as_ref()?;
 
             let col = ColumnGen::new(info.chunks()).get((wpos, info.index(), calendar))?;
+
+            let crowding = col.tree_density;
 
             if !tree_valid_at(wpos, &col, Some(info), seed) {
                 return None;
