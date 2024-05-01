@@ -1063,9 +1063,9 @@ recipes: {
     ),
     ItemDefId("common.items.armor.mail.orichalcum.head"): (
         inputs: [
-            (Item("common.items.mineral.ingot.orichalcum"), 3),
-            (Item("common.items.mineral.ore.veloritefrag"), 12),
-            (Item("common.items.mineral.ore.velorite"), 3),
+            (Item("common.items.mineral.ingot.orichalcum"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     ItemDefId("common.items.armor.brinestone.back"): (

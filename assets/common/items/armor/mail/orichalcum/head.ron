@@ -1,13 +1,16 @@
 ItemDef(
     legacy_name: "Orichalcum Helmet",
-    legacy_description: "An ancient alloy. Myths remain of heroes who once wore this metal.",
+    legacy_description: "The plume glows as you charge into battle.",
     kind: Armor((
         kind: Head,
-        stats: FromSet("Orichalcum"),
+        stats: Direct((
+            protection: Some(Normal(18.0)),
+            poise_resilience: Some(Normal(6.0)),
+        )),
     )),
     quality: Legendary,
     tags: [
         Material(Orichalcum),
-        SalvageInto(Orichalcum, 3),
+        SalvageInto(Orichalcum, 1),
     ],
 )

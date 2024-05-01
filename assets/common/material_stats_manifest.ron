@@ -135,8 +135,8 @@
             poise_resilience: Some(Normal(50.0)),
         ),
         "Orichalcum": (
-            protection: Some(Normal(180.0)),
-            poise_resilience: Some(Normal(60.0)),
+            protection: Some(Normal(162.0)),
+            poise_resilience: Some(Normal(54.0)),
         ),
         // Hides
         "Rawhide": (
