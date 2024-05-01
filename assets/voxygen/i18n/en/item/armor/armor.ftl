@@ -572,7 +572,7 @@ armor-mail-orichalcum-5 = Orichalcum Mantle
     .desc = An ancient alloy. Myths remain of heroes who once wore this armor.
 
 armor-mail-orichalcum-7 = Orichalcum Helmet
-    .desc = An ancient alloy. Myths remain of heroes who once wore this armor.
+    .desc = The plume glows as you charge into battle.
 
 armor-mail-steel-back = Steel Cape
     .desc = Metal alloy interlocking plates to improve protection.
