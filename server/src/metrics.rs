@@ -76,7 +76,7 @@ pub struct QueryServerMetrics {
     pub invalid_packets: IntCounter,
     pub proccessing_errors: IntCounter,
     pub info_requests: IntCounter,
-    pub ping_requests: IntCounter,
+    pub init_requests: IntCounter,
     pub sent_responses: IntCounter,
     pub failed_responses: IntCounter,
     pub timed_out_responses: IntCounter,
@@ -461,9 +461,9 @@ impl QueryServerMetrics {
             "query_server::info_requests",
             "Amount of server info requests received by the query server",
         ))?;
-        let ping_requests = IntCounter::with_opts(Opts::new(
+        let init_requests = IntCounter::with_opts(Opts::new(
             "query_server::ping_requests",
-            "Amount of server ping requests received by the query server",
+            "Amount of init requests received by the query server",
         ))?;
         let sent_responses = IntCounter::with_opts(Opts::new(
             "query_server::sent_responses",
@@ -487,7 +487,7 @@ impl QueryServerMetrics {
         registry.register(Box::new(invalid_packets.clone()))?;
         registry.register(Box::new(proccessing_errors.clone()))?;
         registry.register(Box::new(info_requests.clone()))?;
-        registry.register(Box::new(ping_requests.clone()))?;
+        registry.register(Box::new(init_requests.clone()))?;
         registry.register(Box::new(sent_responses.clone()))?;
         registry.register(Box::new(failed_responses.clone()))?;
         registry.register(Box::new(timed_out_responses.clone()))?;
@@ -499,7 +499,7 @@ impl QueryServerMetrics {
             invalid_packets,
             proccessing_errors,
             info_requests,
-            ping_requests,
+            init_requests,
             sent_responses,
             failed_responses,
             timed_out_responses,
@@ -515,7 +515,7 @@ impl QueryServerMetrics {
             invalid_packets,
             proccessing_errors,
             info_requests,
-            ping_requests,
+            init_requests,
             sent_responses,
             failed_responses,
             timed_out_responses,
@@ -527,7 +527,7 @@ impl QueryServerMetrics {
         self.invalid_packets.inc_by(invalid_packets as u64);
         self.proccessing_errors.inc_by(proccessing_errors as u64);
         self.info_requests.inc_by(info_requests as u64);
-        self.ping_requests.inc_by(ping_requests as u64);
+        self.init_requests.inc_by(init_requests as u64);
         self.sent_responses.inc_by(sent_responses as u64);
         self.failed_responses.inc_by(failed_responses as u64);
         self.timed_out_responses.inc_by(timed_out_responses as u64);

@@ -18,7 +18,7 @@ default = ["worldgen", "plugins", "persistent_world", "simd"]
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 common-base = { package = "veloren-common-base", path = "../common/base" }
-veloren-query-server = { package = "veloren-query-server", path = "../common/query_server", features = ["server"] }
+veloren-query-server = { package = "veloren-query-server", path = "../common/query_server", default-features = false, features = ["server"] }
 common-ecs = { package = "veloren-common-ecs", path = "../common/ecs" }
 common-state = { package = "veloren-common-state", path = "../common/state" }
 common-systems = { package = "veloren-common-systems", path = "../common/systems" }

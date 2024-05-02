@@ -6,11 +6,11 @@ use std::{
 
 use protocol::Parcel;
 use tokio::{net::UdpSocket, time::timeout};
-use tracing::{trace, warn};
+use tracing::trace;
 
 use crate::proto::{
     QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
-    ServerInfo, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE, VELOREN_HEADER, VERSION,
+    ServerInfo, MAX_RESPONSE_SIZE,
 };
 
 // This must be at least 2 for the client to get a value for the `p` field.
@@ -23,7 +23,6 @@ pub enum QueryClientError {
     InvalidResponse,
     Timeout,
     ChallengeFailed,
-    RequestTooLarge,
 }
 
 struct ClientInitData {
@@ -46,20 +45,9 @@ impl QueryClient {
         self.send_query(QueryServerRequest::ServerInfo)
             .await
             .and_then(|(response, duration)| {
+                #[allow(irrefutable_let_patterns)]
                 if let QueryServerResponse::ServerInfo(info) = response {
                     Ok((info, duration))
-                } else {
-                    Err(QueryClientError::InvalidResponse)
-                }
-            })
-    }
-
-    pub async fn ping(&mut self) -> Result<Duration, QueryClientError> {
-        self.send_query(QueryServerRequest::Ping)
-            .await
-            .and_then(|(response, duration)| {
-                if let QueryServerResponse::Pong = response {
-                    Ok(duration)
                 } else {
                     Err(QueryClientError::InvalidResponse)
                 }
@@ -73,42 +61,20 @@ impl QueryClient {
         let socket = UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0)).await?;
 
         for _ in 0..MAX_REQUEST_RETRIES {
-            let mut buf = Vec::with_capacity(VELOREN_HEADER.len() + 2 + MAX_REQUEST_SIZE);
-
-            // 2 extra bytes for version information, currently unused
-            buf.extend(VERSION.to_le_bytes());
-            buf.extend({
-                let request_data = if let Some(init) = &self.init {
-                    // TODO: Use the maximum version supported by both the client and server once
-                    // new protocol versions are added
-                    <RawQueryServerRequest as Parcel>::raw_bytes(
-                        &RawQueryServerRequest { p: init.p, request },
-                        &Default::default(),
-                    )?
-                } else {
-                    // TODO: Use the legacy version here once new protocol versions are added
-                    <RawQueryServerRequest as Parcel>::raw_bytes(
-                        &RawQueryServerRequest { p: 0, request },
-                        &Default::default(),
-                    )?
-                };
-                if request_data.len() > MAX_REQUEST_SIZE {
-                    warn!(
-                        ?request,
-                        ?MAX_REQUEST_SIZE,
-                        "Attempted to send request larger than the max size ({})",
-                        request_data.len()
-                    );
-                    Err(QueryClientError::RequestTooLarge)?
+            let request = if let Some(init) = &self.init {
+                // TODO: Use the maximum version supported by both the client and server once
+                // new protocol versions are added
+                RawQueryServerRequest { p: init.p, request }
+            } else {
+                // TODO: Use the legacy version here once new protocol versions are added
+                RawQueryServerRequest {
+                    p: 0,
+                    request: QueryServerRequest::Init,
                 }
-                request_data
-            });
-            buf.resize(2 + MAX_RESPONSE_SIZE, 0);
-            buf.extend(VELOREN_HEADER);
-
+            };
+            let buf = request.serialize()?;
             let query_sent = Instant::now();
             socket.send_to(&buf, self.addr).await?;
-
             let mut buf = vec![0; MAX_RESPONSE_SIZE];
             let (buf_len, _) = timeout(Duration::from_secs(2), socket.recv_from(&mut buf))
                 .await
@@ -119,7 +85,6 @@ impl QueryClient {
             }
 
             let packet = <RawQueryServerResponse as Parcel>::read(
-                // TODO: Remove this padding once version information is added to packets
                 &mut io::Cursor::new(&buf[..buf_len]),
                 &Default::default(),
             )?;

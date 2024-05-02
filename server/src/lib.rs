@@ -609,7 +609,7 @@ impl Server {
             let (query_server_info_tx, query_server_info_rx) =
                 tokio::sync::watch::channel(ServerInfo {
                     git_hash: *sys::server_info::GIT_HASH,
-                    git_version: *GIT_DATE_TIMESTAMP,
+                    git_timestamp: *GIT_DATE_TIMESTAMP,
                     players_count: 0,
                     player_cap: settings.max_players,
                     battlemode: settings.gameplay.battle_mode.into(),

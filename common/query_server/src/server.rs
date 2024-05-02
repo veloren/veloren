@@ -37,7 +37,7 @@ pub struct Metrics {
     pub invalid_packets: u32,
     pub proccessing_errors: u32,
     pub info_requests: u32,
-    pub ping_requests: u32,
+    pub init_requests: u32,
     pub sent_responses: u32,
     pub failed_responses: u32,
     pub timed_out_responses: u32,
@@ -129,13 +129,13 @@ impl QueryServer {
         if len < MAX_RESPONSE_SIZE.max(VELOREN_HEADER.len() + 2) {
             trace!(?len, "Datagram too short");
             false
-        } else if len > (MAX_REQUEST_SIZE + VELOREN_HEADER.len() + 2) {
+        } else if len > MAX_REQUEST_SIZE {
             trace!(?len, "Datagram too large");
             false
         } else if data[(len - VELOREN_HEADER.len())..] != VELOREN_HEADER {
             trace!(?len, "Datagram header invalid");
             false
-        // FIXME: Allow lower versions once proper versioning is added.
+        // TODO: Allow lower versions once proper versioning is added.
         } else if u16::from_ne_bytes(data[..2].try_into().unwrap()) != VERSION {
             trace!(
                 "Datagram has invalid version {:?}, current {VERSION:?}",
@@ -205,21 +205,24 @@ impl QueryServer {
         }
 
         match request {
-            QueryServerRequest::ServerInfo => {
-                metrics.info_requests += 1;
-                let server_info = *self.server_info.borrow();
+            QueryServerRequest::Init => {
+                metrics.init_requests += 1;
                 Self::send_response(
-                    RawQueryServerResponse::Response(QueryServerResponse::ServerInfo(server_info)),
+                    RawQueryServerResponse::Init(Init {
+                        p: real_p,
+                        max_supported_version: VERSION,
+                    }),
                     remote,
                     socket,
                     metrics,
                 )
                 .await;
             },
-            QueryServerRequest::Ping => {
-                metrics.ping_requests += 1;
+            QueryServerRequest::ServerInfo => {
+                metrics.info_requests += 1;
+                let server_info = *self.server_info.borrow();
                 Self::send_response(
-                    RawQueryServerResponse::Response(QueryServerResponse::Pong),
+                    RawQueryServerResponse::Response(QueryServerResponse::ServerInfo(server_info)),
                     remote,
                     socket,
                     metrics,
@@ -283,7 +286,7 @@ impl std::ops::AddAssign for Metrics {
             invalid_packets,
             proccessing_errors,
             info_requests,
-            ping_requests,
+            init_requests,
             sent_responses,
             failed_responses,
             timed_out_responses,
@@ -295,7 +298,7 @@ impl std::ops::AddAssign for Metrics {
         self.invalid_packets += invalid_packets;
         self.proccessing_errors += proccessing_errors;
         self.info_requests += info_requests;
-        self.ping_requests += ping_requests;
+        self.init_requests += init_requests;
         self.sent_responses += sent_responses;
         self.failed_responses += failed_responses;
         self.timed_out_responses += timed_out_responses;

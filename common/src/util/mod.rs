@@ -23,7 +23,7 @@ lazy_static::lazy_static! {
     pub static ref GIT_DATE: String = GIT_DATETIME.split('-').take(3).collect::<Vec<&str>>().join("-");
     pub static ref GIT_TIME: &'static str = GIT_DATETIME.split('-').nth(3).expect("failed to retrieve git_time!");
     pub static ref GIT_DATE_TIMESTAMP: i64 =
-        NaiveDateTime::parse_from_str(dbg!(&*GIT_DATETIME), "%Y-%m-%d-%H:%M")
+        NaiveDateTime::parse_from_str(*GIT_DATETIME, "%Y-%m-%d-%H:%M")
             .expect("Invalid date")
             .and_utc().timestamp();
     pub static ref DISPLAY_VERSION: String = if GIT_TAG.is_empty() {

@@ -37,7 +37,7 @@ impl<'a> System<'a> for Sys {
             let count = players.count().try_into().unwrap_or(u16::MAX);
             if let Err(error) = sender.send(ServerInfo {
                 git_hash: *GIT_HASH,
-                git_version: *GIT_DATE_TIMESTAMP,
+                git_timestamp: *GIT_DATE_TIMESTAMP,
                 players_count: count,
                 player_cap: settings.max_players,
                 battlemode: settings.gameplay.battle_mode.into(),

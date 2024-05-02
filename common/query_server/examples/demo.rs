@@ -14,7 +14,7 @@ use veloren_query_server::{
 
 const DEFAULT_SERVER_INFO: ServerInfo = ServerInfo {
     git_hash: 0,
-    git_version: 0,
+    git_timestamp: 0,
     players_count: 100,
     player_cap: 300,
     battlemode: ServerBattleMode::GlobalPvE,
@@ -41,7 +41,7 @@ async fn main() {
     let start = Instant::now();
 
     for _i in 0..10000 {
-        if let Err(error) = client.ping().await {
+        if let Err(error) = client.server_info().await {
             error!(?error, "Server info request error");
         }
     }
