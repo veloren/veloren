@@ -1,0 +1,24 @@
+[package]
+name = "veloren-query-server"
+version = "0.1.0"
+authors = ["crabman <vlrncrabman+veloren@gmail.com>", "XVar <atomyc@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+server = ["dep:rand"]
+client = ["tokio/time"]
+example = ["tokio/macros", "tokio/rt-multi-thread", "dep:tracing-subscriber", "client", "server"]
+default = []
+
+[dependencies]
+tokio = { workspace = true, features = ["net", "sync"] }
+protocol = { version = "3.4.0", default-features = false, features = ["derive"] }
+tracing-subscriber = { version = "0.3.7", optional = true }
+tracing = { workspace = true }
+rand = { workspace = true, optional = true }
+
+[[example]]
+name = "demo"
+required-features = ["example"]

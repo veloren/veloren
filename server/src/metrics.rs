@@ -70,6 +70,19 @@ pub struct ServerEventMetrics {
     pub event_count: IntCounterVec,
 }
 
+pub struct QueryServerMetrics {
+    pub received_packets: IntCounter,
+    pub dropped_packets: IntCounter,
+    pub invalid_packets: IntCounter,
+    pub proccessing_errors: IntCounter,
+    pub info_requests: IntCounter,
+    pub init_requests: IntCounter,
+    pub sent_responses: IntCounter,
+    pub failed_responses: IntCounter,
+    pub timed_out_responses: IntCounter,
+    pub ratelimited: IntCounter,
+}
+
 impl PhysicsMetrics {
     pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
         let entity_entity_collision_checks_count = IntCounter::with_opts(Opts::new(
@@ -415,7 +428,7 @@ impl TickMetrics {
 }
 
 impl ServerEventMetrics {
-    pub fn new(registry: &Registry) -> Result<Self, Box<dyn Error>> {
+    pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
         let event_count = IntCounterVec::new(
             Opts::new("event_count", "number of ServerEvents handled"),
             &["event"],
@@ -423,5 +436,101 @@ impl ServerEventMetrics {
         registry.register(Box::new(event_count.clone()))?;
 
         Ok(Self { event_count })
+    }
+}
+
+impl QueryServerMetrics {
+    pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
+        let received_packets = IntCounter::with_opts(Opts::new(
+            "query_server::received_packets",
+            "Total amount of received packets by the query server",
+        ))?;
+        let dropped_packets = IntCounter::with_opts(Opts::new(
+            "query_server::dropped_packets",
+            "Amount of dropped packets received by the query server (too short or invalid header)",
+        ))?;
+        let invalid_packets = IntCounter::with_opts(Opts::new(
+            "query_server::invalid_packets",
+            "Amount of unparseable packets received by the query server",
+        ))?;
+        let proccessing_errors = IntCounter::with_opts(Opts::new(
+            "query_server::proccessing_errors",
+            "Amount of errors that occured while processing a query server request",
+        ))?;
+        let info_requests = IntCounter::with_opts(Opts::new(
+            "query_server::info_requests",
+            "Amount of server info requests received by the query server",
+        ))?;
+        let init_requests = IntCounter::with_opts(Opts::new(
+            "query_server::ping_requests",
+            "Amount of init requests received by the query server",
+        ))?;
+        let sent_responses = IntCounter::with_opts(Opts::new(
+            "query_server::sent_responses",
+            "Amount of responses sent by the query server",
+        ))?;
+        let failed_responses = IntCounter::with_opts(Opts::new(
+            "query_server::failed_responses",
+            "Amount of responses which failed to be sent by the query server",
+        ))?;
+        let timed_out_responses = IntCounter::with_opts(Opts::new(
+            "query_server::timed_out_responses",
+            "Amount of responses which timed out",
+        ))?;
+        let ratelimited = IntCounter::with_opts(Opts::new(
+            "query_server::ratelimited",
+            "Ratelimited requests to the query server",
+        ))?;
+
+        registry.register(Box::new(received_packets.clone()))?;
+        registry.register(Box::new(dropped_packets.clone()))?;
+        registry.register(Box::new(invalid_packets.clone()))?;
+        registry.register(Box::new(proccessing_errors.clone()))?;
+        registry.register(Box::new(info_requests.clone()))?;
+        registry.register(Box::new(init_requests.clone()))?;
+        registry.register(Box::new(sent_responses.clone()))?;
+        registry.register(Box::new(failed_responses.clone()))?;
+        registry.register(Box::new(timed_out_responses.clone()))?;
+        registry.register(Box::new(ratelimited.clone()))?;
+
+        Ok(Self {
+            received_packets,
+            dropped_packets,
+            invalid_packets,
+            proccessing_errors,
+            info_requests,
+            init_requests,
+            sent_responses,
+            failed_responses,
+            timed_out_responses,
+            ratelimited,
+        })
+    }
+
+    pub fn apply(
+        &self,
+        veloren_query_server::server::Metrics {
+            received_packets,
+            dropped_packets,
+            invalid_packets,
+            proccessing_errors,
+            info_requests,
+            init_requests,
+            sent_responses,
+            failed_responses,
+            timed_out_responses,
+            ratelimited,
+        }: veloren_query_server::server::Metrics,
+    ) {
+        self.received_packets.inc_by(received_packets as u64);
+        self.dropped_packets.inc_by(dropped_packets as u64);
+        self.invalid_packets.inc_by(invalid_packets as u64);
+        self.proccessing_errors.inc_by(proccessing_errors as u64);
+        self.info_requests.inc_by(info_requests as u64);
+        self.init_requests.inc_by(init_requests as u64);
+        self.sent_responses.inc_by(sent_responses as u64);
+        self.failed_responses.inc_by(failed_responses as u64);
+        self.timed_out_responses.inc_by(timed_out_responses as u64);
+        self.ratelimited.inc_by(ratelimited as u64);
     }
 }

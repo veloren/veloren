@@ -22,6 +22,10 @@ lazy_static::lazy_static! {
     static ref GIT_DATETIME: &'static str = GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_datetime!");
     pub static ref GIT_DATE: String = GIT_DATETIME.split('-').take(3).collect::<Vec<&str>>().join("-");
     pub static ref GIT_TIME: &'static str = GIT_DATETIME.split('-').nth(3).expect("failed to retrieve git_time!");
+    pub static ref GIT_DATE_TIMESTAMP: i64 =
+        NaiveDateTime::parse_from_str(*GIT_DATETIME, "%Y-%m-%d-%H:%M")
+            .expect("Invalid date")
+            .and_utc().timestamp();
     pub static ref DISPLAY_VERSION: String = if GIT_TAG.is_empty() {
         format!("{}-{}", VELOREN_VERSION_STAGE, *GIT_DATE)
     } else {
@@ -34,6 +38,7 @@ lazy_static::lazy_static! {
     };
 }
 
+use chrono::NaiveDateTime;
 pub use color::*;
 pub use dir::*;
 pub use grid_hasher::GridHasher;

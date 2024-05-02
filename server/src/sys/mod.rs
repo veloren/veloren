@@ -11,6 +11,7 @@ pub mod object;
 pub mod persistence;
 pub mod pets;
 pub mod sentinel;
+pub mod server_info;
 pub mod subscription;
 pub mod teleporter;
 pub mod terrain;

@@ -67,6 +67,20 @@ impl ServerBattleMode {
     }
 }
 
+impl From<ServerBattleMode> for veloren_query_server::proto::ServerBattleMode {
+    fn from(value: ServerBattleMode) -> Self {
+        use veloren_query_server::proto::ServerBattleMode as QueryBattleMode;
+
+        match value {
+            ServerBattleMode::Global(mode) => match mode {
+                BattleMode::PvP => QueryBattleMode::GlobalPvP,
+                BattleMode::PvE => QueryBattleMode::GlobalPvE,
+            },
+            ServerBattleMode::PerPlayer { .. } => QueryBattleMode::PerPlayer,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Protocol {
     Quic {
@@ -163,6 +177,7 @@ impl CalendarMode {
 pub struct Settings {
     pub gameserver_protocols: Vec<Protocol>,
     pub auth_server_address: Option<String>,
+    pub query_address: Option<SocketAddr>,
     pub max_players: u16,
     pub world_seed: u32,
     pub server_name: String,
@@ -204,6 +219,7 @@ impl Default for Settings {
                 },
             ],
             auth_server_address: Some("https://auth.veloren.net".into()),
+            query_address: Some(SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14006))),
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Server".into(),
             max_players: 100,
