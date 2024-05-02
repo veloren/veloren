@@ -14,17 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Dwarven-Mine update and activation.
 - Petting animals tamed by you or someone else!
 - Updated furniture sprites.
 - Added Abyssal rings
 - Sprite models can now change depending on sprite attributes.
+- Dwarven-Mine update and activation.
 
 ### Changed
 
 - Fireworks and bombs are (again) available from chests (Sahagin and above).
 - Increased brinestone armor recipe cost and repair cost.
-- Hammer
+- Hammer skill tree overhaul
+- Recipe for orichalcum ingots changed to use new alchemical ingredients
 
 ### Removed
 
