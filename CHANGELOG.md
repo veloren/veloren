@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Abyssal rings
 - Sprite models can now change depending on sprite attributes.
 - Dwarven-Mine update and activation.
+- Craftable orichalcum helmet
 - Protocol to query game server information (player count, version, etc.) and make ping tests.
 
 ### Changed
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increased brinestone armor recipe cost and repair cost.
 - Hammer skill tree overhaul
 - Recipe for orichalcum ingots changed to use new alchemical ingredients
+- Refresh of voxel models for orichalcum armour
 
 ### Removed
 
