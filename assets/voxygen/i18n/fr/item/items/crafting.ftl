@@ -26,3 +26,45 @@ sprite-crafting_ing-cotton_boll = Boule de coton
     .desc = Cueillie sur un plant de coton ordinaire.
 sprite-crafting_ing-living_embers = Braises vivantes
     .desc = Les restes fumants d'une créature ardente.
+sprite-crafting_ing-oil = Huile
+    .desc = Une mesure d'huile épaisse et boueuse.
+sprite-crafting_ing-pearl = Perle
+    .desc = ferait une belle lampe.
+sprite-crafting_ing-resin = Résine
+    .desc = Utilisée pour le travail du bois.
+sprite-seashells-shell-0 = Coquillages
+    .desc = Coquillages d'une créature marine.
+sprite-crafting_ing-sentient_seed = Graine sensible
+    .desc = Le rejeton non développé d'une plante sensible.
+sprite-crafting_ing-sticky_thread = Fil collant
+    .desc = Un extrait d'araignée désordonné, mais un tailleur peut en avoir l'utilité.
+sprite-crafting_ing-hide-troll_hide = Peau de troll
+    .desc = Pillé sur les trolls des cavernes.
+sprite-crafting_ing-hide-tough_hide = Peau dure
+    .desc = Peau relativement dure et rugueuse. Devient du cuir.
+sprite-crafting_ing-animal_misc-fur = Fourrure douce
+    .desc = Fourrure douce d'un animal.
+sprite-crafting_ing-animal_misc-grim_eyeball = Boule de cristal sinistre
+    .desc = Lance un regard pétrifiant.
+sprite-crafting_ing-animal_misc-large_horn = Grande corne
+    .desc =
+        Une grande corne provenant d'une bête redoutable.
+
+        Les armes fabriquées avec cette corne ont des effets de capacité renforcés.
+sprite-crafting_ing-animal_misc-lively_vine = Vigne vive
+    .desc = Je pense qu'elle vient de bouger...
+sprite-crafting_ing-animal_misc-phoenix_feather = Plume de phénix
+    .desc = On dit qu'elle a des propriétés magiques.
+sprite-crafting_ing-animal_misc-claw = Griffe du prédateur
+    .desc =
+        La griffe agile d'un prédateur féroce.
+
+        Peut-être utilisée pour fabriquer des armes rapides et agiles.
+sprite-crafting_ing-hide-rugged_hide = Peau robuste
+    .desc = Peau durable de créatures féroces, appréciée des maroquiniers.
+sprite-crafting_ing-hide-dragon_scale = Écaille de dragon
+    .desc = Écaille dure d'une bête légendaire, chaude au toucher.
+sprite-crafting_ing-hide-plate = Plaque
+    .desc = Plaque durable d'un animal blindé.
+sprite-crafting_ing-hide-scale = Écailles
+    .desc = Écailles brillantes trouvées sur un animal.

@@ -1,5 +1,5 @@
 sprite-cabbage-cabbage = Salatkopf
-    .desc = Ein leuchtend grünes Blattgemüse.Man kann damit Salate machen!
+    .desc = Leuchtend grünes Blattgemüse. Man kann damit Salate machen!
 sprite-food-salad_tomato = Tomatensalat
     .desc = Blattsalat mit einigen gehackten, saftigen Tomaten.
 sprite-food-meat-fish_cooked = Gekochter Fisch
@@ -7,7 +7,7 @@ sprite-food-meat-fish_cooked = Gekochter Fisch
 sprite-food-meat-bird_large_raw = Große Rohe Keule
     .desc = Sie ist prächtig.
 sprite-carrot-carrot = Karotte
-    .desc = Ein oranges Wurzelgemüse. Man sagt es verbessert deine Sicht!
+    .desc = Orangenes Wurzelgemüse. Man sagt, es verbessert deine Sicht!
 sprite-food-salad_plain = Einfacher Salat
     .desc = Buchstäblich nur ein gepflückter Salatkopf. Zählt das überhaupt als richtiger Salat?
 sprite-tomato-tomato = Tomate

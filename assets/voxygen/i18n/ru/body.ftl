@@ -38,3 +38,27 @@ body-npc-speech-biped_large-yeti = йети
 body-npc-speech-biped_large-ogre-female = огр
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-mindflayer = свежеватель разума
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-tidal_warrior = воин прилива
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-gigas_frost = морозный гигант
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-sea_bishop = морской епископ
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-haniwa_general = генерал племени ханива
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_demolisher = терракотовый разрушитель
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_pursuer = терракотовый преследователь
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-cursekeeper = терракотовый преследователь
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_punisher = терракотовый каратель
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-cultist_warlord = военачальник культистов
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-cultist_warlock = чернокнижник культист
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-adlet_elder = старейшина адлетов
+# Monster descriptions, used ONLY in npc-speech-tell_monster
+body-npc-speech-biped_large-terracotta_besieger = терракотовый завоеватель

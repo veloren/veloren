@@ -386,3 +386,7 @@ weapon-sceptre-arbor-frostwood = Frostholzarbor
     .desc = { "" }
 weapon-staff-brand-frostwood = Frostholzbrand
     .desc = { "" }
+weapon-sceptre-arbor-ironwood = Eisenholzarbor
+    .desc = { "" }
+weapon-staff-pole-bamboo = Bambusschaft
+    .desc = { "" }

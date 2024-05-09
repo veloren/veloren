@@ -1,4 +1,4 @@
-hud-trade-trade_window = Handelsfenster
+hud-trade-trade_window = Handel
 hud-trade-phase1_description =
     Ziehe die Items, die du handeln möchtest,
      in das dafür vorgesehene Feld.
