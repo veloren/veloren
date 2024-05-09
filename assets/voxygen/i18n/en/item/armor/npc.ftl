@@ -535,20 +535,8 @@ common-items-npc_armor-biped_small-shamanic_spirit-hand-shamanic_spirit = Shaman
 common-items-npc_armor-chest-plate_red = Iron Chestplate
     .desc = A chestplate forged from iron.
 
-common-items-npc_armor-arthropod-generic = Arthropod Armor
-    .desc = Worn by arthropods.
-
-common-items-npc_armor-arthropod-leafbeetle = Leafbeetle Armor
-    .desc = Worn by arthropods.
-
-common-items-npc_armor-arthropod-weevil = Weevil Armor
-    .desc = Worn by arthropods.
-
 common-items-npc_armor-quadruped_low-basilisk = Basilisk Armor
     .desc = Made up of heavy and thick plates.
-
-common-items-npc_armor-quadruped_low-crocodylia = Crocodylia Armor
-    .desc = Scaly.
 
 common-items-npc_armor-quadruped_low-dagon = Dagon's Scales
     .desc = Rigid enough to withstand the pressure of the deep ocean.
@@ -556,65 +544,26 @@ common-items-npc_armor-quadruped_low-dagon = Dagon's Scales
 common-items-npc_armor-quadruped_low-drake = Drake Armor
     .desc = Adaptive to temperature.
 
-common-items-npc_armor-quadruped_low-generic = Quad Low Generic
-    .desc = Scaly.
-
-common-items-npc_armor-quadruped_low-sandshark = Sand Shark Armor
-    .desc = How is it on land?
-
 common-items-npc_armor-quadruped_low-shell = Quad Low Shell
     .desc = Shell.
 
 common-items-npc_armor-quadruped_low-snapper = Snapper Shell
     .desc = 'Tis but a shell.
 
-common-items-npc_armor-quadruped_medium-bonerattler = Bonerattler Armor
-    .desc = Made out of its prey's bones to protect its supple hide.
+common-items-npc_armor-quadruped_medium-tarasque = Tarasque Armor
+    .desc = testing123
 
-common-items-npc_armor-quadruped_medium-broad = Quadruped Medium Generalised Armor
-    .desc = Testing123.
+common-items-npc_armor-quadruped_medium-claysteed = Clay Steed's Thick Fur
+    .desc = testing123
 
-common-items-npc_armor-quadruped_medium-catoblepas = Catoblepas Armor
-    .desc = Thick and rigid.
+common-items-npc_armor-generic = NPC Generic
+    .desc = testing123
 
-common-items-npc_armor-quadruped_medium-claysteed = Claysteeds's Thick Skin
-    .desc = Testing123.
-
-common-items-npc_armor-quadruped_medium-dreadhorn = Dreadhorn Armor
-    .desc = Thick and rigid.
-
-common-items-npc_armor-quadruped_medium-equus = Horse Armor
-    .desc = Testing123.
-
-common-items-npc_armor-quadruped_medium-frostfang = Frostfang's Thick Skin
-    .desc = Testing123.
-
-common-items-npc_armor-quadruped_medium-hirdrasil = Hirdrasil's Blessing
-    .desc = Testing123.
-
-common-items-npc_armor-quadruped_medium-roshwalr = Roshwalr's Thick Skin
-    .desc = Testing123.
-
-common-items-npc_armor-quadruped_medium-wolf = Wolf Armor
-    .desc = Testing123.
-
-common-items-npc_armor-quadruped_small-boar = Boar Armor
-    .desc = Worn by small beasties.
-
-common-items-npc_armor-quadruped_small-hyena = Hyena Armor
-    .desc = Worn by small beasties.
-
-common-items-npc_armor-quadruped_small-mossysnail = Mossy Shell
-    .desc = The sturdy home of a lil fella.
-
-common-items-npc_armor-theropod-raptor = Raptor Hide
-    .desc = Stronk.
+common-items-npc_armor-generic_high = NPC Generic High
+    .desc = testing123
 
 common-items-npc_armor-theropod-rugged = Theropod Rugged
-    .desc = Stronk.
-
-common-items-npc_armor-theropod-yale = Yale Armor
-    .desc = Floofy to to fend off the cold.
+    .desc = For big scary dinos.
 
 common-items-npc_armor-biped_large-cyclops = Cyclops Armor
     .desc = Made of mysteries.
