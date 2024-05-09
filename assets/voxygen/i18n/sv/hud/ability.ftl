@@ -231,7 +231,7 @@ common-abilities-sword-agile_dancing_edge = Dansande Egg
         Kräver smidig hållning.
 common-abilities-sword-agile_flurry = Flurry
     .desc =
-        Flera snabba hugg,
+        Flera snabba hugg.
         Kräver smidig hållning.
 common-abilities-sword-agile_dual_flurry = Flurry
     .desc =
@@ -390,3 +390,12 @@ common-abilities-debug-glide_boost = Vroom
 # so please keep them, even when not used in English file.
 # See https://github.com/WeblateOrg/weblate/issues/9895
 -enter_stance = ""
+# Axe abilities
+common-abilities-hammer-helm_crusher = Hjälmkrossare
+    .desc = Slå din fiendes huvud med din hammare, och ge dem hjärnskakning.
+# Axe abilities
+common-abilities-hammer-tenacity = Tenacitet
+    .desc = Håll dig själv stark då du står emot attack efter attack, och klarar av att attackera under hela tiden.
+# Axe abilities
+common-abilities-hammer-earthshaker = Jordskakare
+    .desc = Slå huvudet av din bloddränkta hammare i marken, och utlös en chockvåg som slår vinden ur alla omkring dig.

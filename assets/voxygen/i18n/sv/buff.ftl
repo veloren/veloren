@@ -193,3 +193,18 @@ buff-heatstroke = Värmeslag
 # Poisoned
 buff-poisoned = Förgiftad
     .desc = Du känner ditt liv vissna iväg...
+# Concussion
+buff-concussion = Hjärnskakning
+    .desc = Du har blivit slagen hårt på huvudet och har svårt att fokusera, vilket förhindrar dig från att använda några av dina mer komplexa attacker.
+# Tenacity
+buff-tenacity = Tenacitet
+    .desc = Du skakar inte bara av tyngre attacker, de ger dig även energi. Dock är du också saktare.
+# Winded
+buff-winded = Andfådd
+    .desc = Du kan knappt andas vilket hindrar hur mycket energi du kan återhämta och hur snabbt du kan röra dig.
+# Rooted
+buff-rooted = Rotad
+    .desc = Du sitter fast på plats och kan inte röra dig.
+# Staggered
+buff-staggered = Vacklan
+    .desc = Du är i obalans och mer mottaglig till tunga attacker.

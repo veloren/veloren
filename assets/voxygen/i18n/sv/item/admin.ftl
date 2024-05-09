@@ -32,3 +32,5 @@ armor-velorite-legs = Veloritkjol
     .desc = { "" }
 armor-velorite-boots = Veloritstövlar
     .desc = { "" }
+weapon-sword-frost-admin_sword = Admin Storsvärd
+    .desc = Borde det inte vara en hammare?
