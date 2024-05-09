@@ -19,27 +19,6 @@
             "common.items.npc_armor.quadruped_low.dagon",
         ): "common-items-npc_armor-quadruped_low-dagon",
         Simple(
-            "common.items.npc_armor.quadruped_low.generic",
-        ): "common-items-npc_armor-quadruped_low-generic",
-        Simple(
-            "common.items.npc_armor.quadruped_low.shell",
-        ): "common-items-npc_armor-quadruped_low-shell",
-        Simple(
-            "common.items.npc_armor.quadruped_low.basilisk",
-        ): "common-items-npc_armor-quadruped_low-basilisk",
-        Simple(
-            "common.items.npc_armor.quadruped_low.crocodylia",
-        ): "common-items-npc_armor-quadruped_low-crocodylia",
-        Simple(
-            "common.items.npc_armor.quadruped_low.drake",
-        ): "common-items-npc_armor-quadruped_low-drake",
-        Simple(
-            "common.items.npc_armor.quadruped_low.sandshark",
-        ): "common-items-npc_armor-quadruped_low-sandshark",
-        Simple(
-            "common.items.npc_armor.quadruped_low.snapper",
-        ): "common-items-npc_armor-quadruped_low-snapper",
-        Simple(
             "common.items.npc_armor.bird_large.phoenix",
         ): "common-items-npc_armor-bird_large-phoenix",
         Simple(
@@ -571,62 +550,14 @@
             "common.items.npc_armor.chest.plate_red",
         ): "common-items-npc_armor-chest-plate_red",
         Simple(
-            "common.items.npc_armor.arthropod.generic",
-        ): "common-items-npc_armor-arthropod-generic",
-        Simple(
-            "common.items.npc_armor.arthropod.leafbeetle",
-        ): "common-items-npc_armor-arthropod-leafbeetle",
-        Simple(
-            "common.items.npc_armor.arthropod.weevil",
-        ): "common-items-npc_armor-arthropod-weevil",
-        Simple(
-            "common.items.npc_armor.quadruped_medium.frostfang",
-        ): "common-items-npc_armor-quadruped_medium-frostfang",
-        Simple(
-            "common.items.npc_armor.quadruped_medium.roshwalr",
-        ): "common-items-npc_armor-quadruped_medium-roshwalr",
-        Simple(
             "common.items.npc_armor.quadruped_medium.claysteed",
         ): "common-items-npc_armor-quadruped_medium-claysteed",
         Simple(
-            "common.items.npc_armor.quadruped_medium.bonerattler",
-        ): "common-items-npc_armor-quadruped_medium-bonerattler",
+            "common.items.npc_armor.generic",
+        ): "common-items-npc_armor-generic",
         Simple(
-            "common.items.npc_armor.quadruped_medium.broad",
-        ): "common-items-npc_armor-quadruped_medium-broad",
-        Simple(
-            "common.items.npc_armor.quadruped_medium.catoblepas",
-        ): "common-items-npc_armor-quadruped_medium-catoblepas",
-        Simple(
-            "common.items.npc_armor.quadruped_medium.dreadhorn",
-        ): "common-items-npc_armor-quadruped_medium-dreadhorn",
-        Simple(
-            "common.items.npc_armor.quadruped_medium.equus",
-        ): "common-items-npc_armor-quadruped_medium-equus",
-        Simple(
-            "common.items.npc_armor.quadruped_medium.hirdrasil",
-        ): "common-items-npc_armor-quadruped_medium-hirdrasil",
-        Simple(
-            "common.items.npc_armor.quadruped_medium.wolf",
-        ): "common-items-npc_armor-quadruped_medium-wolf",
-        Simple(
-            "common.items.npc_armor.quadruped_small.boar",
-        ): "common-items-npc_armor-quadruped_small-boar",
-        Simple(
-            "common.items.npc_armor.quadruped_small.hyena",
-        ): "common-items-npc_armor-quadruped_small-hyena",
-        Simple(
-            "common.items.npc_armor.quadruped_small.mossysnail",
-        ): "common-items-npc_armor-quadruped_small-mossysnail",
-        Simple(
-            "common.items.npc_armor.theropod.rugged",
-        ): "common-items-npc_armor-theropod-rugged",
-        Simple(
-            "common.items.npc_armor.theropod.raptor",
-        ): "common-items-npc_armor-theropod-raptor",
-        Simple(
-            "common.items.npc_armor.theropod.yale",
-        ): "common-items-npc_armor-theropod-yale",
+            "common.items.npc_armor.generic_high",
+        ): "common-items-npc_armor-generic_high",
         Simple(
             "common.items.npc_armor.back.backpack_blue",
         ): "armor-misc-back-backpack",

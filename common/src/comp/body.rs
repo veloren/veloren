@@ -820,121 +820,142 @@ impl Body {
             Body::Humanoid(_) => 100,
             Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
                 // T1
-                quadruped_small::Species::Boar => 60,
-                quadruped_small::Species::Holladon => 80,
-                quadruped_small::Species::MossySnail => 85,
-                quadruped_small::Species::Porcupine => 55,
-                quadruped_small::Species::Truffler => 130,
+                quadruped_small::Species::Batfox => 40,
+                quadruped_small::Species::Boar => 55,
+                quadruped_small::Species::Fox => 25,
+                quadruped_small::Species::Goat => 30,
+                quadruped_small::Species::Hare => 20,
+                quadruped_small::Species::Holladon => 25,
+                quadruped_small::Species::Jackalope => 30,
+                quadruped_small::Species::MossySnail => 15,
+                quadruped_small::Species::Porcupine => 25,
+                quadruped_small::Species::Sheep => 30,
+                quadruped_small::Species::TreantSapling => 20,
+                quadruped_small::Species::Truffler => 70,
                 // T2
-                quadruped_small::Species::Hyena => 90,
+                quadruped_small::Species::Hyena => 85,
                 // T0
-                quadruped_small::Species::Batfox => 15,
-                quadruped_small::Species::Beaver => 25,
+                quadruped_small::Species::Beaver => 20,
                 quadruped_small::Species::Cat => 25,
                 quadruped_small::Species::Dog => 30,
-                quadruped_small::Species::Fox => 15,
-                quadruped_small::Species::Goat => 15,
-                quadruped_small::Species::Hare => 15,
-                quadruped_small::Species::Jackalope => 30,
-                quadruped_small::Species::Pig => 15,
-                quadruped_small::Species::Quokka => 10,
-                quadruped_small::Species::Rabbit => 10,
-                quadruped_small::Species::Raccoon => 15,
-                quadruped_small::Species::Seal => 15,
-                quadruped_small::Species::TreantSapling => 55,
-                quadruped_small::Species::Sheep => 30,
-                quadruped_small::Species::Squirrel => 10,
+                quadruped_small::Species::Fungome => 15,
+                quadruped_small::Species::Pig => 25,
+                quadruped_small::Species::Quokka => 15,
+                quadruped_small::Species::Rabbit => 15,
+                quadruped_small::Species::Raccoon => 20,
+                quadruped_small::Species::Rat => 10,
+                quadruped_small::Species::Seal => 20,
+                quadruped_small::Species::Skunk => 20,
+                quadruped_small::Species::Turtle => 10,
                 _ => 5,
             },
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
                 // T1
-                quadruped_medium::Species::Antelope => 90,
-                quadruped_medium::Species::Donkey => 110,
-                quadruped_medium::Species::Horse => 100,
-                quadruped_medium::Species::Mouflon => 80,
-                quadruped_medium::Species::Zebra => 120,
+                quadruped_medium::Species::Alpaca => 55,
+                quadruped_medium::Species::Antelope => 70,
+                quadruped_medium::Species::Camel => 100,
+                quadruped_medium::Species::Cattle => 90,
+                quadruped_medium::Species::Deer => 55,
+                quadruped_medium::Species::Donkey => 65,
+                quadruped_medium::Species::Horse => 75,
+                quadruped_medium::Species::Llama => 65,
+                quadruped_medium::Species::Mouflon => 75,
+                quadruped_medium::Species::Zebra => 90,
                 // T2
                 quadruped_medium::Species::Barghest => 120,
-                quadruped_medium::Species::Bear => 210,
-                quadruped_medium::Species::Bristleback => 340,
-                quadruped_medium::Species::Bonerattler => 90,
-                quadruped_medium::Species::Cattle => 240,
-                quadruped_medium::Species::Frostfang => 110,
-                quadruped_medium::Species::Highland => 240,
-                quadruped_medium::Species::Kelpie => 155,
-                quadruped_medium::Species::Lion => 150,
-                quadruped_medium::Species::Moose => 160,
-                quadruped_medium::Species::Panda => 180,
-                quadruped_medium::Species::Saber => 150,
-                quadruped_medium::Species::Tarasque => 200,
-                quadruped_medium::Species::Tiger => 170,
-                quadruped_medium::Species::Tuskram => 200,
-                quadruped_medium::Species::Wolf => 95,
-                quadruped_medium::Species::Yak => 270,
+                quadruped_medium::Species::Bear => 240,
+                quadruped_medium::Species::Bristleback => 175,
+                quadruped_medium::Species::Bonerattler => 100,
+                quadruped_medium::Species::Frostfang => 185,
+                quadruped_medium::Species::Highland => 205,
+                quadruped_medium::Species::Kelpie => 150,
+                quadruped_medium::Species::Lion => 175,
+                quadruped_medium::Species::Moose => 265,
+                quadruped_medium::Species::Panda => 215,
+                quadruped_medium::Species::Saber => 210,
+                quadruped_medium::Species::Snowleopard => 175,
+                quadruped_medium::Species::Tiger => 205,
+                quadruped_medium::Species::Tuskram => 175,
+                quadruped_medium::Species::Wolf => 110,
+                quadruped_medium::Species::Yak => 215,
                 // T3A
-                quadruped_medium::Species::Akhlut => 520,
-                quadruped_medium::Species::Catoblepas => 350,
+                quadruped_medium::Species::Akhlut => 720,
+                quadruped_medium::Species::Catoblepas => 720,
                 quadruped_medium::Species::ClaySteed => 400,
-                quadruped_medium::Species::Dreadhorn => 570,
-                quadruped_medium::Species::Grolgar => 320,
-                quadruped_medium::Species::Hirdrasil => 850,
-                quadruped_medium::Species::Mammoth => 740,
-                quadruped_medium::Species::Ngoubou => 450,
-                quadruped_medium::Species::Roshwalr => 500,
+                quadruped_medium::Species::Dreadhorn => 690,
+                quadruped_medium::Species::Grolgar => 450,
+                quadruped_medium::Species::Hirdrasil => 480,
+                quadruped_medium::Species::Mammoth => 880,
+                quadruped_medium::Species::Ngoubou => 590,
+                quadruped_medium::Species::Roshwalr => 640,
+                quadruped_medium::Species::Tarasque => 370,
                 _ => 100,
             },
-            Body::FishMedium(_) => 15,
+            Body::FishMedium(fish_medium) => match fish_medium.species {
+                // T2
+                fish_medium::Species::Marlin => 50,
+                fish_medium::Species::Icepike => 90,
+            },
             Body::Dragon(_) => 500,
             Body::BirdLarge(bird_large) => match bird_large.species {
-                bird_large::Species::Roc => 280,
+                // T3A
+                bird_large::Species::Cockatrice => 540,
+                bird_large::Species::Roc => 450,
+                // T3B
                 bird_large::Species::FlameWyvern
                 | bird_large::Species::CloudWyvern
                 | bird_large::Species::FrostWyvern
                 | bird_large::Species::SeaWyvern
                 | bird_large::Species::WealdWyvern => 1000,
                 bird_large::Species::Phoenix => 2000,
-                _ => 300,
             },
             Body::BirdMedium(bird_medium) => match bird_medium.species {
-                bird_medium::Species::SnowyOwl => 45,
-                bird_medium::Species::HornedOwl => 45,
-                bird_medium::Species::Duck => 10,
-                bird_medium::Species::Cockatiel => 10,
+                // T0
+                bird_medium::Species::Bat => 10,
                 bird_medium::Species::Chicken => 10,
-                bird_medium::Species::Bat => 20,
-                bird_medium::Species::Goose => 30,
-                bird_medium::Species::Peacock => 35,
-                bird_medium::Species::Penguin => 35,
-                bird_medium::Species::Eagle => 45,
-                bird_medium::Species::Parrot => 20,
-                bird_medium::Species::Crow => 20,
+                bird_medium::Species::Cockatiel => 10,
                 bird_medium::Species::Dodo => 20,
-                bird_medium::Species::Parakeet => 20,
+                bird_medium::Species::Duck => 10,
+                bird_medium::Species::Parakeet => 10,
+                bird_medium::Species::Peacock => 20,
+                bird_medium::Species::Penguin => 10,
                 bird_medium::Species::Puffin => 20,
-                bird_medium::Species::Toucan => 20,
+                // T1
+                bird_medium::Species::Crow => 15,
+                bird_medium::Species::Eagle => 35,
+                bird_medium::Species::Goose => 25,
+                bird_medium::Species::HornedOwl => 35,
+                bird_medium::Species::Parrot => 15,
+                bird_medium::Species::SnowyOwl => 35,
+                bird_medium::Species::Toucan => 15,
             },
-            Body::FishSmall(_) => 3,
+            Body::FishSmall(fish_small) => match fish_small.species {
+                // T0
+                fish_small::Species::Clownfish => 5,
+                // T1
+                fish_small::Species::Piranha => 10,
+            },
             Body::BipedLarge(biped_large) => match biped_large.species {
-                biped_large::Species::Ogre => 380,
+                biped_large::Species::Ogre => 320,
                 biped_large::Species::Cyclops => 1000,
-                biped_large::Species::Wendigo => 300,
-                biped_large::Species::Cavetroll => 340,
-                biped_large::Species::Mountaintroll => 340,
-                biped_large::Species::Swamptroll => 340,
+                biped_large::Species::Wendigo => 280,
+                biped_large::Species::Cavetroll => 240,
+                biped_large::Species::Mountaintroll => 240,
+                biped_large::Species::Swamptroll => 240,
                 biped_large::Species::Dullahan => 600,
                 biped_large::Species::Mindflayer => 1250,
                 biped_large::Species::Tidalwarrior => 1600,
                 biped_large::Species::Yeti => 1800,
                 biped_large::Species::Minotaur => 3000,
                 biped_large::Species::Harvester => 1500,
-                biped_large::Species::Blueoni => 340,
-                biped_large::Species::Redoni => 340,
+                biped_large::Species::Blueoni => 240,
+                biped_large::Species::Redoni => 240,
                 biped_large::Species::Huskbrute => 800,
                 biped_large::Species::Cultistwarlord => 250,
                 biped_large::Species::Cultistwarlock => 250,
                 biped_large::Species::Gigasfrost => 30000,
                 biped_large::Species::AdletElder => 1500,
-                biped_large::Species::Tursus => 320,
+                biped_large::Species::Tursus => 300,
                 biped_large::Species::SeaBishop => 550,
                 biped_large::Species::HaniwaGeneral => 600,
                 biped_large::Species::TerracottaBesieger
@@ -986,65 +1007,66 @@ impl Body {
             },
             Body::Theropod(theropod) => match theropod.species {
                 // T1
-                theropod::Species::Dodarock => 85,
+                theropod::Species::Dodarock => 20,
                 // T2
                 theropod::Species::Axebeak => 275,
-                theropod::Species::Sunlizard => 210,
+                theropod::Species::Sandraptor => 110,
+                theropod::Species::Snowraptor => 110,
+                theropod::Species::Sunlizard => 110,
+                theropod::Species::Woodraptor => 110,
                 // T3A
-                theropod::Species::Yale => 680,
+                theropod::Species::Yale => 610,
                 // T3B
-                theropod::Species::Archaeos => 950,
-                theropod::Species::Ntouka => 1150,
-                theropod::Species::Odonto => 1350,
-                _ => 240,
+                theropod::Species::Archaeos => 880,
+                theropod::Species::Ntouka => 880,
+                theropod::Species::Odonto => 1320,
             },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 // T1
-                quadruped_low::Species::Driggle => 40,
-                quadruped_low::Species::Pangolin => 40,
+                quadruped_low::Species::Driggle => 50,
+                quadruped_low::Species::Pangolin => 20,
+                quadruped_low::Species::Tortoise => 45,
                 // T2
-                quadruped_low::Species::Alligator => 420,
-                quadruped_low::Species::Asp => 330,
-                quadruped_low::Species::Crocodile => 380,
-                quadruped_low::Species::Deadwood => 220,
-                quadruped_low::Species::Elbst => 240,
-                quadruped_low::Species::Hakulaq => 330,
-                quadruped_low::Species::Monitor => 285,
-                quadruped_low::Species::SeaCrocodile => 450,
-                quadruped_low::Species::Tortoise => 120,
+                quadruped_low::Species::Alligator => 130,
+                quadruped_low::Species::Asp => 175,
+                quadruped_low::Species::Crocodile => 145,
+                quadruped_low::Species::Deadwood => 85,
+                quadruped_low::Species::Elbst => 145,
+                quadruped_low::Species::Hakulaq => 155,
+                quadruped_low::Species::Monitor => 95,
+                quadruped_low::Species::Salamander => 210,
+                quadruped_low::Species::SeaCrocodile => 180,
                 // T3A
                 quadruped_low::Species::Dagon => 1200,
-                quadruped_low::Species::Icedrake => 640,
-                quadruped_low::Species::Lavadrake => 460,
-                quadruped_low::Species::Maneater => 800,
-                quadruped_low::Species::Mossdrake => 720,
-                quadruped_low::Species::Rocksnapper => 380,
-                quadruped_low::Species::Reefsnapper => 390,
+                quadruped_low::Species::Icedrake => 340,
+                quadruped_low::Species::Lavadrake => 340,
+                quadruped_low::Species::Maneater => 510,
+                quadruped_low::Species::Mossdrake => 340,
+                quadruped_low::Species::Rocksnapper => 400,
+                quadruped_low::Species::Reefsnapper => 400,
                 quadruped_low::Species::Rootsnapper => 400,
-                quadruped_low::Species::Sandshark => 550,
+                quadruped_low::Species::Sandshark => 540,
                 // T3B
-                quadruped_low::Species::Basilisk => 1300,
+                quadruped_low::Species::Basilisk => 660,
                 quadruped_low::Species::Snaretongue => 1500,
-                _ => 70,
             },
             Body::Arthropod(arthropod) => match arthropod.species {
-                // T0
-                arthropod::Species::Emberfly => 10,
                 // T1
                 arthropod::Species::Dagonite => 70,
-                arthropod::Species::Leafbeetle => 125,
-                arthropod::Species::Weevil => 110,
+                arthropod::Species::Emberfly => 20,
+                arthropod::Species::Leafbeetle => 40,
+                arthropod::Species::Weevil => 40,
                 // T2
-                arthropod::Species::Cavespider => 320,
-                arthropod::Species::Tarantula => 440,
+                arthropod::Species::Cavespider => 170,
+                arthropod::Species::Hornbeetle => 170,
+                arthropod::Species::Moltencrawler => 145,
+                arthropod::Species::Mosscrawler => 145,
+                arthropod::Species::Sandcrawler => 145,
+                arthropod::Species::Stagbeetle => 170,
+                arthropod::Species::Tarantula => 155,
                 // T3A
-                arthropod::Species::Antlion => 540,
-                arthropod::Species::Blackwidow => 420,
-                arthropod::Species::Hornbeetle => 480,
-                arthropod::Species::Moltencrawler => 400,
-                arthropod::Species::Mosscrawler => 600,
-                arthropod::Species::Sandcrawler => 500,
-                arthropod::Species::Stagbeetle => 440,
+                arthropod::Species::Antlion => 480,
+                arthropod::Species::Blackwidow => 370,
             },
             Body::Ship(_) => 1000,
             Body::Crustacean(_) => 40,
@@ -1241,14 +1263,14 @@ impl Body {
         match self {
             Body::Humanoid(_) => 100,
             Body::BipedLarge(biped_large) => match biped_large.species {
-                biped_large::Species::Mindflayer => 320,
-                biped_large::Species::Minotaur => 280,
-                biped_large::Species::Forgemaster => 250,
-                biped_large::Species::Gigasfrost => 800,
-                _ => 250,
+                biped_large::Species::Mindflayer => 390,
+                biped_large::Species::Minotaur => 340,
+                biped_large::Species::Forgemaster => 300,
+                biped_large::Species::Gigasfrost => 990,
+                _ => 300,
             },
             Body::BipedSmall(b) => match b.species {
-                biped_small::Species::IronDwarf | biped_small::Species::Flamekeeper => 250,
+                biped_small::Species::IronDwarf | biped_small::Species::Flamekeeper => 300,
                 _ => 100,
             },
             Body::BirdLarge(b) => match b.species {
@@ -1256,12 +1278,12 @@ impl Body {
                 | bird_large::Species::FrostWyvern
                 | bird_large::Species::CloudWyvern
                 | bird_large::Species::SeaWyvern
-                | bird_large::Species::WealdWyvern => 185,
-                _ => 140,
+                | bird_large::Species::WealdWyvern => 220,
+                _ => 165,
             },
-            Body::Golem(_) => 300,
+            Body::Golem(_) => 365,
             Body::QuadrupedMedium(b) => match b.species {
-                quadruped_medium::Species::Bear | quadruped_medium::Species::Grolgar => 165,
+                quadruped_medium::Species::Bear | quadruped_medium::Species::Grolgar => 195,
                 quadruped_medium::Species::Cattle
                 | quadruped_medium::Species::Llama
                 | quadruped_medium::Species::Alpaca
@@ -1273,8 +1295,8 @@ impl Body {
                 | quadruped_medium::Species::Horse
                 | quadruped_medium::Species::Kelpie
                 | quadruped_medium::Species::Hirdrasil
-                | quadruped_medium::Species::Antelope => 140,
-                quadruped_medium::Species::Deer => 120,
+                | quadruped_medium::Species::Antelope => 165,
+                quadruped_medium::Species::Deer => 140,
                 quadruped_medium::Species::Wolf
                 | quadruped_medium::Species::Tiger
                 | quadruped_medium::Species::Barghest
@@ -1285,8 +1307,8 @@ impl Body {
                 | quadruped_medium::Species::Akhlut
                 | quadruped_medium::Species::Bristleback
                 | quadruped_medium::Species::Catoblepas
-                | quadruped_medium::Species::Lion => 160,
-                quadruped_medium::Species::Panda => 130,
+                | quadruped_medium::Species::Lion => 190,
+                quadruped_medium::Species::Panda => 150,
                 quadruped_medium::Species::Saber
                 | quadruped_medium::Species::Yak
                 | quadruped_medium::Species::Frostfang
@@ -1294,18 +1316,18 @@ impl Body {
                 | quadruped_medium::Species::Tuskram
                 | quadruped_medium::Species::Mouflon
                 | quadruped_medium::Species::Roshwalr
-                | quadruped_medium::Species::Dreadhorn => 175,
-                quadruped_medium::Species::Mammoth | quadruped_medium::Species::Ngoubou => 195,
+                | quadruped_medium::Species::Dreadhorn => 205,
+                quadruped_medium::Species::Mammoth | quadruped_medium::Species::Ngoubou => 230,
             },
             Body::QuadrupedLow(b) => match b.species {
-                quadruped_low::Species::Dagon => 225,
+                quadruped_low::Species::Dagon => 270,
                 quadruped_low::Species::Crocodile
                 | quadruped_low::Species::Deadwood
                 | quadruped_low::Species::SeaCrocodile
                 | quadruped_low::Species::Alligator
                 | quadruped_low::Species::Sandshark
                 | quadruped_low::Species::Snaretongue
-                | quadruped_low::Species::Asp => 160,
+                | quadruped_low::Species::Asp => 190,
                 quadruped_low::Species::Tortoise
                 | quadruped_low::Species::Rocksnapper
                 | quadruped_low::Species::Rootsnapper
@@ -1315,19 +1337,19 @@ impl Body {
                 | quadruped_low::Species::Lavadrake
                 | quadruped_low::Species::Icedrake
                 | quadruped_low::Species::Basilisk
-                | quadruped_low::Species::Mossdrake => 175,
+                | quadruped_low::Species::Mossdrake => 205,
                 quadruped_low::Species::Elbst
                 | quadruped_low::Species::Salamander
                 | quadruped_low::Species::Monitor
                 | quadruped_low::Species::Pangolin
-                | quadruped_low::Species::Driggle => 115,
+                | quadruped_low::Species::Driggle => 130,
             },
             Body::Theropod(b) => match b.species {
                 theropod::Species::Archaeos
                 | theropod::Species::Ntouka
-                | theropod::Species::Odonto => 200,
-                theropod::Species::Yale => 185,
-                _ => 165,
+                | theropod::Species::Odonto => 240,
+                theropod::Species::Yale => 220,
+                _ => 195,
             },
             _ => 100,
         }

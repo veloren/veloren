@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hammer skill tree overhaul
 - Recipe for orichalcum ingots changed to use new alchemical ingredients
 - Refresh of voxel models for orichalcum armour
+- Toned down the health of most wild entities.
 
 ### Removed
 

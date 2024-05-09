@@ -1,12 +1,10 @@
 ItemDef(
-    legacy_name: "Horse Armor",
+    legacy_name: "NPC Generic High",
     legacy_description: "testing123",
     kind: Armor((
         kind: Chest,
         stats: Direct((
-            protection: Some(Normal(20.0)),
-            poise_resilience: Some(Normal(5.0)),
-            energy_max: Some(10),
+            protection: Some(Normal(60.0)),
         )),
     )),
     quality: Common,
