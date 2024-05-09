@@ -388,8 +388,11 @@ impl Block {
                 SpriteKind::Ember | SpriteKind::FireBlock => 20,
                 SpriteKind::WallLamp
                 | SpriteKind::WallLampSmall
+                | SpriteKind::WallLampWizard
+                | SpriteKind::WallLampMesa
                 | SpriteKind::WallSconce
                 | SpriteKind::FireBowlGround
+                | SpriteKind::MesaLantern
                 | SpriteKind::ChristmasOrnament
                 | SpriteKind::CliffDecorBlock
                 | SpriteKind::Orb

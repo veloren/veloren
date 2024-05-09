@@ -1228,7 +1228,7 @@ impl Structure for DesertCityMultiPlot {
                                                         .get(c_pos.with_z(floor_level)))
                                                         % 5
                                                     {
-                                                        0 => SpriteKind::MelonCut,
+                                                        0 => SpriteKind::Melon,
                                                         1 => SpriteKind::JugAndBowlArabic,
                                                         2 => SpriteKind::Bowl,
                                                         3 => SpriteKind::JugArabic,
