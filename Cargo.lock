@@ -7107,6 +7107,7 @@ dependencies = [
 name = "veloren-query-server"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "protocol",
  "rand 0.8.5",
  "tokio",

@@ -9,16 +9,23 @@ edition = "2021"
 [features]
 server = ["dep:rand"]
 client = ["tokio/time"]
-example = ["tokio/macros", "tokio/rt-multi-thread", "dep:tracing-subscriber", "client", "server"]
+example = ["tokio/macros", "tokio/rt-multi-thread", "dep:tracing-subscriber", "dep:clap", "client", "server"]
 default = []
 
 [dependencies]
 tokio = { workspace = true, features = ["net", "sync"] }
 protocol = { version = "3.4.0", default-features = false, features = ["derive"] }
+
 tracing-subscriber = { version = "0.3.7", optional = true }
 tracing = { workspace = true }
 rand = { workspace = true, optional = true }
+clap = { workspace = true, features = ["derive"], optional = true }
 
 [[example]]
-name = "demo"
+name = "query_client"
+required-features = ["example"]
+
+
+[[example]]
+name = "dummy_query_server"
 required-features = ["example"]
