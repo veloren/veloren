@@ -223,14 +223,13 @@ impl Structure for CliffTower {
                             painter.sprite(
                                 sprite_pos.with_z(floor_level + 1),
                                 match (RandomField::new(0).get(sprite_pos.with_z(floor_level + 1)))
-                                    % 10
+                                    % 8
                                 {
-                                    0 => SpriteKind::FireBowlGround,
-                                    1 => SpriteKind::Bowl,
-                                    3 => SpriteKind::VialEmpty,
-                                    4 => SpriteKind::Crate,
-                                    5 => SpriteKind::Pot,
-                                    _ => SpriteKind::Lantern,
+                                    0 => SpriteKind::Bowl,
+                                    1 => SpriteKind::VialEmpty,
+                                    2 => SpriteKind::Crate,
+                                    3 => SpriteKind::Pot,
+                                    _ => SpriteKind::MesaLantern,
                                 },
                             );
                         }
@@ -508,21 +507,21 @@ impl Structure for CliffTower {
                                         painter.sprite(
                                             pos.with_z(floor_level + 1),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
-                                                % 8
+                                                % 9
                                             {
-                                                0 => SpriteKind::DrawerSmall,
+                                                0 => SpriteKind::WardrobeSingleMesa,
                                                 1 => SpriteKind::CoatRack,
-                                                2 => SpriteKind::TableArabicSmall,
+                                                2 => SpriteKind::MirrorMesa,
                                                 3 => SpriteKind::CushionArabic,
                                                 4 => SpriteKind::JugArabic,
                                                 5 => SpriteKind::SepareArabic,
                                                 6 => SpriteKind::Crate,
                                                 7 => SpriteKind::Bowl,
-                                                _ => SpriteKind::Lantern,
+                                                _ => SpriteKind::MesaLantern,
                                             },
                                         );
                                     }
-                                    // canapes
+                                    // beds & wardrobes
                                     for d in 0..2 {
                                         let pos = Vec2::new(
                                             plot_center.x - length + 6 + (d * ((2 * length) - 12)),
@@ -544,7 +543,13 @@ impl Structure for CliffTower {
                                             .clear();
                                         painter.rotated_sprite(
                                             pos.with_z(floor_level + 1),
-                                            SpriteKind::CanapeArabic,
+                                            match (RandomField::new(0)
+                                                .get(pos.with_z(floor_level - d)))
+                                                % 3
+                                            {
+                                                0 => SpriteKind::WardrobeDoubleMesa,
+                                                _ => SpriteKind::BedMesa,
+                                            },
                                             (4 * d) as u8,
                                         );
                                     }
@@ -597,18 +602,17 @@ impl Structure for CliffTower {
                                         );
                                         painter.rotated_sprite(
                                             pos.with_z(floor_level + 3),
-                                            SpriteKind::WallTableArabic,
+                                            SpriteKind::WallTableMesa,
                                             (4 * d) as u8,
                                         );
                                         painter.rotated_sprite(
                                             pos.with_z(floor_level + 4),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
-                                                % 4
+                                                % 3
                                             {
                                                 0 => SpriteKind::Bowl,
                                                 1 => SpriteKind::VialEmpty,
-                                                2 => SpriteKind::JugArabic,
-                                                _ => SpriteKind::JugAndBowlArabic,
+                                                _ => SpriteKind::JugArabic,
                                             },
                                             (4 * d) as u8,
                                         );
@@ -619,20 +623,19 @@ impl Structure for CliffTower {
                                         painter.sprite(
                                             pos.with_z(floor_level + 1),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
-                                                % 14
+                                                % 12
                                             {
                                                 0 => SpriteKind::DrawerSmall,
                                                 1 => SpriteKind::CoatRack,
                                                 2 => SpriteKind::TableArabicSmall,
                                                 3 => SpriteKind::CushionArabic,
                                                 4 => SpriteKind::JugArabic,
-                                                5 => SpriteKind::DrawerSmall,
+                                                5 => SpriteKind::WardrobeSingleMesa,
                                                 6 => SpriteKind::Crate,
                                                 7 => SpriteKind::DecorSetArabic,
                                                 8 => SpriteKind::VialEmpty,
                                                 9 => SpriteKind::SepareArabic,
-                                                10 => SpriteKind::TableArabicSmall,
-                                                11 => SpriteKind::Lantern,
+                                                10 => SpriteKind::MesaLantern,
                                                 _ => SpriteKind::FountainArabic,
                                             },
                                         );
@@ -647,8 +650,8 @@ impl Structure for CliffTower {
                                             plot_center.y - length + (d * ((2 * length) - 1)),
                                         );
                                         painter.rotated_sprite(
-                                            pos.with_z(floor_level + 2),
-                                            SpriteKind::CupboardArabic,
+                                            pos.with_z(floor_level + 3),
+                                            SpriteKind::CupboardMesa,
                                             (4 * d) as u8,
                                         );
                                     }
@@ -660,18 +663,17 @@ impl Structure for CliffTower {
                                         );
                                         painter.rotated_sprite(
                                             pos.with_z(floor_level + 2),
-                                            SpriteKind::WallTableArabic,
+                                            SpriteKind::WallTableMesa,
                                             (4 * d) as u8,
                                         );
                                         painter.rotated_sprite(
                                             pos.with_z(floor_level + 3),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
-                                                % 5
+                                                % 4
                                             {
-                                                0 => SpriteKind::MelonCut,
-                                                1 => SpriteKind::JugAndBowlArabic,
-                                                2 => SpriteKind::Bowl,
-                                                3 => SpriteKind::JugArabic,
+                                                0 => SpriteKind::Melon,
+                                                1 => SpriteKind::Bowl,
+                                                2 => SpriteKind::JugArabic,
                                                 _ => SpriteKind::VialEmpty,
                                             },
                                             (4 * d) as u8,
@@ -683,25 +685,51 @@ impl Structure for CliffTower {
                                         painter.sprite(
                                             pos.with_z(floor_level + 1),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
-                                                % 12
+                                                % 11
                                             {
-                                                0 => SpriteKind::DrawerSmall,
+                                                0 => SpriteKind::WardrobeSingleMesa,
                                                 1 => SpriteKind::Cauldron,
                                                 2 => SpriteKind::TableArabicSmall,
                                                 3 => SpriteKind::CushionArabic,
                                                 4 => SpriteKind::JugArabic,
-                                                5 => SpriteKind::DrawerSmall,
-                                                6 => SpriteKind::Crate,
-                                                7 => SpriteKind::Bowl,
-                                                8 => SpriteKind::VialEmpty,
-                                                9 => SpriteKind::CookingPot,
-                                                10 => SpriteKind::Lantern,
+                                                5 => SpriteKind::Crate,
+                                                6 => SpriteKind::Bowl,
+                                                7 => SpriteKind::VialEmpty,
+                                                8 => SpriteKind::CookingPot,
+                                                9 => SpriteKind::MesaLantern,
+                                                10 => SpriteKind::JugAndBowlArabic,
                                                 _ => SpriteKind::OvenArabic,
                                             },
                                         );
                                     }
                                 },
                             }
+                        }
+                        // wall lamps
+
+                        let corner_pos_1 = Vec2::new(plot_center.x - length, plot_center.y - 5);
+                        let corner_pos_2 = Vec2::new(plot_center.x - 5, plot_center.y - length);
+                        for dir in SQUARE_4 {
+                            let lamp_pos_1 = Vec2::new(
+                                corner_pos_1.x + (dir.x * ((2 * length) - 1)),
+                                corner_pos_1.y + (dir.y * 10),
+                            )
+                            .with_z(floor_level + 7);
+                            painter.rotated_sprite(
+                                lamp_pos_1,
+                                SpriteKind::WallLampMesa,
+                                (2 + (4 * dir.x)) as u8,
+                            );
+                            let lamp_pos_2 = Vec2::new(
+                                corner_pos_2.x + (dir.x * 10),
+                                corner_pos_2.y + (dir.y * ((2 * length) - 1)),
+                            )
+                            .with_z(floor_level + 7);
+                            painter.rotated_sprite(
+                                lamp_pos_2,
+                                SpriteKind::WallLampMesa,
+                                (4 - (4 * dir.y)) as u8,
+                            );
                         }
                     }
                     // stairs
