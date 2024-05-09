@@ -66,6 +66,7 @@ pub mod quadruped_medium;
 pub mod quadruped_small;
 pub mod ship;
 pub mod theropod;
+pub mod util;
 pub mod vek;
 
 use self::vek::*;
