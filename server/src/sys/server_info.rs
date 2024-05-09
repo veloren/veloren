@@ -34,6 +34,7 @@ impl<'a> System<'a> for Sys {
         if let Some(sender) = sender.as_ref()
             && tick.0 % INFO_SEND_INTERVAL == 0
         {
+            tracing::trace!("Updating server info");
             let count = players.count().try_into().unwrap_or(u16::MAX);
             if let Err(error) = sender.send(ServerInfo {
                 git_hash: *GIT_HASH,
