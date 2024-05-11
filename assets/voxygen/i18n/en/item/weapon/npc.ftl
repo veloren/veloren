@@ -283,6 +283,9 @@ common-items-npc_weapons-unique-quadsmallbasic = Quad Small Basic
 common-items-npc_weapons-unique-darkhound = Darkhound
     .desc = testing123
 
+common-items-npc_weapons-unique-rocksnapper = Rocksnapper
+    .desc = testing123
+
 common-items-npc_weapons-unique-roshwalr = Roshwalr
     .desc = testing123
 
