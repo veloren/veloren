@@ -1076,17 +1076,20 @@ impl<'a> AgentData<'a> {
                 if let Some(ability_spec) = item.ability_spec() {
                     match &*ability_spec {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
-                            "Oni" | "Sword Simple" => Tactic::SwordSimple,
-                            "Staff Simple" => Tactic::Staff,
+                            "Oni" | "Sword Simple" | "BipedLargeCultistSword" => {
+                                Tactic::SwordSimple
+                            },
+                            "Staff Simple" | "BipedLargeCultistStaff" => Tactic::Staff,
+                            "BipedLargeCultistHammer" => Tactic::Hammer,
                             "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
-                            "Bow Simple" | "Boreal Bow" => Tactic::Bow,
+                            "Bow Simple" | "Boreal Bow" | "BipedLargeCultistBow" => Tactic::Bow,
                             "Stone Golem" | "Coral Golem" => Tactic::StoneGolem,
                             "Iron Golem" => Tactic::IronGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
                                 radius: 3,
                                 circle_time: 2,
                             },
-                            "Quad Med Jump" => Tactic::QuadMedJump,
+                            "Quad Med Jump" | "Darkhound" => Tactic::QuadMedJump,
                             "Quad Med Charge" => Tactic::CircleCharge {
                                 radius: 6,
                                 circle_time: 1,

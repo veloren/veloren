@@ -599,10 +599,12 @@ fn default_main_tool(body: &Body) -> Item {
             )),
             quadruped_medium::Species::Saber
             | quadruped_medium::Species::Bonerattler
-            | quadruped_medium::Species::Darkhound
             | quadruped_medium::Species::Lion
             | quadruped_medium::Species::Snowleopard => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadmedjump",
+            )),
+            quadruped_medium::Species::Darkhound => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.darkhound",
             )),
             // Below uniques still follow quadmedcharge just with stat alterations
             quadruped_medium::Species::Moose | quadruped_medium::Species::Tuskram => {

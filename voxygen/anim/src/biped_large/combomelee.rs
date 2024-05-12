@@ -114,7 +114,8 @@ impl Animation for ComboAnimation {
                 },
                 Some(
                     "common.abilities.custom.cyclops.doublestrike"
-                    | "common.abilities.hammersimple.doublestrike",
+                    | "common.abilities.hammersimple.doublestrike"
+                    | "common.abilities.custom.biped_large_cultist.hammer.doublestrike",
                 ) => {
                     let speed = Vec2::<f32>::from(velocity).magnitude();
                     match strike {
@@ -152,6 +153,7 @@ impl Animation for ComboAnimation {
                 Some(
                     "common.abilities.custom.dullahan.melee"
                     | "common.abilities.swordsimple.doublestrike"
+                    | "common.abilities.custom.biped_large_cultist.sword.doublestrike"
                     | "common.abilities.custom.terracotta_pursuer.doublestrike"
                     | "common.abilities.custom.terracotta_demolisher.triplestrike",
                 ) => {

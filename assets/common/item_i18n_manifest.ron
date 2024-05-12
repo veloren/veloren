@@ -2674,6 +2674,9 @@
             "common.items.npc_weapons.unique.quadsmallbasic",
         ): "common-items-npc_weapons-unique-quadsmallbasic",
         Simple(
+            "common.items.npc_weapons.unique.darkhound",
+        ): "common-items-npc_weapons-unique-darkhound",
+        Simple(
             "common.items.npc_weapons.unique.roshwalr",
         ): "common-items-npc_weapons-unique-roshwalr",
         Simple(

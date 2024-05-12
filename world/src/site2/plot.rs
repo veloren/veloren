@@ -7,6 +7,7 @@ mod citadel;
 mod cliff_tower;
 mod coastal_house;
 mod coastal_workshop;
+mod cultist;
 mod desert_city_arena;
 mod desert_city_multiplot;
 mod desert_city_temple;
@@ -33,7 +34,7 @@ mod workshop;
 pub use self::{
     adlet::AdletStronghold, airship_dock::AirshipDock, bridge::Bridge, camp::Camp, castle::Castle,
     citadel::Citadel, cliff_tower::CliffTower, coastal_house::CoastalHouse,
-    coastal_workshop::CoastalWorkshop, desert_city_arena::DesertCityArena,
+    coastal_workshop::CoastalWorkshop, cultist::Cultist, desert_city_arena::DesertCityArena,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
     dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
     gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
@@ -94,6 +95,7 @@ pub enum PlotKind {
     JungleRuin(JungleRuin),
     Plaza,
     Castle(Castle),
+    Cultist(Cultist),
     Road(Path<Vec2<i32>>),
     Dungeon(Dungeon),
     Gnarling(GnarlingFortification),

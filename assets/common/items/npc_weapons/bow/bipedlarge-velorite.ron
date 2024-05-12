@@ -16,5 +16,5 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("Bow Simple")),
+    ability_spec: Some(Custom("BipedLargeCultistBow")),
 )

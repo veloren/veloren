@@ -477,6 +477,13 @@
         secondary: Simple(None, "common.abilities.custom.quadmedbasic.triplestrike"),
         abilities: [],
     ),
+    Custom("Darkhound"): (
+        primary: Simple(None, "common.abilities.custom.darkhound.leap"),
+        secondary: Simple(None, "common.abilities.custom.darkhound.doublestrike"),
+        abilities: [
+            Simple(None, "common.abilities.custom.darkhound.quickleap"),
+        ],
+    ),
     Custom("Frostfang"): (
         primary: Simple(None, "common.abilities.custom.frostfang.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.frostfang.triplestrike"),
@@ -1122,6 +1129,26 @@
     Custom("Jiangshi"): (
         primary: Simple(None, "common.abilities.custom.jiangshi.poisonshockwave"),
         secondary: Simple(None, "common.abilities.custom.jiangshi.teleport"),
+        abilities: [],
+    ),
+    Custom("BipedLargeCultistStaff"): (
+        primary: Simple(None, "common.abilities.custom.biped_large_cultist.staff.firebomb"),
+        secondary: Simple(None, "common.abilities.custom.biped_large_cultist.staff.flamethrower"),
+        abilities: [],
+    ),
+    Custom("BipedLargeCultistSword"): (
+        primary: Simple(None, "common.abilities.custom.biped_large_cultist.sword.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.biped_large_cultist.sword.dash"),
+        abilities: [],
+    ),
+    Custom("BipedLargeCultistHammer"): (
+        primary: Simple(None, "common.abilities.custom.biped_large_cultist.hammer.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.biped_large_cultist.hammer.doublestrike"),
+        abilities: [],
+    ),
+    Custom("BipedLargeCultistBow"): (
+        primary: Simple(None, "common.abilities.custom.biped_large_cultist.bow.basic"),
+        secondary: Simple(None, "common.abilities.custom.biped_large_cultist.bow.basic"),
         abilities: [],
     ),
 })

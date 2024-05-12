@@ -113,7 +113,8 @@ impl Site {
                 PlotKind::TerracottaPalace(tp) => Some(tp.spawn_rules(wpos)),
                 PlotKind::TerracottaHouse(th) => Some(th.spawn_rules(wpos)),
                 PlotKind::TerracottaYard(ty) => Some(ty.spawn_rules(wpos)),
-                //PlotKind::DwarvenMine(m) => Some(m.spawn_rules(wpos)),
+                PlotKind::Cultist(cl) => Some(cl.spawn_rules(wpos)),
+                PlotKind::DwarvenMine(dm) => Some(dm.spawn_rules(wpos)),
                 _ => None,
             })
             .fold(base_spawn_rules, |a, b| a.combine(b))
@@ -1726,6 +1727,49 @@ impl Site {
         site
     }
 
+    pub fn generate_cultist(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+
+            name: {
+                let name = NameGen::location(&mut rng).generate();
+                match rng.gen_range(0..5) {
+                    0 => format!("{} Dungeon", name),
+                    1 => format!("{} Lair", name),
+                    2 => format!("{} Crib", name),
+                    3 => format!("{} Catacombs", name),
+                    _ => format!("{} Pit", name),
+                }
+            },
+
+            //name: NameGen::location(&mut rng).generate_adlet(),
+            ..Site::default()
+        };
+        let size = 22.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let cultist = plot::Cultist::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let cultist_alt = cultist.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::Cultist(cultist),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(cultist_alt),
+            });
+        }
+        site
+    }
+
     pub fn generate_bridge(
         land: &Land,
         index: IndexRef,
@@ -2083,6 +2127,7 @@ impl Site {
                 PlotKind::TerracottaYard(terracotta_yard) => {
                     terracotta_yard.render_collect(self, canvas)
                 },
+                PlotKind::Cultist(cultist) => cultist.render_collect(self, canvas),
                 PlotKind::DesertCityMultiPlot(desert_city_multi_plot) => {
                     desert_city_multi_plot.render_collect(self, canvas)
                 },

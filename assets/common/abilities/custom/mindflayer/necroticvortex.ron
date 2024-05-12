@@ -1,5 +1,5 @@
 RapidMelee(
-    buildup_duration: 1.2,
+    buildup_duration: 1.8,
     swing_duration: 0.5,
     recover_duration: 1.2,
     melee_constructor: (

@@ -154,6 +154,7 @@ pub enum SiteKind {
     Adlet,
     Haniwa,
     DwarvenMine,
+    Cultist,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
