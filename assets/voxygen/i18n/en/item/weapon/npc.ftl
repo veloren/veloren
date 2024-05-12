@@ -280,6 +280,9 @@ common-items-npc_weapons-unique-quadmedquick = Quad Med Quick
 common-items-npc_weapons-unique-quadsmallbasic = Quad Small Basic
     .desc = testing123
 
+common-items-npc_weapons-unique-darkhound = Darkhound
+    .desc = testing123
+
 common-items-npc_weapons-unique-roshwalr = Roshwalr
     .desc = testing123
 

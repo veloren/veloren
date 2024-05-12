@@ -798,6 +798,7 @@ impl Body {
         match self {
             Body::BipedLarge(biped_large) => match biped_large.species {
                 biped_large::Species::Dullahan => 400,
+                biped_large::Species::Cultistwarlord | biped_large::Species::Cultistwarlock => 240,
                 _ => 300,
             },
             Body::BirdLarge(body) => match body.species {
@@ -853,6 +854,7 @@ impl Body {
                 // T1
                 quadruped_medium::Species::Alpaca => 55,
                 quadruped_medium::Species::Antelope => 70,
+                quadruped_medium::Species::Darkhound => 80,
                 quadruped_medium::Species::Camel => 100,
                 quadruped_medium::Species::Cattle => 90,
                 quadruped_medium::Species::Deer => 55,
@@ -889,7 +891,6 @@ impl Body {
                 quadruped_medium::Species::Ngoubou => 590,
                 quadruped_medium::Species::Roshwalr => 640,
                 quadruped_medium::Species::Tarasque => 370,
-                _ => 100,
             },
             Body::FishMedium(fish_medium) => match fish_medium.species {
                 // T2
@@ -943,7 +944,7 @@ impl Body {
                 biped_large::Species::Mountaintroll => 240,
                 biped_large::Species::Swamptroll => 240,
                 biped_large::Species::Dullahan => 600,
-                biped_large::Species::Mindflayer => 1250,
+                biped_large::Species::Mindflayer => 2000,
                 biped_large::Species::Tidalwarrior => 1600,
                 biped_large::Species::Yeti => 1800,
                 biped_large::Species::Minotaur => 3000,
@@ -951,8 +952,8 @@ impl Body {
                 biped_large::Species::Blueoni => 240,
                 biped_large::Species::Redoni => 240,
                 biped_large::Species::Huskbrute => 800,
-                biped_large::Species::Cultistwarlord => 250,
-                biped_large::Species::Cultistwarlock => 250,
+                biped_large::Species::Cultistwarlord => 200,
+                biped_large::Species::Cultistwarlock => 200,
                 biped_large::Species::Gigasfrost => 30000,
                 biped_large::Species::AdletElder => 1500,
                 biped_large::Species::Tursus => 300,

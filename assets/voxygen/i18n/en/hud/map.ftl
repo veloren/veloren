@@ -36,5 +36,6 @@ hud-map-gnarling = Gnarling Fortification
 hud-map-chapel_site = Sea Chapel
 hud-map-adlet = Adlet Stronghold
 hud-map-haniwa = Haniwa Catacomb
+hud-map-cultist = Cultist Dungeon
 hud-map-terracotta = Terracotta Ruins
 hud-map-placed_by = Placed by { $name }

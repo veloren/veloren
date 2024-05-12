@@ -84,6 +84,7 @@ pub enum SiteKind {
     RockCircle(site2::Site),
     TrollCave(site2::Site),
     Camp(site2::Site),
+    Cultist(site2::Site),
 }
 
 impl Site {
@@ -206,6 +207,13 @@ impl Site {
         }
     }
 
+    pub fn cultist(cl: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::Cultist(cl),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn dwarven_mine(dm: site2::Site) -> Self {
         Self {
             kind: SiteKind::DwarvenMine(dm),
@@ -265,6 +273,7 @@ impl Site {
             SiteKind::Bridge(b) => b.radius(),
             SiteKind::Adlet(ad) => ad.radius(),
             SiteKind::Haniwa(ha) => ha.radius(),
+            SiteKind::Cultist(cl) => cl.radius(),
         }
     }
 
@@ -292,6 +301,7 @@ impl Site {
             SiteKind::Bridge(b) => b.origin,
             SiteKind::Adlet(ad) => ad.origin,
             SiteKind::Haniwa(ha) => ha.origin,
+            SiteKind::Cultist(cl) => cl.origin,
         }
     }
 
@@ -319,6 +329,7 @@ impl Site {
             SiteKind::Bridge(b) => b.spawn_rules(wpos),
             SiteKind::Adlet(ad) => ad.spawn_rules(wpos),
             SiteKind::Haniwa(ha) => ha.spawn_rules(wpos),
+            SiteKind::Cultist(cl) => cl.spawn_rules(wpos),
         }
     }
 
@@ -346,6 +357,7 @@ impl Site {
             SiteKind::Bridge(b) => b.name(),
             SiteKind::Adlet(ad) => ad.name(),
             SiteKind::Haniwa(ha) => ha.name(),
+            SiteKind::Cultist(cl) => cl.name(),
         }
     }
 
@@ -393,6 +405,7 @@ impl Site {
             SiteKind::Bridge(b) => b.render(canvas, dynamic_rng),
             SiteKind::Adlet(ad) => ad.render(canvas, dynamic_rng),
             SiteKind::Haniwa(ha) => ha.render(canvas, dynamic_rng),
+            SiteKind::Cultist(cl) => cl.render(canvas, dynamic_rng),
         }
     }
 
@@ -434,6 +447,7 @@ impl Site {
             SiteKind::Bridge(b) => b.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Adlet(ad) => ad.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Haniwa(ha) => ha.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::Cultist(cl) => cl.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 
@@ -475,6 +489,7 @@ impl Site {
             SiteKind::Bridge(site2) => Some(site2),
             SiteKind::Adlet(site2) => Some(site2),
             SiteKind::Haniwa(site2) => Some(site2),
+            SiteKind::Cultist(site2) => Some(site2),
         }
     }
 }

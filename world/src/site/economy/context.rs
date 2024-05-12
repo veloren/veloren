@@ -131,6 +131,7 @@ impl Environment {
                     SiteKind::GiantTree(_) => (),
                     SiteKind::Gnarling(_) => {},
                     SiteKind::Adlet(_) => {},
+                    SiteKind::Cultist(_) => {},
                     SiteKind::Haniwa(_) => {},
                     SiteKind::JungleRuin(_) => {},
                     SiteKind::ChapelSite(_) => {},
