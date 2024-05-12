@@ -1,7 +1,7 @@
 object-potion_red = Potent Potion
     .desc = A potent healing potion.
 
-object-curious_potion = Curious Potion
+object-potion_curious = Curious Potion
     .desc = Wonder what this does...
 
 object-potion_agility = Potion of Agility
