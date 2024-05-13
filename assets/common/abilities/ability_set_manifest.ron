@@ -536,10 +536,10 @@
         abilities: [],
     ),
     Custom("Rocksnapper"): (
-        primary: Simple(None, "common.abilities.custom.rocksnapper.dash"),
-        secondary: Simple(None, "common.abilities.custom.rocksnapper.leapshockwave"),
+        primary: Simple(None, "common.abilities.custom.rocksnapper.triplestrike"),
+        secondary: Simple(None, "common.abilities.custom.rocksnapper.dash"),
         abilities: [
-            Simple(None, "common.abilities.custom.rocksnapper.triplestrike"),
+            Simple(None, "common.abilities.custom.rocksnapper.leapshockwave"),
         ],
     ),
     Custom("Quad Low Beam"): (

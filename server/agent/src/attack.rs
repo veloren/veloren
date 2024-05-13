@@ -4596,7 +4596,6 @@ impl<'a> AgentData<'a> {
             TimerRocksnapperDash = 0,
             TimerRocksnapperLeap = 1,
         }
-
         agent.combat_state.timers[ActionStateTimers::TimerRocksnapperDash as usize] +=
             read_data.dt.0;
         agent.combat_state.timers[ActionStateTimers::TimerRocksnapperLeap as usize] +=
@@ -4604,13 +4603,13 @@ impl<'a> AgentData<'a> {
 
         if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
         {
-            // If already charging, keep charging if not in recover
-            controller.push_basic_input(InputKind::Primary);
+            // If already dashing, keep dashing if not in recover stage
+            controller.push_basic_input(InputKind::Secondary);
         } else if agent.combat_state.timers[ActionStateTimers::TimerRocksnapperDash as usize]
             > DASH_TIMER
         {
             // Use dash if timer has gone for long enough
-            controller.push_basic_input(InputKind::Primary);
+            controller.push_basic_input(InputKind::Secondary);
 
             if matches!(self.char_state, CharacterState::DashMelee(_)) {
                 // Resets action counter when using dash
@@ -4621,20 +4620,20 @@ impl<'a> AgentData<'a> {
                 > LEAP_TIMER
             {
                 // Use shockwave if timer has gone for long enough
-                controller.push_basic_input(InputKind::Secondary);
+                controller.push_basic_input(InputKind::Ability(0));
 
                 if matches!(self.char_state, CharacterState::LeapShockwave(_)) {
-                    // Resets action counter when using leap shockwave
+                    // Resets action timer when using leap shockwave
                     agent.combat_state.timers[ActionStateTimers::TimerRocksnapperLeap as usize] =
                         0.0;
                 }
             } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
                 // Basic attack if in melee range
-                controller.push_basic_input(InputKind::Ability(0));
+                controller.push_basic_input(InputKind::Primary);
             }
         } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) && attack_data.angle < 135.0 {
             // Basic attack if in melee range
-            controller.push_basic_input(InputKind::Ability(0));
+            controller.push_basic_input(InputKind::Primary);
         }
 
         // Always attempt to path towards target
