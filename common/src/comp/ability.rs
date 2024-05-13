@@ -904,12 +904,7 @@ pub enum CharacterAbility {
     ChargedRanged {
         energy_cost: f32,
         energy_drain: f32,
-        initial_regen: f32,
-        scaled_regen: f32,
-        initial_damage: f32,
-        scaled_damage: f32,
-        initial_knockback: f32,
-        scaled_knockback: f32,
+        projectile: ProjectileConstructor,
         buildup_duration: f32,
         charge_duration: f32,
         recover_duration: f32,
@@ -1329,7 +1324,7 @@ impl CharacterAbility {
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *projectile = projectile.modified_projectile(stats.power, 1_f32, 1_f32);
+                *projectile = projectile.adjusted_by_stats(stats);
                 *projectile_speed *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
@@ -1352,7 +1347,7 @@ impl CharacterAbility {
                 *buildup_duration /= stats.speed;
                 *shoot_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *projectile = projectile.modified_projectile(stats.power, 1_f32, 1_f32);
+                *projectile = projectile.adjusted_by_stats(stats);
                 *projectile_speed *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
@@ -1533,12 +1528,7 @@ impl CharacterAbility {
             ChargedRanged {
                 ref mut energy_cost,
                 ref mut energy_drain,
-                initial_regen: _,
-                scaled_regen: _,
-                ref mut initial_damage,
-                ref mut scaled_damage,
-                initial_knockback: _,
-                scaled_knockback: _,
+                ref mut projectile,
                 ref mut buildup_duration,
                 ref mut charge_duration,
                 ref mut recover_duration,
@@ -1550,8 +1540,7 @@ impl CharacterAbility {
                 move_speed: _,
                 meta: _,
             } => {
-                *initial_damage *= stats.power;
-                *scaled_damage *= stats.power;
+                *projectile = projectile.adjusted_by_stats(stats);
                 *buildup_duration /= stats.speed;
                 *charge_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -2009,12 +1998,7 @@ impl CharacterAbility {
         let projectile_speed_modifier = SKILL_MODIFIERS.bow_tree.universal.projectile_speed;
         match self {
             CharacterAbility::ChargedRanged {
-                ref mut initial_damage,
-                ref mut scaled_damage,
-                ref mut initial_regen,
-                ref mut scaled_regen,
-                ref mut initial_knockback,
-                ref mut scaled_knockback,
+                ref mut projectile,
                 ref mut move_speed,
                 ref mut initial_projectile_speed,
                 ref mut scaled_projectile_speed,
@@ -2028,19 +2012,16 @@ impl CharacterAbility {
                     *scaled_projectile_speed *= projectile_speed_scaling;
                 }
                 if let Ok(level) = skillset.skill_level(Bow(CDamage)) {
-                    let damage_scaling = modifiers.damage_scaling.powi(level.into());
-                    *initial_damage *= damage_scaling;
-                    *scaled_damage *= damage_scaling;
+                    let power = modifiers.damage_scaling.powi(level.into());
+                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
                 }
                 if let Ok(level) = skillset.skill_level(Bow(CRegen)) {
-                    let regen_scaling = modifiers.regen_scaling.powi(level.into());
-                    *initial_regen *= regen_scaling;
-                    *scaled_regen *= regen_scaling;
+                    let regen = modifiers.regen_scaling.powi(level.into());
+                    *projectile = projectile.legacy_modified_by_skills(1_f32, regen, 1_f32, 1_f32);
                 }
                 if let Ok(level) = skillset.skill_level(Bow(CKnockback)) {
-                    let knockback_scaling = modifiers.knockback_scaling.powi(level.into());
-                    *initial_knockback *= knockback_scaling;
-                    *scaled_knockback *= knockback_scaling;
+                    let kb = modifiers.knockback_scaling.powi(level.into());
+                    *projectile = projectile.legacy_modified_by_skills(1_f32, 1_f32, 1_f32, kb);
                 }
                 if let Ok(level) = skillset.skill_level(Bow(CSpeed)) {
                     let charge_time = 1.0 / modifiers.charge_rate;
@@ -2063,7 +2044,7 @@ impl CharacterAbility {
                 }
                 if let Ok(level) = skillset.skill_level(Bow(RDamage)) {
                     let power = modifiers.power.powi(level.into());
-                    *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
+                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
                 }
                 if let Ok(level) = skillset.skill_level(Bow(RCost)) {
                     *energy_cost *= modifiers.energy_cost.powi(level.into());
@@ -2086,7 +2067,7 @@ impl CharacterAbility {
                 }
                 if let Ok(level) = skillset.skill_level(Bow(SDamage)) {
                     let power = modifiers.power.powi(level.into());
-                    *projectile = projectile.modified_projectile(power, 1_f32, 1_f32);
+                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
                 }
                 if let Ok(level) = skillset.skill_level(Bow(SCost)) {
                     *energy_cost *= modifiers.energy_cost.powi(level.into());
@@ -2117,7 +2098,7 @@ impl CharacterAbility {
                 let power = modifiers.power.powi(damage_level.into());
                 let regen = modifiers.regen.powi(regen_level.into());
                 let range = modifiers.range.powi(range_level.into());
-                *projectile = projectile.modified_projectile(power, regen, range);
+                *projectile = projectile.legacy_modified_by_skills(power, regen, range, 1_f32);
             },
             CharacterAbility::BasicBeam {
                 ref mut damage,
@@ -2564,12 +2545,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             CharacterAbility::ChargedRanged {
                 energy_cost: _,
                 energy_drain,
-                initial_regen,
-                scaled_regen,
-                initial_damage,
-                scaled_damage,
-                initial_knockback,
-                scaled_knockback,
+                projectile,
                 buildup_duration,
                 charge_duration,
                 recover_duration,
@@ -2586,12 +2562,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     energy_drain: *energy_drain,
-                    initial_regen: *initial_regen,
-                    scaled_regen: *scaled_regen,
-                    initial_damage: *initial_damage,
-                    scaled_damage: *scaled_damage,
-                    initial_knockback: *initial_knockback,
-                    scaled_knockback: *scaled_knockback,
+                    projectile: *projectile,
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     initial_projectile_speed: *initial_projectile_speed,

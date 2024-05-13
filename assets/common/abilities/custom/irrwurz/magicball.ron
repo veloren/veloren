@@ -2,11 +2,22 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.5,
     recover_duration: 1.0,
-     projectile: Magicball(
-        damage: 22.0,
-        radius: 3.0,
-        energy_regen: 0,
-        min_falloff: 0.5,
+    projectile: (
+        kind: Explosive(
+            radius: 3,
+            min_falloff: 0.5,
+            reagent: Some(Green),
+        ),
+        attack: Some((
+            damage: 22,
+            energy: 0,
+            buff: Some((
+                kind: Poisoned,
+                dur_secs: 5,
+                strength: DamageFraction(0.8),
+                chance: 1.0,
+            )),
+        )),
     ),
     projectile_body: Object(FireworkGreen),
     projectile_speed: 25.0,

@@ -2,11 +2,18 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.2,
     recover_duration: 1.0,
-    projectile: ClayRocket(
-        damage: 75.0,
-        knockback: 18.0,
-        radius: 5.0,
-        min_falloff: 0.75,
+    projectile: (
+        kind: Explosive(
+            radius: 5,
+            min_falloff: 0.75,
+            reagent: Some(Red),
+            terrain: Some((5, Black)),
+        ),
+        attack: Some((
+            damage: 75,
+            knockback: Some(18),
+            energy: 0,
+        )),
     ),
     projectile_body: Object(ClayRocket),
     projectile_light: None,

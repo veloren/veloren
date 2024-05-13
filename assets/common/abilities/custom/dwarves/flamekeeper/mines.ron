@@ -2,10 +2,18 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.75,
     recover_duration: 1.75,
-    projectile: Mine(
-        damage: 25.0,
-        radius: 2.0,
-        min_falloff: 0.3,
+    projectile: (
+        kind: ExplosiveHazard(
+            radius: 2,
+            min_falloff: 0.3,
+            reagent: Some(Yellow),
+            is_sticky: false,
+            duration: 10,
+        ),
+        attack: Some((
+            damage: 25,
+            energy: 0,
+        )),
     ),
     projectile_body: Object(Mine),
     projectile_light: None,

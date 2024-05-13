@@ -5,10 +5,18 @@ RepeaterRanged(
     recover_duration: 0.5,
     max_speed: 4.0,
     half_speed_at: 3,
-    projectile: Arrow(
-        damage: 5.0,
-        knockback: 0,
-        energy_regen: 0,
+    projectile: (
+        kind: Pointed,
+        attack: Some((
+            damage: 5,
+            energy: 0,
+            buff: Some((
+                kind: Bleeding,
+                dur_secs: 10,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            )),
+        )),
     ),
     projectile_body: Object(Arrow),
     projectile_light: None,

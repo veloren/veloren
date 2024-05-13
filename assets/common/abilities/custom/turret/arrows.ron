@@ -2,10 +2,19 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.2,
     recover_duration: 0.5,
-    projectile: Arrow(
-        damage: 30.0,
-        knockback: 5.0,
-        energy_regen: 10.0,
+    projectile: (
+        kind: Pointed,
+        attack: Some((
+            damage: 30,
+            knockback: Some(5),
+            energy: 10,
+            buff: Some((
+                kind: Bleeding,
+                dur_secs: 10,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            )),
+        )),
     ),
     projectile_body: Object(ArrowTurret),
     projectile_light: None,

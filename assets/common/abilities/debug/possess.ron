@@ -2,12 +2,10 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.001,
     recover_duration: 0.01,
-    projectile: Possess,
+    projectile: (
+        kind: Possess,
+    ),
     projectile_body: Object(ArrowSnake),
-    /*projectile_light: Some(LightEmitter {
-        col: (0.0, 1.0, 0.33).into(),
-        ..Default::default()
-    }),*/
     projectile_speed: 100.0,
     num_projectiles: 1,
     projectile_spread: 0.0,

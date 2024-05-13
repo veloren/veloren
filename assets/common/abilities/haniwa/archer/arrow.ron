@@ -2,10 +2,19 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.3,
     recover_duration: 1.2,
-    projectile: Arrow(
-        damage: 25,
-        knockback: 8.0,
-        energy_regen: 0,
+    projectile: (
+        kind: Pointed,
+        attack: Some((
+            damage: 25,
+            knockback: Some(8),
+            energy: 0,
+            buff: Some((
+                kind: Bleeding,
+                dur_secs: 10,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            )),
+        )),
     ),
     projectile_body: Object(ArrowClay),
     projectile_light: None,

@@ -2,10 +2,15 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.75,
     recover_duration: 0.75,
-    projectile: Trap(
-        damage: 25,
-        knockback: 4,
-        energy_regen: 0,
+    projectile: (
+        kind: Hazard(
+            is_sticky: true,
+            duration: 10,
+        ),
+        attack: Some((
+            damage: 25,
+            energy: 0,
+        )),
     ),
     projectile_body: Object(AdletTrap),
     projectile_light: None,
