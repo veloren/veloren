@@ -1,5 +1,5 @@
 [
-    (1.0, Item("common.items.consumable.curious_potion")),
+    (1.0, Item("common.items.consumable.potion_curious")),
     (0.5, Item("common.items.armor.misc.head.cat_capuche")),
     (19.0, Nothing),
 ]

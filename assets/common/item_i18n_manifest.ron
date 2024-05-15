@@ -3163,8 +3163,8 @@
             "common.items.crafting_ing.cloth.wool",
         ): "sprite-crafting_ing-cloth-wool",
         Simple(
-            "common.items.consumable.curious_potion",
-        ): "object-curious_potion",
+            "common.items.consumable.potion_curious",
+        ): "object-potion_curious",
         Simple(
             "common.items.consumable.potion_agility",
         ): "object-potion_agility",
