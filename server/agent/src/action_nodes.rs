@@ -1097,6 +1097,7 @@ impl<'a> AgentData<'a> {
                             "Quad Med Basic" => Tactic::QuadMedBasic,
                             "Quad Med Hoof" => Tactic::QuadMedHoof,
                             "ClaySteed" => Tactic::ClaySteed,
+                            "Rocksnapper" => Tactic::Rocksnapper,
                             "Roshwalr" => Tactic::Roshwalr,
                             "Asp" | "Maneater" => Tactic::QuadLowRanged,
                             "Quad Low Breathe" | "Quad Low Beam" | "Basilisk" => {
@@ -1473,6 +1474,9 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
+            Tactic::Rocksnapper => {
+                self.handle_rocksnapper_attack(agent, controller, &attack_data, tgt_data, read_data)
+            },
             Tactic::Roshwalr => {
                 self.handle_roshwalr_attack(agent, controller, &attack_data, tgt_data, read_data)
             },

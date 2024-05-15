@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recipe for orichalcum ingots changed to use new alchemical ingredients
 - Refresh of voxel models for orichalcum armour
 - Toned down the health of most wild entities.
+- Rocksnapper received new abilities and AI
 
 ### Removed
 

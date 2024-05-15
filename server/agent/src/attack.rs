@@ -4579,6 +4579,74 @@ impl<'a> AgentData<'a> {
         );
     }
 
+    pub fn handle_rocksnapper_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const LEAP_TIMER: f32 = 3.0;
+        const DASH_TIMER: f32 = 5.0;
+        const LEAP_RANGE: f32 = 20.0;
+        const MELEE_RANGE: f32 = 5.0;
+
+        enum ActionStateTimers {
+            TimerRocksnapperDash = 0,
+            TimerRocksnapperLeap = 1,
+        }
+        agent.combat_state.timers[ActionStateTimers::TimerRocksnapperDash as usize] +=
+            read_data.dt.0;
+        agent.combat_state.timers[ActionStateTimers::TimerRocksnapperLeap as usize] +=
+            read_data.dt.0;
+
+        if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already dashing, keep dashing if not in recover stage
+            controller.push_basic_input(InputKind::Secondary);
+        } else if agent.combat_state.timers[ActionStateTimers::TimerRocksnapperDash as usize]
+            > DASH_TIMER
+        {
+            // Use dash if timer has gone for long enough
+            controller.push_basic_input(InputKind::Secondary);
+
+            if matches!(self.char_state, CharacterState::DashMelee(_)) {
+                // Resets action counter when using dash
+                agent.combat_state.timers[ActionStateTimers::TimerRocksnapperDash as usize] = 0.0;
+            }
+        } else if attack_data.dist_sqrd < LEAP_RANGE.powi(2) && attack_data.angle < 90.0 {
+            if agent.combat_state.timers[ActionStateTimers::TimerRocksnapperLeap as usize]
+                > LEAP_TIMER
+            {
+                // Use shockwave if timer has gone for long enough
+                controller.push_basic_input(InputKind::Ability(0));
+
+                if matches!(self.char_state, CharacterState::LeapShockwave(_)) {
+                    // Resets action timer when using leap shockwave
+                    agent.combat_state.timers[ActionStateTimers::TimerRocksnapperLeap as usize] =
+                        0.0;
+                }
+            } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
+                // Basic attack if in melee range
+                controller.push_basic_input(InputKind::Primary);
+            }
+        } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) && attack_data.angle < 135.0 {
+            // Basic attack if in melee range
+            controller.push_basic_input(InputKind::Primary);
+        }
+
+        // Always attempt to path towards target
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Partial,
+            None,
+        );
+    }
+
     pub fn handle_roshwalr_attack(
         &self,
         agent: &mut Agent,

@@ -113,7 +113,8 @@ impl Animation for ComboAnimation {
                     "common.abilities.custom.basilisk.triplestrike"
                     | "common.abilities.custom.quadlowbasic.triplestrike"
                     | "common.abilities.custom.quadlowbreathe.triplestrike"
-                    | "common.abilities.custom.quadlowtail.triplestrike",
+                    | "common.abilities.custom.quadlowtail.triplestrike"
+                    | "common.abilities.custom.rocksnapper.triplestrike",
                 ) => match strike {
                     0 | 2 => {
                         quadruped_low_alpha(

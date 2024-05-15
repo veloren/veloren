@@ -4,6 +4,7 @@ pub mod combomelee;
 pub mod dash;
 pub mod idle;
 pub mod jump;
+pub mod leapshockwave;
 pub mod run;
 pub mod shockwave;
 pub mod shoot;
@@ -14,9 +15,10 @@ pub mod tailwhip;
 // Reexports
 pub use self::{
     beta::BetaAnimation, breathe::BreatheAnimation, combomelee::ComboAnimation,
-    dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, shoot::ShootAnimation, spritesummon::SpriteSummonAnimation,
-    stunned::StunnedAnimation, tailwhip::TailwhipAnimation,
+    dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    leapshockwave::LeapShockAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    shoot::ShootAnimation, spritesummon::SpriteSummonAnimation, stunned::StunnedAnimation,
+    tailwhip::TailwhipAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

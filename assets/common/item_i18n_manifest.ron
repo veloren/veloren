@@ -2677,6 +2677,9 @@
             "common.items.npc_weapons.unique.darkhound",
         ): "common-items-npc_weapons-unique-darkhound",
         Simple(
+            "common.items.npc_weapons.unique.rocksnapper",
+        ): "common-items-npc_weapons-unique-rocksnapper",
+        Simple(
             "common.items.npc_weapons.unique.roshwalr",
         ): "common-items-npc_weapons-unique-roshwalr",
         Simple(
