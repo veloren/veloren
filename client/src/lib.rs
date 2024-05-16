@@ -3248,8 +3248,8 @@ impl Client {
         self.missing_plugins.len()
     }
 
-    /// number of requested plugins
-    pub fn num_missing_plugins(&self) -> usize { self.missing_plugins.len() }
+    /// true if missing_plugins is not empty
+    pub fn are_plugins_missing(&self) -> bool { !self.missing_plugins.is_empty() }
 
     /// extract list of locally cached plugins to load
     pub fn take_local_plugins(&mut self) -> Vec<PathBuf> { std::mem::take(&mut self.local_plugins) }

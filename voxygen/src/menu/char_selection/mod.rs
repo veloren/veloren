@@ -71,7 +71,7 @@ impl CharSelectionState {
 impl PlayState for CharSelectionState {
     fn enter(&mut self, global_state: &mut GlobalState, _: Direction) {
         // Load the player's character list
-        if self.client.borrow().num_missing_plugins() == 0 {
+        if !self.client.borrow().are_plugins_missing() {
             self.client.borrow_mut().load_character_list();
         }
 
