@@ -5,7 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2021"
 
 [features]
-worldgen = []
+worldgen = ["server-agent/worldgen"]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
 persistent_world = []
@@ -18,16 +18,22 @@ default = ["worldgen", "plugins", "persistent_world", "simd"]
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 common-base = { package = "veloren-common-base", path = "../common/base" }
-veloren-query-server = { package = "veloren-query-server", path = "../common/query_server", default-features = false, features = ["server"] }
+veloren-query-server = { package = "veloren-query-server", path = "../common/query_server", default-features = false, features = [
+    "server",
+] }
 common-ecs = { package = "veloren-common-ecs", path = "../common/ecs" }
 common-state = { package = "veloren-common-state", path = "../common/state" }
 common-systems = { package = "veloren-common-systems", path = "../common/systems" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
 rtsim = { package = "veloren-rtsim", path = "../rtsim" }
-network = { package = "veloren-network", path = "../network", features = ["metrics", "compression", "quic"], default-features = false }
+network = { package = "veloren-network", path = "../network", features = [
+    "metrics",
+    "compression",
+    "quic",
+], default-features = false }
 
-server-agent = {package = "veloren-server-agent", path = "agent"}
+server-agent = { package = "veloren-server-agent", path = "agent" }
 
 #inline_tweak = "1.0.8"
 
@@ -60,12 +66,17 @@ rayon = { workspace = true }
 crossbeam-channel = { workspace = true }
 prometheus = { workspace = true }
 portpicker = { git = "https://github.com/xMAC94x/portpicker-rs", rev = "df6b37872f3586ac3b21d08b56c8ec7cd92fb172" }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "abb1a705827984e11706d7bb97fb7a459e1e6533" } # xMAC94x/current_master_till_refactored branch
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "abb1a705827984e11706d7bb97fb7a459e1e6533" }           # xMAC94x/current_master_till_refactored branch
 enum-map = { workspace = true }
 noise = { version = "0.7", default-features = false }
 censor = "0.3"
 
-rusqlite = { version = "0.30.0", features = ["array", "vtab", "bundled", "trace"] }
+rusqlite = { version = "0.30.0", features = [
+    "array",
+    "vtab",
+    "bundled",
+    "trace",
+] }
 refinery = { version = "0.8.12", features = ["rusqlite"] }
 
 schnellru = "0.2.1"

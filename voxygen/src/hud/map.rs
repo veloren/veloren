@@ -203,6 +203,22 @@ fn get_site_economy(site_rich: &SiteInfoRich) -> String {
     }
 }
 
+impl From<KeyMouse> for ConrodMouseButton {
+    fn from(key: KeyMouse) -> Self {
+        match key {
+            KeyMouse::Mouse(MouseButton::Left) => ConrodMouseButton::Left,
+            KeyMouse::Mouse(MouseButton::Right) => ConrodMouseButton::Right,
+            KeyMouse::Mouse(MouseButton::Middle) => ConrodMouseButton::Middle,
+            KeyMouse::Mouse(MouseButton::Other(0)) => ConrodMouseButton::X1,
+            KeyMouse::Mouse(MouseButton::Other(1)) => ConrodMouseButton::X2,
+            KeyMouse::Mouse(MouseButton::Other(2)) => ConrodMouseButton::Button6,
+            KeyMouse::Mouse(MouseButton::Other(3)) => ConrodMouseButton::Button7,
+            KeyMouse::Mouse(MouseButton::Other(4)) => ConrodMouseButton::Button8,
+            _ => conrod_core::input::MouseButton::Unknown,
+        }
+    }
+}
+
 impl<'a> Widget for Map<'a> {
     type Event = Vec<Event>;
     type State = State;
@@ -353,21 +369,6 @@ impl<'a> Widget for Map<'a> {
         let max_drag = player_pos_chunks;
         let drag = self.map_drag.clamped(min_drag, max_drag);
 
-        impl From<KeyMouse> for ConrodMouseButton {
-            fn from(key: KeyMouse) -> Self {
-                match key {
-                    KeyMouse::Mouse(MouseButton::Left) => ConrodMouseButton::Left,
-                    KeyMouse::Mouse(MouseButton::Right) => ConrodMouseButton::Right,
-                    KeyMouse::Mouse(MouseButton::Middle) => ConrodMouseButton::Middle,
-                    KeyMouse::Mouse(MouseButton::Other(0)) => ConrodMouseButton::X1,
-                    KeyMouse::Mouse(MouseButton::Other(1)) => ConrodMouseButton::X2,
-                    KeyMouse::Mouse(MouseButton::Other(2)) => ConrodMouseButton::Button6,
-                    KeyMouse::Mouse(MouseButton::Other(3)) => ConrodMouseButton::Button7,
-                    KeyMouse::Mouse(MouseButton::Other(4)) => ConrodMouseButton::Button8,
-                    _ => conrod_core::input::MouseButton::Unknown,
-                }
-            }
-        }
         enum MarkerChange {
             Pos(Vec2<f32>),
             ClickPos,

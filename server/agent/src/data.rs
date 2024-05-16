@@ -409,7 +409,7 @@ pub struct ReadData<'a> {
     pub time_of_day: Read<'a, TimeOfDay>,
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]
-    pub world: ReadExpect<'a, Arc<world::World>>,
+    pub world: ReadExpect<'a, std::sync::Arc<world::World>>,
     pub rtsim_entities: ReadStorage<'a, RtSimEntity>,
     pub buffs: ReadStorage<'a, Buffs>,
     pub combos: ReadStorage<'a, Combo>,

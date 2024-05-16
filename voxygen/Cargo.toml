@@ -1,5 +1,8 @@
 [package]
-authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Imbris <imbrisf@gmail.com>"]
+authors = [
+    "Joshua Barretto <joshua.s.barretto@gmail.com>",
+    "Imbris <imbrisf@gmail.com>",
+]
 default-run = "veloren-voxygen"
 edition = "2021"
 name = "veloren-voxygen"
@@ -26,7 +29,7 @@ hot-reloading = ["common/hot-reloading"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
 tracy = ["common-frontend/tracy", "client/tracy"]
-tracy-memory = ["tracy"] # enables heap profiling with tracy
+tracy-memory = ["tracy"]                                                       # enables heap profiling with tracy
 plugins = ["client/plugins", "common-assets/plugins", "server/plugins"]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 shaderc-from-source = ["shaderc/build-from-source"]
@@ -34,32 +37,42 @@ discord = ["discord-sdk"]
 bin_img-export = ["common-assets"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
-default-publish = ["singleplayer", "native-dialog", "plugins", "discord", "simd"]
+default-publish = [
+    "singleplayer",
+    "native-dialog",
+    "plugins",
+    "discord",
+    "simd",
+]
 # Temp for bug on current wgpu version that has access violation in vulkan when constructing egui pipeline
 default-no-egui = ["default-publish", "hot-reloading", "shaderc-from-source"]
 default = ["default-no-egui", "egui-ui"]
 
 [dependencies]
-client = {package = "veloren-client", path = "../client"}
-common = {package = "veloren-common", path = "../common"}
-common-assets = {package = "veloren-common-assets", path = "../common/assets", optional = true} # img-export
-common-base = {package = "veloren-common-base", path = "../common/base"}
-common-ecs = {package = "veloren-common-ecs", path = "../common/ecs"}
-common-frontend = {package = "veloren-common-frontend", path = "../common/frontend"}
-common-net = {package = "veloren-common-net", path = "../common/net"}
-common-state = {package = "veloren-common-state", path = "../common/state"}
-common-systems = {package = "veloren-common-systems", path = "../common/systems"}
+client = { package = "veloren-client", path = "../client" }
+common = { package = "veloren-common", path = "../common" }
+common-assets = { package = "veloren-common-assets", path = "../common/assets", optional = true } # img-export
+common-base = { package = "veloren-common-base", path = "../common/base" }
+common-ecs = { package = "veloren-common-ecs", path = "../common/ecs" }
+common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
+common-net = { package = "veloren-common-net", path = "../common/net" }
+common-state = { package = "veloren-common-state", path = "../common/state" }
+common-systems = { package = "veloren-common-systems", path = "../common/systems" }
 
-anim = {package = "veloren-voxygen-anim", path = "anim"}
-i18n = {package = "veloren-client-i18n", path = "../client/i18n"}
-i18n-helpers = {package = "veloren-voxygen-i18n-helpers", path = "i18n-helpers"}
-voxygen-egui = {package = "veloren-voxygen-egui", path = "egui", optional = true }
+anim = { package = "veloren-voxygen-anim", path = "anim" }
+i18n = { package = "veloren-client-i18n", path = "../client/i18n" }
+i18n-helpers = { package = "veloren-voxygen-i18n-helpers", path = "i18n-helpers" }
+voxygen-egui = { package = "veloren-voxygen-egui", path = "egui", optional = true }
 
 # Graphics
-winit = {version = "0.28.6", features = ["serde"]}
-wgpu = { version = "0.18.0", default-features = false, features = ["trace", "spirv", "glsl"] }
+winit = { version = "0.28.6", features = ["serde"] }
+wgpu = { version = "0.18.0", default-features = false, features = [
+    "trace",
+    "spirv",
+    "glsl",
+] }
 wgpu-profiler = "0.15.0"
-bytemuck = { version="1.7", features=["derive"] }
+bytemuck = { version = "1.7", features = ["derive"] }
 # shaderc = "0.8.0"
 # Working around a current bug in shaderc that causes it to use the system installation even if we specify compile from source
 shaderc = { git = "https://github.com/pythonesque/shaderc-rs", rev = "f2605a02062834019bedff911aee2fd2998c49f9" }
@@ -68,16 +81,16 @@ shaderc = { git = "https://github.com/pythonesque/shaderc-rs", rev = "f2605a0206
 cmake = "=0.1.45"
 
 # Ui
-conrod_core = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
-conrod_winit = {git = "https://gitlab.com/veloren/conrod.git", branch="copypasta_0.7"}
+conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "copypasta_0.7" }
+conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "copypasta_0.7" }
 euc = "0.5.0"
-iced = {package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
-iced_winit = {git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28"}
+iced = { package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28" }
+iced_winit = { git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28" }
 glyph_brush = "0.7.0"
 # https://gitlab.com/Frinksy/keyboard-keynames/-/merge_requests/8
 keyboard-keynames = { git = "https://gitlab.com/Imbris/keyboard-keynames.git", tag = "veloren-winit-0.28" }
 # EGUI
-egui = {version = "0.23", optional = true }
+egui = { version = "0.23", optional = true }
 egui_wgpu_backend = { git = "https://github.com/hasenbanck/egui_wgpu_backend.git", rev = "34691d4e9149deb9cd0bb8cbb5a56bffebf47588", optional = true }
 egui_winit_platform = { version = "0.20", optional = true }
 
@@ -89,16 +102,18 @@ vek = { workspace = true }
 levenshtein = "1.0.5"
 
 # Controller
-gilrs = {version = "0.10.0", features = ["serde-serialize"]}
+gilrs = { version = "0.10.0", features = ["serde-serialize"] }
 
 # Singleplayer
-server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = ["worldgen"] }
+server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = [
+    "worldgen",
+] }
 
 # CLI
 clap = { workspace = true }
 
 # Utility
-assets_manager = {version = "0.11", features = ["ab_glyph"]}
+assets_manager = { version = "0.11", features = ["ab_glyph"] }
 backtrace = "0.3.40"
 chrono = { workspace = true }
 chumsky = "0.9"
@@ -108,7 +123,7 @@ directories-next = "2.0"
 dot_vox = "5.1"
 guillotiere = "0.6.2"
 hashbrown = { workspace = true }
-image = { workspace = true, features = ["ico"]}
+image = { workspace = true, features = ["ico"] }
 lazy_static = { workspace = true }
 native-dialog = { version = "0.6.3", optional = true }
 num = { workspace = true }
@@ -116,9 +131,9 @@ ordered-float = { workspace = true }
 rand = { workspace = true }
 rand_chacha = { workspace = true }
 rayon = { workspace = true }
-rodio = {version = "0.17", default-features = false, features = ["vorbis"]}
+rodio = { version = "0.17", default-features = false, features = ["vorbis"] }
 ron = { workspace = true }
-serde = { workspace = true, features = [ "rc" ]}
+serde = { workspace = true, features = ["rc"] }
 slab = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }
@@ -137,10 +152,10 @@ enum-map = { workspace = true }
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"
 
-[target.'cfg(windows)'.build-dependencies]
+[target.'cfg(target_family = "windows")'.build-dependencies]
 winres = "0.1"
 
-[target.'cfg(windows)'.dependencies]
+[target.'cfg(target_family = "windows")'.dependencies]
 mimalloc = "0.1.29"
 
 # Mumble
@@ -148,8 +163,11 @@ mimalloc = "0.1.29"
 mumble-link = "0.2.0"
 
 [dev-dependencies]
-criterion = { version = "0.5.1", default-features=false, features=["rayon", "cargo_bench_support"]}
-world = {package = "veloren-world", path = "../world"}
+criterion = { version = "0.5.1", default-features = false, features = [
+    "rayon",
+    "cargo_bench_support",
+] }
+world = { package = "veloren-world", path = "../world" }
 rayon = { workspace = true }
 
 [[bench]]
