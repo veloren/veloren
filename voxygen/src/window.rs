@@ -244,7 +244,7 @@ impl KeyMouse {
             Key(PrevTrack) => "Prev Track",
             Key(NextTrack) => "Next Track",
             Key(LAlt) => {
-                if cfg!(macos) {
+                if cfg!(target_os = "macos") {
                     "Left Option ⌥"
                 } else {
                     // Assume Windows, Linux, BSD, etc.
@@ -252,7 +252,7 @@ impl KeyMouse {
                 }
             },
             Key(RAlt) => {
-                if cfg!(macos) {
+                if cfg!(target_os = "macos") {
                     "Right Option ⌥"
                 } else {
                     // Assume Windows, Linux, BSD, etc.
@@ -260,7 +260,7 @@ impl KeyMouse {
                 }
             },
             Key(LControl) => {
-                if cfg!(macos) {
+                if cfg!(target_os = "macos") {
                     "Left Cmd ⌘"
                 } else {
                     // Assume Windows, Linux, BSD, etc.
@@ -268,7 +268,7 @@ impl KeyMouse {
                 }
             },
             Key(RControl) => {
-                if cfg!(macos) {
+                if cfg!(target_os = "macos") {
                     "Right Cmd ⌘"
                 } else {
                     // Assume Windows, Linux, BSD, etc.
@@ -281,9 +281,9 @@ impl KeyMouse {
             // qualifier. The exception to this is Mac OS which doesn't usually have
             // this key at all, so we keep the qualifier to minimise ambiguity.
             Key(LWin) => {
-                if cfg!(windows) {
+                if cfg!(target_family = "windows") {
                     "Win ⊞"
-                } else if cfg!(macos) {
+                } else if cfg!(target_os = "macos") {
                     "Left Cmd ⌘ (Super)" // Extra qualifier because both Ctrl and Win map to Cmd on Mac
                 } else {
                     // Assume Linux, BSD, etc.
@@ -292,9 +292,9 @@ impl KeyMouse {
             },
             // Most keyboards don't have this key, so throw in all the qualifiers
             Key(RWin) => {
-                if cfg!(windows) {
+                if cfg!(target_family = "windows") {
                     "Right Win ⊞"
-                } else if cfg!(macos) {
+                } else if cfg!(target_os = "macos") {
                     "Right Cmd ⌘ (Super)" // Extra qualifier because both Ctrl and Win map to Cmd on Mac
                 } else {
                     // Assume Linux, BSD, etc.
@@ -427,7 +427,7 @@ impl Window {
 
         // Avoid cpal / winit OleInitialize conflict
         // See: https://github.com/rust-windowing/winit/pull/1524
-        #[cfg(target_os = "windows")]
+        #[cfg(target_family = "windows")]
         let win_builder = winit::platform::windows::WindowBuilderExtWindows::with_drag_and_drop(
             win_builder,
             false,

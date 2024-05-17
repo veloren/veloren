@@ -17,7 +17,7 @@ impl Default for Ori {
 
 impl Ori {
     pub fn new(quat: Quaternion<f32>) -> Self {
-        #[cfg(debug_assert)]
+        #[cfg(debug_assertions)]
         {
             let v4 = quat.into_vec4();
             debug_assert!(v4.map(f32::is_finite).reduce_and());

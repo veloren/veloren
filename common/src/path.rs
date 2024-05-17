@@ -5,13 +5,15 @@ use crate::{
 };
 use common_base::span;
 use hashbrown::hash_map::DefaultHashBuilder;
-#[cfg(rrt_pathfinding)] use hashbrown::HashMap;
-#[cfg(rrt_pathfinding)]
+#[cfg(feature = "rrt_pathfinding")]
+use hashbrown::HashMap;
+#[cfg(feature = "rrt_pathfinding")]
 use kiddo::{distance::squared_euclidean, KdTree}; // For RRT paths (disabled for now)
-#[cfg(rrt_pathfinding)]
+#[cfg(feature = "rrt_pathfinding")]
 use rand::distributions::Uniform;
 use rand::{thread_rng, Rng};
-#[cfg(rrt_pathfinding)] use std::f32::consts::PI;
+#[cfg(feature = "rrt_pathfinding")]
+use std::f32::consts::PI;
 use std::iter::FromIterator;
 use vek::*;
 
@@ -705,7 +707,7 @@ where
 }
 
 // Enable when airbraking/sensible flight is a thing
-#[cfg(rrt_pathfinding)]
+#[cfg(feature = "rrt_pathfinding")]
 fn find_air_path<V>(
     vol: &V,
     startf: Vec3<f32>,
@@ -757,7 +759,7 @@ where
 /// with wider gaps, such as flying through a forest than for terrain
 /// with narrow gaps, such as navigating a maze.
 /// Returns a path and whether that path is complete or not.
-#[cfg(rrt_pathfinding)]
+#[cfg(feature = "rrt_pathfinding")]
 fn informed_rrt_connect(
     start: Vec3<f32>,
     end: Vec3<f32>,
@@ -983,7 +985,7 @@ fn informed_rrt_connect(
 /// along the axis between the foci. The value of the search parameter must be
 /// greater than zero. In order to increase the sample area, the
 /// search_parameter should be increased linearly as the search continues.
-#[cfg(rrt_pathfinding)]
+#[cfg(feature = "rrt_pathfinding")]
 pub fn point_on_prolate_spheroid(
     focus1: Vec3<f32>,
     focus2: Vec3<f32>,

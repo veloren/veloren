@@ -766,45 +766,45 @@ impl ComponentRecipe {
     }
 
     pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
-        pub struct ComponentRecipeInputsIterator<'a> {
-            material: Option<&'a (RecipeInput, u32)>,
-            modifier: Option<&'a (RecipeInput, u32)>,
-            additional_inputs: std::slice::Iter<'a, (RecipeInput, u32)>,
-        }
-
-        impl<'a> Iterator for ComponentRecipeInputsIterator<'a> {
-            type Item = &'a (RecipeInput, u32);
-
-            fn next(&mut self) -> Option<&'a (RecipeInput, u32)> {
-                self.material
-                    .take()
-                    .or_else(|| self.modifier.take())
-                    .or_else(|| self.additional_inputs.next())
-            }
-        }
-
-        impl<'a> IntoIterator for &'a ComponentRecipe {
-            type IntoIter = ComponentRecipeInputsIterator<'a>;
-            type Item = &'a (RecipeInput, u32);
-
-            fn into_iter(self) -> Self::IntoIter {
-                ComponentRecipeInputsIterator {
-                    material: Some(&self.material),
-                    modifier: self.modifier.as_ref(),
-                    additional_inputs: self.additional_inputs.as_slice().iter(),
-                }
-            }
-        }
-
-        impl<'a> ExactSizeIterator for ComponentRecipeInputsIterator<'a> {
-            fn len(&self) -> usize {
-                self.material.is_some() as usize
-                    + self.modifier.is_some() as usize
-                    + self.additional_inputs.len()
-            }
-        }
-
         self.into_iter().map(|(recipe, amount)| (recipe, *amount))
+    }
+}
+
+pub struct ComponentRecipeInputsIterator<'a> {
+    material: Option<&'a (RecipeInput, u32)>,
+    modifier: Option<&'a (RecipeInput, u32)>,
+    additional_inputs: std::slice::Iter<'a, (RecipeInput, u32)>,
+}
+
+impl<'a> Iterator for ComponentRecipeInputsIterator<'a> {
+    type Item = &'a (RecipeInput, u32);
+
+    fn next(&mut self) -> Option<&'a (RecipeInput, u32)> {
+        self.material
+            .take()
+            .or_else(|| self.modifier.take())
+            .or_else(|| self.additional_inputs.next())
+    }
+}
+
+impl<'a> IntoIterator for &'a ComponentRecipe {
+    type IntoIter = ComponentRecipeInputsIterator<'a>;
+    type Item = &'a (RecipeInput, u32);
+
+    fn into_iter(self) -> Self::IntoIter {
+        ComponentRecipeInputsIterator {
+            material: Some(&self.material),
+            modifier: self.modifier.as_ref(),
+            additional_inputs: self.additional_inputs.as_slice().iter(),
+        }
+    }
+}
+
+impl<'a> ExactSizeIterator for ComponentRecipeInputsIterator<'a> {
+    fn len(&self) -> usize {
+        self.material.is_some() as usize
+            + self.modifier.is_some() as usize
+            + self.additional_inputs.len()
     }
 }
 
