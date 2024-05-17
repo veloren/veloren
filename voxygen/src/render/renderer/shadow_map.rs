@@ -12,7 +12,6 @@ pub struct ShadowMapRenderer {
     pub terrain_directed_pipeline: shadow::ShadowPipeline,
     pub figure_directed_pipeline: shadow::ShadowFigurePipeline,
     pub debug_directed_pipeline: shadow::ShadowDebugPipeline,
-    pub layout: shadow::ShadowLayout,
 }
 
 pub enum ShadowMap {
@@ -43,8 +42,6 @@ impl ShadowMap {
         {
             let (point_depth, directed_depth) = shadow_views;
 
-            let layout = shadow::ShadowLayout::new(device);
-
             Self::Enabled(ShadowMapRenderer {
                 directed_depth,
                 point_depth,
@@ -53,8 +50,6 @@ impl ShadowMap {
                 terrain_directed_pipeline,
                 figure_directed_pipeline,
                 debug_directed_pipeline,
-
-                layout,
             })
         } else {
             let (dummy_point, dummy_directed) = Self::create_dummy_shadow_tex(device, queue);

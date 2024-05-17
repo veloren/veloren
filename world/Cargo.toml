@@ -7,7 +7,7 @@ edition = "2021"
 [features]
 use-dyn-lib = ["common-dynlib"]
 be-dyn-lib = []
-simd = ["vek/platform_intrinsics", "packed_simd"]
+simd = ["vek/platform_intrinsics"]
 bin_compression = [
     "lz-fear",
     "deflate",
@@ -20,7 +20,7 @@ bin_compression = [
 ]
 cli = ["clap", "signal-hook", "indicatif"]
 
-default = ["simd"]
+default = []
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
@@ -45,7 +45,6 @@ tracing = { workspace = true }
 rand = { workspace = true }
 rand_chacha = { workspace = true }
 arr_macro = "0.2.1"
-packed_simd = { version = "0.3.9", optional = true }
 rayon = { workspace = true }
 serde = { workspace = true }
 ron = { workspace = true }

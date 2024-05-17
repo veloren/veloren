@@ -1415,18 +1415,6 @@ impl<'a, const N: usize> PrimitiveTransform for [PrimitiveRef<'a>; N] {
     }
 }
 
-pub trait PrimitiveGroupFill<const N: usize> {
-    fn fill_many(self, fills: [Fill; N]);
-}
-
-impl<const N: usize> PrimitiveGroupFill<N> for [PrimitiveRef<'_>; N] {
-    fn fill_many(self, fills: [Fill; N]) {
-        for i in 0..N {
-            self[i].fill(fills[i].clone());
-        }
-    }
-}
-
 pub trait Structure {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8];

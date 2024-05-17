@@ -47,17 +47,6 @@ checksum = "0453232ace82dee0dd0b4c87a59bd90f7b53b314f3e0f61fe2ee7c8a16482289"
 
 [[package]]
 name = "ahash"
-version = "0.7.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "891477e0c6a8957309ee5c45a6368af3ae14bb510732d2684ffa19af310920f9"
-dependencies = [
- "getrandom 0.2.12",
- "once_cell",
- "version_check",
-]
-
-[[package]]
-name = "ahash"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e89da841a80418a9b391ebaea17f5c112ffaaa96f621d2c285b5174da76b9011"
@@ -4474,16 +4463,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "packed_simd"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f9f08af0c877571712e2e3e686ad79efad9657dbf0f7c3c8ba943ff6c38932d"
-dependencies = [
- "cfg-if 1.0.0",
- "num-traits",
-]
-
-[[package]]
 name = "parking"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5794,8 +5773,9 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "shred"
-version = "0.15.0"
-source = "git+https://github.com/amethyst/shred.git?rev=5d52c6fc390dd04c12158633e77591f6523d1f85#5d52c6fc390dd04c12158633e77591f6523d1f85"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "656294f5bdcf6d33f0cf89e88a72b58595e3fca0e77e4a4b9e9026179757fb1e"
 dependencies = [
  "ahash 0.8.11",
  "arrayvec",
@@ -5808,8 +5788,9 @@ dependencies = [
 
 [[package]]
 name = "shred-derive"
-version = "0.6.3"
-source = "git+https://github.com/amethyst/shred.git?rev=5d52c6fc390dd04c12158633e77591f6523d1f85#5d52c6fc390dd04c12158633e77591f6523d1f85"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69760b786f8b40361c10663eb63c81fa7d828008527d26aa7595b99c53ab3a8d"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote 1.0.35",
@@ -5943,10 +5924,9 @@ dependencies = [
 [[package]]
 name = "specs"
 version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a60eabdfd5a80e458c3e7bcc9f1076d6ce3cc8ddb71d69691f00fc0de735a635"
+source = "git+https://github.com/amethyst/specs.git?rev=4e2da1df29ee840baa9b936593c45592b7c9ae27#4e2da1df29ee840baa9b936593c45592b7c9ae27"
 dependencies = [
- "ahash 0.7.8",
+ "ahash 0.8.11",
  "crossbeam-queue",
  "hibitset",
  "log",
@@ -5962,8 +5942,7 @@ dependencies = [
 [[package]]
 name = "specs-derive"
 version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e23e09360f3d2190fec4222cd9e19d3158d5da948c0d1ea362df617dd103511"
+source = "git+https://github.com/amethyst/specs.git?rev=4e2da1df29ee840baa9b936593c45592b7c9ae27#4e2da1df29ee840baa9b936593c45592b7c9ae27"
 dependencies = [
  "proc-macro2 1.0.79",
  "quote 1.0.35",
@@ -6816,9 +6795,9 @@ dependencies = [
 
 [[package]]
 name = "vek"
-version = "0.16.1"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c85158043f3bc1fac596d59a77e07948da340b9951b451ed4cb4a8c480aa2157"
+checksum = "cb40015035f83ba23d647e647f8be060d0f6f99b7c7687989fbca3e3d65e7234"
 dependencies = [
  "approx 0.5.1",
  "num-integer",
@@ -6848,7 +6827,7 @@ dependencies = [
  "specs",
  "tokio",
  "tracing",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-client-i18n",
  "veloren-common",
  "veloren-common-base",
@@ -6919,7 +6898,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common-assets",
  "veloren-common-base",
  "veloren-common-i18n",
@@ -7004,7 +6983,7 @@ dependencies = [
  "specs",
  "sum_type",
  "tracing",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common",
 ]
 
@@ -7028,7 +7007,7 @@ dependencies = [
  "timer-queue",
  "toml 0.8.12",
  "tracing",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common",
  "veloren-common-assets",
  "veloren-common-base",
@@ -7048,7 +7027,7 @@ dependencies = [
  "rayon",
  "specs",
  "tracing",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-ecs",
@@ -7132,7 +7111,7 @@ dependencies = [
  "serde",
  "slotmap",
  "tracing",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common",
  "veloren-world",
 ]
@@ -7175,7 +7154,7 @@ dependencies = [
  "strum 0.24.1",
  "tokio",
  "tracing",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-ecs",
@@ -7198,7 +7177,7 @@ dependencies = [
  "rand 0.8.5",
  "specs",
  "tracing",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-dynlib",
@@ -7296,7 +7275,7 @@ dependencies = [
  "tokio",
  "tracing",
  "treeculler",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-client",
  "veloren-client-i18n",
  "veloren-common",
@@ -7324,7 +7303,7 @@ version = "0.10.0"
 dependencies = [
  "bytemuck",
  "lazy_static",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common",
  "veloren-common-dynlib",
 ]
@@ -7380,7 +7359,6 @@ dependencies = [
  "num 0.4.1",
  "num-traits",
  "ordered-float 3.9.2",
- "packed_simd",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
@@ -7393,7 +7371,7 @@ dependencies = [
  "svg_fmt",
  "tracing",
  "tracing-subscriber",
- "vek 0.16.1",
+ "vek 0.17.0",
  "veloren-common",
  "veloren-common-base",
  "veloren-common-dynlib",

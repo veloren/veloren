@@ -11,7 +11,6 @@ pub struct RainOcclusionMapRenderer {
 
     pub terrain_pipeline: rain_occlusion::RainOcclusionPipeline,
     pub figure_pipeline: rain_occlusion::RainOcclusionFigurePipeline,
-    pub layout: rain_occlusion::RainOcclusionLayout,
 }
 
 pub enum RainOcclusionMap {
@@ -31,13 +30,10 @@ impl RainOcclusionMap {
         if let (Some(terrain_pipeline), Some(figure_pipeline), Some(depth)) =
             (directed, figure, view)
         {
-            let layout = rain_occlusion::RainOcclusionLayout::new(device);
-
             Self::Enabled(RainOcclusionMapRenderer {
                 depth,
                 terrain_pipeline,
                 figure_pipeline,
-                layout,
             })
         } else {
             Self::Disabled(Self::create_dummy_tex(device, queue))

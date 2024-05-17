@@ -1,3 +1,4 @@
+#![allow(non_local_definitions)] //TODO: added 2024-05-15 to update toolchain
 use protocol::Protocol;
 
 pub(crate) const VERSION: u16 = 0;

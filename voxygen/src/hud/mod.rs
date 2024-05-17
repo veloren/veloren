@@ -1,3 +1,4 @@
+#![allow(non_local_definitions)] // because of WidgetCommon derive
 mod animation;
 mod bag;
 mod buffs;
