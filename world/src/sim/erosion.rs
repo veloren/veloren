@@ -13,14 +13,12 @@ use itertools::izip;
 use noise::NoiseFn;
 use num::{Float, Zero};
 use ordered_float::NotNan;
-#[cfg(feature = "simd")] use packed_simd::m32;
 use rayon::prelude::*;
 use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
-    f32, fmt, mem,
+    fmt, mem,
     time::Instant,
-    u32,
 };
 use vek::*;
 
@@ -609,15 +607,17 @@ fn get_max_slope(
 #[cfg(not(feature = "simd"))]
 #[derive(Copy, Clone)]
 #[allow(non_camel_case_types)]
-struct m32(u32);
+struct M32(u32);
 #[cfg(not(feature = "simd"))]
-impl m32 {
+impl M32 {
     #[inline]
-    fn new(x: bool) -> Self { if x { Self(u32::MAX) } else { Self(u32::MIN) } }
+    fn splat(x: bool) -> Self { if x { Self(u32::MAX) } else { Self(u32::MIN) } }
 
     #[inline]
-    fn test(&self) -> bool { self.0 != 0 }
+    fn test(&self, cmp: u32) -> bool { self.0 != cmp }
 }
+#[cfg(feature = "simd")]
+type M32 = std::simd::Mask<i32, 1>;
 
 /// Erode all chunks by amount.
 ///
@@ -862,7 +862,7 @@ fn erode(
     let mid_slope = (30.0 / 360.0 * 2.0 * std::f64::consts::PI).tan();
 
     type SimdType = f32;
-    type MaskType = m32;
+    type MaskType = M32;
 
     // Precompute factors for Stream Power Law.
     let czero = <SimdType as Zero>::zero();
@@ -1316,7 +1316,7 @@ fn erode(
                             let tolp = 1.0e-3;
                             let mut errp = 2.0 * tolp;
                             let mut rec_heights = [0.0; 8];
-                            let mut mask = [MaskType::new(false); 8];
+                            let mut mask = [MaskType::splat(false); 8];
                             mrec_downhill(map_size_lg, &mrec, posi).for_each(|(kk, posj)| {
                                 let posj_stack = mstack_inv[posj];
                                 let h_j = h_stack[posj_stack];
@@ -1324,7 +1324,7 @@ fn erode(
                                 // + uplift(posj) as f64
                                 // NOTE: We also considered using old_elev_i > wh[posj] here.
                                 if old_elev_i > h_j {
-                                    mask[kk] = MaskType::new(true);
+                                    mask[kk] = MaskType::splat(true);
                                     rec_heights[kk] = h_j as SimdType;
                                 }
                             });
@@ -1333,7 +1333,7 @@ fn erode(
                                 let mut df = 1.0;
                                 izip!(&mask, &rec_heights, k_fs_fact, k_df_fact).for_each(
                                     |(&mask_kk, &rec_heights_kk, &k_fs_fact_kk, &k_df_fact_kk)| {
-                                        if mask_kk.test() {
+                                        if mask_kk.test(0) {
                                             let h_j = rec_heights_kk;
                                             let elev_j = h_j;
                                             let dh = 0.0.max(new_h_i as SimdType - elev_j);

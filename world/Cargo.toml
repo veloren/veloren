@@ -20,7 +20,7 @@ bin_compression = [
 ]
 cli = ["clap", "signal-hook", "indicatif"]
 
-default = []
+default = ["simd"]
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }

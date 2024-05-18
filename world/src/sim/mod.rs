@@ -858,8 +858,7 @@ impl WorldSim {
                                 (gen_ctx
                                     .alt_nz
                                     .get((wposf.div(10_000.0)).into_array())
-                                    .min(1.0)
-                                    .max(-1.0))
+                                    .clamp(-1.0, 1.0))
                                 .sub(0.05)
                                 .mul(0.35),
                             )
@@ -871,8 +870,7 @@ impl WorldSim {
                                 (gen_ctx
                                     .alt_nz
                                     .get((wposf.div(5_000.0 * gen_opts.scale)).into_array())
-                                    .min(1.0)
-                                    .max(-1.0))
+                                    .clamp(-1.0, 1.0))
                                 .add(
                                     0.2 - ((wposf / world_sizef) * 2.0 - 1.0)
                                         .magnitude_squared()
