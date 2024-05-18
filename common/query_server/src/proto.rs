@@ -1,4 +1,4 @@
-#![allow(non_local_definitions)] //TODO: added 2024-05-15 to update toolchain
+#![allow(non_local_definitions)] // necessary because of the Protocol derive macro
 use protocol::Protocol;
 
 pub(crate) const VERSION: u16 = 0;

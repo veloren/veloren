@@ -606,7 +606,6 @@ fn get_max_slope(
 // simd alternative
 #[cfg(not(feature = "simd"))]
 #[derive(Copy, Clone)]
-#[allow(non_camel_case_types)]
 struct M32(u32);
 #[cfg(not(feature = "simd"))]
 impl M32 {
@@ -614,7 +613,7 @@ impl M32 {
     fn splat(x: bool) -> Self { if x { Self(u32::MAX) } else { Self(u32::MIN) } }
 
     #[inline]
-    fn test(&self, cmp: u32) -> bool { self.0 != cmp }
+    fn any(&self) -> bool { self.0 != 0 }
 }
 #[cfg(feature = "simd")]
 type M32 = std::simd::Mask<i32, 1>;
@@ -1333,7 +1332,7 @@ fn erode(
                                 let mut df = 1.0;
                                 izip!(&mask, &rec_heights, k_fs_fact, k_df_fact).for_each(
                                     |(&mask_kk, &rec_heights_kk, &k_fs_fact_kk, &k_df_fact_kk)| {
-                                        if mask_kk.test(0) {
+                                        if mask_kk.any() {
                                             let h_j = rec_heights_kk;
                                             let elev_j = h_j;
                                             let dh = 0.0.max(new_h_i as SimdType - elev_j);
