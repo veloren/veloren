@@ -318,7 +318,7 @@ impl<'a> Widget for Chat<'a> {
         }
 
         if let Some(comps) = &self.force_completions {
-            state.update(|s| s.completions = comps.clone());
+            state.update(|s| s.completions.clone_from(comps));
         }
 
         let mut force_cursor = self.force_cursor;
@@ -394,8 +394,8 @@ impl<'a> Widget for Chat<'a> {
                 } else if s.history_pos > 0 {
                     s.history_pos -= 1;
                 }
-                if s.history_pos > 0 {
-                    s.input.message = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                if let Some(before) = s.history.iter().nth_back(s.history.len() - s.history_pos) {
+                    s.input.message.clone_from(before);
                     force_cursor = cursor_offset_to_index(
                         s.input.message.len(),
                         &s.input.message,

@@ -92,14 +92,13 @@ impl<'a> System<'a> for Sys {
 
 fn base_ori_interp(body: &Body) -> f32 {
     match body {
-        Body::Object(object) => match object {
+        Body::Object(
             object::Body::Crossbow
             | object::Body::Flamethrower
             | object::Body::Lavathrower
             | object::Body::HaniwaSentry
-            | object::Body::TerracottaStatue => 100.0,
-            _ => 10.0,
-        },
+            | object::Body::TerracottaStatue,
+        ) => 100.0,
         _ => 10.0,
     }
 }

@@ -123,7 +123,7 @@ impl Shared {
 
     async fn connect_manager(&self, network: Network) {
         trace!("Start connect_manager");
-        let iter = futures_util::stream::unfold(network, async move |mut network| {
+        let iter = futures_util::stream::unfold(network, async move |mut network: Network| {
             network.connected().await.ok().map(|v| (v, network))
         });
 

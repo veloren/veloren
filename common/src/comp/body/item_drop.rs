@@ -139,12 +139,10 @@ impl Body {
                     ))
                     .unwrap_or_default(),
                 ),
-            Body::Armor(kind) => match kind {
-                ItemDropArmorKind::Neck | ItemDropArmorKind::Back | ItemDropArmorKind::Tabard => {
-                    default.yawed_left(random).pitched_down(PI / 2.0)
-                },
-                _ => default.yawed_left(random),
-            },
+
+            Body::Armor(
+                ItemDropArmorKind::Neck | ItemDropArmorKind::Back | ItemDropArmorKind::Tabard,
+            ) => default.yawed_left(random).pitched_down(PI / 2.0),
             _ => default.yawed_left(random),
         }
     }

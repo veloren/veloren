@@ -3,7 +3,7 @@ use core::hash::Hash;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, Entity, FlaggedStorage, VecStorage};
-use std::{fmt, u64};
+use std::fmt;
 use tracing::error;
 
 // TODO: could we switch this to `NonZeroU64`?

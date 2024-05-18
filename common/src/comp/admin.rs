@@ -24,6 +24,7 @@ impl core::str::FromStr for AdminRole {
     }
 }
 
+#[allow(clippy::to_string_trait_impl)]
 impl ToString for AdminRole {
     fn to_string(&self) -> String {
         match self {

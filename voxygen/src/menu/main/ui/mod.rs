@@ -549,7 +549,7 @@ impl Controls {
             },
             Message::ServerChanged(new_value) => {
                 self.selected_server_index = Some(new_value);
-                self.login_info.server = servers[new_value].clone();
+                self.login_info.server.clone_from(&servers[new_value]);
             },
             Message::FocusPassword => {
                 if let Screen::Login { screen, .. } = &mut self.screen {

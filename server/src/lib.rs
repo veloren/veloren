@@ -115,7 +115,6 @@ use specs::{
     shred::SendDispatcher, Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt,
 };
 use std::{
-    i32,
     ops::{Deref, DerefMut},
     sync::{Arc, Mutex},
     time::{Duration, Instant},

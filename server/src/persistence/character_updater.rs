@@ -263,7 +263,7 @@ impl CharacterUpdater {
     }
 
     pub fn has_pending_database_action(&self, character_id: CharacterId) -> bool {
-        self.pending_database_actions.get(&character_id).is_some()
+        self.pending_database_actions.contains_key(&character_id)
     }
 
     pub fn process_batch_completion(&mut self, completed_batch_id: u64) {
