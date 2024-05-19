@@ -27,6 +27,7 @@ fn main() {
                 stroke_opacity: 1.0,
             },
             border_radius: 0.0,
+            comment: None,
         });
     }
 
