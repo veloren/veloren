@@ -11,7 +11,7 @@ metrics = ["prometheus", "network-protocol/metrics"]
 compression = ["lz-fear"]
 quic = ["quinn"]
 
-default = ["metrics","compression","quic"]
+default = ["metrics", "compression", "quic"]
 
 [dependencies]
 
@@ -31,13 +31,13 @@ tracing = { workspace = true }
 prometheus = { workspace = true, optional = true }
 #async
 futures-util = { workspace = true, features = ["std"] }
-async-channel = "2.1" #use for .close() channels
+async-channel = "2.1"                                   #use for .close() channels
 #mpsc channel registry
 lazy_static = { workspace = true }
 rand = { workspace = true }
 #quic support
-quinn = { version = "0.10", optional = true }
-rustls = "0.21"
+quinn = { workspace = true, optional = true }
+rustls = { workspace = true }
 lz-fear = { version = "0.2", optional = true }
 # async traits
 async-trait = { workspace = true }
@@ -46,16 +46,33 @@ bytes = "^1"
 hashbrown = { workspace = true }
 
 [dev-dependencies]
-tracing-subscriber = { version = "0.3.7", default-features = false, features = ["env-filter", "fmt", "time", "ansi", "smallvec"] }
-tokio = { workspace = true, default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
-futures-util = { workspace = true, default-features = false, features = ["sink", "std"] }
+tracing-subscriber = { version = "0.3.7", default-features = false, features = [
+    "env-filter",
+    "fmt",
+    "time",
+    "ansi",
+    "smallvec",
+] }
+tokio = { workspace = true, default-features = false, features = [
+    "io-std",
+    "fs",
+    "rt-multi-thread",
+] }
+futures-util = { workspace = true, default-features = false, features = [
+    "sink",
+    "std",
+] }
 clap = { workspace = true }
 shellexpand = "3.1.0"
 serde = { version = "1.0", features = ["derive"] }
 prometheus-hyper = { workspace = true }
-criterion = { version = "0.5.1", default-features=false, features=["rayon", "cargo_bench_support", "async_tokio"]}
+criterion = { version = "0.5.1", default-features = false, features = [
+    "rayon",
+    "cargo_bench_support",
+    "async_tokio",
+] }
 #quic
-rcgen = { version = "0.12"}
+rcgen = { version = "0.12" }
 
 [[bench]]
 name = "speed"

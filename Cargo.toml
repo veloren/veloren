@@ -161,6 +161,10 @@ async-trait = "0.1.42"
 sha2 = "0.10"
 hex = "0.4.3"
 
+#TODO add  features = ["std"] in 0.22
+rustls = { version = "0.21", default-features = false }
+quinn = { version = "0.10" }
+
 [patch.crates-io]
 # until next specs release
 specs = { git = "https://github.com/amethyst/specs.git", rev = "4e2da1df29ee840baa9b936593c45592b7c9ae27" }
