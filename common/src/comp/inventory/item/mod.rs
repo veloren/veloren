@@ -578,7 +578,7 @@ impl Serialize for ItemBase {
     // Custom serialization for ItemDef, we only want to send the item_definition_id
     // over the network, the client will use deserialize_item_def to fetch the
     // ItemDef from assets.
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {

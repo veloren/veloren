@@ -214,7 +214,7 @@ impl SingleplayerWorlds {
         'fail: loop {
             for world in self.worlds.iter() {
                 if world.path.ends_with(&test_name) {
-                    test_name = name.clone();
+                    test_name.clone_from(&name);
                     test_name.push('_');
                     test_name.push_str(&i.to_string());
                     i += 1;

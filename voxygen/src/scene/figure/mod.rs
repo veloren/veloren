@@ -241,14 +241,10 @@ impl FigureMgrStates {
         }
     }
 
-    fn get_mut<'a, Q: ?Sized>(
-        &'a mut self,
-        body: &Body,
-        entity: &Q,
-    ) -> Option<&'a mut FigureStateMeta>
+    fn get_mut<'a, Q>(&'a mut self, body: &Body, entity: &Q) -> Option<&'a mut FigureStateMeta>
     where
         EcsEntity: Borrow<Q>,
-        Q: Hash + Eq,
+        Q: Hash + Eq + ?Sized,
     {
         match body {
             Body::Humanoid(_) => self
@@ -320,10 +316,10 @@ impl FigureMgrStates {
         }
     }
 
-    fn remove<Q: ?Sized>(&mut self, body: &Body, entity: &Q) -> Option<FigureStateMeta>
+    fn remove<Q>(&mut self, body: &Body, entity: &Q) -> Option<FigureStateMeta>
     where
         EcsEntity: Borrow<Q>,
-        Q: Hash + Eq,
+        Q: Hash + Eq + ?Sized,
     {
         match body {
             Body::Humanoid(_) => self.character_states.remove(entity).map(|e| e.meta),
@@ -494,14 +490,14 @@ impl FigureMgrStates {
                 .count()
     }
 
-    fn get_terrain_locals<'a, Q: ?Sized>(
+    fn get_terrain_locals<'a, Q>(
         &'a self,
         body: &Body,
         entity: &Q,
     ) -> Option<&'a BoundTerrainLocals>
     where
         EcsEntity: Borrow<Q>,
-        Q: Hash + Eq,
+        Q: Hash + Eq + ?Sized,
     {
         match body {
             Body::Ship(body) => {

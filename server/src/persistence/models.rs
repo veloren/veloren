@@ -1,5 +1,6 @@
 pub struct Character {
     pub character_id: i64,
+    #[allow(dead_code)]
     pub player_uuid: String,
     pub alias: String,
     pub waypoint: Option<String>,
@@ -16,6 +17,7 @@ pub struct Item {
 }
 
 pub struct Body {
+    #[allow(dead_code)]
     pub body_id: i64,
     pub variant: String,
     pub body_data: String,
@@ -38,6 +40,7 @@ pub struct Pet {
 }
 
 pub struct AbilitySets {
+    #[allow(dead_code)]
     pub entity_id: i64,
     pub ability_sets: String,
 }

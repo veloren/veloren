@@ -5665,14 +5665,11 @@ impl ItemDropCentralSpec {
             (segment, match item_drop {
                 // TODO: apply non-random rotations to items here
                 item_drop::Body::Tool(_) => Vec3::new(offset.x - 2.0, offset.y, offset.z),
-                item_drop::Body::Armor(kind) => match kind {
+                item_drop::Body::Armor(
                     item_drop::ItemDropArmorKind::Neck
                     | item_drop::ItemDropArmorKind::Back
-                    | item_drop::ItemDropArmorKind::Tabard => {
-                        Vec3::new(offset.x, offset.y - 2.0, offset.z)
-                    },
-                    _ => offset * Vec3::new(1.0, 1.0, 0.0),
-                },
+                    | item_drop::ItemDropArmorKind::Tabard,
+                ) => Vec3::new(offset.x, offset.y - 2.0, offset.z),
                 _ => offset * Vec3::new(1.0, 1.0, 0.0),
             })
         } else {

@@ -7,7 +7,7 @@ use common_base::prof_span;
 use noise::{MultiFractal, NoiseFn, Perlin, Seedable};
 use num::Float;
 use rayon::prelude::*;
-use std::{f32, f64, ops::Mul, u32};
+use std::ops::Mul;
 use vek::*;
 
 /// Calculates the smallest distance along an axis (x, y) from an edge of

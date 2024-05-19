@@ -14,7 +14,7 @@ use crate::{
 use common::{
     generation::ChunkSupplement,
     terrain::{Block, BlockKind, SpriteKind},
-    vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
+    vol::{ReadVol, RectSizedVol, WriteVol},
 };
 use core::f32;
 use rand::prelude::*;
@@ -190,7 +190,7 @@ impl Castle {
         index: IndexRef,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+        vol: &mut (impl RectSizedVol<Vox = Block> + ReadVol + WriteVol),
     ) {
         for y in 0..vol.size_xy().y as i32 {
             for x in 0..vol.size_xy().x as i32 {

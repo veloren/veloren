@@ -23,7 +23,7 @@ use common::{
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     terrain::{Block, BlockKind, SpriteKind},
-    vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
+    vol::{ReadVol, RectSizedVol, WriteVol},
 };
 use hashbrown::HashMap;
 use noise::NoiseFn;
@@ -576,7 +576,7 @@ pub fn apply_caves_supplement<'a>(
     dynamic_rng: &mut impl Rng,
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-    vol: &(impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+    vol: &(impl RectSizedVol<Vox = Block> + ReadVol + WriteVol),
     index: IndexRef,
     supplement: &mut ChunkSupplement,
 ) {

@@ -168,7 +168,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
             .push((uid.into(), CompUpdateKind::Removed(PhantomData::<C>.into())));
     }
 
-    pub fn add_component_updates<'a, C: Component + Clone + Send + Sync>(
+    pub fn add_component_updates<'a, C>(
         &mut self,
         uids: &ReadStorage<'a, Uid>,
         tracker: &UpdateTracker<C>,
@@ -176,7 +176,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
         filter: impl Join + Copy,
     ) where
         P: From<C>,
-        C: TryFrom<P>,
+        C: Component + Clone + Send + Sync + TryFrom<P>,
         P::Phantom: From<PhantomData<C>>,
         P::Phantom: TryInto<PhantomData<C>>,
         C::Storage: specs::storage::Tracked,
@@ -186,7 +186,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
 
     /// If there was an update to the component `C` on the provided entity this
     /// will add the update to this package.
-    pub fn add_component_update<C: Component + Clone + Send + Sync>(
+    pub fn add_component_update<C>(
         &mut self,
         tracker: &UpdateTracker<C>,
         storage: &ReadStorage<'_, C>,
@@ -194,7 +194,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
         entity: Entity,
     ) where
         P: From<C>,
-        C: TryFrom<P>,
+        C: Component + Clone + Send + Sync + TryFrom<P>,
         P::Phantom: From<PhantomData<C>>,
         P::Phantom: TryInto<PhantomData<C>>,
         C::Storage: specs::storage::Tracked,

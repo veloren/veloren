@@ -146,6 +146,7 @@ impl core::str::FromStr for SqlLogMode {
     }
 }
 
+#[allow(clippy::to_string_trait_impl)]
 impl ToString for SqlLogMode {
     fn to_string(&self) -> String {
         match self {

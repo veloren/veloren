@@ -84,9 +84,6 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 /// [make_case_elim!], as follows:
 ///
 /// ```
-///  # #![feature(arbitrary_enum_discriminant)]
-///  # #[macro_use] extern crate veloren_common;
-///
 /// veloren_common::make_case_elim!(
 ///     my_type_module,
 ///     #[repr(u32)]
@@ -97,6 +94,10 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 ///         /* ..., */
 ///     }
 /// );
+///
+/// # fn main() {
+/// #   println!("some_dummy_main");
+/// # }
 /// ```
 ///
 /// This macro automatically does a few things.  First, it creates the `enum`
@@ -105,9 +106,6 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 /// few things.  In this case:
 ///
 /// ```
-/// # #![feature(arbitrary_enum_discriminant)]
-/// # #[macro_use] extern crate veloren_common;
-///
 /// #[repr(u32)]
 /// #[derive(Clone, Copy)]
 /// pub enum MyType {

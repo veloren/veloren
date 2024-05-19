@@ -153,22 +153,6 @@ struct MeshWorkerResponse {
     blocks_of_interest: BlocksOfInterest,
 }
 
-/// Conversion of SpriteSpec from a hashmap failed because some sprites were
-/// missing.
-struct SpritesMissing(Vec<SpriteKind>);
-
-use core::fmt;
-
-impl fmt::Display for SpritesMissing {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(
-            f,
-            "Missing entries in the sprite manifest for these sprites: {:?}",
-            &self.0,
-        )
-    }
-}
-
 pub fn get_sprite_instances<'a, I: 'a>(
     lod_levels: &'a mut [I; SPRITE_LOD_LEVELS],
     set_instance: impl Fn(&mut I, SpriteInstance, Vec3<i32>),

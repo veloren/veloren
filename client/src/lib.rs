@@ -1987,9 +1987,9 @@ impl Client {
         self.state.terrain().get_key_arc(chunk_pos).cloned()
     }
 
-    pub fn current<C: Component>(&self) -> Option<C>
+    pub fn current<C>(&self) -> Option<C>
     where
-        C: Clone,
+        C: Component + Clone,
     {
         self.state.read_storage::<C>().get(self.entity()).cloned()
     }

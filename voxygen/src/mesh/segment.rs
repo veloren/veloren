@@ -18,7 +18,7 @@ use vek::*;
 //    /// NOTE: bone_idx must be in [0, 15] (may be bumped to [0, 31] at some
 //    /// point).
 // TODO: this function name...
-pub fn generate_mesh_base_vol_figure<'a: 'b, 'b, V: 'a>(
+pub fn generate_mesh_base_vol_figure<'a: 'b, 'b, V>(
     vol: V,
     (greedy, opaque_mesh, offs, scale, bone_idx): (
         &'b mut GreedyMesh<'a, FigureSpriteAtlasData>,
@@ -29,7 +29,7 @@ pub fn generate_mesh_base_vol_figure<'a: 'b, 'b, V: 'a>(
     ),
 ) -> MeshGen<TerrainVertex, TerrainVertex, TerrainVertex, math::Aabb<f32>>
 where
-    V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
+    V: BaseVol<Vox = Cell> + ReadVol + SizedVol + 'a,
 {
     assert!(bone_idx <= 15, "Bone index for figures must be in [0, 15]");
     let max_size = greedy.max_size();
@@ -115,7 +115,7 @@ where
 //    /// NOTE: bone_idx must be in [0, 15] (may be bumped to [0, 31] at some
 //    /// point).
 // TODO: this function name...
-pub fn generate_mesh_base_vol_terrain<'a: 'b, 'b, V: 'a>(
+pub fn generate_mesh_base_vol_terrain<'a: 'b, 'b, V>(
     vol: V,
     (greedy, opaque_mesh, offs, scale, bone_idx): (
         &'b mut GreedyMesh<'a, FigureSpriteAtlasData>,
@@ -126,7 +126,7 @@ pub fn generate_mesh_base_vol_terrain<'a: 'b, 'b, V: 'a>(
     ),
 ) -> MeshGen<TerrainVertex, TerrainVertex, TerrainVertex, math::Aabb<f32>>
 where
-    V: BaseVol<Vox = Block> + ReadVol + SizedVol,
+    V: BaseVol<Vox = Block> + ReadVol + SizedVol + 'a,
 {
     assert!(bone_idx <= 15, "Bone index for figures must be in [0, 15]");
     let max_size = greedy.max_size();
@@ -218,7 +218,7 @@ where
     (Mesh::new(), Mesh::new(), Mesh::new(), bounds)
 }
 
-pub fn generate_mesh_base_vol_sprite<'a: 'b, 'b, V: 'a>(
+pub fn generate_mesh_base_vol_sprite<'a: 'b, 'b, V>(
     vol: V,
     (greedy, opaque_mesh, vertical_stripes): (
         &'b mut GreedyMesh<'a, FigureSpriteAtlasData, greedy::SpriteAtlasAllocator>,
@@ -228,7 +228,7 @@ pub fn generate_mesh_base_vol_sprite<'a: 'b, 'b, V: 'a>(
     offset: Vec3<f32>,
 ) -> MeshGen<SpriteVertex, SpriteVertex, TerrainVertex, ()>
 where
-    V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
+    V: BaseVol<Vox = Cell> + ReadVol + SizedVol + 'a,
 {
     let max_size = greedy.max_size();
     // NOTE: Required because we steal two bits from the normal in the shadow uint
@@ -345,12 +345,12 @@ where
     (Mesh::new(), Mesh::new(), Mesh::new(), ())
 }
 
-pub fn generate_mesh_base_vol_particle<'a: 'b, 'b, V: 'a>(
+pub fn generate_mesh_base_vol_particle<'a: 'b, 'b, V>(
     vol: V,
     greedy: &'b mut GreedyMesh<'a, FigureSpriteAtlasData>,
 ) -> MeshGen<ParticleVertex, ParticleVertex, TerrainVertex, ()>
 where
-    V: BaseVol<Vox = Cell> + ReadVol + SizedVol,
+    V: BaseVol<Vox = Cell> + ReadVol + SizedVol + 'a,
 {
     let max_size = greedy.max_size();
     // NOTE: Required because we steal two bits from the normal in the shadow uint
@@ -437,7 +437,7 @@ fn should_draw_greedy(
     let from = flat_get(pos - delta);
     let to = flat_get(pos);
     let from_opaque = from.is_filled();
-    if from_opaque != !to.is_filled() {
+    if from_opaque == to.is_filled() {
         None
     } else {
         // If going from transparent to opaque, backward facing; otherwise, forward
@@ -456,7 +456,7 @@ fn should_draw_greedy_ao(
     let from = flat_get(pos - delta);
     let to = flat_get(pos);
     let from_opaque = from.is_filled();
-    if from_opaque != !to.is_filled() {
+    if from_opaque == to.is_filled() {
         None
     } else {
         let faces_forward = from_opaque;

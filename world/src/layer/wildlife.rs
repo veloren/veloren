@@ -6,7 +6,7 @@ use common::{
     resources::TimeOfDay,
     terrain::{BiomeKind, Block},
     time::DayPeriod,
-    vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
+    vol::{ReadVol, RectSizedVol, WriteVol},
 };
 use rand::prelude::*;
 use serde::Deserialize;
@@ -554,7 +554,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     dynamic_rng: &mut R,
     wpos2d: Vec2<i32>,
     mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-    vol: &(impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+    vol: &(impl RectSizedVol<Vox = Block> + ReadVol + WriteVol),
     index: IndexRef,
     chunk: &SimChunk,
     supplement: &mut ChunkSupplement,
@@ -587,8 +587,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
 
             let entity_group = scatter
                 .iter()
-                .enumerate()
-                .filter_map(|(_i, (entry, get_density))| {
+                .filter_map(|(entry, get_density)| {
                     let density = get_density(chunk, col_sample) * wildlife_density_modifier;
                     (density > 0.0)
                         .then(|| {

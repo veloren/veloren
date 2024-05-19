@@ -45,6 +45,7 @@ pub enum ResourceErr {
         #[allow(dead_code)] // false-positive
         err: String,
     },
+    #[allow(dead_code)] // false-positive
     BundleError(String),
 }
 

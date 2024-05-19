@@ -30,7 +30,7 @@ use common::{
     store::{Id, Store},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     trade::{Good, SiteInformation},
-    vol::{BaseVol, ReadVol, RectSizedVol, RectVolSize, WriteVol},
+    vol::{ReadVol, RectSizedVol, RectVolSize, WriteVol},
 };
 
 use fxhash::FxHasher64;
@@ -560,7 +560,7 @@ impl Settlement {
         index: IndexRef,
         wpos2d: Vec2<i32>,
         mut get_column: impl FnMut(Vec2<i32>) -> Option<&'a ColumnSample<'a>>,
-        vol: &mut (impl BaseVol<Vox = Block> + RectSizedVol + ReadVol + WriteVol),
+        vol: &mut (impl RectSizedVol<Vox = Block> + ReadVol + WriteVol),
     ) {
         let colors = &index.colors.site.settlement;
 

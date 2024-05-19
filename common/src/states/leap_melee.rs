@@ -32,7 +32,6 @@ pub struct StaticData {
     pub vertical_leap_strength: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    ///
     pub damage_effect: Option<CombatEffect>,
 }
 

@@ -182,7 +182,7 @@ fn main() {
                 ?selected_language,
                 "Impossible to load language: change to the default language (English) instead.",
             );
-            settings.language.selected_language = i18n::REFERENCE_LANG.to_owned();
+            i18n::REFERENCE_LANG.clone_into(&mut settings.language.selected_language);
             LocalizationHandle::load_expect(&settings.language.selected_language)
         });
     i18n.set_english_fallback(settings.language.use_english_fallback);

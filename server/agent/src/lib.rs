@@ -1,4 +1,4 @@
-#![feature(exclusive_range_pattern, let_chains)]
+#![feature(let_chains)]
 #![allow(
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]

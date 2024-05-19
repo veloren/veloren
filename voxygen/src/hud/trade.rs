@@ -746,7 +746,7 @@ impl<'a> Trade<'a> {
                 .set(state.ids.amount_input, ui)
             {
                 if new_input != key.input {
-                    key.input = new_input.trim().to_owned();
+                    new_input.trim().clone_into(&mut key.input);
                     if !key.input.is_empty() {
                         // trade amount can change with (shift||ctrl)-click
                         let amount = *trade.offers[key.who].get(&key.slot).unwrap_or(&0);

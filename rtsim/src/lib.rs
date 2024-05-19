@@ -7,7 +7,8 @@
     binary_heap_drain_sorted,
     fn_traits,
     unboxed_closures,
-    tuple_trait
+    tuple_trait,
+    trait_upcasting
 )]
 
 pub mod ai;

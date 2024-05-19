@@ -101,20 +101,14 @@ impl CharacterBehavior for Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
-                    if let Body::Object(object) = data.body {
-                        match object {
-                            &Flamethrower | &Lavathrower => {
-                                // Send local event used for frontend shenanigans
-                                output_events.emit_local(LocalEvent::CreateOutcome(
-                                    Outcome::FlamethrowerCharge {
-                                        pos: data.pos.0
-                                            + *data.ori.look_dir() * (data.body.max_radius()),
-                                    },
-                                ));
+                    if matches!(data.body, Body::Object(Flamethrower | Lavathrower)) {
+                        // Send local event used for frontend shenanigans
+                        output_events.emit_local(LocalEvent::CreateOutcome(
+                            Outcome::FlamethrowerCharge {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
                             },
-                            _ => {},
-                        }
-                    };
+                        ));
+                    }
                 } else {
                     let attack = {
                         let energy = AttackEffect::new(

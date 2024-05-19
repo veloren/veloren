@@ -482,14 +482,14 @@ impl SkillSet {
     ///
     /// NOTE: Please don't use pathological or clever implementations of to_mut
     /// here.
-    pub fn unlock_skill_cow<'a, B, C: 'a>(
+    pub fn unlock_skill_cow<'a, B, C>(
         this_: &'a mut B,
         skill: Skill,
         to_mut: impl FnOnce(&'a mut B) -> &'a mut C,
     ) -> Result<(), SkillUnlockError>
     where
         B: Borrow<SkillSet>,
-        C: BorrowMut<SkillSet>,
+        C: BorrowMut<SkillSet> + 'a,
     {
         if let Some(skill_group_kind) = skill.skill_group_kind() {
             let this = (*this_).borrow();
