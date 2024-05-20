@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use super::{
     errors::{EcsAccessError, PluginModuleError},
@@ -10,7 +10,7 @@ use wasmtime::{
     component::{Component, Linker},
     Config, Engine, Store,
 };
-use wasmtime_wasi::preview2::WasiView;
+use wasmtime_wasi::WasiView;
 
 wasmtime::component::bindgen!({
     path: "../../plugin/wit/veloren.wit",
@@ -30,26 +30,22 @@ use veloren::plugin::{actions, information, types};
 pub struct PluginModule {
     ecs: Arc<EcsAccessManager>,
     plugin: Plugin,
-    store: wasmtime::Store<WasiHostCtx>,
+    store: Mutex<wasmtime::Store<WasiHostCtx>>,
     #[allow(dead_code)]
     name: String,
 }
 
 struct WasiHostCtx {
-    preview2_ctx: wasmtime_wasi::preview2::WasiCtx,
+    preview2_ctx: wasmtime_wasi::WasiCtx,
     preview2_table: wasmtime::component::ResourceTable,
     ecs: Arc<EcsAccessManager>,
     registered_commands: HashSet<String>,
 }
 
-impl wasmtime_wasi::preview2::WasiView for WasiHostCtx {
-    fn table(&self) -> &wasmtime::component::ResourceTable { &self.preview2_table }
+impl wasmtime_wasi::WasiView for WasiHostCtx {
+    fn table(&mut self) -> &mut wasmtime::component::ResourceTable { &mut self.preview2_table }
 
-    fn ctx(&self) -> &wasmtime_wasi::preview2::WasiCtx { &self.preview2_ctx }
-
-    fn table_mut(&mut self) -> &mut wasmtime::component::ResourceTable { &mut self.preview2_table }
-
-    fn ctx_mut(&mut self) -> &mut wasmtime_wasi::preview2::WasiCtx { &mut self.preview2_ctx }
+    fn ctx(&mut self) -> &mut wasmtime_wasi::WasiCtx { &mut self.preview2_ctx }
 }
 
 impl information::Host for WasiHostCtx {}
@@ -80,7 +76,7 @@ impl information::HostEntity for WasiHostCtx {
         &mut self,
         uid: actions::Uid,
     ) -> wasmtime::Result<Result<wasmtime::component::Resource<information::Entity>, ()>> {
-        let entry = self.table_mut().push(Entity {
+        let entry = self.table().push(Entity {
             uid: common::uid::Uid(uid),
         })?;
         Ok(Ok(entry))
@@ -139,50 +135,50 @@ impl information::HostEntity for WasiHostCtx {
         &mut self,
         rep: wasmtime::component::Resource<information::Entity>,
     ) -> wasmtime::Result<()> {
-        Ok(self.table_mut().delete(rep).map(|_entity| ())?)
+        Ok(self.table().delete(rep).map(|_entity| ())?)
     }
 }
 
 struct InfoStream(String);
 
-impl wasmtime_wasi::preview2::HostOutputStream for InfoStream {
-    fn write(&mut self, bytes: bytes::Bytes) -> wasmtime_wasi::preview2::StreamResult<()> {
+impl wasmtime_wasi::HostOutputStream for InfoStream {
+    fn write(&mut self, bytes: bytes::Bytes) -> wasmtime_wasi::StreamResult<()> {
         tracing::info!("{}: {}", self.0, String::from_utf8_lossy(bytes.as_ref()));
         Ok(())
     }
 
-    fn flush(&mut self) -> wasmtime_wasi::preview2::StreamResult<()> { Ok(()) }
+    fn flush(&mut self) -> wasmtime_wasi::StreamResult<()> { Ok(()) }
 
-    fn check_write(&mut self) -> wasmtime_wasi::preview2::StreamResult<usize> { Ok(1024) }
+    fn check_write(&mut self) -> wasmtime_wasi::StreamResult<usize> { Ok(1024) }
 }
 
 #[async_trait::async_trait]
-impl wasmtime_wasi::preview2::Subscribe for InfoStream {
+impl wasmtime_wasi::Subscribe for InfoStream {
     async fn ready(&mut self) {}
 }
 
 struct ErrorStream(String);
 
-impl wasmtime_wasi::preview2::HostOutputStream for ErrorStream {
-    fn write(&mut self, bytes: bytes::Bytes) -> wasmtime_wasi::preview2::StreamResult<()> {
+impl wasmtime_wasi::HostOutputStream for ErrorStream {
+    fn write(&mut self, bytes: bytes::Bytes) -> wasmtime_wasi::StreamResult<()> {
         tracing::error!("{}: {}", self.0, String::from_utf8_lossy(bytes.as_ref()));
         Ok(())
     }
 
-    fn flush(&mut self) -> wasmtime_wasi::preview2::StreamResult<()> { Ok(()) }
+    fn flush(&mut self) -> wasmtime_wasi::StreamResult<()> { Ok(()) }
 
-    fn check_write(&mut self) -> wasmtime_wasi::preview2::StreamResult<usize> { Ok(1024) }
+    fn check_write(&mut self) -> wasmtime_wasi::StreamResult<usize> { Ok(1024) }
 }
 
 #[async_trait::async_trait]
-impl wasmtime_wasi::preview2::Subscribe for ErrorStream {
+impl wasmtime_wasi::Subscribe for ErrorStream {
     async fn ready(&mut self) {}
 }
 
 struct LogStream(String, tracing::Level);
 
-impl wasmtime_wasi::preview2::StdoutStream for LogStream {
-    fn stream(&self) -> Box<dyn wasmtime_wasi::preview2::HostOutputStream> {
+impl wasmtime_wasi::StdoutStream for LogStream {
+    fn stream(&self) -> Box<dyn wasmtime_wasi::HostOutputStream> {
         if self.1 == tracing::Level::INFO {
             Box::new(InfoStream(self.0.clone()))
         } else {
@@ -204,13 +200,13 @@ impl PluginModule {
 
         let engine = Engine::new(&config).map_err(PluginModuleError::Wasmtime)?;
         // create a WASI environment (std implementing system calls)
-        let wasi = wasmtime_wasi::preview2::WasiCtxBuilder::new()
+        let wasi = wasmtime_wasi::WasiCtxBuilder::new()
             .stdout(LogStream(name.clone(), tracing::Level::INFO))
             .stderr(LogStream(name.clone(), tracing::Level::ERROR))
             .build();
         let host_ctx = WasiHostCtx {
             preview2_ctx: wasi,
-            preview2_table: wasmtime_wasi::preview2::ResourceTable::new(),
+            preview2_table: wasmtime_wasi::ResourceTable::new(),
             ecs: Arc::clone(&ecs),
             registered_commands: HashSet::new(),
         };
@@ -223,7 +219,7 @@ impl PluginModule {
 
         // register WASI and Veloren methods with the runtime
         let mut linker = Linker::new(&engine);
-        wasmtime_wasi::preview2::command::add_to_linker(&mut linker)
+        wasmtime_wasi::bindings::Command::add_to_linker(&mut linker, |x| x)
             .map_err(PluginModuleError::Wasmtime)?;
         Plugin::add_to_linker(&mut linker, |x| x).map_err(PluginModuleError::Wasmtime)?;
 
@@ -234,7 +230,7 @@ impl PluginModule {
         Ok(Self {
             plugin,
             ecs,
-            store,
+            store: store.into(),
             name,
         })
     }
@@ -257,7 +253,7 @@ impl PluginModule {
                 let future = self
                     .plugin
                     .veloren_plugin_events()
-                    .call_load(&mut self.store, mode);
+                    .call_load(self.store.get_mut().unwrap(), mode);
                 futures::executor::block_on(future)
             })
             .map_err(PluginModuleError::Wasmtime)
@@ -270,12 +266,19 @@ impl PluginModule {
         args: &[String],
         player: common::uid::Uid,
     ) -> Result<Vec<String>, CommandResults> {
-        if !self.store.data().registered_commands.contains(name) {
+        if !self
+            .store
+            .get_mut()
+            .unwrap()
+            .data()
+            .registered_commands
+            .contains(name)
+        {
             return Err(CommandResults::UnknownCommand);
         }
         self.ecs.execute_with(ecs, || {
             let future = self.plugin.veloren_plugin_events().call_command(
-                &mut self.store,
+                self.store.get_mut().unwrap(),
                 name,
                 args,
                 player.0,
@@ -295,7 +298,7 @@ impl PluginModule {
     ) -> types::JoinResult {
         self.ecs.execute_with(ecs, || {
             let future = self.plugin.veloren_plugin_events().call_join(
-                &mut self.store,
+                self.store.get_mut().unwrap(),
                 name,
                 uuid.as_u64_pair(),
             );
