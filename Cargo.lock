@@ -6764,12 +6764,12 @@ dependencies = [
 
 [[package]]
 name = "treeculler"
-version = "0.2.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82449b48a3494420dd1b11081f198c542f795a036246da4a9c5845b7d7427226"
+checksum = "c11fcf82651ce9a4550c82beb88a38951fdde004917817eba244359720d74c06"
 dependencies = [
  "num-traits",
- "vek 0.14.1",
+ "vek 0.17.0",
 ]
 
 [[package]]

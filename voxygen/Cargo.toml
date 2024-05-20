@@ -134,7 +134,7 @@ serde = { workspace = true, features = ["rc"] }
 slab = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }
-treeculler = "0.2"
+treeculler = "0.4"
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 inline_tweak = { workspace = true }
