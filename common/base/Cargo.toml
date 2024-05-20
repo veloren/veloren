@@ -16,4 +16,4 @@ directories-next = "2.0"
 # NOTE: This must be kept in sync with the `tracy-client` version used by the
 # `tracing-tracy` version in `common/frontend`.
 # Using `=` here keeps `cargo update` from breaking this.
-profiling = { version = "=1.0.8", default-features = false, optional = true }
+profiling = { version = "=1.0.15", default-features = false, optional = true }

@@ -109,7 +109,9 @@ where
 
     // Create the terminal writer layer.
     #[cfg(feature = "tracy")]
-    let registry = registry.with(tracing_tracy::TracyLayer::new().with_stackdepth(0));
+    let registry = registry.with(tracing_tracy::TracyLayer::new(
+        tracing_tracy::DefaultConfig::default(),
+    ));
     #[cfg(not(feature = "tracy"))]
     let registry = {
         let (non_blocking, stdio_guard) = tracing_appender::non_blocking(terminal.make_writer());
