@@ -105,11 +105,11 @@ pub fn quic() -> (ListenAddr, ConnectAddr) {
 
     trace!("generating self-signed certificate");
     let cert = rcgen::generate_simple_self_signed(vec![LOCALHOST.into()]).unwrap();
-    let key = cert.serialize_private_key_der();
-    let cert = cert.serialize_der().unwrap();
+    let key = cert.key_pair.serialize_der();
+    let cert = cert.cert.der();
 
     let key = rustls::PrivateKey(key);
-    let cert = rustls::Certificate(cert);
+    let cert = rustls::Certificate((*cert).to_vec());
 
     let mut root_store = rustls::RootCertStore::empty();
     root_store.add(&cert).expect("cannot add cert to rootstore");
