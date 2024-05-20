@@ -128,7 +128,7 @@ ordered-float = { workspace = true }
 rand = { workspace = true }
 rand_chacha = { workspace = true }
 rayon = { workspace = true }
-rodio = { version = "0.17", default-features = false, features = ["vorbis"] }
+rodio = { version = "0.18", default-features = false, features = ["vorbis"] }
 ron = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
 slab = { workspace = true }
