@@ -46,8 +46,8 @@ tracing = { workspace = true }
 vek = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
-quinn = "0.10"
-rustls = { version = "0.21", default-features = false }
+quinn = { workspace = true }
+rustls = { workspace = true }
 rustls-pemfile = { version = "1", default-features = false }
 atomicwrites = "0.4"
 chrono = { workspace = true }
