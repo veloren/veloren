@@ -11,7 +11,8 @@ pub struct Item {
     pub item_id: i64,
     pub parent_container_item_id: i64,
     pub item_definition_id: String,
-    pub stack_size: i32,
+    /// `u32::MAX` must fit inside this type
+    pub stack_size: i64,
     pub position: String,
     pub properties: String,
 }

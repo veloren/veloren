@@ -187,7 +187,7 @@ pub fn convert_items_to_database_items(
                     parent_container_item_id,
                     item_id,
                     stack_size: if item.is_stackable() {
-                        item.amount() as i32
+                        item.amount().into()
                     } else {
                         1
                     },
