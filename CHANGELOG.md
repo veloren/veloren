@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refresh of voxel models for orichalcum armour
 - Toned down the health of most wild entities.
 - Rocksnapper received new abilities and AI
+- Rebalanced cultist dungeon loot tables; among other things, the drops Glowing Remains and Ankh of Life from Mindflayer are now 2.5x and 25x more frequent, respectively.
+- Improved Mindflayer anticheese measures.
 
 ### Removed
 
@@ -40,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPC path-finding, especially for merchants and travellers is now less dumb.
 - Moderate buff to wild large bipeds, to bring in line with other balancing
 - Loot protection for solo players and NPCs works again
+- New cultist dungeons are less overly abundant, sahagin dungeons spawn again.
+- Cultist dungeons now always have exactly one portal which leads to the boss room.
 
 ## [0.16.0] - 2024-03-30
 

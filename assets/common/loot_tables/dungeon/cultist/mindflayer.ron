@@ -1,15 +1,27 @@
 [
-    (5.0, LootTable("common.loot_tables.weapons.cultist")),
-    (5.0, LootTable("common.loot_tables.weapons.cave")),
-    (10.0, LootTable("common.loot_tables.armor.cultist")),
-    // Rare misc items
-    (1.0, Item("common.items.boss_drops.lantern")),
-    (1.0, Item("common.items.glider.skullgrin")),
-    (0.01, Item("common.items.armor.misc.neck.ankh_of_life")),
-    // Legendary weapons
-    (1.0, Item("common.items.weapons.staff.laevateinn")),
-    // Crafting material
-    // Allow for Eldwood to drop till entity droppers are implemented
-    (1.0, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-    (1.0, MultiDrop(Item("common.items.log.eldwood"), 2, 6)),
+    (1, All([
+        // Gear
+        MultiDrop(Lottery([
+            (2.0, LootTable("common.loot_tables.armor.cultist")),
+            (1.0, LootTable("common.loot_tables.weapons.cultist")),
+            (1.0, LootTable("common.loot_tables.weapons.cave")),
+        ]), 1, 2),
+        Lottery([
+            // Rare misc items
+            // Allow for Ankh to drop till it finds a proper home
+            (1.0, Item("common.items.boss_drops.lantern")),
+            (1.0, Item("common.items.glider.skullgrin")),
+            (0.1, Item("common.items.armor.misc.neck.ankh_of_life")),
+            // Legendary weapons
+            (0.5, Item("common.items.weapons.staff.laevateinn")),
+            // Crafting material
+            (0.5, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+            (6.9, Nothing),
+        ]),
+        // Allow for Eldwood to drop till entity droppers are implemented
+        Lottery([
+            (1.0, MultiDrop(Item("common.items.log.eldwood"), 1, 3)),
+	    (1.0, Nothing),
+        ])
+    ])),
 ]

@@ -1,0 +1,9 @@
+[
+    // Currency
+    (10.0, MultiDrop(Item("common.items.utility.coins"), 250, 500)),
+    // Food
+    (5.0, LootTable("common.loot_tables.food.prepared")),
+    // Weapons
+    (0.5, LootTable("common.loot_tables.weapons.cultist")),
+    (0.5, LootTable("common.loot_tables.weapons.cave")),
+]

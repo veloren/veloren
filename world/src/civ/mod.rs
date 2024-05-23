@@ -414,7 +414,7 @@ impl Civs {
                         )?,
                         SiteKind::DwarvenMine,
                     ),
-                    87..=92 => (
+                    87..=90 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()

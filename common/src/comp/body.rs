@@ -1264,7 +1264,7 @@ impl Body {
         match self {
             Body::Humanoid(_) => 100,
             Body::BipedLarge(biped_large) => match biped_large.species {
-                biped_large::Species::Mindflayer => 390,
+                biped_large::Species::Mindflayer => 777,
                 biped_large::Species::Minotaur => 340,
                 biped_large::Species::Forgemaster => 300,
                 biped_large::Species::Gigasfrost => 990,

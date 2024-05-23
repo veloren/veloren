@@ -2312,7 +2312,7 @@ impl<'a> AgentData<'a> {
             AttackTimer = 0,
         }
 
-        let home = agent.patrol_origin.unwrap_or(self.pos.0.round());
+        let home = agent.patrol_origin.unwrap_or(self.pos.0);
 
         let attack_select =
             if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 3.0 {
@@ -3076,40 +3076,76 @@ impl<'a> AgentData<'a> {
             ConditionCounterInit = 0,
         }
 
+        enum Timers {
+            ExtraSummonTimer = 0,
+        }
+
         const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
         const MINION_SUMMON_THRESHOLD: f32 = 0.20;
+        const MIN_CURSEDFLAMES_ENERGY: f32 = 180.0;
+        const MAX_BLINK_DISTANCE: f32 = 150.0;
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        let home = agent.patrol_origin.unwrap_or(self.pos.0);
+
         // Sets counter at start of combat, using `condition` to keep track of whether
         // it was already initialized
         if !agent.combat_state.conditions[ActionStateConditions::ConditionCounterInit as usize] {
             agent.combat_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] =
                 1.0 - MINION_SUMMON_THRESHOLD;
+            agent.combat_state.int_counters[ActionStateICounters::ICounterNumFireballs as usize] =
+                rand::random::<u8>() % 4;
             agent.combat_state.conditions[ActionStateConditions::ConditionCounterInit as usize] =
                 true;
+        }
+        agent.combat_state.timers[Timers::ExtraSummonTimer as usize] += read_data.dt.0;
+        if (tgt_data.pos.0 - home).xy().magnitude_squared() < (25.0_f32).powi(2) {
+            agent.combat_state.timers[Timers::ExtraSummonTimer as usize] = 0.0;
         }
 
         if agent.combat_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize]
             > health_fraction
-            && (matches!(self.char_state, CharacterState::BasicSummon(_))
-                || entities_have_line_of_sight(
-                    self.pos,
-                    self.body,
-                    self.scale,
-                    tgt_data.pos,
-                    tgt_data.body,
-                    tgt_data.scale,
-                    read_data,
-                ))
-        // TODO: Better check for if there's room to spawn summons
         {
-            // Summon minions at particular thresholds of health
-            controller.push_basic_input(InputKind::Ability(2));
+            // teleport to room center for summon, to avoid walls
+            if (5.0_f32.powi(2)..=MAX_BLINK_DISTANCE.powi(2))
+                .contains(&home.distance_squared(self.pos.0))
+            {
+                controller.push_action(ControlAction::StartInput {
+                    input: InputKind::Ability(0),
+                    target_entity: None,
+                    select_pos: Some(home),
+                });
+            } else {
+                // Summon minions at particular thresholds of health
+                controller.push_basic_input(InputKind::Ability(2));
+            }
 
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.combat_state.counters
                     [ActionStateFCounters::FCounterHealthThreshold as usize] -=
                     MINION_SUMMON_THRESHOLD;
+            }
+        } else if agent.combat_state.timers[Timers::ExtraSummonTimer as usize] > 12.0 {
+            // teleport to target for extra summons
+            if (3.0_f32.powi(2)..=MAX_BLINK_DISTANCE.powi(2))
+                .contains(&tgt_data.pos.0.distance_squared(self.pos.0))
+            {
+                controller.push_action(ControlAction::StartInput {
+                    input: InputKind::Ability(0),
+                    target_entity: agent
+                        .target
+                        .as_ref()
+                        .and_then(|t| read_data.uids.get(t.target))
+                        .copied(),
+                    select_pos: None,
+                });
+            } else {
+                controller.push_basic_input(InputKind::Ability(3));
+            }
+
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.combat_state.timers[Timers::ExtraSummonTimer as usize] = 0.0;
             }
         } else if attack_data.dist_sqrd < MINDFLAYER_ATTACK_DIST.powi(2) {
             if entities_have_line_of_sight(
@@ -3122,16 +3158,18 @@ impl<'a> AgentData<'a> {
                 read_data,
             ) {
                 // If close to target, use either primary or secondary ability
-                if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10) && !matches!(c.stage_section, StageSection::Recover))
+                if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5) && !matches!(c.stage_section, StageSection::Recover))
                 {
-                    // If already using primary, keep using primary until 10 consecutive seconds
+                    // If already using primary, keep using primary until 5 consecutive seconds
                     controller.push_basic_input(InputKind::Primary);
                 } else if matches!(self.char_state, CharacterState::RapidMelee(c) if c.current_strike < 50 && !matches!(c.stage_section, StageSection::Recover))
                 {
                     // If already using secondary, keep using secondary until 10 consecutive
                     // seconds
                     controller.push_basic_input(InputKind::Secondary);
-                } else if rng.gen_bool(health_fraction.into()) {
+                } else if self.energy.current() > MIN_CURSEDFLAMES_ENERGY
+                    && rng.gen_bool(health_fraction.into())
+                {
                     // Else if at high health, use primary
                     controller.push_basic_input(InputKind::Primary);
                 } else {
@@ -3280,7 +3318,7 @@ impl<'a> AgentData<'a> {
                 read_data,
             )
         };
-        let home = agent.patrol_origin.unwrap_or(self.pos.0.round());
+        let home = agent.patrol_origin.unwrap_or(self.pos.0);
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // Teleport back to home position if we're too far from our home position but in
         // range of the blink ability
