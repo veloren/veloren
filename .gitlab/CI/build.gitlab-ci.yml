@@ -130,7 +130,6 @@ coverage:
   - source $HOME/.cargo/env
   - cargo --version
   - rustup toolchain list
-  - rustup target add aarch64-apple-darwin
   - export DISABLE_GIT_LFS_CHECK=true
   - export VELOREN_ASSETS="$(pwd)/assets"
   - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
@@ -167,6 +166,7 @@ coverage:
     - .tmacos
   before_script:
     - *tmacos-before-script
+    - rustup target add aarch64-apple-darwin
     - export RUST_TARGET="aarch64-apple-darwin"
 
 # build on release or master
