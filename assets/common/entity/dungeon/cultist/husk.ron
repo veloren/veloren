@@ -3,7 +3,7 @@
     name: Name("Cultist Husk"),
     body: RandomWith("husk"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.cultist.minion"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.husk"),
     inventory: (
         loadout: Asset("common.loadout.dungeon.cultist.husk"),
     ),

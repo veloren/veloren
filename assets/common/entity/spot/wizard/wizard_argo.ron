@@ -4,7 +4,7 @@
     name: Name("Argo"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
-    loot: LootTable("common.loot_tables.dungeon.cultist.miniboss"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.beastmaster"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.wizard_tower.wizard_boss"),

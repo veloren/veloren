@@ -3,7 +3,7 @@
     name: Name("Beastmaster"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.cultist.miniboss"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.beastmaster"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.cultist.beastmaster"),

@@ -291,7 +291,10 @@ impl MeleeConstructor {
                 damage,
                 pull,
                 lifesteal,
+                energy_regen,
             } => {
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
                 let lifesteal = CombatEffect::Lifesteal(lifesteal);
 
                 let mut damage = AttackDamage::new(
@@ -321,6 +324,7 @@ impl MeleeConstructor {
                 Attack::default()
                     .with_damage(damage)
                     .with_precision(precision_mult)
+                    .with_effect(energy)
                     .with_effect(knockback)
             },
             SonicWave {
@@ -467,16 +471,19 @@ impl MeleeConstructor {
                         damage: a_damage,
                         pull: a_pull,
                         lifesteal: a_lifesteal,
+                        energy_regen: a_energy_regen,
                     },
                     NecroticVortex {
                         damage: b_damage,
                         pull: b_pull,
                         lifesteal: b_lifesteal,
+                        energy_regen: b_energy_regen,
                     },
                 ) => NecroticVortex {
                     damage: scale_values(a_damage, b_damage),
                     pull: scale_values(a_pull, b_pull),
                     lifesteal: scale_values(a_lifesteal, b_lifesteal),
+                    energy_regen: scale_values(a_energy_regen, b_energy_regen),
                 },
                 (
                     Hook {
@@ -577,6 +584,7 @@ pub enum MeleeConstructorKind {
         damage: f32,
         pull: f32,
         lifesteal: f32,
+        energy_regen: f32,
     },
     SonicWave {
         damage: f32,
@@ -633,6 +641,7 @@ impl MeleeConstructorKind {
                 ref mut damage,
                 ref mut pull,
                 ref mut lifesteal,
+                energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *pull *= stats.effect_power;

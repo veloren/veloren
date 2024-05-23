@@ -1,0 +1,12 @@
+[
+    (1, All([
+        MultiDrop(Item("common.items.utility.coins"), 500, 1000),
+        MultiDrop(Item("common.items.consumable.potion_minor"), 2, 4),
+        Lottery([
+            (4.0, LootTable("common.loot_tables.armor.cultist")),
+            (1.0, Item("common.items.glider.blue")),
+            (1.0, MultiDrop(Item("common.items.food.spore_corruption"), 1, 2)),
+            (14.0, Nothing),
+        ]),
+    ])),
+]

@@ -3,7 +3,7 @@
     name: Name("Cultist Warlock"),
     body: RandomWith("cultist_warlock"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.cultist.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.enemy_large"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.cultist.warlock"),

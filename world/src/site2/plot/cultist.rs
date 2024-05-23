@@ -20,6 +20,7 @@ pub struct Room {
     clear_center: Vec2<i32>,
     mob_room: bool,
     boss_room: bool,
+    portal_to_boss: bool,
 }
 
 pub struct Cultist {
@@ -47,18 +48,25 @@ impl Cultist {
             for s in 0..=1 {
                 // rooms
                 let rooms = [1, 2];
+                let boss_portal_floor =
+                    (1 + (RandomField::new(0).get(center.with_z(base + 1)) % 2)) as i32;
+                let portal_to_boss_index =
+                    (RandomField::new(0).get(center.with_z(base)) % 4) as usize;
                 if rooms.contains(&f) {
-                    for dir in DIAGONALS {
+                    for (d, dir) in DIAGONALS.iter().enumerate() {
                         let room_base = base - (f * (2 * (room_size))) - (s * room_size);
                         let room_center = center + (dir * ((room_size * 2) - 5 + (10 * s)));
                         let clear_center = center + (dir * ((room_size * 2) - 6 + (10 * s)));
                         let mob_room = s < 1;
+                        let portal_to_boss =
+                            mob_room && d == portal_to_boss_index && f == boss_portal_floor;
                         room_data.push(Room {
                             room_base,
                             room_center,
                             clear_center,
                             mob_room,
                             boss_room: false,
+                            portal_to_boss,
                         });
                     }
                 }
@@ -71,6 +79,7 @@ impl Cultist {
             clear_center: center,
             mob_room: false,
             boss_room: true,
+            portal_to_boss: false,
         });
 
         Self {
@@ -332,12 +341,13 @@ impl Structure for Cultist {
         }
         // room clears
         for room in room_data {
-            let (room_base, room_center, clear_center, mob_room, boss_room) = (
+            let (room_base, room_center, clear_center, mob_room, boss_room, portal_to_boss) = (
                 room.room_base,
                 room.room_center,
                 room.clear_center,
                 room.mob_room,
                 room.boss_room,
+                room.portal_to_boss,
             );
             painter
                 .cylinder(Aabb {
@@ -541,7 +551,7 @@ impl Structure for Cultist {
                             let npc_pos = (room_center + dir * ((spacing / 2) * d))
                                 .with_z(room_base - room_size + ((room_size / 3) * f));
                             let pos_var = RandomField::new(0).get(npc_pos) % 10;
-                            if pos_var < 1 {
+                            if pos_var < 2 {
                                 painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
                                     "common.entity.dungeon.cultist.cultist",
                                     &mut thread_rng,
@@ -596,66 +606,30 @@ impl Structure for Cultist {
             let exit_position = (center - 10).with_z(base - (6 * room_size));
             let boss_position = (center - 10).with_z(base - (7 * room_size));
             let boss_portal = center.with_z(base - (7 * room_size));
-
-            let mob_portal_pos = Vec3::new(
-                mob_portal.x as f32,
-                mob_portal.y as f32,
-                mob_portal.z as f32,
-            );
-            let mob_portal_target_pos = Vec3::new(
-                mob_portal_target.x as f32,
-                mob_portal_target.y as f32,
-                mob_portal_target.z as f32,
-            );
-            let mini_boss_portal_pos = Vec3::new(
-                mini_boss_portal.x as f32,
-                mini_boss_portal.y as f32,
-                mini_boss_portal.z as f32,
-            );
-            let exit_pos = Vec3::new(
-                exit_position.x as f32,
-                exit_position.y as f32,
-                exit_position.z as f32,
-            );
-            let boss_pos = Vec3::new(
-                boss_position.x as f32,
-                boss_position.y as f32,
-                boss_position.z as f32,
-            );
-            let boss_portal_pos = Vec3::new(
-                boss_portal.x as f32,
-                boss_portal.y as f32,
-                boss_portal.z as f32,
-            );
-
-            let mini_boss_portal_target = [
-                exit_pos, exit_pos, exit_pos, exit_pos, exit_pos, boss_pos, boss_pos, boss_pos,
-            ];
-
+            let mini_boss_portal_target = if portal_to_boss {
+                boss_position.as_::<f32>()
+            } else {
+                exit_position.as_::<f32>()
+            };
             if mob_room {
-                painter.spawn(EntityInfo::at(mob_portal_pos).into_special(
+                painter.spawn(EntityInfo::at(mob_portal.as_::<f32>()).into_special(
                     SpecialEntity::Teleporter(PortalData {
-                        target: mob_portal_target_pos,
+                        target: mob_portal_target.as_::<f32>(),
                         requires_no_aggro: true,
                         buildup_time: Secs(5.),
                     }),
                 ));
-                let mini_boss_portal_target_index = RandomField::new(0).get(mini_boss_portal)
-                    as usize
-                    % mini_boss_portal_target.len();
-                let mini_boss_portal_target_pos =
-                    mini_boss_portal_target[mini_boss_portal_target_index];
-                painter.spawn(EntityInfo::at(mini_boss_portal_pos).into_special(
+                painter.spawn(EntityInfo::at(mini_boss_portal.as_::<f32>()).into_special(
                     SpecialEntity::Teleporter(PortalData {
-                        target: mini_boss_portal_target_pos,
+                        target: mini_boss_portal_target,
                         requires_no_aggro: true,
                         buildup_time: Secs(5.),
                     }),
                 ));
             } else if boss_room {
-                painter.spawn(EntityInfo::at(boss_portal_pos).into_special(
+                painter.spawn(EntityInfo::at(boss_portal.as_::<f32>()).into_special(
                     SpecialEntity::Teleporter(PortalData {
-                        target: exit_pos,
+                        target: exit_position.as_::<f32>(),
                         requires_no_aggro: true,
                         buildup_time: Secs(5.),
                     }),

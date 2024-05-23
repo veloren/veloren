@@ -87,6 +87,7 @@ pub enum ProjectileConstructor {
         damage: f32,
         radius: f32,
         min_falloff: f32,
+        energy_regen: f32,
     },
     Magicball {
         damage: f32,
@@ -461,7 +462,10 @@ impl ProjectileConstructor {
                 damage,
                 radius,
                 min_falloff,
+                energy_regen,
             } => {
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
@@ -474,7 +478,8 @@ impl ProjectileConstructor {
                 let attack = Attack::default()
                     .with_damage(damage)
                     .with_precision(precision_mult)
-                    .with_combo_increment();
+                    .with_combo_increment()
+                    .with_effect(energy);
                 let explosion = Explosion {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,

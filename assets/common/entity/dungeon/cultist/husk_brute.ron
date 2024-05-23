@@ -3,7 +3,7 @@
     name: Name("Husk Brute"),
     body: RandomWith("husk_brute"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.cultist.miniboss"),
+    loot: LootTable("common.loot_tables.dungeon.cultist.husk_brute"),
     inventory: (
         loadout: FromBody,
     ),
