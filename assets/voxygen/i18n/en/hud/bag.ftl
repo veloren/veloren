@@ -41,3 +41,19 @@ hud-bag-sort_by_quality = Sort by Quality
 hud-bag-sort_by_category = Sort by Category
 hud-bag-sort_by_tag = Sort by Tag
 hud-bag-sort_by_quantity = Sort by Quantity
+hud-bag-use_slot_equip_drop_items = { $slot_deficit ->
+    [1] Equipping this item will result in insufficient inventory space to hold the items in your inventory and 1 item will drop on the floor. Do you wish to continue?
+    *[other] Equipping this item will result in insufficient inventory space to hold the items in your inventory and { $slot_deficit } items will drop on the floor. Do you wish to continue?
+}
+hud-bag-use_slot_unequip_drop_items = { $slot_deficit ->
+    [1] Unequipping this item  will result in insufficient inventory space to hold the items in your inventory and 1 item will drop on the floor. Do you wish to continue?
+    *[other] Unequipping this item  will result in insufficient inventory space to hold the items in your inventory and { $slot_deficit } items will drop on the floor. Do you wish to continue?
+}
+hud-bag-swap_slots_drop_items = { $slot_deficit ->
+    [1] This will result in dropping 1 item on the ground. Are you sure?
+    *[other] This will result in dropping { $slot_deficit } items on the ground. Are you sure?
+}
+hud-bag-split_swap_slots_drop_items = { $slot_deficit ->
+    [1] This will result in dropping 1 item on the ground. Are you sure?
+    *[other] This will result in dropping { $slot_deficit } items on the ground. Are you sure?
+}

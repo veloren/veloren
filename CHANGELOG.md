@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loot protection for solo players and NPCs works again
 - New cultist dungeons are less overly abundant, sahagin dungeons spawn again.
 - Cultist dungeons now always have exactly one portal which leads to the boss room.
+- Prompt dialogs are now localized.
 
 ## [0.16.0] - 2024-03-30
 
