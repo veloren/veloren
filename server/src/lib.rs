@@ -552,13 +552,19 @@ impl Server {
                             rustls::PrivateKey(key)
                         } else {
                             debug!("convert pem key to der");
-                            let key = rustls_pemfile::read_all(&mut key.as_slice())?
-                                .into_iter()
+                            let key = rustls_pemfile::read_all(&mut key.as_slice())
                                 .find_map(|item| match item {
-                                    Item::RSAKey(v) | Item::PKCS8Key(v) => Some(v),
-                                    Item::ECKey(_) => None,
-                                    Item::X509Certificate(_) => None,
-                                    _ => None,
+                                    Ok(Item::Pkcs1Key(v)) => Some(v.secret_pkcs1_der().into()),
+                                    Ok(Item::Pkcs8Key(v)) => Some(v.secret_pkcs8_der().into()),
+                                    Ok(Item::Sec1Key(_)) => None,
+                                    Ok(Item::Crl(_)) => None,
+                                    Ok(Item::Csr(_)) => None,
+                                    Ok(Item::X509Certificate(_)) => None,
+                                    Ok(_) => None,
+                                    Err(e) => {
+                                        tracing::warn!(?e, "error while reading key_file");
+                                        None
+                                    },
                                 })
                                 .ok_or("No valid pem key in file")?;
                             rustls::PrivateKey(key)
@@ -569,8 +575,15 @@ impl Server {
                             vec![rustls::Certificate(cert_chain)]
                         } else {
                             debug!("convert pem cert to der");
-                            let certs = rustls_pemfile::certs(&mut cert_chain.as_slice())?;
-                            certs.into_iter().map(rustls::Certificate).collect()
+                            rustls_pemfile::certs(&mut cert_chain.as_slice())
+                                .filter_map(|item| match item {
+                                    Ok(cert) => Some(rustls::Certificate(cert.to_vec())),
+                                    Err(e) => {
+                                        tracing::warn!(?e, "error while reading cert_file");
+                                        None
+                                    },
+                                })
+                                .collect()
                         };
                         let server_config = quinn::ServerConfig::with_single_cert(cert_chain, key)?;
                         Ok(server_config)
