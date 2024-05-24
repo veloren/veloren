@@ -103,7 +103,7 @@ use common::{
         loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
-        BuffData, BuffKind, Health, Item, MapMarkerChange, PickupItem, PresenceKind,
+        BuffData, BuffKind, Content, Health, Item, MapMarkerChange, PickupItem, PresenceKind,
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
@@ -1515,26 +1515,30 @@ impl Hud {
                 if let Some(persistence_error) = info.persistence_load_error {
                     let persistence_error = match persistence_error {
                         SkillsPersistenceError::HashMismatch => {
-                            "There was a difference detected in one of your skill groups since you \
-                             last played."
+                            "hud-skill-persistence-hash_mismatch"
                         },
                         SkillsPersistenceError::DeserializationFailure => {
-                            "There was a error in loading some of your skills from the database."
+                            "hud-skill-persistence-deserialization_failure"
                         },
                         SkillsPersistenceError::SpentExpMismatch => {
-                            "The amount of free experience you had in one of your skill groups \
-                             differed from when you last played."
+                            "hud-skill-persistence-spent_experience_missing"
                         },
                         SkillsPersistenceError::SkillsUnlockFailed => {
-                            "Your skills were not able to be obtained in the same order you \
-                             acquired them. Prerequisites or costs may have changed."
+                            "hud-skill-persistence-skills_unlock_failed"
                         },
                     };
+                    let persistence_error = global_state
+                        .i18n
+                        .read()
+                        .get_content(&Content::localized(persistence_error));
 
-                    let common_message = "Some of your skill points have been reset. You will \
-                                          need to reassign them.";
+                    let common_message = global_state
+                        .i18n
+                        .read()
+                        .get_content(&Content::localized("hud-skill-persistence-common_message"));
 
                     warn!("{}\n{}", persistence_error, common_message);
+                    // TODO: Let the player see the more detailed message `persistence_error`?
                     let prompt_dialog = PromptDialogSettings::new(
                         format!("{}\n", common_message),
                         Event::AcknowledgePersistenceLoadError,

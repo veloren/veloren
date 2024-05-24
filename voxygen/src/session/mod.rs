@@ -1736,12 +1736,14 @@ impl PlayState for SessionState {
                                         let slot_deficit = inventory.free_after_equip(inv_slot);
                                         if slot_deficit < 0 {
                                             self.hud.set_prompt_dialog(PromptDialogSettings::new(
-                                                format!(
-                                                    "Equipping this item will result in \
-                                                     insufficient inventory space to hold the \
-                                                     items in your inventory and {} items will \
-                                                     drop on the floor. Do you wish to continue?",
-                                                    slot_deficit.abs()
+                                                global_state.i18n.read().get_content(
+                                                    &Content::localized_with_args(
+                                                        "hud-bag-use_slot_equip_drop_items",
+                                                        [(
+                                                            "slot_deficit",
+                                                            slot_deficit.unsigned_abs() as u64,
+                                                        )],
+                                                    ),
                                                 ),
                                                 HudEvent::UseSlot {
                                                     slot,
@@ -1761,23 +1763,23 @@ impl PlayState for SessionState {
                                             let slot_deficit =
                                                 inventory.free_after_unequip(equip_slot);
                                             if slot_deficit < 0 {
-                                                self.hud.set_prompt_dialog(
-                                                    PromptDialogSettings::new(
-                                                        format!(
-                                                            "Unequipping this item  will result \
-                                                             in insufficient inventory space to \
-                                                             hold the items in your inventory and \
-                                                             {} items will drop on the floor. Do \
-                                                             you wish to continue?",
-                                                            slot_deficit.abs()
+                                                self.hud
+                                                    .set_prompt_dialog(PromptDialogSettings::new(
+                                                    global_state.i18n.read().get_content(
+                                                        &Content::localized_with_args(
+                                                            "hud-bag-use_slot_unequip_drop_items",
+                                                            [(
+                                                                "slot_deficit",
+                                                                slot_deficit.unsigned_abs() as u64,
+                                                            )],
                                                         ),
-                                                        HudEvent::UseSlot {
-                                                            slot,
-                                                            bypass_dialog: true,
-                                                        },
-                                                        None,
                                                     ),
-                                                );
+                                                    HudEvent::UseSlot {
+                                                        slot,
+                                                        bypass_dialog: true,
+                                                    },
+                                                    None,
+                                                ));
                                                 move_allowed = false;
                                             }
                                         } else {
@@ -1822,10 +1824,15 @@ impl PlayState for SessionState {
                                             if slot_deficit < 0 {
                                                 self.hud.set_prompt_dialog(
                                                     PromptDialogSettings::new(
-                                                        format!(
-                                                            "This will result in dropping {} \
-                                                             item(s) on the ground. Are you sure?",
-                                                            slot_deficit.abs()
+                                                        global_state.i18n.read().get_content(
+                                                            &Content::localized_with_args(
+                                                                "hud-bag-swap_slots_drop_items",
+                                                                [(
+                                                                    "slot_deficit",
+                                                                    slot_deficit.unsigned_abs()
+                                                                        as u64,
+                                                                )],
+                                                            ),
                                                         ),
                                                         HudEvent::SwapSlots {
                                                             slot_a,
@@ -1874,21 +1881,24 @@ impl PlayState for SessionState {
                                             let slot_deficit =
                                                 inventory.free_after_swap(equip_slot, inv_slot);
                                             if slot_deficit < 0 {
-                                                self.hud.set_prompt_dialog(
-                                                    PromptDialogSettings::new(
-                                                        format!(
-                                                            "This will result in dropping {} \
-                                                             item(s) on the ground. Are you sure?",
-                                                            slot_deficit.abs()
+                                                self.hud
+                                                    .set_prompt_dialog(PromptDialogSettings::new(
+                                                    global_state.i18n.read().get_content(
+                                                        &Content::localized_with_args(
+                                                            "hud-bag-split_swap_slots_drop_items",
+                                                            [(
+                                                                "slot_deficit",
+                                                                slot_deficit.unsigned_abs() as u64,
+                                                            )],
                                                         ),
-                                                        HudEvent::SwapSlots {
-                                                            slot_a,
-                                                            slot_b,
-                                                            bypass_dialog: true,
-                                                        },
-                                                        None,
                                                     ),
-                                                );
+                                                    HudEvent::SwapSlots {
+                                                        slot_a,
+                                                        slot_b,
+                                                        bypass_dialog: true,
+                                                    },
+                                                    None,
+                                                ));
                                                 move_allowed = false;
                                             }
                                         }

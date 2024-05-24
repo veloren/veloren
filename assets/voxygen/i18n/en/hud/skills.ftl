@@ -139,3 +139,10 @@ hud-skill-pick_strike_oregain_title = Pickaxe Strike Ore Yield
 hud-skill-pick_strike_oregain = Chance to gain extra ore ({ $boost } % per level).{ $SP }
 hud-skill-pick_strike_gemgain_title = Pickaxe Strike Gem Yield
 hud-skill-pick_strike_gemgain = Chance to gain extra gems ({ $boost } % per level).{ $SP }
+
+## Skill tree error dialog
+hud-skill-persistence-hash_mismatch = There was a difference detected in one of your skill groups since you last played.
+hud-skill-persistence-deserialization_failure = There was a error in loading some of your skills from the database.
+hud-skill-persistence-spent_experience_missing = The amount of free experience you had in one of your skill groups differed from when you last played.
+hud-skill-persistence-skills_unlock_failed = Your skills were not able to be obtained in the same order you acquired them. Prerequisites or costs may have changed.
+hud-skill-persistence-common_message = Some of your skill points have been reset. You will need to reassign them.
