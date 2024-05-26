@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refresh of voxel models for orichalcum armour
 - Toned down the health of most wild entities.
 - Rocksnapper received new abilities and AI
-- Rebalanced cultist dungeon loot tables; among other things, the drops Glowing Remains and Ankh of Life from Mindflayer are now 2.5x and 25x more frequent, respectively.
+- Rebalanced cultist dungeon loot tables; among other things, the drop Ankh of Life from Mindflayer is now 25x more frequent.
 - Improved Mindflayer anticheese measures.
 
 ### Removed
