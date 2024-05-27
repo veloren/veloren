@@ -18,7 +18,7 @@ use crate::{
 #[cfg(feature = "worldgen")]
 use common::rtsim::{Actor, RtSimEntity};
 use common::{
-    combat::{self, AttackSource, DamageContributor, DeathEffect},
+    combat::{self, AttackSource, DamageContributor, DeathEffect, BASE_PARRIED_POISE_PUNISHMENT},
     comp::{
         self,
         aura::{self, EnteredAuras},
@@ -28,7 +28,7 @@ use common::{
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
         Alignment, Auras, Body, CharacterState, Energy, Group, Health, Inventory, Object,
-        PickupItem, Player, Poise, Pos, Presence, PresenceKind, SkillSet, Stats,
+        PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind, SkillSet, Stats,
         BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
@@ -1746,18 +1746,31 @@ impl ServerEvent for ParryHookEvent {
     type SystemData<'a> = (
         Read<'a, Time>,
         Read<'a, EventBus<EnergyChangeEvent>>,
+        Read<'a, EventBus<PoiseChangeEvent>>,
         Read<'a, EventBus<BuffEvent>>,
         WriteStorage<'a, CharacterState>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, comp::Mass>,
+        ReadStorage<'a, Inventory>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (time, energy_change_events, buff_events, mut character_states, uids, stats, masses): Self::SystemData<'_>,
+        (
+            time,
+            energy_change_events,
+            poise_change_events,
+            buff_events,
+            mut character_states,
+            uids,
+            stats,
+            masses,
+            inventories,
+        ): Self::SystemData<'_>,
     ) {
         let mut energy_change_emitter = energy_change_events.emitter();
+        let mut poise_change_emitter = poise_change_events.emitter();
         let mut buff_emitter = buff_events.emitter();
         for ev in events {
             if let Some(mut char_state) = character_states.get_mut(ev.defender) {
@@ -1773,6 +1786,7 @@ impl ServerEvent for ParryHookEvent {
                             entity: ev.defender,
                             change: c.static_data.energy_regen,
                         });
+                        c.is_parry = true;
                         false
                     },
                     _ => false,
@@ -1787,8 +1801,8 @@ impl ServerEvent for ParryHookEvent {
             if let Some(attacker) = ev.attacker
                 && matches!(ev.source, AttackSource::Melee)
             {
-                // When attacker is parried, add the parried debuff for 2 seconds, which slows
-                // them
+                // When attacker is parried, the debuff lasts 2 seconds, the attacker takes
+                // poise damage, get precision vulnerability and get slower recovery speed
                 let data = buff::BuffData::new(1.0, Some(Secs(2.0)));
                 let source = if let Some(uid) = uids.get(ev.defender) {
                     BuffSource::Character { by: *uid }
@@ -1811,6 +1825,27 @@ impl ServerEvent for ParryHookEvent {
                 buff_emitter.emit(BuffEvent {
                     entity: attacker,
                     buff_change: buff::BuffChange::Add(buff),
+                });
+
+                let attacker_poise_change = Poise::apply_poise_reduction(
+                    ev.poise_multiplier.clamp(1.0, 2.0) * BASE_PARRIED_POISE_PUNISHMENT,
+                    inventories.get(attacker),
+                    &MaterialStatManifest::load().read(),
+                    character_states.get(attacker),
+                    stats.get(attacker),
+                );
+
+                poise_change_emitter.emit(PoiseChangeEvent {
+                    entity: attacker,
+                    change: PoiseChange {
+                        amount: -attacker_poise_change,
+                        impulse: Vec3::zero(),
+                        by: uids
+                            .get(ev.defender)
+                            .map(|d| DamageContributor::new(*d, None)),
+                        cause: Some(DamageSource::Melee),
+                        time: *time,
+                    },
                 });
             }
         }

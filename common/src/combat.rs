@@ -63,6 +63,7 @@ pub const MAX_BLOCK_POISE_COST: f32 = 25.0;
 pub const PARRY_BONUS_MULTIPLIER: f32 = 2.0;
 pub const FALLBACK_BLOCK_STRENGTH: f32 = 5.0;
 pub const BEHIND_TARGET_ANGLE: f32 = 45.0;
+pub const BASE_PARRIED_POISE_PUNISHMENT: f32 = 100.0 / 3.5;
 
 #[derive(Copy, Clone)]
 pub struct AttackerInfo<'a> {
@@ -76,6 +77,7 @@ pub struct AttackerInfo<'a> {
     pub mass: Option<&'a Mass>,
 }
 
+#[derive(Copy, Clone)]
 pub struct TargetInfo<'a> {
     pub entity: EcsEntity,
     pub uid: Uid,
@@ -187,6 +189,7 @@ impl Attack {
                             defender: target.entity,
                             attacker: attacker.map(|a| a.entity),
                             source,
+                            poise_multiplier: 2.0 - (damage_value / block_strength).min(1.0),
                         });
                     }
 
@@ -301,10 +304,22 @@ impl Attack {
             (matches!(attack_effect.target, Some(GroupTarget::OutOfGroup)) && !allow_friendly_fire)
                 && (target_dodging || !permit_pvp)
         };
-        let precision_mult = attacker
+
+        let from_precision_mult = attacker
             .and_then(|a| a.stats)
             .and_then(|s| s.precision_multiplier_override)
             .or(precision_mult);
+
+        let from_precision_vulnerability_mult = target
+            .stats
+            .and_then(|s| s.precision_vulnerability_multiplier_override);
+
+        let precision_mult = match (from_precision_mult, from_precision_vulnerability_mult) {
+            (Some(a), Some(b)) => Some(a.max(b)),
+            (Some(a), None) | (None, Some(a)) => Some(a),
+            (None, None) => None,
+        };
+
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
         let damage_modifier = attacker
