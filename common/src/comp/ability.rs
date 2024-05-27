@@ -2402,6 +2402,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
+                is_parry: false,
             }),
             CharacterAbility::Roll {
                 energy_cost: _,

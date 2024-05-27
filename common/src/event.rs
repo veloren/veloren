@@ -332,6 +332,7 @@ pub struct ParryHookEvent {
     pub defender: EcsEntity,
     pub attacker: Option<EcsEntity>,
     pub source: AttackSource,
+    pub poise_multiplier: f32,
 }
 
 pub struct RequestSiteInfoEvent {

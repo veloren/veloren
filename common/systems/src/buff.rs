@@ -755,6 +755,9 @@ fn execute_effect(
         BuffEffect::AttackSpeed(speed) => {
             stat.attack_speed_modifier *= *speed;
         },
+        BuffEffect::RecoverySpeed(speed) => {
+            stat.recovery_speed_modifier *= *speed;
+        },
         BuffEffect::GroundFriction(gf) => {
             stat.friction_modifier *= *gf;
         },
@@ -779,6 +782,13 @@ fn execute_effect(
             stat.precision_multiplier_override = stat
                 .precision_multiplier_override
                 .map(|mult| mult.min(*val))
+                .or(Some(*val));
+        },
+        BuffEffect::PrecisionVulnerabilityOverride(val) => {
+            // Use higher of precision multiplier overrides
+            stat.precision_vulnerability_multiplier_override = stat
+                .precision_vulnerability_multiplier_override
+                .map(|mult| mult.max(*val))
                 .or(Some(*val));
         },
         BuffEffect::BodyChange(b) => {

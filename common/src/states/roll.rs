@@ -119,7 +119,11 @@ impl CharacterBehavior for Data {
                 {
                     // Recover
                     update.character = CharacterState::Roll(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
+                        timer: tick_attack_or_default(
+                            data,
+                            self.timer,
+                            Some(data.stats.recovery_speed_modifier),
+                        ),
                         ..*self
                     });
                 } else {

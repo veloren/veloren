@@ -436,7 +436,10 @@ impl BuffKind {
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
                 BuffEffect::PoiseDamageFromLostHealth(data.strength),
             ],
-            BuffKind::Parried => vec![BuffEffect::AttackSpeed(0.5)],
+            BuffKind::Parried => vec![
+                BuffEffect::RecoverySpeed(0.25),
+                BuffEffect::PrecisionVulnerabilityOverride(1.0),
+            ],
             //TODO: Handle potion sickness in a more general way.
             BuffKind::PotionSickness => vec![
                 BuffEffect::HealReduction(data.strength),
@@ -672,6 +675,8 @@ pub enum BuffEffect {
     MovementSpeed(f32),
     /// Modifies attack speed of target
     AttackSpeed(f32),
+    /// Modifies recovery speed of target
+    RecoverySpeed(f32),
     /// Modifies ground friction of target
     GroundFriction(f32),
     /// Reduces poise damage taken after armor is accounted for by this fraction
@@ -686,6 +691,8 @@ pub enum BuffEffect {
     AttackDamage(f32),
     /// Overrides the precision multiplier applied to an attack
     PrecisionOverride(f32),
+    /// Overrides the precision multiplier applied to an incoming attack
+    PrecisionVulnerabilityOverride(f32),
     /// Changes body.
     BodyChange(Body),
     BuffImmunity(BuffKind),

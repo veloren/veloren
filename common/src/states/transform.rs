@@ -114,7 +114,11 @@ impl CharacterBehavior for Data {
                 if self.timer < self.static_data.recover_duration {
                     update.character = CharacterState::Transform(Data {
                         static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, None),
+                        timer: tick_attack_or_default(
+                            data,
+                            self.timer,
+                            Some(data.stats.recovery_speed_modifier),
+                        ),
                         ..*self
                     });
                 } else {

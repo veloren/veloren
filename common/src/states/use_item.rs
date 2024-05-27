@@ -120,7 +120,11 @@ impl CharacterBehavior for Data {
                     // Recovery
                     update.character = CharacterState::UseItem(Data {
                         static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, None),
+                        timer: tick_attack_or_default(
+                            data,
+                            self.timer,
+                            Some(data.stats.recovery_speed_modifier),
+                        ),
                         ..*self
                     });
                 } else {
