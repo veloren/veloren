@@ -134,7 +134,7 @@ tokio = { version = "1.28", default-features = false, features = ["rt"] }
 tracing = { version = "0.1" }
 futures-util = { version = "0.3.7", default-features = false }
 prometheus = { version = "0.13", default-features = false }
-prometheus-hyper = "0.1.4"
+prometheus-hyper = "0.1.5"
 
 strum = { version = "0.24", features = ["derive"] }
 enum-map = { version = "2.4" }
@@ -161,9 +161,8 @@ async-trait = "0.1.42"
 sha2 = "0.10"
 hex = "0.4.3"
 
-#TODO add  features = ["std"] in 0.22
-rustls = { version = "0.21", default-features = false }
-quinn = { version = "0.10" }
+rustls = { version = "0.23", default-features = false, features = ["std"] }
+quinn = { version = "0.11" }
 
 [patch.crates-io]
 # until next specs release
