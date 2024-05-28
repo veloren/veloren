@@ -18,5 +18,4 @@ Shockwave(
     timing: PostAction,
     emit_outcome: false,
     minimum_combo: Some(20),
-    combo_consumption: Cost,
 )

@@ -21,5 +21,4 @@ FinisherMelee(
         ))),
     ),
     minimum_combo: 20,
-    combo_consumption: Cost,
 )

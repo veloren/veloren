@@ -22,5 +22,4 @@ FinisherMelee(
         precision_flank_invert: true,
     ),
     minimum_combo: 10,
-    combo_consumption: Cost,
 )
