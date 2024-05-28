@@ -1501,6 +1501,30 @@ impl ParticleMgr {
                                     },
                                 )
                             },
+                            states::transform::FrontendSpecifier::Cursekeeper => {
+                                self.particles.resize_with(
+                                    self.particles.len()
+                                        + usize::from(
+                                            self.scheduler.heartbeats(Duration::from_millis(10)),
+                                        ),
+                                    || {
+                                        let start_pos = interpolated.pos
+                                            + (Vec2::unit_y()
+                                                * rng.gen::<f32>()
+                                                * body.max_radius())
+                                            .rotated_z(rng.gen_range(0.0..(PI * 2.0)))
+                                            .with_z(body.height() * rng.gen::<f32>());
+
+                                        Particle::new_directed(
+                                            Duration::from_millis(100),
+                                            time,
+                                            ParticleMode::FireworkPurple,
+                                            start_pos,
+                                            start_pos + Vec3::unit_z() * 2.0,
+                                        )
+                                    },
+                                )
+                            },
                         }
                     }
                 },

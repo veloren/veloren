@@ -520,15 +520,15 @@ impl Structure for TerracottaPalace {
             .fill(clay_unbroken.clone());
         painter
             .cylinder(Aabb {
-                min: (center - (room_size / 4)).with_z(base + (3 * (room_size / 10)) - 1),
-                max: (center + (room_size / 4)).with_z(base + (3 * (room_size / 10)) + 2),
+                min: (center - (room_size / 4) + 1).with_z(base + (3 * (room_size / 10)) - 1),
+                max: (center + (room_size / 4) - 1).with_z(base + (3 * (room_size / 10)) + 2),
             })
             .clear();
         // center podium with spikes
         painter
             .cylinder(Aabb {
-                min: (center - (room_size / 4)).with_z(base + (3 * (room_size / 10)) + 1),
-                max: (center + (room_size / 4)).with_z(base + (3 * (room_size / 10)) + 2),
+                min: (center - (room_size / 4) + 1).with_z(base + (3 * (room_size / 10)) + 1),
+                max: (center + (room_size / 4) - 1).with_z(base + (3 * (room_size / 10)) + 2),
             })
             .fill(Fill::Block(Block::air(SpriteKind::IronSpike)));
         painter
