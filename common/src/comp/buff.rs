@@ -141,6 +141,12 @@ pub enum BuffKind {
     /// with strength, 1.0 is 10 energy per hit. Movement speed is decreased to
     /// 70%.
     Tenacity,
+    /// Applies to some debuffs that have strong CC effects. Automatically
+    /// gained upon receiving those debuffs, and causes future instances of
+    /// those debuffs to be applied with reduced duration.
+    /// Strength linearly decreases the duration of newly applied, affected
+    /// debuffs, 0.5 is a 50% reduction.
+    Resilience,
     // =================
     //      DEBUFFS
     // =================
@@ -261,7 +267,8 @@ impl BuffKind {
             | BuffKind::Bloodfeast
             | BuffKind::Berserk
             | BuffKind::ScornfulTaunt
-            | BuffKind::Tenacity => BuffDescriptor::SimplePositive,
+            | BuffKind::Tenacity
+            | BuffKind::Resilience => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -310,7 +317,7 @@ impl BuffKind {
 
     /// Checks if multiple instances of the buff should be processed, instead of
     /// only the strongest.
-    pub fn stacks(self) -> bool { matches!(self, BuffKind::PotionSickness) }
+    pub fn stacks(self) -> bool { matches!(self, BuffKind::PotionSickness | BuffKind::Resilience) }
 
     pub fn effects(&self, data: &BuffData, stats: Option<&Stats>) -> Vec<BuffEffect> {
         // Normalized nonlinear scaling
@@ -531,6 +538,7 @@ impl BuffKind {
                 BuffEffect::MovementSpeed(0.7),
                 BuffEffect::DamagedEffect(DamagedEffect::Energy(data.strength * 10.0)),
             ],
+            BuffKind::Resilience => vec![BuffEffect::CrowdControlResistance(data.strength)],
         }
     }
 
@@ -550,20 +558,36 @@ impl BuffKind {
         &self,
         mut data: BuffData,
         source_mass: Option<&Mass>,
-        dest_mass: Option<&Mass>,
+        dest_info: DestInfo,
     ) -> BuffData {
         // TODO: Remove clippy allow after another buff needs this
         #[allow(clippy::single_match)]
         match self {
             BuffKind::Rooted => {
                 let source_mass = source_mass.map_or(50.0, |m| m.0 as f64);
-                let dest_mass = dest_mass.map_or(50.0, |m| m.0 as f64);
+                let dest_mass = dest_info.mass.map_or(50.0, |m| m.0 as f64);
                 let ratio = (source_mass / dest_mass).min(1.0);
                 data.duration = data.duration.map(|dur| Secs(dur.0 * ratio));
             },
             _ => {},
         }
+        if self.resilience_ccr_strength(data).is_some() {
+            let dur_mult = dest_info
+                .stats
+                .map_or(1.0, |s| (1.0 - s.crowd_control_resistance).max(0.0));
+            data.duration = data.duration.map(|dur| dur * dur_mult as f64);
+        }
         data
+    }
+
+    /// If a buff kind should also give resilience when applied, return the
+    /// strength that resilience should have, otherwise return None
+    pub fn resilience_ccr_strength(&self, data: BuffData) -> Option<f32> {
+        match self {
+            BuffKind::Concussion => Some(0.3),
+            BuffKind::Frozen => Some(data.strength),
+            _ => None,
+        }
     }
 }
 
@@ -704,6 +728,8 @@ pub enum BuffEffect {
     DeathEffect(DeathEffect),
     /// Prevents use of auxiliary abilities
     DisableAuxiliaryAbilities,
+    /// Reduces duration of crowd control debuffs
+    CrowdControlResistance(f32),
 }
 
 /// Actual de/buff.
@@ -763,7 +789,7 @@ impl Buff {
         // Create source_info if we need more parameters from source
         source_mass: Option<&Mass>,
     ) -> Self {
-        let data = kind.modify_data(data, source_mass, dest_info.mass);
+        let data = kind.modify_data(data, source_mass, dest_info);
         let effects = kind.effects(&data, dest_info.stats);
         let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));

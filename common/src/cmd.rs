@@ -195,6 +195,7 @@ lazy_static! {
             BuffKind::Concussion => "concussion",
             BuffKind::Staggered => "staggered",
             BuffKind::Tenacity => "tenacity",
+            BuffKind::Resilience => "resilience",
         };
         let mut buff_parser = HashMap::new();
         for kind in BuffKind::iter() {

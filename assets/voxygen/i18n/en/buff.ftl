@@ -139,6 +139,9 @@ buff-staggered = Staggered
 ## Tenacity
 buff-tenacity = Tenacity
     .desc = You are not only able to shrug off heavier attacks, they energize you as well. However you are also slower.
+## Resilience
+buff-resilience = Resilience
+    .desc = After having just taken a debilitating attack, you become more resilient to future incapaciting effects.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

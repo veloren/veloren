@@ -815,6 +815,7 @@ image_ids! {
         buff_frigid: "voxygen.element.de_buffs.buff_frigid",
         buff_scornfultaunt: "voxygen.element.de_buffs.buff_scornfultaunt",
         buff_tenacity: "voxygen.element.de_buffs.buff_tenacity",
+        buff_resilience: "voxygen.element.de_buffs.buff_resilience",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",

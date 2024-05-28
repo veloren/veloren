@@ -1617,11 +1617,13 @@ impl ServerEvent for BuffEvent {
         WriteStorage<'a, comp::Buffs>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Health>,
+        ReadStorage<'a, Stats>,
+        ReadStorage<'a, comp::Mass>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (time, mut buffs, bodies, healths): Self::SystemData<'_>,
+        (time, mut buffs, bodies, healths, stats, masses): Self::SystemData<'_>,
     ) {
         for ev in events {
             if let Some(mut buffs) = buffs.get_mut(ev.entity) {
@@ -1633,6 +1635,32 @@ impl ServerEvent for BuffEvent {
                             .map_or(false, |body| body.immune_to(new_buff.kind))
                             && healths.get(ev.entity).map_or(true, |h| !h.is_dead)
                         {
+                            if let Some(strength) =
+                                new_buff.kind.resilience_ccr_strength(new_buff.data)
+                            {
+                                let resilience_buff = buff::Buff::new(
+                                    BuffKind::Resilience,
+                                    buff::BuffData::new(
+                                        strength,
+                                        Some(
+                                            new_buff
+                                                .data
+                                                .duration
+                                                .map_or(Secs(30.0), |dur| dur * 5.0),
+                                        ),
+                                    ),
+                                    Vec::new(),
+                                    BuffSource::Buff,
+                                    *time,
+                                    buff::DestInfo {
+                                        stats: stats.get(ev.entity),
+                                        mass: masses.get(ev.entity),
+                                    },
+                                    // There is no source entity
+                                    None,
+                                );
+                                buffs.insert(resilience_buff, *time);
+                            }
                             buffs.insert(new_buff, *time);
                         }
                     },
