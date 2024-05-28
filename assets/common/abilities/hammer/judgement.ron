@@ -15,7 +15,6 @@ FinisherMelee(
         damage_effect: Some(StunnedVulnerable(3.0)),
     ),
     minimum_combo: 20,
-    combo_consumption: Cost,
     meta: (
         contextual_stats: Some((context: PoiseResilience(60.0), field: Power)),
     ),

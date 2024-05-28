@@ -16,5 +16,4 @@ FinisherMelee(
         precision_flank_multipliers: (front: 1.0, side: 1.0, back: 3.0),
     ),
     minimum_combo: 10,
-    combo_consumption: Cost,
 )

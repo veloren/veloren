@@ -14,5 +14,4 @@ FinisherMelee(
         angle: 15.0,
     ),
     minimum_combo: 20,
-    combo_consumption: Cost,
 )
