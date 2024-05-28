@@ -5370,18 +5370,6 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        let line_of_sight_with_target = || {
-            entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                self.scale,
-                tgt_data.pos,
-                tgt_data.body,
-                tgt_data.scale,
-                read_data,
-            )
-        };
-
         enum ActionStateTimers {
             TimerBeam,
             TimerSummon,
@@ -5412,23 +5400,22 @@ impl<'a> AgentData<'a> {
             agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] += read_data.dt.0;
         }
 
-        if line_of_sight_with_target() {
-            if agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] > 32.0 {
-                match agent.combat_state.timers[ActionStateTimers::SelectSummon as usize] as i32 {
-                    0 => controller.push_basic_input(InputKind::Ability(0)),
-                    1 => controller.push_basic_input(InputKind::Ability(1)),
-                    2 => controller.push_basic_input(InputKind::Ability(2)),
-                    3 => controller.push_basic_input(InputKind::Ability(3)),
-                    _ => controller.push_basic_input(InputKind::Ability(4)),
-                }
-            } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 6.0 {
-                controller.push_basic_input(InputKind::Ability(6));
-            } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 9.0 {
-                controller.push_basic_input(InputKind::Primary);
-            } else {
-                controller.push_basic_input(InputKind::Secondary);
+        if agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] > 32.0 {
+            match agent.combat_state.timers[ActionStateTimers::SelectSummon as usize] as i32 {
+                0 => controller.push_basic_input(InputKind::Ability(0)),
+                1 => controller.push_basic_input(InputKind::Ability(1)),
+                2 => controller.push_basic_input(InputKind::Ability(2)),
+                3 => controller.push_basic_input(InputKind::Ability(3)),
+                _ => controller.push_basic_input(InputKind::Ability(4)),
             }
+        } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 6.0 {
+            controller.push_basic_input(InputKind::Ability(6));
+        } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 9.0 {
+            controller.push_basic_input(InputKind::Primary);
+        } else {
+            controller.push_basic_input(InputKind::Secondary);
         }
+
         if attack_data.dist_sqrd > 10_f32.powi(2) {
             self.path_toward_target(
                 agent,
@@ -5476,23 +5463,11 @@ impl<'a> AgentData<'a> {
 
     pub fn handle_cursekeeper_fake_attack(
         &self,
-        agent: &mut Agent,
         controller: &mut Controller,
         attack_data: &AttackData,
     ) {
-        enum Conditions {
-            AttackToggle = 0,
-        }
         if attack_data.dist_sqrd < 25_f32.powi(2) {
-            if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {
-                controller.push_basic_input(InputKind::Primary);
-                if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
-                {
-                    agent.combat_state.conditions[Conditions::AttackToggle as usize] = true;
-                }
-            } else {
-                controller.push_basic_input(InputKind::Secondary);
-            }
+            controller.push_basic_input(InputKind::Primary);
         }
     }
 
@@ -5507,11 +5482,38 @@ impl<'a> AgentData<'a> {
         enum ActionStateTimers {
             TimerDagon = 0,
         }
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
+        };
+        // when cheesed from behind the entry, change position to retarget
+        let home = agent.patrol_origin.unwrap_or(self.pos.0);
+        let exit = Vec3::new(home.x - 6.0, home.y - 6.0, home.z);
+        let (station_0, station_1) = (exit + 12.0, exit - 12.0);
         if agent.combat_state.timers[ActionStateTimers::TimerDagon as usize] > 2.5 {
             agent.combat_state.timers[ActionStateTimers::TimerDagon as usize] = 0.0;
         }
+        if !line_of_sight_with_target()
+            && (tgt_data.pos.0 - exit).xy().magnitude_squared() < (10.0_f32).powi(2)
+        {
+            let station = if (tgt_data.pos.0 - station_0).xy().magnitude_squared()
+                < (tgt_data.pos.0 - station_1).xy().magnitude_squared()
+            {
+                station_0
+            } else {
+                station_1
+            };
+            self.path_toward_target(agent, controller, station, read_data, Path::Full, None);
+        }
         // if target gets very close, shoot dagon bombs and lay out sea urchins
-        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+        else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if agent.combat_state.timers[ActionStateTimers::TimerDagon as usize] > 1.0 {
                 controller.push_basic_input(InputKind::Primary);
                 agent.combat_state.timers[ActionStateTimers::TimerDagon as usize] += read_data.dt.0;
@@ -5536,15 +5538,7 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Ability(2));
             }
             agent.combat_state.timers[ActionStateTimers::TimerDagon as usize] += read_data.dt.0;
-        } else if entities_have_line_of_sight(
-            self.pos,
-            self.body,
-            self.scale,
-            tgt_data.pos,
-            tgt_data.body,
-            tgt_data.scale,
-            read_data,
-        ) {
+        } else if line_of_sight_with_target() {
             // if enemy in mid range shoot dagon bombs and steamwave
             if agent.combat_state.timers[ActionStateTimers::TimerDagon as usize] > 1.0 {
                 controller.push_basic_input(InputKind::Primary);

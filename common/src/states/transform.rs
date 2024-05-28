@@ -21,6 +21,7 @@ use super::{
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum FrontendSpecifier {
     Evolve,
+    Cursekeeper,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -91,6 +92,17 @@ impl CharacterBehavior for Data {
                                         radius: 2.0,
                                         is_attack: false,
                                         reagent: Some(Reagent::White),
+                                    },
+                                ))
+                            },
+                            FrontendSpecifier::Cursekeeper => {
+                                output_events.emit_local(crate::event::LocalEvent::CreateOutcome(
+                                    crate::outcome::Outcome::Explosion {
+                                        pos: data.pos.0,
+                                        power: 5.0,
+                                        radius: 2.0,
+                                        is_attack: false,
+                                        reagent: Some(Reagent::Purple),
                                     },
                                 ))
                             },

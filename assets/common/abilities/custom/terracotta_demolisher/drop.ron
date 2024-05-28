@@ -2,7 +2,7 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.0,
     recover_duration: 1.5,
-    projectile: FireDroplet(
+    projectile: DemolisherBomb(
         damage: 30.0,
         radius: 10.0,
         min_falloff: 0.5,

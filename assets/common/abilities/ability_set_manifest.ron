@@ -1125,8 +1125,8 @@
         ],
     ),
     Custom("CursekeeperFake"): (
-        primary: Simple(None, "common.abilities.custom.cursekeeper.summonshamanicspirit"),
-        secondary: Simple(None, "common.abilities.custom.cursekeeper.unlive"),
+        primary: Simple(None, "common.abilities.custom.cursekeeper.transform"),
+        secondary: Simple(None, "common.abilities.custom.cursekeeper.transform"),
         abilities: [],
     ),
     Custom("ShamanicSpirit"): (

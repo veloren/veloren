@@ -1,0 +1,7 @@
+Transform(
+	buildup_duration: 0.3,
+	recover_duration: 0.5,
+	target: "common.entity.dungeon.terracotta.shamanic_spirit_key",
+	specifier: Some(Cursekeeper),
+	allow_players: false,
+)

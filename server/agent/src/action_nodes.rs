@@ -1647,7 +1647,7 @@ impl<'a> AgentData<'a> {
                 rng,
             ),
             Tactic::CursekeeperFake => {
-                self.handle_cursekeeper_fake_attack(agent, controller, &attack_data)
+                self.handle_cursekeeper_fake_attack(controller, &attack_data)
             },
             Tactic::ShamanicSpirit => self.handle_shamanic_spirit_attack(
                 agent,
