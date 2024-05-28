@@ -1224,7 +1224,7 @@ impl Damage {
         };
 
         let stats_dr = if let Some(stats) = stats {
-            stats.damage_reduction
+            stats.damage_reduction.modifier()
         } else {
             0.0
         };

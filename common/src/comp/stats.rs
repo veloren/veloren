@@ -28,6 +28,25 @@ impl Default for StatsModifier {
     }
 }
 
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+pub struct StatsSplit {
+    pub pos_mod: f32,
+    pub neg_mod: f32,
+}
+
+impl Default for StatsSplit {
+    fn default() -> Self {
+        Self {
+            pos_mod: 0.0,
+            neg_mod: 0.0,
+        }
+    }
+}
+
+impl StatsSplit {
+    pub fn modifier(&self) -> f32 { self.pos_mod + self.neg_mod }
+}
+
 impl StatsModifier {
     pub fn compute_maximum(&self, base_value: f32) -> f32 {
         base_value * self.mult_mod + self.add_mod
@@ -53,9 +72,11 @@ impl Error for StatChangeError {}
 pub struct Stats {
     pub name: String,
     pub original_body: Body,
-    pub damage_reduction: f32,
-    pub poise_reduction: f32,
+    pub damage_reduction: StatsSplit,
+    pub poise_reduction: StatsSplit,
     pub heal_multiplier: f32,
+    // Note: This is used to counteract agility as a "potion sickness" right now, and otherwise
+    // does not impact movement speed
     pub move_speed_multiplier: f32,
     pub max_health_modifiers: StatsModifier,
     pub move_speed_modifier: f32,
@@ -87,8 +108,8 @@ impl Stats {
         Self {
             name,
             original_body: body,
-            damage_reduction: 0.0,
-            poise_reduction: 0.0,
+            damage_reduction: StatsSplit::default(),
+            poise_reduction: StatsSplit::default(),
             heal_multiplier: 1.0,
             move_speed_multiplier: 1.0,
             max_health_modifiers: StatsModifier::default(),
