@@ -702,7 +702,11 @@ fn execute_effect(
             },
         },
         BuffEffect::DamageReduction(dr) => {
-            stat.damage_reduction = 1.0 - ((1.0 - stat.damage_reduction) * (1.0 - *dr));
+            if *dr > 0.0 {
+                stat.damage_reduction.pos_mod = stat.damage_reduction.pos_mod.max(*dr);
+            } else {
+                stat.damage_reduction.neg_mod += dr;
+            }
         },
         BuffEffect::MaxHealthChangeOverTime {
             rate,
@@ -761,9 +765,12 @@ fn execute_effect(
         BuffEffect::GroundFriction(gf) => {
             stat.friction_modifier *= *gf;
         },
-        #[allow(clippy::manual_clamp)]
         BuffEffect::PoiseReduction(pr) => {
-            stat.poise_reduction = stat.poise_reduction.max(*pr).min(1.0);
+            if *pr > 0.0 {
+                stat.damage_reduction.pos_mod = stat.damage_reduction.pos_mod.max(*pr);
+            } else {
+                stat.damage_reduction.neg_mod += pr;
+            }
         },
         BuffEffect::HealReduction(red) => {
             stat.heal_multiplier *= 1.0 - *red;

@@ -275,7 +275,7 @@ impl Poise {
             if resistant { 0.5 } else { 0.0 }
         };
         let from_stats = if let Some(stats) = stats {
-            stats.poise_reduction
+            stats.poise_reduction.modifier()
         } else {
             0.0
         };
