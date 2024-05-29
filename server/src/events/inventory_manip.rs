@@ -411,6 +411,9 @@ impl ServerEvent for InventoryManipEvent {
                                 Some(SpriteKind::Keyhole) => Some(SpriteKind::KeyDoor),
                                 Some(SpriteKind::BoneKeyhole) => Some(SpriteKind::BoneKeyDoor),
                                 Some(SpriteKind::HaniwaKeyhole) => Some(SpriteKind::HaniwaKeyDoor),
+                                Some(SpriteKind::SahaginKeyhole) => {
+                                    Some(SpriteKind::SahaginKeyDoor)
+                                },
                                 Some(SpriteKind::GlassKeyhole) => Some(SpriteKind::GlassBarrier),
                                 Some(SpriteKind::KeyholeBars) => Some(SpriteKind::DoorBars),
                                 Some(SpriteKind::TerracottaKeyhole) => {

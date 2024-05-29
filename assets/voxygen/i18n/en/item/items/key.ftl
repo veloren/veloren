@@ -24,3 +24,6 @@ object-key-terracotta_chest = Terracotta Chest Key
 
 object-key-terracotta_door = Terracotta Door Key
     .desc = Used to open doors. Will break after use.
+
+object-key-sahagin = Sahagin Key
+    .desc = Used to open doors. Will break after use.

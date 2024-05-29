@@ -4986,6 +4986,10 @@
         "voxel.object.key_haniwa",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
+    Simple("common.items.keys.sahagin_key"): VoxTrans(
+        "voxel.object.key_sahagin",
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
+    ),
     Simple("common.items.keys.glass_key"): VoxTrans(
         "voxel.object.key_glass",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,

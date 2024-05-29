@@ -132,6 +132,7 @@ impl Environment {
                     SiteKind::Gnarling(_) => {},
                     SiteKind::Adlet(_) => {},
                     SiteKind::Cultist(_) => {},
+                    SiteKind::Sahagin(_) => {},
                     SiteKind::Haniwa(_) => {},
                     SiteKind::JungleRuin(_) => {},
                     SiteKind::ChapelSite(_) => {},

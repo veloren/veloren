@@ -4494,7 +4494,7 @@ impl<'a> AgentData<'a> {
                 read_data,
             )
         };
-
+        let home = agent.patrol_origin.unwrap_or(self.pos.0.round());
         // Sets counter at start of combat, using `condition` to keep track of whether
         // it was already initialized
         if !agent.combat_state.conditions
@@ -4544,15 +4544,14 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Secondary);
             }
         }
-        // Always attempt to path towards target
-        self.path_toward_target(
-            agent,
-            controller,
-            tgt_data.pos.0,
-            read_data,
-            Path::Partial,
-            None,
-        );
+        let path = if tgt_data.pos.0.z < self.pos.0.z {
+            home
+        } else {
+            tgt_data.pos.0
+        };
+        // attempt to path towards target, move away from exiit  if target is cheesing
+        // from below
+        self.path_toward_target(agent, controller, path, read_data, Path::Partial, None);
     }
 
     pub fn handle_yeti_attack(

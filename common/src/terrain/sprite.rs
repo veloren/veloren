@@ -128,11 +128,12 @@ sprites! {
         CoralChest        = 0x37,
         HaniwaUrn         = 0x38,
         TerracottaChest   = 0x39,
-        CommonLockedChest = 0x3A,
-        ChestBuried       = 0x3B,
-        Crate             = 0x3C,
-        Barrel            = 0x3D,
-        CrateBlock        = 0x3E,
+        SahaginChest      = 0x3A,
+        CommonLockedChest = 0x3B,
+        ChestBuried       = 0x3C,
+        Crate             = 0x3D,
+        Barrel            = 0x3E,
+        CrateBlock        = 0x3F,
         // Wall
         HangingBasket     = 0x50,
         HangingSign       = 0x51,
@@ -312,6 +313,9 @@ sprites! {
         HaniwaKeyhole = 0x0A,
         TerracottaKeyDoor = 0x0B,
         TerracottaKeyhole = 0x0C,
+        SahaginKeyhole = 0x0D,
+        SahaginKeyDoor = 0x0E,
+
         // Windows
         Window1      = 0x10,
         Window2      = 0x11,
@@ -438,6 +442,7 @@ impl SpriteKind {
             SpriteKind::DungeonChest5 => 1.09,
             SpriteKind::CoralChest => 1.09,
             SpriteKind::HaniwaUrn => 1.09,
+            SpriteKind::SahaginChest => 1.09,
             SpriteKind::TerracottaChest => 1.09,
             SpriteKind::TerracottaStatue => 5.29,
             SpriteKind::TerracottaBlock => 1.00,
@@ -515,6 +520,8 @@ impl SpriteKind {
             | SpriteKind::BoneKeyDoor
             | SpriteKind::HaniwaKeyhole
             | SpriteKind::HaniwaKeyDoor
+            | SpriteKind::SahaginKeyhole
+            | SpriteKind::SahaginKeyDoor
             | SpriteKind::HaniwaTrap
             | SpriteKind::HaniwaTrapTriggered
             | SpriteKind::TerracottaKeyDoor
@@ -690,6 +697,7 @@ impl SpriteKind {
             SpriteKind::TerracottaChest => {
                 table("common.loot_tables.dungeon.terracotta.chest_terracotta")
             },
+            SpriteKind::SahaginChest => table("common.loot_tables.dungeon.sahagin.key_chest"),
             SpriteKind::Mud => table("common.loot_tables.sprite.mud"),
             SpriteKind::Grave => table("common.loot_tables.sprite.mud"),
             SpriteKind::Crate => table("common.loot_tables.sprite.crate"),
@@ -705,6 +713,7 @@ impl SpriteKind {
             | SpriteKind::HaniwaKeyhole
             | SpriteKind::GlassKeyhole
             | SpriteKind::KeyholeBars
+            | SpriteKind::SahaginKeyhole
             | SpriteKind::TerracottaKeyhole => {
                 return Some(None);
             },
@@ -808,6 +817,9 @@ impl SpriteKind {
                 ),
                 SpriteKind::GlassKeyhole => UnlockKind::Consumes(
                     ItemDefinitionId::Simple("common.items.keys.glass_key").to_owned(),
+                ),
+                SpriteKind::SahaginKeyhole => UnlockKind::Consumes(
+                    ItemDefinitionId::Simple("common.items.keys.sahagin_key").to_owned(),
                 ),
                 SpriteKind::TerracottaChest => UnlockKind::Consumes(
                     ItemDefinitionId::Simple("common.items.keys.terracotta_key_chest").to_owned(),

@@ -16,6 +16,5 @@
 /// 1) Set every probability to 0.0 and left one with any other number
 /// and you will have map full of dungeons of same level
 ([
-    (2, 0.20),
     (4, 0.10),
 ])

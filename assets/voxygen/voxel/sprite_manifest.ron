@@ -1419,6 +1419,37 @@
      ],
     wind_sway: 0.0,
 ),
+// Sahagin Door, Keyhole, Chest, Statue
+(SahaginKeyDoor, ()): (
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.sahagin_keydoor",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+),
+(SahaginKeyhole, ()): (
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.sahagin_keyhole",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+),
+(SahaginChest, ()): (
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_sahagin",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+),
 // Terracotta Door, Keyhole, Chest, Statue
 (TerracottaKeyDoor, ()): (
     variations: [

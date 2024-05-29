@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Sahagin Key",
+    legacy_description: "Used to open doors. Will break after use.",
+    kind: Utility(
+        kind: Key,
+    ),
+    quality: Common,
+    tags: [Utility],
+)
+

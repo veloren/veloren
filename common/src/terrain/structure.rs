@@ -49,10 +49,11 @@ make_case_elim!(
         KeyholeBars(consumes: String) = 29,
         HaniwaKeyhole(consumes: String) = 30,
         TerracottaKeyhole(consumes: String) = 31,
-        MapleLeaves = 32,
-        CherryLeaves = 33,
-        AutumnLeaves = 34,
-        RedwoodWood = 35,
+        SahaginKeyhole(consumes: String) = 32,
+        MapleLeaves = 33,
+        CherryLeaves = 34,
+        AutumnLeaves = 35,
+        RedwoodWood = 36,
     }
 );
 
