@@ -2,12 +2,18 @@ BasicRanged(
     energy_cost: 0.0,
     buildup_duration: 1.5,
     recover_duration: 1.5,
-    projectile: LaserBeam(
-        damage: 50.0,
-        radius: 20.0,
-        knockback: 50.0,
-        energy_regen: 0.0,
-        min_falloff: 0.0,
+    projectile: (
+        kind: Explosive(
+            radius: 20,
+            min_falloff: 0.0,
+            reagent: Some(Yellow),
+            terrain: Some((10, Black)),
+        ),
+        attack: Some((
+            damage: 50,
+            knockback: Some(50),
+            energy: 0,
+        )),
     ),
     projectile_body: Object(LaserBeamSmall),
     projectile_speed: 45.0,

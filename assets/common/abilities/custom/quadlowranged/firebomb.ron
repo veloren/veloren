@@ -2,17 +2,18 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.6,
     recover_duration: 0.7,
-    projectile: NecroticSphere(
-        damage: 26.0,
-        radius: 5.0,
-        energy_regen: 0,
-        min_falloff: 0.5,
+    projectile: (
+        kind: Explosive(
+            radius: 5,
+            min_falloff: 0.5,
+            reagent: Some(Purple),
+        ),
+        attack: Some((
+            damage: 26,
+            energy: 0,
+        )),
     ),
     projectile_body: Object(FireworkPurple),
-    /*projectile_light: Some(LightEmitter {
-        col: (1.0, 0.75, 0.11).into(),
-        ..Default::default()
-    }),*/
     projectile_speed: 70.0,
     num_projectiles: 1,
     projectile_spread: 0.0,

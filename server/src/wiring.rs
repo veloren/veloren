@@ -1,5 +1,5 @@
 use common::{
-    comp::{item::tool, object, Body, LightEmitter, PhysicsState, Pos, ProjectileConstructor},
+    comp::{object, Body, LightEmitter, PhysicsState, Pos, ProjectileConstructor},
     event::{EmitExt, ShootEvent},
     terrain::{Block, TerrainChunkSize},
     util::Dir,
@@ -188,12 +188,7 @@ impl WiringAction {
                             pos,
                             dir: Dir::forward(),
                             body: Body::Object(object::Body::Arrow),
-                            projectile: constr.create_projectile(
-                                None,
-                                1.0,
-                                tool::Stats::one(),
-                                None,
-                            ),
+                            projectile: constr.create_projectile(None, 1.0, None),
                             light: None,
                             speed: 5.0,
                             object: None,

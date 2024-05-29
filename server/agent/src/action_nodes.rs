@@ -22,7 +22,7 @@ use common::{
             ConsumableKind, Effects, Item, ItemDesc, ItemKind,
         },
         item_drop,
-        projectile::ProjectileConstructor,
+        projectile::ProjectileConstructorKind,
         Agent, Alignment, Body, CharacterState, Content, ControlAction, ControlEvent, Controller,
         HealthChange, InputKind, InventoryAction, Pos, Scale, UnresolvedChatMsg, UtteranceKind,
     },
@@ -1271,14 +1271,11 @@ impl<'a> AgentData<'a> {
                 )
             },
             CharacterState::BasicRanged(c) => {
-                let offset_z = match c.static_data.projectile {
-                    // Aim fireballs at feet instead of eyes for splash damage
-                    ProjectileConstructor::Fireball {
-                        damage: _,
-                        radius: _,
-                        energy_regen: _,
-                        min_falloff: _,
-                    } => 0.0,
+                let offset_z = match c.static_data.projectile.kind {
+                    // Aim explosives and hazards at feet instead of eyes for splash damage
+                    ProjectileConstructorKind::Explosive { .. }
+                    | ProjectileConstructorKind::ExplosiveHazard { .. }
+                    | ProjectileConstructorKind::Hazard { .. } => 0.0,
                     _ => tgt_eye_offset,
                 };
                 let projectile_speed = c.static_data.projectile_speed;

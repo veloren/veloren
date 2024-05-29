@@ -2,16 +2,18 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.5,
     recover_duration: 1.4,
-    projectile: Frostball(
-        damage: 24.0,
-        radius: 5.0,
-        min_falloff: 0.5,
+    projectile: (
+        kind: Explosive(
+            radius: 5,
+            min_falloff: 0.5,
+            reagent: Some(White),
+        ),
+        attack: Some((
+            damage: 24,
+            energy: 0,
+        )),
     ),
     projectile_body: Object(BoltIcicle),
-    /*projectile_light: Some(LightEmitter {
-        col: (1.0, 0.75, 0.11).into(),
-        ..Default::default()
-    }),*/
     projectile_speed: 60.0,
     num_projectiles: 1,
     projectile_spread: 0.0,

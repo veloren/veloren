@@ -2,18 +2,26 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 1.2,
     recover_duration: 0.7,
-    projectile: Poisonball(
-        damage: 58.0,
-        radius: 3.5,
-        knockback: 1.0,
-        energy_regen: 0,
-        min_falloff: 0.2,
+    projectile: (
+        kind: Explosive(
+            radius: 3.5,
+            min_falloff: 0.2,
+            reagent: Some(Purple),
+            terrain: Some((5, Black)),
+        ),
+        attack: Some((
+            damage: 58,
+            knockback: Some(1),
+            energy: 0,
+            buff: Some((
+                kind: Poisoned,
+                dur_secs: 5,
+                strength: DamageFraction(0.8),
+                chance: 1.0,
+            )),
+        )),
     ),
     projectile_body: Object(SpitPoison),
-    /*projectile_light: Some(LightEmitter {
-        col: (1.0, 0.75, 0.11).into(),
-        ..Default::default()
-    }),*/
     projectile_speed: 25.0,
     num_projectiles: 1,
     projectile_spread: 0.3,

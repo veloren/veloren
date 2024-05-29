@@ -1,20 +1,17 @@
 use crate::{
     combat::{
-        Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
-        CombatRequirement, Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
+        Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
+        DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
-    comp::{
-        buff::BuffKind,
-        item::{tool, Reagent},
-    },
+    comp::item::{tool, Reagent},
+    explosion::{ColorPreset, Explosion, RadiusEffect},
+    resources::Secs,
     uid::Uid,
-    Explosion, RadiusEffect,
 };
-use rand::{thread_rng, Rng};
+use common_base::dev_panic;
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use std::time::Duration;
-use vek::Rgb;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Effect {
@@ -48,111 +45,50 @@ impl Component for Projectile {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub enum ProjectileConstructor {
-    Arrow {
-        damage: f32,
-        knockback: f32,
-        energy_regen: f32,
-    },
-    Knife {
-        damage: f32,
-        knockback: f32,
-        energy_regen: f32,
-    },
-    FireDroplet {
-        damage: f32,
+pub struct ProjectileConstructor {
+    pub kind: ProjectileConstructorKind,
+    pub attack: Option<ProjectileAttack>,
+    pub scaled: Option<Scaled>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Scaled {
+    damage: f32,
+    knockback: Option<f32>,
+    energy: f32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ProjectileAttack {
+    pub damage: f32,
+    pub knockback: Option<f32>,
+    pub energy: f32,
+    pub buff: Option<CombatBuff>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ProjectileConstructorKind {
+    // I want a better name for 'Pointed' and 'Blunt'
+    Pointed,
+    Blunt,
+    Explosive {
         radius: f32,
-        energy_regen: f32,
         min_falloff: f32,
         reagent: Option<Reagent>,
-    },
-    DemolisherBomb {
-        damage: f32,
-        radius: f32,
-        energy_regen: f32,
-        min_falloff: f32,
-        reagent: Option<Reagent>,
-    },
-    Fireball {
-        damage: f32,
-        radius: f32,
-        energy_regen: f32,
-        min_falloff: f32,
-    },
-    Frostball {
-        damage: f32,
-        radius: f32,
-        min_falloff: f32,
-    },
-    Poisonball {
-        damage: f32,
-        radius: f32,
-        knockback: f32,
-        min_falloff: f32,
-    },
-    NecroticSphere {
-        damage: f32,
-        radius: f32,
-        min_falloff: f32,
-        energy_regen: f32,
-    },
-    Magicball {
-        damage: f32,
-        radius: f32,
-        min_falloff: f32,
+        terrain: Option<(f32, ColorPreset)>,
     },
     Possess,
-    ClayRocket {
-        damage: f32,
-        radius: f32,
-        knockback: f32,
-        min_falloff: f32,
+    Hazard {
+        is_sticky: bool,
+        duration: Secs,
     },
-    InkBomb {
-        damage: f32,
+    ExplosiveHazard {
         radius: f32,
         min_falloff: f32,
-    },
-    Snowball {
-        damage: f32,
-        radius: f32,
-        min_falloff: f32,
-    },
-    ExplodingPumpkin {
-        damage: f32,
-        radius: f32,
-        knockback: f32,
-        min_falloff: f32,
-    },
-    DagonBomb {
-        damage: f32,
-        radius: f32,
-        knockback: f32,
-        min_falloff: f32,
-    },
-    IceBomb {
-        damage: f32,
-        radius: f32,
-        knockback: f32,
-        min_falloff: f32,
-    },
-    LaserBeam {
-        damage: f32,
-        radius: f32,
-        knockback: f32,
-        min_falloff: f32,
-    },
-    Trap {
-        damage: f32,
-    },
-    Mine {
-        damage: f32,
-        radius: f32,
-        min_falloff: f32,
-    },
-    Pebble {
-        damage: f32,
-        knockback: f32,
+        reagent: Option<Reagent>,
+        terrain: Option<(f32, ColorPreset)>,
+        is_sticky: bool,
+        duration: Secs,
     },
 }
 
@@ -161,58 +97,92 @@ impl ProjectileConstructor {
         self,
         owner: Option<Uid>,
         precision_mult: f32,
-        tool_stats: tool::Stats,
         damage_effect: Option<CombatEffect>,
     ) -> Projectile {
+        if self.scaled.is_some() {
+            dev_panic!(
+                "Attempted to create a projectile that had a provided scaled value without \
+                 scaling the projectile."
+            )
+        }
+
         let instance = rand::random();
-        use ProjectileConstructor::*;
-        match self {
-            Arrow {
-                damage,
-                knockback,
-                energy_regen,
-            } => {
-                let knockback = AttackEffect::new(
+        let attack = self.attack.map(|a| {
+            let knockback = a.knockback.map(|kb| {
+                AttackEffect::new(
                     Some(GroupTarget::OutOfGroup),
                     CombatEffect::Knockback(Knockback {
-                        strength: knockback,
+                        strength: kb,
                         direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
+                    }),
                 )
+                .with_requirement(CombatRequirement::AnyDamage)
+            });
+
+            let energy = AttackEffect::new(None, CombatEffect::EnergyReward(a.energy))
                 .with_requirement(CombatRequirement::AnyDamage);
-                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
-                    .with_requirement(CombatRequirement::AnyDamage);
-                let buff = CombatEffect::Buff(CombatBuff {
-                    kind: BuffKind::Bleeding,
-                    dur_secs: 10.0,
-                    strength: CombatBuffStrength::DamageFraction(0.1),
-                    chance: 0.1,
-                })
-                .adjusted_by_stats(tool_stats);
-                let mut damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Projectile,
-                        kind: DamageKind::Piercing,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                )
-                .with_effect(buff);
-                if let Some(damage_effect) = damage_effect {
-                    damage = damage.with_effect(damage_effect);
+
+            let buff = a.buff.map(CombatEffect::Buff);
+
+            let (damage_source, damage_kind) = match self.kind {
+                ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Hazard { .. } => {
+                    (DamageSource::Projectile, DamageKind::Piercing)
+                },
+                ProjectileConstructorKind::Blunt => {
+                    (DamageSource::Projectile, DamageKind::Crushing)
+                },
+                ProjectileConstructorKind::Explosive { .. }
+                | ProjectileConstructorKind::ExplosiveHazard { .. } => {
+                    (DamageSource::Explosion, DamageKind::Energy)
+                },
+                ProjectileConstructorKind::Possess => {
+                    dev_panic!("This should be unreachable");
+                    (DamageSource::Projectile, DamageKind::Piercing)
+                },
+            };
+
+            let mut damage = AttackDamage::new(
+                Damage {
+                    source: damage_source,
+                    kind: damage_kind,
+                    value: a.damage,
+                },
+                Some(GroupTarget::OutOfGroup),
+                instance,
+            );
+
+            if let Some(buff) = buff {
+                damage = damage.with_effect(buff);
+            }
+
+            if let Some(damage_effect) = damage_effect {
+                damage = damage.with_effect(damage_effect);
+            }
+
+            let mut attack = Attack::default()
+                .with_damage(damage)
+                .with_precision(precision_mult)
+                .with_effect(energy)
+                .with_combo_increment();
+
+            if let Some(knockback) = knockback {
+                attack = attack.with_effect(knockback);
+            }
+
+            attack
+        });
+
+        match self.kind {
+            ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Blunt => {
+                let mut hit_entity = vec![Effect::Vanish];
+
+                if let Some(attack) = attack {
+                    hit_entity.push(Effect::Attack(attack));
                 }
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(energy)
-                    .with_effect(knockback)
-                    .with_combo_increment();
 
                 Projectile {
                     hit_solid: vec![Effect::Stick, Effect::Bonk],
-                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
+                    hit_entity,
                     time_left: Duration::from_secs(15),
                     owner,
                     ignore_group: true,
@@ -220,99 +190,52 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
-            Knife {
-                damage,
-                knockback,
-                energy_regen,
+            ProjectileConstructorKind::Hazard {
+                is_sticky,
+                duration,
             } => {
-                let knockback = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
-                    .with_requirement(CombatRequirement::AnyDamage);
-                let buff = CombatEffect::Buff(CombatBuff {
-                    kind: BuffKind::Bleeding,
-                    dur_secs: 10.0,
-                    strength: CombatBuffStrength::DamageFraction(0.1),
-                    chance: 0.1,
-                })
-                .adjusted_by_stats(tool_stats);
-                let mut damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Projectile,
-                        kind: DamageKind::Piercing,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                )
-                .with_effect(buff);
-                if let Some(damage_effect) = damage_effect {
-                    damage = damage.with_effect(damage_effect);
+                let mut hit_entity = vec![Effect::Vanish];
+
+                if let Some(attack) = attack {
+                    hit_entity.push(Effect::Attack(attack));
                 }
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(energy)
-                    .with_effect(knockback)
-                    .with_combo_increment();
 
                 Projectile {
                     hit_solid: vec![Effect::Stick, Effect::Bonk],
-                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
-                    time_left: Duration::from_secs(15),
+                    hit_entity,
+                    time_left: Duration::from_secs_f64(duration.0),
                     owner,
                     ignore_group: true,
-                    is_sticky: true,
+                    is_sticky,
                     is_point: true,
                 }
             },
-            FireDroplet {
-                damage,
+            ProjectileConstructorKind::Explosive {
                 radius,
-                energy_regen,
                 min_falloff,
                 reagent,
+                terrain,
             } => {
-                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
-                    .with_requirement(CombatRequirement::AnyDamage);
-                let buff = CombatEffect::Buff(CombatBuff {
-                    kind: BuffKind::Burning,
-                    dur_secs: 4.0,
-                    strength: CombatBuffStrength::DamageFraction(1.0),
-                    chance: 1.0,
-                })
-                .adjusted_by_stats(tool_stats);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                )
-                .with_effect(buff);
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(energy)
-                    .with_combo_increment();
+                let terrain =
+                    terrain.map(|(pow, col)| RadiusEffect::TerrainDestruction(pow, col.to_rgb()));
+
+                let mut effects = Vec::new();
+
+                if let Some(attack) = attack {
+                    effects.push(RadiusEffect::Attack(attack));
+                }
+
+                if let Some(terrain) = terrain {
+                    effects.push(terrain);
+                }
+
                 let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(2.0, Rgb::black()),
-                    ],
+                    effects,
                     radius,
                     reagent,
                     min_falloff,
                 };
+
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
@@ -323,285 +246,45 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
-            DemolisherBomb {
-                damage,
+            ProjectileConstructorKind::ExplosiveHazard {
                 radius,
-                energy_regen,
                 min_falloff,
                 reagent,
+                terrain,
+                is_sticky,
+                duration,
             } => {
-                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
-                    .with_requirement(CombatRequirement::AnyDamage);
-                let buff = CombatEffect::Buff(CombatBuff {
-                    kind: BuffKind::Burning,
-                    dur_secs: 4.0,
-                    strength: CombatBuffStrength::DamageFraction(1.0),
-                    chance: 0.6,
-                })
-                .adjusted_by_stats(tool_stats);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                )
-                .with_effect(buff);
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(energy)
-                    .with_combo_increment();
+                let terrain =
+                    terrain.map(|(pow, col)| RadiusEffect::TerrainDestruction(pow, col.to_rgb()));
+
+                let mut effects = Vec::new();
+
+                if let Some(attack) = attack {
+                    effects.push(RadiusEffect::Attack(attack));
+                }
+
+                if let Some(terrain) = terrain {
+                    effects.push(terrain);
+                }
+
                 let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(2.0, Rgb::black()),
-                    ],
+                    effects,
                     radius,
                     reagent,
                     min_falloff,
                 };
+
                 Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_solid: Vec::new(),
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
+                    time_left: Duration::from_secs_f64(duration.0),
                     owner,
                     ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
+                    is_sticky,
+                    is_point: false,
                 }
             },
-            Fireball {
-                damage,
-                radius,
-                energy_regen,
-                min_falloff,
-            } => {
-                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
-                    .with_requirement(CombatRequirement::AnyDamage);
-                let buff = CombatEffect::Buff(CombatBuff {
-                    kind: BuffKind::Burning,
-                    dur_secs: 5.0,
-                    strength: CombatBuffStrength::DamageFraction(0.1),
-                    chance: 0.1,
-                })
-                .adjusted_by_stats(tool_stats);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                )
-                .with_effect(buff);
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(energy)
-                    .with_combo_increment();
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(2.0, Rgb::black()),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::Red),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            Frostball {
-                damage,
-                radius,
-                min_falloff,
-            } => {
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_combo_increment();
-                let explosion = Explosion {
-                    effects: vec![RadiusEffect::Attack(attack)],
-                    radius,
-                    reagent: Some(Reagent::White),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            Poisonball {
-                damage,
-                radius,
-                knockback,
-                min_falloff,
-            } => {
-                let knockback = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let buff = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Buff(CombatBuff {
-                        kind: BuffKind::Poisoned,
-                        dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.8),
-                        chance: 1.0,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(knockback)
-                    .with_effect(buff);
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(5.0, Rgb::black()),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::Purple),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            NecroticSphere {
-                damage,
-                radius,
-                min_falloff,
-                energy_regen,
-            } => {
-                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
-                    .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_combo_increment()
-                    .with_effect(energy);
-                let explosion = Explosion {
-                    effects: vec![RadiusEffect::Attack(attack)],
-                    radius,
-                    reagent: Some(Reagent::Purple),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            Magicball {
-                damage,
-                radius,
-                min_falloff,
-            } => {
-                let buff = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Buff(CombatBuff {
-                        kind: BuffKind::Poisoned,
-                        dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.8),
-                        chance: 1.0,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(buff);
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(0.0, Rgb::black()),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::Green),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            Possess => Projectile {
+            ProjectileConstructorKind::Possess => Projectile {
                 hit_solid: vec![Effect::Stick],
                 hit_entity: vec![Effect::Stick, Effect::Possess],
                 time_left: Duration::from_secs(10),
@@ -610,640 +293,97 @@ impl ProjectileConstructor {
                 is_sticky: true,
                 is_point: true,
             },
-            ClayRocket {
-                damage,
-                radius,
-                knockback,
-                min_falloff,
-            } => {
-                let knockback = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(knockback);
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(5.0, Rgb::black()),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::Red),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            InkBomb {
-                damage,
-                radius,
-                min_falloff,
-            } => {
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let buff = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Buff(CombatBuff {
-                        kind: BuffKind::Wet,
-                        dur_secs: 8.0,
-                        strength: CombatBuffStrength::Value(0.5),
-                        chance: 1.0,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(buff)
-                    .with_combo_increment();
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(18.0, Rgb::new(4.0, 7.0, 32.0)),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::Blue),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            Snowball {
-                damage,
-                radius,
-                min_falloff,
-            } => {
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult);
-                let explosion = Explosion {
-                    effects: vec![RadiusEffect::Attack(attack)],
-                    radius,
-                    reagent: Some(Reagent::White),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(120),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: false,
-                    is_point: false,
-                }
-            },
-            ExplodingPumpkin {
-                damage,
-                radius,
-                knockback,
-                min_falloff,
-            } => {
-                let knockback = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let buff = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Buff(CombatBuff {
-                        kind: BuffKind::Burning,
-                        dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.2),
-                        chance: 1.0,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(knockback)
-                    .with_effect(buff);
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(5.0, Rgb::black()),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::Red),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            DagonBomb {
-                damage,
-                radius,
-                knockback,
-                min_falloff,
-            } => {
-                let knockback = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let buff = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Buff(CombatBuff {
-                        kind: BuffKind::Burning,
-                        dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.2),
-                        chance: 1.0,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(knockback)
-                    .with_effect(buff);
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(25.0, Rgb::black()),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::Blue),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            IceBomb {
-                damage,
-                radius,
-                knockback,
-                min_falloff,
-            } => {
-                let knockback = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    }),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let buff = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Buff(CombatBuff {
-                        kind: BuffKind::Frozen,
-                        dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.05),
-                        chance: 1.0,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(knockback)
-                    .with_effect(buff);
-                let variation = thread_rng().gen::<f32>();
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(
-                            30.0,
-                            Rgb::new(
-                                83.0 - (20.0 * variation),
-                                212.0 - (52.0 * variation),
-                                255.0 - (62.0 * variation),
-                            ),
-                        ),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::White),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            LaserBeam {
-                damage,
-                radius,
-                knockback,
-                min_falloff,
-            } => {
-                let knockback = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(knockback);
-                let explosion = Explosion {
-                    effects: vec![
-                        RadiusEffect::Attack(attack),
-                        RadiusEffect::TerrainDestruction(10.0, Rgb::black()),
-                    ],
-                    radius,
-                    reagent: Some(Reagent::Yellow),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
-            Trap { damage } => {
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Piercing,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult);
-                Projectile {
-                    hit_solid: vec![],
-                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: false,
-                }
-            },
-            Mine {
-                damage,
-                radius,
-                min_falloff,
-            } => {
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Explosion,
-                        kind: DamageKind::Energy,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult);
-                let explosion = Explosion {
-                    effects: vec![RadiusEffect::Attack(attack)],
-                    radius,
-                    reagent: Some(Reagent::Yellow),
-                    min_falloff,
-                };
-                Projectile {
-                    hit_solid: vec![],
-                    hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: false,
-                    is_point: false,
-                }
-            },
-            Pebble { damage, knockback } => {
-                let knockback = AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
-                    CombatEffect::Knockback(Knockback {
-                        strength: knockback,
-                        direction: KnockbackDir::Away,
-                    })
-                    .adjusted_by_stats(tool_stats),
-                )
-                .with_requirement(CombatRequirement::AnyDamage);
-                let damage = AttackDamage::new(
-                    Damage {
-                        source: DamageSource::Projectile,
-                        kind: DamageKind::Crushing,
-                        value: damage,
-                    },
-                    Some(GroupTarget::OutOfGroup),
-                    instance,
-                );
-                let attack = Attack::default()
-                    .with_damage(damage)
-                    .with_precision(precision_mult)
-                    .with_effect(knockback);
-
-                Projectile {
-                    hit_solid: vec![Effect::Vanish, Effect::Vanish],
-                    hit_entity: vec![Effect::Attack(attack), Effect::Vanish],
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: false,
-                    is_point: false,
-                }
-            },
         }
     }
 
-    // TODO: split this to three methods per stat
-    #[must_use]
-    pub fn modified_projectile(mut self, power: f32, regen: f32, range: f32) -> Self {
-        use ProjectileConstructor::*;
-        match self {
-            Arrow {
-                ref mut damage,
-                ref mut energy_regen,
-                ..
-            } => {
-                *damage *= power;
-                *energy_regen *= regen;
+    pub fn handle_scaling(mut self, scaling: f32) -> Self {
+        let scale_values = |a, b| a + b * scaling;
+
+        if let Some(scaled) = self.scaled {
+            if let Some(ref mut attack) = self.attack {
+                attack.damage = scale_values(attack.damage, scaled.damage);
+                attack.energy = scale_values(attack.energy, scaled.energy);
+                if let Some(s_kb) = scaled.knockback {
+                    attack.knockback = Some(scale_values(attack.knockback.unwrap_or(0.0), s_kb));
+                }
+            } else {
+                dev_panic!("Attempted to scale on a projectile that has no attack to scale.")
+            }
+        } else {
+            dev_panic!("Attempted to scale on a projectile that has no provided scaling value.")
+        }
+
+        self.scaled = None;
+
+        self
+    }
+
+    pub fn adjusted_by_stats(mut self, stats: tool::Stats) -> Self {
+        self.attack = self.attack.map(|mut a| {
+            a.damage *= stats.power;
+            a.knockback = a.knockback.map(|kb| kb * stats.effect_power);
+            a.buff = a.buff.map(|mut b| {
+                b.strength *= stats.buff_strength;
+                b
+            });
+            a
+        });
+
+        self.scaled = self.scaled.map(|mut s| {
+            s.damage *= stats.power;
+            s.knockback = s.knockback.map(|kb| kb * stats.effect_power);
+            s
+        });
+
+        match self.kind {
+            ProjectileConstructorKind::Pointed
+            | ProjectileConstructorKind::Blunt
+            | ProjectileConstructorKind::Possess
+            | ProjectileConstructorKind::Hazard { .. } => {},
+            ProjectileConstructorKind::Explosive { ref mut radius, .. }
+            | ProjectileConstructorKind::ExplosiveHazard { ref mut radius, .. } => {
+                *radius *= stats.range;
             },
-            Knife {
-                ref mut damage,
-                ref mut energy_regen,
-                ..
-            } => {
-                *damage *= power;
-                *energy_regen *= regen;
-            },
-            FireDroplet {
-                ref mut damage,
-                ref mut energy_regen,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *energy_regen *= regen;
-                *radius *= range;
-            },
-            DemolisherBomb {
-                ref mut damage,
-                ref mut energy_regen,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *energy_regen *= regen;
-                *radius *= range;
-            },
-            Fireball {
-                ref mut damage,
-                ref mut energy_regen,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *energy_regen *= regen;
-                *radius *= range;
-            },
-            Frostball {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            Poisonball {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            NecroticSphere {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            Magicball {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            Possess => {},
-            ClayRocket {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            InkBomb {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            Snowball {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            ExplodingPumpkin {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            DagonBomb {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            IceBomb {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            LaserBeam {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            Trap { ref mut damage, .. } => {
-                *damage *= power;
-            },
-            Mine {
-                ref mut damage,
-                ref mut radius,
-                ..
-            } => {
-                *damage *= power;
-                *radius *= range;
-            },
-            Pebble { ref mut damage, .. } => {
-                *damage *= power;
-            },
+        }
+
+        self
+    }
+
+    // Remove this function after skill tree overhaul completed for bow and fire
+    // staff
+    pub fn legacy_modified_by_skills(
+        mut self,
+        power: f32,
+        regen: f32,
+        range: f32,
+        kb: f32,
+    ) -> Self {
+        self.attack = self.attack.map(|mut a| {
+            a.damage *= power;
+            a.knockback = a.knockback.map(|k| k * kb);
+            a.energy *= regen;
+            a
+        });
+        self.scaled = self.scaled.map(|mut s| {
+            s.damage *= power;
+            s.knockback = s.knockback.map(|k| k * kb);
+            s.energy *= regen;
+            s
+        });
+        if let ProjectileConstructorKind::Explosive { ref mut radius, .. } = self.kind {
+            *radius *= range;
         }
         self
     }
 
     pub fn is_explosive(&self) -> bool {
-        use ProjectileConstructor::*;
-        match self {
-            Arrow { .. } => false,
-            Knife { .. } => false,
-            FireDroplet { .. } => true,
-            DemolisherBomb { .. } => true,
-            Fireball { .. } => true,
-            Frostball { .. } => true,
-            Poisonball { .. } => true,
-            NecroticSphere { .. } => true,
-            Magicball { .. } => true,
-            Possess => false,
-            ClayRocket { .. } => true,
-            Snowball { .. } => true,
-            ExplodingPumpkin { .. } => true,
-            DagonBomb { .. } => true,
-            InkBomb { .. } => true,
-            IceBomb { .. } => true,
-            LaserBeam { .. } => true,
-            Trap { .. } => false,
-            Mine { .. } => true,
-            Pebble { .. } => false,
+        match self.kind {
+            ProjectileConstructorKind::Pointed
+            | ProjectileConstructorKind::Blunt
+            | ProjectileConstructorKind::Possess
+            | ProjectileConstructorKind::Hazard { .. } => false,
+            ProjectileConstructorKind::Explosive { .. }
+            | ProjectileConstructorKind::ExplosiveHazard { .. } => true,
         }
     }
 }

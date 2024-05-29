@@ -2,11 +2,23 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.5,
     recover_duration: 1.5,
-    projectile: Fireball(
-        damage: 32.0,
-        radius: 5.0,
-        energy_regen: 5.0,
-        min_falloff: 0.1,
+    projectile: (
+        kind: Explosive(
+            radius: 5,
+            min_falloff: 0.1,
+            reagent: Some(Red),
+            terrain: Some((2, Black))
+        ),
+        attack: Some((
+            damage: 32,
+            energy: 5,
+            buff: Some((
+                kind: Burning,
+                dur_secs: 5,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            )),
+        )),
     ),
     projectile_body: Object(BoltFire),
     projectile_light: None,

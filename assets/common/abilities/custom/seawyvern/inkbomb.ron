@@ -2,11 +2,23 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.5,
     recover_duration: 1.5,
-    projectile: InkBomb(
-        damage: 32.0,
-        radius: 5.0,
-        energy_regen: 5.0,
-        min_falloff: 0.1,
+    projectile: (
+        kind: Explosive(
+            radius: 5,
+            min_falloff: 0.1,
+            reagent: Some(Blue),
+            terrain: Some((18, InkBomb)),
+        ),
+        attack: Some((
+            damage: 32,
+            energy: 0,
+            buff: Some((
+                kind: Wet,
+                dur_secs: 8,
+                strength: Value(0.5),
+                chance: 1.0,
+            )),
+        )),
     ),
     projectile_body: Object(SpitPoison),
     projectile_light: None,
