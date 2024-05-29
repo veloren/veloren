@@ -1585,7 +1585,12 @@ impl PickupItem {
     pub fn next_merge_check_mut(&mut self) -> &mut ProgramTime { &mut self.next_merge_check }
 
     // Get the total amount of items in here
-    pub fn amount(&self) -> u32 { self.items.iter().map(Item::amount).sum() }
+    pub fn amount(&self) -> u32 {
+        self.items
+            .iter()
+            .map(Item::amount)
+            .fold(0, |total, amount| total.saturating_add(amount))
+    }
 
     /// Remove any debug items if this is a container, used before dropping an
     /// item from an inventory
