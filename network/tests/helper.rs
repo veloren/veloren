@@ -1,4 +1,5 @@
 use lazy_static::*;
+use rustls::pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer};
 use std::{
     net::{Ipv4Addr, SocketAddr},
     sync::{
@@ -108,15 +109,16 @@ pub fn quic() -> (ListenAddr, ConnectAddr) {
     let key = cert.key_pair.serialize_der();
     let cert = cert.cert.der();
 
-    let key = rustls::PrivateKey(key);
-    let cert = rustls::Certificate((*cert).to_vec());
+    let key = PrivateKeyDer::from(PrivatePkcs8KeyDer::from(key));
 
     let mut root_store = rustls::RootCertStore::empty();
-    root_store.add(&cert).expect("cannot add cert to rootstore");
+    root_store
+        .add(cert.clone())
+        .expect("cannot add cert to rootstore");
 
-    let server_config = quinn::ServerConfig::with_single_cert(vec![cert], key)
+    let server_config = quinn::ServerConfig::with_single_cert(vec![cert.clone()], key)
         .expect("Server Config Cert/Key failed");
-    let client_config = quinn::ClientConfig::with_root_certificates(root_store);
+    let client_config = quinn::ClientConfig::with_root_certificates(Arc::new(root_store)).unwrap();
     use std::net::IpAddr;
     (
         ListenAddr::Quic(

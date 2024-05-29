@@ -48,7 +48,7 @@ futures-util = { workspace = true }
 tokio = { workspace = true }
 quinn = { workspace = true }
 rustls = { workspace = true }
-rustls-pemfile = { version = "1", default-features = false }
+rustls-pemfile = { version = "2", default-features = false, features = ["std"] }
 atomicwrites = "0.4"
 chrono = { workspace = true }
 chrono-tz = { workspace = true }
