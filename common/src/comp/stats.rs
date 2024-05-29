@@ -80,6 +80,7 @@ pub struct Stats {
     /// This creates effects when the entity is killed
     pub effects_on_death: Vec<DeathEffect>,
     pub disable_auxiliary_abilities: bool,
+    pub crowd_control_resistance: f32,
 }
 
 impl Stats {
@@ -109,6 +110,7 @@ impl Stats {
             effects_on_damaged: Vec::new(),
             effects_on_death: Vec::new(),
             disable_auxiliary_abilities: false,
+            crowd_control_resistance: 0.0,
         }
     }
 

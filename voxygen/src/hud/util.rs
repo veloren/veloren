@@ -199,6 +199,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Berserk => "buff-berserk",
         BuffKind::ScornfulTaunt => "buff-scornfultaunt",
         BuffKind::Tenacity => "buff-tenacity",
+        BuffKind::Resilience => "buff-resilience",
         // Debuffs
         BuffKind::Bleeding => "buff-bleed",
         BuffKind::Cursed => "buff-cursed",
@@ -330,7 +331,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Winded
                         | BuffKind::Concussion
                         | BuffKind::Staggered
-                        | BuffKind::Tenacity => Cow::Borrowed(""),
+                        | BuffKind::Tenacity
+                        | BuffKind::Resilience => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -386,7 +388,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             | BuffKind::Winded
                             | BuffKind::Concussion
                             | BuffKind::Staggered
-                            | BuffKind::Tenacity => Cow::Borrowed(""),
+                            | BuffKind::Tenacity
+                            | BuffKind::Resilience => Cow::Borrowed(""),
                         }
                     } else if let BuffKind::Saturation
                     | BuffKind::Regeneration

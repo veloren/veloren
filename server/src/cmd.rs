@@ -4556,7 +4556,8 @@ fn build_buff(
             | BuffKind::Winded
             | BuffKind::Concussion
             | BuffKind::Staggered
-            | BuffKind::Tenacity => {
+            | BuffKind::Tenacity
+            | BuffKind::Resilience => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

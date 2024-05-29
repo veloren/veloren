@@ -5260,6 +5260,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Flame => imgs.buff_flame,
         BuffKind::Frigid => imgs.buff_frigid,
         BuffKind::Lifesteal => imgs.buff_lifesteal,
+        BuffKind::Resilience => imgs.buff_resilience,
         // TODO: Get image
         // BuffKind::SalamanderAspect => imgs.debuff_burning_0,
         BuffKind::ImminentCritical => imgs.buff_imminentcritical,
