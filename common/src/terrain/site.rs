@@ -19,6 +19,7 @@ pub enum DungeonKindMeta {
     SeaChapel,
     Terracotta,
     Cultist,
+    Sahagin,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]

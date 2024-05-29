@@ -278,7 +278,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..95) {
+                let (loc, kind) = match ctx.rng.gen_range(0..101) {
                     0..=4 => {
                         if index.features().site2_giant_trees {
                             (
@@ -424,7 +424,17 @@ impl Civs {
                         )?,
                         SiteKind::Cultist,
                     ),
-                    /*97..=102 => (
+                    91..=95 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.sahagin_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::Sahagin,
+                        )?,
+                        SiteKind::Sahagin,
+                    ),
+                    /*96..=109 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -435,7 +445,7 @@ impl Civs {
                         )?,
                         SiteKind::Castle,
                     ),
-                    103..=108 => (SiteKind::Citadel, (&castle_enemies, 20)),
+                    110..=115 => (SiteKind::Citadel, (&castle_enemies, 20)),
                     */
                     _ => (
                         find_site_loc(
@@ -491,6 +501,7 @@ impl Civs {
                 SiteKind::Camp => (4i32, 1.5),
                 SiteKind::DwarvenMine => (8i32, 3.0),
                 SiteKind::Cultist => (24i32, 10.0),
+                SiteKind::Sahagin => (8i32, 3.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -676,6 +687,12 @@ impl Civs {
                     )),
                     SiteKind::Cultist => WorldSite::cultist(site2::Site::generate_cultist(
                         &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
+                    )),
+                    SiteKind::Sahagin => WorldSite::sahagin(site2::Site::generate_sahagin(
+                        &Land::from_sim(ctx.sim),
+                        index_ref,
                         &mut rng,
                         wpos,
                     )),
@@ -1625,6 +1642,13 @@ impl Civs {
         })
     }
 
+    fn sahagin_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
+
     fn rock_circle_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
             SiteKind::Tree | SiteKind::GiantTree => None,
@@ -1988,6 +2012,7 @@ pub enum SiteKind {
     DwarvenMine,
     JungleRuin,
     Cultist,
+    Sahagin,
 }
 
 impl SiteKind {
@@ -2068,6 +2093,10 @@ impl SiteKind {
                 },
                 SiteKind::PirateHideout => {
                     (0.5..3.5).contains(&(chunk.water_alt - CONFIG.sea_level))
+                },
+                SiteKind::Sahagin => {
+                    matches!(chunk.get_biome(), BiomeKind::Ocean)
+                    && (40.0..45.0).contains(&(CONFIG.sea_level - chunk.alt))
                 },
                 SiteKind::JungleRuin => {
                     matches!(chunk.get_biome(), BiomeKind::Jungle)

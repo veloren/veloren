@@ -372,6 +372,7 @@ impl Block {
                 | SpriteKind::CoralChest
                 | SpriteKind::HaniwaUrn
                 | SpriteKind::TerracottaChest
+                | SpriteKind::SahaginChest
                 | SpriteKind::Crate => Some(rtsim::ChunkResource::Loot),
             _ => None,
         }
@@ -533,6 +534,7 @@ impl Block {
                 | SpriteKind::HaniwaTrapTriggered
                 | SpriteKind::ChestBuried
                 | SpriteKind::TerracottaChest
+                | SpriteKind::SahaginChest
                 | SpriteKind::SeaDecorBlock
                 | SpriteKind::SeaDecorChain
                 | SpriteKind::SeaDecorWindowHor
@@ -543,6 +545,8 @@ impl Block {
                 | SpriteKind::FireBlock
                 | SpriteKind::GlassBarrier
                 | SpriteKind::GlassKeyhole
+                | SpriteKind::SahaginKeyhole
+                | SpriteKind::SahaginKeyDoor
                 | SpriteKind::TerracottaKeyDoor
                 | SpriteKind::TerracottaKeyhole
                 | SpriteKind::TerracottaStatue

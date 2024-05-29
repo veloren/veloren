@@ -929,6 +929,7 @@ impl<'a> Widget for Map<'a> {
                         SiteKind::Adlet => i18n.get_msg("hud-map-adlet"),
                         SiteKind::Haniwa => i18n.get_msg("hud-map-haniwa"),
                         SiteKind::Cultist => i18n.get_msg("hud-map-cultist"),
+                        SiteKind::Sahagin => i18n.get_msg("hud-map-sahagin"),
                         SiteKind::DwarvenMine => i18n.get_msg("hud-map-df_mine"),
                     });
             let (difficulty, desc) = match &site.kind {
@@ -960,6 +961,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Adlet => (Some(1), i18n.get_msg("hud-map-adlet")),
                 SiteKind::Haniwa => (Some(3), i18n.get_msg("hud-map-haniwa")),
                 SiteKind::Cultist => (Some(5), i18n.get_msg("hud-map-cultist")),
+                SiteKind::Sahagin => (Some(2), i18n.get_msg("hud-map-sahagin")),
                 SiteKind::DwarvenMine => (Some(5), i18n.get_msg("hud-map-df_mine")),
             };
             let desc = desc.into_owned() + &get_site_economy(site_rich);
@@ -974,6 +976,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Adlet => self.imgs.mmap_site_adlet,
                 SiteKind::Haniwa => self.imgs.mmap_site_haniwa,
                 SiteKind::Cultist => self.imgs.mmap_site_cultist,
+                SiteKind::Sahagin => self.imgs.mmap_site_sahagin,
                 SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
                 SiteKind::Dungeon { difficulty } => match difficulty {
                     4 => self.imgs.mmap_site_minotaur,
@@ -999,6 +1002,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Adlet => self.imgs.mmap_site_adlet_hover,
                 SiteKind::Haniwa => self.imgs.mmap_site_haniwa_hover,
                 SiteKind::Cultist => self.imgs.mmap_site_cultist_hover,
+                SiteKind::Sahagin => self.imgs.mmap_site_sahagin_hover,
                 SiteKind::DwarvenMine => self.imgs.mmap_site_mine_hover,
                 SiteKind::Dungeon { difficulty } => match difficulty {
                     4 => self.imgs.mmap_site_minotaur_hover,
@@ -1021,6 +1025,7 @@ impl<'a> Widget for Map<'a> {
                     | SiteKind::Adlet
                     | SiteKind::Haniwa
                     | SiteKind::Cultist
+                    | SiteKind::Sahagin
                     | SiteKind::DwarvenMine => match difficulty {
                         Some(0) => QUALITY_LOW,
                         Some(1) => QUALITY_COMMON,
@@ -1050,6 +1055,7 @@ impl<'a> Widget for Map<'a> {
                 | SiteKind::DwarvenMine
                 | SiteKind::Haniwa
                 | SiteKind::Cultist
+                | SiteKind::Sahagin
                 | SiteKind::Terracotta
                 | SiteKind::Adlet => show_dungeons,
                 SiteKind::Castle => show_castles,
@@ -1113,6 +1119,7 @@ impl<'a> Widget for Map<'a> {
                     | SiteKind::ChapelSite
                     | SiteKind::Haniwa
                     | SiteKind::Cultist
+                    | SiteKind::Sahagin
                     | SiteKind::Terracotta
                     | SiteKind::Adlet => {
                         if show_dungeons {

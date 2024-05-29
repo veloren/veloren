@@ -20,6 +20,7 @@ mod house;
 mod jungle_ruin;
 mod pirate_hideout;
 mod rock_circle;
+mod sahagin;
 mod savannah_hut;
 mod savannah_pit;
 mod savannah_workshop;
@@ -38,10 +39,11 @@ pub use self::{
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
     dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
     gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
-    pirate_hideout::PirateHideout, rock_circle::RockCircle, savannah_hut::SavannahHut,
-    savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
-    tavern::Tavern, terracotta_house::TerracottaHouse, terracotta_palace::TerracottaPalace,
-    terracotta_yard::TerracottaYard, troll_cave::TrollCave, workshop::Workshop,
+    pirate_hideout::PirateHideout, rock_circle::RockCircle, sahagin::Sahagin,
+    savannah_hut::SavannahHut, savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop,
+    sea_chapel::SeaChapel, tavern::Tavern, terracotta_house::TerracottaHouse,
+    terracotta_palace::TerracottaPalace, terracotta_yard::TerracottaYard, troll_cave::TrollCave,
+    workshop::Workshop,
 };
 
 use super::*;
@@ -103,6 +105,7 @@ pub enum PlotKind {
     Haniwa(Haniwa),
     GiantTree(GiantTree),
     CliffTower(CliffTower),
+    Sahagin(Sahagin),
     Citadel(Citadel),
     SavannahPit(SavannahPit),
     SavannahHut(SavannahHut),

@@ -959,6 +959,7 @@
     Simple("common.items.keys.rusty_tower_key"): "voxel.object.key_rusty-0",
     Simple("common.items.keys.bone_key"): "voxel.object.key_bone",
     Simple("common.items.keys.haniwa_key"): "voxel.object.key_haniwa",
+    Simple("common.items.keys.sahagin_key"): "voxel.object.key_sahagin",
     Simple("common.items.keys.glass_key"): "voxel.object.key_glass",
     Simple("common.items.utility.lockpick_0"): "voxel.object.lockpick",
     Simple("common.items.keys.quarry_keys.forge_key"): "voxel.object.key_rusty-0",

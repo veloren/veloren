@@ -114,6 +114,7 @@ impl Site {
                 PlotKind::TerracottaHouse(th) => Some(th.spawn_rules(wpos)),
                 PlotKind::TerracottaYard(ty) => Some(ty.spawn_rules(wpos)),
                 PlotKind::Cultist(cl) => Some(cl.spawn_rules(wpos)),
+                PlotKind::Sahagin(sg) => Some(sg.spawn_rules(wpos)),
                 PlotKind::DwarvenMine(dm) => Some(dm.spawn_rules(wpos)),
                 _ => None,
             })
@@ -1731,7 +1732,6 @@ impl Site {
         let mut rng = reseed(rng);
         let mut site = Site {
             origin,
-
             name: {
                 let name = NameGen::location(&mut rng).generate();
                 match rng.gen_range(0..5) {
@@ -1742,8 +1742,6 @@ impl Site {
                     _ => format!("{} Pit", name),
                 }
             },
-
-            //name: NameGen::location(&mut rng).generate_adlet(),
             ..Site::default()
         };
         let size = 22.0 as i32;
@@ -1765,6 +1763,51 @@ impl Site {
                 kind: TileKind::Building,
                 plot: Some(plot),
                 hard_alt: Some(cultist_alt),
+            });
+        }
+        site
+    }
+
+    pub fn generate_sahagin(
+        land: &Land,
+        index: IndexRef,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+    ) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: {
+                let name = NameGen::location(&mut rng).generate();
+                match rng.gen_range(0..4) {
+                    0 => format!("{} Isle", name),
+                    1 => format!("{} Islet", name),
+                    2 => format!("{} Key", name),
+                    3 => format!("{} Cay", name),
+                    _ => format!("{} Rock", name),
+                }
+            },
+            ..Site::default()
+        };
+        let size = 16.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let sahagin = plot::Sahagin::generate(land, index, &mut reseed(&mut rng), &site, aabr);
+            let sahagin_alt = sahagin.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::Sahagin(sahagin),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(sahagin_alt),
             });
         }
         site
@@ -2112,6 +2155,7 @@ impl Site {
                 PlotKind::Haniwa(haniwa) => haniwa.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
+                PlotKind::Sahagin(sahagin) => sahagin.render_collect(self, canvas),
                 PlotKind::SavannahPit(savannah_pit) => savannah_pit.render_collect(self, canvas),
                 PlotKind::SavannahHut(savannah_hut) => savannah_hut.render_collect(self, canvas),
                 PlotKind::SavannahWorkshop(savannah_workshop) => {

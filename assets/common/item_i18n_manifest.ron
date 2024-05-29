@@ -634,6 +634,9 @@
             "common.items.keys.quarry_keys.forge_key",
         ): "object-key-forge",
         Simple(
+            "common.items.keys.sahagin_key",
+        ): "object-key-sahagin",
+        Simple(
             "common.items.weapons.shield.shield_1",
         ): "weapon-shield-wood-0",
         Simple(
