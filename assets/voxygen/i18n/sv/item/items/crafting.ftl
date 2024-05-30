@@ -120,4 +120,20 @@ sprite-mineral-ingot-bronze = Bronstacka
     .desc =
         En robust legering gjort från att kombinera koppar och tenn.
 
-        Kan användas för tillverkning av metallvapen.
+        Kan användas när man tillverkar metallvapen.
+sprite-crafting_ing-hide-carapace = Hård Carapax
+    .desc = Tuff, hård carapax, en sköld för många varelser.
+sprite-crafting_ing-hide-troll_hide = Trollskinn
+    .desc = Plundrat från grottoll.
+sprite-crafting_ing-animal_misc-fur = Mjukt Päls
+    .desc = Mjukt päls från ett djur.
+sprite-crafting_ing-hide-scale = Fjäll
+    .desc = Glänsande fjäll hittad från ett djur.
+sprite-crafting_ing-animal_misc-grim_eyeball = Grym Ögonglob
+    .desc = Kastar en förstenande blick.
+sprite-crafting_ing-animal_misc-phoenix_feather = Fenixfjäder
+    .desc = Sägs ha magiska egenskaper.
+sprite-crafting_ing-hide-dragon_scale = Drakfjäll
+    .desc = Tuff fjäll från en legendarisk best, varm vid rörsel.
+sprite-seashells-shell-0 = Snäckskal
+    .desc = Skal från en sjövarelse.

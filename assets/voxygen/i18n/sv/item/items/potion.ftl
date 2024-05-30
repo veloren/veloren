@@ -18,3 +18,5 @@ object-lifesteal_charm = Sifoncharm
     .desc = Sifonera ditt måls liv och använd den till ditt eget.
 object-potion_red = Potent Dryck
     .desc = En potent läkande dryck.
+object-potion_curious = Nyfiken Dryck
+    .desc = Undrar vad det här gör...

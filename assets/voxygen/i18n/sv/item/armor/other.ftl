@@ -32,3 +32,5 @@ glider-butterfly-blue_morpho = Blå Morpho
     .desc = De delikata vingarna fladdrar svagt.
 glider-moth = Grön Luna
     .desc = De delikata vingarna fladdrar svagt.
+glider-blue = Blå Falk
+    .desc = Himmelfärgad.

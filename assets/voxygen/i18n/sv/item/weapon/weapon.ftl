@@ -30,3 +30,7 @@ weapon-hammer-2hhammer_starter = Robust Gammal Hammare
     .desc = 'Tillhör...' Resten saknas.
 weapon-sword-frost-0 = Frostklyvare
     .desc = Utstrålar en frysande aura.
+weapon-sword-frost-1 = Frostsåg
+    .desc = Smidd från en enda del av evig is.
+weapon-sceptre-caduceus = Kaducé
+    .desc = Ormarna verkar vara levande.
