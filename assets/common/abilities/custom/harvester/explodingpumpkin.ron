@@ -20,6 +20,7 @@ BasicRanged(
                 chance: 1.0,
             )),
         )),
+    ),
     projectile_body: Object(Pumpkin),
     projectile_light: None,
     projectile_speed: 30.0,

@@ -13,6 +13,6 @@
             (3.0, Item("common.items.armor.misc.neck.scratched")),
             (1.0, Item("common.items.armor.misc.head.wanderers_hat")),
             (1.0, Item("common.items.armor.misc.head.gnarling_mask")),
-        ])
-    ]))
+        ]),
+    ])),
 ]

@@ -8,11 +8,11 @@
         Lottery([
             (1.0, LootTable("common.loot_tables.armor.tier-1")),
             (1.0, LootTable("common.loot_tables.weapons.tier-1")),
-        ])
+        ]),
         Lottery([
             (3.0, Nothing),
             (1.0, Item("common.items.lantern.pumpkin")),
             (1.0, Item("common.items.glider.moth")),
-        ])
-    ]))
+        ]),
+    ])),
 ]

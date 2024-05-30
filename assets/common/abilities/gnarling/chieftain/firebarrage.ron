@@ -19,7 +19,6 @@ BasicRanged(
                 chance: 0.1,
             )),
         )),
-
     ),
     projectile_body: Object(BoltFire),
     projectile_speed: 25,
