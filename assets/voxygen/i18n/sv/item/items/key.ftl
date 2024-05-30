@@ -26,3 +26,7 @@ object-key-quarry-overseer = Överseende nyckel
     .desc = Om du har tur räcker den en gång till innan den går sönder.
 object-key-terracotta_chest = Terrakotta Kistnyckel
     .desc = Används till att öppna kistor. Går sönder efter användning.
+object-key-forge = Smidesnyckel
+    .desc = Används till att öppna dörrar. Går sönder efter användning.
+object-key-miner = Gruvarbetarnyckel
+    .desc = Används till att öppna dörrar. Går sönder efter användning.

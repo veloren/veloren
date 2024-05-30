@@ -238,3 +238,5 @@ sprite-mineral-ingot-steel = Stahlbarren
         Kann zum Herstellen von Metallwaffen verwendet werden.
 sprite-mineral-gem-sapphiregem = Saphir
     .desc = Ein bunter kobaltblauer Edelstein.
+sprite-crafting_ing-alkahest = Alkahest
+    .desc = Alchemistisches Lösungsmittel.

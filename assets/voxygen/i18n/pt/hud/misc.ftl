@@ -1,4 +1,4 @@
-hud-do_not_show_on_startup = Não mostre no início
+hud-do_not_show_on_startup = Não mostre isto na inicialização
 hud-show_tips = Mostrar dicas
 hud-quests = Missões
 hud-you_died = Você Morreu
