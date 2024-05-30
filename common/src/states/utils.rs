@@ -125,6 +125,7 @@ impl Body {
             Body::BipedSmall(biped_small) => match biped_small.species {
                 biped_small::Species::Haniwa => 65.0,
                 biped_small::Species::Boreal => 100.0,
+                biped_small::Species::Gnarling => 70.0,
                 _ => 80.0,
             },
             Body::Object(_) => 0.0,
