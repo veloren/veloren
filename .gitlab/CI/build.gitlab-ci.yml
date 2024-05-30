@@ -141,7 +141,7 @@ coverage:
   script:
     - export MACOSX_DEPLOYMENT_TARGET="10.13"
     - export VELOREN_USERDATA_STRATEGY=executable
-    - cargo build --release --no-default-features --features default-publish --target $RUST_TARGET
+    - cargo build --profile ${PROFILE} --no-default-features --features default-publish --target $RUST_TARGET
     - cp -r target/$RUST_TARGET/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/$RUST_TARGET/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
@@ -156,15 +156,16 @@ coverage:
   extends:
     - .tmacos
   before_script:
+    # Using fat LTO on macos_x86_64 caused timeouts in the build pipeline, overriding it to thin here fixes this
+    - export PROFILE="release-thinlto"
     - *tmacos-before-script
     - export RUST_TARGET="x86_64-apple-darwin"
-    # Using fat LTO on macos_x86_64 caused timeouts in the build pipeline, overriding it to thin here fixes this
-    - export RUSTFLAGS="-C lto=thin"
 
 .tmacos-aarch64:
   extends:
     - .tmacos
   before_script:
+    - export PROFILE="release"
     - *tmacos-before-script
     - rustup target add aarch64-apple-darwin
     - export RUST_TARGET="aarch64-apple-darwin"

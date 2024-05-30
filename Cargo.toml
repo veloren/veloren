@@ -97,6 +97,10 @@ debug = 1
 [profile.release.package."veloren-world"]
 debug = 1
 
+[profile.release-thinlto]
+inherits = 'release'
+lto = "thin"
+
 # used for cargo bench
 [profile.bench]
 opt-level = 2
