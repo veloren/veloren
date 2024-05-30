@@ -206,9 +206,27 @@ impl<'a> System<'a> for Sys {
                 }
                 if matches!(
                     physics_state.on_ground.and_then(|b| b.get_sprite()),
-                    Some(SpriteKind::EnsnaringVines) | Some(SpriteKind::EnsnaringWeb)
+                    Some(SpriteKind::EnsnaringVines)
                 ) {
-                    // If on ensnaring vines, apply ensnared debuff
+                    // If on ensnaring vines, apply partial ensnared debuff
+                    emitters.emit(BuffEvent {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            BuffKind::Ensnared,
+                            BuffData::new(0.5, Some(Secs(1.0))),
+                            Vec::new(),
+                            BuffSource::World,
+                            *read_data.time,
+                            dest_info,
+                            None,
+                        )),
+                    });
+                }
+                if matches!(
+                    physics_state.on_ground.and_then(|b| b.get_sprite()),
+                    Some(SpriteKind::EnsnaringWeb)
+                ) {
+                    // If on ensnaring web, apply ensnared debuff
                     emitters.emit(BuffEvent {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(

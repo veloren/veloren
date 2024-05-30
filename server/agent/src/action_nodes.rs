@@ -1617,9 +1617,14 @@ impl<'a> AgentData<'a> {
             Tactic::Yeti => {
                 self.handle_yeti_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
-            Tactic::Harvester => {
-                self.handle_harvester_attack(agent, controller, &attack_data, tgt_data, read_data)
-            },
+            Tactic::Harvester => self.handle_harvester_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
             Tactic::Cardinal => self.handle_cardinal_attack(
                 agent,
                 controller,

@@ -53,6 +53,7 @@ make_case_elim!(
         ShamanicSpirit = 16,
         Jiangshi = 17,
         TreasureEgg = 18,
+        GnarlingChieftain = 19,
     }
 );
 
@@ -80,6 +81,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub shamanic_spirit: SpeciesMeta,
     pub jiangshi: SpeciesMeta,
     pub treasure_egg: SpeciesMeta,
+    pub gnarling_chieftain: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -107,11 +109,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::ShamanicSpirit => &self.shamanic_spirit,
             Species::Jiangshi => &self.jiangshi,
             Species::TreasureEgg => &self.treasure_egg,
+            Species::GnarlingChieftain => &self.gnarling_chieftain,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 19] = [
+pub const ALL_SPECIES: [Species; 20] = [
     Species::Gnome,
     Species::Sahagin,
     Species::Adlet,
@@ -131,6 +134,7 @@ pub const ALL_SPECIES: [Species; 19] = [
     Species::ShamanicSpirit,
     Species::Jiangshi,
     Species::TreasureEgg,
+    Species::GnarlingChieftain,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

@@ -113,7 +113,8 @@ impl Animation for SpriteSummonAnimation {
                     * Quaternion::rotation_y(move2 * -0.1);
             },
             Some(ToolKind::Natural) => match ability_id {
-                Some("common.abilities.custom.harvester.ensnaringvines") => {
+                Some("common.abilities.custom.harvester.ensnaringvines_0")
+                | Some("common.abilities.custom.harvester.ensnaringvines_1") => {
                     let (move1, move1pow, move2, move3) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time, anim_time.powf(0.1), 0.0, 0.0),
                         Some(StageSection::Action) => {

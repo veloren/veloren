@@ -168,6 +168,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ShamanicSpirit, _) => (-0.5, 4.5),
                 (Jiangshi, _) => (-1.0, 6.5),
                 (TreasureEgg, _) => (-1.0, 9.0),
+                (GnarlingChieftain, _) => (0.0, 6.0),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -189,6 +190,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ShamanicSpirit, _) => (0.0, 14.5),
                 (Jiangshi, _) => (0.0, 14.0),
                 (TreasureEgg, _) => (0.0, 3.0),
+                (GnarlingChieftain, _) => (0.0, 7.5),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -210,6 +212,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ShamanicSpirit, _) => (0.0, -8.0),
                 (Jiangshi, _) => (0.5, -6.0),
                 (TreasureEgg, _) => (0.0, 1.0),
+                (GnarlingChieftain, _) => (0.0, -3.0),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -231,6 +234,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ShamanicSpirit, _) => (0.0, 0.0),
                 (Jiangshi, _) => (0.0, 0.0),
                 (TreasureEgg, _) => (0.0, 0.0),
+                (GnarlingChieftain, _) => (-2.0, 1.5),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -252,6 +256,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ShamanicSpirit, _) => (5.0, 0.0, 1.0),
                 (Jiangshi, _) => (5.0, -1.0, 3.0),
                 (TreasureEgg, _) => (5.0, 2.0, 5.0),
+                (GnarlingChieftain, _) => (4.0, 0.0, 1.5),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -273,6 +278,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ShamanicSpirit, _) => (3.5, 3.0, 7.0),
                 (Jiangshi, _) => (3.0, 0.0, 8.0),
                 (TreasureEgg, _) => (2.0, 0.5, 4.0),
+                (GnarlingChieftain, _) => (2.5, 1.0, 5.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -294,6 +300,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ShamanicSpirit, _) => (0.0, 0.0, 8.0),
                 (Jiangshi, _) => (0.0, 0.0, 8.0),
                 (TreasureEgg, _) => (0.0, 0.0, 7.0),
+                (GnarlingChieftain, _) => (0.0, 0.0, 7.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 0.8,
@@ -315,6 +322,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (ShamanicSpirit, _) => 1.0,
                 (Jiangshi, _) => 1.0,
                 (TreasureEgg, _) => 1.0,
+                (GnarlingChieftain, _) => 0.8,
             },
         }
     }

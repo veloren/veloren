@@ -4,25 +4,26 @@ BasicRanged(
     recover_duration: 0.6,
     projectile: (
         kind: Explosive(
-            radius: 2,
-            min_falloff: 0.5,
+            radius: 3,
+            min_falloff: 0.7,
             reagent: Some(Red),
             terrain: Some((2, Black))
         ),
         attack: Some((
-            damage: 13.5,
+            damage: 5.5,
             energy: 10,
             buff: Some((
                 kind: Burning,
-                dur_secs: 5,
-                strength: DamageFraction(0.1),
+                dur_secs: 3,
+                strength: DamageFraction(0.3),
                 chance: 0.1,
             )),
         )),
+
     ),
     projectile_body: Object(BoltFire),
     projectile_speed: 25,
-    num_projectiles: 8,
+    num_projectiles: 5,
     projectile_spread: 0.125,
     move_efficiency: 0.3,
 )

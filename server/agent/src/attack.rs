@@ -4756,13 +4756,39 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
+        rng: &mut impl Rng,
     ) {
-        const VINE_CREATION_THRESHOLD: f32 = 0.50;
-        const FIRE_BREATH_RANGE: f32 = 20.0;
+        const FIRST_VINE_CREATION_THRESHOLD: f32 = 0.60;
+        const SECOND_VINE_CREATION_THRESHOLD: f32 = 0.30;
         const MAX_PUMPKIN_RANGE: f32 = 50.0;
+        const FIRE_BREATH_RANGE: f32 = 20.0;
+        const FIRE_BREATH_TIME: f32 = 4.0;
+        const FIRE_BREATH_SHORT_TIME: f32 = 2.0;
+        const FIRE_BREATH_COOLDOWN: f32 = 3.0;
+        const CLOSE_MIXUP_COOLDOWN: f32 = 6.0;
 
         enum ActionStateConditions {
-            ConditionHasSummonedVines = 0,
+            ConditionHasSummonedFirstVines = 0,
+            ConditionHasSummonedSecondVines,
+        }
+
+        enum ActionStateTimers {
+            TimerFire = 0,
+            TimerCloseMixup,
+        }
+
+        match self.char_state {
+            CharacterState::BasicBeam(_) => {
+                agent.combat_state.timers[ActionStateTimers::TimerFire as usize] = 0.0;
+            },
+            CharacterState::BasicRanged(_) => {
+                agent.combat_state.timers[ActionStateTimers::TimerCloseMixup as usize] = 0.0;
+            },
+            _ => {
+                agent.combat_state.timers[ActionStateTimers::TimerFire as usize] += read_data.dt.0;
+                agent.combat_state.timers[ActionStateTimers::TimerCloseMixup as usize] +=
+                    read_data.dt.0;
+            },
         }
 
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
@@ -4778,36 +4804,86 @@ impl<'a> AgentData<'a> {
             )
         };
 
-        if health_fraction < VINE_CREATION_THRESHOLD
+        if (health_fraction < FIRST_VINE_CREATION_THRESHOLD
             && !agent.combat_state.conditions
-                [ActionStateConditions::ConditionHasSummonedVines as usize]
+                [ActionStateConditions::ConditionHasSummonedFirstVines as usize])
+            || (health_fraction < SECOND_VINE_CREATION_THRESHOLD
+                && !agent.combat_state.conditions
+                    [ActionStateConditions::ConditionHasSummonedSecondVines as usize])
         {
-            // Summon vines when reach threshold of health
-            controller.push_basic_input(InputKind::Ability(0));
+            if health_fraction < SECOND_VINE_CREATION_THRESHOLD {
+                // Summon second vines when reach threshold of health
+                controller.push_basic_input(InputKind::Ability(2));
 
-            if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
-            {
-                agent.combat_state.conditions
-                    [ActionStateConditions::ConditionHasSummonedVines as usize] = true;
+                if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+                {
+                    agent.combat_state.conditions
+                        [ActionStateConditions::ConditionHasSummonedSecondVines as usize] = true;
+                }
+            } else {
+                // Summon first vines when reach threshold of health
+                controller.push_basic_input(InputKind::Ability(1));
+
+                if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+                {
+                    agent.combat_state.conditions
+                        [ActionStateConditions::ConditionHasSummonedFirstVines as usize] = true;
+                }
             }
-        } else if attack_data.dist_sqrd < FIRE_BREATH_RANGE.powi(2) {
-            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5))
-                && line_of_sight_with_target()
+        } else if attack_data.in_min_range() {
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIRE_BREATH_SHORT_TIME))
             {
                 // Keep breathing fire if close enough, can see target, and have not been
-                // breathing for more than 5 seconds
+                // breathing for more than short limit
                 controller.push_basic_input(InputKind::Secondary);
-            } else if attack_data.in_min_range() && attack_data.angle < 60.0 {
+            } else if agent.combat_state.timers[ActionStateTimers::TimerCloseMixup as usize]
+                > CLOSE_MIXUP_COOLDOWN
+                && line_of_sight_with_target()
+            {
+                if agent.combat_state.timers[ActionStateTimers::TimerFire as usize]
+                    < FIRE_BREATH_COOLDOWN
+                {
+                    // Throw a close range pumpkin to knock back player
+                    controller.push_basic_input(InputKind::Ability(0));
+                } else {
+                    let randomise = rng.gen_range(1..=3);
+                    match randomise {
+                        1 => controller.push_basic_input(InputKind::Secondary), /* start fire
+                                                                                  * breath */
+                        _ => controller.push_basic_input(InputKind::Ability(0)), /* close range
+                                                                                  * pumpkin
+                                                                                  * _ => controller.push_basic_input(InputKind::Primary),  // scythe */
+                    }
+                }
+            } else if attack_data.angle < 60.0 {
                 // Scythe them if they're in range and angle
                 controller.push_basic_input(InputKind::Primary);
-            } else if attack_data.angle < 30.0 && line_of_sight_with_target() {
-                // Start breathing fire at them if close enough, in angle, and can see target
-                controller.push_basic_input(InputKind::Secondary);
+            }
+        } else if attack_data.dist_sqrd < FIRE_BREATH_RANGE.powi(2) {
+            if line_of_sight_with_target() {
+                if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIRE_BREATH_TIME))
+                {
+                    // Keep breathing fire if close enough, can see target, and have not been
+                    // breathing for more than upper limit
+                    controller.push_basic_input(InputKind::Secondary);
+                } else if attack_data.angle < 30.0
+                    && agent.combat_state.timers[ActionStateTimers::TimerFire as usize]
+                        > FIRE_BREATH_COOLDOWN
+                {
+                    // Start breathing fire at them if close enough, in angle, and can see target
+                    controller.push_basic_input(InputKind::Secondary);
+                } else if agent.combat_state.timers[ActionStateTimers::TimerCloseMixup as usize]
+                    > CLOSE_MIXUP_COOLDOWN
+                {
+                    // Throw a close range pumpkin to knock back player
+                    controller.push_basic_input(InputKind::Ability(0));
+                }
             }
         } else if attack_data.dist_sqrd < MAX_PUMPKIN_RANGE.powi(2) && line_of_sight_with_target() {
             // Throw a pumpkin at them if close enough and can see them
-            controller.push_basic_input(InputKind::Ability(1));
+            controller.push_basic_input(InputKind::Ability(0));
         }
+
         // Always attempt to path towards target
         self.path_toward_target(
             agent,
@@ -5810,8 +5886,8 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        const TOTEM_TIMER: f32 = 10.0;
-        const HEAVY_ATTACK_WAIT_TIME: f32 = 15.0;
+        const TOTEM_TIMER: f32 = 20.0;
+        const HEAVY_ATTACK_WAIT_TIME: f32 = 10.0;
 
         enum ActionStateTimers {
             TimerSummonTotem = 0,
@@ -5846,7 +5922,7 @@ impl<'a> AgentData<'a> {
                 3 => Some(BuffKind::Hastened),
                 _ => None,
             };
-            if buff_kind.map_or(true, |b| self.has_buff(read_data, b))
+            if buff_kind.map_or(false, |b| self.has_buff(read_data, b))
                 && matches!(self.char_state, CharacterState::Wielding { .. })
             {
                 // If already under effects of buff from totem that would be summoned, don't
@@ -5892,14 +5968,16 @@ impl<'a> AgentData<'a> {
                 read_data.dt.0 * 3.3;
         }
 
-        self.path_toward_target(
-            agent,
-            controller,
-            tgt_data.pos.0,
-            read_data,
-            Path::Full,
-            None,
-        );
+        if !attack_data.in_min_range() {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Full,
+                None,
+            );
+        }
     }
 
     pub fn handle_sword_simple_attack(
