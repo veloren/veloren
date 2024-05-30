@@ -21,7 +21,7 @@ pub fn main() {
     for (_, spec) in manifest.read().0.iter() {
         match spec {
             ImageSpec::Vox(specifier, model_index) => {
-                voxel_to_png(&specifier, Transform::default(), args.scale, model_index)
+                voxel_to_png(&specifier, Transform::default(), args.scale, *model_index as usize)
             },
             ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom, model_index) => {
                 voxel_to_png(
@@ -39,7 +39,7 @@ pub fn main() {
                         stretch: false,
                     },
                     args.scale,
-                    model_index,
+                    *model_index as usize,
                 )
             },
             ImageSpec::Png(specifier) => {
@@ -50,7 +50,7 @@ pub fn main() {
     }
 }
 
-fn voxel_to_png(specifier: &String, transform: Transform, scale: u32, model_index: u32) {
+fn voxel_to_png(specifier: &String, transform: Transform, scale: u32, model_index: usize) {
     let voxel = match DotVoxAsset::load(&format!("voxygen.{}", specifier)) {
         Ok(dot_vox) => dot_vox,
         Err(err) => {
@@ -73,7 +73,7 @@ fn voxel_to_png(specifier: &String, transform: Transform, scale: u32, model_inde
         x: ((rotated_size.y as u32) * scale) as u16,
         y: ((rotated_size.z as u32) * scale) as u16,
     };
-    let segment = Segment::from_vox(dot_vox_data, false);
+    let segment = Segment::from_vox(dot_vox_data, false, model_index);
     let path = format!("img-export/{}.png", &specifier_to_path(specifier));
     let folder_path = path.rsplit_once('/').expect("Invalid path").0;
     let full_path = Path::new(&path);
