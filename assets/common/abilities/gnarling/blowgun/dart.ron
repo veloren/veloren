@@ -5,12 +5,12 @@ BasicRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 4,
+            damage: 2,
             energy: 0,
             buff: Some((
                 kind: Bleeding,
-                dur_secs: 10,
-                strength: DamageFraction(0.1),
+                dur_secs: 5,
+                strength: DamageFraction(0.4),
                 chance: 0.1,
             )),
         )),

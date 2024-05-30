@@ -122,11 +122,11 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        // Handle attacking of agent
-        if attack_data.in_min_range() && attack_data.angle < 30.0 {
-            controller.push_basic_input(InputKind::Primary);
-            controller.inputs.move_dir = Vec2::zero();
-        }
+        // Behaviour parameters
+        const STRAFE_DIST: f32 = 4.5;
+        const STRAFE_SPEED_MULT: f32 = 0.75;
+        const STRATE_SPIRAL_MULT: f32 = 0.8; // how quickly they close gap while strafing
+        const BACKSTAB_SPEED_MULT: f32 = 0.3;
 
         // Handle movement of agent
         let target_ori = agent
@@ -135,9 +135,15 @@ impl<'a> AgentData<'a> {
             .map(|ori| ori.look_vec())
             .unwrap_or_default();
         let dist = attack_data.dist_sqrd.sqrt();
-
         let in_front_of_target = target_ori.dot(self.pos.0 - tgt_data.pos.0) > 0.0;
-        if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+
+        // Handle attacking of agent
+        if attack_data.in_min_range() && attack_data.angle < 30.0 {
+            controller.push_basic_input(InputKind::Primary);
+            controller.inputs.move_dir = Vec2::zero();
+        }
+
+        if attack_data.dist_sqrd < STRAFE_DIST.powi(2) {
             // If in front of the target, circle to try and get behind, else just make a
             // beeline for the back of the agent
             let vec_to_target = (tgt_data.pos.0 - self.pos.0).xy();
@@ -159,13 +165,14 @@ impl<'a> AgentData<'a> {
                     .iter()
                     .find(|move_dir| target_ori.xy().dot(**move_dir) < 0.0)
                 {
-                    controller.inputs.move_dir = *move_dir;
+                    controller.inputs.move_dir =
+                        STRAFE_SPEED_MULT * (*move_dir - STRATE_SPIRAL_MULT * target_ori.xy());
                 }
             } else {
                 // Aim for a point a given distance behind the target to prevent sideways
                 // movement
                 let move_target = tgt_data.pos.0.xy() - dist / 2. * target_ori.xy();
-                controller.inputs.move_dir = (move_target - self.pos.0)
+                controller.inputs.move_dir = ((move_target - self.pos.0) * BACKSTAB_SPEED_MULT)
                     .try_normalized()
                     .unwrap_or_default();
             }
@@ -189,6 +196,10 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
+        // Behaviour parameters
+        const PREF_DIST: f32 = 30.0;
+        const RETREAT_DIST: f32 = 8.0;
+
         let line_of_sight_with_target = || {
             entities_have_line_of_sight(
                 self.pos,
@@ -200,15 +211,14 @@ impl<'a> AgentData<'a> {
                 read_data,
             )
         };
-
         let elevation = self.pos.0.z - tgt_data.pos.0.z;
-        const PREF_DIST: f32 = 30_f32;
+
         if attack_data.angle_xy < 30.0
             && (elevation > 10.0 || attack_data.dist_sqrd > PREF_DIST.powi(2))
             && line_of_sight_with_target()
         {
             controller.push_basic_input(InputKind::Primary);
-        } else if attack_data.dist_sqrd < (PREF_DIST / 2.).powi(2) {
+        } else if attack_data.dist_sqrd < RETREAT_DIST.powi(2) {
             // Attempt to move quickly away from target if too close
             if let Some((bearing, _)) = agent.chaser.chase(
                 &*read_data.terrain,
