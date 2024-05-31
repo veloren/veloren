@@ -11,7 +11,7 @@ BasicMelee(
             knockback: 10.0,
             energy_regen: 0.0,
         ),
-        range: 4.0,
+        range: 4.5,
         angle: 60.0,
         multi_target: Some(Normal),
     ),

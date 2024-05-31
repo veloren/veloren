@@ -145,6 +145,7 @@ impl<'a> TargetData<'a> {
 }
 
 pub struct AttackData {
+    pub body_dist: f32,
     pub min_attack_dist: f32,
     pub dist_sqrd: f32,
     pub angle: f32,

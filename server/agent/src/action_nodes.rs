@@ -1204,9 +1204,13 @@ impl<'a> AgentData<'a> {
         // Wield the weapon as running towards the target
         controller.push_action(ControlAction::Wield);
 
-        let min_attack_dist = (self.body.map_or(0.5, |b| b.max_radius()) + DEFAULT_ATTACK_RANGE)
-            * self.scale
-            + tgt_data.body.map_or(0.5, |b| b.max_radius()) * tgt_data.scale.map_or(1.0, |s| s.0);
+        let self_radius = self.body.map_or(0.5, |b| b.max_radius()) * self.scale;
+        let self_attack_range =
+            (self.body.map_or(0.5, |b| b.max_radius()) + DEFAULT_ATTACK_RANGE) * self.scale;
+        let tgt_radius =
+            tgt_data.body.map_or(0.5, |b| b.max_radius()) * tgt_data.scale.map_or(1.0, |s| s.0);
+        let min_attack_dist = self_attack_range + tgt_radius;
+        let body_dist = self_radius + tgt_radius;
         let dist_sqrd = self.pos.0.distance_squared(tgt_data.pos.0);
         let angle = self
             .ori
@@ -1358,6 +1362,7 @@ impl<'a> AgentData<'a> {
         }
 
         let attack_data = AttackData {
+            body_dist,
             min_attack_dist,
             dist_sqrd,
             angle,
