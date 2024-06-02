@@ -70,8 +70,8 @@ fn voxel_to_png(specifier: &String, transform: Transform, scale: u32, model_inde
     // model_size
     let rotated_size = calc_rotated_size(&ori_mat, &aabb_size);
     let projection_size = Vec2 {
-        x: ((rotated_size.y as u32) * scale) as u16,
-        y: ((rotated_size.z as u32) * scale) as u16,
+        x: ((rotated_size.x as u32) * scale) as u16,
+        y: ((rotated_size.y as u32) * scale) as u16,
     };
     let segment = Segment::from_vox(dot_vox_data, false, model_index);
     let path = format!("img-export/{}.png", &specifier_to_path(specifier));
@@ -94,9 +94,9 @@ fn calc_rotated_size(ori_mat: &Mat4<f32>, aabb_size: &Vec3<u32>) -> Vec3<f32> {
         z: 0f32,
     };
     let aabb_max = Vec3 {
-        x: aabb_size.y as f32,
-        y: aabb_size.z as f32,
-        z: aabb_size.x as f32,
+        x: aabb_size.x as f32,
+        y: aabb_size.y as f32,
+        z: aabb_size.z as f32,
     };
     let aabb_vertices: [Vec3<f32>; 8] = [
         Vec3::new(aabb_min.x, aabb_min.y, aabb_min.z),
@@ -108,7 +108,7 @@ fn calc_rotated_size(ori_mat: &Mat4<f32>, aabb_size: &Vec3<u32>) -> Vec3<f32> {
         Vec3::new(aabb_max.x, aabb_max.y, aabb_max.z),
         Vec3::new(aabb_min.x, aabb_max.y, aabb_max.z),
     ];
-    let rotated_vertices = aabb_vertices.map(|c| (Vec4::<f32>::from(c) * *ori_mat).xyz());
+    let rotated_vertices = aabb_vertices.map(|c| (*ori_mat * Vec4::<f32>::from(c)).xyz());
     let max_xyz = rotated_vertices
         .iter()
         .copied()
