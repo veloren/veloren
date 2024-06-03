@@ -80,11 +80,12 @@ pub fn stop_pursuing(
     dur_since_last_attacked: f64,
     psyche: &Psyche,
 ) -> bool {
-    should_let_target_escape(
-        dist_to_home_sqrd,
-        dur_since_last_attacked,
-        own_health_fraction,
-    ) > should_continue_to_pursue(dist_to_target_sqrd, psyche, target_health_fraction)
+    psyche.should_stop_pursuing
+        && should_let_target_escape(
+            dist_to_home_sqrd,
+            dur_since_last_attacked,
+            own_health_fraction,
+        ) > should_continue_to_pursue(dist_to_target_sqrd, psyche, target_health_fraction)
 }
 
 /// Scores the benefit of continuing the pursue in value from 0 to infinity.
