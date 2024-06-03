@@ -9,7 +9,7 @@ use common::{
     generation::{ChunkSupplement, EntityInfo},
     terrain::{Structure as PrefabStructure, StructuresGroup},
 };
-use kiddo::{distance::squared_euclidean, KdTree};
+use kiddo::{float::kdtree::KdTree, SquaredEuclidean};
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use std::collections::HashMap;
@@ -1974,13 +1974,14 @@ impl Tunnels {
     where
         F: Fn(Vec3<i32>, Vec3<i32>) -> bool,
     {
+        const MAX_POINTS: usize = 7000;
         let mut nodes = Vec::new();
         let mut node_index: usize = 0;
 
         // HashMap<ChildNode, ParentNode>
         let mut parents = HashMap::new();
 
-        let mut kdtree = KdTree::new();
+        let mut kdtree: KdTree<f32, usize, 3, 32, u32> = KdTree::with_capacity(MAX_POINTS);
         let startf = start.map(|a| (a + 1) as f32);
         let endf = end.map(|a| (a + 1) as f32);
 
@@ -1995,14 +1996,12 @@ impl Tunnels {
             startf.z.max(endf.z),
         );
 
-        kdtree
-            .add(&[startf.x, startf.y, startf.z], node_index)
-            .ok()?;
+        kdtree.add(&[startf.x, startf.y, startf.z], node_index);
         nodes.push(startf);
         node_index += 1;
         let mut connect = false;
 
-        for _i in 0..7000 {
+        for _i in 0..MAX_POINTS {
             let radius: f32 = rng.gen_range(radius_range.0..radius_range.1);
             let radius_sqrd = radius.powi(2);
             if connect {
@@ -2013,13 +2012,13 @@ impl Tunnels {
                 rng.gen_range(min.y - 20.0..max.y + 20.0),
                 rng.gen_range(min.z - 20.0..max.z - 7.0),
             );
-            let nearest_index = *kdtree
-                .nearest_one(
-                    &[sampled_point.x, sampled_point.y, sampled_point.z],
-                    &squared_euclidean,
-                )
-                .ok()?
-                .1;
+            let nearest_index = kdtree
+                .nearest_one::<SquaredEuclidean>(&[
+                    sampled_point.x,
+                    sampled_point.y,
+                    sampled_point.z,
+                ])
+                .item;
             let nearest = nodes[nearest_index];
             let dist_sqrd = sampled_point.distance_squared(nearest);
             let new_point = if dist_sqrd > radius_sqrd {
@@ -2031,24 +2030,21 @@ impl Tunnels {
                 nearest.map(|e| e.floor() as i32),
                 new_point.map(|e| e.floor() as i32),
             ) {
-                kdtree
-                    .add(&[new_point.x, new_point.y, new_point.z], node_index)
-                    .ok()?;
+                kdtree.add(&[new_point.x, new_point.y, new_point.z], node_index);
                 nodes.push(new_point);
                 parents.insert(node_index, nearest_index);
                 node_index += 1;
             }
-            if new_point.distance_squared(endf) < radius.powi(2) {
+            if new_point.distance_squared(endf) < radius_sqrd {
                 connect = true;
             }
         }
 
         let mut path = Vec::new();
-        let nearest_index = *kdtree
-            .nearest_one(&[endf.x, endf.y, endf.z], &squared_euclidean)
-            .ok()?
-            .1;
-        kdtree.add(&[endf.x, endf.y, endf.z], node_index).ok()?;
+        let nearest_index = kdtree
+            .nearest_one::<SquaredEuclidean>(&[endf.x, endf.y, endf.z])
+            .item;
+        kdtree.add(&[endf.x, endf.y, endf.z], node_index);
         nodes.push(endf);
         parents.insert(node_index, nearest_index);
         path.push(endf);
