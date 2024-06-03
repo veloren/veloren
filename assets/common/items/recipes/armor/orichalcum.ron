@@ -11,6 +11,7 @@ ItemDef(
             "orichalcum_hands",
             "orichalcum_pants",
             "orichalcum_shoulder",
+            "orichalcum_head",
         ],
     ),
     quality: Common,

@@ -56,6 +56,7 @@ ItemDef(
             "healing_sceptre",
             "bronze_weapons",
             "wood_weapons",
+            "shield",
             // Materials
             "tin_ingot",
             "copper_ingot",

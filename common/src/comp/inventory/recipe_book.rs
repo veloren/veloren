@@ -89,28 +89,69 @@ mod tests {
         comp::item::{Item, ItemKind},
         recipe::{complete_recipe_book, default_component_recipe_book},
     };
+    use hashbrown::HashSet;
 
-    fn valid_recipe(recipe: &str) -> bool {
+    fn load_recipe_items() -> Vec<Item> {
+        Item::new_from_asset_glob("common.items.recipes.*").expect("The directory should exist")
+    }
+
+    fn load_recipe_list() -> HashSet<String> {
         let recipe_book = complete_recipe_book();
         let component_recipe_book = default_component_recipe_book();
 
-        recipe_book.read().keys().any(|key| key == recipe)
-            || component_recipe_book
-                .read()
-                .iter()
-                .any(|(_, cr)| cr.recipe_book_key == recipe)
+        recipe_book
+            .read()
+            .keys()
+            .cloned()
+            .chain(
+                component_recipe_book
+                    .read()
+                    .iter()
+                    .map(|(_, cr)| &cr.recipe_book_key)
+                    .cloned(),
+            )
+            .collect::<HashSet<_>>()
+    }
+
+    fn valid_recipe(recipe: &str) -> bool {
+        let recipe_list = load_recipe_list();
+        recipe_list.contains(recipe)
     }
 
     /// Verify that all recipes in recipe items point to a valid recipe
     #[test]
     fn validate_recipes() {
-        let groups = Item::new_from_asset_glob("common.items.recipes.*")
-            .expect("The directory should exist");
-        for group in groups {
-            let ItemKind::RecipeGroup { recipes } = &*group.kind() else {
+        let recipe_items = load_recipe_items();
+        for item in recipe_items {
+            let ItemKind::RecipeGroup { recipes } = &*item.kind() else {
                 panic!("Expected item to be of kind RecipeGroup")
             };
             assert!(recipes.iter().all(|r| valid_recipe(r)));
+        }
+    }
+
+    /// Verify that all recipes are contained in a recipe item
+    #[test]
+    fn recipes_reachable() {
+        let recipe_items = load_recipe_items();
+        let reachable_recipes = recipe_items
+            .iter()
+            .flat_map(|i| {
+                if let ItemKind::RecipeGroup { recipes } = &*i.kind() {
+                    recipes.to_vec()
+                } else {
+                    Vec::new()
+                }
+            })
+            .collect::<HashSet<_>>();
+
+        let recipe_list = load_recipe_list();
+
+        for recipe in recipe_list.iter() {
+            assert!(
+                reachable_recipes.contains(recipe),
+                "{recipe} was not found in a recipe item"
+            );
         }
     }
 }
