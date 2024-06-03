@@ -994,14 +994,15 @@ impl<'a> AgentData<'a> {
                 controller.push_utterance(UtteranceKind::Surprised);
             }
         }
-
-        agent.target = target.map(|(entity, attack_target)| Target {
-            target: entity,
-            hostile: attack_target,
-            selected_at: read_data.time.0,
-            aggro_on,
-            last_known_pos: get_pos(entity).map(|pos| pos.0),
-        })
+        if agent.psyche.should_stop_pursuing || target.is_some() {
+            agent.target = target.map(|(entity, attack_target)| Target {
+                target: entity,
+                hostile: attack_target,
+                selected_at: read_data.time.0,
+                aggro_on,
+                last_known_pos: get_pos(entity).map(|pos| pos.0),
+            })
+        }
     }
 
     pub fn attack(

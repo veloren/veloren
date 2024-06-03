@@ -274,6 +274,10 @@ pub struct Psyche {
     /// wandering behavior in the idle state, and scaling `aggro_dist` in
     /// certain situations.
     pub aggro_range_multiplier: f32,
+    /// Whether this entity should *intelligently* decide to loose aggro based
+    /// on distance from agent home and health, this is not suitable for world
+    /// bosses and roaming entities
+    pub should_stop_pursuing: bool,
 }
 
 impl<'a> From<&'a Body> for Psyche {
@@ -425,6 +429,13 @@ impl<'a> From<&'a Body> for Psyche {
             },
             idle_wander_factor: 1.0,
             aggro_range_multiplier: 1.0,
+            should_stop_pursuing: match body {
+                Body::BirdLarge(_) => false,
+                Body::BipedLarge(biped_large) => {
+                    !matches!(biped_large.species, biped_large::Species::Gigasfrost)
+                },
+                _ => true,
+            },
         }
     }
 }

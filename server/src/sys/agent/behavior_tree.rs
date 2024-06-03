@@ -855,7 +855,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                 let is_time_to_retarget =
                     read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
 
-                if !in_aggro_range && is_time_to_retarget {
+                if (!agent.psyche.should_stop_pursuing || !in_aggro_range) && is_time_to_retarget {
                     agent_data.choose_target(
                         agent,
                         controller,
@@ -888,6 +888,10 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     // target);
                 }
             }
+        }
+        // make sure world bosses and roaming entities stay aware, to continue pursuit
+        if !agent.psyche.should_stop_pursuing {
+            bdata.agent.awareness.set_maximally_aware();
         }
     }
     false
