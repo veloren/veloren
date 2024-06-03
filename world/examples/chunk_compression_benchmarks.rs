@@ -493,7 +493,8 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
     }
 }
 
-use kiddo::KdTree;
+use fixed::types::U32F0;
+use kiddo::fixed::{distance::SquaredEuclidean, kdtree::KdTree};
 use rstar::{PointDistance, RTree, RTreeObject, RTreeParams};
 
 #[derive(Debug)]
@@ -548,17 +549,16 @@ lazy_static::lazy_static! {
             })
             .collect()
     };
-    pub static ref PALETTE_KDTREE: HashMap<BlockKind, KdTree<f32, u8, 3>> = {
+    pub static ref PALETTE_KDTREE: HashMap<BlockKind, KdTree<U32F0, u16, 3, 32, u32>> = {
         let ron_bytes = include_bytes!("palettes.ron");
         let palettes: HashMap<BlockKind, Vec<Rgb<u8>>> =
             ron::de::from_bytes(ron_bytes).expect("palette should parse");
         palettes
             .into_iter()
             .map(|(k, v)| {
-                let mut tree = KdTree::new();
+                let mut tree: KdTree<U32F0, u16, 3, 32, u32> = KdTree::new();
                 for (i, rgb) in v.into_iter().enumerate() {
-                    tree.add(&[rgb.r as f32, rgb.g as f32, rgb.b as f32], i as u8)
-                        .expect("kdtree insert should succeed");
+                    tree.add(&[U32F0::from(rgb.r), U32F0::from(rgb.g), U32F0::from(rgb.b)], i as u16);
                 }
                 (k, tree)
             })
@@ -570,14 +570,18 @@ pub trait NearestNeighbor {
     fn nearest_neighbor(&self, x: &Rgb<u8>) -> Option<u8>;
 }
 
-impl NearestNeighbor for KdTree<f32, u8, 3> {
+impl NearestNeighbor for KdTree<U32F0, u16, 3, 32, u32> {
     fn nearest_neighbor(&self, x: &Rgb<u8>) -> Option<u8> {
-        self.nearest_one(
-            &[x.r as f32, x.g as f32, x.b as f32],
-            &kiddo::distance::squared_euclidean,
+        Some(
+            self.nearest_one::<SquaredEuclidean>(&[
+                U32F0::from(x.r),
+                U32F0::from(x.g),
+                U32F0::from(x.b),
+            ])
+            .item
+            .try_into()
+            .unwrap(),
         )
-        .map(|(_, i)| *i)
-        .ok()
     }
 }
 

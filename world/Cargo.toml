@@ -49,7 +49,8 @@ rayon = { workspace = true }
 serde = { workspace = true }
 ron = { workspace = true }
 # inline_tweak = { workspace = true, features = ["derive"] }
-kiddo = "0.2"
+kiddo = "4.2.0"
+fixed = "1"
 strum = { workspace = true }
 
 # compression benchmarks
