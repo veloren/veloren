@@ -1,7 +1,6 @@
 use super::cache::{
     FigureKey, FigureModelEntryFuture, ModelEntryFuture, TerrainModelEntryFuture, ToolKey,
 };
-use crate::hud::item_imgs::ItemVisualKey;
 use common::{
     assets::{self, AssetExt, AssetHandle, Concatenate, DotVoxAsset, MultiRon, ReloadWatcher},
     comp::{
@@ -5610,7 +5609,7 @@ impl<'de> Deserialize<'de> for ModelWithOptionalIndex {
 }
 
 #[derive(Deserialize)]
-struct ItemDropCentralSpec(HashMap<ItemVisualKey, ModelWithOptionalIndex>);
+struct ItemDropCentralSpec(HashMap<ItemKey, ModelWithOptionalIndex>);
 impl_concatenate_for_wrapper!(ItemDropCentralSpec);
 
 make_vox_spec!(
@@ -5646,7 +5645,7 @@ impl ItemDropCentralSpec {
 
         if let Some(spec) = match item_drop {
             item_drop::Body::CoinPouch => Some(&coin_pouch),
-            _ => self.0.get(&ItemVisualKey::from(item_key.clone())),
+            _ => self.0.get(item_key),
         } {
             let full_spec: String = ["voxygen.", spec.0.as_str()].concat();
             let segment = match item_drop {

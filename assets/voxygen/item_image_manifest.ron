@@ -1744,6 +1744,10 @@
         "voxel.object.recipe_blacksmithing",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
+    Simple("common.items.recipes.unique.delvers_lamp"): VoxTrans(
+        "voxel.object.recipe_lapidary",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
     Simple("common.items.recipes.weapons.iron"): VoxTrans(
         "voxel.object.recipe_blacksmithing",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
@@ -1801,6 +1805,10 @@
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
     Simple("common.items.recipes.unique.abyssal_gorget"): VoxTrans(
+        "voxel.object.recipe_lapidary",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.abyssal_ring"): VoxTrans(
         "voxel.object.recipe_lapidary",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
