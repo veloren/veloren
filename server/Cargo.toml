@@ -66,7 +66,7 @@ rayon = { workspace = true }
 crossbeam-channel = { workspace = true }
 prometheus = { workspace = true }
 portpicker = { git = "https://github.com/xMAC94x/portpicker-rs", rev = "df6b37872f3586ac3b21d08b56c8ec7cd92fb172" }
-authc = { git = "https://gitlab.com/veloren/auth.git", rev = "abb1a705827984e11706d7bb97fb7a459e1e6533" }           # xMAC94x/current_master_till_refactored branch
+authc = { git = "https://gitlab.com/veloren/auth.git", rev = "ae0e16783a9f9041951296885f082308e155db79" }           # xMAC94x/current_master_till_refactored branch
 enum-map = { workspace = true }
 noise = { version = "0.7", default-features = false }
 censor = "0.3"
