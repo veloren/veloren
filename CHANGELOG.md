@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dwarven-Mine update and activation.
 - Craftable orichalcum helmet
 - Protocol to query game server information (player count, version, etc.) and make ping tests.
+- Unlockable recipes
 
 ### Changed
 
