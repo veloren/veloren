@@ -47,7 +47,6 @@ pub struct LoginProvider {
 
 impl LoginProvider {
     pub fn new(auth_addr: Option<String>, runtime: Arc<Runtime>) -> Self {
-        let _ = rustls::crypto::ring::default_provider().install_default();
         tracing::trace!(?auth_addr, "Starting LoginProvider");
 
         let auth_server = auth_addr.map(|addr| {
