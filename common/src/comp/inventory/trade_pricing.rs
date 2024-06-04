@@ -9,7 +9,7 @@ use crate::{
         tool::AbilityMap,
     },
     lottery::LootSpec,
-    recipe::{default_component_recipe_book, default_recipe_book, RecipeInput},
+    recipe::{complete_recipe_book, default_component_recipe_book, RecipeInput},
     trade::Good,
 };
 use assets::AssetReadGuard;
@@ -294,7 +294,7 @@ lazy_static! {
 
         // Load recipe book (done to check that material is valid for a particular component)
         //use crate::recipe::ComponentKey;
-        let recipes = default_recipe_book().read();
+        let recipes = complete_recipe_book().read();
 
         recipes
             .iter()
@@ -463,8 +463,9 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
 
 #[derive(Debug, Deserialize)]
 struct TradingPriceFile {
+    /// Tuple format: (frequency, can_sell, asset_path)
     pub loot_tables: Vec<(f32, bool, String)>,
-    // the amount of Good equivalent to the most common item
+    /// the amount of Good equivalent to the most common item
     pub good_scaling: Vec<(Good, f32)>,
 }
 
@@ -628,17 +629,16 @@ impl TradePricing {
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.flowers.") => {
                 Good::Ingredients
             },
-
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.consumable.") => {
                 Good::Potions
             },
-
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.food.") => {
                 Good::Food
             },
-
             ItemDefinitionIdOwned::Simple(name) if name.as_str() == Self::COIN_ITEM => Good::Coin,
-
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.recipes.") => {
+                Good::Recipe
+            },
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.glider.") => {
                 Good::default()
             },
@@ -809,7 +809,7 @@ impl TradePricing {
 
         // Apply recipe book
         let mut secondaries: HashMap<ToolKind, Vec<ItemDefinitionIdOwned>> = HashMap::new();
-        let book = default_recipe_book().read();
+        let book = complete_recipe_book().read();
         let mut ordered_recipes: Vec<RememberedRecipe> = Vec::new();
         for (_, recipe) in book.iter() {
             let (ref asset_path, amount) = recipe.output;

@@ -40,6 +40,9 @@
     Ingredients: (
         decay_rate: 0.1, // revisit
     ),
+    Recipe: (
+        decay_rate: 0.1, // revisit
+    ),
     Tools: (
         // TODO: Separate stone, metal, bone, wood
         // decay_rate: 0.05, // 14 years half-life

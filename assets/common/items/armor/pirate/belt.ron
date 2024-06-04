@@ -6,6 +6,5 @@ ItemDef(
         stats: FromSet("Pirate"),
     )),
     quality: Epic,
-    tags: [
-    ],
+    tags: [],
 )

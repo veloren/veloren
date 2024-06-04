@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "silk",
+            "silken_back",
+            "silken_belt",
+            "silken_chest",
+            "silken_feet",
+            "silken_hands",
+            "silken_pants",
+            "silken_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

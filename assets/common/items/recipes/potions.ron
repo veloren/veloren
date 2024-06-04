@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "potion_combustion",
+            "potion_agility",
+            "potion_minor",
+            "potion_medium",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

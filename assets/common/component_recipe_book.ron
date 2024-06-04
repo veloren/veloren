@@ -1,6 +1,7 @@
 [
 /// MODULAR WEAPONS/HAMMERS/PRIMARY COMPONENTS
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.hammer",
@@ -11,6 +12,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.hammer",
@@ -21,6 +23,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.hammer",
@@ -33,6 +36,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.hammer",
@@ -45,6 +49,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.hammer",
@@ -57,6 +62,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.hammer",
@@ -69,6 +75,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.spikedmace",
@@ -79,6 +86,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.spikedmace",
@@ -89,6 +97,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.spikedmace",
@@ -101,6 +110,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.spikedmace",
@@ -113,6 +123,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.spikedmace",
@@ -125,6 +136,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.spikedmace",
@@ -137,6 +149,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.warhammer",
@@ -147,6 +160,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.warhammer",
@@ -157,6 +171,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.warhammer",
@@ -169,6 +184,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.warhammer",
@@ -181,6 +197,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.warhammer",
@@ -193,6 +210,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.warhammer",
@@ -205,6 +223,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.maul",
@@ -215,6 +234,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.maul",
@@ -225,6 +245,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.maul",
@@ -237,6 +258,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.maul",
@@ -249,6 +271,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.maul",
@@ -261,6 +284,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.maul",
@@ -273,6 +297,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greatmace",
@@ -283,6 +308,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greatmace",
@@ -293,6 +319,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greatmace",
@@ -305,6 +332,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greatmace",
@@ -317,6 +345,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greatmace",
@@ -329,6 +358,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greatmace",
@@ -341,6 +371,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greathammer",
@@ -351,6 +382,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greathammer",
@@ -361,6 +393,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greathammer",
@@ -373,6 +406,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greathammer",
@@ -385,6 +419,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greathammer",
@@ -397,6 +432,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.greathammer",
@@ -409,6 +445,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.ornate",
@@ -419,6 +456,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.ornate",
@@ -429,6 +467,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.ornate",
@@ -441,6 +480,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.ornate",
@@ -453,6 +493,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.ornate",
@@ -465,6 +506,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Hammer,
             item: "common.items.modular.weapon.primary.hammer.ornate",
@@ -478,6 +520,7 @@
     ),
 /// MODULAR WEAPONS/SWORDS/PRIMARY COMPONENTS
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.longsword",
@@ -488,6 +531,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.longsword",
@@ -498,6 +542,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.longsword",
@@ -510,6 +555,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.longsword",
@@ -522,6 +568,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.longsword",
@@ -534,6 +581,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.longsword",
@@ -546,6 +594,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sawblade",
@@ -556,6 +605,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sawblade",
@@ -566,6 +616,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sawblade",
@@ -578,6 +629,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sawblade",
@@ -590,6 +642,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sawblade",
@@ -602,6 +655,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sawblade",
@@ -614,6 +668,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.katana",
@@ -624,6 +679,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.katana",
@@ -634,6 +690,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.katana",
@@ -646,6 +703,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.katana",
@@ -658,6 +716,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.katana",
@@ -670,6 +729,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.katana",
@@ -682,6 +742,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.zweihander",
@@ -692,6 +753,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.zweihander",
@@ -702,6 +764,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.zweihander",
@@ -714,6 +777,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.zweihander",
@@ -726,6 +790,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.zweihander",
@@ -738,6 +803,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.zweihander",
@@ -750,6 +816,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sabre",
@@ -760,6 +827,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sabre",
@@ -770,6 +838,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sabre",
@@ -782,6 +851,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sabre",
@@ -794,6 +864,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sabre",
@@ -806,6 +877,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.sabre",
@@ -818,6 +890,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.greatsword",
@@ -828,6 +901,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.greatsword",
@@ -838,6 +912,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.greatsword",
@@ -850,6 +925,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.greatsword",
@@ -862,6 +938,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.greatsword",
@@ -874,6 +951,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.greatsword",
@@ -886,6 +964,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.ornate",
@@ -896,6 +975,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.ornate",
@@ -906,6 +986,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.ornate",
@@ -918,6 +999,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.ornate",
@@ -930,6 +1012,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.ornate",
@@ -942,6 +1025,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sword,
             item: "common.items.modular.weapon.primary.sword.ornate",
@@ -955,6 +1039,7 @@
     ),
 /// MODULAR WEAPONS/AXES/PRIMARY COMPONENTS
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.axe",
@@ -965,6 +1050,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.axe",
@@ -975,6 +1061,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.axe",
@@ -987,6 +1074,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.axe",
@@ -999,6 +1087,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.axe",
@@ -1011,6 +1100,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.axe",
@@ -1023,6 +1113,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.jagged",
@@ -1033,6 +1124,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.jagged",
@@ -1043,6 +1135,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.jagged",
@@ -1055,6 +1148,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.jagged",
@@ -1067,6 +1161,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.jagged",
@@ -1079,6 +1174,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.jagged",
@@ -1091,6 +1187,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.battleaxe",
@@ -1101,6 +1198,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.battleaxe",
@@ -1111,6 +1209,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.battleaxe",
@@ -1123,6 +1222,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.battleaxe",
@@ -1135,6 +1235,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.battleaxe",
@@ -1147,6 +1248,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.battleaxe",
@@ -1159,6 +1261,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.poleaxe",
@@ -1169,6 +1272,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.poleaxe",
@@ -1179,6 +1283,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.poleaxe",
@@ -1191,6 +1296,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.poleaxe",
@@ -1203,6 +1309,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.poleaxe",
@@ -1215,6 +1322,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.poleaxe",
@@ -1227,6 +1335,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.labrys",
@@ -1237,6 +1346,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.labrys",
@@ -1247,6 +1357,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.labrys",
@@ -1259,6 +1370,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.labrys",
@@ -1271,6 +1383,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.labrys",
@@ -1283,6 +1396,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.labrys",
@@ -1295,6 +1409,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.greataxe",
@@ -1305,6 +1420,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.greataxe",
@@ -1315,6 +1431,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.greataxe",
@@ -1327,6 +1444,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.greataxe",
@@ -1339,6 +1457,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.greataxe",
@@ -1351,6 +1470,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.greataxe",
@@ -1363,6 +1483,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bronze_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.ornate",
@@ -1373,6 +1494,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "iron_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.ornate",
@@ -1383,6 +1505,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "steel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.ornate",
@@ -1395,6 +1518,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "cobalt_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.ornate",
@@ -1407,6 +1531,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "bloodsteel_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.ornate",
@@ -1419,6 +1544,7 @@
         craft_sprite: Some(Anvil),
     ),
     (
+        recipe_book_key: "orichalcum_weapons",
         output: ToolPrimaryComponent(
             toolkind: Axe,
             item: "common.items.modular.weapon.primary.axe.ornate",
@@ -1432,6 +1558,7 @@
     ),
 /// MODULAR WEAPONS/BOWS/PRIMARY COMPONENTS
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.bow",
@@ -1443,6 +1570,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.bow",
@@ -1454,6 +1582,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.bow",
@@ -1465,6 +1594,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.bow",
@@ -1476,6 +1606,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.bow",
@@ -1487,6 +1618,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.bow",
@@ -1498,6 +1630,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.composite",
@@ -1509,6 +1642,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.composite",
@@ -1520,6 +1654,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.composite",
@@ -1531,6 +1666,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.composite",
@@ -1542,6 +1678,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.composite",
@@ -1553,6 +1690,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.composite",
@@ -1564,6 +1702,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.greatbow",
@@ -1575,6 +1714,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.greatbow",
@@ -1586,6 +1726,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.greatbow",
@@ -1597,6 +1738,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.greatbow",
@@ -1608,6 +1750,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.greatbow",
@@ -1619,6 +1762,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.greatbow",
@@ -1630,6 +1774,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.longbow",
@@ -1641,6 +1786,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.longbow",
@@ -1652,6 +1798,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.longbow",
@@ -1663,6 +1810,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.longbow",
@@ -1674,6 +1822,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.longbow",
@@ -1685,6 +1834,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.longbow",
@@ -1696,6 +1846,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.ornate",
@@ -1707,6 +1858,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.ornate",
@@ -1718,6 +1870,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.ornate",
@@ -1729,6 +1882,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.ornate",
@@ -1740,6 +1894,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.ornate",
@@ -1751,6 +1906,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.ornate",
@@ -1762,6 +1918,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.shortbow",
@@ -1773,6 +1930,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.shortbow",
@@ -1784,6 +1942,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.shortbow",
@@ -1795,6 +1954,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.shortbow",
@@ -1806,6 +1966,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.shortbow",
@@ -1817,6 +1978,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.shortbow",
@@ -1828,6 +1990,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.warbow",
@@ -1839,6 +2002,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.warbow",
@@ -1850,6 +2014,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.warbow",
@@ -1861,6 +2026,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.warbow",
@@ -1872,6 +2038,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.warbow",
@@ -1883,6 +2050,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Bow,
             item: "common.items.modular.weapon.primary.bow.warbow",
@@ -1895,6 +2063,7 @@
     ),
 /// MODULAR WEAPONS/FIRE STAFFS/PRIMARY COMPONENTS
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.brand",
@@ -1907,6 +2076,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.brand",
@@ -1919,6 +2089,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.brand",
@@ -1931,6 +2102,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.brand",
@@ -1943,6 +2115,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.brand",
@@ -1955,6 +2128,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.brand",
@@ -1967,6 +2141,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.grandstaff",
@@ -1979,6 +2154,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.grandstaff",
@@ -1991,6 +2167,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.grandstaff",
@@ -2003,6 +2180,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.grandstaff",
@@ -2015,6 +2193,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.grandstaff",
@@ -2027,6 +2206,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.grandstaff",
@@ -2039,6 +2219,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.longpole",
@@ -2051,6 +2232,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.longpole",
@@ -2063,6 +2245,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.longpole",
@@ -2075,6 +2258,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.longpole",
@@ -2087,6 +2271,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.longpole",
@@ -2099,6 +2284,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.longpole",
@@ -2111,6 +2297,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.ornate",
@@ -2123,6 +2310,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.ornate",
@@ -2135,6 +2323,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.ornate",
@@ -2147,6 +2336,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.ornate",
@@ -2159,6 +2349,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.ornate",
@@ -2171,6 +2362,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.ornate",
@@ -2183,6 +2375,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.pole",
@@ -2195,6 +2388,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.pole",
@@ -2207,6 +2401,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.pole",
@@ -2219,6 +2414,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.pole",
@@ -2231,6 +2427,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.pole",
@@ -2243,6 +2440,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.pole",
@@ -2255,6 +2453,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.rod",
@@ -2267,6 +2466,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.rod",
@@ -2279,6 +2479,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.rod",
@@ -2291,6 +2492,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.rod",
@@ -2303,6 +2505,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.rod",
@@ -2315,6 +2518,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.rod",
@@ -2327,6 +2531,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.staff",
@@ -2339,6 +2544,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.staff",
@@ -2351,6 +2557,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.staff",
@@ -2363,6 +2570,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.staff",
@@ -2375,6 +2583,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.staff",
@@ -2387,6 +2596,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Staff,
             item: "common.items.modular.weapon.primary.staff.staff",
@@ -2400,6 +2610,7 @@
     ),
 /// MODULAR WEAPONS/NATURE SCEPTRES/PRIMARY COMPONENTS
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.arbor",
@@ -2412,6 +2623,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.arbor",
@@ -2424,6 +2636,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.arbor",
@@ -2436,6 +2649,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.arbor",
@@ -2448,6 +2662,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.arbor",
@@ -2460,6 +2675,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.arbor",
@@ -2472,6 +2688,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.cane",
@@ -2484,6 +2701,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.cane",
@@ -2496,6 +2714,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.cane",
@@ -2508,6 +2727,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.cane",
@@ -2520,6 +2740,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.cane",
@@ -2532,6 +2753,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.cane",
@@ -2544,6 +2766,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crook",
@@ -2556,6 +2779,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crook",
@@ -2568,6 +2792,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crook",
@@ -2580,6 +2805,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crook",
@@ -2592,6 +2818,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crook",
@@ -2604,6 +2831,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crook",
@@ -2616,6 +2844,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crozier",
@@ -2628,6 +2857,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crozier",
@@ -2640,6 +2870,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crozier",
@@ -2652,6 +2883,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crozier",
@@ -2664,6 +2896,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crozier",
@@ -2676,6 +2909,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.crozier",
@@ -2688,6 +2922,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
@@ -2700,6 +2935,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
@@ -2712,6 +2948,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
@@ -2724,6 +2961,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
@@ -2736,6 +2974,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
@@ -2748,6 +2987,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
@@ -2760,6 +3000,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.ornate",
@@ -2772,6 +3013,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.ornate",
@@ -2784,6 +3026,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.ornate",
@@ -2796,6 +3039,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.ornate",
@@ -2808,6 +3052,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.ornate",
@@ -2820,6 +3065,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.ornate",
@@ -2832,6 +3078,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "wood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.sceptre",
@@ -2844,6 +3091,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "bamboo_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.sceptre",
@@ -2856,6 +3104,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "hardwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.sceptre",
@@ -2868,6 +3117,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "ironwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.sceptre",
@@ -2880,6 +3130,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "frostwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.sceptre",
@@ -2892,6 +3143,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     (
+        recipe_book_key: "eldwood_weapons",
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
             item: "common.items.modular.weapon.primary.sceptre.sceptre",

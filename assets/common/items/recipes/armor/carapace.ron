@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "carapace_back",
+            "carapace_belt",
+            "carapace_chest",
+            "carapace_feet",
+            "carapace_hands",
+            "carapace_pants",
+            "carapace_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

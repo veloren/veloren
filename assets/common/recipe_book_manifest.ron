@@ -1,5 +1,5 @@
 {
-    "crafting_hammer": (
+    "craftsman_hammer": (
         output: ("common.items.tool.craftsman_hammer", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
@@ -50,7 +50,7 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
-    "potion_s": (
+    "potion_minor": (
         output: ("common.items.consumable.potion_minor", 1),
         inputs: [
             (Item("common.items.crafting_ing.empty_vial"), 1, false),
@@ -59,7 +59,7 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
-    "potion_m": (
+    "potion_medium": (
         output: ("common.items.consumable.potion_med", 1),
         inputs: [
             (Item("common.items.consumable.potion_minor"), 2, false),
@@ -329,14 +329,6 @@
         ],
         craft_sprite: Some(Forge),
     ),
-    /* Only for Christmas event so comment out once done
-    "diamonds": (
-        output: ("common.items.mineral.gem.diamond", 1),
-        inputs: [
-            (Item("common.items.mineral.ore.coal"), 20, false),
-        ],
-        craft_sprite: Some(Forge),
-    ), */
     "cotton": (
         output: ("common.items.crafting_ing.cloth.cotton", 1),
         inputs: [

@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "frostwood_weapons",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

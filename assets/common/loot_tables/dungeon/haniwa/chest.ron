@@ -11,6 +11,17 @@
             (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
             // Food
             (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 4)),
+            // Recipe
+            (0.2, Item("common.items.recipes.explosives")),
+            (1.0, Item("common.items.recipes.instruments")),
+            (1.0, Item("common.items.recipes.charms")),
+            (1.0, Item("common.items.recipes.potions")),
+            (1.0, Item("common.items.recipes.equipment.moderate")),
+            (1.0, Item("common.items.recipes.armor.bloodsteel")),
+            (1.0, Item("common.items.recipes.armor.moonweave")),
+            (1.0, Item("common.items.recipes.armor.primal")),
+            (1.0, Item("common.items.recipes.weapons.bloodsteel")),
+            (1.0, Item("common.items.recipes.weapons.frostwood")),
         ]),
         Lottery([
             (0.7, Nothing),

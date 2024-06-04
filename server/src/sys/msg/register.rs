@@ -8,7 +8,7 @@ use crate::{
 use common::{
     comp::{self, Admin, Player, Stats},
     event::{ClientDisconnectEvent, EventBus, MakeAdminEvent},
-    recipe::{default_component_recipe_book, default_recipe_book, default_repair_recipe_book},
+    recipe::{default_component_recipe_book, default_repair_recipe_book},
     resources::TimeOfDay,
     shared_server_config::ServerConstants,
     uid::Uid,
@@ -50,6 +50,7 @@ pub struct ReadData<'a> {
     time_of_day: Read<'a, TimeOfDay>,
     material_stats: ReadExpect<'a, comp::item::MaterialStatManifest>,
     ability_map: ReadExpect<'a, comp::item::tool::AbilityMap>,
+    recipe_book: ReadExpect<'a, common::recipe::RecipeBookManifest>,
     map: ReadExpect<'a, WorldMapMsg>,
     trackers: TrackedStorages<'a>,
     #[allow(dead_code)]
@@ -352,7 +353,7 @@ impl<'a> System<'a> for Sys {
                             max_group_size: read_data.settings.max_player_group_size,
                             client_timeout: read_data.settings.client_timeout,
                             world_map: (*read_data.map).clone(),
-                            recipe_book: default_recipe_book().cloned(),
+                            recipe_book: (*read_data.recipe_book).clone(),
                             component_recipe_book: default_component_recipe_book().cloned(),
                             repair_recipe_book: default_repair_recipe_book().cloned(),
                             material_stats: (*read_data.material_stats).clone(),

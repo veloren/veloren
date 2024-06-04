@@ -12,4 +12,12 @@
     (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
     // Food
     (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 2)),
+    // Recipes
+    (1.0, Item("common.items.recipes.armor.iron")),
+    (1.0, Item("common.items.recipes.armor.woolen")),
+    (1.0, Item("common.items.recipes.armor.leather")),
+    (1.0, Item("common.items.recipes.weapons.iron")),
+    (1.0, Item("common.items.recipes.weapons.bamboo")),
+    (1.0, Item("common.items.recipes.food")),
+    (1.0, Item("common.items.recipes.utility")),
 ]

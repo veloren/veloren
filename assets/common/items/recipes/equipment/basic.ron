@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "seashell_necklace",
+            "knitted_red_pouch",
+            "steel_pickaxe",
+            "fang_necklace",
+            "black_lantern",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "rigid_leather",
+            "primal_back",
+            "primal_belt",
+            "primal_chest",
+            "primal_feet",
+            "primal_hands",
+            "primal_pants",
+            "primal_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

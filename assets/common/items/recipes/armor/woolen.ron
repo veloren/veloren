@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "cotton",
+            "woolen_back",
+            "woolen_belt",
+            "woolen_chest",
+            "woolen_feet",
+            "woolen_hands",
+            "woolen_pants",
+            "woolen_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

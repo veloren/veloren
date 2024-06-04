@@ -125,6 +125,7 @@ make_case_elim!(
         BubbleBomb = 110,
         IronPikeBomb = 111,
         Lavathrower = 112,
+        Scroll = 113,
     }
 );
 
@@ -135,7 +136,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 113] = [
+pub const ALL_OBJECTS: [Body; 114] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -249,6 +250,7 @@ pub const ALL_OBJECTS: [Body; 113] = [
     Body::BubbleBomb,
     Body::IronPikeBomb,
     Body::Lavathrower,
+    Body::Scroll,
 ];
 
 impl From<Body> for super::Body {
@@ -371,6 +373,7 @@ impl Body {
             Body::SurpriseEgg => "surprise_egg",
             Body::BubbleBomb => "bubble_bomb",
             Body::IronPikeBomb => "iron_pike_bomb",
+            Body::Scroll => "recipe",
         }
     }
 
@@ -411,6 +414,7 @@ impl Body {
             Body::TrainingDummy => 2000.0,
             Body::Snowball => 0.9 * WATER_DENSITY,
             Body::Pebble => 1000.0,
+            Body::Scroll => 0.5 * WATER_DENSITY,
             // let them sink
             _ => 1.1 * WATER_DENSITY,
         };
@@ -462,7 +466,7 @@ impl Body {
             | Body::ChestOpen
             | Body::ChestSkull
             | Body::ChestVines => 100.0,
-            Body::Coins => 1.0,
+            Body::Coins | Body::Scroll => 1.0,
             Body::CraftingBench => 100.0,
             Body::Crate => 50.0,
             Body::Crossbow => 200.0,

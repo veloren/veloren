@@ -1708,6 +1708,182 @@
         "voxel.object.collar",
         (0.1, 0.0, 0.0), (-60.0, 20.0, 10.0), 0.9,
     ),
+    Simple("common.items.recipes.potions"): VoxTrans(
+        "voxel.object.recipe_alchemy",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.explosives"): VoxTrans(
+        "voxel.object.recipe_alchemy",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.charms"): VoxTrans(
+        "voxel.object.recipe_alchemy",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.iron"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.steel"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.cobalt"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.bloodsteel"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.orichalcum"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.polaris"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.delvers_lamp"): VoxTrans(
+        "voxel.object.recipe_lapidary",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.iron"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.steel"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.cobalt"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.bloodsteel"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.orichalcum"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.gliders"): VoxTrans(
+        "voxel.object.recipe_carpentry",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.instruments"): VoxTrans(
+        "voxel.object.recipe_carpentry",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.bamboo"): VoxTrans(
+        "voxel.object.recipe_carpentry",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.hardwood"): VoxTrans(
+        "voxel.object.recipe_carpentry",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.ironwood"): VoxTrans(
+        "voxel.object.recipe_carpentry",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.frostwood"): VoxTrans(
+        "voxel.object.recipe_carpentry",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.weapons.eldwood"): VoxTrans(
+        "voxel.object.recipe_carpentry",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.food"): VoxTrans(
+        "voxel.object.recipe_cooking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.brinestone"): VoxTrans(
+        "voxel.object.recipe_lapidary",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.abyssal_gorget"): VoxTrans(
+        "voxel.object.recipe_lapidary",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.abyssal_ring"): VoxTrans(
+        "voxel.object.recipe_lapidary",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.seashell_necklace"): VoxTrans(
+        "voxel.object.recipe_lapidary",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.leather"): VoxTrans(
+        "voxel.object.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.scale"): VoxTrans(
+        "voxel.object.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.carapace"): VoxTrans(
+        "voxel.object.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.primal"): VoxTrans(
+        "voxel.object.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.dragonscale"): VoxTrans(
+        "voxel.object.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.mindflayer_spellbag"): VoxTrans(
+        "voxel.object.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.troll_hide_pack"): VoxTrans(
+        "voxel.object.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.winged_coronet"): VoxTrans(
+        "voxel.object.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.woolen"): VoxTrans(
+        "voxel.object.recipe_weaving",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.silken"): VoxTrans(
+        "voxel.object.recipe_weaving",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.druid"): VoxTrans(
+        "voxel.object.recipe_weaving",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.moonweave"): VoxTrans(
+        "voxel.object.recipe_weaving",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.armor.sunsilk"): VoxTrans(
+        "voxel.object.recipe_weaving",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.utility"): VoxTrans(
+        "voxel.object.scroll",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.equipment.basic"): VoxTrans(
+        "voxel.object.scroll",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.equipment.moderate"): VoxTrans(
+        "voxel.object.scroll",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.equipment.advanced"): VoxTrans(
+        "voxel.object.scroll",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
     // Armor
     // Starter Parts
     Simple("common.items.armor.misc.foot.sandals"): VoxTrans(

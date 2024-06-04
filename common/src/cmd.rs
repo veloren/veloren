@@ -6,7 +6,9 @@ use crate::{
         AdminRole as Role, Skill,
     },
     generation::try_all_entity_configs,
-    npc, terrain,
+    npc,
+    recipe::RecipeBookManifest,
+    terrain,
 };
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -137,6 +139,10 @@ lazy_static! {
         .iter()
         .map(|o| o.to_string().to_string())
         .collect();
+    static ref RECIPES: Vec<String> = {
+        let rbm = RecipeBookManifest::load().cloned();
+        rbm.keys().cloned().collect::<Vec<String>>()
+    };
     static ref TIMES: Vec<String> = [
         "midnight", "night", "dawn", "morning", "day", "noon", "dusk"
     ]
@@ -378,6 +384,7 @@ pub enum ServerChatCommand {
     ReloadChunks,
     RemoveLights,
     RepairEquipment,
+    ResetRecipes,
     Respawn,
     RevokeBuild,
     RevokeBuildAll,
@@ -734,6 +741,7 @@ impl ServerChatCommand {
                 "Reloads chunks loaded on the server",
                 Some(Admin),
             ),
+            ServerChatCommand::ResetRecipes => cmd(vec![], "Resets your recipe book", Some(Admin)),
             ServerChatCommand::RemoveLights => cmd(
                 vec![Float("radius", 20.0, Optional)],
                 "Removes all lights spawned by players",
@@ -1030,6 +1038,7 @@ impl ServerChatCommand {
             ServerChatCommand::PermitBuild => "permit_build",
             ServerChatCommand::Players => "players",
             ServerChatCommand::Portal => "portal",
+            ServerChatCommand::ResetRecipes => "reset_recipes",
             ServerChatCommand::Region => "region",
             ServerChatCommand::ReloadChunks => "reload_chunks",
             ServerChatCommand::RemoveLights => "remove_lights",

@@ -18,7 +18,10 @@
         )),
         items: [
             (10, "common.items.consumable.potion_big"),
-            (10, "common.items.food.sunflower_icetea"),
+            (1, "common.items.recipes.equipment.basic"),
+            (1, "common.items.recipes.armor.iron"),
+            (1, "common.items.recipes.weapons.iron"),
+            (1, "common.items.recipes.utility"),
         ],
     ),
     meta: [

@@ -1,25 +1,26 @@
 use crate::persistence::{
     character::EntityId,
-    models::{AbilitySets, Character, Item, SkillGroup},
-};
-
-use crate::persistence::{
     error::PersistenceError,
     json_models::{
         self, CharacterPosition, DatabaseAbilitySet, DatabaseItemProperties, GenericBody,
         HumanoidBody,
     },
+    models::{AbilitySets, Character, Item, SkillGroup},
 };
 use common::{
     character::CharacterId,
     comp::{
+        body,
         inventory::{
             item::{tool::AbilityMap, Item as VelorenItem, MaterialStatManifest},
             loadout::{Loadout, LoadoutError},
             loadout_builder::LoadoutBuilder,
+            recipe_book::RecipeBook,
             slot::InvSlotId,
         },
-        skillset, Body as CompBody, Waypoint, *,
+        item,
+        skillset::{self, skills::Skill, SkillGroupKind, SkillSet},
+        ActiveAbilities, Body as CompBody, Inventory, MapMarker, Stats, Waypoint,
     },
     resources::Time,
 };
@@ -57,6 +58,7 @@ pub fn convert_items_to_database_items(
     inventory: &Inventory,
     inventory_container_id: EntityId,
     overflow_items_container_id: EntityId,
+    recipe_book_container_id: EntityId,
     next_id: &mut i64,
 ) -> Vec<ItemModelPair> {
     let loadout = inventory
@@ -71,6 +73,16 @@ pub fn convert_items_to_database_items(
         )
     });
 
+    let recipe_book = inventory
+        .persistence_recipes_iter_with_index()
+        .map(|(i, item)| {
+            (
+                serde_json::to_string(&i)
+                    .expect("failed to serialize index of recipe from recipe book"),
+                Some(item),
+                recipe_book_container_id,
+            )
+        });
     // Inventory slots.
     let inventory = inventory.slots_with_id().map(|(pos, item)| {
         (
@@ -82,12 +94,17 @@ pub fn convert_items_to_database_items(
 
     // Use Breadth-first search to recurse into containers/modular weapons to store
     // their parts
-    let mut bfs_queue: VecDeque<_> = inventory.chain(loadout).chain(overflow_items).collect();
+    let mut bfs_queue: VecDeque<_> = inventory
+        .chain(loadout)
+        .chain(overflow_items)
+        .chain(recipe_book)
+        .collect();
     let mut upserts = Vec::new();
     let mut depth = HashMap::new();
     depth.insert(inventory_container_id, 0);
     depth.insert(loadout_container_id, 0);
     depth.insert(overflow_items_container_id, 0);
+    depth.insert(recipe_book_container_id, 0);
     while let Some((position, item, parent_container_item_id)) = bfs_queue.pop_front() {
         // Construct new items.
         if let Some(item) = item {
@@ -182,7 +199,7 @@ pub fn convert_items_to_database_items(
 
             let upsert = ItemModelPair {
                 model: Item {
-                    item_definition_id: String::from(item.persistence_item_id()),
+                    item_definition_id: item.persistence_item_id(),
                     position,
                     parent_container_item_id,
                     item_id,
@@ -210,27 +227,27 @@ pub fn convert_body_to_database_json(
     comp_body: &CompBody,
 ) -> Result<(&str, String), PersistenceError> {
     Ok(match comp_body {
-        Body::Humanoid(body) => (
+        CompBody::Humanoid(body) => (
             "humanoid",
             serde_json::to_string(&HumanoidBody::from(body))?,
         ),
-        Body::QuadrupedLow(body) => (
+        CompBody::QuadrupedLow(body) => (
             "quadruped_low",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
-        Body::QuadrupedMedium(body) => (
+        CompBody::QuadrupedMedium(body) => (
             "quadruped_medium",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
-        Body::QuadrupedSmall(body) => (
+        CompBody::QuadrupedSmall(body) => (
             "quadruped_small",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
-        Body::BirdMedium(body) => (
+        CompBody::BirdMedium(body) => (
             "bird_medium",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
-        Body::Crustacean(body) => (
+        CompBody::Crustacean(body) => (
             "crustacean",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
@@ -364,6 +381,7 @@ pub fn convert_inventory_from_database_items(
     loadout_items: &[Item],
     overflow_items_container_id: i64,
     overflow_items: &[Item],
+    recipe_book_items: &[Item],
 ) -> Result<Inventory, PersistenceError> {
     // Loadout items must be loaded before inventory items since loadout items
     // provide inventory slots. Since items stored inside loadout items actually
@@ -374,7 +392,8 @@ pub fn convert_inventory_from_database_items(
     let loadout = convert_loadout_from_database_items(loadout_container_id, loadout_items)?;
     let overflow_items =
         convert_overflow_items_from_database_items(overflow_items_container_id, overflow_items)?;
-    let mut inventory = Inventory::with_loadout_humanoid(loadout);
+    let recipe_book = convert_recipe_book_from_database_items(recipe_book_items)?;
+    let mut inventory = Inventory::with_loadout_humanoid(loadout).with_recipe_book(recipe_book);
     let mut item_indices = HashMap::new();
 
     let mut failed_inserts = HashMap::new();
@@ -681,8 +700,8 @@ pub fn convert_body_from_database(
         // extra fields on its body struct
         "humanoid" => {
             let json_model = serde_json::de::from_str::<HumanoidBody>(body_data)?;
-            CompBody::Humanoid(humanoid::Body {
-                species: humanoid::ALL_SPECIES
+            CompBody::Humanoid(body::humanoid::Body {
+                species: body::humanoid::ALL_SPECIES
                     .get(json_model.species as usize)
                     .ok_or_else(|| {
                         PersistenceError::ConversionError(format!(
@@ -691,7 +710,7 @@ pub fn convert_body_from_database(
                         ))
                     })?
                     .to_owned(),
-                body_type: humanoid::ALL_BODY_TYPES
+                body_type: body::humanoid::ALL_BODY_TYPES
                     .get(json_model.body_type as usize)
                     .ok_or_else(|| {
                         PersistenceError::ConversionError(format!(
@@ -740,7 +759,7 @@ pub fn convert_character_from_database(character: &Character) -> common::charact
     }
 }
 
-pub fn convert_stats_from_database(alias: String, body: Body) -> Stats {
+pub fn convert_stats_from_database(alias: String, body: CompBody) -> Stats {
     let mut new_stats = Stats::empty(body);
     new_stats.name = alias;
     new_stats
@@ -866,4 +885,26 @@ pub fn convert_active_abilities_from_database(ability_sets: &AbilitySets) -> Act
             Vec::new()
         });
     json_models::active_abilities_from_db_model(ability_sets)
+}
+
+pub fn convert_recipe_book_from_database_items(
+    database_items: &[Item],
+) -> Result<RecipeBook, PersistenceError> {
+    let mut recipes_groups = Vec::new();
+
+    for db_item in database_items.iter() {
+        let item = get_item_from_asset(db_item.item_definition_id.as_str())?;
+
+        // NOTE: item id is currently *unique*, so we can store the ID safely.
+        let comp = item.get_item_id_for_database();
+        comp.store(Some(NonZeroU64::try_from(db_item.item_id as u64).map_err(
+            |_| PersistenceError::ConversionError("Item with zero item_id".to_owned()),
+        )?));
+
+        recipes_groups.push(item);
+    }
+
+    let recipe_book = RecipeBook::recipe_book_from_persistence(recipes_groups);
+
+    Ok(recipe_book)
 }

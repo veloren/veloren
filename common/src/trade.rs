@@ -337,6 +337,7 @@ pub enum Good {
     Potions,
     Coin, // exchange material across sites
     RoadSecurity,
+    Recipe,
 }
 
 impl Default for Good {
@@ -351,7 +352,7 @@ impl Good {
         match self {
             Good::Tools | Good::Armor => 0.5,
             Good::Food | Good::Potions | Good::Ingredients => 0.75,
-            Good::Coin => 1.0,
+            Good::Coin | Good::Recipe => 1.0,
             // Certain abstract goods (like Territory) shouldn't be attached to concrete items;
             // give a sale price of 0 if the player is trying to sell a concrete item that somehow
             // has one of these categories

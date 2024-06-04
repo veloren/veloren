@@ -17,7 +17,7 @@ pub fn animate_by_pulse(ids: &[Id], pulse: f32) -> Id {
     ids[animation_frame % ids.len()]
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ImageSpec {
     Png(String),
     Vox(String, #[serde(default)] u32),

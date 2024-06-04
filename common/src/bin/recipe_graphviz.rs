@@ -5,13 +5,12 @@ use petgraph::{
 };
 use std::{fs::File, io::Write};
 use veloren_common::{
-    assets::AssetExt,
     comp::item::ItemDesc,
-    recipe::{RecipeBook, RecipeInput},
+    recipe::{RecipeBookManifest, RecipeInput},
 };
 
 fn main() {
-    let recipes = RecipeBook::load_expect_cloned("common.recipe_book");
+    let recipes = RecipeBookManifest::load().read();
     let mut graph = Graph::new();
     let mut nodes = HashMap::new();
     let mut add_node = |graph: &mut Graph<_, _>, node: &str| {

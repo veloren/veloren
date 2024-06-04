@@ -10,7 +10,7 @@ use common::{
     event::{PluginHash, UpdateCharacterMetadata},
     lod,
     outcome::Outcome,
-    recipe::{ComponentRecipeBook, RecipeBook, RepairRecipeBook},
+    recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
     resources::{Time, TimeOfDay, TimeScale},
     shared_server_config::ServerConstants,
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
@@ -68,7 +68,7 @@ pub enum ServerInit {
         max_group_size: u32,
         client_timeout: Duration,
         world_map: crate::msg::world_msg::WorldMapMsg,
-        recipe_book: RecipeBook,
+        recipe_book: RecipeBookManifest,
         component_recipe_book: ComponentRecipeBook,
         repair_recipe_book: RepairRecipeBook,
         material_stats: MaterialStatManifest,
@@ -222,6 +222,9 @@ pub enum ServerGeneral {
     SpectatePosition(Vec3<f32>),
     /// Plugin data requested from the server
     PluginData(Vec<u8>),
+    /// Update the list of available recipes. Usually called after a new recipe
+    /// is acquired
+    UpdateRecipes,
 }
 
 impl ServerGeneral {
@@ -345,7 +348,8 @@ impl ServerMsg {
                         | ServerGeneral::MapMarker(_)
                         | ServerGeneral::WeatherUpdate(_)
                         | ServerGeneral::LocalWindUpdate(_)
-                        | ServerGeneral::SpectatePosition(_) => {
+                        | ServerGeneral::SpectatePosition(_)
+                        | ServerGeneral::UpdateRecipes => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

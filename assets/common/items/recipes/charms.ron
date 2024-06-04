@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "burning_charm",
+            "frozen_charm",
+            "lifesteal_charm",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

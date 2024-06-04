@@ -6,7 +6,7 @@ use clap::Parser;
 use hashbrown::HashMap;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::Serialize;
-use std::{error::Error, fs::File, io::Write};
+use std::{borrow::Cow, error::Error, fs::File, io::Write};
 
 use veloren_common::{
     assets::ASSETS_PATH,
@@ -79,9 +79,9 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 
                     if let Ok(ref record) = record {
                         if item.item_definition_id()
-                            == ItemDefinitionId::Simple(
+                            == ItemDefinitionId::Simple(Cow::Borrowed(
                                 record.get(headers["Path"]).expect("No file path in csv?"),
-                            )
+                            ))
                         {
                             let protection =
                                 if let Some(protection_raw) = record.get(headers["Protection"]) {
@@ -287,9 +287,9 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             if let ItemKind::Tool(tool) = &*item.kind() {
                 if let Ok(ref record) = record {
                     if item.item_definition_id()
-                        == ItemDefinitionId::Simple(
+                        == ItemDefinitionId::Simple(Cow::Borrowed(
                             record.get(headers["Path"]).expect("No file path in csv?"),
-                        )
+                        ))
                     {
                         let kind = tool.kind;
                         let equip_time_secs: f32 = record

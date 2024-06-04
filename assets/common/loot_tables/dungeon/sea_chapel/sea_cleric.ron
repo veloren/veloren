@@ -1,4 +1,3 @@
 [
-    // Nothing
-    (1.0, Nothing),
+    (1.0, Item("common.items.recipes.armor.brinestone")),
 ]

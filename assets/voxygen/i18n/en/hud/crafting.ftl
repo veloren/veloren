@@ -49,3 +49,5 @@ hud-crafting-mod_comp_sec_slot_title = Animal Material
 hud-crafting-mod_comp_sec_slot_desc = Optionally place an animal crafting ingredient, only certain ingredients can be used to augment weapons.
 hud-crafting-repair_slot_title = Damaged Item
 hud-crafting-repair_slot_desc = Place an item here to see the cost of repairing it at its current durability level.
+hud-crafting-recipe-uncraftable = Recipe Cannot be Crafted
+hud-crafting-recipe-unlearned = You must first learn how to craft this recipe.

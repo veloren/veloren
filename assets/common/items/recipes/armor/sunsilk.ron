@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "sunsilk",
+            "sunsilk_back",
+            "sunsilk_belt",
+            "sunsilk_chest",
+            "sunsilk_feet",
+            "sunsilk_hands",
+            "sunsilk_pants",
+            "sunsilk_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

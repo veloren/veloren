@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "cobalt_ingot",
+            "cobalt_back",
+            "cobalt_belt",
+            "cobalt_chest",
+            "cobalt_feet",
+            "cobalt_hands",
+            "cobalt_pants",
+            "cobalt_shoulder",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

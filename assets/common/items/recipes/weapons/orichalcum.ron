@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "orichalcum_ingot",
+            "orichalcum_weapons",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -37,7 +37,7 @@ use common::{
     lod,
     mounting::{Rider, VolumePos, VolumeRider},
     outcome::Outcome,
-    recipe::{ComponentRecipeBook, RecipeBook, RepairRecipeBook},
+    recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
     resources::{GameMode, PlayerEntity, Time, TimeOfDay},
     shared_server_config::ServerConstants,
     spiral::Spiral2d,
@@ -278,7 +278,6 @@ pub struct Client {
     possible_starting_sites: Vec<SiteId>,
     pois: Vec<PoiInfo>,
     pub chat_mode: ChatMode,
-    recipe_book: RecipeBook,
     component_recipe_book: ComponentRecipeBook,
     repair_recipe_book: RepairRecipeBook,
     available_recipes: HashMap<String, Option<SpriteKind>>,
@@ -692,6 +691,7 @@ impl Client {
             *state.ecs_mut().write_resource() = PlayerEntity(Some(entity));
             state.ecs_mut().insert(material_stats);
             state.ecs_mut().insert(ability_map);
+            state.ecs_mut().insert(recipe_book);
 
             let map_size = map_size_lg.chunks();
             let max_height = world_map.max_height;
@@ -953,7 +953,6 @@ impl Client {
                 world_map.sites,
                 world_map.possible_starting_sites,
                 world_map.pois,
-                recipe_book,
                 component_recipe_book,
                 repair_recipe_book,
                 max_group_size,
@@ -972,7 +971,6 @@ impl Client {
             sites,
             possible_starting_sites,
             pois,
-            recipe_book,
             component_recipe_book,
             repair_recipe_book,
             max_group_size,
@@ -1019,7 +1017,6 @@ impl Client {
                 .collect(),
             possible_starting_sites,
             pois,
-            recipe_book,
             component_recipe_book,
             repair_recipe_book,
             available_recipes: HashMap::default(),
@@ -1492,8 +1489,6 @@ impl Client {
 
     pub fn world_data(&self) -> &WorldData { &self.world_data }
 
-    pub fn recipe_book(&self) -> &RecipeBook { &self.recipe_book }
-
     pub fn component_recipe_book(&self) -> &ComponentRecipeBook { &self.component_recipe_book }
 
     pub fn repair_recipe_book(&self) -> &RepairRecipeBook { &self.repair_recipe_book }
@@ -1508,21 +1503,6 @@ impl Client {
     /// entity does not have a position.
     pub fn set_lod_pos_fallback(&mut self, pos: Vec2<f32>) { self.lod_pos_fallback = Some(pos); }
 
-    /// Returns whether the specified recipe can be crafted and the sprite, if
-    /// any, that is required to do so.
-    pub fn can_craft_recipe(&self, recipe: &str, amount: u32) -> (bool, Option<SpriteKind>) {
-        self.recipe_book
-            .get(recipe)
-            .zip(self.inventories().get(self.entity()))
-            .map(|(recipe, inv)| {
-                (
-                    recipe.inventory_contains_ingredients(inv, amount).is_ok(),
-                    recipe.craft_sprite,
-                )
-            })
-            .unwrap_or((false, None))
-    }
-
     pub fn craft_recipe(
         &mut self,
         recipe: &str,
@@ -1530,8 +1510,20 @@ impl Client {
         craft_sprite: Option<(VolumePos, SpriteKind)>,
         amount: u32,
     ) -> bool {
-        let (can_craft, required_sprite) = self.can_craft_recipe(recipe, amount);
-        let has_sprite = required_sprite.map_or(true, |s| Some(s) == craft_sprite.map(|(_, s)| s));
+        let (can_craft, has_sprite) = if let Some(inventory) = self
+            .state
+            .ecs()
+            .read_storage::<comp::Inventory>()
+            .get(self.entity())
+        {
+            let rbm = self.state.ecs().read_resource::<RecipeBookManifest>();
+            let (can_craft, required_sprite) = inventory.can_craft_recipe(recipe, 1, &rbm);
+            let has_sprite =
+                required_sprite.map_or(true, |s| Some(s) == craft_sprite.map(|(_, s)| s));
+            (can_craft, has_sprite)
+        } else {
+            (false, false)
+        };
         if can_craft && has_sprite {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
@@ -1680,19 +1672,22 @@ impl Client {
     }
 
     fn update_available_recipes(&mut self) {
-        self.available_recipes = self
-            .recipe_book
-            .iter()
-            .map(|(name, _)| name.clone())
-            .filter_map(|name| {
-                let (can_craft, required_sprite) = self.can_craft_recipe(&name, 1);
-                if can_craft {
-                    Some((name, required_sprite))
-                } else {
-                    None
-                }
-            })
-            .collect();
+        let rbm = self.state.ecs().read_resource::<RecipeBookManifest>();
+        let inventories = self.state.ecs().read_storage::<comp::Inventory>();
+        if let Some(inventory) = inventories.get(self.entity()) {
+            self.available_recipes = inventory
+                .recipes_iter()
+                .cloned()
+                .filter_map(|name| {
+                    let (can_craft, required_sprite) = inventory.can_craft_recipe(&name, 1, &rbm);
+                    if can_craft {
+                        Some((name, required_sprite))
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+        }
     }
 
     /// Unstable, likely to be removed in a future release
@@ -2843,6 +2838,9 @@ impl Client {
             },
             ServerGeneral::SpectatePosition(pos) => {
                 frontend_events.push(Event::SpectatePosition(pos));
+            },
+            ServerGeneral::UpdateRecipes => {
+                self.update_available_recipes();
             },
             _ => unreachable!("Not a in_game message"),
         }

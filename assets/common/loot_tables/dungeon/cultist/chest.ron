@@ -4,7 +4,7 @@
             // Gear
             (0.25, LootTable("common.loot_tables.weapons.cultist")),
             (0.25, LootTable("common.loot_tables.armor.cultist")),
-	    (0.25, LootTable("common.loot_tables.weapons.cave")),
+	        (0.25, LootTable("common.loot_tables.weapons.cave")),
             // Currency
             (3.0, MultiDrop(Item("common.items.utility.coins"), 1000, 2000)),
             // Consumables
@@ -12,8 +12,12 @@
             (0.1, MultiDrop(Item("common.items.food.spore_corruption"), 1, 3)),
             // Food
             (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 3, 6)),
-            // Ingredients        
-            (0.75, MultiDrop(Item("common.items.crafting_ing.alkahest"), 1, 3)),                            
+            // Ingredients
+            (0.75, MultiDrop(Item("common.items.crafting_ing.alkahest"), 1, 3)),
+            // Recipe
+            (1.0, Item("common.items.recipes.unique.abyssal_gorget")),
+            (1.0, Item("common.items.recipes.unique.mindflayer_spellbag")),
+            (1.0, Item("common.items.recipes.equipment.advanced")),
         ]),
         Lottery([
             (0.6, Nothing),

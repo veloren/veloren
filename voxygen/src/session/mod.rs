@@ -27,7 +27,7 @@ use common::{
     link::Is,
     mounting::{Mount, VolumePos},
     outcome::Outcome,
-    recipe,
+    recipe::{self, RecipeBookManifest},
     states::utils::can_perform_pet,
     terrain::{Block, BlockKind},
     trade::TradeResult,
@@ -1978,13 +1978,24 @@ impl PlayState for SessionState {
                     } => {
                         let slots = {
                             let client = self.client.borrow();
-                            if let Some(recipe) = client.recipe_book().get(&recipe) {
-                                client.inventories().get(client.entity()).and_then(|inv| {
-                                    recipe.inventory_contains_ingredients(inv, 1).ok()
-                                })
+
+                            let s = if let Some(inventory) = client
+                                .state()
+                                .ecs()
+                                .read_storage::<comp::Inventory>()
+                                .get(client.entity())
+                            {
+                                let rbm =
+                                    client.state().ecs().read_resource::<RecipeBookManifest>();
+                                if let Some(recipe) = inventory.get_recipe(&recipe, &rbm) {
+                                    recipe.inventory_contains_ingredients(inventory, 1).ok()
+                                } else {
+                                    None
+                                }
                             } else {
                                 None
-                            }
+                            };
+                            s
                         };
                         if let Some(slots) = slots {
                             self.client.borrow_mut().craft_recipe(

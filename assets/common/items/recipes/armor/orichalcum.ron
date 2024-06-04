@@ -1,0 +1,19 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "orichalcum_ingot",
+            "orichalcum_back",
+            "orichalcum_belt",
+            "orichalcum_chest",
+            "orichalcum_feet",
+            "orichalcum_hands",
+            "orichalcum_pants",
+            "orichalcum_shoulder",
+            "orichalcum_head",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

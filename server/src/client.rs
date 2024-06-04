@@ -193,7 +193,8 @@ impl Client {
                     | ServerGeneral::MapMarker(_)
                     | ServerGeneral::WeatherUpdate(_)
                     | ServerGeneral::LocalWindUpdate(_)
-                    | ServerGeneral::SpectatePosition(_) => {
+                    | ServerGeneral::SpectatePosition(_)
+                    | ServerGeneral::UpdateRecipes => {
                         PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },
                     // Terrain
