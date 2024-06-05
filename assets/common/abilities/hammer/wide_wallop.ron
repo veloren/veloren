@@ -11,12 +11,12 @@ ChargedMelee(
         scaled: Some((
             kind: Bash(
                 damage: 40,
-                poise: 100,
+                poise: 70,
                 knockback: 2,
                 energy_regen: 30,
             ))),
         range: 4.5,
-        angle: 15.0,
+        angle: 24.0,
     ),
     charge_duration: 1.4,
     swing_duration: 0.2,

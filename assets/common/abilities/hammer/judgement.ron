@@ -12,10 +12,10 @@ FinisherMelee(
         ),
         range: 4.0,
         angle: 15.0,
-        damage_effect: Some(StunnedVulnerable(3.0)),
+        damage_effect: Some(StunnedVulnerable(2.5)),
     ),
     minimum_combo: 20,
     meta: (
-        contextual_stats: Some((context: PoiseResilience(60.0), field: Power)),
+        contextual_stats: Some((context: PoiseResilience(80.0), field: Power)),
     ),
 )

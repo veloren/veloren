@@ -20,7 +20,7 @@ ComboMelee2(
                 swing: Some(Forward(0.3)),
             ),
             ori_modifier: 0.6,
-            custom_combo: Some((additional: 9, requirement: Some(TargetPoised))),
+            custom_combo: Some((additional: 4, requirement: Some(TargetPoised))),
         ),
     ],
     energy_cost_per_strike: 10,
