@@ -11,7 +11,7 @@ ChargedMelee(
         scaled: Some((
             kind: Bash(
                 damage: 40,
-                poise: 100,
+                poise: 70,
                 knockback: 2,
                 energy_regen: 30,
             ))),
