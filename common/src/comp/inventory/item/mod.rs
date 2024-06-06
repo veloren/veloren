@@ -612,7 +612,8 @@ impl<'de> Deserialize<'de> for ItemBase {
             where
                 E: de::Error,
             {
-                Ok(ItemBase::from_item_id_string(serialized_item_base))
+                ItemBase::from_item_id_string(serialized_item_base)
+                    .map_err(|err| E::custom(err.to_string()))
             }
         }
 
@@ -637,11 +638,15 @@ impl ItemBase {
         }
     }
 
-    fn from_item_id_string(item_id_string: &str) -> Self {
+    fn from_item_id_string(item_id_string: &str) -> Result<Self, Error> {
         if item_id_string.starts_with(crate::modular_item_id_prefix!()) {
-            ItemBase::Modular(ModularBase::load_from_pseudo_id(item_id_string))
+            Ok(ItemBase::Modular(ModularBase::load_from_pseudo_id(
+                item_id_string,
+            )))
         } else {
-            ItemBase::Simple(Arc::<ItemDef>::load_expect_cloned(item_id_string))
+            Ok(ItemBase::Simple(Arc::<ItemDef>::load_cloned(
+                item_id_string,
+            )?))
         }
     }
 }
@@ -1037,7 +1042,7 @@ impl Item {
     /// Creates a new instance of an `Item from the provided asset identifier if
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
-        let inner_item = ItemBase::from_item_id_string(asset);
+        let inner_item = ItemBase::from_item_id_string(asset)?;
         // TODO: Get msm and ability_map less hackily
         let msm = &MaterialStatManifest::load().read();
         let ability_map = &AbilityMap::load().read();
