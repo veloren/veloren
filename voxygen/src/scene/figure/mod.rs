@@ -1160,6 +1160,9 @@ impl FigureMgr {
                     // Average velocity relative to the current ground
                     let rel_avg_vel = (state.avg_vel - physics.ground_vel) / scale;
 
+                    let orientation = ori * anim::vek::Vec3::<f32>::unit_y();
+                    let last_ori = state.last_ori * anim::vek::Vec3::<f32>::unit_y();
+
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
                         _ => continue,
@@ -1322,14 +1325,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::AlphaAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
+                                anim::character::BasicActionDependency {
                                     ability_id,
                                     hands,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1349,13 +1357,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::FinisherMeleeAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
+                                anim::character::BasicActionDependency {
                                     ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1382,14 +1396,19 @@ impl FigureMgr {
                                 .0
                                 .powi(2)
                                 / vel.0.magnitude_squared();
-                            anim::character::DiveMeleeAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
+                                anim::character::BasicActionDependency {
                                     ability_id,
-                                    Some(s.stage_section),
-                                    ground_dist,
-                                    Some(s.static_data.ability_info),
-                                ),
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: Some(ground_dist),
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1409,13 +1428,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::SelfBuffAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
+                                anim::character::BasicActionDependency {
                                     ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1435,19 +1460,19 @@ impl FigureMgr {
                                 _ => 0.0,
                             };
 
-                            anim::character::ShootAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
-                                    Some(s.static_data.ability_info),
+                                anim::character::BasicActionDependency {
+                                    ability_id,
                                     hands,
-                                    rel_vel.magnitude(),
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
                                     look_dir,
-                                    time,
-                                    Some(s.stage_section),
-                                ),
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1467,19 +1492,19 @@ impl FigureMgr {
                                 _ => 0.0,
                             };
 
-                            anim::character::ShootAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
-                                    Some(s.static_data.ability_info),
+                                anim::character::BasicActionDependency {
+                                    ability_id,
                                     hands,
-                                    rel_vel.magnitude(),
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
                                     look_dir,
-                                    time,
-                                    Some(s.stage_section),
-                                ),
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1507,10 +1532,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-
-                            anim::character::ChargeswingAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (ability_id, s.stage_section),
+                                anim::character::BasicActionDependency {
+                                    ability_id,
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1519,7 +1553,7 @@ impl FigureMgr {
                         CharacterState::RepeaterRanged(s) => {
                             let stage_time = s.timer.as_secs_f32();
 
-                            let stage_progress = match s.stage_section {
+                            let progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
@@ -1532,18 +1566,20 @@ impl FigureMgr {
                                 _ => 0.0,
                             };
 
-                            anim::character::RepeaterAnimation::update_skeleton(
+                            anim::character::MultiAction::update_skeleton(
                                 &target_base,
-                                (
-                                    Some(s.static_data.ability_info),
-                                    hands,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                anim::character::MultiActionDependency {
+                                    ability_id,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    current_action: s.projectiles_fired,
+                                    max_actions: None,
+                                    move_dir,
+                                    orientation,
                                     look_dir,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                ),
-                                stage_progress,
+                                    velocity: rel_vel,
+                                },
+                                progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
@@ -1616,9 +1652,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::DashAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (ability_id, s.stage_section),
+                                anim::character::BasicActionDependency {
+                                    ability_id,
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1638,9 +1684,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::ShockwaveAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (ability_id, time, rel_vel.magnitude(), Some(s.stage_section)),
+                                anim::character::BasicActionDependency {
+                                    ability_id,
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1660,11 +1716,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-
-                            // ? Aura confirmed just shockwave
-                            anim::character::ShockwaveAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (ability_id, time, rel_vel.magnitude(), Some(s.stage_section)),
+                                anim::character::BasicActionDependency {
+                                    ability_id,
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1684,36 +1748,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-
-                            anim::character::ShockwaveAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (ability_id, time, rel_vel.magnitude(), Some(s.stage_section)),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::LeapMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                anim::character::BasicActionDependency {
+                                    ability_id,
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
                                 },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::character::LeapAnimation::update_skeleton(
-                                &target_base,
-                                (s.stage_section,),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1721,7 +1768,7 @@ impl FigureMgr {
                         },
                         CharacterState::RapidMelee(s) => {
                             let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
+                            let progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
                                 },
@@ -1734,15 +1781,20 @@ impl FigureMgr {
                                 _ => 0.0,
                             };
 
-                            anim::character::RapidMeleeAnimation::update_skeleton(
+                            anim::character::MultiAction::update_skeleton(
                                 &target_base,
-                                (
+                                anim::character::MultiActionDependency {
                                     ability_id,
-                                    Some(s.stage_section),
-                                    (s.current_strike, s.static_data.max_strikes),
-                                    Some(s.static_data.ability_info),
-                                ),
-                                stage_progress,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    current_action: s.current_strike,
+                                    max_actions: s.static_data.max_strikes,
+                                    move_dir,
+                                    orientation,
+                                    look_dir,
+                                    velocity: rel_vel,
+                                },
+                                progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
@@ -1812,15 +1864,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::BeamAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
-                                    Some(s.static_data.ability_info),
+                                anim::character::BasicActionDependency {
+                                    ability_id,
                                     hands,
-                                    time,
-                                    rel_vel.magnitude(),
-                                    Some(s.stage_section),
-                                ),
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1843,15 +1899,19 @@ impl FigureMgr {
                                 _ => 0.0,
                             };
 
-                            anim::character::ComboAnimation::update_skeleton(
+                            anim::character::MultiAction::update_skeleton(
                                 &target_base,
-                                (
+                                anim::character::MultiActionDependency {
                                     ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                    current_strike,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    current_action: current_strike as u32,
+                                    max_actions: Some(s.static_data.strikes.len() as u32),
                                     move_dir,
-                                ),
+                                    orientation,
+                                    look_dir,
+                                    velocity: rel_vel,
+                                },
                                 progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1869,17 +1929,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::BlockAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
-                                    hands,
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
+                                anim::character::BasicActionDependency {
                                     ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -2115,14 +2177,19 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-
-                            anim::character::RiposteMeleeAnimation::update_skeleton(
+                            anim::character::BasicAction::update_skeleton(
                                 &target_base,
-                                (
+                                anim::character::BasicActionDependency {
                                     ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                ),
+                                    hands,
+                                    stage_section: Some(s.stage_section),
+                                    ability_info: Some(s.static_data.ability_info),
+                                    velocity: rel_vel,
+                                    ground_dist: None,
+                                    last_ori,
+                                    orientation,
+                                    look_dir,
+                                },
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
