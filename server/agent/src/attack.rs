@@ -4758,6 +4758,15 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
+        // --- reference ---
+        // Inputs:
+        //   Primary: scythe
+        //   Secondary: firebreath
+        //   Abilities:
+        //     0: explosivepumpkin
+        //     1: ensaring_vines_0
+        //     2: ensaring_vines_1
+
         // --- setup ---
 
         // behaviour parameters
@@ -4785,7 +4794,7 @@ impl<'a> AgentData<'a> {
             SinceFarPumpkin,
         }
 
-        // setup line of sight check
+        // line of sight check
         let line_of_sight_with_target = || {
             entities_have_line_of_sight(
                 self.pos,
@@ -4798,157 +4807,118 @@ impl<'a> AgentData<'a> {
             )
         };
 
-        // --- readability macros ---
-
-        // actions
-        macro_rules! reset_timer {
-            ($timer:ident) => {
-                agent.combat_state.timers[ActionStateTimers::$timer as usize] = 0.0
-            };
-        }
-        macro_rules! increment_timer {
-            ($timer:ident) => {
-                agent.combat_state.timers[ActionStateTimers::$timer as usize] += read_data.dt.0
-            };
-        }
-        macro_rules! use_scythe {
-            () => {
-                controller.push_basic_input(InputKind::Primary)
-            };
-        }
-        macro_rules! use_fire_breath {
-            () => {
-                controller.push_basic_input(InputKind::Secondary)
-            };
-        }
-        macro_rules! use_pumpkin {
-            () => {
-                controller.push_basic_input(InputKind::Ability(0))
-            };
-        }
-        macro_rules! use_first_vines {
-            () => {
-                controller.push_basic_input(InputKind::Ability(1))
-            };
-        }
-        macro_rules! use_second_vines {
-            () => {
-                controller.push_basic_input(InputKind::Ability(2))
-            };
-        }
-        macro_rules! move_to_target {
-            () => {
-                self.path_toward_target(
-                    agent,
-                    controller,
-                    tgt_data.pos.0,
-                    read_data,
-                    Path::Partial,
-                    None,
-                )
-            };
-        }
-
-        // shortcuts
-        macro_rules! conditions {
-            ($condition:ident) => {
-                agent.combat_state.conditions[ActionStateConditions::$condition as usize]
-            };
-        }
-        macro_rules! timers {
-            ($timer:ident) => {
-                agent.combat_state.timers[ActionStateTimers::$timer as usize]
-            };
-        }
-        macro_rules! is_in_vines_recovery {
-            () => (
-                matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
-            )
-        }
-        macro_rules! is_using_firebreath {
-            // currently using firebreath and under time limit
-            ($time_limit:ident) => (
-                matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32($time_limit))
-            )
-        }
-
         // --- main ---
 
         // handle timers
         match self.char_state {
             CharacterState::BasicBeam(_) => {
-                reset_timer!(SinceFirebreath);
+                agent.combat_state.timers[ActionStateTimers::SinceFirebreath as usize] = 0.0;
             },
             CharacterState::BasicRanged(_) => {
-                reset_timer!(SinceCloseMixup);
-                reset_timer!(SinceFarPumpkin);
+                agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize] = 0.0;
+                agent.combat_state.timers[ActionStateTimers::SinceFarPumpkin as usize] = 0.0;
             },
             _ => {
-                increment_timer!(SinceFirebreath);
-                increment_timer!(SinceCloseMixup);
-                increment_timer!(SinceFarPumpkin);
+                agent.combat_state.timers[ActionStateTimers::SinceFirebreath as usize] +=
+                    read_data.dt.0;
+                agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize] +=
+                    read_data.dt.0;
+                agent.combat_state.timers[ActionStateTimers::SinceFarPumpkin as usize] +=
+                    read_data.dt.0;
             },
         }
 
         // vine summoning
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
 
-        if health_fraction < SECOND_VINE_CREATION_THRESHOLD && !conditions!(HasSummonedSecondVines)
+        if health_fraction < SECOND_VINE_CREATION_THRESHOLD
+            && !agent.combat_state.conditions
+                [ActionStateConditions::HasSummonedSecondVines as usize]
         {
-            use_second_vines!();
-            if is_in_vines_recovery!() {
-                conditions!(HasSummonedSecondVines) = true;
+            // second vines summon
+            controller.push_basic_input(InputKind::Ability(2));
+            if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.combat_state.conditions
+                    [ActionStateConditions::HasSummonedSecondVines as usize] = true;
             }
         } else if health_fraction < FIRST_VINE_CREATION_THRESHOLD
-            && !conditions!(HasSummonedFirstVines)
+            && !agent.combat_state.conditions[ActionStateConditions::HasSummonedFirstVines as usize]
         {
-            use_first_vines!();
-            if is_in_vines_recovery!() {
-                conditions!(HasSummonedFirstVines) = true;
+            // first vines summon
+            controller.push_basic_input(InputKind::Ability(1));
+            if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.combat_state.conditions
+                    [ActionStateConditions::HasSummonedFirstVines as usize] = true;
             }
         }
         // close range
         else if attack_data.dist_sqrd < (attack_data.body_dist + 0.75 * MELEE_RANGE).powi(2) {
-            if is_using_firebreath!(FIREBREATH_SHORT_TIME) {
-                use_fire_breath!();
-            } else if timers!(SinceCloseMixup) > CLOSE_MIXUP_COOLDOWN
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_SHORT_TIME))
+            {
+                // keep using firebreath under short time limit
+                controller.push_basic_input(InputKind::Secondary);
+            } else if agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize]
+                > CLOSE_MIXUP_COOLDOWN
             // for now, no line of sight check for consitency in attacks
             {
-                if timers!(SinceFirebreath) < FIREBREATH_COOLDOWN {
-                    use_pumpkin!();
+                // mix up close range attacks
+                if agent.combat_state.timers[ActionStateTimers::SinceFirebreath as usize]
+                    < FIREBREATH_COOLDOWN
+                {
+                    // if on firebreath cooldown, throw pumpkin
+                    controller.push_basic_input(InputKind::Ability(0));
                 } else {
                     let randomise = rng.gen_range(1..=3);
                     match randomise {
-                        1 => use_fire_breath!(),
-                        2 => use_pumpkin!(),
-                        _ => use_scythe!(),
+                        1 => controller.push_basic_input(InputKind::Secondary), // firebreath
+                        2 => controller.push_basic_input(InputKind::Ability(0)), // pumpkin
+                        _ => controller.push_basic_input(InputKind::Primary),   // scythe
                     }
                 }
             } else if attack_data.angle < 60.0 {
-                use_scythe!();
+                // scythe melee
+                controller.push_basic_input(InputKind::Primary);
             }
         }
         // mid range (with line of sight)
         else if attack_data.dist_sqrd < FIREBREATH_RANGE.powi(2) && line_of_sight_with_target() {
-            if is_using_firebreath!(FIREBREATH_TIME) {
-                use_fire_breath!();
-            } else if attack_data.angle < 30.0 && timers!(SinceFirebreath) > FIREBREATH_COOLDOWN {
-                use_fire_breath!();
-            } else if timers!(SinceCloseMixup) > CLOSE_MIXUP_COOLDOWN {
-                use_pumpkin!();
+            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_TIME))
+            {
+                // keep using firebreath under full time limit
+                controller.push_basic_input(InputKind::Secondary);
+            } else if attack_data.angle < 30.0
+                && agent.combat_state.timers[ActionStateTimers::SinceFirebreath as usize]
+                    > FIREBREATH_COOLDOWN
+            {
+                // start using firebreath
+                controller.push_basic_input(InputKind::Secondary);
+            } else if agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize] > CLOSE_MIXUP_COOLDOWN {
+                // throw pumpkin
+                controller.push_basic_input(InputKind::Ability(0));
             }
         }
         // long range (with line of sight)
         else if attack_data.dist_sqrd < MAX_PUMPKIN_RANGE.powi(2)
             && line_of_sight_with_target()
-            && timers!(SinceFarPumpkin) > FAR_PUMPKIN_COOLDOWN
+            && agent.combat_state.timers[ActionStateTimers::SinceFarPumpkin as usize]
+                > FAR_PUMPKIN_COOLDOWN
         {
-            use_pumpkin!();
+            // throw pumpkin
+            controller.push_basic_input(InputKind::Ability(0));
         }
 
         // closing gap
         if !(attack_data.dist_sqrd < (attack_data.body_dist + 0.4 * MELEE_RANGE).powi(2)) {
-            move_to_target!();
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
         }
     }
 
