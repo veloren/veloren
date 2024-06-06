@@ -971,6 +971,7 @@ impl Body {
             Body::BipedSmall(biped_small) => match biped_small.species {
                 biped_small::Species::Gnarling => 50,
                 biped_small::Species::GnarlingChieftain => 150,
+                biped_small::Species::Mandragora => 65,
                 biped_small::Species::Adlet => 65,
                 biped_small::Species::Sahagin => 85,
                 biped_small::Species::Haniwa => 100,
@@ -1223,7 +1224,6 @@ impl Body {
                 biped_large::Species::Minotaur => 4.05,
                 biped_large::Species::Tidalwarrior => 2.75,
                 biped_large::Species::Yeti => 2.25,
-                biped_large::Species::Harvester => 2.1,
                 _ => 1.0,
             },
             Body::BipedSmall(b) => match b.species {

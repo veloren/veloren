@@ -7,7 +7,7 @@ BasicMelee(
     melee_constructor: (
         kind: Bash(
             damage: 8,
-            poise: 5,
+            poise: 10,
             knockback: 0,
             energy_regen: 0,
         ),

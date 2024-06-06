@@ -376,29 +376,95 @@ impl GnarlingFortification {
             if area.contains_point(pos.xy()) {
                 match loc {
                     GnarlingStructure::Hut => {
-                        let num = dynamic_rng.gen_range(1..=3);
+                        let num = dynamic_rng.gen_range(1..=2);
                         for _ in 0..num {
                             supplement.add_entity(random_gnarling(wpos, dynamic_rng));
                         }
                     },
                     GnarlingStructure::VeloriteHut => {
+                        const VELO_HEIGHT: i32 = 12;
+                        const GROUND_HEIGHT: i32 = 8;
                         let num = dynamic_rng.gen_range(1..=4);
                         for _ in 0..num {
                             supplement.add_entity(random_gnarling(
-                                wpos.xy().with_z(wpos.z + 12),
+                                wpos.xy().with_z(wpos.z + VELO_HEIGHT),
                                 dynamic_rng,
                             ));
+                        }
+                        if num < 3 {
+                            // wooden golem (with oriented spawn)
+                            let x_offset;
+                            let y_offset;
+                            match _ori {
+                                Dir::X => {
+                                    x_offset = 8;
+                                    y_offset = 8;
+                                },
+                                Dir::NegX => {
+                                    x_offset = -8;
+                                    y_offset = 8;
+                                },
+                                Dir::Y => {
+                                    x_offset = 8;
+                                    y_offset = -8;
+                                },
+                                Dir::NegY => {
+                                    x_offset = -8;
+                                    y_offset = -8;
+                                },
+                            }
+                            let pos = Vec3::new(
+                                wpos.x + x_offset,
+                                wpos.y + y_offset,
+                                wpos.z + GROUND_HEIGHT,
+                            );
+                            supplement.add_entity(wood_golem(pos, dynamic_rng));
                         }
                     },
                     GnarlingStructure::Banner => {},
                     GnarlingStructure::ChieftainHut => {
-                        let pos = wpos.xy().with_z(wpos.z + 8);
+                        // inside hut
+                        const FLOOR_HEIGHT: i32 = 8;
+                        let pos = wpos.xy().with_z(wpos.z + FLOOR_HEIGHT);
                         supplement.add_entity(gnarling_chieftain(pos, dynamic_rng));
-                        for _ in 0..2 {
-                            supplement.add_entity(wood_golem(pos, dynamic_rng));
-                        }
-                        for _ in 0..6 {
+                        for _ in 0..4 {
                             supplement.add_entity(random_gnarling(pos, dynamic_rng));
+                        }
+                        // hut corner posts
+                        const CORNER_HEIGHT: i32 = 10;
+                        const CORNER_OFFSET: i32 = 18;
+                        let height = wpos.z + CORNER_HEIGHT;
+                        let plus_minus: [i32; 2] = [1, -1];
+                        for x in plus_minus {
+                            for y in plus_minus {
+                                let pos = Vec3::new(
+                                    wpos.x + x * CORNER_OFFSET,
+                                    wpos.y + y * CORNER_OFFSET,
+                                    height,
+                                );
+                                supplement.add_entity(gnarling_stalker(pos, dynamic_rng));
+                            }
+                        }
+                        // hut sides on ground (using orientation)
+                        const GROUND_HEIGHT: i32 = 4;
+                        const GROUND_OFFSET: i32 = 24;
+                        let height = wpos.z + GROUND_HEIGHT;
+                        let x_or_y = match _ori {
+                            Dir::X | Dir::NegX => true,
+                            Dir::Y | Dir::NegY => false,
+                        };
+                        for pm in plus_minus {
+                            let mut pos_ori =
+                                Vec3::new(wpos.x + pm * GROUND_OFFSET, wpos.y, height);
+                            let mut pos_xori =
+                                Vec3::new(wpos.x, wpos.y + pm * GROUND_OFFSET, height);
+                            if x_or_y {
+                                (pos_ori, pos_xori) = (pos_xori, pos_ori);
+                            }
+                            supplement.add_entity(wood_golem(pos_ori, dynamic_rng));
+                            for _ in 0..3 {
+                                supplement.add_entity(random_gnarling(pos_xori, dynamic_rng));
+                            }
                         }
                     },
                     GnarlingStructure::WatchTower => {

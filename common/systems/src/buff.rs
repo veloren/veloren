@@ -213,7 +213,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Ensnared,
-                            BuffData::new(0.5, Some(Secs(1.0))),
+                            BuffData::new(0.5, Some(Secs(0.1))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,

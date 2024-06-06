@@ -367,6 +367,7 @@ impl<'a> From<&'a Body> for Psyche {
                 },
                 Body::BipedSmall(biped_small) => match biped_small.species {
                     biped_small::Species::Gnarling => 0.2,
+                    biped_small::Species::Mandragora => 0.1,
                     biped_small::Species::Adlet => 0.2,
                     biped_small::Species::Haniwa => 0.1,
                     biped_small::Species::Sahagin => 0.1,

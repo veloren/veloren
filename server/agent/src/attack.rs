@@ -4769,7 +4769,7 @@ impl<'a> AgentData<'a> {
         const FIREBREATH_TIME: f32 = 4.0;
         const FIREBREATH_SHORT_TIME: f32 = 2.5; // cutoff sooner at close range
         const FIREBREATH_COOLDOWN: f32 = 3.0;
-        const CLOSE_MIXUP_COOLDOWN: f32 = 5.0; // variation in attacks at close range
+        const CLOSE_MIXUP_COOLDOWN: f32 = 2.5; // variation in attacks at close range
         const FAR_PUMPKIN_COOLDOWN: f32 = 1.0; // allows for pathing to player between throws
 
         // conditions
@@ -4893,36 +4893,35 @@ impl<'a> AgentData<'a> {
         // vine summoning
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
 
-        if (health_fraction < FIRST_VINE_CREATION_THRESHOLD && !conditions!(HasSummonedFirstVines))
-            || (health_fraction < SECOND_VINE_CREATION_THRESHOLD
-                && !conditions!(HasSummonedSecondVines))
+        if health_fraction < SECOND_VINE_CREATION_THRESHOLD && !conditions!(HasSummonedSecondVines)
         {
-            if health_fraction < SECOND_VINE_CREATION_THRESHOLD {
-                use_second_vines!();
-                if is_in_vines_recovery!() {
-                    conditions!(HasSummonedSecondVines) = true;
-                }
-            } else {
-                use_first_vines!();
-                if is_in_vines_recovery!() {
-                    conditions!(HasSummonedFirstVines) = true;
-                }
+            use_second_vines!();
+            if is_in_vines_recovery!() {
+                conditions!(HasSummonedSecondVines) = true;
+            }
+        } else if health_fraction < FIRST_VINE_CREATION_THRESHOLD
+            && !conditions!(HasSummonedFirstVines)
+        {
+            use_first_vines!();
+            if is_in_vines_recovery!() {
+                conditions!(HasSummonedFirstVines) = true;
             }
         }
         // close range
         else if attack_data.dist_sqrd < (attack_data.body_dist + 0.75 * MELEE_RANGE).powi(2) {
             if is_using_firebreath!(FIREBREATH_SHORT_TIME) {
-                use_fire_breath!()
+                use_fire_breath!();
             } else if timers!(SinceCloseMixup) > CLOSE_MIXUP_COOLDOWN
             // for now, no line of sight check for consitency in attacks
             {
                 if timers!(SinceFirebreath) < FIREBREATH_COOLDOWN {
                     use_pumpkin!();
                 } else {
-                    let randomise = rng.gen_range(1..=2);
+                    let randomise = rng.gen_range(1..=3);
                     match randomise {
                         1 => use_fire_breath!(),
-                        _ => use_pumpkin!(),
+                        2 => use_pumpkin!(),
+                        _ => use_scythe!(),
                     }
                 }
             } else if attack_data.angle < 60.0 {
@@ -4932,9 +4931,9 @@ impl<'a> AgentData<'a> {
         // mid range (with line of sight)
         else if attack_data.dist_sqrd < FIREBREATH_RANGE.powi(2) && line_of_sight_with_target() {
             if is_using_firebreath!(FIREBREATH_TIME) {
-                use_fire_breath!()
+                use_fire_breath!();
             } else if attack_data.angle < 30.0 && timers!(SinceFirebreath) > FIREBREATH_COOLDOWN {
-                use_fire_breath!()
+                use_fire_breath!();
             } else if timers!(SinceCloseMixup) > CLOSE_MIXUP_COOLDOWN {
                 use_pumpkin!();
             }
@@ -5800,7 +5799,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        const SCREAM_RANGE: f32 = 10.0;
+        const SCREAM_RANGE: f32 = 10.0; // hard-coded from scream.ron
 
         enum ActionStateFCounters {
             FCounterHealthThreshold = 0,

@@ -2,6 +2,6 @@ ItemDef(
     legacy_name: "Green Luna",
     legacy_description: "The delicate wings flutter faintly.",
     kind: Glider,
-    quality: High,
+    quality: Moderate,
     tags: [],
 )

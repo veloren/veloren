@@ -6,10 +6,10 @@ ItemDef(
         stats: Direct((
             protection: Some(Normal(3.0)),
             poise_resilience: Some(Normal(1.0)),
-            energy_max: Some(14.0),
+            energy_max: Some(6.0),
         )),
     )),
-    quality: High,
+    quality: Moderate,
     tags: [
         Gnarling,
         SalvageInto(Lifecloth, 1),
