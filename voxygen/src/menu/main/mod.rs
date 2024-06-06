@@ -617,6 +617,16 @@ fn get_client_msg_error(
                     localization.get_msg("main-login-failed_sending_request"),
                     e
                 ),
+                client::AuthClientError::ResponseError(e) => format!(
+                    "{}: {}",
+                    localization.get_msg("main-login-failed_sending_request"),
+                    e
+                ),
+                client::AuthClientError::CertificateLoad(e) => format!(
+                    "{}: {}",
+                    localization.get_msg("main-login-failed_sending_request"),
+                    e
+                ),
                 client::AuthClientError::JsonError(e) => format!(
                     "{}: {}",
                     localization.get_msg("main-login-failed_sending_request"),

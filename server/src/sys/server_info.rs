@@ -2,7 +2,7 @@ use common::{comp::Player, util::GIT_DATE_TIMESTAMP};
 use common_ecs::{Origin, Phase, System};
 use lazy_static::lazy_static;
 use specs::{Read, ReadStorage};
-use tracing::error;
+use tracing::warn;
 use veloren_query_server::proto::ServerInfo;
 
 use crate::{Settings, Tick};
@@ -34,16 +34,15 @@ impl<'a> System<'a> for Sys {
         if let Some(sender) = sender.as_ref()
             && tick.0 % INFO_SEND_INTERVAL == 0
         {
-            tracing::trace!("Updating server info");
             let count = players.count().try_into().unwrap_or(u16::MAX);
-            if let Err(error) = sender.send(ServerInfo {
+            if let Err(e) = sender.send(ServerInfo {
                 git_hash: *GIT_HASH,
                 git_timestamp: *GIT_DATE_TIMESTAMP,
                 players_count: count,
                 player_cap: settings.max_players,
                 battlemode: settings.gameplay.battle_mode.into(),
             }) {
-                error!(?error, "Failed to send server info to the query server");
+                warn!(?e, "Failed to send server info to the query server");
             }
         }
     }

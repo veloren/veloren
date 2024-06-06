@@ -1,10 +1,11 @@
 use crate::web::ui::api::UiRequestSender;
-use axum::{extract::State, response::IntoResponse, routing::get, Router};
+use axum::{body::Bytes, extract::State, response::IntoResponse, routing::get, Router};
 use core::{future::Future, ops::Deref};
-use hyper::{body::Body, header, http, StatusCode};
+use http_body_util::Full;
+use hyper::{header, http, StatusCode};
 use prometheus::{Registry, TextEncoder};
 use server::chat::ChatCache;
-use std::net::SocketAddr;
+use std::{future::IntoFuture, net::SocketAddr};
 
 mod chat;
 mod ui;
@@ -39,11 +40,20 @@ where
 
     // run it
     let addr = addr.into();
-    let server =
-        axum::Server::bind(&addr).serve(app.into_make_service_with_connect_info::<SocketAddr>());
-    let server = server.with_graceful_shutdown(shutdown);
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .expect("can't bind to web-port.");
     tracing::info!("listening on {}", addr);
-    match server.await {
+    let server = axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .into_future();
+    let res = tokio::select! {
+        res = server => res,
+        _ = shutdown => Ok(()),
+    };
+    match res {
         Ok(_) => tracing::debug!("webserver shutdown successful"),
         Err(e) => tracing::error!(?e, "webserver shutdown error"),
     }
@@ -61,10 +71,12 @@ async fn metrics(State(registry): State<Registry>) -> Result<impl IntoResponse, 
         .encode(&mf, &mut buffer)
         .expect("write to vec cannot fail");
 
+    let bytes: Bytes = buffer.into();
+
     match http::Response::builder()
         .status(StatusCode::OK)
         .header(header::CONTENT_TYPE, "text/plain; charset=utf-8")
-        .body(Body::from(buffer))
+        .body(Full::new(bytes))
     {
         Err(e) => {
             tracing::warn!(?e, "could not export metrics to HTTP format");

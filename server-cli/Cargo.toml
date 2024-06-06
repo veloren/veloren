@@ -27,7 +27,9 @@ hot-agent = ["server/hot-agent", "agent"]
 hot-site = ["server/hot-site", "world"]
 
 [dependencies]
-server = { package = "veloren-server", path = "../server", default-features = false, features = ["simd"] }
+server = { package = "veloren-server", path = "../server", default-features = false, features = [
+    "simd",
+] }
 agent = { package = "veloren-server-agent", path = "../server/agent", optional = true }
 common = { package = "veloren-common", path = "../common" }
 common-base = { package = "veloren-common-base", path = "../common/base" }
@@ -45,15 +47,16 @@ signal-hook = "0.3.6"
 shell-words = "1.0.0"
 tracing = { workspace = true }
 ron = { workspace = true }
-serde = { workspace = true, features = [ "rc", "derive" ]}
+serde = { workspace = true, features = ["rc", "derive"] }
 ratatui = { version = "0.26.0", features = ["crossterm"] }
 rand = { workspace = true }
 # ECS
 specs = { workspace = true }
 
 #HTTP
-axum = { version = "0.6.20" }
-hyper = "0.14.26"
+axum = { version = "0.7" }
+hyper = "1"
+http-body-util = "0.1"
 prometheus = { workspace = true }
 chrono = { workspace = true }
 

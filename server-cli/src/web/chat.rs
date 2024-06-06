@@ -1,12 +1,12 @@
 use axum::{
-    extract::{ConnectInfo, Query, State},
+    extract::{ConnectInfo, Query, Request, State},
     middleware::Next,
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
 };
 use chrono::DateTime;
-use hyper::{Request, StatusCode};
+use hyper::StatusCode;
 use serde::{Deserialize, Deserializer};
 use server::chat::ChatCache;
 use std::{
@@ -28,10 +28,10 @@ struct IpAddresses {
     users: Arc<Mutex<HashSet<IpAddr>>>,
 }
 
-async fn validate_secret<B>(
+async fn validate_secret(
     State(token): State<ChatToken>,
-    req: Request<B>,
-    next: Next<B>,
+    req: Request,
+    next: Next,
 ) -> Result<Response, StatusCode> {
     // check if this endpoint is disabled
     let secret_token = token.secret_token.ok_or(StatusCode::METHOD_NOT_ALLOWED)?;
@@ -50,11 +50,11 @@ async fn validate_secret<B>(
 }
 
 /// Logs each new IP address that accesses this API authenticated
-async fn log_users<B>(
+async fn log_users(
     State(ip_addresses): State<IpAddresses>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
-    req: Request<B>,
-    next: Next<B>,
+    req: Request,
+    next: Next,
 ) -> Result<Response, StatusCode> {
     let mut ip_addresses = ip_addresses.users.lock().await;
     let ip_addr = addr.ip();
