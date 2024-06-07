@@ -1,5 +1,9 @@
 //! DB operations and schema migrations
 
+// Touch this comment if changes only include .sql files and no .rs so that
+// migration happens.
+// A
+
 pub(in crate::persistence) mod character;
 pub mod character_loader;
 pub mod character_updater;
