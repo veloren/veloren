@@ -14,11 +14,23 @@ SELECT  i.item_id,
 FROM item i
 WHERE i.item_definition_id = 'veloren.core.pseudo_containers.recipe_book';
 
+CREATE TEMP TABLE _temp_another_recipe_book_table
+(
+        recipe_parent_id INT PRIMARY KEY NOT NULL,
+        recipe_item_id INTEGER NOT NULL
+);
+
+INSERT
+INTO _temp_another_recipe_book_table
+SELECT  i.parent_container_item_id,
+        i.item_id
+FROM item i
+WHERE i.item_definition_id = 'common.items.recipes.default';
+
 -- Find to see if any recipe books correctly have the default recipes item
 UPDATE _temp_recipe_book_table
-SET default_recipe_id = (SELECT item_id FROM item
-                         WHERE item.parent_container_item_id = recipe_book_id
-                                AND item.item_definition_id = 'common.items.recipes.default');
+SET default_recipe_id = (SELECT t.recipe_item_id FROM _temp_another_recipe_book_table t
+                         WHERE t.recipe_parent_id = recipe_book_id);
 
 -- Find to see if any default recipe items ended up with an entity_id
 UPDATE _temp_recipe_book_table
