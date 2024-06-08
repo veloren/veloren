@@ -441,6 +441,7 @@ impl Client {
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
         #[cfg_attr(not(feature = "plugins"), allow(unused_variables))] config_dir: PathBuf,
     ) -> Result<Self, Error> {
+        let _ = rustls::crypto::ring::default_provider().install_default(); // needs to be initialized before usage
         let network = Network::new(Pid::new(), &runtime);
 
         init_stage_update(ClientInitStage::ConnectionEstablish);
