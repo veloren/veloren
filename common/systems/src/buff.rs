@@ -767,9 +767,9 @@ fn execute_effect(
         },
         BuffEffect::PoiseReduction(pr) => {
             if *pr > 0.0 {
-                stat.damage_reduction.pos_mod = stat.damage_reduction.pos_mod.max(*pr);
+                stat.poise_reduction.pos_mod = stat.poise_reduction.pos_mod.max(*pr);
             } else {
-                stat.damage_reduction.neg_mod += pr;
+                stat.poise_reduction.neg_mod += pr;
             }
         },
         BuffEffect::HealReduction(red) => {
