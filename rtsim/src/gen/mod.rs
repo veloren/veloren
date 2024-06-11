@@ -229,15 +229,15 @@ impl Data {
             let site_kind = site.world_site.map(|ws| &index.sites.get(ws).kind);
             let Some(species) = [
                 Some(comp::body::bird_large::Species::Phoenix)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::DwarvenMine(_)))),
                 Some(comp::body::bird_large::Species::Cockatrice)
                     .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
                 Some(comp::body::bird_large::Species::Roc)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Haniwa(_)))),
                 Some(comp::body::bird_large::Species::FlameWyvern)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Terracotta(_)))),
                 Some(comp::body::bird_large::Species::CloudWyvern)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Sahagin(_)))),
                 Some(comp::body::bird_large::Species::FrostWyvern)
                     .filter(|_| matches!(site_kind, Some(SiteKind::Adlet(_)))),
                 Some(comp::body::bird_large::Species::SeaWyvern)

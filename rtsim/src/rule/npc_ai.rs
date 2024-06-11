@@ -1432,12 +1432,39 @@ fn bird_large() -> impl Action<DefaultState> {
                             && site.world_site.map_or(false, |site| {
                             match ctx.npc.body {
                                 common::comp::Body::BirdLarge(b) => match b.species {
-                                    bird_large::Species::SeaWyvern => matches!(&ctx.index.sites.get(site).kind, SiteKind::ChapelSite(_)),
-                                    bird_large::Species::FrostWyvern => matches!(&ctx.index.sites.get(site).kind, SiteKind::Adlet(_)),
-                                    bird_large::Species::WealdWyvern => matches!(&ctx.index.sites.get(site).kind, SiteKind::GiantTree(_)),
-                                    _ => matches!(&ctx.index.sites.get(site).kind, SiteKind::Dungeon(_)),
+                                    bird_large::Species::Phoenix => matches!(&ctx.index.sites.get(site).kind,
+                                    SiteKind::Terracotta(_)
+                                    | SiteKind::Haniwa(_)
+                                    | SiteKind::Dungeon(_)
+                                    | SiteKind::Adlet(_)
+                                    | SiteKind::DwarvenMine(_)
+                                    | SiteKind::ChapelSite(_)
+                                    | SiteKind::Cultist(_)
+                                    | SiteKind::Gnarling(_)
+                                    | SiteKind::Sahagin(_)),
+                                    bird_large::Species::Cockatrice => matches!(&ctx.index.sites.get(site).kind,
+                                    SiteKind::Dungeon(_)
+                                    | SiteKind::GiantTree(_)),
+                                    bird_large::Species::Roc => matches!(&ctx.index.sites.get(site).kind,
+                                    SiteKind::Haniwa(_)
+                                    | SiteKind::Cultist(_)),
+                                    bird_large::Species::FlameWyvern => matches!(&ctx.index.sites.get(site).kind,
+                                    SiteKind::DwarvenMine(_)
+                                    | SiteKind::Terracotta(_)),
+                                    bird_large::Species::CloudWyvern => matches!(&ctx.index.sites.get(site).kind,
+                                    SiteKind::ChapelSite(_)
+                                    | SiteKind::Sahagin(_)),
+                                    bird_large::Species::FrostWyvern => matches!(&ctx.index.sites.get(site).kind,
+                                    SiteKind::Adlet(_)
+                                    | SiteKind::Dungeon(_)),
+                                    bird_large::Species::SeaWyvern => matches!(&ctx.index.sites.get(site).kind,
+                                    SiteKind::ChapelSite(_)
+                                    | SiteKind::Sahagin(_)),
+                                    bird_large::Species::WealdWyvern => matches!(&ctx.index.sites.get(site).kind,
+                                    SiteKind::GiantTree(_)
+                                    | SiteKind::Gnarling(_)),
                                 },
-                                _ => matches!(&ctx.index.sites.get(site).kind, SiteKind::Dungeon(_)),
+                                _ => matches!(&ctx.index.sites.get(site).kind, SiteKind::GiantTree(_)),
                             }
                         })
                     })
