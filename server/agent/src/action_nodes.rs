@@ -1204,6 +1204,8 @@ impl<'a> AgentData<'a> {
         // Wield the weapon as running towards the target
         controller.push_action(ControlAction::Wield);
 
+        // Information for attack checks
+        // 'min_attack_dist' uses DEFAULT_ATTACK_RANGE, while 'body_dist' does not
         let self_radius = self.body.map_or(0.5, |b| b.max_radius()) * self.scale;
         let self_attack_range =
             (self.body.map_or(0.5, |b| b.max_radius()) + DEFAULT_ATTACK_RANGE) * self.scale;

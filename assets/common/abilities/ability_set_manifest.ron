@@ -772,8 +772,8 @@
         secondary: Simple(None, "common.abilities.custom.harvester.firebreath"),
         abilities: [
             Simple(None, "common.abilities.custom.harvester.explodingpumpkin"),
-            Simple(None, "common.abilities.custom.harvester.ensnaringvines_0"),
-            Simple(None, "common.abilities.custom.harvester.ensnaringvines_1"),
+            Simple(None, "common.abilities.custom.harvester.ensnaringvines_sparse"),
+            Simple(None, "common.abilities.custom.harvester.ensnaringvines_dense"),
         ],
     ),
     // TODO: Allow ability sets to expand other ability sets

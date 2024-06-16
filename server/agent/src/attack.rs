@@ -4764,8 +4764,8 @@ impl<'a> AgentData<'a> {
         //   Secondary: firebreath
         //   Abilities:
         //     0: explosivepumpkin
-        //     1: ensaring_vines_0
-        //     2: ensaring_vines_1
+        //     1: ensaringvines_sparse
+        //     2: ensaringvines_dense
 
         // --- setup ---
 
@@ -4854,6 +4854,7 @@ impl<'a> AgentData<'a> {
             }
         }
         // close range
+        // 0.75 multiplier tuned to start melee attack while suitably in range
         else if attack_data.dist_sqrd < (attack_data.body_dist + 0.75 * MELEE_RANGE).powi(2) {
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_SHORT_TIME))
             {
@@ -4894,7 +4895,9 @@ impl<'a> AgentData<'a> {
             {
                 // start using firebreath
                 controller.push_basic_input(InputKind::Secondary);
-            } else if agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize] > CLOSE_MIXUP_COOLDOWN {
+            } else if agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize]
+                > CLOSE_MIXUP_COOLDOWN
+            {
                 // throw pumpkin
                 controller.push_basic_input(InputKind::Ability(0));
             }
@@ -4910,6 +4913,7 @@ impl<'a> AgentData<'a> {
         }
 
         // closing gap
+        // 0.4 multiplier tuned to get comfortably in melee range
         if !(attack_data.dist_sqrd < (attack_data.body_dist + 0.4 * MELEE_RANGE).powi(2)) {
             self.path_toward_target(
                 agent,
