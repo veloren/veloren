@@ -4789,9 +4789,9 @@ impl<'a> AgentData<'a> {
 
         // timers
         enum ActionStateTimers {
-            SinceFirebreath = 0,
-            SinceCloseMixup,
-            SinceFarPumpkin,
+            Firebreath = 0,
+            CloseMixup,
+            FarPumpkin,
         }
 
         // line of sight check
@@ -4812,18 +4812,18 @@ impl<'a> AgentData<'a> {
         // handle timers
         match self.char_state {
             CharacterState::BasicBeam(_) => {
-                agent.combat_state.timers[ActionStateTimers::SinceFirebreath as usize] = 0.0;
+                agent.combat_state.timers[ActionStateTimers::Firebreath as usize] = 0.0;
             },
             CharacterState::BasicRanged(_) => {
-                agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize] = 0.0;
-                agent.combat_state.timers[ActionStateTimers::SinceFarPumpkin as usize] = 0.0;
+                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] = 0.0;
+                agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
             },
             _ => {
-                agent.combat_state.timers[ActionStateTimers::SinceFirebreath as usize] +=
+                agent.combat_state.timers[ActionStateTimers::Firebreath as usize] +=
                     read_data.dt.0;
-                agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize] +=
+                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] +=
                     read_data.dt.0;
-                agent.combat_state.timers[ActionStateTimers::SinceFarPumpkin as usize] +=
+                agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] +=
                     read_data.dt.0;
             },
         }
@@ -4860,12 +4860,12 @@ impl<'a> AgentData<'a> {
             {
                 // keep using firebreath under short time limit
                 controller.push_basic_input(InputKind::Secondary);
-            } else if agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize]
+            } else if agent.combat_state.timers[ActionStateTimers::CloseMixup as usize]
                 > CLOSE_MIXUP_COOLDOWN
             // for now, no line of sight check for consitency in attacks
             {
                 // mix up close range attacks
-                if agent.combat_state.timers[ActionStateTimers::SinceFirebreath as usize]
+                if agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
                     < FIREBREATH_COOLDOWN
                 {
                     // if on firebreath cooldown, throw pumpkin
@@ -4890,12 +4890,12 @@ impl<'a> AgentData<'a> {
                 // keep using firebreath under full time limit
                 controller.push_basic_input(InputKind::Secondary);
             } else if attack_data.angle < 30.0
-                && agent.combat_state.timers[ActionStateTimers::SinceFirebreath as usize]
+                && agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
                     > FIREBREATH_COOLDOWN
             {
                 // start using firebreath
                 controller.push_basic_input(InputKind::Secondary);
-            } else if agent.combat_state.timers[ActionStateTimers::SinceCloseMixup as usize]
+            } else if agent.combat_state.timers[ActionStateTimers::CloseMixup as usize]
                 > CLOSE_MIXUP_COOLDOWN
             {
                 // throw pumpkin
@@ -4905,7 +4905,7 @@ impl<'a> AgentData<'a> {
         // long range (with line of sight)
         else if attack_data.dist_sqrd < MAX_PUMPKIN_RANGE.powi(2)
             && line_of_sight_with_target()
-            && agent.combat_state.timers[ActionStateTimers::SinceFarPumpkin as usize]
+            && agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize]
                 > FAR_PUMPKIN_COOLDOWN
         {
             // throw pumpkin
@@ -4914,7 +4914,7 @@ impl<'a> AgentData<'a> {
 
         // closing gap
         // 0.4 multiplier tuned to get comfortably in melee range
-        if !(attack_data.dist_sqrd < (attack_data.body_dist + 0.4 * MELEE_RANGE).powi(2)) {
+        if attack_data.dist_sqrd > (attack_data.body_dist + 0.4 * MELEE_RANGE).powi(2) {
             self.path_toward_target(
                 agent,
                 controller,
