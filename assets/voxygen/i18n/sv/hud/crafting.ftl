@@ -49,3 +49,5 @@ hud-crafting-mod_comp_sec_slot_title = Djurmaterial
 hud-crafting-mod_comp_sec_slot_desc = Placera valfritt en tillverkningsingrediens från ett djur, endast vissa ingredienser kan användas för att förändra vapen.
 hud-crafting-repair_slot_title = Skadat Föremål
 hud-crafting-repair_slot_desc = Placera ett föremål här för att se kostnadenför att reparera det vid dess nuvarande hållbarhetsnivå.
+hud-crafting-recipe-unlearned = Du måste först lära dig hur man tillverkar det här receptet.
+hud-crafting-recipe-uncraftable = Receptet Kan Inte Tillverkas

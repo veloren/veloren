@@ -30,3 +30,5 @@ object-key-forge = Smidesnyckel
     .desc = Används till att öppna dörrar. Går sönder efter användning.
 object-key-miner = Gruvarbetarnyckel
     .desc = Används till att öppna dörrar. Går sönder efter användning.
+object-key-sahagin = Sahagin-nyckel
+    .desc = Används till att öppna dörrar. Går sönder efter användning.

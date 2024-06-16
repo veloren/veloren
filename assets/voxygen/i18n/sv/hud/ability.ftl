@@ -399,3 +399,71 @@ common-abilities-hammer-tenacity = Tenacitet
 # Axe abilities
 common-abilities-hammer-earthshaker = Jordskakare
     .desc = Slå huvudet av din bloddränkta hammare i marken, och utlös en chockvåg som slår vinden ur alla omkring dig.
+# Axe abilities
+common-abilities-hammer-judgement = Dömning
+    .desc = Ta din hammare ner på din fiende med all din vikt, och potentiellt döda dem med en gång om de är vacklade.
+# Axe abilities
+common-abilities-hammer-upheaval = Omstörtning
+    .desc = Slå din hammare in i dina fiender, och knocka dem upp i luften och lämna dem sårbara för vacklanden.
+# Axe abilities
+common-abilities-hammer-retaliate = Retaliera
+    .desc = Efter att blockat en attack, retaliera med ett tungt slag tillbaka.
+# Axe abilities
+common-abilities-hammer-tremor = Tremor
+    .desc = Slå jorden med tillräckligt kraft så att marken under dina fiender skakar.
+# Axe abilities
+common-abilities-hammer-intercept = Interceptera
+    .desc = Anfall framåt med din hammare som kastar din vikt bakom ditt slag.
+# Axe abilities
+common-abilities-hammer-spine_cracker = Ryggradsknäckare
+    .desc = När din fiende vänder sin rygg mot dig, slå till dem hårt i baken och rikta in på den svaga delen av deras ryggrad.
+# Axe abilities
+common-abilities-axe-bloodfeast = Blodfest
+    .desc = Din yxa törstar efter dina fienders blod, och återfyller dig med varje slag mot en blödande fiende.
+# Axe abilities
+common-abilities-axe-defiance = Trotsning
+    .desc = Stirra döden i ögat längre medan du gör dig sjäv resistent mot både vacklanden och döden.
+# Axe abilities
+# Hammer abilities
+common-abilities-hammer-solid_smash = Rejäl Smäll
+    .desc = En rejäl smäll, det kommer göra ont.
+# Axe abilities
+common-abilities-hammer-dual_intercept = Interceptera
+    .desc = Anfall framåt med dina hammare som kastar din vikt bakom ditt slag.
+# Axe abilities
+common-abilities-hammer-breach = Bryta Igenom
+    .desc = Bryt igenom dina fienders försök till försvar med ett tungt slag från din hammare.
+# Axe abilities
+common-abilities-hammer-thunderclap = Åskklapp
+    .desc = Släpp lös ett förödande, adrenalinfyllt överhuvudsslag mot din fiende.
+# Axe abilities
+common-abilities-hammer-dual_upheaval = Omstörtning
+    .desc = Slå dina hammare in i dina fiender, och knocka dem upp i luften och lämna dem sårbara för vacklanden.
+# Axe abilities
+common-abilities-hammer-seismic_shock = Seismisk Chock
+    .desc = Efter uppbyggnad av tillräckligt momentum i din hammare, slå marken med tillräcklig kraft att den spränger utåt, och kastar dina fiender i luften.
+# Axe abilities
+common-abilities-axe-adrenaline_rush = Adrenalinkick
+    .desc =
+        Konsumera all din kombo för att återfylla din energi.
+        Skalar med kombo vid aktivation, konsumerar all kombo.
+# Axe abilities
+common-abilities-axe-rake = Räfsa
+    .desc = Dra din yxa över din fiende och orsaka blödning.
+# Axe abilities
+common-abilities-axe-bulkhead = Bulkhead
+    .desc =
+        En tung sving som vissa säger kan även vackla titaner.
+        Kräver 30 kombo för användning.
+        Uppgraderar automatiskt till kapsejsning vid 50 kombo om upplåst.
+# Axe abilities
+common-abilities-axe-capsize = Kapsejsa
+    .desc =
+        Vackla allt i närheten med ett tungt snurrande slag.
+        Uppgraderar automatiskt från bulkhead vid 50 kombo.
+# Axe abilities
+common-abilities-axe-sunder = Söndra
+    .desc = Genom att ändra ditt grepp kan du kringgå din fiendes utrustning medan du återhämtar din energi mer effektivt.
+# Axe abilities
+common-abilities-axe-skull_bash = Skalleslag
+    .desc = Ett slag med det platta av din yxa som kan vackla.

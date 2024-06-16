@@ -144,3 +144,13 @@ hud-skill-pick_strike_gemgain = Chans att få extra ädelstenar ({ $boost } % pe
 # so please keep them, even when not used in English file.
 # See https://github.com/WeblateOrg/weblate/issues/9895
 -hud-skill-st_shockwave_title = ""
+# Skill tree error dialog
+hud-skill-persistence-common_message = Några av dina erfarenhetspoäng har blivit nollställda. Du kommer behöva omfördela dem.
+# Skill tree error dialog
+hud-skill-persistence-hash_mismatch = Det var en skillnad upptäckt i en av dina erfarenhetsgrupper sen du senast spelade.
+# Skill tree error dialog
+hud-skill-persistence-skills_unlock_failed = Dina erfarenheter kunde inte erhållas i samma ordning som du förvärvade dem. Förutsättningar eller kostnader må ha ändrats.
+# Skill tree error dialog
+hud-skill-persistence-deserialization_failure = Det var ett fel i laddandet av några av dina erfarenhetspoäng från databasen.
+# Skill tree error dialog
+hud-skill-persistence-spent_experience_missing = Mängden gratis erfarenhet du hade i en av dina erfarenhetsgrupper skiljde sig från senast du spelade.
