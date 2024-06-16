@@ -41,3 +41,23 @@ hud-bag-sort_by_category = Sortera efter Kategori
 hud-bag-sort_by_tag = Sort efter Tagg
 hud-bag-sort_by_quantity = Sortera efter Kvantitet
 hud-bag-backpack = Ryggsäck
+hud-bag-use_slot_equip_drop_items =
+    { $slot_deficit ->
+        [1] Att equippa detta föremål kommer resultera i otillräckligt packningsutrymme för att hålla föremålen i din packning och 1 föremål kommer släppas på marken. Vill du fortsätta?
+       *[other] Att equippa detta föremål kommer resultera i otillräckligt packningsutrymme för att hålla föremålen i din packning och { $slot_deficit } föremål kommer släppas på marken. Vill du fortsätta?
+    }
+hud-bag-use_slot_unequip_drop_items =
+    { $slot_deficit ->
+        [1] Att avequippa detta föremål kommer resultera i otillräckligt packningsutrymme för att hålla föremålen i din packning och 1 föremål kommer släppas på marken. Vill du fortsätta?
+       *[other] Att avequippa detta föremål kommer resultera i otillräckligt packningsutrymme för att hålla föremålen i din packning och { $slot_deficit } föremål kommer släppas på marken. Vill du fortsätta?
+    }
+hud-bag-split_swap_slots_drop_items =
+    { $slot_deficit ->
+        [1] Det här kommer resultera i att 1 föremål släpps på marken. Är du säker?
+       *[other] Det här kommer resultera i att { $slot_deficit } föremål släpps på marken. Är du säker?
+    }
+hud-bag-swap_slots_drop_items =
+    { $slot_deficit ->
+        [1] Det här kommer resultera i att 1 föremål släpps på marken. Är du säker?
+       *[other] Det här kommer resultera i att { $slot_deficit } föremål släpps på marken. Är du säker?
+    }

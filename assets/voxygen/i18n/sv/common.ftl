@@ -121,3 +121,4 @@ common-sprite-lantern = Lykta
 common-sprite-seashell_lantern = Snäckskalslykta
 common-sprite-firebowl_ground = Eldskål
 common-sprite-signboard = Skylt
+common-kind-recipegroup = Recept

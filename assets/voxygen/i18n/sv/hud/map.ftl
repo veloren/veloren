@@ -38,3 +38,5 @@ hud-map-adlet = Adletfort
 hud-map-placed_by = Placerad av { $name }
 hud-map-terracotta = Terrakottaruinerna
 hud-map-haniwa = Haniwakatakomb
+hud-map-sahagin = Sahagin-ön
+hud-map-cultist = Kultisk Dungeon
