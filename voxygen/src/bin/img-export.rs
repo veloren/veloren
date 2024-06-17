@@ -66,12 +66,9 @@ fn voxel_to_png(specifier: &String, transform: Transform, scale: u32, model_inde
         .size;
     let ori_mat = Mat4::from(transform.ori);
     let aabb_size = Vec3::new(model_size.x, model_size.y, model_size.z);
-    //TODO: skip dims transformation if transform is default(), instead use
-    // model_size
-    let rotated_size = calc_rotated_size(&ori_mat, &aabb_size);
     let projection_size = Vec2 {
-        x: ((rotated_size.x as u32) * scale) as u16,
-        y: ((rotated_size.y as u32) * scale) as u16,
+        x: (10u32 * scale) as u16,
+        y: (10u32 * scale) as u16,
     };
     let segment = Segment::from_vox(dot_vox_data, false, model_index);
     let path = format!("img-export/{}.png", &specifier_to_path(specifier));
