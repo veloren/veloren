@@ -4819,12 +4819,9 @@ impl<'a> AgentData<'a> {
                 agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
             },
             _ => {
-                agent.combat_state.timers[ActionStateTimers::Firebreath as usize] +=
-                    read_data.dt.0;
-                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] +=
-                    read_data.dt.0;
-                agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] +=
-                    read_data.dt.0;
+                agent.combat_state.timers[ActionStateTimers::Firebreath as usize] += read_data.dt.0;
+                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] += read_data.dt.0;
+                agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] += read_data.dt.0;
             },
         }
 
