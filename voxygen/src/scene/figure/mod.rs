@@ -1311,269 +1311,141 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
+                        CharacterState::BasicMelee(_)
+                        | CharacterState::FinisherMelee(_)
+                        | CharacterState::DiveMelee(_)
+                        | CharacterState::SelfBuff(_)
+                        | CharacterState::ChargedRanged(_)
+                        | CharacterState::BasicRanged(_)
+                        | CharacterState::ChargedMelee(_)
+                        | CharacterState::DashMelee(_)
+                        | CharacterState::Shockwave(_)
+                        | CharacterState::BasicAura(_)
+                        | CharacterState::StaticAura(_)
+                        | CharacterState::BasicBeam(_)
+                        | CharacterState::BasicBlock(_)
+                        | CharacterState::RiposteMelee(_) => {
+                            let timer = character.timer();
+                            let stage_section = character.stage_section();
+                            let durations = character.durations();
+                            let progress = if let Some(((timer, stage_section), durations)) =
+                                timer.zip(stage_section).zip(durations)
+                            {
+                                let base_dur = match stage_section {
+                                    StageSection::Buildup => durations.buildup,
+                                    StageSection::Charge => {
+                                        if matches!(character, CharacterState::DashMelee(_)) {
+                                            None
+                                        } else {
+                                            durations.charge
+                                        }
+                                    },
+                                    StageSection::Movement => {
+                                        if matches!(character, CharacterState::DiveMelee(_)) {
+                                            None
+                                        } else {
+                                            durations.movement
+                                        }
+                                    },
+                                    StageSection::Action => {
+                                        if matches!(
+                                            character,
+                                            CharacterState::BasicBeam(_)
+                                                | CharacterState::BasicBlock(_)
+                                        ) {
+                                            None
+                                        } else {
+                                            durations.action
+                                        }
+                                    },
+                                    StageSection::Recover => durations.recover,
+                                };
+                                if let Some(base_dur) = base_dur {
+                                    timer.as_secs_f32() / base_dur.as_secs_f32()
+                                } else {
+                                    timer.as_secs_f32()
+                                }
+                            } else {
+                                0.0
+                            };
+                            // Only calculate when we need it
+                            let ground_dist = if matches!(character, CharacterState::DiveMelee(_)) {
+                                let convert_vec3 =
+                                    |vec3: anim::vek::Vec3<_>| Vec3::new(vec3.x, vec3.y, vec3.z);
+                                let dist = terrain_grid
+                                    .ray(convert_vec3(pos.0), convert_vec3(pos.0 + vel.0))
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .0
+                                    .powi(2)
+                                    / vel.0.magnitude_squared();
+                                Some(dist)
+                            } else {
+                                None
                             };
                             anim::character::BasicAction::update_skeleton(
                                 &target_base,
                                 anim::character::BasicActionDependency {
                                     ability_id,
                                     hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
+                                    stage_section,
+                                    ability_info: character.ability_info(),
                                     velocity: rel_vel,
-                                    ground_dist: None,
+                                    ground_dist,
                                     last_ori,
                                     orientation,
                                     look_dir,
                                 },
-                                stage_progress,
+                                progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::FinisherMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DiveMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Movement => stage_time,
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            let convert_vec3 =
-                                |vec3: anim::vek::Vec3<_>| Vec3::new(vec3.x, vec3.y, vec3.z);
-                            let ground_dist = terrain_grid
-                                .ray(convert_vec3(pos.0), convert_vec3(pos.0 + vel.0))
-                                .until(Block::is_solid)
-                                .cast()
-                                .0
-                                .powi(2)
-                                / vel.0.magnitude_squared();
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: Some(ground_dist),
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::SelfBuff(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ChargedRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
+                        CharacterState::ComboMelee2(_)
+                        | CharacterState::RepeaterRanged(_)
+                        | CharacterState::RapidMelee(_) => {
+                            let timer = character.timer();
+                            let stage_section = character.stage_section();
+                            let durations = character.durations();
+                            let progress = if let Some(((timer, stage_section), durations)) =
+                                timer.zip(stage_section).zip(durations)
+                            {
+                                let base_dur = match stage_section {
+                                    StageSection::Buildup => durations.buildup,
+                                    StageSection::Charge => durations.charge,
+                                    StageSection::Movement => durations.movement,
+                                    StageSection::Action => durations.action,
+                                    StageSection::Recover => durations.recover,
+                                };
+                                if let Some(base_dur) = base_dur {
+                                    timer.as_secs_f32() / base_dur.as_secs_f32()
+                                } else {
+                                    timer.as_secs_f32()
+                                }
+                            } else {
+                                0.0
                             };
 
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
+                            let (current_action, max_actions) = match character {
+                                CharacterState::ComboMelee2(s) => (
+                                    (s.completed_strikes % s.static_data.strikes.len()) as u32,
+                                    Some(s.static_data.strikes.len() as u32),
+                                ),
+                                CharacterState::RepeaterRanged(s) => (s.projectiles_fired, None),
+                                CharacterState::RapidMelee(s) => {
+                                    (s.current_strike, s.static_data.max_strikes)
                                 },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ChargedMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    if let Some((dur, _)) = s.static_data.buildup_strike {
-                                        stage_time / dur.as_secs_f32()
-                                    } else {
-                                        stage_time
-                                    }
-                                },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RepeaterRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.shoot_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
+                                _ => (0, None),
                             };
 
                             anim::character::MultiAction::update_skeleton(
                                 &target_base,
                                 anim::character::MultiActionDependency {
                                     ability_id,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    current_action: s.projectiles_fired,
-                                    max_actions: None,
+                                    stage_section,
+                                    ability_info: character.ability_info(),
+                                    current_action,
+                                    max_actions,
                                     move_dir,
                                     orientation,
                                     look_dir,
@@ -1637,168 +1509,6 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => stage_time,
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicAura(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::StaticAura(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RapidMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::character::MultiAction::update_skeleton(
-                                &target_base,
-                                anim::character::MultiActionDependency {
-                                    ability_id,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    current_action: s.current_strike,
-                                    max_actions: s.static_data.max_strikes,
-                                    move_dir,
-                                    orientation,
-                                    look_dir,
-                                    velocity: rel_vel,
-                                },
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
                         CharacterState::Stunned(s) => {
                             let stage_time = s.timer.as_secs_f32();
                             let wield_status = s.was_wielded;
@@ -1851,101 +1561,6 @@ impl FigureMgr {
                                     )
                                 },
                             }
-                        },
-                        CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::character::MultiAction::update_skeleton(
-                                &target_base,
-                                anim::character::MultiActionDependency {
-                                    ability_id,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    current_action: current_strike as u32,
-                                    max_actions: Some(s.static_data.strikes.len() as u32),
-                                    move_dir,
-                                    orientation,
-                                    look_dir,
-                                    velocity: rel_vel,
-                                },
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBlock(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => stage_time,
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
                         },
                         CharacterState::UseItem(s) => {
                             let stage_time = s.timer.as_secs_f32();
@@ -2159,38 +1774,6 @@ impl FigureMgr {
                                     ability_id,
                                 ),
                                 state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RiposteMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section: Some(s.stage_section),
-                                    ability_info: Some(s.static_data.ability_info),
-                                    velocity: rel_vel,
-                                    ground_dist: None,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
