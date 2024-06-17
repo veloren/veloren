@@ -1755,7 +1755,10 @@ impl Animation for BasicAction {
             // ==================================
             //           NATURE SCEPTRE
             // ==================================
-            Some("common.abilities.sceptre.lifestealbeam") => {
+            Some(
+                "common.abilities.sceptre.lifestealbeam"
+                | "common.abilities.custom.cardinal.steambeam",
+            ) => {
                 let move1 = move1base;
                 let move2 = move2base;
                 let move3 = move3base;
