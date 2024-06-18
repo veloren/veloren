@@ -1,34 +1,20 @@
-pub mod alpha;
-pub mod beam;
-pub mod beta;
-pub mod block;
+pub mod basic;
 pub mod boost;
-pub mod chargeswing;
 pub mod climb;
 pub mod collect;
-pub mod combomelee;
 pub mod consume;
 pub mod dance;
-pub mod dash;
-pub mod divemelee;
 pub mod equip;
-pub mod finishermelee;
 pub mod glidewield;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
-pub mod leapmelee;
 pub mod mount;
+pub mod multi;
 pub mod music;
 pub mod pet;
-pub mod rapidmelee;
-pub mod repeater;
-pub mod ripostemelee;
 pub mod roll;
 pub mod run;
-pub mod selfbuff;
-pub mod shockwave;
-pub mod shoot;
 pub mod sit;
 pub mod sleep;
 pub mod sneak;
@@ -46,21 +32,37 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, block::BlockAnimation,
-    boost::BoostAnimation, chargeswing::ChargeswingAnimation, climb::ClimbAnimation,
-    collect::CollectAnimation, combomelee::ComboAnimation, consume::ConsumeAnimation,
-    dance::DanceAnimation, dash::DashAnimation, divemelee::DiveMeleeAnimation,
-    equip::EquipAnimation, finishermelee::FinisherMeleeAnimation, glidewield::GlideWieldAnimation,
-    gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
-    mount::MountAnimation, music::MusicAnimation, pet::PetAnimation,
-    rapidmelee::RapidMeleeAnimation, repeater::RepeaterAnimation,
-    ripostemelee::RiposteMeleeAnimation, roll::RollAnimation, run::RunAnimation,
-    selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
-    sit::SitAnimation, sleep::SleepAnimation, sneak::SneakAnimation,
-    sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation,
-    staggered::StaggeredAnimation, stand::StandAnimation, steer::SteerAnimation,
-    stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
-    talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
+    basic::{BasicAction, BasicActionDependency},
+    boost::BoostAnimation,
+    climb::ClimbAnimation,
+    collect::CollectAnimation,
+    consume::ConsumeAnimation,
+    dance::DanceAnimation,
+    equip::EquipAnimation,
+    glidewield::GlideWieldAnimation,
+    gliding::GlidingAnimation,
+    idle::IdleAnimation,
+    jump::JumpAnimation,
+    mount::MountAnimation,
+    multi::{MultiAction, MultiActionDependency},
+    music::MusicAnimation,
+    pet::PetAnimation,
+    roll::RollAnimation,
+    run::RunAnimation,
+    sit::SitAnimation,
+    sleep::SleepAnimation,
+    sneak::SneakAnimation,
+    sneakequip::SneakEquipAnimation,
+    sneakwield::SneakWieldAnimation,
+    staggered::StaggeredAnimation,
+    stand::StandAnimation,
+    steer::SteerAnimation,
+    stunned::StunnedAnimation,
+    swim::SwimAnimation,
+    swimwield::SwimWieldAnimation,
+    talk::TalkAnimation,
+    wallrun::WallrunAnimation,
+    wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp::{

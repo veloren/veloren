@@ -776,6 +776,7 @@ impl CharacterState {
                 ..Default::default()
             }),
             CharacterState::ChargedMelee(data) => Some(DurationsInfo {
+                buildup: data.static_data.buildup_strike.map(|x| x.0),
                 action: Some(data.static_data.swing_duration),
                 recover: Some(data.static_data.recover_duration),
                 charge: Some(data.static_data.charge_duration),
