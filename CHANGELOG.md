@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New cultist dungeons are less overly abundant, sahagin dungeons spawn again.
 - Cultist dungeons now always have exactly one portal which leads to the boss room.
 - Prompt dialogs are now localized.
+- Image-export for wiki now produces correct images of items as they look like in-game.
 
 ## [0.16.0] - 2024-03-30
 

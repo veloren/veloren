@@ -25,7 +25,7 @@ pub enum ImageSpec {
     VoxTrans(String, [f32; 3], [f32; 3], f32, #[serde(default)] u32),
 }
 impl ImageSpec {
-    fn create_graphic(&self) -> Graphic {
+    pub fn create_graphic(&self) -> Graphic {
         match self {
             ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(specifier), None),
             ImageSpec::Vox(specifier, model_index) => Graphic::Voxel(
