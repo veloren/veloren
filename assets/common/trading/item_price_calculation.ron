@@ -50,5 +50,6 @@ good_scaling: [
     (Armor, 0.025), // common.items.armor.misc.pants.worker_blue
     (Tools, 0.015487), // common.items.weapons.staff.starter_staff
     (Ingredients, 0.034626), // common.items.crafting_ing.leather_scraps
+    (Wood, 0.034626), // common.items.log.wood
     (Recipe, 0.01), // common.items.recipes
 ])
