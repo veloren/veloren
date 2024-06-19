@@ -351,7 +351,7 @@ impl Good {
     pub fn trade_margin(&self) -> f32 {
         match self {
             Good::Tools | Good::Armor => 0.5,
-            Good::Food | Good::Potions | Good::Ingredients => 0.75,
+            Good::Food | Good::Potions | Good::Ingredients | Good::Wood => 0.75,
             Good::Coin | Good::Recipe => 1.0,
             // Certain abstract goods (like Territory) shouldn't be attached to concrete items;
             // give a sale price of 0 if the player is trying to sell a concrete item that somehow
