@@ -1192,6 +1192,23 @@
         vox_spec: ("weapon.tool.banjo", (-4.0, -6.0, -2.0)),
         color: None
     ),
+    ),
+    Tool("common.items.tool.instruments.viola_pizzicato"): (
+        vox_spec: ("weapon.tool.viola_pizzicato", (-2.5, -8.0, 0.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.conch"): (
+        vox_spec: ("weapon.tool.conch", (-5.5, -8.0, 0.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.tambourine"): (
+        vox_spec: ("weapon.tool.tambourine", (-2.5, -8.0, 8.0)),
+        color: None
+    ),
+    Tool("common.items.tool.instruments.rhythmo"): (
+        vox_spec: ("weapon.tool.rhythmo", (-3.5, -7.0, 6.0)),
+        color: None
+    ),
     // Staves
     Modular(("common.items.modular.weapon.primary.staff.brand", "common.items.log.wood", Two)): (
         vox_spec: ("weapon.staff.brand.wood", (-1.0, -2.5, -4.0)),
@@ -1617,7 +1634,7 @@
     Tool("common.items.npc_weapons.unique.cactid"): (
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None
-    ),    
+    ),
     Tool("common.items.npc_weapons.unique.irrwurz"): (
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None
@@ -1907,13 +1924,13 @@
     Tool("common.items.npc_weapons.unique.ochre_legoom_spade"): (
             vox_spec: ("weapon.biped_small.misc.ochre_legoom_spade", (1.0, -5.0, -1.0)),
             color: None
-    ), 
+    ),
     Tool("common.items.npc_weapons.unique.purple_legoom_pitchfork"): (
             vox_spec: ("weapon.biped_small.misc.purple_legoom_pitchfork", (-0.5, -3.5, -5.0)),
             color: None
-    ), 
+    ),
     Tool("common.items.npc_weapons.unique.red_legoom_hoe"): (
             vox_spec: ("weapon.biped_small.misc.red_legoom_hoe", (0.0, -5.0, 1.0)),
             color: None
-    ),                 
+    ),
 })

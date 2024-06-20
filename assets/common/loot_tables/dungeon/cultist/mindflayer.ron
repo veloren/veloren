@@ -17,6 +17,8 @@
             // Crafting material
             (0.5, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
             (6.9, Nothing),
+            // Misc
+            (0.5, Item("common.items.tool.instruments.tambourine")),
         ]),
         // Allow for Eldwood to drop till entity droppers are implemented
         Lottery([

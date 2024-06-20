@@ -42,9 +42,21 @@ weapon-tool-steeltonguedrum = Steeltongue Drum
 
 weapon-tool-shamisen = Shamisen
     .desc = Shamisen.
-    
+
 weapon-tool-kora = Kora
-    .desc = Kora.    
+    .desc = Kora.
 
 weapon-tool-banjo = Banjo
     .desc = Banjo.
+
+weapon-tool-viola_pizzicato = Viola Pizzicato
+    .desc = Viola Pizzicato.
+
+weapon-tool-conch = Conch
+    .desc = Conch.
+
+weapon-tool-tambourine = Tambourine
+    .desc = Tambourine.
+
+weapon-tool-rhythmo = Rhythmo
+    .desc = Rhythmo.

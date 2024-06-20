@@ -1711,6 +1711,23 @@
         "voxel.weapon.tool.banjo",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
     ),
+    ),
+    Simple("common.items.tool.instruments.viola_pizzicato"): VoxTrans(
+        "voxel.weapon.tool.viola_pizzicato",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+    ),
+    Simple("common.items.tool.instruments.conch"): VoxTrans(
+        "voxel.weapon.tool.conch",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+    ),
+    Simple("common.items.tool.instruments.tambourine"): VoxTrans(
+        "voxel.weapon.tool.tambourine",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+    ),
+    Simple("common.items.tool.instruments.rhythmo"): VoxTrans(
+        "voxel.weapon.tool.rhythmo",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+    ),
     // Picks
     Simple("common.items.tool.pickaxe_stone"): VoxTrans(
         "voxel.weapon.tool.pickaxe_stone",
