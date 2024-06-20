@@ -4769,12 +4769,13 @@ impl<'a> AgentData<'a> {
 
         // --- setup ---
 
+        // hard-coded attack values
+        const SCYTHE_RANGE: f32 = 5.0;
         // behaviour parameters
         const FIRST_VINE_CREATION_THRESHOLD: f32 = 0.60;
         const SECOND_VINE_CREATION_THRESHOLD: f32 = 0.30;
-        const MELEE_RANGE: f32 = 5.0; // hard coded from scythe attack
         const MAX_PUMPKIN_RANGE: f32 = 50.0;
-        const FIREBREATH_RANGE: f32 = 20.0; // hard coded from firebreath attack
+        const FIREBREATH_RANGE: f32 = 20.0;
         const FIREBREATH_TIME: f32 = 4.0;
         const FIREBREATH_SHORT_TIME: f32 = 2.5; // cutoff sooner at close range
         const FIREBREATH_COOLDOWN: f32 = 3.0;
@@ -4813,15 +4814,16 @@ impl<'a> AgentData<'a> {
         match self.char_state {
             CharacterState::BasicBeam(_) => {
                 agent.combat_state.timers[ActionStateTimers::Firebreath as usize] = 0.0;
+                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] = 0.0;
             },
             CharacterState::BasicRanged(_) => {
-                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] = 0.0;
                 agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
+                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] = 0.0;
             },
             _ => {
                 agent.combat_state.timers[ActionStateTimers::Firebreath as usize] += read_data.dt.0;
-                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] += read_data.dt.0;
                 agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] += read_data.dt.0;
+                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] += read_data.dt.0;
             },
         }
 
@@ -4852,7 +4854,7 @@ impl<'a> AgentData<'a> {
         }
         // close range
         // 0.75 multiplier tuned to start melee attack while suitably in range
-        else if attack_data.dist_sqrd < (attack_data.body_dist + 0.75 * MELEE_RANGE).powi(2) {
+        else if attack_data.dist_sqrd < (attack_data.body_dist + 0.75 * SCYTHE_RANGE).powi(2) {
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_SHORT_TIME))
             {
                 // keep using firebreath under short time limit
@@ -4911,7 +4913,7 @@ impl<'a> AgentData<'a> {
 
         // closing gap
         // 0.4 multiplier tuned to get comfortably in melee range
-        if attack_data.dist_sqrd > (attack_data.body_dist + 0.4 * MELEE_RANGE).powi(2) {
+        if attack_data.dist_sqrd > (attack_data.body_dist + 0.4 * SCYTHE_RANGE).powi(2) {
             self.path_toward_target(
                 agent,
                 controller,
@@ -5841,59 +5843,123 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
+        rng: &mut impl Rng,
     ) {
-        const SHOCKWAVE_RANGE: f32 = 25.0;
-        const SHOCKWAVE_WAIT_TIME: f32 = 7.5;
-        const SPIN_WAIT_TIME: f32 = 3.0;
+        // === reference ===
 
+        // Inputs:
+        //   Primary: strike
+        //   Secondary: spin
+        //   Abilities:
+        //     0: shockwave
+
+        // === setup ===
+
+        // hard-coded attack vlues
+        const STRIKE_RANGE: f32 = 4.5;
+        const STRIKE_AIM_ANGLE: f32 = 55.0 * 0.7;
+        const SPIN_RANGE: f32 = 6.0;
+        const SHOCKWAVE_AIM_ANGLE: f32 = 45.0 * 0.7;
+        // behaviour parameters
+        const SPIN_COOLDOWN: f32 = 1.5;
+        const SHOCKWAVE_COOLDOWN: f32 = 4.5;
+        const SHOCKWAVE_MIN_RANGE: f32 = 8.0;
+        const SHOCKWAVE_MAX_RANGE: f32 = 25.0;
+        const MIXUP_COOLDOWN: f32 = 3.0;
+
+        // timers
         enum ActionStateTimers {
-            TimerSpinWait = 0,
-            TimerShockwaveWait,
+            Spin = 0,
+            Shockwave,
+            Mixup,
         }
 
-        // After spinning, reset timer
+        // re-used comparisons
+        // hard-coded multiplier tuned to start attack while suitably in range
+        let is_in_spin_range =
+            attack_data.dist_sqrd < (attack_data.body_dist + (0.85 * SPIN_RANGE).powi(2));
+        let is_in_strike_range =
+            attack_data.dist_sqrd < (attack_data.body_dist + (0.85 * STRIKE_RANGE).powi(2));
+        let is_in_strike_angle = attack_data.angle < STRIKE_AIM_ANGLE;
+
+        // === main ===
+
+        // --- timers ---
+        // spin
         let current_input = self.char_state.ability_info().map(|ai| ai.input);
         if matches!(current_input, Some(InputKind::Secondary)) {
-            agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize] = 0.0;
+            // reset when spinning
+            agent.combat_state.timers[ActionStateTimers::Spin as usize] = 0.0;
+            agent.combat_state.timers[ActionStateTimers::Mixup as usize] = 0.0;
+        } else if is_in_spin_range && !(is_in_strike_range && is_in_strike_angle) {
+            // increment within spin range and not in strike range + angle
+            agent.combat_state.timers[ActionStateTimers::Spin as usize] += read_data.dt.0;
+        } else {
+            // relax towards zero otherwise
+            agent.combat_state.timers[ActionStateTimers::Spin as usize] =
+                (agent.combat_state.timers[ActionStateTimers::Spin as usize]
+                    - 0.2 * read_data.dt.0)
+                    .max(0.0);
+        }
+        // shockwave
+        if matches!(self.char_state, CharacterState::Shockwave(_)) {
+            // reset when using shockwave
+            agent.combat_state.timers[ActionStateTimers::Shockwave as usize] = 0.0;
+            agent.combat_state.timers[ActionStateTimers::Mixup as usize] = 0.0;
+        } else {
+            // increment otherwise
+            agent.combat_state.timers[ActionStateTimers::Shockwave as usize] += read_data.dt.0;
+        }
+        // mixup
+        if is_in_strike_range && is_in_strike_angle {
+            // increment within strike range and angle
+            agent.combat_state.timers[ActionStateTimers::Mixup as usize] += read_data.dt.0;
+        } else {
+            // relax towards zero otherwise
+            agent.combat_state.timers[ActionStateTimers::Mixup as usize] =
+                (agent.combat_state.timers[ActionStateTimers::Mixup as usize]
+                    - 0.5 * read_data.dt.0)
+                    .max(0.0);
         }
 
-        if attack_data.in_min_range() {
-            // If in minimum range
-            if agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize] > SPIN_WAIT_TIME
-            {
+        // --- attacks ---
+        // strike range
+        if is_in_strike_range {
+            if agent.combat_state.timers[ActionStateTimers::Mixup as usize] > MIXUP_COOLDOWN {
+                // randomly mix up
+                let randomise = rng.gen_range(1..=3);
+                match randomise {
+                    1 => controller.push_basic_input(InputKind::Ability(0)), // shockwave
+                    2 => controller.push_basic_input(InputKind::Primary),    // strike
+                    _ => controller.push_basic_input(InputKind::Secondary),  // spin
+                }
+            } else if is_in_strike_angle {
+                // use strike
+                controller.push_basic_input(InputKind::Primary);
+            }
+        }
+        // spin range (or out of angle in strike range)
+        else if is_in_spin_range || (is_in_strike_range && !is_in_strike_angle) {
+            if agent.combat_state.timers[ActionStateTimers::Spin as usize] > SPIN_COOLDOWN {
                 // If it's been too long since able to hit target, spin
                 controller.push_basic_input(InputKind::Secondary);
-            } else if attack_data.angle < 30.0 {
-                // Else if in angle to strike, strike
-                controller.push_basic_input(InputKind::Primary);
-            } else {
-                // Else increment spin timer
-                agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize] +=
-                    read_data.dt.0;
-                // If not in angle, apply slight movement so golem orients itself correctly
-                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
-                    .xy()
-                    .try_normalized()
-                    .unwrap_or_else(Vec2::zero)
-                    * 0.01;
             }
-        } else {
-            // Else if too far for melee
-            if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) && attack_data.angle < 45.0 {
-                // Shockwave if close enough and haven't shockwaved too recently
-                if agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize]
-                    > SHOCKWAVE_WAIT_TIME
-                {
-                    controller.push_basic_input(InputKind::Ability(0));
-                }
-                if matches!(self.char_state, CharacterState::Shockwave(_)) {
-                    agent.combat_state.timers[ActionStateTimers::TimerShockwaveWait as usize] = 0.0;
-                } else {
-                    agent.combat_state.timers[ActionStateTimers::TimerShockwaveWait as usize] +=
-                        read_data.dt.0;
-                }
-            }
-            // And always try to path towards target
+        }
+        // shockwave range
+        else if attack_data.dist_sqrd > SHOCKWAVE_MIN_RANGE.powi(2)
+            && attack_data.dist_sqrd < SHOCKWAVE_MAX_RANGE.powi(2)
+            && attack_data.angle < SHOCKWAVE_AIM_ANGLE
+            && agent.combat_state.timers[ActionStateTimers::Shockwave as usize] > SHOCKWAVE_COOLDOWN
+        {
+            // Shockwave if close enough and haven't shockwaved too recently
+            controller.push_basic_input(InputKind::Ability(0));
+        }
+
+        // --- movement ---
+        // closing gap
+        // hard-coded multiplier tuned to get comfortably in range, while giving player
+        // some room to breathe
+        if attack_data.dist_sqrd > (attack_data.body_dist + (0.75 * STRIKE_RANGE).powi(2)) {
             self.path_toward_target(
                 agent,
                 controller,
@@ -5902,6 +5968,20 @@ impl<'a> AgentData<'a> {
                 Path::Partial,
                 None,
             );
+        }
+        // closing angle
+        else if attack_data.angle > 0.0 {
+            // If not in angle, apply slight movement so golem orients itself correctly
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::zero)
+                * 0.001;
+            // // an attempt modifying look direciton, rather than using
+            // movement: let delta = (tgt_data.pos.0 -
+            // self.pos.0).try_normalized().unwrap_or_else(Vec3::zero);
+            // controller.inputs.look_dir =
+            // controller.inputs.look_dir.slerped_to(Dir::new(delta), 0.8);
         }
     }
 

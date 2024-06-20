@@ -6,7 +6,7 @@ BasicMelee(
     recover_duration: 1.0,
     melee_constructor: (
         kind: Slash(
-            damage: 13.0,
+            damage: 15.0,
             poise: 10.0,
             knockback: 10.0,
             energy_regen: 0.0,

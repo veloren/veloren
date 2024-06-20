@@ -1000,7 +1000,7 @@ impl Body {
             },
             Body::ItemDrop(_) => 1000,
             Body::Golem(golem) => match golem.species {
-                golem::Species::WoodGolem => 200,
+                golem::Species::WoodGolem => 120,
                 golem::Species::ClayGolem => 350,
                 golem::Species::Gravewarden => 1000,
                 golem::Species::CoralGolem => 550,

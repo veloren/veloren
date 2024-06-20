@@ -1685,7 +1685,7 @@ impl<'a> AgentData<'a> {
                 self.handle_mandragora(agent, controller, &attack_data, tgt_data, read_data)
             },
             Tactic::WoodGolem => {
-                self.handle_wood_golem(agent, controller, &attack_data, tgt_data, read_data)
+                self.handle_wood_golem(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
             Tactic::GnarlingChieftain => self.handle_gnarling_chieftain(
                 agent,

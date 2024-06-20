@@ -230,7 +230,10 @@ impl Body {
             Body::BipedSmall(_) => 3.5,
             Body::Object(_) => 2.0,
             Body::ItemDrop(_) => 2.0,
-            Body::Golem(_) => 2.0,
+            Body::Golem(golem) => match golem.species {
+                golem::Species::WoodGolem => 1.2,
+                _ => 2.0,
+            },
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 2.3,
                 theropod::Species::Odonto => 2.3,
