@@ -42,6 +42,14 @@ impl Animation for BasicAction {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
 
+        // Don't use this for future animations
+        let mut legacy_initialize = || {
+            next.main.position = Vec3::new(0.0, 0.0, 0.0);
+            next.main.orientation = Quaternion::rotation_z(0.0);
+            next.second.position = Vec3::new(0.0, 0.0, 0.0);
+            next.second.orientation = Quaternion::rotation_z(0.0);
+        };
+
         if matches!(d.stage_section, Some(StageSection::Action)) {
             next.main_weapon_trail = true;
             next.off_weapon_trail = true;
@@ -65,6 +73,7 @@ impl Animation for BasicAction {
             Some(
                 "common.abilities.sword.basic_guard" | "common.abilities.sword.defensive_guard",
             ) => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2 = (move2base * 10.0).sin();
@@ -136,6 +145,7 @@ impl Animation for BasicAction {
                 }
             },
             Some("common.abilities.sword.defensive_deflect") => {
+                legacy_initialize();
                 let move1 = move1base.powi(2);
                 let move2 = (move2base * 20.0).sin();
                 let move3 = move3base.powf(0.5);
@@ -172,6 +182,7 @@ impl Animation for BasicAction {
                 "common.abilities.sword.basic_thrust"
                 | "common.abilities.sword.defensive_vital_jab",
             ) => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = chargebase.powf(0.25).min(1.0) * pullback;
                 let move2 = move2base.powi(2) * pullback;
@@ -195,6 +206,7 @@ impl Animation for BasicAction {
                 next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5 + move2 * 0.4);
             },
             Some("common.abilities.sword.heavy_slam") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = chargebase.powf(0.25).min(1.0) * pullback;
                 let move2 = move2base.powi(2) * pullback;
@@ -226,10 +238,12 @@ impl Animation for BasicAction {
                 next.chest.orientation.rotate_z(move2 * -0.6);
             },
             Some("common.abilities.sword.crippling_deep_rend") => {
+                legacy_initialize();
+                let pullback = 1.0 - move3base;
                 let move1pre = move1base.min(0.5) * 2.0 * pullback;
                 let move1post = (move1base.max(0.5) * 2.0 - 1.0) * pullback;
                 let move2 = chargebase.min(1.0) * pullback;
-                let move3 = move2 * pullback;
+                let move3 = move2base * pullback;
                 let tension = (chargebase * 20.0).sin();
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
@@ -280,6 +294,7 @@ impl Animation for BasicAction {
                 "common.abilities.sword.cleaving_spiral_slash"
                 | "common.abilities.sword.cleaving_dual_spiral_slash",
             ) => {
+                legacy_initialize();
                 let move1 = chargebase.powf(0.25).min(1.0) * pullback;
                 let move2_pre = move2base.min(0.3) * 10.0 / 3.0 * pullback;
                 let tension = (chargebase * 15.0).sin();
@@ -315,6 +330,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(move2 * 14.0, 0.0, 0.0);
             },
             Some("common.abilities.sword.cleaving_earth_splitter") => {
+                legacy_initialize();
                 let ground_dist = d.ground_dist.map_or(0.0, |gd| gd.clamp(0.0, 0.5) * 2.0);
                 let ground_dist = if ground_dist.is_nan() {
                     0.0
@@ -351,6 +367,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(0.0, move3 * 4.0, move3 * -8.0);
             },
             Some("common.abilities.sword.heavy_pillar_thrust") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.5) * pullback;
                 let move1alt1 = move1base.powf(0.5).min(0.5) * 2.0 * pullback;
@@ -388,6 +405,7 @@ impl Animation for BasicAction {
                 next.chest.position += Vec3::new(0.0, move2 * -2.5, 0.0);
             },
             Some("common.abilities.sword.basic_mighty_strike") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2 = move2base.powf(0.1) * pullback;
@@ -414,6 +432,7 @@ impl Animation for BasicAction {
                 next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5 + move2 * 0.4);
             },
             Some("common.abilities.sword.heavy_guillotine") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2 = move2base.powi(2) * pullback;
@@ -437,6 +456,7 @@ impl Animation for BasicAction {
                 next.chest.orientation.rotate_z(move2 * -0.6);
             },
             Some("common.abilities.sword.defensive_counter") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.5) * pullback;
                 let move2 = (move2base.min(2.0 / 3.0) * 1.5).powi(2) * pullback;
@@ -474,6 +494,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(move2 * 7.0, 0.0, move2 * 6.0);
             },
             Some("common.abilities.sword.defensive_riposte") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2_slow = move2base.powi(8) * pullback;
@@ -510,6 +531,7 @@ impl Animation for BasicAction {
                     Vec3::new(move2_slow * 11.0, move2_slow * -4.0, move2_slow * -6.0);
             },
             Some("common.abilities.sword.heavy_fortitude") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2 = move2base.powi(2) * pullback;
@@ -538,6 +560,7 @@ impl Animation for BasicAction {
                 next.shorts.position += Vec3::new(0.0, move2 * 1.0, 0.0);
             },
             Some("common.abilities.sword.defensive_stalwart_sword") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2 = move2base.powi(2) * pullback;
@@ -570,6 +593,7 @@ impl Animation for BasicAction {
                 next.control.orientation.rotate_z(move2 * 0.4);
             },
             Some("common.abilities.sword.agile_dancing_edge") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2 = move2base.powi(2) * pullback;
@@ -593,6 +617,7 @@ impl Animation for BasicAction {
                 next.control.orientation.rotate_x(move2 * 1.1);
             },
             Some("common.abilities.sword.cleaving_blade_fever") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2 = move2base.powi(2) * pullback;
@@ -696,6 +721,7 @@ impl Animation for BasicAction {
                 }
             },
             Some("common.abilities.axe.cleave") => {
+                legacy_initialize();
                 let move1 = chargebase.min(1.0) * pullback;
                 let move2 = move2base.powi(2) * pullback;
                 let tension = (chargebase * 20.0).sin();
@@ -721,6 +747,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(0.0, move2 * 8.0, move2 * -30.0);
             },
             Some("common.abilities.axe.execute") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -749,6 +776,7 @@ impl Animation for BasicAction {
                 next.control.orientation.rotate_z(move2 * 0.7);
             },
             Some("common.abilities.axe.maelstrom") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -779,6 +807,7 @@ impl Animation for BasicAction {
                 next.torso.orientation.rotate_z(move2base * -4.0 * PI);
             },
             Some("common.abilities.axe.lacerate") => {
+                legacy_initialize();
                 let move2_reset = ((move2base - 0.5).abs() - 0.5).abs() * 2.0;
 
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2 + 10.0);
@@ -807,6 +836,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(move2 * 17.0, move2 * 3.0, 0.0);
             },
             Some("common.abilities.axe.riptide") => {
+                legacy_initialize();
                 let move2_reset = ((move2base - 0.5).abs() - 0.5).abs() * 2.0;
 
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
@@ -836,6 +866,7 @@ impl Animation for BasicAction {
                 next.torso.orientation.rotate_z(move2base * -TAU)
             },
             Some("common.abilities.axe.keelhaul") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -860,6 +891,7 @@ impl Animation for BasicAction {
                 next.control.orientation.rotate_z(move2 * -1.2);
             },
             Some("common.abilities.axe.bulkhead") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -887,6 +919,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(move2 * 12.0, move2 * -6.0, 0.0);
             },
             Some("common.abilities.axe.capsize") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -915,6 +948,7 @@ impl Animation for BasicAction {
                 next.torso.orientation.rotate_z(move2base * -TAU);
             },
             Some("common.abilities.axe.fracture") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -943,6 +977,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(move2 * 14.0, move2 * 6.0, 0.0);
             },
             Some("common.abilities.axe.berserk") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -963,6 +998,7 @@ impl Animation for BasicAction {
                 next.chest.orientation.rotate_x(move2 * 0.4);
             },
             Some("common.abilities.axe.savage_sense") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -986,6 +1022,7 @@ impl Animation for BasicAction {
                 next.foot_r.orientation.rotate_x(move2 * -1.2);
             },
             Some("common.abilities.axe.adrenaline_rush") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -1007,6 +1044,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(move2 * -8.0, 0.0, move2 * -3.0);
             },
             Some("common.abilities.axe.bloodfeast") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -1028,6 +1066,7 @@ impl Animation for BasicAction {
                 next.control.orientation.rotate_y(move2 * 0.8);
             },
             Some("common.abilities.axe.furor") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -1051,6 +1090,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(move2 * 9.0, move2 * -3.0, move2 * -14.0);
             },
             Some("common.abilities.axe.sunder") => {
+                legacy_initialize();
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
@@ -1078,6 +1118,7 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(0.0, 0.0, move2 * -5.0);
             },
             Some("common.abilities.axe.defiance") => {
+                legacy_initialize();
                 let tension = (move2base * 20.0).sin();
 
                 next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
