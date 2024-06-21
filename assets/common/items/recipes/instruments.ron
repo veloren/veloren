@@ -15,6 +15,7 @@ ItemDef(
             "icy_talharpa",
             "kora",
             "banjo",
+            "rhythmo",
         ],
     ),
     quality: Common,
