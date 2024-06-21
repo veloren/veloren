@@ -4770,16 +4770,22 @@ impl<'a> AgentData<'a> {
         // --- setup ---
 
         // hard-coded attack values
-        const SCYTHE_RANGE: f32 = 5.0;
+        const SCYTHE_RANGE: f32 = 4.5;
+        const SCYTHE_AIM_ANGLE: f32 = 50.0 * 0.7;
+        const FIREBREATH_RANGE: f32 = 20.0;
         // behaviour parameters
+        const SCYTHE_RANGE_FACTOR: f32 = 0.75; // start attack while suitably in range
+        const FIREBREATH_RANGE_FACTOR: f32 = 0.7; // ^
+        const PATH_RANGE_FACTOR: f32 = 0.4; // get comfortably in range, but give player room to breathe
         const FIRST_VINE_CREATION_THRESHOLD: f32 = 0.60;
         const SECOND_VINE_CREATION_THRESHOLD: f32 = 0.30;
         const MAX_PUMPKIN_RANGE: f32 = 50.0;
-        const FIREBREATH_RANGE: f32 = 20.0;
+        const FIREBREATH_AIM_ANGLE: f32 = 30.0;
         const FIREBREATH_TIME: f32 = 4.0;
         const FIREBREATH_SHORT_TIME: f32 = 2.5; // cutoff sooner at close range
-        const FIREBREATH_COOLDOWN: f32 = 3.0;
+        const FIREBREATH_COOLDOWN: f32 = 3.5;
         const CLOSE_MIXUP_COOLDOWN: f32 = 2.5; // variation in attacks at close range
+        const MID_MIXUP_COOLDOWN: f32 = 3.0; //   ^                       mid
         const FAR_PUMPKIN_COOLDOWN: f32 = 1.0; // allows for pathing to player between throws
 
         // conditions
@@ -4808,25 +4814,29 @@ impl<'a> AgentData<'a> {
             )
         };
 
-        // --- main ---
+        // === main ===
 
-        // handle timers
+        // --- timers ---
         match self.char_state {
             CharacterState::BasicBeam(_) => {
+                // reset when using firebreath
                 agent.combat_state.timers[ActionStateTimers::Firebreath as usize] = 0.0;
                 agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] = 0.0;
             },
             CharacterState::BasicRanged(_) => {
+                // reset when using explodingpumpkin
                 agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
                 agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] = 0.0;
             },
             _ => {
+                // increment otherwise
                 agent.combat_state.timers[ActionStateTimers::Firebreath as usize] += read_data.dt.0;
                 agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] += read_data.dt.0;
                 agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] += read_data.dt.0;
             },
         }
 
+        // --- attacks ---
         // vine summoning
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
 
@@ -4853,17 +4863,19 @@ impl<'a> AgentData<'a> {
             }
         }
         // close range
-        // 0.75 multiplier tuned to start melee attack while suitably in range
-        else if attack_data.dist_sqrd < (attack_data.body_dist + 0.75 * SCYTHE_RANGE).powi(2) {
+        else if attack_data.dist_sqrd
+            < (attack_data.body_dist + SCYTHE_RANGE * SCYTHE_RANGE_FACTOR).powi(2)
+        {
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_SHORT_TIME))
             {
                 // keep using firebreath under short time limit
                 controller.push_basic_input(InputKind::Secondary);
             } else if agent.combat_state.timers[ActionStateTimers::CloseMixup as usize]
                 > CLOSE_MIXUP_COOLDOWN
+                && attack_data.angle < SCYTHE_AIM_ANGLE
             // for now, no line of sight check for consitency in attacks
             {
-                // mix up close range attacks
+                // mix up close range attacks when in angle
                 if agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
                     < FIREBREATH_COOLDOWN
                 {
@@ -4873,31 +4885,37 @@ impl<'a> AgentData<'a> {
                     let randomise = rng.gen_range(1..=3);
                     match randomise {
                         1 => controller.push_basic_input(InputKind::Secondary), // firebreath
-                        2 => controller.push_basic_input(InputKind::Ability(0)), // pumpkin
-                        _ => controller.push_basic_input(InputKind::Primary),   // scythe
+                        2 => controller.push_basic_input(InputKind::Primary),   // scythe
+                        _ => controller.push_basic_input(InputKind::Ability(0)), // pumpkin
                     }
                 }
-            } else if attack_data.angle < 60.0 {
+            } else if attack_data.angle < SCYTHE_AIM_ANGLE {
                 // scythe melee
                 controller.push_basic_input(InputKind::Primary);
             }
         }
         // mid range (with line of sight)
-        else if attack_data.dist_sqrd < FIREBREATH_RANGE.powi(2) && line_of_sight_with_target() {
+        else if attack_data.dist_sqrd < FIREBREATH_RANGE.powi(2)
+        && line_of_sight_with_target()
+        {
+            // keep using firebreath under full time limit
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_TIME))
             {
-                // keep using firebreath under full time limit
                 controller.push_basic_input(InputKind::Secondary);
-            } else if attack_data.angle < 30.0
-                && agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
+            }
+            // start using firebreath if close enough, in angle, and off cooldown
+            else if // attack_data.dist_sqrd < FIREBREATH_RANGE * FIREBREATH_RANGE_FACTOR
+                // && attack_data.angle < FIREBREATH_AIM_ANGLE
+                // && 
+                agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
                     > FIREBREATH_COOLDOWN
             {
-                // start using firebreath
                 controller.push_basic_input(InputKind::Secondary);
-            } else if agent.combat_state.timers[ActionStateTimers::CloseMixup as usize]
-                > CLOSE_MIXUP_COOLDOWN
+            }
+            // on mixup timer, throw a pumpkin
+            else if agent.combat_state.timers[ActionStateTimers::CloseMixup as usize]
+                > MID_MIXUP_COOLDOWN
             {
-                // throw pumpkin
                 controller.push_basic_input(InputKind::Ability(0));
             }
         }
@@ -4911,9 +4929,11 @@ impl<'a> AgentData<'a> {
             controller.push_basic_input(InputKind::Ability(0));
         }
 
+        // --- movement ---
         // closing gap
-        // 0.4 multiplier tuned to get comfortably in melee range
-        if attack_data.dist_sqrd > (attack_data.body_dist + 0.4 * SCYTHE_RANGE).powi(2) {
+        if attack_data.dist_sqrd
+            > (attack_data.body_dist + SCYTHE_RANGE * PATH_RANGE_FACTOR).powi(2)
+        {
             self.path_toward_target(
                 agent,
                 controller,
@@ -4922,6 +4942,14 @@ impl<'a> AgentData<'a> {
                 Path::Partial,
                 None,
             );
+        }
+        // closing angle
+        else if attack_data.angle > 0.0 {
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::zero)
+                * 0.001; // scaled way down to minimise position change and keep close rotation consistent
         }
     }
 
@@ -5855,17 +5883,21 @@ impl<'a> AgentData<'a> {
 
         // === setup ===
 
-        // hard-coded attack vlues
-        const STRIKE_RANGE: f32 = 4.5;
+        // hard-coded attack vlues (some scaled for usage)
+        const STRIKE_RANGE: f32 = 4.0;
         const STRIKE_AIM_ANGLE: f32 = 55.0 * 0.7;
-        const SPIN_RANGE: f32 = 6.0;
+        const SPIN_RANGE: f32 = 5.0;
         const SHOCKWAVE_AIM_ANGLE: f32 = 45.0 * 0.7;
+        const SHOCKWAVE_MAX_RANGE: f32 = 30.0 * 0.6;
         // behaviour parameters
+        const ATTACK_RANGE_FACTOR: f32 = 0.6; // start attack while suitably in range
+        const PATH_RANGE_FACTOR: f32 = 0.3; // get comfortably in range, but give player room to breathe
         const SPIN_COOLDOWN: f32 = 1.5;
-        const SHOCKWAVE_COOLDOWN: f32 = 4.5;
+        const SPIN_RELAX_FACTOR: f32 = 0.2;
+        const SHOCKWAVE_COOLDOWN: f32 = 5.0;
         const SHOCKWAVE_MIN_RANGE: f32 = 8.0;
-        const SHOCKWAVE_MAX_RANGE: f32 = 25.0;
-        const MIXUP_COOLDOWN: f32 = 3.0;
+        const MIXUP_COOLDOWN: f32 = 2.5;
+        const MIXUP_RELAX_FACTOR: f32 = 0.3;
 
         // timers
         enum ActionStateTimers {
@@ -5874,13 +5906,13 @@ impl<'a> AgentData<'a> {
             Mixup,
         }
 
-        // re-used comparisons
-        // hard-coded multiplier tuned to start attack while suitably in range
-        let is_in_spin_range =
-            attack_data.dist_sqrd < (attack_data.body_dist + (0.85 * SPIN_RANGE).powi(2));
-        let is_in_strike_range =
-            attack_data.dist_sqrd < (attack_data.body_dist + (0.85 * STRIKE_RANGE).powi(2));
+        // re-used comparisons (makes separating timers and attacks easier)
+        let is_in_spin_range = attack_data.dist_sqrd
+            < (attack_data.body_dist + SPIN_RANGE * ATTACK_RANGE_FACTOR).powi(2);
+        let is_in_strike_range = attack_data.dist_sqrd
+            < (attack_data.body_dist + STRIKE_RANGE * ATTACK_RANGE_FACTOR).powi(2);
         let is_in_strike_angle = attack_data.angle < STRIKE_AIM_ANGLE;
+
 
         // === main ===
 
@@ -5898,7 +5930,7 @@ impl<'a> AgentData<'a> {
             // relax towards zero otherwise
             agent.combat_state.timers[ActionStateTimers::Spin as usize] =
                 (agent.combat_state.timers[ActionStateTimers::Spin as usize]
-                    - 0.2 * read_data.dt.0)
+                    - SPIN_RELAX_FACTOR * read_data.dt.0)
                     .max(0.0);
         }
         // shockwave
@@ -5918,13 +5950,13 @@ impl<'a> AgentData<'a> {
             // relax towards zero otherwise
             agent.combat_state.timers[ActionStateTimers::Mixup as usize] =
                 (agent.combat_state.timers[ActionStateTimers::Mixup as usize]
-                    - 0.5 * read_data.dt.0)
+                    - MIXUP_RELAX_FACTOR * read_data.dt.0)
                     .max(0.0);
         }
 
         // --- attacks ---
-        // strike range
-        if is_in_strike_range {
+        // strike range and in angle
+        if is_in_strike_range && is_in_strike_angle {
             if agent.combat_state.timers[ActionStateTimers::Mixup as usize] > MIXUP_COOLDOWN {
                 // randomly mix up
                 let randomise = rng.gen_range(1..=3);
@@ -5933,7 +5965,7 @@ impl<'a> AgentData<'a> {
                     2 => controller.push_basic_input(InputKind::Primary),    // strike
                     _ => controller.push_basic_input(InputKind::Secondary),  // spin
                 }
-            } else if is_in_strike_angle {
+            } else {
                 // use strike
                 controller.push_basic_input(InputKind::Primary);
             }
@@ -5957,9 +5989,9 @@ impl<'a> AgentData<'a> {
 
         // --- movement ---
         // closing gap
-        // hard-coded multiplier tuned to get comfortably in range, while giving player
-        // some room to breathe
-        if attack_data.dist_sqrd > (attack_data.body_dist + (0.75 * STRIKE_RANGE).powi(2)) {
+        if attack_data.dist_sqrd
+            > (attack_data.body_dist + STRIKE_RANGE * PATH_RANGE_FACTOR).powi(2)
+        {
             self.path_toward_target(
                 agent,
                 controller,
@@ -5976,12 +6008,7 @@ impl<'a> AgentData<'a> {
                 .xy()
                 .try_normalized()
                 .unwrap_or_else(Vec2::zero)
-                * 0.001;
-            // // an attempt modifying look direciton, rather than using
-            // movement: let delta = (tgt_data.pos.0 -
-            // self.pos.0).try_normalized().unwrap_or_else(Vec3::zero);
-            // controller.inputs.look_dir =
-            // controller.inputs.look_dir.slerped_to(Dir::new(delta), 0.8);
+                * 0.001; // scaled way down to minimise position change and keep close rotation consistent
         }
     }
 
