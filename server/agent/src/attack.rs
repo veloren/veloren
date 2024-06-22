@@ -27,8 +27,6 @@ use rand::{prelude::SliceRandom, Rng};
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
-fn midpoint(min_max: [f32; 2]) -> f32 { return min_max[0] + (min_max[1] - min_max[0]) / 2.0 }
-
 impl<'a> AgentData<'a> {
     // Intended for any agent that has one attack, that attack is a melee attack,
     // and the agent is able to freely walk around
@@ -4824,14 +4822,9 @@ impl<'a> AgentData<'a> {
             )
         };
 
-        // re-used stuff
-        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
-        let is_using_firebreath = matches!(self.char_state, CharacterState::BasicBeam(_));
-        let is_using_pumpkin = matches!(self.char_state, CharacterState::BasicRanged(_));
-        let is_using_mixup = is_using_firebreath || is_using_pumpkin;
-
         // === main ===
-
+        
+        // --- timers ---
         // initialise randomised cooldowns
         if !agent.combat_state.conditions[ActionStateConditions::RandomInit as usize]  {
             agent.combat_state.conditions[ActionStateConditions::RandomInit as usize] = true;
@@ -4843,8 +4836,7 @@ impl<'a> AgentData<'a> {
                 rng.gen_range(FAR_PUMPKIN_COOLDOWN_SPAN[0]..=FAR_PUMPKIN_COOLDOWN_SPAN[1]);
             // note: if f32 rng is too expensive, could use randomised u8 multipliers of a const f32
         }
-        
-        // --- timers ---
+        // timer changes
         if matches!(self.char_state, CharacterState::SpriteSummon(_)) {
             // reset all timers when summoning
             agent.combat_state.timers[ActionStateTimers::MixupCooldown as usize] = 0.0;
@@ -4852,6 +4844,9 @@ impl<'a> AgentData<'a> {
             agent.combat_state.timers[ActionStateTimers::FirebreathCooldown as usize] = 0.0;
         } else {
             // increment timers when not in corresponding state
+            let is_using_firebreath = matches!(self.char_state, CharacterState::BasicBeam(_));
+            let is_using_pumpkin = matches!(self.char_state, CharacterState::BasicRanged(_));
+            let is_using_mixup = is_using_firebreath || is_using_pumpkin;
             if !is_using_mixup {
                 agent.combat_state.timers[ActionStateTimers::MixupCooldown as usize] += read_data.dt.0;
             }
@@ -4865,23 +4860,26 @@ impl<'a> AgentData<'a> {
         // note: some timer resets are performerd in attack logic
 
         // --- attacks ---
-        // vine summoning
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // second vine summon
         if health_fraction < SECOND_VINE_CREATION_THRESHOLD
             && !agent.combat_state.conditions
                 [ActionStateConditions::SecondVines as usize]
         {
-            // second vines summon
             controller.push_basic_input(InputKind::Ability(2));
+            // wait till recovery before finishing
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.combat_state.conditions
                     [ActionStateConditions::SecondVines as usize] = true;
             }
-        } else if health_fraction < FIRST_VINE_CREATION_THRESHOLD
+        }
+        // first vine summon
+        else if health_fraction < FIRST_VINE_CREATION_THRESHOLD
             && !agent.combat_state.conditions[ActionStateConditions::FirstVines as usize]
         {
-            // first vines summon
             controller.push_basic_input(InputKind::Ability(1));
+            // wait till recovery before finishing
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.combat_state.conditions
@@ -4892,45 +4890,48 @@ impl<'a> AgentData<'a> {
         else if attack_data.dist_sqrd
             < (attack_data.body_dist + SCYTHE_RANGE * SCYTHE_RANGE_FACTOR).powi(2)
         {
+            // if using firebreath, keep going under short time limit
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_SHORT_TIME))
             {
-                // keep using firebreath under short time limit
                 controller.push_basic_input(InputKind::Secondary);
                 agent.combat_state.timers[ActionStateTimers::FirebreathCooldown as usize] = 0.0;
-            } else if agent.combat_state.timers[ActionStateTimers::MixupCooldown as usize]
+            }
+            // on timer, randomly mixup attacks
+            else if agent.combat_state.timers[ActionStateTimers::MixupCooldown as usize]
                 > agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize]
                 && attack_data.angle < SCYTHE_AIM_ANGLE
-            // for now, no line of sight check for consitency in attacks
+                // for now, no line of sight check for consitency in attacks
             {
-                // mix up close range attacks when in angle
+                // if on firebreath cooldown, throw pumpkin
                 if agent.combat_state.timers[ActionStateTimers::FirebreathCooldown as usize]
                     < FIREBREATH_COOLDOWN
                 {
-                    // if on firebreath cooldown, throw pumpkin
                     controller.push_basic_input(InputKind::Ability(0));
-                } else {
-                    // randomise between firebreath and pumpkin
+                }
+                // otherwise, randomise between firebreath and pumpkin
+                else {
                     let randomise: u8 = rng.gen_range(1..=2);
                     match randomise {
                         1 => controller.push_basic_input(InputKind::Secondary), // firebreath
                         _ => controller.push_basic_input(InputKind::Ability(0)), // pumpkin
                     }
                 }
-                // reset mixup timing if one is being used
-                if is_using_mixup {
+                // reset mixup timing if actually being used
+                if matches!(self.char_state, CharacterState::BasicBeam(_) | CharacterState::BasicRanged(_)) {
                     agent.combat_state.timers[ActionStateTimers::MixupCooldown as usize] = 0.0;
                     agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize] = 
                         rng.gen_range(CLOSE_MIXUP_COOLDOWN_SPAN[0]..=CLOSE_MIXUP_COOLDOWN_SPAN[1]);
                 }
 
-            } else if attack_data.angle < SCYTHE_AIM_ANGLE {
-                // scythe melee
+            }
+            // default to using scythe melee
+            else if attack_data.angle < SCYTHE_AIM_ANGLE {
                 controller.push_basic_input(InputKind::Primary);
             }
         }
-        // mid range (line of sight not needed for 'suppressing' attacks)
+        // mid range (line of sight not needed for these 'suppressing' attacks)
         else if attack_data.dist_sqrd < FIREBREATH_RANGE.powi(2) {
-            // keep using firebreath under full time limit
+            // if using firebreath, keep going under full time limit
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_TIME))
             {
                 controller.push_basic_input(InputKind::Secondary);
@@ -4949,8 +4950,8 @@ impl<'a> AgentData<'a> {
                 > agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize]
             {
                 controller.push_basic_input(InputKind::Ability(0));
-                if is_using_pumpkin {
-                    // reset mixup timer and setup new mid mixup cooldown
+                // reset mixup timing if pumpkin is actually being used
+                if matches!(self.char_state, CharacterState::BasicRanged(_)) {
                     agent.combat_state.timers[ActionStateTimers::MixupCooldown as usize] = 0.0;
                     agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize] = 
                         rng.gen_range(MID_MIXUP_COOLDOWN_SPAN[0]..=MID_MIXUP_COOLDOWN_SPAN[1]);
@@ -4965,8 +4966,8 @@ impl<'a> AgentData<'a> {
         {
             // throw pumpkin
             controller.push_basic_input(InputKind::Ability(0));
-            if is_using_pumpkin {
-                // reset pumpkin timer and setup new cooldown
+            // reset pumpkin timing if actually being used
+            if matches!(self.char_state, CharacterState::BasicRanged(_)) {
                 agent.combat_state.timers[ActionStateTimers::FarPumpkinCooldown as usize] = 0.0;
                 agent.combat_state.counters[ActionStateCounters::FarPumpkinCooldown as usize] = 
                     rng.gen_range(FAR_PUMPKIN_COOLDOWN_SPAN[0]..=FAR_PUMPKIN_COOLDOWN_SPAN[1]);
