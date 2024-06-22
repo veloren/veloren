@@ -776,7 +776,6 @@ impl Animation for MultiAction {
                     | "common.abilities.sword.cleaving_dual_bladestorm",
                 ) => {
                     let pullback = 1.0 - move3base.powi(4);
-                    let move1 = move1base * pullback;
                     let move2_no_pullback = move2base + d.current_action as f32;
                     let move2base = if d.current_action == 0 {
                         move2base
@@ -786,28 +785,32 @@ impl Animation for MultiAction {
                     let move2_pre = move2base.min(0.3) * 10.0 / 3.0 * pullback;
                     let move2 = move2base * pullback;
 
-                    next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
-                    next.hand_l.orientation =
-                        Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
-                    next.hand_r.position = Vec3::new(-s_a.sc.0 + -6.0, -1.0, -2.0);
-                    next.hand_r.orientation = Quaternion::rotation_x(1.4);
-                    next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
-                    next.control.orientation =
-                        Quaternion::rotation_x(s_a.sc.3) * Quaternion::rotation_z(move1 * PI);
+                    if action == 0 {
+                        let move1 = move1base * pullback;
 
-                    if move2 < f32::EPSILON {
-                        next.main_weapon_trail = false;
-                        next.off_weapon_trail = false;
+                        next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                        next.hand_l.orientation =
+                            Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                        next.hand_r.position = Vec3::new(-s_a.sc.0 + -6.0, -1.0, -2.0);
+                        next.hand_r.orientation = Quaternion::rotation_x(1.4);
+                        next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                        next.control.orientation =
+                            Quaternion::rotation_x(s_a.sc.3) * Quaternion::rotation_z(move1 * PI);
+
+                        if move2 < f32::EPSILON {
+                            next.main_weapon_trail = false;
+                            next.off_weapon_trail = false;
+                        }
+                        next.chest.orientation = Quaternion::rotation_z(move1 * 1.2);
+                        next.head.orientation = Quaternion::rotation_z(move1 * -0.7);
+                        next.belt.orientation = Quaternion::rotation_z(move1 * -0.3);
+                        next.shorts.orientation = Quaternion::rotation_z(move1 * -0.8);
+                        next.control.orientation.rotate_x(move1 * 0.2);
+                        next.foot_r
+                            .orientation
+                            .rotate_x(move1 * -0.4 + move2_pre * 0.4);
+                        next.foot_r.orientation.rotate_z(move1 * 1.4);
                     }
-                    next.chest.orientation = Quaternion::rotation_z(move1 * 1.2);
-                    next.head.orientation = Quaternion::rotation_z(move1 * -0.7);
-                    next.belt.orientation = Quaternion::rotation_z(move1 * -0.3);
-                    next.shorts.orientation = Quaternion::rotation_z(move1 * -0.8);
-                    next.control.orientation.rotate_x(move1 * 0.2);
-                    next.foot_r
-                        .orientation
-                        .rotate_x(move1 * -0.4 + move2_pre * 0.4);
-                    next.foot_r.orientation.rotate_z(move1 * 1.4);
 
                     next.control.orientation.rotate_y(move2_pre * -1.6);
                     next.control.position += Vec3::new(0.0, 0.0, move2_pre * 4.0);
@@ -943,7 +946,11 @@ impl Animation for MultiAction {
                 },
                 Some("common.abilities.sword.crippling_mutilate") => {
                     let pullback = 1.0 - move3base.powi(4);
-                    let move1 = move1base.powf(0.25) * pullback;
+                    let move1 = if action == d.current_action {
+                        move1base.powf(0.25) * pullback
+                    } else {
+                        0.0
+                    };
                     let move2 = if d.current_action % 2 == 0 {
                         move2base
                     } else {
@@ -1166,6 +1173,29 @@ impl Animation for MultiAction {
                     next.control.position += Vec3::new(move2 * 8.0, 0.0, 0.0);
                 },
                 Some("common.abilities.axe.fierce_raze") => {
+                    if action == 0 {
+                        next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                        next.hand_l.orientation =
+                            Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
+                        next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                        next.hand_r.orientation =
+                            Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+
+                        next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
+                        next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
+                            * Quaternion::rotation_y(s_a.ac.4)
+                            * Quaternion::rotation_z(s_a.ac.5 + move1 * -PI);
+
+                        next.chest.orientation.rotate_z(move1 * 0.7);
+                        next.head.orientation.rotate_z(move1 * -0.3);
+                        next.belt.orientation.rotate_z(move1 * -0.2);
+                        next.shorts.orientation.rotate_z(move1 * -0.4);
+                        next.control.orientation.rotate_x(move1 * -2.1);
+                        next.control.orientation.rotate_z(move1 * -0.5);
+                        next.control.position += Vec3::new(move1 * 6.0, move1 * -3.0, 0.0);
+                        next.control.orientation.rotate_y(move1 * -0.3);
+                    }
+
                     let move2 = (move2base.min(0.5).mul(2.0)
                         - move2base.max(0.5).sub(0.5).mul(2.0))
                         * multi_action_pullback;
@@ -1174,27 +1204,6 @@ impl Animation for MultiAction {
                         next.main_weapon_trail = false;
                         next.off_weapon_trail = false;
                     }
-
-                    next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
-                    next.hand_l.orientation =
-                        Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
-                    next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
-                    next.hand_r.orientation =
-                        Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
-
-                    next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                    next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                        * Quaternion::rotation_y(s_a.ac.4)
-                        * Quaternion::rotation_z(s_a.ac.5 + move1 * -PI);
-
-                    next.chest.orientation.rotate_z(move1 * 0.7);
-                    next.head.orientation.rotate_z(move1 * -0.3);
-                    next.belt.orientation.rotate_z(move1 * -0.2);
-                    next.shorts.orientation.rotate_z(move1 * -0.4);
-                    next.control.orientation.rotate_x(move1 * -2.1);
-                    next.control.orientation.rotate_z(move1 * -0.5);
-                    next.control.position += Vec3::new(move1 * 6.0, move1 * -3.0, 0.0);
-                    next.control.orientation.rotate_y(move1 * -0.3);
 
                     next.chest.orientation.rotate_z(move2 * -1.8);
                     next.head.orientation.rotate_z(move2 * 0.8);
@@ -1204,6 +1213,30 @@ impl Animation for MultiAction {
                     next.control.position += Vec3::new(move2 * 4.0, 0.0, move2 * -7.0);
                 },
                 Some("common.abilities.axe.dual_fierce_raze") => {
+                    if action == 0 {
+                        next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2 + -4.0);
+                        next.hand_l.orientation =
+                            Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
+                        next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                        next.hand_r.orientation =
+                            Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+
+                        next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
+                        next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
+                            * Quaternion::rotation_y(s_a.ac.4)
+                            * Quaternion::rotation_z(s_a.ac.5);
+                        next.control_r.position += Vec3::new(8.0, 0.0, 0.0);
+
+                        next.chest.orientation.rotate_z(move1 * 0.7);
+                        next.head.orientation.rotate_z(move1 * -0.3);
+                        next.belt.orientation.rotate_z(move1 * -0.2);
+                        next.shorts.orientation.rotate_z(move1 * -0.4);
+                        next.control.orientation.rotate_x(move1 * -2.1);
+                        next.control.orientation.rotate_z(move1 * -0.5);
+                        next.control.position += Vec3::new(move1 * 6.0, move1 * -3.0, 0.0);
+                        next.control.orientation.rotate_y(move1 * -0.3);
+                    }
+
                     let move2 = (move2base.min(0.5).mul(2.0)
                         - move2base.max(0.5).sub(0.5).mul(2.0))
                         * multi_action_pullback;
@@ -1212,28 +1245,6 @@ impl Animation for MultiAction {
                         next.main_weapon_trail = false;
                         next.off_weapon_trail = false;
                     }
-
-                    next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2 + -4.0);
-                    next.hand_l.orientation =
-                        Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
-                    next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
-                    next.hand_r.orientation =
-                        Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
-
-                    next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                    next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                        * Quaternion::rotation_y(s_a.ac.4)
-                        * Quaternion::rotation_z(s_a.ac.5);
-                    next.control_r.position += Vec3::new(8.0, 0.0, 0.0);
-
-                    next.chest.orientation.rotate_z(move1 * 0.7);
-                    next.head.orientation.rotate_z(move1 * -0.3);
-                    next.belt.orientation.rotate_z(move1 * -0.2);
-                    next.shorts.orientation.rotate_z(move1 * -0.4);
-                    next.control.orientation.rotate_x(move1 * -2.1);
-                    next.control.orientation.rotate_z(move1 * -0.5);
-                    next.control.position += Vec3::new(move1 * 6.0, move1 * -3.0, 0.0);
-                    next.control.orientation.rotate_y(move1 * -0.3);
 
                     next.chest.orientation.rotate_z(move2 * -1.8);
                     next.head.orientation.rotate_z(move2 * 0.8);
@@ -1258,37 +1269,39 @@ impl Animation for MultiAction {
                     next.control.position += Vec3::new(-20.0, 8.0, 0.0) * move2;
                 },
                 Some("common.abilities.hammer.iron_tempest") => {
-                    hammer_start(&mut next, s_a);
+                    if action == 0 {
+                        hammer_start(&mut next, s_a);
 
-                    let move2_tot = move2base + d.current_action as f32;
+                        twist_back(&mut next, move1, 2.0, 0.8, 0.3, 1.4);
+                        next.control.orientation.rotate_x(move1 * 0.8);
+                        next.control.position += Vec3::new(-15.0, 0.0, 6.0) * move1;
+                        next.control.orientation.rotate_z(move1 * 1.2);
+                    }
+
                     let move2 =
-                        move2_tot / d.max_actions.map_or(1.0, |x| x as f32) * multi_action_pullback;
+                        move2base / d.max_actions.map_or(1.0, |x| x as f32) * multi_action_pullback;
 
-                    twist_back(&mut next, move1, 2.0, 0.8, 0.3, 1.4);
-                    next.control.orientation.rotate_x(move1 * 0.8);
-                    next.control.position += Vec3::new(-15.0, 0.0, 6.0) * move1;
-                    next.control.orientation.rotate_z(move1 * 1.2);
-
-                    next.torso.orientation.rotate_z(-TAU * move2_tot);
+                    next.torso.orientation.rotate_z(-TAU * move2base);
                     twist_forward(&mut next, move2, 3.0, 1.2, 0.5, 1.8);
                     next.control.orientation.rotate_z(move2 * -5.0);
                     next.control.position += Vec3::new(20.0, 0.0, 0.0) * move2;
                 },
                 Some("common.abilities.hammer.dual_iron_tempest") => {
-                    dual_wield_start(&mut next);
+                    if action == 0 {
+                        dual_wield_start(&mut next);
 
-                    let move2_tot = move2base + d.current_action as f32;
+                        twist_back(&mut next, move1, 2.0, 0.8, 0.3, 1.4);
+                        next.control_l.orientation.rotate_y(move1 * -PI / 2.0);
+                        next.control_r.orientation.rotate_y(move1 * -PI / 2.0);
+                        next.control.orientation.rotate_z(move1 * 1.2);
+                        next.control.position += Vec3::new(-10.0, 10.0, 6.0) * move1;
+                        next.control_r.position += Vec3::new(0.0, -10.0, 0.0) * move1;
+                    }
+
                     let move2 =
-                        move2_tot / d.max_actions.map_or(1.0, |x| x as f32) * multi_action_pullback;
+                        move2base / d.max_actions.map_or(1.0, |x| x as f32) * multi_action_pullback;
 
-                    twist_back(&mut next, move1, 2.0, 0.8, 0.3, 1.4);
-                    next.control_l.orientation.rotate_y(move1 * -PI / 2.0);
-                    next.control_r.orientation.rotate_y(move1 * -PI / 2.0);
-                    next.control.orientation.rotate_z(move1 * 1.2);
-                    next.control.position += Vec3::new(-10.0, 10.0, 6.0) * move1;
-                    next.control_r.position += Vec3::new(0.0, -10.0, 0.0) * move1;
-
-                    next.torso.orientation.rotate_z(-TAU * move2_tot);
+                    next.torso.orientation.rotate_z(-TAU * move2base);
                     twist_forward(&mut next, move2, 3.0, 1.2, 0.5, 1.8);
                     next.control.orientation.rotate_z(move2 * -3.0);
                     next.control.position += Vec3::new(20.0, -10.0, 0.0) * move2;
