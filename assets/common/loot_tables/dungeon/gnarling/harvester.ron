@@ -1,14 +1,8 @@
 [
     (1, All([
-        Lottery([
-            (1.0, All([
-                LootTable("common.loot_tables.armor.tier-1"),
-                LootTable("common.loot_tables.weapons.tier-2"),
-            ])),
-            (1.0, All([
-                LootTable("common.loot_tables.weapons.tier-1"),
-                LootTable("common.loot_tables.armor.tier-2"),
-            ])),
+        All([
+            LootTable("common.loot_tables.armor.tier-2"),
+            LootTable("common.loot_tables.weapons.tier-2"),
         ]),
         Lottery([
             (3.0, Nothing),

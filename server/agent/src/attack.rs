@@ -4786,12 +4786,9 @@ impl<'a> AgentData<'a> {
         const FIREBREATH_TIME: f32 = 4.0;
         const FIREBREATH_SHORT_TIME: f32 = 2.5; // cutoff sooner at close range
         const FIREBREATH_COOLDOWN: f32 = 3.5;
-        const FAR_PUMPKIN_COOLDOWN: f32 = 1.0; // allows for pathing to player between throws
-        // const CLOSE_MIXUP_COOLDOWN: f32 = 2.5; // variation in attacks at close range
-        // const MID_MIXUP_COOLDOWN: f32 = 3.0; //   ^                       mid
-
-        const CLOSE_MIXUP_COOLDOWN_SPAN: [f32; 2] = [1.5, 7.0];
-        const MID_MIXUP_COOLDOWN_SPAN: [f32; 2] = [2.0, 6.0];
+        const CLOSE_MIXUP_COOLDOWN_SPAN: [f32; 2] = [1.5, 7.0]; // variation in attacks at close range
+        const MID_MIXUP_COOLDOWN_SPAN: [f32; 2] = [2.0, 6.0]; //   ^                       mid
+        const FAR_PUMPKIN_COOLDOWN_SPAN: [f32; 2] = [3.6, 5.0]; // allows for pathing to player between throws
         // notes on cooldown values:
         //  - scalar values are from the end of an attack
         //  - span values are from the beginning of an attack
@@ -4800,7 +4797,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             FirstVines = 0,
             SecondVines,
-            MixupInit,
+            RandomInit,
         }
 
         // timers
@@ -4814,6 +4811,7 @@ impl<'a> AgentData<'a> {
         enum ActionStateCounters {
             CloseMixupCooldown = 0,
             MidMixupCooldown,
+            FarPumpkinCooldown,
         }
 
         // line of sight check
@@ -4831,25 +4829,23 @@ impl<'a> AgentData<'a> {
 
         // === main ===
 
-        // initialise mixup cooldowns
-        if !agent.combat_state.conditions[ActionStateConditions::MixupInit as usize]  {
+        // initialise randomised cooldowns
+        if !agent.combat_state.conditions[ActionStateConditions::RandomInit as usize]  {
+            agent.combat_state.conditions[ActionStateConditions::RandomInit as usize] = true;
             agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize] =
-                midpoint(CLOSE_MIXUP_COOLDOWN_SPAN);
+                rng.gen_range(CLOSE_MIXUP_COOLDOWN_SPAN[0]..=CLOSE_MIXUP_COOLDOWN_SPAN[1]);
             agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize] = 
-                midpoint(MID_MIXUP_COOLDOWN_SPAN);
-            agent.combat_state.conditions[ActionStateConditions::MixupInit as usize] = true;
+                rng.gen_range(MID_MIXUP_COOLDOWN_SPAN[0]..=MID_MIXUP_COOLDOWN_SPAN[1]);
+            agent.combat_state.counters[ActionStateCounters::FarPumpkinCooldown as usize] = 
+                rng.gen_range(FAR_PUMPKIN_COOLDOWN_SPAN[0]..=FAR_PUMPKIN_COOLDOWN_SPAN[1]);
         }
 
         // --- timers ---
-        // mixup timer reset is handled within attack logic
+        // mixup and far pumpkin timer resets are handled within attack logic
         match self.char_state {
             CharacterState::BasicBeam(_) => {
                 // reset when using firebreath
                 agent.combat_state.timers[ActionStateTimers::Firebreath as usize] = 0.0;
-            },
-            CharacterState::BasicRanged(_) => {
-                // reset when using explodingpumpkin
-                agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
             },
             _ => {
                 // increment otherwise
@@ -4957,10 +4953,17 @@ impl<'a> AgentData<'a> {
         else if attack_data.dist_sqrd < MAX_PUMPKIN_RANGE.powi(2)
             && line_of_sight_with_target()
             && agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize]
-                > FAR_PUMPKIN_COOLDOWN
+                > agent.combat_state.counters[ActionStateCounters::FarPumpkinCooldown as usize]
         {
             // throw pumpkin
             controller.push_basic_input(InputKind::Ability(0));
+            // check if pumpkin is being used
+            if matches!(self.char_state, CharacterState::BasicRanged(_) ) {
+                // reset pumpkin timer and setup new cooldown
+                agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
+                agent.combat_state.counters[ActionStateCounters::FarPumpkinCooldown as usize] = 
+                    rng.gen_range(FAR_PUMPKIN_COOLDOWN_SPAN[0]..=FAR_PUMPKIN_COOLDOWN_SPAN[1]);
+            }
         }
 
         // --- movement ---
