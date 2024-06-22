@@ -400,7 +400,7 @@ impl Screen {
                     gen_content.push(
                         Slider::new(
                             &mut self.map_vertical_scale,
-                            0.0..=160.0,
+                            0.1..=160.0,
                             gen_opts.scale * 10.0,
                             move |s| message(WorldChange::Scale(s / 10.0)),
                         )
