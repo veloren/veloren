@@ -4792,7 +4792,6 @@ impl<'a> AgentData<'a> {
         enum ActionStateConditions {
             FirstVines = 0,
             SecondVines,
-            RandomInit,
         }
 
         // timers
@@ -4826,8 +4825,8 @@ impl<'a> AgentData<'a> {
         
         // --- timers ---
         // initialise randomised cooldowns
-        if !agent.combat_state.conditions[ActionStateConditions::RandomInit as usize]  {
-            agent.combat_state.conditions[ActionStateConditions::RandomInit as usize] = true;
+        if !agent.combat_state.initialized  {
+            agent.combat_state.initialized = true;
             agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize] =
                 rng.gen_range(CLOSE_MIXUP_COOLDOWN_SPAN[0]..=CLOSE_MIXUP_COOLDOWN_SPAN[1]);
             agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize] = 
@@ -6121,8 +6120,9 @@ impl<'a> AgentData<'a> {
 
 
         // --- attacks ---
+        // start out by summoning green totem
         if !agent.combat_state.initialized {
-            // If not initialized yet, start out by summoning green totem
+            
             controller.push_basic_input(InputKind::Ability(2));
             if matches!(self.char_state, CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover)
             {
