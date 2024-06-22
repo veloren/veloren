@@ -1,7 +1,50 @@
 [
-    // Legendary sceptres
+    // Purple Linen set
     Set([
-        "common.items.weapons.sceptre.root_evil",
-        "common.items.weapons.sceptre.caduceus",
+        "common.items.armor.cloth_purple.belt",
+        "common.items.armor.cloth_purple.chest",
+        "common.items.armor.cloth_purple.foot",
+        "common.items.armor.cloth_purple.hand",
+        "common.items.armor.cloth_purple.pants",
+        "common.items.armor.cloth_purple.shoulder",
+    ]),
+
+    // Green Linen set
+    Set([
+        "common.items.armor.cloth_green.belt",
+        "common.items.armor.cloth_green.chest",
+        "common.items.armor.cloth_green.foot",
+        "common.items.armor.cloth_green.hand",
+        "common.items.armor.cloth_green.pants",
+        "common.items.armor.cloth_green.shoulder",
+    ]),
+
+    // Blue Linen set
+    Set([
+        "common.items.armor.cloth_blue.belt",
+        "common.items.armor.cloth_blue.chest",
+        "common.items.armor.cloth_blue.foot",
+        "common.items.armor.cloth_blue.hand",
+        "common.items.armor.cloth_blue.pants",
+        "common.items.armor.cloth_blue.shoulder_0",
+        "common.items.armor.cloth_blue.shoulder_1",
+    ]),
+
+    // Worker/starter clothing
+    Set([
+        "common.items.armor.misc.chest.worker_green_0",
+        "common.items.armor.misc.chest.worker_green_1",
+        "common.items.armor.misc.chest.worker_orange_0",
+        "common.items.armor.misc.chest.worker_orange_1",
+        "common.items.armor.misc.chest.worker_purple_0",
+        "common.items.armor.misc.chest.worker_purple_1",
+        "common.items.armor.misc.chest.worker_purple_brown",
+        "common.items.armor.misc.chest.worker_red_0",
+        "common.items.armor.misc.chest.worker_red_1",
+        "common.items.armor.misc.chest.worker_yellow_0",
+        "common.items.armor.misc.chest.worker_yellow_1",
+        "common.items.armor.misc.pants.worker_blue",
+        "common.items.armor.misc.pants.worker_brown",
+        "common.items.armor.misc.foot.sandals",
     ]),
 ]
