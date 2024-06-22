@@ -27,6 +27,8 @@ use rand::{prelude::SliceRandom, Rng};
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
+fn midpoint(min_max: [f32; 2]) -> f32 { return min_max[0] + (min_max[1] - min_max[0]) / 2.0 }
+
 impl<'a> AgentData<'a> {
     // Intended for any agent that has one attack, that attack is a melee attack,
     // and the agent is able to freely walk around
@@ -4784,21 +4786,34 @@ impl<'a> AgentData<'a> {
         const FIREBREATH_TIME: f32 = 4.0;
         const FIREBREATH_SHORT_TIME: f32 = 2.5; // cutoff sooner at close range
         const FIREBREATH_COOLDOWN: f32 = 3.5;
-        const CLOSE_MIXUP_COOLDOWN: f32 = 2.5; // variation in attacks at close range
-        const MID_MIXUP_COOLDOWN: f32 = 3.0; //   ^                       mid
         const FAR_PUMPKIN_COOLDOWN: f32 = 1.0; // allows for pathing to player between throws
+        // const CLOSE_MIXUP_COOLDOWN: f32 = 2.5; // variation in attacks at close range
+        // const MID_MIXUP_COOLDOWN: f32 = 3.0; //   ^                       mid
+
+        const CLOSE_MIXUP_COOLDOWN_SPAN: [f32; 2] = [1.5, 7.0];
+        const MID_MIXUP_COOLDOWN_SPAN: [f32; 2] = [2.0, 6.0];
+        // notes on cooldown values:
+        //  - scalar values are from the end of an attack
+        //  - span values are from the beginning of an attack
 
         // conditions
         enum ActionStateConditions {
-            HasSummonedFirstVines = 0,
-            HasSummonedSecondVines,
+            FirstVines = 0,
+            SecondVines,
+            MixupInit,
         }
 
         // timers
         enum ActionStateTimers {
             Firebreath = 0,
-            CloseMixup,
+            Mixup,
             FarPumpkin,
+        }
+
+        // //counters
+        enum ActionStateCounters {
+            CloseMixupCooldown = 0,
+            MidMixupCooldown,
         }
 
         // line of sight check
@@ -4816,23 +4831,31 @@ impl<'a> AgentData<'a> {
 
         // === main ===
 
+        // initialise mixup cooldowns
+        if !agent.combat_state.conditions[ActionStateConditions::MixupInit as usize]  {
+            agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize] =
+                midpoint(CLOSE_MIXUP_COOLDOWN_SPAN);
+            agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize] = 
+                midpoint(MID_MIXUP_COOLDOWN_SPAN);
+            agent.combat_state.conditions[ActionStateConditions::MixupInit as usize] = true;
+        }
+
         // --- timers ---
+        // mixup timer reset is handled within attack logic
         match self.char_state {
             CharacterState::BasicBeam(_) => {
                 // reset when using firebreath
                 agent.combat_state.timers[ActionStateTimers::Firebreath as usize] = 0.0;
-                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] = 0.0;
             },
             CharacterState::BasicRanged(_) => {
                 // reset when using explodingpumpkin
                 agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
-                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] = 0.0;
             },
             _ => {
                 // increment otherwise
                 agent.combat_state.timers[ActionStateTimers::Firebreath as usize] += read_data.dt.0;
                 agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] += read_data.dt.0;
-                agent.combat_state.timers[ActionStateTimers::CloseMixup as usize] += read_data.dt.0;
+                agent.combat_state.timers[ActionStateTimers::Mixup as usize] += read_data.dt.0;
             },
         }
 
@@ -4842,24 +4865,24 @@ impl<'a> AgentData<'a> {
 
         if health_fraction < SECOND_VINE_CREATION_THRESHOLD
             && !agent.combat_state.conditions
-                [ActionStateConditions::HasSummonedSecondVines as usize]
+                [ActionStateConditions::SecondVines as usize]
         {
             // second vines summon
             controller.push_basic_input(InputKind::Ability(2));
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.combat_state.conditions
-                    [ActionStateConditions::HasSummonedSecondVines as usize] = true;
+                    [ActionStateConditions::SecondVines as usize] = true;
             }
         } else if health_fraction < FIRST_VINE_CREATION_THRESHOLD
-            && !agent.combat_state.conditions[ActionStateConditions::HasSummonedFirstVines as usize]
+            && !agent.combat_state.conditions[ActionStateConditions::FirstVines as usize]
         {
             // first vines summon
             controller.push_basic_input(InputKind::Ability(1));
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.combat_state.conditions
-                    [ActionStateConditions::HasSummonedFirstVines as usize] = true;
+                    [ActionStateConditions::FirstVines as usize] = true;
             }
         }
         // close range
@@ -4870,8 +4893,8 @@ impl<'a> AgentData<'a> {
             {
                 // keep using firebreath under short time limit
                 controller.push_basic_input(InputKind::Secondary);
-            } else if agent.combat_state.timers[ActionStateTimers::CloseMixup as usize]
-                > CLOSE_MIXUP_COOLDOWN
+            } else if agent.combat_state.timers[ActionStateTimers::Mixup as usize]
+                > agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize]
                 && attack_data.angle < SCYTHE_AIM_ANGLE
             // for now, no line of sight check for consitency in attacks
             {
@@ -4882,41 +4905,52 @@ impl<'a> AgentData<'a> {
                     // if on firebreath cooldown, throw pumpkin
                     controller.push_basic_input(InputKind::Ability(0));
                 } else {
-                    let randomise = rng.gen_range(1..=3);
+                    let randomise: u8 = rng.gen_range(1..=2);
                     match randomise {
                         1 => controller.push_basic_input(InputKind::Secondary), // firebreath
-                        2 => controller.push_basic_input(InputKind::Primary),   // scythe
                         _ => controller.push_basic_input(InputKind::Ability(0)), // pumpkin
                     }
                 }
+                // check if a mixup attack is being used
+                if matches!(self.char_state, CharacterState::BasicBeam(_) | CharacterState::BasicRanged(_) ) {
+                    // reset mixup timer and setup new close mixup cooldown
+                    agent.combat_state.timers[ActionStateTimers::Mixup as usize] = 0.0;
+                    agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize] = 
+                        rng.gen_range(CLOSE_MIXUP_COOLDOWN_SPAN[0]..=CLOSE_MIXUP_COOLDOWN_SPAN[1]);
+                }
+
             } else if attack_data.angle < SCYTHE_AIM_ANGLE {
                 // scythe melee
                 controller.push_basic_input(InputKind::Primary);
             }
         }
-        // mid range (with line of sight)
-        else if attack_data.dist_sqrd < FIREBREATH_RANGE.powi(2)
-        && line_of_sight_with_target()
-        {
+        // mid range (line of sight not needed for 'suppressing' attacks)
+        else if attack_data.dist_sqrd < FIREBREATH_RANGE.powi(2) {
             // keep using firebreath under full time limit
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs_f32(FIREBREATH_TIME))
             {
                 controller.push_basic_input(InputKind::Secondary);
             }
             // start using firebreath if close enough, in angle, and off cooldown
-            else if // attack_data.dist_sqrd < FIREBREATH_RANGE * FIREBREATH_RANGE_FACTOR
-                // && attack_data.angle < FIREBREATH_AIM_ANGLE
-                // && 
-                agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
+            else if attack_data.dist_sqrd < (FIREBREATH_RANGE * FIREBREATH_RANGE_FACTOR).powi(2)
+                && attack_data.angle < FIREBREATH_AIM_ANGLE
+                && agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
                     > FIREBREATH_COOLDOWN
             {
                 controller.push_basic_input(InputKind::Secondary);
             }
             // on mixup timer, throw a pumpkin
-            else if agent.combat_state.timers[ActionStateTimers::CloseMixup as usize]
-                > MID_MIXUP_COOLDOWN
+            else if agent.combat_state.timers[ActionStateTimers::Mixup as usize]
+                > agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize]
             {
                 controller.push_basic_input(InputKind::Ability(0));
+                // check if pumpkin is being used
+                if matches!(self.char_state, CharacterState::BasicRanged(_) ) {
+                    // reset mixup timer and setup new mid mixup cooldown
+                    agent.combat_state.timers[ActionStateTimers::Mixup as usize] = 0.0;
+                    agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize] = 
+                        rng.gen_range(MID_MIXUP_COOLDOWN_SPAN[0]..=MID_MIXUP_COOLDOWN_SPAN[1]);
+                }
             }
         }
         // long range (with line of sight)
@@ -5913,7 +5947,6 @@ impl<'a> AgentData<'a> {
             < (attack_data.body_dist + STRIKE_RANGE * ATTACK_RANGE_FACTOR).powi(2);
         let is_in_strike_angle = attack_data.angle < STRIKE_AIM_ANGLE;
 
-
         // === main ===
 
         // --- timers ---
@@ -5959,7 +5992,7 @@ impl<'a> AgentData<'a> {
         if is_in_strike_range && is_in_strike_angle {
             if agent.combat_state.timers[ActionStateTimers::Mixup as usize] > MIXUP_COOLDOWN {
                 // randomly mix up
-                let randomise = rng.gen_range(1..=3);
+                let randomise: u8 = rng.gen_range(1..=3);
                 match randomise {
                     1 => controller.push_basic_input(InputKind::Ability(0)), // shockwave
                     2 => controller.push_basic_input(InputKind::Primary),    // strike
