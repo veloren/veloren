@@ -12,7 +12,7 @@ use tracing::{debug, error, info, warn};
 use itertools::izip;
 use noise::NoiseFn;
 use num::{Float, Zero};
-use ordered_float::NotNan;
+use ordered_float::{FloatCore, NotNan};
 use rayon::prelude::*;
 use std::{
     cmp::{Ordering, Reverse},
@@ -1253,7 +1253,7 @@ fn erode(
                     // Egress with no outgoing flows.
                     // wh for oceans is always at least min_erosion_height.
                     let uplift_i = uplift(posi) as Alt;
-                    wh[posi] = min_erosion_height.max(h_t_i + uplift_i);
+                    wh[posi] = FloatCore::max(min_erosion_height, h_t_i + uplift_i);
                     lake_sill[stacki] = posi as isize;
                     lake_water_volume[stacki] = 0.0;
                 } else {
@@ -1335,7 +1335,8 @@ fn erode(
                                         if mask_kk.any() {
                                             let h_j = rec_heights_kk;
                                             let elev_j = h_j;
-                                            let dh = 0.0.max(new_h_i as SimdType - elev_j);
+                                            let dh =
+                                                FloatCore::max(0.0, new_h_i as SimdType - elev_j);
                                             let powf = |a: SimdType, b| a.powf(b);
                                             let dh_fs_sample = k_fs_fact_kk as SimdType
                                                 * powf(dh, n as SimdType - 1.0);
@@ -1543,7 +1544,7 @@ fn erode(
                         // +max(0.d0,min(lake_sediment(lake_sill(ij)),
                         // lake_water_volume(lake_sill(ij))))/
                         // lake_water_volume(lake_sill(ij))*(water(ij)-h(ij))
-                        *h += (0.0.max(lake_silt[stacki].min(lake_water_volume[lposi]))
+                        *h += (FloatCore::max(0.0, lake_silt[stacki].min(lake_water_volume[lposi]))
                             / lake_water_volume[lposi]
                             * (wh[posi] - *h) as Compute) as Alt;
                     }
@@ -1613,7 +1614,7 @@ fn erode(
                 panic!("Disconnected lake!");
             }
             // wh for oceans is always at least min_erosion_height.
-            wh[posi] = min_erosion_height.max(old_h_i as Alt);
+            wh[posi] = FloatCore::max(min_erosion_height, old_h_i as Alt);
         } else {
             let posj = posj as usize;
             // Find the water height for this chunk's receiver; we only apply thermal
@@ -1818,7 +1819,7 @@ pub(crate) fn fill_sinks<F: Float + Send + Sync>(
 ///   adjacency list).
 /// - The adjacency list (stored in a single vector), indexed by the second
 ///   indirection vector.
-pub fn get_lakes<F: Float>(
+pub fn get_lakes<F: FloatCore>(
     map_size_lg: MapSizeLg,
     h: impl Fn(usize) -> F,
     downhill: &mut [isize],

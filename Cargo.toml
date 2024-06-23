@@ -146,7 +146,7 @@ hashbrown = { version = "0.14", features = ["rayon", "serde", "nightly"] }
 fxhash = { version = "0.2.1" }
 crossbeam-utils = { version = "0.8.1" }
 crossbeam-channel = { version = "0.5" }
-ordered-float = { version = "3", default-features = true }
+ordered-float = { version = "4.2", default-features = true }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
 vek = { version = "0.17.0", features = ["serde"] }
