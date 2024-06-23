@@ -131,7 +131,7 @@ chrono = { version = "0.4.24", default-features = false, features = [
     "wasmbind",
     "serde",
 ] }
-chrono-tz = { version = "0.8", features = ["serde"] }
+chrono-tz = { version = "0.9", features = ["serde"] }
 inline_tweak = { version = "1.0.8" }
 
 tokio = { version = "1.28", default-features = false, features = ["rt"] }
