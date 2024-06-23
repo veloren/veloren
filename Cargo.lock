@@ -3387,6 +3387,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5194,7 +5203,7 @@ dependencies = [
  "lru",
  "paste",
  "stability",
- "strum 0.26.2",
+ "strum",
  "unicode-segmentation",
  "unicode-width",
 ]
@@ -6292,42 +6301,20 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "strum"
-version = "0.24.1"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "063e6045c0e62079840579a7e47a355ae92f60eb74daaf156fb1e84ba164e63f"
+checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
 dependencies = [
- "strum_macros 0.24.3",
-]
-
-[[package]]
-name = "strum"
-version = "0.26.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d8cec3501a5194c432b2b7976db6b7d10ec95c253208b45f83f7136aa985e29"
-dependencies = [
- "strum_macros 0.26.2",
+ "strum_macros",
 ]
 
 [[package]]
 name = "strum_macros"
-version = "0.24.3"
+version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e385be0d24f186b4ce2f9982191e7101bb737312ad61c1f2f984f34bcf85d59"
+checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
 dependencies = [
- "heck 0.4.1",
- "proc-macro2 1.0.83",
- "quote 1.0.36",
- "rustversion",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "strum_macros"
-version = "0.26.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6cf59daf282c0a494ba14fd21610a0325f9f90ec9d1231dea26bcb1d696c946"
-dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "proc-macro2 1.0.83",
  "quote 1.0.36",
  "rustversion",
@@ -7123,7 +7110,7 @@ dependencies = [
  "fxhash",
  "hashbrown 0.14.5",
  "indexmap",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "kiddo",
  "lazy_static",
  "num-derive",
@@ -7143,7 +7130,7 @@ dependencies = [
  "slotmap",
  "specs",
  "spin_sleep",
- "strum 0.24.1",
+ "strum",
  "tracing",
  "tracing-subscriber",
  "uuid",
@@ -7270,7 +7257,7 @@ dependencies = [
 name = "veloren-common-systems"
 version = "0.10.0"
 dependencies = [
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "ordered-float 3.9.2",
  "rand 0.8.5",
  "rayon",
@@ -7352,7 +7339,7 @@ dependencies = [
  "enum-map",
  "fxhash",
  "hashbrown 0.14.5",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
@@ -7381,7 +7368,7 @@ dependencies = [
  "futures-util",
  "hashbrown 0.14.5",
  "humantime",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "lazy_static",
  "noise",
  "num_cpus",
@@ -7400,7 +7387,7 @@ dependencies = [
  "serde",
  "serde_json",
  "specs",
- "strum 0.24.1",
+ "strum",
  "tokio",
  "tracing",
  "vek 0.17.0",
@@ -7421,7 +7408,7 @@ dependencies = [
 name = "veloren-server-agent"
 version = "0.1.0"
 dependencies = [
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "lazy_static",
  "rand 0.8.5",
  "specs",
@@ -7500,7 +7487,7 @@ dependencies = [
  "iced_winit",
  "image",
  "inline_tweak",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "keyboard-keynames",
  "lazy_static",
  "levenshtein",
@@ -7520,7 +7507,7 @@ dependencies = [
  "shaderc",
  "slab",
  "specs",
- "strum 0.24.1",
+ "strum",
  "tokio",
  "tracing",
  "treeculler",
@@ -7600,7 +7587,7 @@ dependencies = [
  "hashbrown 0.14.5",
  "image",
  "indicatif",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "kiddo",
  "lazy_static",
  "lz-fear",
@@ -7617,7 +7604,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "signal-hook",
- "strum 0.24.1",
+ "strum",
  "svg_fmt",
  "tracing",
  "tracing-subscriber",

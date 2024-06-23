@@ -140,7 +140,7 @@ futures-util = { version = "0.3.7", default-features = false }
 prometheus = { version = "0.13", default-features = false }
 prometheus-hyper = "0.2"
 
-strum = { version = "0.24", features = ["derive"] }
+strum = { version = "0.26.3", features = ["derive"] }
 enum-map = { version = "2.4" }
 hashbrown = { version = "0.14", features = ["rayon", "serde", "nightly"] }
 fxhash = { version = "0.2.1" }
@@ -150,7 +150,7 @@ ordered-float = { version = "3", default-features = true }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
 vek = { version = "0.17.0", features = ["serde"] }
-itertools = { version = "0.10" }
+itertools = { version = "0.13" }
 
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.50" }
