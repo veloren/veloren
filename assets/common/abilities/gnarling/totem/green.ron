@@ -12,7 +12,7 @@ BasicAura(
         ),
         (
             kind: ProtectingWard,
-            strength: 1,
+            strength: 0.5,
             duration: Some(1),
             category: Magical,
         ),

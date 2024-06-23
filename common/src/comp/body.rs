@@ -1273,6 +1273,7 @@ impl Body {
                 _ => 300,
             },
             Body::BipedSmall(b) => match b.species {
+                biped_small::Species::GnarlingChieftain => 130,
                 biped_small::Species::IronDwarf | biped_small::Species::Flamekeeper => 300,
                 _ => 100,
             },

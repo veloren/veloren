@@ -6,7 +6,7 @@ BasicAura(
     auras: [
         (
             kind: Burning,
-            strength: 1,
+            strength: 1.2,
             duration: Some(1),
             category: Magical,
         ),
