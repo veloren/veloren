@@ -6251,7 +6251,6 @@ impl<'a> AgentData<'a> {
         if attack_data.dist_sqrd
             > (attack_data.body_dist + STRIKE_RANGE * PATH_RANGE_FACTOR).powi(2)
         {
-            // TODO: pathing gap
             self.path_toward_target(
                 agent,
                 controller,
