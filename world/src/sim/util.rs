@@ -4,10 +4,13 @@ use common::{
     vol::RectVolSize,
 };
 use common_base::prof_span;
-use noise::{MultiFractal, NoiseFn, Perlin, Seedable};
+use noise::{
+    core::worley::*, math::vectors::*, permutationtable::PermutationTable, MultiFractal, NoiseFn,
+    Seedable,
+};
 use num::Float;
 use rayon::prelude::*;
-use std::ops::Mul;
+use std::sync::Arc;
 use vek::*;
 
 /// Calculates the smallest distance along an axis (x, y) from an edge of
@@ -445,86 +448,14 @@ pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
     Ok([west, east])
 }
 
-/// A 2-dimensional vector, for internal use.
-type Vector2<T> = [T; 2];
-/// A 3-dimensional vector, for internal use.
-type Vector3<T> = [T; 3];
-/// A 4-dimensional vector, for internal use.
-type Vector4<T> = [T; 4];
-
-#[inline]
-fn zip_with2<T, U, V, F>(a: Vector2<T>, b: Vector2<U>, f: F) -> Vector2<V>
+fn build_sources<Source>(seed: u32, octaves: usize) -> Vec<Source>
 where
-    T: Copy,
-    U: Copy,
-    F: Fn(T, U) -> V,
+    Source: Default + Seedable,
 {
-    let (ax, ay) = (a[0], a[1]);
-    let (bx, by) = (b[0], b[1]);
-    [f(ax, bx), f(ay, by)]
-}
-
-#[inline]
-fn zip_with3<T, U, V, F>(a: Vector3<T>, b: Vector3<U>, f: F) -> Vector3<V>
-where
-    T: Copy,
-    U: Copy,
-    F: Fn(T, U) -> V,
-{
-    let (ax, ay, az) = (a[0], a[1], a[2]);
-    let (bx, by, bz) = (b[0], b[1], b[2]);
-    [f(ax, bx), f(ay, by), f(az, bz)]
-}
-
-#[inline]
-fn zip_with4<T, U, V, F>(a: Vector4<T>, b: Vector4<U>, f: F) -> Vector4<V>
-where
-    T: Copy,
-    U: Copy,
-    F: Fn(T, U) -> V,
-{
-    let (ax, ay, az, aw) = (a[0], a[1], a[2], a[3]);
-    let (bx, by, bz, bw) = (b[0], b[1], b[2], b[3]);
-    [f(ax, bx), f(ay, by), f(az, bz), f(aw, bw)]
-}
-
-#[inline]
-fn mul2<T>(a: Vector2<T>, b: T) -> Vector2<T>
-where
-    T: Copy + Mul<T, Output = T>,
-{
-    zip_with2(a, const2(b), Mul::mul)
-}
-
-#[inline]
-fn mul3<T>(a: Vector3<T>, b: T) -> Vector3<T>
-where
-    T: Copy + Mul<T, Output = T>,
-{
-    zip_with3(a, const3(b), Mul::mul)
-}
-
-#[inline]
-fn mul4<T>(a: Vector4<T>, b: T) -> Vector4<T>
-where
-    T: Copy + Mul<T, Output = T>,
-{
-    zip_with4(a, const4(b), Mul::mul)
-}
-
-#[inline]
-fn const2<T: Copy>(x: T) -> Vector2<T> { [x, x] }
-
-#[inline]
-fn const3<T: Copy>(x: T) -> Vector3<T> { [x, x, x] }
-
-#[inline]
-fn const4<T: Copy>(x: T) -> Vector4<T> { [x, x, x, x] }
-
-fn build_sources(seed: u32, octaves: usize) -> Vec<Perlin> {
     let mut sources = Vec::with_capacity(octaves);
     for x in 0..octaves {
-        sources.push(Perlin::new().set_seed(seed + x as u32));
+        let source = Source::default();
+        sources.push(source.set_seed(seed + x as u32));
     }
     sources
 }
@@ -533,8 +464,10 @@ fn build_sources(seed: u32, octaves: usize) -> Vec<Perlin> {
 ///
 /// The result of this multifractal noise is that valleys in the noise should
 /// have smooth bottoms at all altitudes.
+///
+/// Copied from noise crate to add offset.
 #[derive(Clone, Debug)]
-pub struct HybridMulti {
+pub struct HybridMulti<T> {
     /// Total number of frequency octaves to generate the noise with.
     ///
     /// The number of octaves control the _amount of detail_ in the noise
@@ -575,10 +508,14 @@ pub struct HybridMulti {
     pub offset: f64,
 
     seed: u32,
-    sources: Vec<Perlin>,
+    sources: Vec<T>,
+    //scale_factor: f64,
 }
 
-impl HybridMulti {
+impl<T> HybridMulti<T>
+where
+    T: Default + Seedable,
+{
     pub const DEFAULT_FREQUENCY: f64 = 2.0;
     pub const DEFAULT_LACUNARITY: f64 = /* std::f64::consts::PI * 2.0 / 3.0 */ 2.0;
     pub const DEFAULT_OCTAVES: usize = 6;
@@ -589,26 +526,60 @@ impl HybridMulti {
     pub const DEFAULT_SEED: u32 = 0;
     pub const MAX_OCTAVES: usize = 32;
 
-    pub fn new() -> Self {
+    pub fn new(seed: u32) -> Self {
         Self {
-            seed: Self::DEFAULT_SEED,
+            seed,
             octaves: Self::DEFAULT_OCTAVES,
             frequency: Self::DEFAULT_FREQUENCY,
             lacunarity: Self::DEFAULT_LACUNARITY,
             persistence: Self::DEFAULT_PERSISTENCE,
             offset: Self::DEFAULT_OFFSET,
-            sources: build_sources(Self::DEFAULT_SEED, Self::DEFAULT_OCTAVES),
+            sources: build_sources(seed, Self::DEFAULT_OCTAVES),
+            //scale_factor: Self::calc_scale_factor(Self::DEFAULT_PERSISTENCE,
+            // Self::DEFAULT_OCTAVES),
         }
     }
 
     pub fn set_offset(self, offset: f64) -> Self { Self { offset, ..self } }
+
+    #[allow(dead_code)]
+    pub fn set_sources(self, sources: Vec<T>) -> Self { Self { sources, ..self } }
+    /*fn calc_scale_factor(persistence: f64, octaves: usize) -> f64 {
+        let mut result = persistence;
+
+        // Do octave 0
+        let mut amplitude = persistence;
+        let mut weight = result;
+        let mut signal = amplitude;
+        weight *= signal;
+
+        result += signal;
+
+        if octaves >= 1 {
+            result += (1..=octaves).fold(0.0, |acc, _| {
+                amplitude *= persistence;
+                weight = weight.max(1.0);
+                signal = amplitude;
+                weight *= signal;
+                acc + signal
+            });
+        }
+
+        2.0 / result
+    }*/
 }
 
-impl Default for HybridMulti {
-    fn default() -> Self { Self::new() }
+impl<T> Default for HybridMulti<T>
+where
+    T: Default + Seedable,
+{
+    fn default() -> Self { Self::new(Self::DEFAULT_SEED) }
 }
 
-impl MultiFractal for HybridMulti {
+impl<T> MultiFractal for HybridMulti<T>
+where
+    T: Default + Seedable,
+{
     fn set_octaves(self, mut octaves: usize) -> Self {
         if self.octaves == octaves {
             return self;
@@ -618,6 +589,7 @@ impl MultiFractal for HybridMulti {
         Self {
             octaves,
             sources: build_sources(self.seed, octaves),
+            //scale_factor: Self::calc_scale_factor(self.persistence, octaves),
             ..self
         }
     }
@@ -629,12 +601,16 @@ impl MultiFractal for HybridMulti {
     fn set_persistence(self, persistence: f64) -> Self {
         Self {
             persistence,
+            //scale_factor: Self::calc_scale_factor(persistence, self.octaves),
             ..self
         }
     }
 }
 
-impl Seedable for HybridMulti {
+impl<T> Seedable for HybridMulti<T>
+where
+    T: Default + Seedable,
+{
     fn set_seed(self, seed: u32) -> Self {
         if self.seed == seed {
             return self;
@@ -651,14 +627,21 @@ impl Seedable for HybridMulti {
 }
 
 /// 2-dimensional `HybridMulti` noise
-impl NoiseFn<[f64; 2]> for HybridMulti {
-    fn get(&self, mut point: [f64; 2]) -> f64 {
+impl<T> NoiseFn<f64, 2> for HybridMulti<T>
+where
+    T: NoiseFn<f64, 2>,
+{
+    fn get(&self, point: [f64; 2]) -> f64 {
+        let mut point = Vector2::from(point);
+
+        let mut attenuation = self.persistence;
+
         // First unscaled octave of function; later octaves are scaled.
-        point = mul2(point, self.frequency);
+        point *= self.frequency;
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
         let bias = 1.0;
-        let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
-        let mut exp_scale = 1.0;
+        let mut result =
+            (self.sources[0].get(point.into_array()) + self.offset) * bias * self.persistence;
         let mut scale = self.persistence;
         let mut weight = result;
 
@@ -668,37 +651,49 @@ impl NoiseFn<[f64; 2]> for HybridMulti {
             weight = weight.min(1.0);
 
             // Raise the spatial frequency.
-            point = mul2(point, self.lacunarity);
+            point *= self.lacunarity;
 
             // Get noise value, and scale it to the [offset - 1.0, 1.0 + offset] range.
-            let mut signal = (self.sources[x].get(point) + self.offset) * bias;
+            let mut signal = (self.sources[x].get(point.into_array()) + self.offset) * bias;
 
             // Scale the amplitude appropriately for this frequency.
-            exp_scale *= self.persistence;
-            signal *= exp_scale;
+            signal *= attenuation;
+
+            scale += attenuation;
+
+            // Increase the attenuation for the next octave, to be equal to persistence ^ (x
+            // + 1)
+            attenuation *= self.persistence;
 
             // Add it in, weighted by previous octave's noise value.
             result += weight * signal;
 
             // Update the weighting value.
             weight *= signal;
-            scale += exp_scale;
         }
 
         // Scale the result to the [-1,1] range
+        //result * self.scale_factor
         (result / scale) / bias - self.offset
     }
 }
 
 /// 3-dimensional `HybridMulti` noise
-impl NoiseFn<[f64; 3]> for HybridMulti {
-    fn get(&self, mut point: [f64; 3]) -> f64 {
+impl<T> NoiseFn<f64, 3> for HybridMulti<T>
+where
+    T: NoiseFn<f64, 3>,
+{
+    fn get(&self, point: [f64; 3]) -> f64 {
+        let mut point = Vector3::from(point);
+
+        let mut attenuation = self.persistence;
+
         // First unscaled octave of function; later octaves are scaled.
-        point = mul3(point, self.frequency);
+        point *= self.frequency;
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
         let bias = 1.0;
-        let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
-        let mut exp_scale = 1.0;
+        let mut result =
+            (self.sources[0].get(point.into_array()) + self.offset) * bias * self.persistence;
         let mut scale = self.persistence;
         let mut weight = result;
 
@@ -708,37 +703,49 @@ impl NoiseFn<[f64; 3]> for HybridMulti {
             weight = weight.min(1.0);
 
             // Raise the spatial frequency.
-            point = mul3(point, self.lacunarity);
+            point *= self.lacunarity;
 
             // Get noise value, and scale it to the [0, 1.0] range.
-            let mut signal = (self.sources[x].get(point) + self.offset) * bias;
+            let mut signal = (self.sources[x].get(point.into_array()) + self.offset) * bias;
 
             // Scale the amplitude appropriately for this frequency.
-            exp_scale *= self.persistence;
-            signal *= exp_scale;
+            signal *= attenuation;
+
+            scale += attenuation;
+
+            // Increase the attenuation for the next octave, to be equal to persistence ^ (x
+            // + 1)
+            attenuation *= self.persistence;
 
             // Add it in, weighted by previous octave's noise value.
             result += weight * signal;
 
             // Update the weighting value.
             weight *= signal;
-            scale += exp_scale;
         }
 
         // Scale the result to the [-1,1] range
+        //result * self.scale_factor
         (result / scale) / bias - self.offset
     }
 }
 
 /// 4-dimensional `HybridMulti` noise
-impl NoiseFn<[f64; 4]> for HybridMulti {
-    fn get(&self, mut point: [f64; 4]) -> f64 {
+impl<T> NoiseFn<f64, 4> for HybridMulti<T>
+where
+    T: NoiseFn<f64, 4>,
+{
+    fn get(&self, point: [f64; 4]) -> f64 {
+        let mut point = Vector4::from(point);
+
+        let mut attenuation = self.persistence;
+
         // First unscaled octave of function; later octaves are scaled.
-        point = mul4(point, self.frequency);
+        point *= self.frequency;
         // Offset and bias to scale into [offset - 1.0, 1.0 + offset] range.
         let bias = 1.0;
-        let mut result = (self.sources[0].get(point) + self.offset) * bias * self.persistence;
-        let mut exp_scale = 1.0;
+        let mut result =
+            (self.sources[0].get(point.into_array()) + self.offset) * bias * self.persistence;
         let mut scale = self.persistence;
         let mut weight = result;
 
@@ -748,29 +755,34 @@ impl NoiseFn<[f64; 4]> for HybridMulti {
             weight = weight.min(1.0);
 
             // Raise the spatial frequency.
-            point = mul4(point, self.lacunarity);
+            point *= self.lacunarity;
 
             // Get noise value, and scale it to the [0, 1.0] range.
-            let mut signal = (self.sources[x].get(point) + self.offset) * bias;
+            let mut signal = (self.sources[x].get(point.into_array()) + self.offset) * bias;
 
             // Scale the amplitude appropriately for this frequency.
-            exp_scale *= self.persistence;
-            signal *= exp_scale;
+            signal *= attenuation;
+
+            scale += attenuation;
+
+            // Increase the attenuation for the next octave, to be equal to persistence ^ (x
+            // + 1)
+            attenuation *= self.persistence;
 
             // Add it in, weighted by previous octave's noise value.
             result += weight * signal;
 
             // Update the weighting value.
             weight *= signal;
-            scale += exp_scale;
         }
 
         // Scale the result to the [-1,1] range
+        //result * self.scale_factor
         (result / scale) / bias - self.offset
     }
 }
 
-/* code used by sharp in future
+/* code used by sharp in future – note: NoiseFn impl probably broken by noise crate upgrade from 0.7 to 0.9
 /// Noise function that applies a scaling factor and a bias to the output value
 /// from the source function.
 ///
@@ -811,3 +823,121 @@ impl<'a, F: NoiseFn<T> + 'a, T> NoiseFn<T> for ScaleBias<'a, F> {
     fn get(&self, point: T) -> f64 { (self.source.get(point) * self.scale) + self.bias }
 }
  */
+
+/// Noise function that outputs Worley noise.
+///
+/// Copied from noise crate to make thread-safe.
+#[derive(Clone)]
+pub struct Worley {
+    /// Specifies the distance function to use when calculating the boundaries
+    /// of the cell.
+    pub distance_function: Arc<DistanceFunction>,
+
+    /// Signifies whether the distance from the borders of the cell should be
+    /// returned, or the value for the cell.
+    pub return_type: ReturnType,
+
+    /// Frequency of the seed points.
+    pub frequency: f64,
+
+    seed: u32,
+    perm_table: PermutationTable,
+}
+
+type DistanceFunction = dyn Fn(&[f64], &[f64]) -> f64 + Sync + Send;
+
+impl Worley {
+    //pub const DEFAULT_SEED: u32 = 0;
+    pub const DEFAULT_FREQUENCY: f64 = 1.0;
+
+    pub fn new(seed: u32) -> Self {
+        Self {
+            perm_table: PermutationTable::new(seed),
+            seed,
+            distance_function: Arc::new(distance_functions::euclidean),
+            return_type: ReturnType::Value,
+            frequency: Self::DEFAULT_FREQUENCY,
+        }
+    }
+
+    /// Sets the distance function used by the Worley cells.
+    pub fn set_distance_function<F>(self, function: F) -> Self
+    where
+        F: Fn(&[f64], &[f64]) -> f64 + 'static + Sync + Send,
+    {
+        Self {
+            distance_function: Arc::new(function),
+            ..self
+        }
+    }
+
+    /// Enables or disables applying the distance from the nearest seed point
+    /// to the output value.
+    #[allow(dead_code)]
+    pub fn set_return_type(self, return_type: ReturnType) -> Self {
+        Self {
+            return_type,
+            ..self
+        }
+    }
+
+    /// Sets the frequency of the seed points.
+    pub fn set_frequency(self, frequency: f64) -> Self { Self { frequency, ..self } }
+}
+
+impl Default for Worley {
+    fn default() -> Self { Self::new(0) }
+}
+
+impl Seedable for Worley {
+    /// Sets the seed value used by the Worley cells.
+    fn set_seed(self, seed: u32) -> Self {
+        // If the new seed is the same as the current seed, just return self.
+        if self.seed == seed {
+            return self;
+        }
+
+        // Otherwise, regenerate the permutation table based on the new seed.
+        Self {
+            perm_table: PermutationTable::new(seed),
+            seed,
+            ..self
+        }
+    }
+
+    fn seed(&self) -> u32 { self.seed }
+}
+
+impl NoiseFn<f64, 2> for Worley {
+    fn get(&self, point: [f64; 2]) -> f64 {
+        worley_2d(
+            &self.perm_table,
+            &*self.distance_function,
+            self.return_type,
+            Vector2::from(point) * self.frequency,
+        )
+    }
+}
+
+impl NoiseFn<f64, 3> for Worley {
+    fn get(&self, point: [f64; 3]) -> f64 {
+        worley_3d(
+            &self.perm_table,
+            &*self.distance_function,
+            self.return_type,
+            Vector3::from(point) * self.frequency,
+        )
+    }
+}
+
+#[allow(clippy::cognitive_complexity)]
+impl NoiseFn<f64, 4> for Worley {
+    fn get(&self, point: [f64; 4]) -> f64 {
+        worley_4d(
+            &self.perm_table,
+            &*self.distance_function,
+            self.return_type,
+            Vector4::from(point) * self.frequency,
+        )
+    }
+}

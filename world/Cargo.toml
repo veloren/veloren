@@ -36,7 +36,7 @@ fxhash = { workspace = true }
 image = { workspace = true }
 itertools = { workspace = true }
 vek = { workspace = true }
-noise = { version = "0.7", default-features = false }
+noise = { workspace = true }
 num = { workspace = true }
 ordered-float = { workspace = true }
 hashbrown = { workspace = true }

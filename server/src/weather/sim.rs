@@ -3,7 +3,7 @@ use common::{
     resources::TimeOfDay,
     weather::{Weather, WeatherGrid, CELL_SIZE, CHUNKS_PER_CELL},
 };
-use noise::{NoiseFn, SuperSimplex, Turbulence};
+use noise::{NoiseFn, Perlin, SuperSimplex, Turbulence};
 use vek::*;
 use world::World;
 
@@ -92,15 +92,15 @@ impl WeatherSim {
     pub fn tick(&mut self, time_of_day: TimeOfDay, out: &mut WeatherGrid) -> LightningCells {
         let time = time_of_day.0;
 
-        let base_nz = Turbulence::new(
-            Turbulence::new(SuperSimplex::new())
+        let base_nz: Turbulence<Turbulence<SuperSimplex, Perlin>, Perlin> = Turbulence::new(
+            Turbulence::new(SuperSimplex::new(0))
                 .set_frequency(0.2)
                 .set_power(1.5),
         )
         .set_frequency(2.0)
         .set_power(0.2);
 
-        let rain_nz = SuperSimplex::new();
+        let rain_nz = SuperSimplex::new(0);
 
         let mut lightning_cells = Vec::new();
         for (point, cell) in out.iter_mut() {

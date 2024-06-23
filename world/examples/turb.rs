@@ -1,4 +1,4 @@
-use noise::{NoiseFn, Seedable, SuperSimplex, Turbulence};
+use noise::{NoiseFn, Perlin, SuperSimplex, Turbulence};
 
 use vek::*;
 
@@ -8,16 +8,16 @@ const H: usize = 640;
 fn main() {
     let mut win = minifb::Window::new("Turb", W, H, minifb::WindowOptions::default()).unwrap();
 
-    let nz = Turbulence::new(
-        Turbulence::new(SuperSimplex::new())
+    let nz: Turbulence<Turbulence<SuperSimplex, Perlin>, Perlin> = Turbulence::new(
+        Turbulence::new(SuperSimplex::new(0))
             .set_frequency(0.2)
             .set_power(1.5),
     )
     .set_frequency(2.0)
     .set_power(0.2);
 
-    let _nz_x = SuperSimplex::new().set_seed(0);
-    let _nz_y = SuperSimplex::new().set_seed(1);
+    let _nz_x = SuperSimplex::new(0);
+    let _nz_y = SuperSimplex::new(1);
 
     let mut _time = 0.0f64;
 
