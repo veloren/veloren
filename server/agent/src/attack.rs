@@ -4791,8 +4791,8 @@ impl<'a> AgentData<'a> {
 
         // conditions
         enum ActionStateConditions {
-            FirstVines = 0,
-            SecondVines,
+            HasSummonedFirstVines = 0,
+            HasSummonedSecondVines,
         }
 
         // timers
@@ -4803,6 +4803,7 @@ impl<'a> AgentData<'a> {
         }
 
         // //counters
+        #[allow(clippy::enum_variant_names)]
         enum ActionStateCounters {
             CloseMixupCooldown = 0,
             MidMixupCooldown,
@@ -4864,24 +4865,27 @@ impl<'a> AgentData<'a> {
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // second vine summon
         if health_fraction < SECOND_VINE_CREATION_THRESHOLD
-            && !agent.combat_state.conditions[ActionStateConditions::SecondVines as usize]
+            && !agent.combat_state.conditions
+                [ActionStateConditions::HasSummonedSecondVines as usize]
         {
             controller.push_basic_input(InputKind::Ability(2));
             // wait till recovery before finishing
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
-                agent.combat_state.conditions[ActionStateConditions::SecondVines as usize] = true;
+                agent.combat_state.conditions
+                    [ActionStateConditions::HasSummonedSecondVines as usize] = true;
             }
         }
         // first vine summon
         else if health_fraction < FIRST_VINE_CREATION_THRESHOLD
-            && !agent.combat_state.conditions[ActionStateConditions::FirstVines as usize]
+            && !agent.combat_state.conditions[ActionStateConditions::HasSummonedFirstVines as usize]
         {
             controller.push_basic_input(InputKind::Ability(1));
             // wait till recovery before finishing
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
-                agent.combat_state.conditions[ActionStateConditions::FirstVines as usize] = true;
+                agent.combat_state.conditions
+                    [ActionStateConditions::HasSummonedFirstVines as usize] = true;
             }
         }
         // close range
@@ -6101,7 +6105,7 @@ impl<'a> AgentData<'a> {
 
         // conditions
         enum ActionStateConditions {
-            FirstTotem = 0,
+            HasSummonedFirstTotem = 0,
         }
 
         // timers
@@ -6136,7 +6140,8 @@ impl<'a> AgentData<'a> {
             CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover => {
                 // reset when finished summoning
                 agent.combat_state.timers[ActionStateTimers::SummonTotem as usize] = 0.0;
-                agent.combat_state.conditions[ActionStateConditions::FirstTotem as usize] = true;
+                agent.combat_state.conditions
+                    [ActionStateConditions::HasSummonedFirstTotem as usize] = true;
             },
             CharacterState::Shockwave(_) | CharacterState::BasicRanged(_) => {
                 // reset heavy attack on either ability
@@ -6168,7 +6173,7 @@ impl<'a> AgentData<'a> {
         // --- attacks ---
 
         // start by summoning green totem
-        if !agent.combat_state.conditions[ActionStateConditions::FirstTotem as usize] {
+        if !agent.combat_state.conditions[ActionStateConditions::HasSummonedFirstTotem as usize] {
             controller.push_basic_input(InputKind::Ability(2));
         }
         // on timer, summon a new totem
@@ -6214,10 +6219,11 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Ability(0));
                 }
                 // randomise in shockwave range
-                else if attack_data.dist_sqrd < (SHOCKWAVE_RANGE * SHOCKWAVE_RANGE_FACTOR).powi(2) {
+                else if attack_data.dist_sqrd < (SHOCKWAVE_RANGE * SHOCKWAVE_RANGE_FACTOR).powi(2)
+                {
                     let randomise: u8 = rng.gen_range(1..=2);
                     match randomise {
-                        1 => controller.push_basic_input(InputKind::Secondary),  // barrage
+                        1 => controller.push_basic_input(InputKind::Secondary), // barrage
                         _ => controller.push_basic_input(InputKind::Ability(0)), // shockwave
                     }
                 }
