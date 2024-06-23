@@ -9,7 +9,7 @@ use num_traits::cast::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Debug,
-    io::{Read, Write},
+    io::{Cursor, Read, Write},
     marker::PhantomData,
 };
 use tracing::warn;
@@ -142,7 +142,7 @@ pub trait VoxelImageDecoding: VoxelImageEncoding {
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block;
 }
 
-pub fn image_from_bytes<'a, I: ImageDecoder<'a>, P: 'static + Pixel<Subpixel = u8>>(
+pub fn image_from_bytes<I: ImageDecoder, P: 'static + Pixel<Subpixel = u8>>(
     decoder: I,
 ) -> Option<ImageBuffer<P, Vec<u8>>> {
     let (w, h) = decoder.dimensions();
@@ -249,8 +249,13 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
                 CompressionType::Fast,
                 FilterType::Up,
             );
-            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
-                .ok()?;
+            png.write_image(
+                x.as_raw(),
+                x.width(),
+                x.height(),
+                image::ExtendedColorType::L8,
+            )
+            .ok()?;
             indices[i] = buf.len();
             Some(())
         };
@@ -268,7 +273,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
                 ws.3.as_raw(),
                 ws.3.width(),
                 ws.3.height(),
-                image::ColorType::Rgb8,
+                image::ExtendedColorType::Rgb8,
             )
             .ok()?;
         }
@@ -339,10 +344,10 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
             indices[1]..indices[2],
             indices[2]..quad.len(),
         ];
-        let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
-        let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
-        let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
-        let d = image_from_bytes(PngDecoder::new(&quad[ranges[3].clone()]).ok()?)?;
+        let a = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[0].clone()])).ok()?)?;
+        let b = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[1].clone()])).ok()?)?;
+        let c = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[2].clone()])).ok()?)?;
+        let d = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[3].clone()])).ok()?)?;
         Some((a, b, c, d, sprite_data, HashMap::new()))
     }
 
@@ -533,8 +538,13 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
                 CompressionType::Fast,
                 FilterType::Up,
             );
-            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
-                .ok()?;
+            png.write_image(
+                x.as_raw(),
+                x.width(),
+                x.height(),
+                image::ExtendedColorType::L8,
+            )
+            .ok()?;
             indices[i] = buf.len();
             Some(())
         };
@@ -581,9 +591,9 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
             indices[0]..indices[1],
             indices[1]..indices[2],
         ];
-        let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
-        let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
-        let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
+        let a = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[0].clone()])).ok()?)?;
+        let b = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[1].clone()])).ok()?)?;
+        let c = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[2].clone()])).ok()?)?;
         let mut d: HashMap<_, HashMap<_, _>> = HashMap::new();
         if AVERAGE_PALETTE {
             for i in 0..=255 {

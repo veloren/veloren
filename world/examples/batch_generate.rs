@@ -17,7 +17,7 @@ use common::{
         uniform_idx_as_vec2,
     },
 };
-use image::{codecs::png::PngEncoder, ColorType, DynamicImage, GenericImage, ImageEncoder};
+use image::{codecs::png::PngEncoder, DynamicImage, GenericImage, ImageEncoder};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rand::{thread_rng, Rng};
 use rayon::ThreadPool;
@@ -222,7 +222,7 @@ fn generate_one(
             image.as_bytes(),
             map_size_lg.chunks().x as u32,
             map_size_lg.chunks().y as u32,
-            ColorType::Rgba8,
+            image::ExtendedColorType::Rgba8,
         ) {
             error!(?error, "Could not write image data");
         }

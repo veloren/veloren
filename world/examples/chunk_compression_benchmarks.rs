@@ -20,7 +20,7 @@ use rayon::ThreadPoolBuilder;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    io::{Read, Write},
+    io::{Cursor, Read, Write},
     mem,
     sync::Arc,
     time::Instant,
@@ -205,7 +205,7 @@ impl VoxelImageEncoding for PngEncoding {
             ws.0.as_raw(),
             ws.0.width(),
             ws.0.height(),
-            image::ColorType::Rgba8,
+            image::ExtendedColorType::Rgba8,
         )
         .ok()?;
         Some((buf, ws.1.clone()))
@@ -308,8 +308,13 @@ impl VoxelImageEncoding for MixedEncoding {
                 CompressionType::Fast,
                 FilterType::Up,
             );
-            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
-                .ok()?;
+            png.write_image(
+                x.as_raw(),
+                x.width(),
+                x.height(),
+                image::ExtendedColorType::L8,
+            )
+            .ok()?;
             indices[i] = buf.len();
             Some(())
         };
@@ -337,14 +342,14 @@ impl VoxelImageDecoding for MixedEncoding {
             indices[2]..indices[3],
             indices[3]..quad.len(),
         ];
-        let a = image_from_bytes(PngDecoder::new(&quad[ranges[0].clone()]).ok()?)?;
-        let b = image_from_bytes(PngDecoder::new(&quad[ranges[1].clone()]).ok()?)?;
-        let c = image_from_bytes(PngDecoder::new(&quad[ranges[2].clone()]).ok()?)?;
+        let a = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[0].clone()])).ok()?)?;
+        let b = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[1].clone()])).ok()?)?;
+        let c = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[2].clone()])).ok()?)?;
         let sprite_data =
             bincode::deserialize::<CompressedData<Vec<[u8; 3]>>>(&quad[ranges[4].clone()])
                 .ok()?
                 .decompress()?;
-        let d = image_from_bytes(JpegDecoder::new(&quad[ranges[3].clone()]).ok()?)?;
+        let d = image_from_bytes(JpegDecoder::new(Cursor::new(&quad[ranges[3].clone()])).ok()?)?;
         Some((a, b, c, d, sprite_data))
     }
 
@@ -417,7 +422,7 @@ impl VoxelImageEncoding for MixedEncodingSparseSprites {
             ws.0.as_raw(),
             ws.0.width(),
             ws.0.height(),
-            image::ColorType::L8,
+            image::ExtendedColorType::L8,
         )
         .ok()?;
         let index = buf.len();
@@ -474,8 +479,13 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
                 CompressionType::Fast,
                 FilterType::Up,
             );
-            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
-                .ok()?;
+            png.write_image(
+                x.as_raw(),
+                x.width(),
+                x.height(),
+                image::ExtendedColorType::L8,
+            )
+            .ok()?;
             indices[i] = buf.len();
             Some(())
         };
@@ -650,8 +660,13 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
                 CompressionType::Fast,
                 FilterType::Up,
             );
-            png.write_image(x.as_raw(), x.width(), x.height(), image::ColorType::L8)
-                .ok()?;
+            png.write_image(
+                x.as_raw(),
+                x.width(),
+                x.height(),
+                image::ExtendedColorType::L8,
+            )
+            .ok()?;
             indices[i] = buf.len();
             Some(())
         };

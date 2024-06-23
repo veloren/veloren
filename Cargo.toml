@@ -157,7 +157,7 @@ serde_json = { version = "1.0.50" }
 ron = { version = "0.8", default-features = false }
 
 specs = { version = "0.20", features = ["nightly"] }
-image = { version = "0.24", default-features = false, features = ["png"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 rayon = { version = "1.5" }
 
 clap = { version = "4.2", features = ["derive"] }
