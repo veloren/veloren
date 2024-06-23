@@ -1830,12 +1830,6 @@ dependencies = [
 
 [[package]]
 name = "dispatch"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04e93ca78226c51902d7aa8c12c988338aadd9e85ed9c6be8aaac39192ff3605"
-
-[[package]]
-name = "dispatch"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd0c93bb4b0c6d9b77f4435b0ae98c24d17f1c45b2ff844c6151a07256ca923b"
@@ -7463,7 +7457,7 @@ dependencies = [
  "crossbeam-utils 0.8.20",
  "directories-next",
  "discord-sdk",
- "dispatch 0.1.4",
+ "dispatch",
  "dot_vox",
  "egui",
  "egui_wgpu_backend",
@@ -8823,7 +8817,7 @@ dependencies = [
  "cfg_aliases",
  "core-foundation",
  "core-graphics 0.22.3",
- "dispatch 0.2.0",
+ "dispatch",
  "instant",
  "libc",
  "log",
