@@ -4771,15 +4771,16 @@ impl<'a> AgentData<'a> {
 
         // hard-coded attack values
         const SCYTHE_RANGE: f32 = 4.5;
-        const SCYTHE_AIM_ANGLE: f32 = 50.0 * 0.7;
+        const SCYTHE_AIM_ANGLE: f32 = 50.0;
         const FIREBREATH_RANGE: f32 = 20.0;
         // behaviour parameters
-        const SCYTHE_RANGE_FACTOR: f32 = 0.75; // start attack while suitably in range
-        const FIREBREATH_RANGE_FACTOR: f32 = 0.7; // ^
         const PATH_RANGE_FACTOR: f32 = 0.4; // get comfortably in range, but give player room to breathe
         const FIRST_VINE_CREATION_THRESHOLD: f32 = 0.60;
         const SECOND_VINE_CREATION_THRESHOLD: f32 = 0.30;
+        const SCYTHE_RANGE_FACTOR: f32 = 0.75; // start attack while suitably in range
+        const SCYTHE_AIM_FACTOR: f32 = 0.7;
         const MAX_PUMPKIN_RANGE: f32 = 50.0;
+        const FIREBREATH_RANGE_FACTOR: f32 = 0.7;
         const FIREBREATH_AIM_ANGLE: f32 = 30.0;
         const FIREBREATH_TIME: f32 = 4.0;
         const FIREBREATH_SHORT_TIME: f32 = 2.5; // cutoff sooner at close range
@@ -4896,7 +4897,7 @@ impl<'a> AgentData<'a> {
             // on timer, randomly mixup attacks
             else if agent.combat_state.timers[ActionStateTimers::Mixup as usize]
                 > agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize]
-                && attack_data.angle < SCYTHE_AIM_ANGLE
+                && attack_data.angle < SCYTHE_AIM_ANGLE * SCYTHE_AIM_FACTOR
             // for now, no line of sight check for consitency in attacks
             {
                 // if on firebreath cooldown, throw pumpkin
@@ -4924,7 +4925,7 @@ impl<'a> AgentData<'a> {
                 }
             }
             // default to using scythe melee
-            else if attack_data.angle < SCYTHE_AIM_ANGLE {
+            else if attack_data.angle < SCYTHE_AIM_ANGLE * SCYTHE_AIM_FACTOR {
                 controller.push_basic_input(InputKind::Primary);
             }
         }
@@ -5930,18 +5931,21 @@ impl<'a> AgentData<'a> {
 
         // hard-coded attack values (some scaled for usage)
         const STRIKE_RANGE: f32 = 4.0;
-        const STRIKE_AIM_ANGLE: f32 = 55.0 * 0.7;
+        const STRIKE_AIM_ANGLE: f32 = 55.0;
         const SPIN_RANGE: f32 = 5.0;
-        const SHOCKWAVE_AIM_ANGLE: f32 = 45.0 * 0.7;
-        const SHOCKWAVE_MAX_RANGE: f32 = 30.0 * 0.6;
+        const SHOCKWAVE_AIM_ANGLE: f32 = 45.0;
+        const SHOCKWAVE_MAX_RANGE: f32 = 30.0;
         // behaviour parameters
         const PATH_RANGE_FACTOR: f32 = 0.3; // get comfortably in range, but give player room to breathe
         const STRIKE_RANGE_FACTOR: f32 = 0.6; // start attack while suitably in range
+        const STRIKE_AIM_FACTOR: f32 = 0.7;
         const SPIN_RANGE_FACTOR: f32 = 0.6; // ^
         const SPIN_COOLDOWN: f32 = 1.5;
         const SPIN_RELAX_FACTOR: f32 = 0.2;
+        const SHOCKWAVE_AIM_FACTOR: f32 = 0.7;
         const SHOCKWAVE_COOLDOWN: f32 = 5.0;
         const SHOCKWAVE_MIN_RANGE: f32 = 8.0;
+        const SHOCKWAVE_RANGE_FACTOR: f32 = 0.6;
         const MIXUP_COOLDOWN: f32 = 2.5;
         const MIXUP_RELAX_FACTOR: f32 = 0.3;
 
@@ -5957,7 +5961,7 @@ impl<'a> AgentData<'a> {
             < (attack_data.body_dist + SPIN_RANGE * SPIN_RANGE_FACTOR).powi(2);
         let is_in_strike_range = attack_data.dist_sqrd
             < (attack_data.body_dist + STRIKE_RANGE * STRIKE_RANGE_FACTOR).powi(2);
-        let is_in_strike_angle = attack_data.angle < STRIKE_AIM_ANGLE;
+        let is_in_strike_angle = attack_data.angle < STRIKE_AIM_ANGLE * STRIKE_AIM_FACTOR;
 
         // === main ===
 
@@ -6025,8 +6029,8 @@ impl<'a> AgentData<'a> {
         }
         // shockwave range and angle with cooldown
         else if attack_data.dist_sqrd > SHOCKWAVE_MIN_RANGE.powi(2)
-            && attack_data.dist_sqrd < SHOCKWAVE_MAX_RANGE.powi(2)
-            && attack_data.angle < SHOCKWAVE_AIM_ANGLE
+            && attack_data.dist_sqrd < (SHOCKWAVE_MAX_RANGE * SHOCKWAVE_RANGE_FACTOR).powi(2)
+            && attack_data.angle < SHOCKWAVE_AIM_ANGLE * SHOCKWAVE_AIM_FACTOR
             && agent.combat_state.timers[ActionStateTimers::Shockwave as usize] > SHOCKWAVE_COOLDOWN
         {
             controller.push_basic_input(InputKind::Ability(0));
@@ -6080,13 +6084,16 @@ impl<'a> AgentData<'a> {
 
         // hard-coded attack values (some scaled for usage)
         const STRIKE_RANGE: f32 = 3.0;
-        const STRIKE_AIM_ANGLE: f32 = 50.0 * 0.7;
-        const SHOCKWAVE_RANGE: f32 = 12.0 * 0.6; // attack logic assumes this is less than BARRAGE_RANGE
-        const BARRAGE_RANGE: f32 = 25.0 * 0.8;
+        const STRIKE_AIM_ANGLE: f32 = 50.0;
+        const SHOCKWAVE_RANGE: f32 = 12.0; // attack logic assumes this is less than BARRAGE_RANGE
+        const BARRAGE_RANGE: f32 = 25.0;
         // behaviour parameters
         const PATH_RANGE_FACTOR: f32 = 0.4;
         const STRIKE_RANGE_FACTOR: f32 = 0.7;
+        const STRIKE_AIM_FACTOR: f32 = 0.7;
+        const BARRAGE_RANGE_FACTOR: f32 = 0.8;
         const BARRAGE_AIM_ANGLE: f32 = 20.0;
+        const SHOCKWAVE_RANGE_FACTOR: f32 = 0.75;
         const TOTEM_COOLDOWN: f32 = 20.0;
         const HEAVY_ATTACK_COOLDOWN_SPAN: [f32; 2] = [8.0, 13.0];
         const HEAVY_ATTACK_CHARGE_FACTOR: f32 = 3.3;
@@ -6111,7 +6118,7 @@ impl<'a> AgentData<'a> {
         // re-used checks
         let is_in_strike_range = attack_data.dist_sqrd
             < (attack_data.body_dist + STRIKE_RANGE * STRIKE_RANGE_FACTOR).powi(2);
-        let is_in_strike_angle = attack_data.angle < STRIKE_AIM_ANGLE;
+        let is_in_strike_angle = attack_data.angle < STRIKE_AIM_ANGLE * STRIKE_AIM_FACTOR;
 
         // === main ===
 
@@ -6139,8 +6146,9 @@ impl<'a> AgentData<'a> {
             },
             _ => {},
         }
-        // heavy attack
+        // totem (always increment)
         agent.combat_state.timers[ActionStateTimers::SummonTotem as usize] += read_data.dt.0;
+        // heavy attack (increment at different rates)
         if is_in_strike_range {
             // recharge at standard rate in strike range and angle
             if is_in_strike_angle {
@@ -6189,7 +6197,7 @@ impl<'a> AgentData<'a> {
         // on timer, use a heavy attack in range
         else if agent.combat_state.counters[ActionStateTimers::HeavyAttack as usize]
             > agent.combat_state.counters[ActionStateCounters::HeavyAttackCooldown as usize]
-            && attack_data.dist_sqrd < BARRAGE_RANGE.powi(2)
+            && attack_data.dist_sqrd < (BARRAGE_RANGE * BARRAGE_RANGE_FACTOR).powi(2)
         {
             // has line of sight
             if entities_have_line_of_sight(
@@ -6206,11 +6214,11 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Ability(0));
                 }
                 // randomise in shockwave range
-                else if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) {
+                else if attack_data.dist_sqrd < (SHOCKWAVE_RANGE * SHOCKWAVE_RANGE_FACTOR).powi(2) {
                     let randomise: u8 = rng.gen_range(1..=2);
                     match randomise {
-                        1 => controller.push_basic_input(InputKind::Ability(0)), // shockwave
-                        _ => controller.push_basic_input(InputKind::Secondary),  // barrage
+                        1 => controller.push_basic_input(InputKind::Secondary),  // barrage
+                        _ => controller.push_basic_input(InputKind::Ability(0)), // shockwave
                     }
                 }
                 // use barrage if in range and angle
@@ -6222,7 +6230,7 @@ impl<'a> AgentData<'a> {
             // no line of sight
             else {
                 // use shockwave in range
-                if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) {
+                if attack_data.dist_sqrd < (SHOCKWAVE_RANGE * SHOCKWAVE_RANGE_FACTOR).powi(2) {
                     controller.push_basic_input(InputKind::Ability(0));
                 }
             }
