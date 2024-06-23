@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prompt dialogs are now localized.
 - Image-export for wiki now produces correct images of items as they look like in-game.
 - Limit the minimum vertical scaling value in the world generation UI to 0.1 to prevent an overflow
+- Wood log and worker/linen clothing pricing.
 
 ## [0.16.0] - 2024-03-30
 
