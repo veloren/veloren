@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
-use strum::EnumVariantNames;
+use strum::VariantNames;
 
-// EnumVariantNames is used by bins for clap only, but using strum here gets rid
+// VariantNames is used by bins for clap only, but using strum here gets rid
 // of the clap dependency
 #[derive(
-    Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize, EnumVariantNames,
+    Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize, VariantNames,
 )]
 pub enum AdminRole {
     Moderator = 0,

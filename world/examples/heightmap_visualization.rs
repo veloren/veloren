@@ -87,7 +87,7 @@ fn image_from_function<F: FnMut(u32, u32) -> [u8; 3]>(
         heightmap.as_raw(),
         heightmap.width(),
         heightmap.height(),
-        image::ColorType::Rgb8,
+        image::ExtendedColorType::Rgb8,
     )
     .unwrap();
     let mut f = File::create(name).unwrap();

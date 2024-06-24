@@ -860,9 +860,9 @@ dependencies = [
 
 [[package]]
 name = "chrono-tz"
-version = "0.8.6"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d59ae0466b83e838b81a54256c39d5d7c20b9d7daa10510a242d9b75abd5936e"
+checksum = "93698b29de5e97ad0ae26447b344c482a7284c737d9ddc5f9e52b74a336671bb"
 dependencies = [
  "chrono",
  "chrono-tz-build",
@@ -872,9 +872,9 @@ dependencies = [
 
 [[package]]
 name = "chrono-tz-build"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "433e39f13c9a060046954e0592a8d0a4bcb1040125cbf91cb8ee58964cfb350f"
+checksum = "0c088aee841df9c3041febbb73934cfc39708749bf96dc827e3359cd39ef11b1"
 dependencies = [
  "parse-zoneinfo",
  "phf",
@@ -1077,12 +1077,6 @@ dependencies = [
  "termcolor",
  "unicode-width",
 ]
-
-[[package]]
-name = "color_quant"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
 
 [[package]]
 name = "colorchoice"
@@ -1833,12 +1827,6 @@ dependencies = [
  "url",
  "winreg 0.52.0",
 ]
-
-[[package]]
-name = "dispatch"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04e93ca78226c51902d7aa8c12c988338aadd9e85ed9c6be8aaac39192ff3605"
 
 [[package]]
 name = "dispatch"
@@ -2802,8 +2790,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 dependencies = [
  "ahash 0.8.11",
- "rayon",
- "serde",
 ]
 
 [[package]]
@@ -2814,6 +2800,8 @@ checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
  "ahash 0.8.11",
  "allocator-api2",
+ "rayon",
+ "serde",
 ]
 
 [[package]]
@@ -3184,16 +3172,16 @@ dependencies = [
 
 [[package]]
 name = "image"
-version = "0.24.9"
+version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5690139d2f55868e080017335e4b94cb7414274c74f1669c84fb5feba2c9f69d"
+checksum = "fd54d660e773627692c524beaad361aca785a4f9f5730ce91f42aabe5bce3d11"
 dependencies = [
  "bytemuck",
  "byteorder",
- "color_quant",
- "jpeg-decoder",
  "num-traits",
  "png",
+ "zune-core",
+ "zune-jpeg",
 ]
 
 [[package]]
@@ -3393,6 +3381,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3462,12 +3459,6 @@ checksum = "d2b099aaa34a9751c5bf0878add70444e1ed2dd73f347be99003d4577277de6e"
 dependencies = [
  "libc",
 ]
-
-[[package]]
-name = "jpeg-decoder"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5d4a7da358eff58addd2877a45865158f0d78c911d43a5784ceb7bbf52833b0"
 
 [[package]]
 name = "js-sys"
@@ -4587,15 +4578,6 @@ dependencies = [
 
 [[package]]
 name = "ordered-float"
-version = "3.9.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1e1c390732d15f1d48471625cd92d154e66db2c56645e29a9cd26f4699f72dc"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "ordered-float"
 version = "4.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a76df7075c7d4d01fdcb46c912dd17fba5b60c78ea480b475f2b6ab6f666584e"
@@ -5206,7 +5188,7 @@ dependencies = [
  "lru",
  "paste",
  "stability",
- "strum 0.26.2",
+ "strum",
  "unicode-segmentation",
  "unicode-width",
 ]
@@ -6304,42 +6286,20 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "strum"
-version = "0.24.1"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "063e6045c0e62079840579a7e47a355ae92f60eb74daaf156fb1e84ba164e63f"
+checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
 dependencies = [
- "strum_macros 0.24.3",
-]
-
-[[package]]
-name = "strum"
-version = "0.26.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d8cec3501a5194c432b2b7976db6b7d10ec95c253208b45f83f7136aa985e29"
-dependencies = [
- "strum_macros 0.26.2",
+ "strum_macros",
 ]
 
 [[package]]
 name = "strum_macros"
-version = "0.24.3"
+version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e385be0d24f186b4ce2f9982191e7101bb737312ad61c1f2f984f34bcf85d59"
+checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
 dependencies = [
- "heck 0.4.1",
- "proc-macro2 1.0.83",
- "quote 1.0.36",
- "rustversion",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "strum_macros"
-version = "0.26.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6cf59daf282c0a494ba14fd21610a0325f9f90ec9d1231dea26bcb1d696c946"
-dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "proc-macro2 1.0.83",
  "quote 1.0.36",
  "rustversion",
@@ -7075,7 +7035,7 @@ dependencies = [
  "authc",
  "byteorder",
  "clap",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "hickory-resolver",
  "image",
  "num 0.4.3",
@@ -7109,7 +7069,7 @@ dependencies = [
  "fluent",
  "fluent-bundle",
  "fluent-syntax",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "intl-memoizer",
  "serde",
  "tracing",
@@ -7133,14 +7093,14 @@ dependencies = [
  "dot_vox",
  "enum-map",
  "fxhash",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "indexmap",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "kiddo",
  "lazy_static",
  "num-derive",
  "num-traits",
- "ordered-float 3.9.2",
+ "ordered-float 4.2.0",
  "petgraph 0.6.5",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
@@ -7155,7 +7115,7 @@ dependencies = [
  "slotmap",
  "specs",
  "spin_sleep",
- "strum 0.24.1",
+ "strum",
  "tracing",
  "tracing-subscriber",
  "uuid",
@@ -7171,7 +7131,7 @@ version = "0.10.0"
 dependencies = [
  "assets_manager",
  "dot_vox",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "image",
  "lazy_static",
  "ron",
@@ -7226,7 +7186,7 @@ dependencies = [
 name = "veloren-common-i18n"
 version = "0.1.0"
 dependencies = [
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "rand 0.8.5",
  "serde",
 ]
@@ -7237,7 +7197,7 @@ version = "0.10.0"
 dependencies = [
  "bincode",
  "flate2",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "image",
  "num-traits",
  "serde",
@@ -7256,7 +7216,7 @@ dependencies = [
  "bincode",
  "bytes",
  "futures",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "hex",
  "num_cpus",
  "rayon",
@@ -7282,8 +7242,8 @@ dependencies = [
 name = "veloren-common-systems"
 version = "0.10.0"
 dependencies = [
- "itertools 0.10.5",
- "ordered-float 3.9.2",
+ "itertools 0.13.0",
+ "ordered-float 4.2.0",
  "rand 0.8.5",
  "rayon",
  "specs",
@@ -7308,7 +7268,7 @@ dependencies = [
  "criterion",
  "crossbeam-channel",
  "futures-util",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "lazy_static",
  "lz-fear",
  "prometheus",
@@ -7336,7 +7296,7 @@ dependencies = [
  "bitflags 2.5.0",
  "bytes",
  "criterion",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "prometheus",
  "rand 0.8.5",
  "tokio",
@@ -7363,8 +7323,8 @@ dependencies = [
  "atomic_refcell",
  "enum-map",
  "fxhash",
- "hashbrown 0.13.2",
- "itertools 0.10.5",
+ "hashbrown 0.14.5",
+ "itertools 0.13.0",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
@@ -7391,9 +7351,9 @@ dependencies = [
  "drop_guard",
  "enum-map",
  "futures-util",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "humantime",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "lazy_static",
  "noise",
  "num_cpus",
@@ -7412,7 +7372,7 @@ dependencies = [
  "serde",
  "serde_json",
  "specs",
- "strum 0.24.1",
+ "strum",
  "tokio",
  "tracing",
  "vek 0.17.0",
@@ -7433,7 +7393,7 @@ dependencies = [
 name = "veloren-server-agent"
 version = "0.1.0"
 dependencies = [
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "lazy_static",
  "rand 0.8.5",
  "specs",
@@ -7497,7 +7457,7 @@ dependencies = [
  "crossbeam-utils 0.8.20",
  "directories-next",
  "discord-sdk",
- "dispatch 0.1.4",
+ "dispatch",
  "dot_vox",
  "egui",
  "egui_wgpu_backend",
@@ -7507,12 +7467,12 @@ dependencies = [
  "gilrs",
  "glyph_brush",
  "guillotiere",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "iced_native",
  "iced_winit",
  "image",
  "inline_tweak",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "keyboard-keynames",
  "lazy_static",
  "levenshtein",
@@ -7521,7 +7481,7 @@ dependencies = [
  "native-dialog",
  "num 0.4.3",
  "num_cpus",
- "ordered-float 3.9.2",
+ "ordered-float 4.2.0",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
@@ -7532,7 +7492,7 @@ dependencies = [
  "shaderc",
  "slab",
  "specs",
- "strum 0.24.1",
+ "strum",
  "tokio",
  "tracing",
  "treeculler",
@@ -7609,10 +7569,10 @@ dependencies = [
  "fixed",
  "flate2",
  "fxhash",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.5",
  "image",
  "indicatif",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "kiddo",
  "lazy_static",
  "lz-fear",
@@ -7620,7 +7580,7 @@ dependencies = [
  "noise",
  "num 0.4.3",
  "num-traits",
- "ordered-float 3.9.2",
+ "ordered-float 4.2.0",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
@@ -7629,7 +7589,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "signal-hook",
- "strum 0.24.1",
+ "strum",
  "svg_fmt",
  "tracing",
  "tracing-subscriber",
@@ -8857,7 +8817,7 @@ dependencies = [
  "cfg_aliases",
  "core-foundation",
  "core-graphics 0.22.3",
- "dispatch 0.2.0",
+ "dispatch",
  "instant",
  "libc",
  "log",
@@ -9168,4 +9128,19 @@ checksum = "c253a4914af5bafc8fa8c86ee400827e83cf6ec01195ec1f1ed8441bf00d65aa"
 dependencies = [
  "cc",
  "pkg-config",
+]
+
+[[package]]
+name = "zune-core"
+version = "0.4.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f423a2c17029964870cfaabb1f13dfab7d092a62a29a89264f4d36990ca414a"
+
+[[package]]
+name = "zune-jpeg"
+version = "0.4.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec866b44a2a1fd6133d363f073ca1b179f438f99e7e5bfb1e33f7181facfe448"
+dependencies = [
+ "zune-core",
 ]

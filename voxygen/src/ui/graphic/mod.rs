@@ -322,7 +322,7 @@ impl GraphicCache {
                 }
             });
         } else {
-            self.cache_map.drain_filter(|key, details| {
+            let _ = self.cache_map.extract_if(|key, details| {
                 if key.graphic_id == id {
                     match details {
                         // NOTE: if replace_graphic is used continously for small images (i.e.
