@@ -168,6 +168,8 @@ hex = "0.4.3"
 rustls = { version = "0.23", default-features = false, features = ["std"] }
 quinn = { version = "0.11" }
 
+noise = { version = "0.9", default-features = false }
+
 [patch.crates-io]
 # until next specs release
 specs = { git = "https://github.com/amethyst/specs.git", rev = "4e2da1df29ee840baa9b936593c45592b7c9ae27" }
