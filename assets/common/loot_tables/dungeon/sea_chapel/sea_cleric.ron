@@ -1,3 +1,5 @@
 [
-    (1.0, Item("common.items.recipes.armor.brinestone")),
+    (1.0, Nothing),
+    (1.0, LootTable("common.loot_tables.food.prepared")),
+    (0.5, Item("common.items.recipes.unique.seashell_necklace")),
 ]

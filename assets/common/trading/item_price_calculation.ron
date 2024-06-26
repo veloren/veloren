@@ -24,8 +24,8 @@ loot_tables: [
     (20.375, true, "common.trading.food"),
 
     // Recipes
-    (1.0, true, "common.trading.sellable_recipe"),
-    (1.0, false, "common.trading.unsellable_recipe"),
+    (1.8, true, "common.trading.sellable_recipe"),
+    (1.5, false, "common.trading.unsellable_recipe"),
 
     // Potions
     //

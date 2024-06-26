@@ -4,7 +4,7 @@
             // Ingredients
             (2.0, Item("common.items.crafting_ing.coral_branch")),
             (0.5, Item("common.items.crafting_ing.pearl")),
-            (0.25, Item("common.items.recipes.unique.seashell_necklace")),
+            (0.5, Item("common.items.recipes.armor.brinestone")),
             (0.25, Item("common.items.recipes.unique.winged_coronet")),
             (0.25, Item("common.items.recipes.unique.abyssal_ring")),
         ]),
