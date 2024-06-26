@@ -4912,9 +4912,8 @@ impl<'a> AgentData<'a> {
                 }
                 // otherwise, randomise between firebreath and pumpkin
                 else {
-                    let randomise: u8 = rng.gen_range(1..=2);
-                    match randomise {
-                        1 => controller.push_basic_input(InputKind::Secondary), // firebreath
+                    match rng.gen_bool(0.5) {
+                        true => controller.push_basic_input(InputKind::Secondary), // firebreath
                         _ => controller.push_basic_input(InputKind::Ability(0)), // pumpkin
                     }
                 }
@@ -6221,9 +6220,8 @@ impl<'a> AgentData<'a> {
                 // randomise in shockwave range
                 else if attack_data.dist_sqrd < (SHOCKWAVE_RANGE * SHOCKWAVE_RANGE_FACTOR).powi(2)
                 {
-                    let randomise: u8 = rng.gen_range(1..=2);
-                    match randomise {
-                        1 => controller.push_basic_input(InputKind::Secondary), // barrage
+                    match rng.gen_bool(0.5) {
+                        true => controller.push_basic_input(InputKind::Secondary), // barrage
                         _ => controller.push_basic_input(InputKind::Ability(0)), // shockwave
                     }
                 }
