@@ -4914,7 +4914,7 @@ impl<'a> AgentData<'a> {
                 else {
                     match rng.gen_bool(0.5) {
                         true => controller.push_basic_input(InputKind::Secondary), // firebreath
-                        _ => controller.push_basic_input(InputKind::Ability(0)), // pumpkin
+                        _ => controller.push_basic_input(InputKind::Ability(0)),   // pumpkin
                     }
                 }
                 // reset mixup timing if actually being used
@@ -6222,7 +6222,7 @@ impl<'a> AgentData<'a> {
                 {
                     match rng.gen_bool(0.5) {
                         true => controller.push_basic_input(InputKind::Secondary), // barrage
-                        _ => controller.push_basic_input(InputKind::Ability(0)), // shockwave
+                        _ => controller.push_basic_input(InputKind::Ability(0)),   // shockwave
                     }
                 }
                 // use barrage if in range and angle
