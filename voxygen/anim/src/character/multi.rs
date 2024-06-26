@@ -628,20 +628,27 @@ impl Animation for MultiAction {
                     next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                    next.chest.orientation = Quaternion::rotation_z(move1 * 1.2);
-                    next.head.orientation = Quaternion::rotation_z(move1 * -0.7);
-                    next.shorts.orientation = Quaternion::rotation_z(move1 * -0.6);
+                    next.chest.orientation =
+                        Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                        * Quaternion::rotation_z(move1 * 1.2);
+                    next.chest.position += Vec3::new(0.0, move1 * 3.0, 0.0);
+                    next.head.orientation =
+                        Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
+                            * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
+                            * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
+                    next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
                     next.control.orientation.rotate_x(move1 * -1.0);
                     next.control.orientation.rotate_z(move1 * -1.2);
+                    next.control.position += Vec3::new(0.0, move1 * -6.0, 2.0);
                     next.foot_r.position += Vec3::new(move1 * -1.0, move1 * 6.0, 0.0);
 
                     next.chest.orientation.rotate_z(move2 * -1.4);
-                    next.head.orientation.rotate_z(move2 * 0.9);
+                    next.head.orientation.rotate_z(move2 * 1.1);
                     next.shorts.orientation.rotate_z(move2 * 0.8);
-                    next.belt.orientation.rotate_z(move2 * 0.3);
+                    next.belt.orientation.rotate_z(move2 * 0.4);
                     next.control.orientation.rotate_z(move2 * 1.4);
-                    next.control.position += Vec3::new(0.0, move2 * 10.0, 0.0);
+                    next.control.position += Vec3::new(0.0, move2 * 12.0, 0.0);
                 },
                 Some(
                     "common.abilities.sword.basic_cascade"
