@@ -48,7 +48,7 @@ shell-words = "1.0.0"
 tracing = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = ["rc", "derive"] }
-ratatui = { version = "0.26.0", features = ["crossterm"] }
+ratatui = { version = "0.27.0", features = ["crossterm"] }
 rand = { workspace = true }
 # ECS
 specs = { workspace = true }
