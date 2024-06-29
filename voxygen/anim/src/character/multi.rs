@@ -673,14 +673,26 @@ impl Animation for MultiAction {
                     next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                    next.chest.orientation = Quaternion::rotation_z(move1 * 0.2);
-                    next.control.orientation.rotate_x(move1 * 1.5);
-                    next.control.position += Vec3::new(move1 * 1.0, move1 * 4.0, move1 * 11.0);
+                    next.chest.orientation =
+                        Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                            * Quaternion::rotation_z(move1 * 0.4 + move2 * -0.5);
+                    next.chest.position += Vec3::new(0.0, move1 * -1.0, 0.0);
+                    next.head.orientation =
+                    Quaternion::rotation_x(move1 * 0.1 + move2 * -0.24)
+                        * Quaternion::rotation_y(move1 * -0.2 + move2 * 0.36)
+                        * Quaternion::rotation_z(move1 * -0.1 + move2 * -0.96);
+                    next.control.orientation.rotate_x(move1 * 1.7);
+                    next.control.position += Vec3::new(0.0, move1 * 6.0, move1 * 16.0);
+                    next.foot_l.orientation = Quaternion::rotation_z(move1 * 0.2);
 
+                    next.foot_l.position += Vec3::new(0.0, move2 * 2.5, 0.0);
+                    next.foot_r.position += Vec3::new(0.0, move2 * -0.5, 0.0);
                     next.chest.orientation.rotate_z(move2 * -0.5);
+                    next.chest.position += Vec3::new(0.0, move2 * 4.0, 0.0);
+                    next.head.orientation.rotate_z(move2 * 1.4);
                     next.control.orientation.rotate_z(move2 * -0.3);
-                    next.control.orientation.rotate_x(move2 * -2.9);
-                    next.control.position += Vec3::new(move2 * 7.0, move2 * -3.0, move2 * -15.0);
+                    next.control.orientation.rotate_x(move2 * -3.4);
+                    next.control.position += Vec3::new(move2 * 6.0, move2 * -7.0, move2 * -18.0);
                 },
                 Some(
                     "common.abilities.sword.basic_cross_cut"
