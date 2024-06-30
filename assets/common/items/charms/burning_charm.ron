@@ -17,5 +17,5 @@ ItemDef(
         ])
     ),
     quality: Legendary,
-    tags: [],
+    tags: [Charm],
 )
