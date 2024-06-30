@@ -267,7 +267,10 @@ impl CraftingTab {
                 _ => false,
             },
             CraftingTab::Glider => matches!(&*item.kind(), ItemKind::Glider),
-            CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
+            CraftingTab::Potion => item
+                .tags()
+                .iter()
+                .any(|tag| matches!(tag, &ItemTag::Potion | &ItemTag::Charm)),
             CraftingTab::ProcessedMaterial => item
                 .tags()
                 .iter()

@@ -276,6 +276,7 @@ pub enum ItemTag {
     Cultist,
     Gnarling,
     Potion,
+    Charm,
     Food,
     BaseMaterial, // Cloth-scraps, Leather...
     CraftingTool, // Pickaxe, Craftsman-Hammer, Sewing-Set
@@ -292,6 +293,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::Cultist => "cultist",
             ItemTag::Gnarling => "gnarling",
             ItemTag::Potion => "potion",
+            ItemTag::Charm => "charm",
             ItemTag::Food => "food",
             ItemTag::BaseMaterial => "basemat",
             ItemTag::CraftingTool => "tool",
@@ -305,16 +307,17 @@ impl TagExampleInfo for ItemTag {
     fn exemplar_identifier(&self) -> Option<&str> {
         match self {
             ItemTag::Material(material) => material.exemplar_identifier(),
-            ItemTag::MaterialKind(_) => None,
             ItemTag::Cultist => Some("common.items.tag_examples.cultist"),
             ItemTag::Gnarling => Some("common.items.tag_examples.gnarling"),
-            ItemTag::Potion => None,
-            ItemTag::Food => None,
-            ItemTag::BaseMaterial => None,
-            ItemTag::CraftingTool => None,
-            ItemTag::Utility => None,
-            ItemTag::Bag => None,
-            ItemTag::SalvageInto(_, _) => None,
+            ItemTag::MaterialKind(_)
+            | ItemTag::Potion
+            | ItemTag::Food
+            | ItemTag::Charm
+            | ItemTag::BaseMaterial
+            | ItemTag::CraftingTool
+            | ItemTag::Utility
+            | ItemTag::Bag
+            | ItemTag::SalvageInto(_, _) => None,
         }
     }
 }
