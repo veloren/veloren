@@ -685,21 +685,6 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    // same as look_toward, using &TargetData instead of EcsEntity
-    pub fn look_toward_data(&self, controller: &mut Controller, tgt_data: &TargetData) {
-        let tgt_pos = tgt_data.pos;
-        let eye_offset = self.body.map_or(0.0, |b| b.eye_height(self.scale));
-        let tgt_eye_offset = tgt_data
-            .body
-            .map_or(0.0, |b| b.eye_height(tgt_data.scale.map_or(1.0, |s| s.0)));
-        if let Some(dir) = Dir::from_unnormalized(
-            Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
-                - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-        ) {
-            controller.inputs.look_dir = dir;
-        }
-    }
-
     pub fn flee(
         &self,
         agent: &mut Agent,
