@@ -438,8 +438,10 @@ pub enum Path {
     Partial,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub enum AbilityData {
+    #[default]
+    Default,
     ComboMelee {
         range: f32,
         angle: f32,
@@ -499,6 +501,8 @@ pub enum AbilityData {
     BasicRanged {
         energy: f32,
         projectile_speed: f32,
+        projectile_spread: f32,
+        num_projectiles: u32,
     },
     BasicMelee {
         energy: f32,
@@ -667,10 +671,14 @@ impl AbilityData {
             BasicRanged {
                 energy_cost,
                 projectile_speed,
+                projectile_spread,
+                num_projectiles,
                 ..
             } => Self::BasicRanged {
                 energy: *energy_cost,
                 projectile_speed: *projectile_speed,
+                projectile_spread: *projectile_spread,
+                num_projectiles: *num_projectiles,
             },
             BasicMelee {
                 energy_cost,
@@ -818,6 +826,7 @@ impl AbilityData {
         };
         use AbilityData::*;
         match self {
+            Default => false,
             ComboMelee {
                 range,
                 angle,
@@ -930,6 +939,8 @@ impl AbilityData {
             BasicRanged {
                 energy,
                 projectile_speed,
+                projectile_spread: _,
+                num_projectiles: _,
             } => ranged_check(*projectile_speed) && energy_check(*energy),
             BasicMelee {
                 energy,
