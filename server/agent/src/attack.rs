@@ -13,6 +13,7 @@ use common::{
         Ability, AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction,
         ControlEvent, Controller, Fluid, InputKind,
     },
+    consts::GRAVITY,
     path::TraversalConfig,
     states::{
         self_buff,
@@ -26,6 +27,18 @@ use common::{
 use rand::{prelude::SliceRandom, Rng};
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
+
+// ground-level max range from projectile speed and launch height
+fn projectile_flat_range(speed: f32, height: f32) -> f32 {
+    let w = speed.powi(2);
+    let u = 0.5 * 2_f32.sqrt() * speed;
+    (0.5 * w + u * (0.5 * w + 2.0 * GRAVITY * height).sqrt()) / GRAVITY
+}
+
+// multi-projectile spread (in degrees) based on maximum of linear increase
+fn projectile_multi_angle(projectile_spread: f32, num_projectiles: u32) -> f32 {
+    (180.0 / PI) * projectile_spread * (num_projectiles - 1) as f32
+}
 
 impl<'a> AgentData<'a> {
     // Intended for any agent that has one attack, that attack is a melee attack,
@@ -4770,7 +4783,6 @@ impl<'a> AgentData<'a> {
         // === setup ===
 
         // --- static ---
-        const MAX_PUMPKIN_RANGE: f32 = 50.0;
         // behaviour parameters
         const FIRST_VINE_CREATION_THRESHOLD: f32 = 0.60;
         const SECOND_VINE_CREATION_THRESHOLD: f32 = 0.30;
@@ -4782,6 +4794,7 @@ impl<'a> AgentData<'a> {
         const FIREBREATH_TIME_LIMIT: f32 = 4.0;
         const FIREBREATH_SHORT_TIME_LIMIT: f32 = 2.5; // cutoff sooner at close range
         const FIREBREATH_COOLDOWN: f32 = 3.5;
+        const PUMPKIN_RANGE_FACTOR: f32 = 0.75;
         const CLOSE_MIXUP_COOLDOWN_SPAN: [f32; 2] = [1.5, 7.0]; // variation in attacks at close range
         const MID_MIXUP_COOLDOWN_SPAN: [f32; 2] = [1.5, 4.5]; //   ^                       mid
         const FAR_PUMPKIN_COOLDOWN_SPAN: [f32; 2] = [3.0, 5.0]; // allows for pathing to player between throws
@@ -4826,7 +4839,7 @@ impl<'a> AgentData<'a> {
         let scythe_angle;
         match self
             .extract_ability(AbilityInput::Primary)
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
             AbilityData::BasicMelee { range, angle, .. } => {
                 scythe_range = range;
@@ -4842,7 +4855,7 @@ impl<'a> AgentData<'a> {
         let firebreath_angle;
         match self
             .extract_ability(AbilityInput::Secondary)
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
             AbilityData::BasicBeam { range, angle, .. } => {
                 firebreath_range = range;
@@ -4854,21 +4867,17 @@ impl<'a> AgentData<'a> {
             },
         };
 
-        let pumpkin_speed;
-        match self
+        let pumpkin_speed = match self
             .extract_ability(AbilityInput::Auxiliary(0))
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
             AbilityData::BasicRanged {
                 projectile_speed, ..
-            } => {
-                pumpkin_speed = projectile_speed;
-            },
-            _ => {
-                pumpkin_speed = 30.0;
-            },
+            } => projectile_speed,
+            _ => 30.0,
         };
-        // TODO: calculate ground-level max pumpkin range from projectile speed
+        let pumpkin_max_range =
+            projectile_flat_range(pumpkin_speed, self.body.map_or(5.4, |b| b.height()));
 
         // character state info
         let mut is_using_firebreath = false;
@@ -4999,6 +5008,7 @@ impl<'a> AgentData<'a> {
         // mid range (line of sight not needed for these 'suppressing' attacks)
         } else if attack_data.dist_sqrd < firebreath_range.powi(2) {
             // if using firebreath, keep going under full time limit
+            #[allow(clippy::if_same_then_else)]
             if is_using_firebreath
                 && firebreath_timer < Duration::from_secs_f32(FIREBREATH_TIME_LIMIT)
             {
@@ -5025,7 +5035,7 @@ impl<'a> AgentData<'a> {
             }
         }
         // long range (with line of sight)
-        else if attack_data.dist_sqrd < MAX_PUMPKIN_RANGE.powi(2)
+        else if attack_data.dist_sqrd < (pumpkin_max_range * PUMPKIN_RANGE_FACTOR).powi(2)
             && agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize]
                 > agent.combat_state.counters[ActionStateCounters::FarPumpkinCooldown as usize]
             && line_of_sight_with_target()
@@ -6002,7 +6012,7 @@ impl<'a> AgentData<'a> {
         const SPIN_RANGE_FACTOR: f32 = 0.6;
         const SPIN_COOLDOWN: f32 = 1.5;
         const SPIN_RELAX_FACTOR: f32 = 0.2;
-        const SHOCKWAVE_RANGE_FACTOR: f32 = 0.6;
+        const SHOCKWAVE_RANGE_FACTOR: f32 = 0.7;
         const SHOCKWAVE_AIM_FACTOR: f32 = 0.4;
         const SHOCKWAVE_COOLDOWN: f32 = 5.0;
         const MIXUP_COOLDOWN: f32 = 2.5;
@@ -6024,7 +6034,7 @@ impl<'a> AgentData<'a> {
         let strike_angle;
         match self
             .extract_ability(AbilityInput::Primary)
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
             AbilityData::BasicMelee { range, angle, .. } => {
                 strike_range = range;
@@ -6036,31 +6046,26 @@ impl<'a> AgentData<'a> {
             },
         };
 
-        let spin_range;
-        match self
+        let spin_range = match self
             .extract_ability(AbilityInput::Secondary)
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
-            AbilityData::BasicMelee { range, .. } => {
-                spin_range = range;
-            },
-            _ => {
-                spin_range = 5.0;
-            },
+            AbilityData::BasicMelee { range, .. } => range,
+            _ => 5.0,
         };
-        
+
         let shockwave_max_range;
         let shockwave_angle;
         match self
             .extract_ability(AbilityInput::Auxiliary(0))
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
             AbilityData::Shockwave { angle, range, .. } => {
                 shockwave_max_range = range;
                 shockwave_angle = angle;
             },
             _ => {
-                shockwave_max_range = 15.0 * 2.0;
+                shockwave_max_range = 15.0 * 1.9;
                 shockwave_angle = 90.0;
             },
         };
@@ -6197,15 +6202,12 @@ impl<'a> AgentData<'a> {
         // === setup ===
 
         // --- static ---
-        // hard-coded attack values
-        const BARRAGE_RANGE: f32 = 25.0; // attack logic assumes this is greater than shockwave_range
-        const BARRAGE_ANGLE: f32 = 20.0;
         // behaviour parameters
         const PATH_RANGE_FACTOR: f32 = 0.4;
         const STRIKE_RANGE_FACTOR: f32 = 0.7;
         const STRIKE_AIM_FACTOR: f32 = 0.8;
         const BARRAGE_RANGE_FACTOR: f32 = 0.8;
-        const BARRAGE_AIM_FACTOR: f32 = 1.0;
+        const BARRAGE_AIM_FACTOR: f32 = 0.65;
         const SHOCKWAVE_RANGE_FACTOR: f32 = 0.75;
         const TOTEM_COOLDOWN: f32 = 25.0;
         const HEAVY_ATTACK_COOLDOWN_SPAN: [f32; 2] = [8.0, 13.0];
@@ -6247,7 +6249,7 @@ impl<'a> AgentData<'a> {
         let strike_angle;
         match self
             .extract_ability(AbilityInput::Primary)
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
             AbilityData::BasicMelee { range, angle, .. } => {
                 strike_range = range;
@@ -6264,7 +6266,7 @@ impl<'a> AgentData<'a> {
         let barrage_count;
         match self
             .extract_ability(AbilityInput::Secondary)
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
             AbilityData::BasicRanged {
                 projectile_speed,
@@ -6282,21 +6284,16 @@ impl<'a> AgentData<'a> {
                 barrage_count = 5;
             },
         };
-        // TODO: calculate ground-level max barrage range from projectile_speed
-        // TODO: calculaate approx. aiming angle from projectile_spread and
-        // num_projectiles
+        let barrage_max_range =
+            projectile_flat_range(barrage_speed, self.body.map_or(2.0, |b| b.height()));
+        let barrange_angle = projectile_multi_angle(barrage_spread, barrage_count);
 
-        let shockwave_range;
-        match self
+        let shockwave_range = match self
             .extract_ability(AbilityInput::Auxiliary(0))
-            .unwrap_or(AbilityData::default())
+            .unwrap_or_default()
         {
-            AbilityData::Shockwave { range, .. } => {
-                shockwave_range = range;
-            },
-            _ => {
-                shockwave_range = 12.0 * 1.0;
-            },
+            AbilityData::Shockwave { range, .. } => range,
+            _ => 12.0 * 1.0,
         };
 
         // re-used checks
@@ -6361,14 +6358,16 @@ impl<'a> AgentData<'a> {
             controller.push_basic_input(InputKind::Ability(rng.gen_range(1..=3)));
         }
         // on timer and in range, use a heavy attack
+        // assumes: barrange_max_range * BARRAGE_RANGE_FACTOR > shockwave_range *
+        // SHOCKWAVE_RANGE_FACTOR
         else if agent.combat_state.counters[ActionStateTimers::HeavyAttack as usize]
             > agent.combat_state.counters[ActionStateCounters::HeavyAttackCooldown as usize]
-            && attack_data.dist_sqrd < (BARRAGE_RANGE * BARRAGE_RANGE_FACTOR).powi(2)
+            && attack_data.dist_sqrd < (barrage_max_range * BARRAGE_RANGE_FACTOR).powi(2)
         {
             // has line of sight
             if line_of_sight_with_target() {
                 // out of barrage angle, use shockwave
-                if attack_data.angle > BARRAGE_ANGLE * BARRAGE_AIM_FACTOR {
+                if attack_data.angle > barrange_angle * BARRAGE_AIM_FACTOR {
                     controller.push_basic_input(InputKind::Ability(0));
                 }
                 // in shockwave range, randomise between barrage and shockwave
