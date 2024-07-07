@@ -28,7 +28,7 @@ use common::{
             item::{
                 item_key::ItemKey,
                 tool::{AbilityContext, ToolKind},
-                ItemKind, MaterialStatManifest,
+                ItemI18n, ItemKind, MaterialStatManifest,
             },
             slot::EquipSlot,
         },
@@ -184,6 +184,8 @@ widget_ids! {
         // Stats
         stat_names[],
         stat_values[],
+        // Recipes
+        recipe_groups[],
     }
 }
 
@@ -205,6 +207,7 @@ pub struct Diary<'a> {
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
+    item_i18n: &'a ItemI18n,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
     slot_manager: &'a mut SlotManager,
@@ -253,6 +256,7 @@ impl<'a> Diary<'a> {
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
+        item_i18n: &'a ItemI18n,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
         slot_manager: &'a mut SlotManager,
@@ -277,6 +281,7 @@ impl<'a> Diary<'a> {
             item_imgs,
             fonts,
             localized_strings,
+            item_i18n,
             rot_imgs,
             tooltip_manager,
             slot_manager,
@@ -308,7 +313,7 @@ const TREES: [&str; 8] = [
 
 // Possible future sections: Bestiary ("Pokedex" of fought enemies), Weapon and
 // armour catalogue, Achievements...
-const SECTIONS: [&str; 3] = ["Skill-Trees", "Abilities", "Stats"];
+const SECTIONS: [&str; 4] = ["Skill-Trees", "Abilities", "Stats", "Recipes"];
 
 pub enum Event {
     Close,
@@ -323,11 +328,13 @@ pub enum DiarySection {
     SkillTrees,
     AbilitySelection,
     Stats,
+    Recipes,
 }
 
 pub struct DiaryState {
     ids: Ids,
     ability_page: usize,
+    recipe_page: usize,
 }
 
 impl<'a> Widget for Diary<'a> {
@@ -339,6 +346,7 @@ impl<'a> Widget for Diary<'a> {
         DiaryState {
             ids: Ids::new(id_gen),
             ability_page: 0,
+            recipe_page: 0,
         }
     }
 
@@ -442,6 +450,7 @@ impl<'a> Widget for Diary<'a> {
                 "Abilities" => "List of your currently available abilities.",
                 "Skill-Trees" => "",
                 "Stats" => "",
+                "Recipes" => "",
                 _ => "",
             };
             let btn_img = {
@@ -449,6 +458,7 @@ impl<'a> Widget for Diary<'a> {
                     "Abilities" => self.imgs.spellbook_ico,
                     "Skill-Trees" => self.imgs.skilltree_ico,
                     "Stats" => self.imgs.stats_ico,
+                    "Recipes" => self.imgs.crafting_icon,
                     _ => self.imgs.nothing,
                 };
                 if i == 0 {
@@ -1297,6 +1307,111 @@ impl<'a> Widget for Diary<'a> {
 
                 events
             },
+            DiarySection::Recipes => {
+                // Background Art
+                Image::new(self.imgs.book_bg)
+                    .w_h(299.0 * 4.0, 184.0 * 4.0)
+                    .mid_top_with_margin_on(state.ids.content_align, 4.0)
+                    .set(state.ids.spellbook_art, ui);
+
+                Rectangle::fill_with([299.0 * 2.0, 184.0 * 4.0], color::TRANSPARENT)
+                    .top_left_with_margins_on(state.ids.spellbook_art, 0.0, 0.0)
+                    .set(state.ids.sb_page_left_align, ui);
+                Rectangle::fill_with([299.0 * 2.0, 184.0 * 4.0], color::TRANSPARENT)
+                    .top_right_with_margins_on(state.ids.spellbook_art, 0.0, 0.0)
+                    .set(state.ids.sb_page_right_align, ui);
+
+                const RECIPES_PER_PAGE: usize = 36;
+
+                let page_index_max =
+                    self.inventory.recipe_groups_iter().len().saturating_sub(1) / RECIPES_PER_PAGE;
+
+                if state.recipe_page > page_index_max {
+                    state.update(|s| s.recipe_page = 0);
+                }
+
+                // Page button
+                // Left Arrow
+                let left_arrow = Button::image(if state.recipe_page > 0 {
+                    self.imgs.arrow_l
+                } else {
+                    self.imgs.arrow_l_inactive
+                })
+                .bottom_left_with_margins_on(state.ids.spellbook_art, -83.0, 10.0)
+                .w_h(48.0, 55.0);
+                // Grey out arrows when inactive
+                if state.recipe_page > 0 {
+                    if left_arrow
+                        .hover_image(self.imgs.arrow_l_click)
+                        .press_image(self.imgs.arrow_l)
+                        .set(state.ids.ability_page_left, ui)
+                        .was_clicked()
+                    {
+                        state.update(|s| s.recipe_page -= 1);
+                    }
+                } else {
+                    left_arrow.set(state.ids.ability_page_left, ui);
+                }
+                // Right Arrow
+                let right_arrow = Button::image(if state.recipe_page < page_index_max {
+                    self.imgs.arrow_r
+                } else {
+                    self.imgs.arrow_r_inactive
+                })
+                .bottom_right_with_margins_on(state.ids.spellbook_art, -83.0, 10.0)
+                .w_h(48.0, 55.0);
+                if state.recipe_page < page_index_max {
+                    // Only show right button if not on last page
+                    if right_arrow
+                        .hover_image(self.imgs.arrow_r_click)
+                        .press_image(self.imgs.arrow_r)
+                        .set(state.ids.ability_page_right, ui)
+                        .was_clicked()
+                    {
+                        state.update(|s| s.recipe_page += 1);
+                    };
+                } else {
+                    right_arrow.set(state.ids.ability_page_right, ui);
+                }
+
+                state.update(|s| {
+                    s.ids
+                        .recipe_groups
+                        .resize(RECIPES_PER_PAGE, &mut ui.widget_id_generator())
+                });
+
+                for (i, rg) in self
+                    .inventory
+                    .recipe_groups_iter()
+                    .skip(state.recipe_page * RECIPES_PER_PAGE)
+                    .take(RECIPES_PER_PAGE)
+                    .enumerate()
+                {
+                    let (title, _desc) =
+                        util::item_text(rg, self.localized_strings, self.item_i18n);
+
+                    let mut text = Text::new(&title)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(29))
+                        .color(BLACK);
+
+                    if i == 0 {
+                        text =
+                            text.top_left_with_margins_on(state.ids.sb_page_left_align, 20.0, 20.0);
+                    } else if i == 18 {
+                        text = text.top_left_with_margins_on(
+                            state.ids.sb_page_right_align,
+                            20.0,
+                            20.0,
+                        );
+                    } else {
+                        text = text.down_from(state.ids.recipe_groups[i - 1], 10.0);
+                    }
+                    text.set(state.ids.recipe_groups[i], ui);
+                }
+
+                events
+            },
         }
     }
 }
@@ -1320,6 +1435,7 @@ fn section_from_str(string: &str) -> Option<DiarySection> {
         "Abilities" => Some(DiarySection::AbilitySelection),
         "Skill-Trees" => Some(DiarySection::SkillTrees),
         "Stats" => Some(DiarySection::Stats),
+        "Recipes" => Some(DiarySection::Recipes),
         _ => None,
     }
 }

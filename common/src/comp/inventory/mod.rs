@@ -1101,6 +1101,10 @@ impl Inventory {
 
     pub fn recipes_iter(&self) -> impl ExactSizeIterator<Item = &String> { self.recipe_book.iter() }
 
+    pub fn recipe_groups_iter(&self) -> impl ExactSizeIterator<Item = &Item> {
+        self.recipe_book.iter_groups()
+    }
+
     pub fn available_recipes_iter<'a>(
         &'a self,
         rbm: &'a RecipeBookManifest,

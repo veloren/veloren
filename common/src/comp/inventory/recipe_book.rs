@@ -28,6 +28,10 @@ impl RecipeBook {
 
     pub(super) fn iter(&self) -> impl ExactSizeIterator<Item = &String> { self.recipes.iter() }
 
+    pub(super) fn iter_groups(&self) -> impl ExactSizeIterator<Item = &Item> {
+        self.recipe_groups.iter()
+    }
+
     pub(super) fn get_available_iter<'a>(
         &'a self,
         rbm: &'a RecipeBookManifest,
