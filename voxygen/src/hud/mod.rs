@@ -3735,6 +3735,7 @@ impl Hud {
                     &self.item_imgs,
                     &self.fonts,
                     i18n,
+                    &self.item_i18n,
                     &self.rot_imgs,
                     tooltip_manager,
                     &mut self.slot_manager,
