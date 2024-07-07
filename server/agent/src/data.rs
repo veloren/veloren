@@ -438,10 +438,8 @@ pub enum Path {
     Partial,
 }
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug)]
 pub enum AbilityData {
-    #[default]
-    Default,
     ComboMelee {
         range: f32,
         angle: f32,
@@ -826,7 +824,6 @@ impl AbilityData {
         };
         use AbilityData::*;
         match self {
-            Default => false,
             ComboMelee {
                 range,
                 angle,

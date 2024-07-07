@@ -40,6 +40,8 @@ fn projectile_multi_angle(projectile_spread: f32, num_projectiles: u32) -> f32 {
     (180.0 / PI) * projectile_spread * (num_projectiles - 1) as f32
 }
 
+fn rng_from_span(rng: &mut impl Rng, span: [f32; 2]) -> f32 { rng.gen_range(span[0]..=span[1]) }
+
 impl<'a> AgentData<'a> {
     // Intended for any agent that has one attack, that attack is a melee attack,
     // and the agent is able to freely walk around
@@ -138,7 +140,7 @@ impl<'a> AgentData<'a> {
         // Behaviour parameters
         const STRAFE_DIST: f32 = 4.5;
         const STRAFE_SPEED_MULT: f32 = 0.75;
-        const STRATE_SPIRAL_MULT: f32 = 0.8; // how quickly they close gap while strafing
+        const STRAFE_SPIRAL_MULT: f32 = 0.8; // how quickly they close gap while strafing
         const BACKSTAB_SPEED_MULT: f32 = 0.3;
 
         // Handle movement of agent
@@ -179,7 +181,7 @@ impl<'a> AgentData<'a> {
                     .find(|move_dir| target_ori.xy().dot(**move_dir) < 0.0)
                 {
                     controller.inputs.move_dir =
-                        STRAFE_SPEED_MULT * (*move_dir - STRATE_SPIRAL_MULT * target_ori.xy());
+                        STRAFE_SPEED_MULT * (*move_dir - STRAFE_SPIRAL_MULT * target_ori.xy());
                 }
             } else {
                 // Aim for a point a given distance behind the target to prevent sideways
@@ -4775,7 +4777,7 @@ impl<'a> AgentData<'a> {
         // Inputs:
         //   Primary: scythe
         //   Secondary: firebreath
-        //   Abilities:
+        //   Auxiliary
         //     0: explosivepumpkin
         //     1: ensaringvines_sparse
         //     2: ensaringvines_dense
@@ -4800,25 +4802,16 @@ impl<'a> AgentData<'a> {
         const FAR_PUMPKIN_COOLDOWN_SPAN: [f32; 2] = [3.0, 5.0]; // allows for pathing to player between throws
 
         // conditions
-        enum ActionStateConditions {
-            HasSummonedFirstVines,
-            HasSummonedSecondVines,
-        }
-
+        const HAS_SUMMONED_FIRST_VINES: usize = 0;
+        const HAS_SUMMONED_SECOND_VINES: usize = 1;
         // timers
-        enum ActionStateTimers {
-            Firebreath,
-            Mixup,
-            FarPumpkin,
-        }
-
-        // //counters
-        #[allow(clippy::enum_variant_names)]
-        enum ActionStateCounters {
-            CloseMixupCooldown,
-            MidMixupCooldown,
-            FarPumpkinCooldown,
-        }
+        const FIREBREATH: usize = 0;
+        const MIXUP: usize = 1;
+        const FAR_PUMPKIN: usize = 2;
+        //counters
+        const CLOSE_MIXUP_COOLDOWN: usize = 0;
+        const MID_MIXUP_COOLDOWN: usize = 1;
+        const FAR_PUMPKIN_COOLDOWN: usize = 2;
 
         // line of sight check
         let line_of_sight_with_target = || {
@@ -4834,82 +4827,59 @@ impl<'a> AgentData<'a> {
         };
 
         // --- dynamic ---
-        // attack data (with fallback values)
-        let scythe_range;
-        let scythe_angle;
-        match self
-            .extract_ability(AbilityInput::Primary)
-            .unwrap_or_default()
-        {
-            AbilityData::BasicMelee { range, angle, .. } => {
-                scythe_range = range;
-                scythe_angle = angle;
-            },
-            _ => {
-                scythe_range = 4.5;
-                scythe_angle = 50.0;
-            },
+        // attack data
+        let (scythe_range, scythe_angle) = {
+            if let Some(AbilityData::BasicMelee { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Primary)
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
         };
-
-        let firebreath_range;
-        let firebreath_angle;
-        match self
-            .extract_ability(AbilityInput::Secondary)
-            .unwrap_or_default()
-        {
-            AbilityData::BasicBeam { range, angle, .. } => {
-                firebreath_range = range;
-                firebreath_angle = angle;
-            },
-            _ => {
-                firebreath_range = 20.0;
-                firebreath_angle = 15.0;
-            },
+        let (firebreath_range, firebreath_angle) = {
+            if let Some(AbilityData::BasicBeam { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Secondary)
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
         };
-
-        let pumpkin_speed = match self
-            .extract_ability(AbilityInput::Auxiliary(0))
-            .unwrap_or_default()
-        {
-            AbilityData::BasicRanged {
+        let pumpkin_speed = {
+            if let Some(AbilityData::BasicRanged {
                 projectile_speed, ..
-            } => projectile_speed,
-            _ => 30.0,
+            }) = self.extract_ability(AbilityInput::Auxiliary(0))
+            {
+                projectile_speed
+            } else {
+                0.0
+            }
         };
+        // calculated attack data
         let pumpkin_max_range =
-            projectile_flat_range(pumpkin_speed, self.body.map_or(5.4, |b| b.height()));
+            projectile_flat_range(pumpkin_speed, self.body.map_or(0.0, |b| b.height()));
 
         // character state info
-        let mut is_using_firebreath = false;
-        let mut is_using_pumpkin = false;
-        let mut is_in_summon_recovery = false;
-        let mut firebreath_timer = Duration::from_secs(0);
-        match self.char_state {
-            CharacterState::BasicBeam(data) => {
-                is_using_firebreath = true;
-                firebreath_timer = data.timer;
-            },
-            CharacterState::BasicRanged(_) => {
-                is_using_pumpkin = true;
-            },
-            CharacterState::SpriteSummon(data)
-                if matches!(data.stage_section, StageSection::Recover) =>
-            {
-                is_in_summon_recovery = true;
-            },
-            _ => {},
-        }
+        let is_using_firebreath = matches!(self.char_state, CharacterState::BasicBeam(_));
+        let is_using_pumpkin = matches!(self.char_state, CharacterState::BasicRanged(_));
+        let is_in_summon_recovery = matches!(self.char_state, CharacterState::SpriteSummon(data) if matches!(data.stage_section, StageSection::Recover));
+        let firebreath_timer = if let CharacterState::BasicBeam(data) = self.char_state {
+            data.timer
+        } else {
+            Default::default()
+        };
         let is_using_mixup = is_using_firebreath || is_using_pumpkin;
 
         // initialise randomised cooldowns
         if !agent.combat_state.initialized {
             agent.combat_state.initialized = true;
-            agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize] =
-                rng.gen_range(CLOSE_MIXUP_COOLDOWN_SPAN[0]..=CLOSE_MIXUP_COOLDOWN_SPAN[1]);
-            agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize] =
-                rng.gen_range(MID_MIXUP_COOLDOWN_SPAN[0]..=MID_MIXUP_COOLDOWN_SPAN[1]);
-            agent.combat_state.counters[ActionStateCounters::FarPumpkinCooldown as usize] =
-                rng.gen_range(FAR_PUMPKIN_COOLDOWN_SPAN[0]..=FAR_PUMPKIN_COOLDOWN_SPAN[1]);
+            agent.combat_state.counters[CLOSE_MIXUP_COOLDOWN] =
+                rng_from_span(rng, CLOSE_MIXUP_COOLDOWN_SPAN);
+            agent.combat_state.counters[MID_MIXUP_COOLDOWN] =
+                rng_from_span(rng, MID_MIXUP_COOLDOWN_SPAN);
+            agent.combat_state.counters[FAR_PUMPKIN_COOLDOWN] =
+                rng_from_span(rng, FAR_PUMPKIN_COOLDOWN_SPAN);
         }
 
         // === main ===
@@ -4917,25 +4887,25 @@ impl<'a> AgentData<'a> {
         // --- timers ---
         if is_in_summon_recovery {
             // reset all timers when done summoning
-            agent.combat_state.timers[ActionStateTimers::Firebreath as usize] = 0.0;
-            agent.combat_state.timers[ActionStateTimers::Mixup as usize] = 0.0;
-            agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
+            agent.combat_state.timers[FIREBREATH] = 0.0;
+            agent.combat_state.timers[MIXUP] = 0.0;
+            agent.combat_state.timers[FAR_PUMPKIN] = 0.0;
         } else {
             // handle state timers
             if is_using_firebreath {
-                agent.combat_state.timers[ActionStateTimers::Firebreath as usize] = 0.0;
+                agent.combat_state.timers[FIREBREATH] = 0.0;
             } else {
-                agent.combat_state.timers[ActionStateTimers::Firebreath as usize] += read_data.dt.0;
+                agent.combat_state.timers[FIREBREATH] += read_data.dt.0;
             }
             if is_using_mixup {
-                agent.combat_state.timers[ActionStateTimers::Mixup as usize] = 0.0;
+                agent.combat_state.timers[MIXUP] = 0.0;
             } else {
-                agent.combat_state.timers[ActionStateTimers::Mixup as usize] += read_data.dt.0;
+                agent.combat_state.timers[MIXUP] += read_data.dt.0;
             }
             if is_using_pumpkin {
-                agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] = 0.0;
+                agent.combat_state.timers[FAR_PUMPKIN] = 0.0;
             } else {
-                agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize] += read_data.dt.0;
+                agent.combat_state.timers[FAR_PUMPKIN] += read_data.dt.0;
             }
         }
 
@@ -4943,25 +4913,24 @@ impl<'a> AgentData<'a> {
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
         // second vine summon
         if health_fraction < SECOND_VINE_CREATION_THRESHOLD
-            && !agent.combat_state.conditions
-                [ActionStateConditions::HasSummonedSecondVines as usize]
+            && !agent.combat_state.conditions[HAS_SUMMONED_SECOND_VINES]
         {
+            // use the dense vine summon
             controller.push_basic_input(InputKind::Ability(2));
             // wait till recovery before finishing
             if is_in_summon_recovery {
-                agent.combat_state.conditions
-                    [ActionStateConditions::HasSummonedSecondVines as usize] = true;
+                agent.combat_state.conditions[HAS_SUMMONED_SECOND_VINES] = true;
             }
         }
         // first vine summon
         else if health_fraction < FIRST_VINE_CREATION_THRESHOLD
-            && !agent.combat_state.conditions[ActionStateConditions::HasSummonedFirstVines as usize]
+            && !agent.combat_state.conditions[HAS_SUMMONED_FIRST_VINES]
         {
+            // use the sparse vine summon
             controller.push_basic_input(InputKind::Ability(1));
             // wait till recovery before finishing
             if is_in_summon_recovery {
-                agent.combat_state.conditions
-                    [ActionStateConditions::HasSummonedFirstVines as usize] = true;
+                agent.combat_state.conditions[HAS_SUMMONED_FIRST_VINES] = true;
             }
         }
         // close range
@@ -4977,14 +4946,12 @@ impl<'a> AgentData<'a> {
             // in scythe angle
             if attack_data.angle < scythe_angle * SCYTHE_AIM_FACTOR {
                 // on timer, randomly mixup attacks
-                if agent.combat_state.timers[ActionStateTimers::Mixup as usize]
-                    > agent.combat_state.counters[ActionStateCounters::CloseMixupCooldown as usize]
+                if agent.combat_state.timers[MIXUP]
+                    > agent.combat_state.counters[CLOSE_MIXUP_COOLDOWN]
                 // for now, no line of sight check for consitency in attacks
                 {
                     // if on firebreath cooldown, throw pumpkin
-                    if agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
-                        < FIREBREATH_COOLDOWN
-                    {
+                    if agent.combat_state.timers[FIREBREATH] < FIREBREATH_COOLDOWN {
                         controller.push_basic_input(InputKind::Ability(0));
                     }
                     // otherwise, randomise between firebreath and pumpkin
@@ -4995,9 +4962,8 @@ impl<'a> AgentData<'a> {
                     }
                     // reset mixup cooldown if actually being used
                     if is_using_mixup {
-                        agent.combat_state.counters
-                            [ActionStateCounters::CloseMixupCooldown as usize] = rng
-                            .gen_range(CLOSE_MIXUP_COOLDOWN_SPAN[0]..=CLOSE_MIXUP_COOLDOWN_SPAN[1]);
+                        agent.combat_state.counters[CLOSE_MIXUP_COOLDOWN] =
+                            rng_from_span(rng, CLOSE_MIXUP_COOLDOWN_SPAN);
                     }
                 }
                 // default to using scythe melee
@@ -5017,35 +4983,34 @@ impl<'a> AgentData<'a> {
             // start using firebreath if close enough, in angle, and off cooldown
             else if attack_data.dist_sqrd < (firebreath_range * FIREBREATH_RANGE_FACTOR).powi(2)
                 && attack_data.angle < firebreath_angle * FIREBREATH_AIM_FACTOR
-                && agent.combat_state.timers[ActionStateTimers::Firebreath as usize]
-                    > FIREBREATH_COOLDOWN
+                && agent.combat_state.timers[FIREBREATH] > FIREBREATH_COOLDOWN
             {
                 controller.push_basic_input(InputKind::Secondary);
             }
             // on mixup timer, throw a pumpkin
-            else if agent.combat_state.timers[ActionStateTimers::Mixup as usize]
-                > agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize]
+            else if agent.combat_state.timers[MIXUP]
+                > agent.combat_state.counters[MID_MIXUP_COOLDOWN]
             {
                 controller.push_basic_input(InputKind::Ability(0));
                 // reset mixup cooldown if pumpkin is actually being used
                 if is_using_pumpkin {
-                    agent.combat_state.counters[ActionStateCounters::MidMixupCooldown as usize] =
-                        rng.gen_range(MID_MIXUP_COOLDOWN_SPAN[0]..=MID_MIXUP_COOLDOWN_SPAN[1]);
+                    agent.combat_state.counters[MID_MIXUP_COOLDOWN] =
+                        rng_from_span(rng, MID_MIXUP_COOLDOWN_SPAN);
                 }
             }
         }
         // long range (with line of sight)
         else if attack_data.dist_sqrd < (pumpkin_max_range * PUMPKIN_RANGE_FACTOR).powi(2)
-            && agent.combat_state.timers[ActionStateTimers::FarPumpkin as usize]
-                > agent.combat_state.counters[ActionStateCounters::FarPumpkinCooldown as usize]
+            && agent.combat_state.timers[FAR_PUMPKIN]
+                > agent.combat_state.counters[FAR_PUMPKIN_COOLDOWN]
             && line_of_sight_with_target()
         {
             // throw pumpkin
             controller.push_basic_input(InputKind::Ability(0));
             // reset pumpkin cooldown if actually being used
             if is_using_pumpkin {
-                agent.combat_state.counters[ActionStateCounters::FarPumpkinCooldown as usize] =
-                    rng.gen_range(FAR_PUMPKIN_COOLDOWN_SPAN[0]..=FAR_PUMPKIN_COOLDOWN_SPAN[1]);
+                agent.combat_state.counters[FAR_PUMPKIN_COOLDOWN] =
+                    rng_from_span(rng, FAR_PUMPKIN_COOLDOWN_SPAN);
             }
         }
 
@@ -5999,7 +5964,7 @@ impl<'a> AgentData<'a> {
         // Inputs:
         //   Primary: strike
         //   Secondary: spin
-        //   Abilities:
+        //   Auxiliary
         //     0: shockwave
 
         // === setup ===
@@ -6019,55 +5984,41 @@ impl<'a> AgentData<'a> {
         const MIXUP_RELAX_FACTOR: f32 = 0.3;
 
         // timers
-        enum ActionStateTimers {
-            Spin,
-            Shockwave,
-            Mixup,
-        }
+        const SPIN: usize = 0;
+        const SHOCKWAVE: usize = 1;
+        const MIXUP: usize = 2;
 
         // --- dynamic ---
         // behaviour parameters
-        let shockwave_min_range = self.body.map_or(8.0, |b| b.height() * 1.1);
+        let shockwave_min_range = self.body.map_or(0.0, |b| b.height() * 1.1);
 
-        // attack data (with fallback values)
-        let strike_range;
-        let strike_angle;
-        match self
-            .extract_ability(AbilityInput::Primary)
-            .unwrap_or_default()
-        {
-            AbilityData::BasicMelee { range, angle, .. } => {
-                strike_range = range;
-                strike_angle = angle;
-            },
-            _ => {
-                strike_range = 4.0;
-                strike_angle = 55.0;
-            },
+        // attack data
+        let (strike_range, strike_angle) = {
+            if let Some(AbilityData::BasicMelee { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Primary)
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
         };
-
-        let spin_range = match self
-            .extract_ability(AbilityInput::Secondary)
-            .unwrap_or_default()
-        {
-            AbilityData::BasicMelee { range, .. } => range,
-            _ => 5.0,
+        let spin_range = {
+            if let Some(AbilityData::BasicMelee { range, .. }) =
+                self.extract_ability(AbilityInput::Secondary)
+            {
+                range
+            } else {
+                0.0
+            }
         };
-
-        let shockwave_max_range;
-        let shockwave_angle;
-        match self
-            .extract_ability(AbilityInput::Auxiliary(0))
-            .unwrap_or_default()
-        {
-            AbilityData::Shockwave { angle, range, .. } => {
-                shockwave_max_range = range;
-                shockwave_angle = angle;
-            },
-            _ => {
-                shockwave_max_range = 15.0 * 1.9;
-                shockwave_angle = 90.0;
-            },
+        let (shockwave_max_range, shockwave_angle) = {
+            if let Some(AbilityData::Shockwave { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Auxiliary(0))
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
         };
 
         // re-used checks (makes separating timers and attacks easier)
@@ -6084,44 +6035,40 @@ impl<'a> AgentData<'a> {
         let current_input = self.char_state.ability_info().map(|ai| ai.input);
         if matches!(current_input, Some(InputKind::Secondary)) {
             // reset when spinning
-            agent.combat_state.timers[ActionStateTimers::Spin as usize] = 0.0;
-            agent.combat_state.timers[ActionStateTimers::Mixup as usize] = 0.0;
+            agent.combat_state.timers[SPIN] = 0.0;
+            agent.combat_state.timers[MIXUP] = 0.0;
         } else if is_in_spin_range && !(is_in_strike_range && is_in_strike_angle) {
             // increment within spin range and not in strike range + angle
-            agent.combat_state.timers[ActionStateTimers::Spin as usize] += read_data.dt.0;
+            agent.combat_state.timers[SPIN] += read_data.dt.0;
         } else {
             // relax towards zero otherwise
-            agent.combat_state.timers[ActionStateTimers::Spin as usize] =
-                (agent.combat_state.timers[ActionStateTimers::Spin as usize]
-                    - read_data.dt.0 * SPIN_RELAX_FACTOR)
-                    .max(0.0);
+            agent.combat_state.timers[SPIN] =
+                (agent.combat_state.timers[SPIN] - read_data.dt.0 * SPIN_RELAX_FACTOR).max(0.0);
         }
         // shockwave
         if matches!(self.char_state, CharacterState::Shockwave(_)) {
             // reset when using shockwave
-            agent.combat_state.timers[ActionStateTimers::Shockwave as usize] = 0.0;
-            agent.combat_state.timers[ActionStateTimers::Mixup as usize] = 0.0;
+            agent.combat_state.timers[SHOCKWAVE] = 0.0;
+            agent.combat_state.timers[MIXUP] = 0.0;
         } else {
             // increment otherwise
-            agent.combat_state.timers[ActionStateTimers::Shockwave as usize] += read_data.dt.0;
+            agent.combat_state.timers[SHOCKWAVE] += read_data.dt.0;
         }
         // mixup
         if is_in_strike_range && is_in_strike_angle {
             // increment within strike range and angle
-            agent.combat_state.timers[ActionStateTimers::Mixup as usize] += read_data.dt.0;
+            agent.combat_state.timers[MIXUP] += read_data.dt.0;
         } else {
             // relax towards zero otherwise
-            agent.combat_state.timers[ActionStateTimers::Mixup as usize] =
-                (agent.combat_state.timers[ActionStateTimers::Mixup as usize]
-                    - read_data.dt.0 * MIXUP_RELAX_FACTOR)
-                    .max(0.0);
+            agent.combat_state.timers[MIXUP] =
+                (agent.combat_state.timers[MIXUP] - read_data.dt.0 * MIXUP_RELAX_FACTOR).max(0.0);
         }
 
         // --- attacks ---
         // strike range and angle
         if is_in_strike_range && is_in_strike_angle {
             // on timer, randomly mixup between all attacks
-            if agent.combat_state.timers[ActionStateTimers::Mixup as usize] > MIXUP_COOLDOWN {
+            if agent.combat_state.timers[MIXUP] > MIXUP_COOLDOWN {
                 let randomise: u8 = rng.gen_range(1..=3);
                 match randomise {
                     1 => controller.push_basic_input(InputKind::Ability(0)), // shockwave
@@ -6137,7 +6084,7 @@ impl<'a> AgentData<'a> {
         // spin range (or out of angle in strike range)
         else if is_in_spin_range || (is_in_strike_range && !is_in_strike_angle) {
             // on timer, use spin attack to try and hit evasive target
-            if agent.combat_state.timers[ActionStateTimers::Spin as usize] > SPIN_COOLDOWN {
+            if agent.combat_state.timers[SPIN] > SPIN_COOLDOWN {
                 controller.push_basic_input(InputKind::Secondary);
             }
             // otherwise, close angle (no action required)
@@ -6148,8 +6095,7 @@ impl<'a> AgentData<'a> {
             && attack_data.angle < shockwave_angle * SHOCKWAVE_AIM_FACTOR
         {
             // on timer, use shockwave
-            if agent.combat_state.timers[ActionStateTimers::Shockwave as usize] > SHOCKWAVE_COOLDOWN
-            {
+            if agent.combat_state.timers[SHOCKWAVE] > SHOCKWAVE_COOLDOWN {
                 controller.push_basic_input(InputKind::Ability(0));
             }
             // otherwise, close gap and/or angle (no action required)
@@ -6193,7 +6139,7 @@ impl<'a> AgentData<'a> {
         // Inputs
         //   Primary: flamestrike
         //   Secondary: firebarrage
-        //   Abilities
+        //   Auxiliary
         //     0: fireshockwave
         //     1: redtotem
         //     2: greentotem
@@ -6215,20 +6161,12 @@ impl<'a> AgentData<'a> {
         const HEAVY_ATTACK_FAST_CHARGE_FACTOR: f32 = 5.0;
 
         // conditions
-        enum ActionStateConditions {
-            HasSummonedFirstTotem,
-        }
-
+        const HAS_SUMMONED_FIRST_TOTEM: usize = 0;
         // timers
-        enum ActionStateTimers {
-            SummonTotem,
-            HeavyAttack,
-        }
-
+        const SUMMON_TOTEM: usize = 0;
+        const HEAVY_ATTACK: usize = 1;
         // counters
-        enum ActionStateCounters {
-            HeavyAttackCooldown,
-        }
+        const HEAVY_ATTACK_COOLDOWN: usize = 0;
 
         // line of sight check
         let line_of_sight_with_target = || {
@@ -6244,57 +6182,43 @@ impl<'a> AgentData<'a> {
         };
 
         // --- dynamic ---
-        // attack data (with fallback values)
-        let strike_range;
-        let strike_angle;
-        match self
-            .extract_ability(AbilityInput::Primary)
-            .unwrap_or_default()
-        {
-            AbilityData::BasicMelee { range, angle, .. } => {
-                strike_range = range;
-                strike_angle = angle;
-            },
-            _ => {
-                strike_range = 3.0;
-                strike_angle = 40.0;
-            },
+        // attack data
+        let (strike_range, strike_angle) = {
+            if let Some(AbilityData::BasicMelee { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Primary)
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
         };
-
-        let barrage_speed;
-        let barrage_spread;
-        let barrage_count;
-        match self
-            .extract_ability(AbilityInput::Secondary)
-            .unwrap_or_default()
-        {
-            AbilityData::BasicRanged {
+        let (barrage_speed, barrage_spread, barrage_count) = {
+            if let Some(AbilityData::BasicRanged {
                 projectile_speed,
                 projectile_spread,
                 num_projectiles,
                 ..
-            } => {
-                barrage_speed = projectile_speed;
-                barrage_spread = projectile_spread;
-                barrage_count = num_projectiles;
-            },
-            _ => {
-                barrage_speed = 25.0;
-                barrage_spread = 0.125;
-                barrage_count = 5;
-            },
+            }) = self.extract_ability(AbilityInput::Secondary)
+            {
+                (projectile_speed, projectile_spread, num_projectiles)
+            } else {
+                (0.0, 0.0, 0)
+            }
         };
+        let shockwave_range = {
+            if let Some(AbilityData::Shockwave { range, .. }) =
+                self.extract_ability(AbilityInput::Auxiliary(0))
+            {
+                range
+            } else {
+                0.0
+            }
+        };
+
+        // calculated attack data
         let barrage_max_range =
             projectile_flat_range(barrage_speed, self.body.map_or(2.0, |b| b.height()));
         let barrange_angle = projectile_multi_angle(barrage_spread, barrage_count);
-
-        let shockwave_range = match self
-            .extract_ability(AbilityInput::Auxiliary(0))
-            .unwrap_or_default()
-        {
-            AbilityData::Shockwave { range, .. } => range,
-            _ => 12.0 * 1.0,
-        };
 
         // re-used checks
         let is_in_strike_range = attack_data.dist_sqrd
@@ -6304,8 +6228,8 @@ impl<'a> AgentData<'a> {
         // initialise randomised cooldowns
         if !agent.combat_state.initialized {
             agent.combat_state.initialized = true;
-            agent.combat_state.counters[ActionStateCounters::HeavyAttackCooldown as usize] =
-                rng.gen_range(HEAVY_ATTACK_COOLDOWN_SPAN[0]..=HEAVY_ATTACK_COOLDOWN_SPAN[1]);
+            agent.combat_state.counters[HEAVY_ATTACK_COOLDOWN] =
+                rng_from_span(rng, HEAVY_ATTACK_COOLDOWN_SPAN);
         }
 
         // === main ===
@@ -6315,53 +6239,49 @@ impl<'a> AgentData<'a> {
         match self.char_state {
             CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover => {
                 // reset when finished summoning
-                agent.combat_state.timers[ActionStateTimers::SummonTotem as usize] = 0.0;
-                agent.combat_state.conditions
-                    [ActionStateConditions::HasSummonedFirstTotem as usize] = true;
+                agent.combat_state.timers[SUMMON_TOTEM] = 0.0;
+                agent.combat_state.conditions[HAS_SUMMONED_FIRST_TOTEM] = true;
             },
             CharacterState::Shockwave(_) | CharacterState::BasicRanged(_) => {
                 // reset heavy attack on either ability
-                agent.combat_state.counters[ActionStateTimers::HeavyAttack as usize] = 0.0;
-                agent.combat_state.counters[ActionStateCounters::HeavyAttackCooldown as usize] =
-                    rng.gen_range(HEAVY_ATTACK_COOLDOWN_SPAN[0]..=HEAVY_ATTACK_COOLDOWN_SPAN[1]);
+                agent.combat_state.counters[HEAVY_ATTACK] = 0.0;
+                agent.combat_state.counters[HEAVY_ATTACK_COOLDOWN] =
+                    rng_from_span(rng, HEAVY_ATTACK_COOLDOWN_SPAN);
             },
             _ => {},
         }
         // totem (always increment)
-        agent.combat_state.timers[ActionStateTimers::SummonTotem as usize] += read_data.dt.0;
+        agent.combat_state.timers[SUMMON_TOTEM] += read_data.dt.0;
         // heavy attack (increment at different rates)
         if is_in_strike_range {
             // recharge at standard rate in strike range and angle
             if is_in_strike_angle {
-                agent.combat_state.counters[ActionStateTimers::HeavyAttack as usize] +=
-                    read_data.dt.0;
+                agent.combat_state.counters[HEAVY_ATTACK] += read_data.dt.0;
             } else {
                 // If not in angle, charge heavy attack faster
-                agent.combat_state.counters[ActionStateTimers::HeavyAttack as usize] +=
+                agent.combat_state.counters[HEAVY_ATTACK] +=
                     read_data.dt.0 * HEAVY_ATTACK_FAST_CHARGE_FACTOR;
             }
         } else {
             // If not in range, charge heavy attack faster
-            agent.combat_state.counters[ActionStateTimers::HeavyAttack as usize] +=
+            agent.combat_state.counters[HEAVY_ATTACK] +=
                 read_data.dt.0 * HEAVY_ATTACK_CHARGE_FACTOR;
         }
 
         // --- attacks ---
         // start by summoning green totem
-        if !agent.combat_state.conditions[ActionStateConditions::HasSummonedFirstTotem as usize] {
+        if !agent.combat_state.conditions[HAS_SUMMONED_FIRST_TOTEM] {
             controller.push_basic_input(InputKind::Ability(2));
         }
         // on timer, summon a new random totem
-        else if agent.combat_state.timers[ActionStateTimers::SummonTotem as usize]
-            > TOTEM_COOLDOWN
-        {
+        else if agent.combat_state.timers[SUMMON_TOTEM] > TOTEM_COOLDOWN {
             controller.push_basic_input(InputKind::Ability(rng.gen_range(1..=3)));
         }
         // on timer and in range, use a heavy attack
         // assumes: barrange_max_range * BARRAGE_RANGE_FACTOR > shockwave_range *
         // SHOCKWAVE_RANGE_FACTOR
-        else if agent.combat_state.counters[ActionStateTimers::HeavyAttack as usize]
-            > agent.combat_state.counters[ActionStateCounters::HeavyAttackCooldown as usize]
+        else if agent.combat_state.counters[HEAVY_ATTACK]
+            > agent.combat_state.counters[HEAVY_ATTACK_COOLDOWN]
             && attack_data.dist_sqrd < (barrage_max_range * BARRAGE_RANGE_FACTOR).powi(2)
         {
             // has line of sight
