@@ -422,14 +422,12 @@ impl LocalizationGuard {
     /// ```
     ///
     /// 1) Because content we want is localized itself and has arguments, we
-    /// iterate over them and localize, recursively. Having that, we localize
-    /// our content.
-    ///
-    /// 2) Now there is a chance that some of args have missing
-    /// internalization. In that case, we insert arg name as placeholder and
-    /// mark it as broken. Then we repeat *whole* procedure on fallback
-    /// language if we have it.
-    ///
+    ///    iterate over them and localize, recursively. Having that, we localize
+    ///    our content.
+    /// 2) Now there is a chance that some of args have missing internalization.
+    ///    In that case, we insert arg name as placeholder and mark it as
+    ///    broken. Then we repeat *whole* procedure on fallback language if we
+    ///    have it.
     /// 3) Otherwise, return result from (1).
     // NOTE: it's important that we only use one language at the time, because
     // otherwise we will get partially-translated message.

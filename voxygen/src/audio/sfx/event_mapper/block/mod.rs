@@ -283,11 +283,11 @@ impl BlockEventMapper {
     /// Ensures that:
     /// 1. An sfx.ron entry exists for an SFX event
     /// 2. The sfx has not been played since it's timeout threshold has elapsed,
-    /// which prevents firing every tick
-    /// Note that with so many blocks to choose from and different blocks being
-    /// selected each time, this is not perfect, but does reduce the number of
-    /// plays from blocks that have already emitted sfx and are stored in the
-    /// BlockEventMapper history.
+    ///    which prevents firing every tick. Note that with so many blocks to
+    ///    choose from and different blocks being selected each time, this is
+    ///    not perfect, but does reduce the number of plays from blocks that
+    ///    have already emitted sfx and are stored in the BlockEventMapper
+    ///    history.
     fn should_emit(
         previous_state: &PreviousBlockState,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,

@@ -27,6 +27,7 @@ const RUST_LOG_ENV: &str = "RUST_LOG";
 ///  - warn for `prometheus_hyper`, `dot_vox`, `gfx_device_gl::factory,
 ///    `gfx_device_gl::shade` trace for `veloren_voxygen`, info for everything
 ///    else
+///
 /// `RUST_LOG="prometheus_hyper=warn,dot_vox::parser=warn,gfx_device_gl::
 /// factory=warn,gfx_device_gl::shade=warn,veloren_voxygen=trace,info"`
 ///

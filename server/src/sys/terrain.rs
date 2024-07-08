@@ -360,9 +360,8 @@ impl<'a> System<'a> for Sys {
                 // using eg. /reload_chunks
 
                 // TODO: code duplication for chunk insertion between here and state.rs
-                data.terrain.remove(key).map(|chunk| {
+                data.terrain.remove(key).inspect(|_| {
                     data.terrain_changes.removed_chunks.insert(key);
-                    chunk
                 })
             })
             .collect::<Vec<_>>();

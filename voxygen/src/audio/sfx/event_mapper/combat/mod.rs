@@ -124,7 +124,7 @@ impl CombatEventMapper {
     /// Ensures that:
     /// 1. An sfx.ron entry exists for an SFX event
     /// 2. The sfx has not been played since it's timeout threshold has elapsed,
-    /// which prevents firing every tick
+    ///    which prevents firing every tick
     fn should_emit(
         previous_state: &PreviousEntityState,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,

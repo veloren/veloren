@@ -3014,7 +3014,7 @@ struct HeartbeatScheduler {
     /// - if it's more frequent then tick rate, it could be 1 or more.
     /// - if it's less frequent then tick rate, it could be 1 or 0.
     /// - if it's equal to the tick rate, it could be between 2 and 0, due to
-    /// delta time variance etc.
+    ///   delta time variance etc.
     timers: HashMap<Duration, (f64, u8)>,
 
     last_known_time: f64,
@@ -3058,10 +3058,10 @@ impl HeartbeatScheduler {
 
     /// returns the number of times this duration has elapsed since the last
     /// tick:
-    /// - if it's more frequent then tick rate, it could be 1 or more.
-    /// - if it's less frequent then tick rate, it could be 1 or 0.
-    /// - if it's equal to the tick rate, it could be between 2 and 0, due to
-    /// delta time variance.
+    ///   - if it's more frequent then tick rate, it could be 1 or more.
+    ///   - if it's less frequent then tick rate, it could be 1 or 0.
+    ///   - if it's equal to the tick rate, it could be between 2 and 0, due to
+    ///     delta time variance.
     pub fn heartbeats(&mut self, frequency: Duration) -> u8 {
         span!(_guard, "HeartbeatScheduler::heartbeats");
         let last_known_time = self.last_known_time;

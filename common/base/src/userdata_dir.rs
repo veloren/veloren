@@ -17,9 +17,10 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 
 /// Determines common user data directory used by veloren frontends
 /// The first specified in this list is used
-/// 1. The VELOREN_USERDATA environment variable
-/// 2. The VELOREN_USERDATA_STRATEGY environment variable
-/// 3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata
+///   1. The VELOREN_USERDATA environment variable
+///   2. The VELOREN_USERDATA_STRATEGY environment variable
+///   3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata
+///
 /// depending on if a    workspace if being used
 pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str) -> PathBuf {
     // 1. The VELOREN_USERDATA environment variable

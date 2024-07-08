@@ -45,12 +45,11 @@ impl Origin {
 pub struct CpuTimeline {
     /// measurements for a System
     /// - The first entry will always be ParMode::Single, as when the
-    ///   System::run is executed, we run
-    /// single threaded until we start a Rayon::ParIter or similar
+    ///   System::run is executed, we run single threaded until we start a
+    ///   Rayon::ParIter or similar
     /// - The last entry will contain the end time of the System. To mark the
-    ///   End it will always contain
-    /// ParMode::None, which means from that point on 0 CPU threads work in this
-    /// system
+    ///   End it will always contain ParMode::None, which means from that point
+    ///   on 0 CPU threads work in this system
     measures: Vec<(Instant, ParMode)>,
 }
 

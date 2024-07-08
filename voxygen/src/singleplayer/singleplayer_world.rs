@@ -9,13 +9,6 @@ use serde::{Deserialize, Serialize};
 use server::{FileOpts, GenOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED};
 use tracing::error;
 
-#[derive(Clone, Deserialize, Serialize)]
-struct World0 {
-    name: String,
-    gen_opts: Option<GenOpts>,
-    seed: u32,
-}
-
 pub struct SingleplayerWorld {
     pub name: String,
     pub gen_opts: Option<GenOpts>,

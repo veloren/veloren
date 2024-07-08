@@ -119,6 +119,7 @@ impl Interactable {
 ///   a) entity (if within range)
 ///   b) collectable
 ///   c) can be mined, and is a mine sprite (Air) not a weak rock.
+///
 /// 2) outside of targeted cam ray
 ///   -> closest of nearest interactable entity/block
 pub(super) fn select_interactable(

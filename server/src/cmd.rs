@@ -108,9 +108,9 @@ type CmdResult<T> = Result<T, Content>;
 ///   This differs from the previous argument when using /sudo
 /// * `Vec<String>` - a `Vec<String>` containing the arguments of the command
 ///   after the keyword.
-/// * `&ChatCommand` - the command to execute with the above arguments.
-/// Handler functions must parse arguments from the the given `String`
-/// (`parse_args!` exists for this purpose).
+/// * `&ChatCommand` - the command to execute with the above arguments --
+///   Handler functions must parse arguments from the the given `String`
+///   (`parse_args!` exists for this purpose).
 ///
 /// # Returns
 ///
