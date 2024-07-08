@@ -153,13 +153,11 @@ impl Animation for MultiAction {
                     next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                    next.chest.orientation = 
-                        Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
-                            * Quaternion::rotation_z(move1 * 1.2 + move2 * -2.0);
-                    next.head.orientation =
-                        Quaternion::rotation_x(move1 * 0.2 + move2 * -0.24)
-                            * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
-                            * Quaternion::rotation_z(move1 * -0.3 + move2 * 0.72);
+                    next.chest.orientation = Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                        * Quaternion::rotation_z(move1 * 1.2 + move2 * -2.0);
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.2 + move2 * -0.24)
+                        * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
+                        * Quaternion::rotation_z(move1 * -0.3 + move2 * 0.72);
                     next.control.orientation.rotate_x(move1 * 1.2);
                     next.control.position += Vec3::new(move1 * -4.0, 0.0, move1 * 6.0);
                     next.control.orientation.rotate_y(move1 * -1.6);
@@ -188,13 +186,11 @@ impl Animation for MultiAction {
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
                     next.chest.position += Vec3::new(0.0, move1 * -0.5, 0.0);
-                    next.chest.orientation = 
-                        Quaternion::rotation_x(move1 * 0.15)
-                            * Quaternion::rotation_y(move1 * 0.15)
-                            * Quaternion::rotation_z(move1 * 0.3);
-                    next.head.orientation = 
-                        Quaternion::rotation_y(move1 * -0.15)
-                            * Quaternion::rotation_z(move1 * -0.3);
+                    next.chest.orientation = Quaternion::rotation_x(move1 * 0.15)
+                        * Quaternion::rotation_y(move1 * 0.15)
+                        * Quaternion::rotation_z(move1 * 0.3);
+                    next.head.orientation = Quaternion::rotation_y(move1 * -0.15)
+                        * Quaternion::rotation_z(move1 * -0.3);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * -0.2);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.1);
                     next.control.orientation.rotate_x(move1 * 2.2);
@@ -233,10 +229,9 @@ impl Animation for MultiAction {
                     next.control.orientation.rotate_x(move1 * 1.6 + move2 * 0.2);
                     next.chest.position += Vec3::new(0.0, move1 * -0.5, 0.0);
                     next.chest.orientation = Quaternion::rotation_z(move1 * 1.0);
-                    next.head.orientation =
-                        Quaternion::rotation_y(move1 * 0.2 + move2 * -0.24)
-                            * Quaternion::rotation_z(move1 * 0.3 + move2 * -0.36)
-                            * Quaternion::rotation_z(move1 * -0.3 + move2 * 0.72);
+                    next.head.orientation = Quaternion::rotation_y(move1 * 0.2 + move2 * -0.24)
+                        * Quaternion::rotation_z(move1 * 0.3 + move2 * -0.36)
+                        * Quaternion::rotation_z(move1 * -0.3 + move2 * 0.72);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5);
                     next.control.position += Vec3::new(move1 * -8.0, 0.0, move1 * 5.0);
@@ -267,19 +262,17 @@ impl Animation for MultiAction {
 
                     // Right feint if x < 0, else left
                     if d.move_dir.x < 0.0 {
-                        next.chest.orientation = 
-                        Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
-                            * Quaternion::rotation_z(move1 * 1.2 + move2 * -2.0);
+                        next.chest.orientation =
+                            Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                                * Quaternion::rotation_z(move1 * 1.2 + move2 * -2.0);
                         next.chest.position += Vec3::new(0.0, move1 * -0.5, 0.0);
-                        next.head.orientation =
-                        Quaternion::rotation_x(move1 * 0.2 + move2 * -0.24)
+                        next.head.orientation = Quaternion::rotation_x(move1 * 0.2 + move2 * -0.24)
                             * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
                             * Quaternion::rotation_z(move1 * -0.3 + move2 * 0.72);
                         next.shorts.orientation = Quaternion::rotation_z(move1 * 0.4);
                         next.belt.orientation = Quaternion::rotation_z(move1 * 0.2);
                         next.control.position += Vec3::new(move1 * 12.0, 6.0, 0.0);
-                        next.control.orientation =
-                        Quaternion::rotation_x(move1 * 0.2)
+                        next.control.orientation = Quaternion::rotation_x(move1 * 0.2)
                             * Quaternion::rotation_y(move1 * -1.7)
                             * Quaternion::rotation_z(move1 * 0.7);
 
@@ -288,22 +281,20 @@ impl Animation for MultiAction {
                         next.control.orientation.rotate_z(move2 * -1.9);
                         next.control.position += Vec3::new(move2 * 5.0, move2 * 2.0, 0.0);
                     } else {
-                        next.chest.orientation = 
-                        Quaternion::rotation_y(move1 * -0.1 + move2 * 0.15)
-                            * Quaternion::rotation_z(move1 * -1.2 + move2 * 2.0);
+                        next.chest.orientation =
+                            Quaternion::rotation_y(move1 * -0.1 + move2 * 0.15)
+                                * Quaternion::rotation_z(move1 * -1.2 + move2 * 2.0);
                         next.chest.position += Vec3::new(0.0, move1 * -0.5, 0.0);
-                        next.head.orientation =
-                        Quaternion::rotation_y(move1 * -0.2 + move2 * 0.24)
+                        next.head.orientation = Quaternion::rotation_y(move1 * -0.2 + move2 * 0.24)
                             * Quaternion::rotation_z(move1 * -0.3 + move2 * 0.36)
                             * Quaternion::rotation_z(move1 * 0.3 + move2 * -0.72);
                         next.shorts.orientation = Quaternion::rotation_z(move1 * -0.4);
                         next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
                         next.control.position += Vec3::new(move1 * -6.0, 6.0, 0.0);
-                        next.control.orientation =
-                        Quaternion::rotation_x(move1 * 0.2)
+                        next.control.orientation = Quaternion::rotation_x(move1 * 0.2)
                             * Quaternion::rotation_y(move1 * 1.7)
                             * Quaternion::rotation_z(move1 * -0.7);
-                        
+
                         next.chest.position += Vec3::new(0.0, move2 * 6.0, 0.0);
                         next.belt.orientation.rotate_z(move2 * -0.1);
                         next.control.orientation.rotate_z(move2 * 1.9);
@@ -323,15 +314,13 @@ impl Animation for MultiAction {
                     next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                    next.chest.orientation =
-                    Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                    next.chest.orientation = Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
                         * Quaternion::rotation_z(move1 * 1.2 + move2 * -2.0);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * -0.2);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.5);
-                    next.head.orientation =
-                    Quaternion::rotation_x(move1 * 0.2 + move2 * -0.24)
-                            * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
-                            * Quaternion::rotation_z(move1 * -0.3 + move2 * 1.2);
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.2 + move2 * -0.24)
+                        * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
+                        * Quaternion::rotation_z(move1 * -0.3 + move2 * 1.2);
                     next.foot_l.position += Vec3::new(0.0, move1 * -4.0, 0.0);
 
                     next.chest.orientation.rotate_z(move2 * -1.4);
@@ -357,19 +346,18 @@ impl Animation for MultiAction {
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
                     next.chest.position += Vec3::new(0.0, move1 * -2.0, 0.0);
-                    next.chest.orientation =
-                    Quaternion::rotation_x(move1 * 0.05)
+                    next.chest.orientation = Quaternion::rotation_x(move1 * 0.05)
                         * Quaternion::rotation_y(move1 * 0.05)
                         * Quaternion::rotation_z(move1 * -1.0);
-                    next.head.orientation =
-                    Quaternion::rotation_x(move1 * 0.05)
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.05)
                         * Quaternion::rotation_y(move1 * 0.05)
                         * Quaternion::rotation_z(move1 * 0.8);
                     next.belt.orientation = Quaternion::rotation_z(move1 * 0.4);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * 1.0);
                     next.control.orientation.rotate_y(move1 * -1.7);
                     next.control.orientation.rotate_z(move1 * 0.5);
-                    next.control.position += Vec3::new(4.0 + move1 * 10.0, 8.0 + move1 * -8.0, move1 * 9.0);
+                    next.control.position +=
+                        Vec3::new(4.0 + move1 * 10.0, 8.0 + move1 * -8.0, move1 * 9.0);
                     next.foot_l.orientation = Quaternion::rotation_z(move1 * 0.2);
 
                     next.chest.position += Vec3::new(0.0, move2 * 4.0, 0.0);
@@ -402,10 +390,9 @@ impl Animation for MultiAction {
                     next.chest.orientation = Quaternion::rotation_z(move1 * 1.3)
                         * Quaternion::rotation_x(move2alt * -0.3);
                     next.chest.position += Vec3::new(0.0, move1 * -2.0, 0.0);
-                    next.head.orientation =
-                    Quaternion::rotation_x(move1 * 0.18 + move2alt * -0.18)
-                            * Quaternion::rotation_y(move1 * 0.18 + move2alt * -0.18)
-                            * Quaternion::rotation_z(move1 * -0.36 + move2alt * -0.24);
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.18 + move2alt * -0.18)
+                        * Quaternion::rotation_y(move1 * 0.18 + move2alt * -0.18)
+                        * Quaternion::rotation_z(move1 * -0.36 + move2alt * -0.24);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.4)
                         * Quaternion::rotation_x(move2alt * 0.3);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * -1.0 + move2 * 1.0)
@@ -532,14 +519,12 @@ impl Animation for MultiAction {
                     next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                    next.chest.orientation = 
-                        Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
-                            * Quaternion::rotation_z(move1 * 1.2 + move2 * -2.0);
+                    next.chest.orientation = Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                        * Quaternion::rotation_z(move1 * 1.2 + move2 * -2.0);
                     next.chest.position += Vec3::new(0.0, move1 * -2.0, 0.0);
-                    next.head.orientation =
-                        Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
-                            * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
-                            * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
+                        * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
+                        * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
                     next.control
@@ -581,14 +566,12 @@ impl Animation for MultiAction {
                     next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                    next.chest.orientation =
-                        Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
-                            * Quaternion::rotation_z(move1 * 1.4 + move2 * -1.4);
+                    next.chest.orientation = Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                        * Quaternion::rotation_z(move1 * 1.4 + move2 * -1.4);
                     next.chest.position += Vec3::new(0.0, move1 * -2.0, 0.0);
-                    next.head.orientation =
-                        Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
-                            * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
-                            * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
+                        * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
+                        * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5);
                     next.control.position += Vec3::new(0.0, 0.0, move1 * 5.0);
@@ -628,14 +611,12 @@ impl Animation for MultiAction {
                     next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                    next.chest.orientation =
-                        Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                    next.chest.orientation = Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
                         * Quaternion::rotation_z(move1 * 1.2);
                     next.chest.position += Vec3::new(0.0, move1 * 3.0, 0.0);
-                    next.head.orientation =
-                        Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
-                            * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
-                            * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
+                        * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
+                        * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
                     next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5);
                     next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
                     next.control.orientation.rotate_x(move1 * -1.0);
@@ -673,12 +654,10 @@ impl Animation for MultiAction {
                     next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                     next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                    next.chest.orientation =
-                        Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
-                            * Quaternion::rotation_z(move1 * 0.4 + move2 * -0.5);
+                    next.chest.orientation = Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                        * Quaternion::rotation_z(move1 * 0.4 + move2 * -0.5);
                     next.chest.position += Vec3::new(0.0, move1 * -1.0, 0.0);
-                    next.head.orientation =
-                    Quaternion::rotation_x(move1 * 0.1 + move2 * -0.24)
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.1 + move2 * -0.24)
                         * Quaternion::rotation_y(move1 * -0.2 + move2 * 0.36)
                         * Quaternion::rotation_z(move1 * -0.1 + move2 * -0.96);
                     next.control.orientation.rotate_x(move1 * 1.7);
@@ -727,13 +706,13 @@ impl Animation for MultiAction {
                             next.control.orientation.rotate_z(move1 * -0.5);
                             next.control.orientation.rotate_y(move1 * -0.3);
                             next.chest.orientation =
-                            Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
-                                * Quaternion::rotation_z(move1 * 1.2 + move2 * -0.8);
+                                Quaternion::rotation_y(move1 * 0.1 + move2 * -0.15)
+                                    * Quaternion::rotation_z(move1 * 1.2 + move2 * -0.8);
                             next.chest.position += Vec3::new(0.0, move1 * -1.0, 0.0);
                             next.head.orientation =
-                            Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
-                                * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
-                                * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
+                                Quaternion::rotation_x(move1 * 0.1 + move2 * -0.2)
+                                    * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.36)
+                                    * Quaternion::rotation_z(move1 * -0.3 + move2 * -0.72);
                             next.shorts.orientation = Quaternion::rotation_z(move1 * -0.2);
                             next.belt.orientation = Quaternion::rotation_z(move1 * -0.1);
 
