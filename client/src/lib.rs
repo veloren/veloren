@@ -3331,6 +3331,7 @@ mod tests {
     /// CHANGING IT WILL BREAK 3rd PARTY APPLICATIONS (please extend) which
     /// needs to be informed (or fixed)
     ///  - torvus: https://gitlab.com/veloren/torvus
+    ///
     /// CONTACT @Core Developer BEFORE MERGING CHANGES TO THIS TEST
     fn constant_api_test() {
         use common::clock::Clock;

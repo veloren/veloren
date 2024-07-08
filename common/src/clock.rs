@@ -10,11 +10,13 @@ use std::{
 /// - if we actually took less time than we planned: sleep and return planned
 ///   time
 /// - if we ran behind: don't sleep and return actual time
+///
 /// We DON'T do any fancy averaging of the deltas for tick for 2 reasons:
 ///  - all Systems have to work based on `dt` and we cannot assume that this is
 ///    const through all ticks
 ///  - when we have a slow tick, a lag, it doesn't help that we have 10 fast
 ///    ticks directly afterwards
+///
 /// We return a smoothed version for display only!
 pub struct Clock {
     /// This is the dt that the Clock tries to archive with each call of tick.

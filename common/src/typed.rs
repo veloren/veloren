@@ -25,8 +25,8 @@ pub trait Typed<Context, Type, S> {
 /// - For enums, we synthesize a match on the current head.  For each match arm,
 ///   we then repeat this process on the constructor arguments; if there are no
 ///   constructor arguments, we synthesize a literal (Pure term). (TODO: Handle
-///   > 1 tuple properly--for now we just synthesize a Pure term for these
-///   cases).
+///   larger than 1 tuple properly--for now we just synthesize a Pure term for
+///   these cases).
 ///
 /// - For structs, we synthesize a projection on the current head.  For each
 ///   projection, we then repeat this process on the type of the projected

@@ -159,9 +159,10 @@ impl MovementEventMapper {
     /// When specific entity movements are detected, the associated sound (if
     /// any) needs to satisfy two conditions to be allowed to play:
     /// 1. An sfx.ron entry exists for the movement (we need to know which sound
-    /// file(s) to play) 2. The sfx has not been played since it's timeout
-    /// threshold has elapsed, which prevents firing every tick. For movement,
-    /// threshold is not a time, but a distance.
+    ///    file(s) to play)
+    /// 2. The sfx has not been played since it's timeout threshold has elapsed,
+    ///    which prevents firing every tick. For movement, threshold is not a
+    ///    time, but a distance.
     fn should_emit(
         previous_state: &PreviousEntityState,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,

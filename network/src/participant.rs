@@ -638,14 +638,12 @@ impl BParticipant {
     /// on the remote, we have a timeout to also force close AR.
     ///
     /// This fn will:
-    ///  - 1. stop api to interact with bparticipant by closing sendmsg and
-    /// openstream
-    ///  - 2. stop the send_mgr (it will take care of clearing the
-    /// queue and finish with a Shutdown)
-    ///  - (3). force stop recv after 60
-    /// seconds
-    ///  - (4). this fn finishes last and afterwards BParticipant
-    /// drops
+    ///   1. stop api to interact with bparticipant by closing sendmsg and
+    ///      openstream
+    ///   2. stop the send_mgr (it will take care of clearing the queue and
+    ///      finish with a Shutdown)
+    ///   3. force stop recv after 60 seconds
+    ///   4. this fn finishes last and afterwards BParticipant drops
     ///
     /// before calling this fn, make sure `s2b_create_channel` is closed!
     /// If BParticipant kills itself managers stay active till this function is

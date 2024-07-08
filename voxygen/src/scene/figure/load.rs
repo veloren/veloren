@@ -423,9 +423,6 @@ impl_concatenate_for_wrapper!(HumArmorFootSpec);
 struct HumMainWeaponSpec(HashMap<ToolKey, ArmorVoxSpec>);
 impl_concatenate_for_wrapper!(HumMainWeaponSpec);
 #[derive(Deserialize)]
-struct HumModularComponentSpec(HashMap<String, ModularComponentSpec>);
-impl_concatenate_for_wrapper!(HumModularComponentSpec);
-#[derive(Deserialize)]
 struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 impl_concatenate_for_wrapper!(HumArmorLanternSpec);
 #[derive(Deserialize)]

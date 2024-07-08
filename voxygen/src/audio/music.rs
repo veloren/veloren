@@ -139,15 +139,6 @@ enum DayPeriod {
     Night,
 }
 
-/// Determines whether the sound is stopped, playing, or fading
-#[derive(Debug, Deserialize, PartialEq)]
-enum PlayState {
-    Playing,
-    Stopped,
-    FadingOut,
-    FadingIn,
-}
-
 /// Provides methods to control music playback
 pub struct MusicMgr {
     /// Collection of all the tracks

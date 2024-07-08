@@ -51,7 +51,7 @@ use vek::*;
 ///   minimize distance traveled) across the whole map, and we assume there are
 ///   no obstacles or slopes.
 ///
-///   In example 1, a human is walking at the (real-time) speed of the fastest
+/// In example 1, a human is walking at the (real-time) speed of the fastest
 /// marathon runners   (around 6 blocks / real-time s).  We assume the human can
 /// maintain this pace indefinitely   without stopping.  Then crossing the map
 /// will take about:
@@ -60,20 +60,20 @@ use vek::*;
 /// * 1 real-time hr / 60 real-time min * 1 real-time days / 24 hr = 2^19 / 6 /
 ///   60 / 60 / 24 real-time days ≌ 1 real-time day.
 ///
-///   That's right--it will take a full day of *real* time to cross the map at
+/// That's right--it will take a full day of *real* time to cross the map at
 /// an apparent speed of   6 m / s.  Moreover, since in-game time passes at a
 /// rate of 1 in-game min / 1 in-game s, this   would also take *60 days* of
 /// in-game time.
 ///
-///   Still though, this is the rate of an ordinary human.  And besides that, if
+/// Still though, this is the rate of an ordinary human.  And besides that, if
 /// we instead had a   marathon runner traveling at 6 m / in-game s, it would
 /// take just 1 day of in-game time for   the runner to cross the map, or a mere
 /// 0.4 hr of real time.   To show that this rate of travel is unrealistic (and
 /// perhaps make an eventual argument for   a slower real-time to in-game time
 /// conversion rate), our second example will consist of a   high-speed train
 /// running at 300 km / real-time h (the fastest real-world high speed train
-///   averages under 270 k m / h, with 300 km / h as the designed top speed).
-/// For a train   traveling at this apparent speed (in real time), crossing the
+///  averages under 270 k m / h, with 300 km / h as the designed top speed).
+/// For a train traveling at this apparent speed (in real time), crossing the
 /// map would take:
 ///
 ///   2^19 blocks * 1 km / 1000 blocks * 1 real-time hr / 300 km
@@ -85,15 +85,15 @@ use vek::*;
 ///   = 2^19 / 1000 / 300 * 60 / 24 in-game days
 ///   ≌ 4.37 in-game days
 ///
-///   In other words, something faster in real-time than any existing high-speed
+/// In other words, something faster in real-time than any existing high-speed
 /// train would be   over 4 times slower (in real-time) than our hypothetical
 /// top marathon runner running at 6 m /   s in in-game speed.  This suggests
 /// that the gap between in-game time and real-time is   probably much too large
 /// for most purposes; however, what it definitely shows is that even
-///   extremely fast in-game transport across the world will not trivialize its
+/// extremely fast in-game transport across the world will not trivialize its
 /// size.
 ///
-///   It follows that cities or towns of realistic scale, player housing,
+/// It follows that cities or towns of realistic scale, player housing,
 /// fields, and so on, will   all fit comfortably on a map of this size, while
 /// at the same time still being reachable by   non-warping, in-game mechanisms
 /// (such as high-speed transit).  It also provides plenty of   room for mounts

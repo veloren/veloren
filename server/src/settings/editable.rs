@@ -180,12 +180,11 @@ pub trait EditableSetting: Clone + Default {
     /// * If e is Integrity, validation failed and the settings were not
     ///   updated.
     /// * If e is Io, validation succeeded and the settings were updated in
-    ///   memory, but they
-    /// could not be saved to storage (and a warning was logged).  The reason we
-    /// return an error even though the operation was partially successful
-    /// is so we can alert the player who ran the command about the failure,
-    /// as they will often be an administrator who can usefully act upon that
-    /// information.
+    ///   memory, but they could not be saved to storage (and a warning was
+    ///   logged). The reason we return an error even though the operation was
+    ///   partially successful is so we can alert the player who ran the command
+    ///   about the failure, as they will often be an administrator who can
+    ///   usefully act upon that information.
     #[must_use]
     fn edit<R>(
         &mut self,

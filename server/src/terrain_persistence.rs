@@ -329,22 +329,23 @@ impl ByBlockLimiter {
 /// The steps for doing this are as follows:
 ///
 /// 1. Create a new 'raw format' type that implements [`Serialize`] and
-/// `Deserialize`]. Make sure to add a version field. If in doubt, copy the last
-/// raw format and increment the version number wherever it appears. Don't
-/// forget to increment the version number in the `serde(deserialize_with =
-/// ...}` attribute! Conventionally, these types are named `V{N}` where `{N}` is
-/// the number succeeding the previous raw format type.
+///    `Deserialize`]. Make sure to add a version field. If in doubt, copy the
+///    last raw format and increment the version number wherever it appears.
+///    Don't forget to increment the version number in the
+///    `serde(deserialize_with = ...}` attribute! Conventionally, these types
+///    are named `V{N}` where `{N}` is the number succeeding the previous raw
+///    format type.
 ///
 /// 2. Add an implementation of `From<{YourRawFormat}>` for `Chunk`. As before,
-/// see previous versions if in doubt.
+///    see previous versions if in doubt.
 ///
 /// 3. Change the type of [`version::Current`] to your new raw format type.
 ///
 /// 4. Add an entry for your raw format at the top of the array in
-/// [`version::loaders`].
+///    [`version::loaders`].
 ///
 /// 5. Remove the `Serialize` implementation from the previous raw format type:
-/// we don't need it any longer!
+///    we don't need it any longer!
 mod version {
     use super::*;
 

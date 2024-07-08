@@ -9,9 +9,10 @@
 //!      - 2 networks
 //!      - 2 participants
 //!      - 2 streams
+//!
 //!    each one `linked` to their counterpart.
 //!    You see a cryptic use of rust `_` this is because we are testing the
-//! `drop` behavior here.
+//!    `drop` behavior here.
 //!      - A `_` means this is directly dropped after the line executes, thus
 //!        immediately executing its `Drop` impl.
 //!      - A `_p1_a` e.g. means we don't use that Participant yet, but we must

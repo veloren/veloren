@@ -286,7 +286,7 @@ impl AtlasAllocator for GuillotiereTiled {
             tracing::trace!("Packing ratio: {}", total_area as f32 / total_used as f32);
         }
 
-        let diff = (new_size - self.size()).map(|e| e.max(0));
+        let diff = new_size.map2(self.size(), |n, s| n.saturating_sub(s));
         // NOTE: Growing only occurs in increments of TILE_SIZE so any remaining size is
         // ignored. Max size is not known here so this must truncate instead of rounding
         // up.

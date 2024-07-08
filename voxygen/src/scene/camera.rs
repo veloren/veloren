@@ -81,7 +81,7 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 ///
 /// This ensures that the near and far plane are not identical (or else your
 /// projection would not cover any distance), and that they have the same sign
-/// (or else we cannot rely on clipping to properly fix your scene).  This also
+/// (or else we cannot rely on clipping to properly fix your scene). This also
 /// ensures that at least one of 1/n and 1/f is not 0, and by construction it
 /// guarantees that neither n nor f are 0; these are required in order to make
 /// sense of the definition of near and far planes, and avoid collapsing all
@@ -95,71 +95,71 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 ///   depth planes go from 1 to 0, meaning f = near and n = far, aka "reverse
 ///   depth").
 ///
-///     This is by far the most
-///     likely thing to want to change; inverted depth coordinates have *far*
-/// better accuracy for     DirectX / Metal / WGPU-like APIs, when using
-/// floating point depth, while not being *worse*     than the alternative
-/// (OpenGL-like depth, or when using fixed-point / integer depth).  For
-///     maximum benefit, make sure you are using Depth32F, as on most platforms
-/// this is the only     depth buffer size where floating point can be used.
+/// This is by far the most likely thing to want to change; inverted depth
+/// coordinates have *far* better accuracy for DirectX / Metal / WGPU-like
+/// APIs, when using floating point depth, while not being *worse* than the
+/// alternative (OpenGL-like depth, or when using fixed-point / integer depth).
+/// For maximum benefit, make sure you are using Depth32F, as on most
+/// platforms this is the only depth buffer size where floating point can be
+/// used.
 ///
-///     It is a bit unintuitive to prove this, but it turns out that when using
-/// 1 to 0 depth planes,     the point where the depth buffer has its worst
-/// precision is not at the far plane (as with 0     to 1 depth planes) nor at
+/// It is a bit unintuitive to prove this, but it turns out that when using
+/// 1 to 0 depth planes, the point where the depth buffer has its worst
+/// precision is not at the far plane (as with 0 to 1 depth planes) nor at
 /// the near plane, as you might expect, but exactly at far/2 (the
-///     near plane setting does not affect the point of minimum accuracy at
-/// all!).  However, don't     let this fool you into believing the point of
-/// worst precision has simply been moved     around--for *any* fixed Δz that is
-/// the minimum amount of depth precision you want over the     whole range, and
+/// near plane setting does not affect the point of minimum accuracy at
+/// all!).  However, don't let this fool you into believing the point of
+/// worst precision has simply been moved around--for *any* fixed Δz that is
+/// the minimum amount of depth precision you want over the whole range, and
 /// any near plane, you can set the far plane farther (generally much much
-///     farther!) with reversed clip space than you can with standard clip space
-/// while still     getting at least that much depth precision in the worst
-/// case.  Nor is this a small     worst-case; for many desirable near and far
-/// plane combinations, more than half the visible     space will have
+/// farther!) with reversed clip space than you can with standard clip space
+/// while still getting at least that much depth precision in the worst
+/// case.  Nor is this a small worst-case; for many desirable near and far
+/// plane combinations, more than half the visible space will have
 /// completely unusable precision under 0 to 1 depth, while having much better
-///     than needed precision under 1 to 0 depth.
+/// than needed precision under 1 to 0 depth.
 ///
-///     To compute the exact (at least "roughly exact") worst-case accuracy for
-/// floating     point depth and a given precision target Δz, for reverse clip
-/// planes (this can be computed     for the non-reversed case too, but it's
-/// painful and the values are horrible, so don't     bother), we compute
+/// To compute the exact (at least "roughly exact") worst-case accuracy for
+/// floating point depth and a given precision target Δz, for reverse clip
+/// planes (this can be computed for the non-reversed case too, but it's
+/// painful and the values are horrible, so don't bother), we compute
 /// (assuming a finite far plane--see below for details on the infinite
-///     case) the change in the integer representation of the mantissa at z=n/2:
+/// case) the change in the integer representation of the mantissa at z=n/2:
 ///
-///     ```ignore
-///     e = floor(ln(near/(far - near))/ln(2))
-///     db/dz = 2^(2-e) / ((1 / far - 1 / near) * (far)^2)
-///     ```
+/// ```ignore
+/// e = floor(ln(near/(far - near))/ln(2))
+/// db/dz = 2^(2-e) / ((1 / far - 1 / near) * (far)^2)
+/// ```
 ///
-///     Then the maximum precision you can safely use to get a change in the
-/// integer representation     of the mantissa (assuming 32-bit floating points)
+/// Then the maximum precision you can safely use to get a change in the
+/// integer representation of the mantissa (assuming 32-bit floating points)
 /// is around:
 ///
-///     ```ignore
-///     abs(2^(-23) / (db/dz)).
-///     ```
+/// ```ignore
+/// abs(2^(-23) / (db/dz)).
+/// ```
 ///
-///     In particular, if your worst-case target accuracy over the depth range
-/// is Δz, you should     be okay if:
+/// In particular, if your worst-case target accuracy over the depth range
+/// is Δz, you should be okay if:
 ///
-///     ```ignore
-///     abs(Δz * (db/dz)) * 2^(23) ≥ 1.
-///     ```
+/// ```ignore
+/// abs(Δz * (db/dz)) * 2^(23) ≥ 1.
+/// ```
 ///
-///     This only accounts for precision of the final floating-point value, so
-/// it's     possible that artifacts may be introduced elsewhere during the
-/// computation that reduce     precision further; the most famous example of
-/// this is that OpenGL wipes out most of the     precision gains by going from
+/// This only accounts for precision of the final floating-point value, so
+/// it's possible that artifacts may be introduced elsewhere during the
+/// computation that reduce precision further; the most famous example of
+/// this is that OpenGL wipes out most of the precision gains by going from
 /// [-1,1] to [0,1] by letting
 ///
-///     ```ignore
-///     clip space depth = depth * 0.5 + 0.5
-///     ```
+/// ```ignore
+/// clip space depth = depth * 0.5 + 0.5
+/// ```
 ///
-///     which results in huge precision errors by removing nearly all the
-/// floating point values     with the most precision (those close to 0).
-/// Fortunately, most such artifacts are absent     under the wgpu/DirectX/Metal
-/// depth clip space model, so with any luck remaining depth     errors due to
+/// which results in huge precision errors by removing nearly all the
+/// floating point values with the most precision (those close to 0).
+/// Fortunately, most such artifacts are absent under the wgpu/DirectX/Metal
+/// depth clip space model, so with any luck remaining depth errors due to
 /// the perspective warp itself should be minimal.
 ///
 /// * 0 ≠ 1/far (finite far plane).  When this is false, the far plane is at
@@ -170,48 +170,48 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 ///   should be using reversed depth planes, and if you are then there is a
 ///   quite natural accuracy vs. distance tradeoff in the infinite case.
 ///
-///     When using an infinite far plane, the worst-case accuracy is *always* at
-/// infinity, and gets     progressively worse as you get farther away from the
-/// near plane.  However, there is a     second advantage that may not be
-/// immediately apparent: the perspective warp becomes much     simpler,
+/// When using an infinite far plane, the worst-case accuracy is *always* at
+/// infinity, and gets progressively worse as you get farther away from the
+/// near plane.  However, there is a second advantage that may not be
+/// immediately apparent: the perspective warp becomes much simpler,
 /// potentially removing artifacts!  Specifically, in the 0 to 1 depth plane
-/// case, the     assigned depth value (after perspective division) becomes:
+/// case, the assigned depth value (after perspective division) becomes:
 ///
-///     ```ignore
-///     depth = 1 - near/z
-///     ```
+/// ```ignore
+/// depth = 1 - near/z
+/// ```
 ///
-///     while in the 1 to 0 depth plane case (which you should be using), the
-/// equation is even     simpler:
+/// while in the 1 to 0 depth plane case (which you should be using), the
+/// equation is even simpler:
 ///
-///     ```ignore
-///     depth = near/z
-///     ```
+/// ```ignore
+/// depth = near/z
+/// ```
 ///
-///     In the 1 to 0 case, in particular, you can see that the depth value is
-/// *linear in z in     log space.*  This lets us compute, for any given target
-/// precision, a *very* simple     worst-case upper bound on the maximum
-/// absolute z value for which that precision can     be achieved (the upper
+/// In the 1 to 0 case, in particular, you can see that the depth value is
+/// *linear in z in log space.*  This lets us compute, for any given target
+/// precision, a *very* simple worst-case upper bound on the maximum
+/// absolute z value for which that precision can be achieved (the upper
 /// bound is tight in some cases, but in others may be conservative):
 ///
-///     ```ignore
-///     db/dz ≥ 1/z
-///     ```
+/// ```ignore
+/// db/dz ≥ 1/z
+/// ```
 ///
-///     Plugging that into our old formula, we find that we attain the required
-/// precision at least     in the range (again, this is for the 1 to 0 infinite
+/// Plugging that into our old formula, we find that we attain the required
+/// precision at least in the range (again, this is for the 1 to 0 infinite
 /// case only!):
 ///
-///     ```ignore
-///     abs(z) ≤ Δz * 2^23
-///     ```
+/// ```ignore
+/// abs(z) ≤ Δz * 2^23
+/// ```
 ///
-///     One thing you may notice is that this worst-case bound *does not depend
-/// on the near plane.*     This means that (within reason) you can put the near
-/// plane as close as you like and still     attain this bound.  Of course, the
-/// bound is not completely tight, but it should not be off     by more than a
+/// One thing you may notice is that this worst-case bound *does not depend
+/// on the near plane.*This means that (within reason) you can put the near
+/// plane as close as you like and still attain this bound.  Of course, the
+/// bound is not completely tight, but it should not be off by more than a
 /// factor of 2 or so (informally proven, not made rigorous yet), so for most
-///     practical purposes you can set the near plane as low as you like in this
+/// practical purposes you can set the near plane as low as you like in this
 /// case.
 ///
 /// * 0 < 1/near (positive near plane--best used when moving *to* left-handed
@@ -226,12 +226,12 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 ///
 /// Note that there is one final, very important thing that affects possible
 /// precision--the actual underlying precision of the floating point format at a
-/// particular value!  As your z values go up, their precision will shrink, so
+/// particular value! As your z values go up, their precision will shrink, so
 /// if at all possible try to shrink your z values down to the lowest range in
-/// which they can be.  Unfortunately, this cannot be part of the perspective
+/// which they can be. Unfortunately, this cannot be part of the perspective
 /// projection itself, because by the time z gets to the projection it is
 /// usually too late for values to still be integers (or coarse-grained powers
-/// of 2).  Instead, try to scale down x, y, and z as soon as possible before
+/// of 2). Instead, try to scale down x, y, and z as soon as possible before
 /// submitting them to the GPU, ideally by as large as possible of a power of 2
 /// that works for your use case.  Not only will this improve depth precision
 /// and recall, it will also help address other artifacts caused by values far

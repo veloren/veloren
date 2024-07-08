@@ -629,8 +629,8 @@ type M32 = std::simd::Mask<i32, 1>;
 ///
 ///   k = 2.244 * uplift.max() / (desired_max_height)
 ///
-///   since this tends to produce mountains of max height desired_max_height;
-/// and we set   desired_max_height = 1.0 to reflect limitations of mountain
+/// since this tends to produce mountains of max height desired_max_height;
+/// and we set desired_max_height = 1.0 to reflect limitations of mountain
 /// scale.
 ///
 /// This algorithm does this in four steps:
@@ -639,7 +639,7 @@ type M32 = std::simd::Mask<i32, 1>;
 ///    the list, and the highest node by altitude is last).
 /// 2. Iterate through the list in *reverse.*  For each node, we compute its
 ///    drainage area as the sum of the drainage areas of its "children" nodes
-///    (i.e. the nodes with directed edges to this node).  To do this
+///    (i.e. the nodes with directed edges to this node). To do this
 ///    efficiently, we start with the "leaves" (the highest nodes), which have
 ///    no neighbors higher than them, hence no directed edges to them. We add
 ///    their area to themselves, and then to all neighbors that they flow into
@@ -662,9 +662,9 @@ type M32 = std::simd::Mask<i32, 1>;
 ///    A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1):
 ///
 ///    h[i](t + dt) = h[i](t) + δt * (uplift[i] + flux(i) * h[j](t + δt)) / (1 +
-/// flux(i) * δt).
+///    flux(i) * δt).
 ///
-///    Since we compute heights in ascending order by height, and j is downhill
+/// Since we compute heights in ascending order by height, and j is downhill
 /// from i, h[j] will    always be the *new* h[j](t + δt), while h[i] will still
 /// not have been computed yet, so we    only need to visit each node once.
 ///
@@ -677,9 +677,9 @@ type M32 = std::simd::Mask<i32, 1>;
 ///
 /// https://github.com/fastscape-lem/fastscapelib-fortran/blob/master/src/StreamPowerLaw.f90
 ///
-/// The  approximate equation for soil production function (predicting the rate
+/// The approximate equation for soil production function (predicting the rate
 /// at which bedrock turns into soil, increasing the distance between the
-/// basement and altitude) is taken from equation (11) from [2].  This (among
+/// basement and altitude) is taken from equation (11) from [2]. This (among
 /// numerous other sources) also includes at least one prediction that hillslope
 /// diffusion should be nonlinear, which we sort of attempt to approximate.
 ///
@@ -687,7 +687,7 @@ type M32 = std::simd::Mask<i32, 1>;
 ///     Bedrich Benes, Eric Galin, et al..
 ///     Large Scale Terrain Generation from Tectonic Uplift and Fluvial Erosion.
 ///     Computer Graphics Forum, Wiley, 2016, Proc. EUROGRAPHICS 2016, 35 (2),
-/// pp.165-175.     ⟨10.1111/cgf.12820⟩. ⟨hal-01262376⟩
+///     pp.165-175.     ⟨10.1111/cgf.12820⟩. ⟨hal-01262376⟩
 ///
 /// [2] William E. Dietrich, Dino G. Bellugi, Leonard S. Sklar,
 ///     Jonathan D. Stock

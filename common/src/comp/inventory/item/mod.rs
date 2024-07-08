@@ -468,8 +468,7 @@ pub struct Item {
     ///   slot shapes
     /// - Modular components should agree with the tool kind
     /// - There should be exactly one damage component and exactly one held
-    ///   component for modular
-    /// weapons
+    ///   component for modular weapons
     components: Vec<Item>,
     /// amount is hidden because it needs to maintain the invariant that only
     /// stackable items can have > 1 amounts.
