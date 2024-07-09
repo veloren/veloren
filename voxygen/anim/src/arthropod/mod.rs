@@ -1,19 +1,18 @@
-pub mod combomelee;
-pub mod dash;
+pub mod basic;
 pub mod idle;
 pub mod jump;
-pub mod leapmelee;
-pub mod leapshockwave;
+pub mod multi;
 pub mod run;
-pub mod shoot;
 pub mod stunned;
-pub mod summon;
 
 // Reexports
 pub use self::{
-    combomelee::ComboAnimation, dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    leapmelee::LeapMeleeAnimation, leapshockwave::LeapShockAnimation, run::RunAnimation,
-    shoot::ShootAnimation, stunned::StunnedAnimation, summon::SummonAnimation,
+    basic::{BasicAction, BasicActionDependency},
+    idle::IdleAnimation,
+    jump::JumpAnimation,
+    multi::{MultiAction, MultiActionDependency},
+    run::RunAnimation,
+    stunned::StunnedAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
