@@ -116,12 +116,14 @@ impl Interactable {
 /// interact with if the interact key is pressed
 /// Selected in the following order:
 /// 1) Targeted items, in order of nearest under cursor:
-///   a) entity (if within range)
-///   b) collectable
-///   c) can be mined, and is a mine sprite (Air) not a weak rock.
+///
+///    a) entity (if within range)
+///    b) collectable
+///    c) can be mined, and is a mine sprite (Air) not a weak rock.
 ///
 /// 2) outside of targeted cam ray
-///   -> closest of nearest interactable entity/block
+///
+///    -> closest of nearest interactable entity/block
 pub(super) fn select_interactable(
     client: &Client,
     collect_target: Option<Target<target::Collectable>>,

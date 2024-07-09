@@ -313,8 +313,7 @@ impl MusicMgr {
             }
             trace!(
                 "pre-play_random_track: {:?} {:?}",
-                self.last_activity,
-                music_state
+                self.last_activity, music_state
             );
             if let Ok(next_activity) = self.play_random_track(audio, state, client, &music_state) {
                 self.last_activity = next_activity;

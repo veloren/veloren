@@ -1243,12 +1243,7 @@ fn main() {
                 }
                 trace!(
                     "{} {}: uncompressed: {}, {:?} {} {:?}",
-                    spiralpos.x,
-                    spiralpos.y,
-                    n,
-                    sizes,
-                    best_idx,
-                    timings
+                    spiralpos.x, spiralpos.y, n, sizes, best_idx, timings
                 );
                 for (name, size) in sizes.iter() {
                     *totals.entry(name).or_default() += size;

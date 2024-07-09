@@ -451,9 +451,7 @@ impl Economy {
                         missing_collect += collect - collect_capacity;
                         trace!(
                             "missing capacity {:?}/{:?} {:?}",
-                            missing_trade,
-                            amount,
-                            potential_balance,
+                            missing_trade, amount, potential_balance,
                         );
                         amount = (amount - missing_trade).max(0.0); // you won't be able to transport it from elsewhere either, so don't count multiple times
                     }
@@ -485,9 +483,7 @@ impl Economy {
                                     }
                                     trace!(
                                         "can't carry payment {:?} {:?} {:?}",
-                                        g2,
-                                        dispatch,
-                                        dispatch_capacity
+                                        g2, dispatch, dispatch_capacity
                                     );
                                     dispatch = dispatch_capacity;
                                 }
@@ -511,10 +507,7 @@ impl Economy {
                         amount -= buy_target;
                         trace!(
                             "deal amount {:?} end_balance {:?} price {:?} left {:?}",
-                            buy_target,
-                            balance,
-                            *price,
-                            amount
+                            buy_target, balance, *price, amount
                         );
                     }
                 }
