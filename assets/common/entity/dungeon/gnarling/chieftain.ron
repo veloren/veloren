@@ -2,7 +2,7 @@
 #![enable(implicit_some)]
 (
     name: Name("Gnarling Chieftain"),
-    body: RandomWith("gnarling"),
+    body: RandomWith("gnarling_chieftain"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.gnarling.chieftain"),
     inventory: (

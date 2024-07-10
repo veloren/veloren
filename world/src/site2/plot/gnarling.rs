@@ -336,6 +336,7 @@ impl GnarlingFortification {
             max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
         };
 
+        // tunnel junctions
         for terminal in &self.tunnels.terminals {
             if area.contains_point(terminal.xy() - self.origin) {
                 let chance = dynamic_rng.gen_range(0..10);
@@ -362,6 +363,8 @@ impl GnarlingFortification {
                 }
             }
         }
+
+        // harvester room
         if area.contains_point(self.tunnels.end.xy() - self.origin) {
             let boss_room_offset = (self.tunnels.end.xy() - self.tunnels.start.xy())
                 .map(|e| if e < 0 { -20 } else { 20 });
@@ -371,41 +374,114 @@ impl GnarlingFortification {
             ));
         }
 
+        // above-ground structures
         for (loc, pos, _ori) in &self.structure_locations {
             let wpos = *pos + self.origin;
             if area.contains_point(pos.xy()) {
                 match loc {
                     GnarlingStructure::Hut => {
-                        let num = dynamic_rng.gen_range(1..=3);
-                        for _ in 0..num {
+                        const NUM_HUT_GNARLINGS: [i32; 2] = [1, 2];
+                        let num =
+                            dynamic_rng.gen_range(NUM_HUT_GNARLINGS[0]..=NUM_HUT_GNARLINGS[1]);
+                        for _ in 1..=num {
                             supplement.add_entity(random_gnarling(wpos, dynamic_rng));
                         }
                     },
                     GnarlingStructure::VeloriteHut => {
-                        let num = dynamic_rng.gen_range(1..=4);
-                        for _ in 0..num {
+                        const NUM_VELO_GNARLINGS: i32 = 4;
+                        const GOLEM_SPAWN_THRESHOLD: i32 = 2;
+                        const VELO_HEIGHT: i32 = 12;
+                        const GROUND_HEIGHT: i32 = 8;
+                        let num = dynamic_rng.gen_range(1..=NUM_VELO_GNARLINGS);
+                        for _ in 1..=num {
                             supplement.add_entity(random_gnarling(
-                                wpos.xy().with_z(wpos.z + 12),
+                                wpos.xy().with_z(wpos.z + VELO_HEIGHT),
                                 dynamic_rng,
                             ));
+                        }
+                        if num <= GOLEM_SPAWN_THRESHOLD {
+                            // wooden golem (with oriented spawn)
+                            let x_offset;
+                            let y_offset;
+                            match _ori {
+                                Dir::X => {
+                                    x_offset = 8;
+                                    y_offset = 8;
+                                },
+                                Dir::NegX => {
+                                    x_offset = -8;
+                                    y_offset = 8;
+                                },
+                                Dir::Y => {
+                                    x_offset = 8;
+                                    y_offset = -8;
+                                },
+                                Dir::NegY => {
+                                    x_offset = -8;
+                                    y_offset = -8;
+                                },
+                            }
+                            let pos = Vec3::new(
+                                wpos.x + x_offset,
+                                wpos.y + y_offset,
+                                wpos.z + GROUND_HEIGHT,
+                            );
+                            supplement.add_entity(wood_golem(pos, dynamic_rng));
                         }
                     },
                     GnarlingStructure::Banner => {},
                     GnarlingStructure::ChieftainHut => {
-                        let pos = wpos.xy().with_z(wpos.z + 8);
+                        // inside hut
+                        const FLOOR_HEIGHT: i32 = 8;
+                        let pos = wpos.xy().with_z(wpos.z + FLOOR_HEIGHT);
                         supplement.add_entity(gnarling_chieftain(pos, dynamic_rng));
-                        for _ in 0..2 {
-                            supplement.add_entity(wood_golem(pos, dynamic_rng));
+                        supplement.add_entity(gnarling_logger(pos, dynamic_rng));
+                        supplement.add_entity(gnarling_mugger(pos, dynamic_rng));
+                        supplement.add_entity(gnarling_stalker(pos, dynamic_rng));
+                        // hut corner posts
+                        const CORNER_HEIGHT: i32 = 10;
+                        const CORNER_OFFSET: i32 = 18;
+                        let height = wpos.z + CORNER_HEIGHT;
+                        let plus_minus: [i32; 2] = [1, -1];
+                        for x in plus_minus {
+                            for y in plus_minus {
+                                let pos = Vec3::new(
+                                    wpos.x + x * CORNER_OFFSET,
+                                    wpos.y + y * CORNER_OFFSET,
+                                    height,
+                                );
+                                supplement.add_entity(gnarling_stalker(pos, dynamic_rng));
+                            }
                         }
-                        for _ in 0..6 {
-                            supplement.add_entity(random_gnarling(pos, dynamic_rng));
+                        // hut sides on ground (using orientation)
+                        const NUM_SIDE_GNARLINGS: i32 = 2;
+                        const GROUND_HEIGHT: i32 = 4;
+                        const GROUND_OFFSET: i32 = 24;
+                        let height = wpos.z + GROUND_HEIGHT;
+                        let x_or_y = match _ori {
+                            Dir::X | Dir::NegX => true,
+                            Dir::Y | Dir::NegY => false,
+                        };
+                        for pm in plus_minus {
+                            let mut pos_ori =
+                                Vec3::new(wpos.x + pm * GROUND_OFFSET, wpos.y, height);
+                            let mut pos_xori =
+                                Vec3::new(wpos.x, wpos.y + pm * GROUND_OFFSET, height);
+                            if x_or_y {
+                                (pos_ori, pos_xori) = (pos_xori, pos_ori);
+                            }
+                            supplement.add_entity(wood_golem(pos_ori, dynamic_rng));
+                            for _ in 1..=NUM_SIDE_GNARLINGS {
+                                supplement.add_entity(melee_gnarling(pos_xori, dynamic_rng));
+                            }
                         }
                     },
                     GnarlingStructure::WatchTower => {
+                        const NUM_WATCHTOWER_STALKERS: i32 = 2;
+                        const FLOOR_HEIGHT: i32 = 27;
                         supplement.add_entity(wood_golem(wpos, dynamic_rng));
-                        let spawn_pos = wpos.xy().with_z(wpos.z + 27);
-                        let num = dynamic_rng.gen_range(2..=4);
-                        for _ in 0..num {
+                        let spawn_pos = wpos.xy().with_z(wpos.z + FLOOR_HEIGHT);
+                        for _ in 1..=NUM_WATCHTOWER_STALKERS {
                             supplement.add_entity(gnarling_stalker(
                                 spawn_pos + Vec2::broadcast(4),
                                 dynamic_rng,
@@ -417,12 +493,19 @@ impl GnarlingFortification {
             }
         }
 
+        // wall towers
         for pos in &self.wall_towers {
+            const NUM_WALLTOWER_STALKERS: [i32; 2] = [1, 3];
+            const FLOOR_HEIGHT: i32 = 27;
             let wpos = *pos + self.origin;
             if area.contains_point(pos.xy()) {
-                for _ in 0..4 {
-                    supplement
-                        .add_entity(gnarling_stalker(wpos.xy().with_z(wpos.z + 21), dynamic_rng))
+                let num =
+                    dynamic_rng.gen_range(NUM_WALLTOWER_STALKERS[0]..=NUM_WALLTOWER_STALKERS[1]);
+                for _ in 1..=num {
+                    supplement.add_entity(gnarling_stalker(
+                        wpos.xy().with_z(wpos.z + FLOOR_HEIGHT),
+                        dynamic_rng,
+                    ))
                 }
             }
         }
@@ -1901,6 +1984,13 @@ fn random_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
     match rng.gen_range(0..4) {
         0 => gnarling_stalker(pos, rng),
         1 => gnarling_mugger(pos, rng),
+        _ => gnarling_logger(pos, rng),
+    }
+}
+
+fn melee_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
+    match rng.gen_range(0..2) {
+        0 => gnarling_mugger(pos, rng),
         _ => gnarling_logger(pos, rng),
     }
 }

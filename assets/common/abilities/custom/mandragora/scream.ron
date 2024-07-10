@@ -7,7 +7,7 @@ BasicMelee(
     melee_constructor: (
         kind: SonicWave(
             damage: 10,
-            poise: 100,
+            poise: 75,
             knockback: 20,
             energy_regen: 0,
         ),

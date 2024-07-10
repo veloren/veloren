@@ -1894,11 +1894,11 @@ impl ParticleMgr {
                         kind: buff::BuffKind::Burning,
                         ..
                     } => {
-                        let num_particles = aura.radius.powi(2) * dt / 250.0;
-                        let num_particles = num_particles.floor() as usize
-                            + usize::from(rng.gen_bool(f64::from(num_particles % 1.0)));
-                        self.particles
-                            .resize_with(self.particles.len() + num_particles, || {
+                        let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                            || {
                                 let rand_pos = {
                                     let theta = rng.gen::<f32>() * TAU;
                                     let radius = aura.radius * rng.gen::<f32>().sqrt();
@@ -1918,7 +1918,8 @@ impl ParticleMgr {
                                     rand_pos.with_z(pos.z),
                                     rand_pos.with_z(pos.z + 1.0),
                                 )
-                            });
+                            },
+                        );
                     },
                     aura::AuraKind::Buff {
                         kind: buff::BuffKind::Hastened,

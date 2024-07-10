@@ -13,6 +13,7 @@ use common::{
         Ability, AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction,
         ControlEvent, Controller, Fluid, InputKind,
     },
+    consts::GRAVITY,
     path::TraversalConfig,
     states::{
         self_buff,
@@ -26,6 +27,20 @@ use common::{
 use rand::{prelude::SliceRandom, Rng};
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
+
+// ground-level max range from projectile speed and launch height
+fn projectile_flat_range(speed: f32, height: f32) -> f32 {
+    let w = speed.powi(2);
+    let u = 0.5 * 2_f32.sqrt() * speed;
+    (0.5 * w + u * (0.5 * w + 2.0 * GRAVITY * height).sqrt()) / GRAVITY
+}
+
+// multi-projectile spread (in degrees) based on maximum of linear increase
+fn projectile_multi_angle(projectile_spread: f32, num_projectiles: u32) -> f32 {
+    (180.0 / PI) * projectile_spread * (num_projectiles - 1) as f32
+}
+
+fn rng_from_span(rng: &mut impl Rng, span: [f32; 2]) -> f32 { rng.gen_range(span[0]..=span[1]) }
 
 impl<'a> AgentData<'a> {
     // Intended for any agent that has one attack, that attack is a melee attack,
@@ -125,7 +140,7 @@ impl<'a> AgentData<'a> {
         // Behaviour parameters
         const STRAFE_DIST: f32 = 4.5;
         const STRAFE_SPEED_MULT: f32 = 0.75;
-        const STRATE_SPIRAL_MULT: f32 = 0.8; // how quickly they close gap while strafing
+        const STRAFE_SPIRAL_MULT: f32 = 0.8; // how quickly they close gap while strafing
         const BACKSTAB_SPEED_MULT: f32 = 0.3;
 
         // Handle movement of agent
@@ -166,7 +181,7 @@ impl<'a> AgentData<'a> {
                     .find(|move_dir| target_ori.xy().dot(**move_dir) < 0.0)
                 {
                     controller.inputs.move_dir =
-                        STRAFE_SPEED_MULT * (*move_dir - STRATE_SPIRAL_MULT * target_ori.xy());
+                        STRAFE_SPEED_MULT * (*move_dir - STRAFE_SPIRAL_MULT * target_ori.xy());
                 }
             } else {
                 // Aim for a point a given distance behind the target to prevent sideways
@@ -4756,16 +4771,49 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
+        rng: &mut impl Rng,
     ) {
-        const VINE_CREATION_THRESHOLD: f32 = 0.50;
-        const FIRE_BREATH_RANGE: f32 = 20.0;
-        const MAX_PUMPKIN_RANGE: f32 = 50.0;
+        // === reference ===
+        // Inputs:
+        //   Primary: scythe
+        //   Secondary: firebreath
+        //   Auxiliary
+        //     0: explosivepumpkin
+        //     1: ensaringvines_sparse
+        //     2: ensaringvines_dense
 
-        enum ActionStateConditions {
-            ConditionHasSummonedVines = 0,
-        }
+        // === setup ===
 
-        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // --- static ---
+        // behaviour parameters
+        const FIRST_VINE_CREATION_THRESHOLD: f32 = 0.60;
+        const SECOND_VINE_CREATION_THRESHOLD: f32 = 0.30;
+        const PATH_RANGE_FACTOR: f32 = 0.4; // get comfortably in range, but give player room to breathe
+        const SCYTHE_RANGE_FACTOR: f32 = 0.75; // start attack while suitably in range
+        const SCYTHE_AIM_FACTOR: f32 = 0.7;
+        const FIREBREATH_RANGE_FACTOR: f32 = 0.7;
+        const FIREBREATH_AIM_FACTOR: f32 = 0.8;
+        const FIREBREATH_TIME_LIMIT: f32 = 4.0;
+        const FIREBREATH_SHORT_TIME_LIMIT: f32 = 2.5; // cutoff sooner at close range
+        const FIREBREATH_COOLDOWN: f32 = 3.5;
+        const PUMPKIN_RANGE_FACTOR: f32 = 0.75;
+        const CLOSE_MIXUP_COOLDOWN_SPAN: [f32; 2] = [1.5, 7.0]; // variation in attacks at close range
+        const MID_MIXUP_COOLDOWN_SPAN: [f32; 2] = [1.5, 4.5]; //   ^                       mid
+        const FAR_PUMPKIN_COOLDOWN_SPAN: [f32; 2] = [3.0, 5.0]; // allows for pathing to player between throws
+
+        // conditions
+        const HAS_SUMMONED_FIRST_VINES: usize = 0;
+        const HAS_SUMMONED_SECOND_VINES: usize = 1;
+        // timers
+        const FIREBREATH: usize = 0;
+        const MIXUP: usize = 1;
+        const FAR_PUMPKIN: usize = 2;
+        //counters
+        const CLOSE_MIXUP_COOLDOWN: usize = 0;
+        const MID_MIXUP_COOLDOWN: usize = 1;
+        const FAR_PUMPKIN_COOLDOWN: usize = 2;
+
+        // line of sight check
         let line_of_sight_with_target = || {
             entities_have_line_of_sight(
                 self.pos,
@@ -4778,45 +4826,217 @@ impl<'a> AgentData<'a> {
             )
         };
 
-        if health_fraction < VINE_CREATION_THRESHOLD
-            && !agent.combat_state.conditions
-                [ActionStateConditions::ConditionHasSummonedVines as usize]
-        {
-            // Summon vines when reach threshold of health
-            controller.push_basic_input(InputKind::Ability(0));
+        // --- dynamic ---
+        // attack data
+        let (scythe_range, scythe_angle) = {
+            if let Some(AbilityData::BasicMelee { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Primary)
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
+        };
+        let (firebreath_range, firebreath_angle) = {
+            if let Some(AbilityData::BasicBeam { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Secondary)
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
+        };
+        let pumpkin_speed = {
+            if let Some(AbilityData::BasicRanged {
+                projectile_speed, ..
+            }) = self.extract_ability(AbilityInput::Auxiliary(0))
+            {
+                projectile_speed
+            } else {
+                0.0
+            }
+        };
+        // calculated attack data
+        let pumpkin_max_range =
+            projectile_flat_range(pumpkin_speed, self.body.map_or(0.0, |b| b.height()));
 
-            if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
-            {
-                agent.combat_state.conditions
-                    [ActionStateConditions::ConditionHasSummonedVines as usize] = true;
-            }
-        } else if attack_data.dist_sqrd < FIRE_BREATH_RANGE.powi(2) {
-            if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5))
-                && line_of_sight_with_target()
-            {
-                // Keep breathing fire if close enough, can see target, and have not been
-                // breathing for more than 5 seconds
-                controller.push_basic_input(InputKind::Secondary);
-            } else if attack_data.in_min_range() && attack_data.angle < 60.0 {
-                // Scythe them if they're in range and angle
-                controller.push_basic_input(InputKind::Primary);
-            } else if attack_data.angle < 30.0 && line_of_sight_with_target() {
-                // Start breathing fire at them if close enough, in angle, and can see target
-                controller.push_basic_input(InputKind::Secondary);
-            }
-        } else if attack_data.dist_sqrd < MAX_PUMPKIN_RANGE.powi(2) && line_of_sight_with_target() {
-            // Throw a pumpkin at them if close enough and can see them
-            controller.push_basic_input(InputKind::Ability(1));
+        // character state info
+        let is_using_firebreath = matches!(self.char_state, CharacterState::BasicBeam(_));
+        let is_using_pumpkin = matches!(self.char_state, CharacterState::BasicRanged(_));
+        let is_in_summon_recovery = matches!(self.char_state, CharacterState::SpriteSummon(data) if matches!(data.stage_section, StageSection::Recover));
+        let firebreath_timer = if let CharacterState::BasicBeam(data) = self.char_state {
+            data.timer
+        } else {
+            Default::default()
+        };
+        let is_using_mixup = is_using_firebreath || is_using_pumpkin;
+
+        // initialise randomised cooldowns
+        if !agent.combat_state.initialized {
+            agent.combat_state.initialized = true;
+            agent.combat_state.counters[CLOSE_MIXUP_COOLDOWN] =
+                rng_from_span(rng, CLOSE_MIXUP_COOLDOWN_SPAN);
+            agent.combat_state.counters[MID_MIXUP_COOLDOWN] =
+                rng_from_span(rng, MID_MIXUP_COOLDOWN_SPAN);
+            agent.combat_state.counters[FAR_PUMPKIN_COOLDOWN] =
+                rng_from_span(rng, FAR_PUMPKIN_COOLDOWN_SPAN);
         }
-        // Always attempt to path towards target
-        self.path_toward_target(
-            agent,
-            controller,
-            tgt_data.pos.0,
-            read_data,
-            Path::Partial,
-            None,
-        );
+
+        // === main ===
+
+        // --- timers ---
+        if is_in_summon_recovery {
+            // reset all timers when done summoning
+            agent.combat_state.timers[FIREBREATH] = 0.0;
+            agent.combat_state.timers[MIXUP] = 0.0;
+            agent.combat_state.timers[FAR_PUMPKIN] = 0.0;
+        } else {
+            // handle state timers
+            if is_using_firebreath {
+                agent.combat_state.timers[FIREBREATH] = 0.0;
+            } else {
+                agent.combat_state.timers[FIREBREATH] += read_data.dt.0;
+            }
+            if is_using_mixup {
+                agent.combat_state.timers[MIXUP] = 0.0;
+            } else {
+                agent.combat_state.timers[MIXUP] += read_data.dt.0;
+            }
+            if is_using_pumpkin {
+                agent.combat_state.timers[FAR_PUMPKIN] = 0.0;
+            } else {
+                agent.combat_state.timers[FAR_PUMPKIN] += read_data.dt.0;
+            }
+        }
+
+        // --- attacks ---
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        // second vine summon
+        if health_fraction < SECOND_VINE_CREATION_THRESHOLD
+            && !agent.combat_state.conditions[HAS_SUMMONED_SECOND_VINES]
+        {
+            // use the dense vine summon
+            controller.push_basic_input(InputKind::Ability(2));
+            // wait till recovery before finishing
+            if is_in_summon_recovery {
+                agent.combat_state.conditions[HAS_SUMMONED_SECOND_VINES] = true;
+            }
+        }
+        // first vine summon
+        else if health_fraction < FIRST_VINE_CREATION_THRESHOLD
+            && !agent.combat_state.conditions[HAS_SUMMONED_FIRST_VINES]
+        {
+            // use the sparse vine summon
+            controller.push_basic_input(InputKind::Ability(1));
+            // wait till recovery before finishing
+            if is_in_summon_recovery {
+                agent.combat_state.conditions[HAS_SUMMONED_FIRST_VINES] = true;
+            }
+        }
+        // close range
+        else if attack_data.dist_sqrd
+            < (attack_data.body_dist + scythe_range * SCYTHE_RANGE_FACTOR).powi(2)
+        {
+            // if using firebreath, keep going under short time limit
+            if is_using_firebreath
+                && firebreath_timer < Duration::from_secs_f32(FIREBREATH_SHORT_TIME_LIMIT)
+            {
+                controller.push_basic_input(InputKind::Secondary);
+            }
+            // in scythe angle
+            if attack_data.angle < scythe_angle * SCYTHE_AIM_FACTOR {
+                // on timer, randomly mixup attacks
+                if agent.combat_state.timers[MIXUP]
+                    > agent.combat_state.counters[CLOSE_MIXUP_COOLDOWN]
+                // for now, no line of sight check for consitency in attacks
+                {
+                    // if on firebreath cooldown, throw pumpkin
+                    if agent.combat_state.timers[FIREBREATH] < FIREBREATH_COOLDOWN {
+                        controller.push_basic_input(InputKind::Ability(0));
+                    }
+                    // otherwise, randomise between firebreath and pumpkin
+                    else if rng.gen_bool(0.5) {
+                        controller.push_basic_input(InputKind::Secondary);
+                    } else {
+                        controller.push_basic_input(InputKind::Ability(0));
+                    }
+                    // reset mixup cooldown if actually being used
+                    if is_using_mixup {
+                        agent.combat_state.counters[CLOSE_MIXUP_COOLDOWN] =
+                            rng_from_span(rng, CLOSE_MIXUP_COOLDOWN_SPAN);
+                    }
+                }
+                // default to using scythe melee
+                else {
+                    controller.push_basic_input(InputKind::Primary);
+                }
+            }
+        // mid range (line of sight not needed for these 'suppressing' attacks)
+        } else if attack_data.dist_sqrd < firebreath_range.powi(2) {
+            // if using firebreath, keep going under full time limit
+            #[allow(clippy::if_same_then_else)]
+            if is_using_firebreath
+                && firebreath_timer < Duration::from_secs_f32(FIREBREATH_TIME_LIMIT)
+            {
+                controller.push_basic_input(InputKind::Secondary);
+            }
+            // start using firebreath if close enough, in angle, and off cooldown
+            else if attack_data.dist_sqrd < (firebreath_range * FIREBREATH_RANGE_FACTOR).powi(2)
+                && attack_data.angle < firebreath_angle * FIREBREATH_AIM_FACTOR
+                && agent.combat_state.timers[FIREBREATH] > FIREBREATH_COOLDOWN
+            {
+                controller.push_basic_input(InputKind::Secondary);
+            }
+            // on mixup timer, throw a pumpkin
+            else if agent.combat_state.timers[MIXUP]
+                > agent.combat_state.counters[MID_MIXUP_COOLDOWN]
+            {
+                controller.push_basic_input(InputKind::Ability(0));
+                // reset mixup cooldown if pumpkin is actually being used
+                if is_using_pumpkin {
+                    agent.combat_state.counters[MID_MIXUP_COOLDOWN] =
+                        rng_from_span(rng, MID_MIXUP_COOLDOWN_SPAN);
+                }
+            }
+        }
+        // long range (with line of sight)
+        else if attack_data.dist_sqrd < (pumpkin_max_range * PUMPKIN_RANGE_FACTOR).powi(2)
+            && agent.combat_state.timers[FAR_PUMPKIN]
+                > agent.combat_state.counters[FAR_PUMPKIN_COOLDOWN]
+            && line_of_sight_with_target()
+        {
+            // throw pumpkin
+            controller.push_basic_input(InputKind::Ability(0));
+            // reset pumpkin cooldown if actually being used
+            if is_using_pumpkin {
+                agent.combat_state.counters[FAR_PUMPKIN_COOLDOWN] =
+                    rng_from_span(rng, FAR_PUMPKIN_COOLDOWN_SPAN);
+            }
+        }
+
+        // --- movement ---
+        // closing gap
+        if attack_data.dist_sqrd
+            > (attack_data.body_dist + scythe_range * PATH_RANGE_FACTOR).powi(2)
+        {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
+        }
+        // closing angle
+        else if attack_data.angle > 0.0 {
+            // some movement is required to trigger re-orientation
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::zero)
+                * 0.001; // scaled way down to minimise position change and keep close rotation consistent
+        }
     }
 
     pub fn handle_frostgigas_attack(
@@ -5666,7 +5886,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        const SCREAM_RANGE: f32 = 10.0;
+        const SCREAM_RANGE: f32 = 10.0; // hard-coded from scream.ron
 
         enum ActionStateFCounters {
             FCounterHealthThreshold = 0,
@@ -5737,59 +5957,155 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
+        rng: &mut impl Rng,
     ) {
-        const SHOCKWAVE_RANGE: f32 = 25.0;
-        const SHOCKWAVE_WAIT_TIME: f32 = 7.5;
-        const SPIN_WAIT_TIME: f32 = 3.0;
+        // === reference ===
 
-        enum ActionStateTimers {
-            TimerSpinWait = 0,
-            TimerShockwaveWait,
-        }
+        // Inputs:
+        //   Primary: strike
+        //   Secondary: spin
+        //   Auxiliary
+        //     0: shockwave
 
-        // After spinning, reset timer
+        // === setup ===
+
+        // --- static ---
+        // behaviour parameters
+        const PATH_RANGE_FACTOR: f32 = 0.3; // get comfortably in range, but give player room to breathe
+        const STRIKE_RANGE_FACTOR: f32 = 0.6; // start attack while suitably in range
+        const STRIKE_AIM_FACTOR: f32 = 0.7;
+        const SPIN_RANGE_FACTOR: f32 = 0.6;
+        const SPIN_COOLDOWN: f32 = 1.5;
+        const SPIN_RELAX_FACTOR: f32 = 0.2;
+        const SHOCKWAVE_RANGE_FACTOR: f32 = 0.7;
+        const SHOCKWAVE_AIM_FACTOR: f32 = 0.4;
+        const SHOCKWAVE_COOLDOWN: f32 = 5.0;
+        const MIXUP_COOLDOWN: f32 = 2.5;
+        const MIXUP_RELAX_FACTOR: f32 = 0.3;
+
+        // timers
+        const SPIN: usize = 0;
+        const SHOCKWAVE: usize = 1;
+        const MIXUP: usize = 2;
+
+        // --- dynamic ---
+        // behaviour parameters
+        let shockwave_min_range = self.body.map_or(0.0, |b| b.height() * 1.1);
+
+        // attack data
+        let (strike_range, strike_angle) = {
+            if let Some(AbilityData::BasicMelee { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Primary)
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
+        };
+        let spin_range = {
+            if let Some(AbilityData::BasicMelee { range, .. }) =
+                self.extract_ability(AbilityInput::Secondary)
+            {
+                range
+            } else {
+                0.0
+            }
+        };
+        let (shockwave_max_range, shockwave_angle) = {
+            if let Some(AbilityData::Shockwave { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Auxiliary(0))
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
+            }
+        };
+
+        // re-used checks (makes separating timers and attacks easier)
+        let is_in_spin_range = attack_data.dist_sqrd
+            < (attack_data.body_dist + spin_range * SPIN_RANGE_FACTOR).powi(2);
+        let is_in_strike_range = attack_data.dist_sqrd
+            < (attack_data.body_dist + strike_range * STRIKE_RANGE_FACTOR).powi(2);
+        let is_in_strike_angle = attack_data.angle < strike_angle * STRIKE_AIM_FACTOR;
+
+        // === main ===
+
+        // --- timers ---
+        // spin
         let current_input = self.char_state.ability_info().map(|ai| ai.input);
         if matches!(current_input, Some(InputKind::Secondary)) {
-            agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize] = 0.0;
+            // reset when spinning
+            agent.combat_state.timers[SPIN] = 0.0;
+            agent.combat_state.timers[MIXUP] = 0.0;
+        } else if is_in_spin_range && !(is_in_strike_range && is_in_strike_angle) {
+            // increment within spin range and not in strike range + angle
+            agent.combat_state.timers[SPIN] += read_data.dt.0;
+        } else {
+            // relax towards zero otherwise
+            agent.combat_state.timers[SPIN] =
+                (agent.combat_state.timers[SPIN] - read_data.dt.0 * SPIN_RELAX_FACTOR).max(0.0);
+        }
+        // shockwave
+        if matches!(self.char_state, CharacterState::Shockwave(_)) {
+            // reset when using shockwave
+            agent.combat_state.timers[SHOCKWAVE] = 0.0;
+            agent.combat_state.timers[MIXUP] = 0.0;
+        } else {
+            // increment otherwise
+            agent.combat_state.timers[SHOCKWAVE] += read_data.dt.0;
+        }
+        // mixup
+        if is_in_strike_range && is_in_strike_angle {
+            // increment within strike range and angle
+            agent.combat_state.timers[MIXUP] += read_data.dt.0;
+        } else {
+            // relax towards zero otherwise
+            agent.combat_state.timers[MIXUP] =
+                (agent.combat_state.timers[MIXUP] - read_data.dt.0 * MIXUP_RELAX_FACTOR).max(0.0);
         }
 
-        if attack_data.in_min_range() {
-            // If in minimum range
-            if agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize] > SPIN_WAIT_TIME
-            {
-                // If it's been too long since able to hit target, spin
-                controller.push_basic_input(InputKind::Secondary);
-            } else if attack_data.angle < 30.0 {
-                // Else if in angle to strike, strike
+        // --- attacks ---
+        // strike range and angle
+        if is_in_strike_range && is_in_strike_angle {
+            // on timer, randomly mixup between all attacks
+            if agent.combat_state.timers[MIXUP] > MIXUP_COOLDOWN {
+                let randomise: u8 = rng.gen_range(1..=3);
+                match randomise {
+                    1 => controller.push_basic_input(InputKind::Ability(0)), // shockwave
+                    2 => controller.push_basic_input(InputKind::Primary),    // strike
+                    _ => controller.push_basic_input(InputKind::Secondary),  // spin
+                }
+            }
+            // default to strike
+            else {
                 controller.push_basic_input(InputKind::Primary);
-            } else {
-                // Else increment spin timer
-                agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize] +=
-                    read_data.dt.0;
-                // If not in angle, apply slight movement so golem orients itself correctly
-                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
-                    .xy()
-                    .try_normalized()
-                    .unwrap_or_else(Vec2::zero)
-                    * 0.01;
             }
-        } else {
-            // Else if too far for melee
-            if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) && attack_data.angle < 45.0 {
-                // Shockwave if close enough and haven't shockwaved too recently
-                if agent.combat_state.timers[ActionStateTimers::TimerSpinWait as usize]
-                    > SHOCKWAVE_WAIT_TIME
-                {
-                    controller.push_basic_input(InputKind::Ability(0));
-                }
-                if matches!(self.char_state, CharacterState::Shockwave(_)) {
-                    agent.combat_state.timers[ActionStateTimers::TimerShockwaveWait as usize] = 0.0;
-                } else {
-                    agent.combat_state.timers[ActionStateTimers::TimerShockwaveWait as usize] +=
-                        read_data.dt.0;
-                }
+        }
+        // spin range (or out of angle in strike range)
+        else if is_in_spin_range || (is_in_strike_range && !is_in_strike_angle) {
+            // on timer, use spin attack to try and hit evasive target
+            if agent.combat_state.timers[SPIN] > SPIN_COOLDOWN {
+                controller.push_basic_input(InputKind::Secondary);
             }
-            // And always try to path towards target
+            // otherwise, close angle (no action required)
+        }
+        // shockwave range and angle
+        else if attack_data.dist_sqrd > shockwave_min_range.powi(2)
+            && attack_data.dist_sqrd < (shockwave_max_range * SHOCKWAVE_RANGE_FACTOR).powi(2)
+            && attack_data.angle < shockwave_angle * SHOCKWAVE_AIM_FACTOR
+        {
+            // on timer, use shockwave
+            if agent.combat_state.timers[SHOCKWAVE] > SHOCKWAVE_COOLDOWN {
+                controller.push_basic_input(InputKind::Ability(0));
+            }
+            // otherwise, close gap and/or angle (no action required)
+        }
+
+        // --- movement ---
+        // closing gap
+        if attack_data.dist_sqrd
+            > (attack_data.body_dist + strike_range * PATH_RANGE_FACTOR).powi(2)
+        {
             self.path_toward_target(
                 agent,
                 controller,
@@ -5798,6 +6114,15 @@ impl<'a> AgentData<'a> {
                 Path::Partial,
                 None,
             );
+        }
+        // closing angle
+        else if attack_data.angle > 0.0 {
+            // some movement is required to trigger re-orientation
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::zero)
+                * 0.001; // scaled way down to minimise position change and keep close rotation consistent
         }
     }
 
@@ -5810,60 +6135,42 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        const TOTEM_TIMER: f32 = 10.0;
-        const HEAVY_ATTACK_WAIT_TIME: f32 = 15.0;
+        // === reference ===
+        // Inputs
+        //   Primary: flamestrike
+        //   Secondary: firebarrage
+        //   Auxiliary
+        //     0: fireshockwave
+        //     1: redtotem
+        //     2: greentotem
+        //     3: whitetotem
 
-        enum ActionStateTimers {
-            TimerSummonTotem = 0,
-            TimerShockwave,
-        }
-        // Handle timers
-        agent.combat_state.timers[ActionStateTimers::TimerSummonTotem as usize] += read_data.dt.0;
-        match self.char_state {
-            CharacterState::BasicSummon(_) => {
-                agent.combat_state.timers[ActionStateTimers::TimerSummonTotem as usize] = 0.0
-            },
-            CharacterState::Shockwave(_) | CharacterState::BasicRanged(_) => {
-                agent.combat_state.counters[ActionStateTimers::TimerShockwave as usize] = 0.0
-            },
-            _ => {},
-        }
+        // === setup ===
 
-        if !agent.combat_state.initialized {
-            // If not initialized yet, start out by summoning green totem
-            controller.push_basic_input(InputKind::Ability(2));
-            if matches!(self.char_state, CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover)
-            {
-                agent.combat_state.initialized = true;
-            }
-        } else if agent.combat_state.timers[ActionStateTimers::TimerSummonTotem as usize]
-            > TOTEM_TIMER
-        {
-            // If time to summon a totem, do it
-            let input = rng.gen_range(1..=3);
-            let buff_kind = match input {
-                2 => Some(BuffKind::Regeneration),
-                3 => Some(BuffKind::Hastened),
-                _ => None,
-            };
-            if buff_kind.map_or(true, |b| self.has_buff(read_data, b))
-                && matches!(self.char_state, CharacterState::Wielding { .. })
-            {
-                // If already under effects of buff from totem that would be summoned, don't
-                // summon totem (doesn't work for red totems since that applies debuff to
-                // enemies instead)
-                agent.combat_state.timers[ActionStateTimers::TimerSummonTotem as usize] = 0.0;
-            } else {
-                controller.push_basic_input(InputKind::Ability(input));
-            }
-        } else if agent.combat_state.counters[ActionStateTimers::TimerShockwave as usize]
-            > HEAVY_ATTACK_WAIT_TIME
-        {
-            // Else if time for a heavy attack
-            if attack_data.in_min_range() {
-                // If in range, shockwave
-                controller.push_basic_input(InputKind::Ability(0));
-            } else if entities_have_line_of_sight(
+        // --- static ---
+        // behaviour parameters
+        const PATH_RANGE_FACTOR: f32 = 0.4;
+        const STRIKE_RANGE_FACTOR: f32 = 0.7;
+        const STRIKE_AIM_FACTOR: f32 = 0.8;
+        const BARRAGE_RANGE_FACTOR: f32 = 0.8;
+        const BARRAGE_AIM_FACTOR: f32 = 0.65;
+        const SHOCKWAVE_RANGE_FACTOR: f32 = 0.75;
+        const TOTEM_COOLDOWN: f32 = 25.0;
+        const HEAVY_ATTACK_COOLDOWN_SPAN: [f32; 2] = [8.0, 13.0];
+        const HEAVY_ATTACK_CHARGE_FACTOR: f32 = 3.3;
+        const HEAVY_ATTACK_FAST_CHARGE_FACTOR: f32 = 5.0;
+
+        // conditions
+        const HAS_SUMMONED_FIRST_TOTEM: usize = 0;
+        // timers
+        const SUMMON_TOTEM: usize = 0;
+        const HEAVY_ATTACK: usize = 1;
+        // counters
+        const HEAVY_ATTACK_COOLDOWN: usize = 0;
+
+        // line of sight check
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
                 self.pos,
                 self.body,
                 self.scale,
@@ -5871,35 +6178,171 @@ impl<'a> AgentData<'a> {
                 tgt_data.body,
                 tgt_data.scale,
                 read_data,
-            ) {
-                // Else if in sight, barrage
-                controller.push_basic_input(InputKind::Secondary);
+            )
+        };
+
+        // --- dynamic ---
+        // attack data
+        let (strike_range, strike_angle) = {
+            if let Some(AbilityData::BasicMelee { range, angle, .. }) =
+                self.extract_ability(AbilityInput::Primary)
+            {
+                (range, angle)
+            } else {
+                (0.0, 0.0)
             }
-        } else if attack_data.in_min_range() {
-            // Else if not time to use anything fancy, if in range and angle, strike them
-            if attack_data.angle < 20.0 {
-                controller.push_basic_input(InputKind::Primary);
-                agent.combat_state.counters[ActionStateTimers::TimerShockwave as usize] +=
-                    read_data.dt.0;
+        };
+        let (barrage_speed, barrage_spread, barrage_count) = {
+            if let Some(AbilityData::BasicRanged {
+                projectile_speed,
+                projectile_spread,
+                num_projectiles,
+                ..
+            }) = self.extract_ability(AbilityInput::Secondary)
+            {
+                (projectile_speed, projectile_spread, num_projectiles)
+            } else {
+                (0.0, 0.0, 0)
+            }
+        };
+        let shockwave_range = {
+            if let Some(AbilityData::Shockwave { range, .. }) =
+                self.extract_ability(AbilityInput::Auxiliary(0))
+            {
+                range
+            } else {
+                0.0
+            }
+        };
+
+        // calculated attack data
+        let barrage_max_range =
+            projectile_flat_range(barrage_speed, self.body.map_or(2.0, |b| b.height()));
+        let barrange_angle = projectile_multi_angle(barrage_spread, barrage_count);
+
+        // re-used checks
+        let is_in_strike_range = attack_data.dist_sqrd
+            < (attack_data.body_dist + strike_range * STRIKE_RANGE_FACTOR).powi(2);
+        let is_in_strike_angle = attack_data.angle < strike_angle * STRIKE_AIM_FACTOR;
+
+        // initialise randomised cooldowns
+        if !agent.combat_state.initialized {
+            agent.combat_state.initialized = true;
+            agent.combat_state.counters[HEAVY_ATTACK_COOLDOWN] =
+                rng_from_span(rng, HEAVY_ATTACK_COOLDOWN_SPAN);
+        }
+
+        // === main ===
+
+        // --- timers ---
+        // resets
+        match self.char_state {
+            CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover => {
+                // reset when finished summoning
+                agent.combat_state.timers[SUMMON_TOTEM] = 0.0;
+                agent.combat_state.conditions[HAS_SUMMONED_FIRST_TOTEM] = true;
+            },
+            CharacterState::Shockwave(_) | CharacterState::BasicRanged(_) => {
+                // reset heavy attack on either ability
+                agent.combat_state.counters[HEAVY_ATTACK] = 0.0;
+                agent.combat_state.counters[HEAVY_ATTACK_COOLDOWN] =
+                    rng_from_span(rng, HEAVY_ATTACK_COOLDOWN_SPAN);
+            },
+            _ => {},
+        }
+        // totem (always increment)
+        agent.combat_state.timers[SUMMON_TOTEM] += read_data.dt.0;
+        // heavy attack (increment at different rates)
+        if is_in_strike_range {
+            // recharge at standard rate in strike range and angle
+            if is_in_strike_angle {
+                agent.combat_state.counters[HEAVY_ATTACK] += read_data.dt.0;
             } else {
                 // If not in angle, charge heavy attack faster
-                agent.combat_state.counters[ActionStateTimers::TimerShockwave as usize] +=
-                    read_data.dt.0 * 5.0;
+                agent.combat_state.counters[HEAVY_ATTACK] +=
+                    read_data.dt.0 * HEAVY_ATTACK_FAST_CHARGE_FACTOR;
             }
         } else {
             // If not in range, charge heavy attack faster
-            agent.combat_state.counters[ActionStateTimers::TimerShockwave as usize] +=
-                read_data.dt.0 * 3.3;
+            agent.combat_state.counters[HEAVY_ATTACK] +=
+                read_data.dt.0 * HEAVY_ATTACK_CHARGE_FACTOR;
         }
 
-        self.path_toward_target(
-            agent,
-            controller,
-            tgt_data.pos.0,
-            read_data,
-            Path::Full,
-            None,
-        );
+        // --- attacks ---
+        // start by summoning green totem
+        if !agent.combat_state.conditions[HAS_SUMMONED_FIRST_TOTEM] {
+            controller.push_basic_input(InputKind::Ability(2));
+        }
+        // on timer, summon a new random totem
+        else if agent.combat_state.timers[SUMMON_TOTEM] > TOTEM_COOLDOWN {
+            controller.push_basic_input(InputKind::Ability(rng.gen_range(1..=3)));
+        }
+        // on timer and in range, use a heavy attack
+        // assumes: barrange_max_range * BARRAGE_RANGE_FACTOR > shockwave_range *
+        // SHOCKWAVE_RANGE_FACTOR
+        else if agent.combat_state.counters[HEAVY_ATTACK]
+            > agent.combat_state.counters[HEAVY_ATTACK_COOLDOWN]
+            && attack_data.dist_sqrd < (barrage_max_range * BARRAGE_RANGE_FACTOR).powi(2)
+        {
+            // has line of sight
+            if line_of_sight_with_target() {
+                // out of barrage angle, use shockwave
+                if attack_data.angle > barrange_angle * BARRAGE_AIM_FACTOR {
+                    controller.push_basic_input(InputKind::Ability(0));
+                }
+                // in shockwave range, randomise between barrage and shockwave
+                else if attack_data.dist_sqrd < (shockwave_range * SHOCKWAVE_RANGE_FACTOR).powi(2)
+                {
+                    if rng.gen_bool(0.5) {
+                        controller.push_basic_input(InputKind::Secondary);
+                    } else {
+                        controller.push_basic_input(InputKind::Ability(0));
+                    }
+                }
+                // in range and angle, use barrage
+                else {
+                    controller.push_basic_input(InputKind::Secondary);
+                }
+                // otherwise, close gap and/or angle (no action required)
+            }
+            // no line of sight
+            else {
+                //  in range, use shockwave
+                if attack_data.dist_sqrd < (shockwave_range * SHOCKWAVE_RANGE_FACTOR).powi(2) {
+                    controller.push_basic_input(InputKind::Ability(0));
+                }
+                // otherwise, close gap (no action required)
+            }
+        }
+        // if viable, default to flamestrike
+        else if is_in_strike_range && is_in_strike_angle {
+            controller.push_basic_input(InputKind::Primary);
+        }
+        // otherwise, close gap and/or angle (no action required)
+
+        // --- movement ---
+        // closing gap
+        if attack_data.dist_sqrd
+            > (attack_data.body_dist + strike_range * PATH_RANGE_FACTOR).powi(2)
+        {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Full,
+                None,
+            );
+        }
+        // closing angle
+        else if attack_data.angle > 0.0 {
+            // some movement is required to trigger re-orientation
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::zero)
+                * 0.001; // scaled way down to minimise position change and keep close rotation consistent
+        }
     }
 
     pub fn handle_sword_simple_attack(

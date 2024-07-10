@@ -1233,6 +1233,10 @@
                 keyword: "treasure_egg",
                 generic: "Treasure Egg",
             ),
+            gnarling_chieftain: (
+                keyword: "gnarling_chieftain",
+                generic: "Gnarling Chieftain"
+            ),
         )
     ),
     fish_small: (

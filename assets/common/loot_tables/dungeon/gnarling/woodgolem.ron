@@ -1,6 +1,16 @@
 [
-    // Crafting ingredients
-    (2.4, MultiDrop(Item("common.items.log.wood"), 5, 10)),
-    (0.1, MultiDrop(Item("common.items.log.hardwood"), 1, 2)),
-    (0.5, LootTable("common.loot_tables.weapons.components.secondary.sceptre")),
+    (1, Lottery([
+        (0.7, All([
+            MultiDrop(Item("common.items.log.wood"), 3, 4),
+            MultiDrop(Item("common.items.crafting_ing.twigs"), 1, 2),
+            Lottery([
+                (0.6, MultiDrop(Item("common.items.log.bamboo"), 1, 2)),
+                (0.4, LootTable("common.loot_tables.weapons.components.secondary.sceptre")),
+                ]),
+        ])),
+        (0.3, All([
+            MultiDrop(Item("common.items.log.wood"), 5, 7),
+            MultiDrop(Item("common.items.crafting_ing.twigs"), 3, 5),
+        ])),
+    ]))
 ]

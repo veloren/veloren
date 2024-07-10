@@ -226,11 +226,17 @@ impl Body {
             Body::Dragon(_) => 1.0,
             Body::BirdLarge(_) => 7.0,
             Body::FishSmall(_) => 7.0,
-            Body::BipedLarge(_) => 2.7,
+            Body::BipedLarge(biped_large) => match biped_large.species {
+                biped_large::Species::Harvester => 2.0,
+                _ => 2.7,
+            },
             Body::BipedSmall(_) => 3.5,
             Body::Object(_) => 2.0,
             Body::ItemDrop(_) => 2.0,
-            Body::Golem(_) => 2.0,
+            Body::Golem(golem) => match golem.species {
+                golem::Species::WoodGolem => 1.2,
+                _ => 2.0,
+            },
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 2.3,
                 theropod::Species::Odonto => 2.3,

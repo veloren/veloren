@@ -543,7 +543,7 @@ impl SpriteKind {
             | SpriteKind::Gold => 0.6,
             SpriteKind::EnsnaringVines
             | SpriteKind::CavernLillypadBlue
-            | SpriteKind::EnsnaringWeb => 0.1,
+            | SpriteKind::EnsnaringWeb => 0.15,
             SpriteKind::LillyPads => 0.1,
             SpriteKind::WindowArabic | SpriteKind::BookshelfArabic => 1.9,
             SpriteKind::DecorSetArabic => 2.6,

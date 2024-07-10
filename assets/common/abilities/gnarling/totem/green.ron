@@ -1,24 +1,24 @@
 BasicAura(
-    buildup_duration: 0.375,
-    cast_duration: 0.5,
-    recover_duration: 0.375,
+    buildup_duration: 0.2,
+    cast_duration: 0.4,
+    recover_duration: 0.2,
     targets: InGroup,
     auras: [
         (
             kind: Regeneration,
-            strength: 7.5,
-            duration: Some(5),
+            strength: 1,
+            duration: Some(1),
             category: Magical,
         ),
         (
             kind: ProtectingWard,
-            strength: 0.75,
-            duration: Some(5),
+            strength: 0.5,
+            duration: Some(1),
             category: Magical,
         ),
     ],
-    aura_duration: Some(2),
-    range: 50,
+    aura_duration: Some(1),
+    range: 15,
     energy_cost: 0,
     scales_with_combo: false,
 )

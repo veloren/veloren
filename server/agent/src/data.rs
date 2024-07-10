@@ -145,6 +145,7 @@ impl<'a> TargetData<'a> {
 }
 
 pub struct AttackData {
+    pub body_dist: f32,
     pub min_attack_dist: f32,
     pub dist_sqrd: f32,
     pub angle: f32,
@@ -498,6 +499,8 @@ pub enum AbilityData {
     BasicRanged {
         energy: f32,
         projectile_speed: f32,
+        projectile_spread: f32,
+        num_projectiles: u32,
     },
     BasicMelee {
         energy: f32,
@@ -666,10 +669,14 @@ impl AbilityData {
             BasicRanged {
                 energy_cost,
                 projectile_speed,
+                projectile_spread,
+                num_projectiles,
                 ..
             } => Self::BasicRanged {
                 energy: *energy_cost,
                 projectile_speed: *projectile_speed,
+                projectile_spread: *projectile_spread,
+                num_projectiles: *num_projectiles,
             },
             BasicMelee {
                 energy_cost,
@@ -929,6 +936,8 @@ impl AbilityData {
             BasicRanged {
                 energy,
                 projectile_speed,
+                projectile_spread: _,
+                num_projectiles: _,
             } => ranged_check(*projectile_speed) && energy_check(*energy),
             BasicMelee {
                 energy,

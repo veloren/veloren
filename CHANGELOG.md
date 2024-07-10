@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rebalanced cultist dungeon loot tables; among other things, the drop Ankh of Life from Mindflayer is now 25x more frequent.
 - Improved Mindflayer anticheese measures.
 - Recipe pricing with NPCs.
+- Broad entity and loot updates to Gnarling Fortifications
 
 ### Removed
 
