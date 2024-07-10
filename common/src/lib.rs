@@ -13,8 +13,7 @@
     extend_one,
     arbitrary_self_types,
     int_roundings,
-    hash_extract_if,
-    option_take_if
+    hash_extract_if
 )]
 
 pub use common_assets as assets;

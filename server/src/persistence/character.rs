@@ -1116,8 +1116,7 @@ pub fn update(
             .unzip();
         trace!(
             "Upserting items {:?} for character_id {}",
-            upserted_items,
-            char_id.0
+            upserted_items, char_id.0
         );
 
         // When moving inventory items around, foreign key constraints on
