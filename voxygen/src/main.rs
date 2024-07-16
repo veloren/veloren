@@ -204,9 +204,9 @@ fn main() {
 
             panic!(
                 "Failed to select a rendering backend! No compatible backends were found. We \
-                 currently support vulkan, metal, dx12, and opengl.{} If the issue persists, please \
-                 include the operating system and GPU details in your bug report to help us \
-                 identify the cause.",
+                 currently support vulkan, metal, dx12, and opengl.{} If the issue persists, \
+                 please include the operating system and GPU details in your bug report to help \
+                 us identify the cause.",
                 POTENTIAL_FIX
             );
         },
