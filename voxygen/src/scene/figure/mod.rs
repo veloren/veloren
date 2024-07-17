@@ -4147,144 +4147,88 @@ impl FigureMgr {
                         ),
                     };
                     let target_bones = match &character {
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
+                        CharacterState::BasicRanged(_)
+                        | CharacterState::DashMelee(_)
+                        | CharacterState::LeapMelee(_)
+                        | CharacterState::LeapShockwave(_)
+                        | CharacterState::SpriteSummon(_) => {
+                            let timer = character.timer();
+                            let stage_section = character.stage_section();
+                            let durations = character.durations();
+                            let progress = if let Some(((timer, stage_section), durations)) =
+                                timer.zip(stage_section).zip(durations)
+                            {
+                                let base_dur = match stage_section {
+                                    StageSection::Buildup => durations.buildup,
+                                    StageSection::Charge => durations.charge,
+                                    StageSection::Movement => durations.movement,
+                                    StageSection::Action => durations.action,
+                                    StageSection::Recover => durations.recover,
+                                };
+                                if let Some(base_dur) = base_dur {
+                                    timer.as_secs_f32() / base_dur.as_secs_f32()
+                                } else {
+                                    timer.as_secs_f32()
+                                }
+                            } else {
+                                0.0
                             };
 
-                            anim::arthropod::ComboAnimation::update_skeleton(
+                            anim::arthropod::BasicAction::update_skeleton(
                                 &target_base,
-                                (
+                                anim::arthropod::BasicActionDependency {
                                     ability_id,
-                                    s.stage_section,
-                                    current_strike,
-                                    time,
-                                    state.state_time,
-                                ),
+                                    stage_section,
+                                    global_time: time,
+                                    timer: state.state_time,
+                                },
                                 progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::LeapMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
+                        CharacterState::ComboMelee2(_) => {
+                            let timer = character.timer();
+                            let stage_section = character.stage_section();
+                            let durations = character.durations();
+                            let progress = if let Some(((timer, stage_section), durations)) =
+                                timer.zip(stage_section).zip(durations)
+                            {
+                                let base_dur = match stage_section {
+                                    StageSection::Buildup => durations.buildup,
+                                    StageSection::Charge => durations.charge,
+                                    StageSection::Movement => durations.movement,
+                                    StageSection::Action => durations.action,
+                                    StageSection::Recover => durations.recover,
+                                };
+                                if let Some(base_dur) = base_dur {
+                                    timer.as_secs_f32() / base_dur.as_secs_f32()
+                                } else {
+                                    timer.as_secs_f32()
+                                }
+                            } else {
+                                0.0
                             };
-                            anim::arthropod::LeapMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
+
+                            let (current_action, max_actions) = match character {
+                                CharacterState::ComboMelee2(s) => (
+                                    (s.completed_strikes % s.static_data.strikes.len()) as u32,
+                                    Some(s.static_data.strikes.len() as u32),
                                 ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::SpriteSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
+                                _ => (0, None),
                             };
-                            anim::arthropod::SummonAnimation::update_skeleton(
+
+                            anim::arthropod::MultiAction::update_skeleton(
                                 &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                anim::arthropod::MultiActionDependency {
+                                    ability_id,
+                                    stage_section,
+                                    current_action,
+                                    max_actions,
+                                    global_time: time,
+                                    timer: state.state_time,
                                 },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::arthropod::DashAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::arthropod::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
+                                progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
@@ -4320,38 +4264,6 @@ impl FigureMgr {
                                     )
                                 },
                             }
-                        },
-                        CharacterState::LeapShockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::arthropod::LeapShockAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
                         },
                         // TODO!
                         _ => target_base,
