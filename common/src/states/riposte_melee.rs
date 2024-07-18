@@ -18,6 +18,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// Modifer for recovery speed when the parry is missed
+    pub whiff_recovery_modifier: f32,
     /// Base value that incoming damage is reduced by and converted to poise
     /// damage
     pub block_strength: f32,
@@ -38,6 +40,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
+    /// Whether the riposte whiffed
+    pub whiffed: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -51,15 +55,16 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Buildup => {
-                if self.timer < self.static_data.buildup_duration {
-                    // Build up
-                    if let CharacterState::RiposteMelee(c) = &mut update.character {
+                if let CharacterState::RiposteMelee(c) = &mut update.character {
+                    if self.timer < self.static_data.buildup_duration {
+                        // Build up
                         c.timer = tick_attack_or_default(data, self.timer, None);
+                    } else {
+                        // If duration finishes with no parry occurring transition to recover
+                        // Transition to action happens in parry hook server event
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
                     }
-                } else {
-                    // If duration finishes with no pary occurring, end character state
-                    // Transition to action happens in parry hook server event
-                    end_ability(data, &mut update);
                 }
             },
             StageSection::Action => {
@@ -97,7 +102,14 @@ impl CharacterBehavior for Data {
                         c.timer = tick_attack_or_default(
                             data,
                             self.timer,
-                            Some(data.stats.recovery_speed_modifier),
+                            Some(
+                                data.stats.recovery_speed_modifier
+                                    * if c.whiffed {
+                                        self.static_data.whiff_recovery_modifier
+                                    } else {
+                                        1.0
+                                    },
+                            ),
                         );
                     }
                 } else {

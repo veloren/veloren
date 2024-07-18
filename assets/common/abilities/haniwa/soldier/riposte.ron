@@ -3,6 +3,7 @@ RiposteMelee(
     buildup_duration: 0.7,
     swing_duration: 0.3,
     recover_duration: 0.2,
+    whiff_recovery_modifier: 0.2,
     block_strength: 5.0,
     melee_constructor: (
         kind: Slash(
