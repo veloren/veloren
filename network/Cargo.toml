@@ -82,7 +82,7 @@ harness = false
 name = "fileshare"
 
 [[example]]
-name = "network-speed"
+name = "network_speed"
 
 [[example]]
 name = "chat"

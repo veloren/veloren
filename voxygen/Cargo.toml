@@ -34,7 +34,7 @@ plugins = ["client/plugins", "common-assets/plugins", "server/plugins"]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
-bin_img-export = ["common-assets"]
+bin_img_export = ["common-assets"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
 default-publish = [
@@ -172,5 +172,5 @@ harness = false
 name = "meshing_benchmark"
 
 [[bin]]
-name = "img-export"
-required-features = ["bin_img-export"]
+name = "img_export"
+required-features = ["bin_img_export"]
