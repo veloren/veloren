@@ -24,11 +24,11 @@ clap = { workspace = true, optional = true }
 fluent-syntax = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
 
 [[bin]]
-name = "i18n-check"
+name = "i18n_check"
 required-features = ["bin"]
 
 [[bin]]
-name = "i18n-csv"
+name = "i18n_csv"
 required-features = ["stat"]
 
 [features]
