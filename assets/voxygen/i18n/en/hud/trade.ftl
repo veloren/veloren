@@ -12,7 +12,12 @@ hud-trade-has_accepted =
     has accepted
 hud-trade-accept = Accept
 hud-trade-decline = Decline
+
 hud-trade-invite_sent = Trade request sent to { $playername }.
+hud-trade-invite-accepted = { $target } accepted your trade request.
+hud-trade-invite-declined = { $target } declined your trade request.
+hud-trade-invite-timed_out = Trade request to { $target } timed out.
+
 hud-trade-result-completed = Trade completed successfully.
 hud-trade-result-declined = Trade declined.
 hud-trade-result-nospace = Not enough space to complete the trade.
