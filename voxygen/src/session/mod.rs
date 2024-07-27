@@ -302,12 +302,6 @@ impl SessionState {
                     answer,
                     kind,
                 } => {
-                    // TODO: i18n (complicated since substituting phrases at this granularity may
-                    // not be grammatical in some languages)
-                    let kind_str = match kind {
-                        InviteKind::Group => "Group",
-                        InviteKind::Trade => "Trade",
-                    };
                     let target_name = match client.player_list().get(&target) {
                         Some(info) => info.player_alias.clone(),
                         None => match client.state().ecs().entity_from_uid(target) {
@@ -320,13 +314,21 @@ impl SessionState {
                             None => format!("<uid {}>", target),
                         },
                     };
-                    let answer_str = match answer {
-                        InviteAnswer::Accepted => "accepted",
-                        InviteAnswer::Declined => "declined",
-                        InviteAnswer::TimedOut => "timed out",
+
+                    let msg_key = match (kind, answer) {
+                        (InviteKind::Group, InviteAnswer::Accepted) => "hud-group-invite-accepted",
+                        (InviteKind::Group, InviteAnswer::Declined) => "hud-group-invite-declined",
+                        (InviteKind::Group, InviteAnswer::TimedOut) => "hud-group-invite-timed_out",
+                        (InviteKind::Trade, InviteAnswer::Accepted) => "hud-trade-invite-accepted",
+                        (InviteKind::Trade, InviteAnswer::Declined) => "hud-trade-invite-declined",
+                        (InviteKind::Trade, InviteAnswer::TimedOut) => "hud-trade-invite-timed_out",
                     };
-                    let msg = format!("{} invite to {} {}", kind_str, target_name, answer_str);
-                    // TODO: Localise
+
+                    let msg = global_state
+                        .i18n
+                        .read()
+                        .get_msg_ctx(msg_key, &i18n::fluent_args! { "target" => target_name });
+
                     self.hud.new_message(ChatType::Meta.into_plain_msg(msg));
                 },
                 client::Event::TradeComplete { result, trade: _ } => {
