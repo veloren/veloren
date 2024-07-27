@@ -41,6 +41,8 @@ const BANLIST_FILENAME: &str = "banlist.ron";
 const SERVER_DESCRIPTION_FILENAME: &str = "description.ron";
 const ADMINS_FILENAME: &str = "admins.ron";
 
+pub const SINGLEPLAYER_SERVER_NAME: &str = "Singleplayer";
+
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum ServerBattleMode {
     Global(BattleMode),
@@ -308,7 +310,7 @@ impl Settings {
             } else {
                 DEFAULT_WORLD_SEED
             },
-            server_name: "Singleplayer".to_owned(),
+            server_name: SINGLEPLAYER_SERVER_NAME.to_owned(),
             max_players: 100,
             max_view_distance: None,
             client_timeout: Duration::from_secs(180),
