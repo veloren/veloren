@@ -41,6 +41,7 @@ use iced::{
     button, scrollable, slider, text_input, Align, Button, Color, Column, Container,
     HorizontalAlignment, Length, Row, Scrollable, Slider, Space, Text, TextInput,
 };
+use server::settings::SINGLEPLAYER_SERVER_NAME;
 use std::sync::Arc;
 use vek::{Rgba, Vec2};
 
@@ -535,11 +536,15 @@ impl Controls {
                     *info_content = None;
                 }
 
+                let server_name = if client.server_info().name == SINGLEPLAYER_SERVER_NAME {
+                    &i18n.get_msg("common-singleplayer").to_string()
+                } else {
+                    &client.server_info().name
+                };
+
                 let server = Container::new(
                     Column::with_children(vec![
-                        Text::new(&client.server_info().name)
-                            .size(fonts.cyri.scale(25))
-                            .into(),
+                        Text::new(server_name).size(fonts.cyri.scale(25)).into(),
                         // TODO: show additional server info here
                         Space::new(Length::Fill, Length::Units(25)).into(),
                     ])
