@@ -577,9 +577,14 @@ impl<'a> Widget for ItemTooltip<'a> {
             .color(quality)
             .set(state.ids.title, ui);
 
+        let amount = i18n.get_msg_ctx(
+            "items-common-amount",
+            &i18n::fluent_args! { "amount" => self.item.amount().get() },
+        );
+
         // Amount
         let (subtitle_relative_id, spacing) = if self.item.amount().get() > 1 {
-            widget::Text::new(&format!("Amount: {}", self.item.amount().get()))
+            widget::Text::new(&amount)
                 .w(title_w)
                 .graphics_for(id)
                 .parent(id)
