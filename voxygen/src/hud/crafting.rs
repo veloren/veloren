@@ -31,7 +31,7 @@ use common::{
 };
 use conrod_core::{
     color, image,
-    position::Dimension,
+    position::{Dimension, Place},
     widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
@@ -969,7 +969,8 @@ impl<'a> Widget for Crafting<'a> {
                     }
                     // Modular Weapon Crafting BG-Art
                     Image::new(self.imgs.crafting_modular_art)
-                        .mid_top_with_margin_on(state.ids.align_ing, 55.0)
+                        .down_from(state.ids.modular_desc_txt, 15.0)
+                        .align_middle_x()
                         .w_h(168.0, 250.0)
                         .set(state.ids.modular_art, ui);
 
@@ -1163,7 +1164,7 @@ impl<'a> Widget for Crafting<'a> {
                     // Output Image
                     Image::new(self.imgs.inv_slot)
                         .w_h(80.0, 80.0)
-                        .mid_bottom_with_margin_on(state.ids.align_ing, 50.0)
+                        .mid_bottom_with_margin_on(state.ids.modular_art, 16.0)
                         .parent(state.ids.align_ing)
                         .set(state.ids.output_img_frame, ui);
                     let bg_col = Color::Rgba(1.0, 1.0, 1.0, 0.4);
@@ -1296,11 +1297,13 @@ impl<'a> Widget for Crafting<'a> {
                         )
                     } else {
                         Text::new(&self.localized_strings.get_msg("hud-crafting-modular_desc"))
-                            .mid_top_with_margin_on(state.ids.modular_art, -18.0)
+                            .mid_top_of(state.ids.align_ing)
+                            .w(264.0)
+                            .center_justify()
                             .font_id(self.fonts.cyri.conrod_id)
                             .font_size(self.fonts.cyri.scale(13))
                             .color(TEXT_COLOR)
-                            .set(state.ids.title_main, ui);
+                            .set(state.ids.modular_desc_txt, ui);
                         Image::new(self.imgs.icon_mod_weap)
                             .middle_of(state.ids.output_img_frame)
                             .color(Some(bg_col))
@@ -1701,9 +1704,9 @@ impl<'a> Widget for Crafting<'a> {
                     RecipeKind::Simple => {
                         t.top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0)
                     },
-                    RecipeKind::ModularWeapon | RecipeKind::Component(_) => {
-                        t.top_left_with_margins_on(state.ids.align_ing, 325.0, 5.0)
-                    },
+                    RecipeKind::ModularWeapon | RecipeKind::Component(_) => t
+                        .down_from(state.ids.modular_art, 20.0)
+                        .x_place_on(state.ids.align_ing, Place::Start(Some(5.0))),
                     RecipeKind::Repair => {
                         t.top_left_with_margins_on(state.ids.align_ing, 80.0, 5.0)
                     },
