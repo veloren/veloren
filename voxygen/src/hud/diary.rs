@@ -445,22 +445,24 @@ impl<'a> Widget for Diary<'a> {
                     continue;
                 },
             };
-            // Section Icons
-            let section_desc = match section_name {
-                "Abilities" => "List of your currently available abilities.",
-                "Skill-Trees" => "",
-                "Stats" => "",
-                "Recipes" => "",
-                _ => "",
+
+            let section_name_key = match section {
+                DiarySection::SkillTrees => "hud-diary-sections-skill_trees-title",
+                DiarySection::AbilitySelection => "hud-diary-sections-abilities-title",
+                DiarySection::Stats => "hud-diary-sections-stats-title",
+                DiarySection::Recipes => "hud-diary-sections-recipes-title",
             };
+
+            let section_name = self.localized_strings.get_msg(section_name_key);
+
             let btn_img = {
-                let img = match section_name {
-                    "Abilities" => self.imgs.spellbook_ico,
-                    "Skill-Trees" => self.imgs.skilltree_ico,
-                    "Stats" => self.imgs.stats_ico,
-                    "Recipes" => self.imgs.crafting_icon,
-                    _ => self.imgs.nothing,
+                let img = match section {
+                    DiarySection::AbilitySelection => self.imgs.spellbook_ico,
+                    DiarySection::SkillTrees => self.imgs.skilltree_ico,
+                    DiarySection::Stats => self.imgs.stats_ico,
+                    DiarySection::Recipes => self.imgs.crafting_icon,
                 };
+
                 if i == 0 {
                     Image::new(img).top_left_with_margins_on(state.ids.content_align, 0.0, -50.0)
                 } else {
@@ -493,8 +495,8 @@ impl<'a> Widget for Diary<'a> {
                 .middle_of(state.ids.section_imgs[i])
                 .with_tooltip(
                     self.tooltip_manager,
-                    section_name,
-                    section_desc,
+                    &section_name,
+                    "",
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
@@ -535,20 +537,34 @@ impl<'a> Widget for Diary<'a> {
                         },
                     };
 
+                    let skilltree_name_key = match skill_group {
+                        SkillGroupKind::General => "hud-skill_tree-general",
+                        SkillGroupKind::Weapon(ToolKind::Sword) => "hud-skill_tree-sword",
+                        SkillGroupKind::Weapon(ToolKind::Axe) => "hud-skill_tree-axe",
+                        SkillGroupKind::Weapon(ToolKind::Hammer) => "hud-skill_tree-hammer",
+                        SkillGroupKind::Weapon(ToolKind::Bow) => "hud-skill_tree-bow",
+                        SkillGroupKind::Weapon(ToolKind::Staff) => "hud-skill_tree-staff",
+                        SkillGroupKind::Weapon(ToolKind::Sceptre) => "hud-skill_tree-sceptre",
+                        SkillGroupKind::Weapon(ToolKind::Pick) => "hud-skill_tree-mining",
+                        _ => "",
+                    };
+
+                    let skilltree_name = self.localized_strings.get_msg(skilltree_name_key);
+
                     // Check if we have this skill tree unlocked
                     let locked = !self.skill_set.skill_group_accessible(skill_group);
 
                     // Weapon button image
                     let btn_img = {
-                        let img = match skilltree_name {
-                            "General Combat" => self.imgs.swords_crossed,
-                            "Sword" => self.imgs.sword,
-                            "Axe" => self.imgs.axe,
-                            "Hammer" => self.imgs.hammer,
-                            "Bow" => self.imgs.bow,
-                            "Fire Staff" => self.imgs.staff,
-                            "Sceptre" => self.imgs.sceptre,
-                            "Mining" => self.imgs.mining,
+                        let img = match skill_group {
+                            SkillGroupKind::General => self.imgs.swords_crossed,
+                            SkillGroupKind::Weapon(ToolKind::Sword) => self.imgs.sword,
+                            SkillGroupKind::Weapon(ToolKind::Axe) => self.imgs.axe,
+                            SkillGroupKind::Weapon(ToolKind::Hammer) => self.imgs.hammer,
+                            SkillGroupKind::Weapon(ToolKind::Bow) => self.imgs.bow,
+                            SkillGroupKind::Weapon(ToolKind::Staff) => self.imgs.staff,
+                            SkillGroupKind::Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
+                            SkillGroupKind::Weapon(ToolKind::Pick) => self.imgs.mining,
                             _ => self.imgs.nothing,
                         };
 
@@ -577,6 +593,7 @@ impl<'a> Widget for Diary<'a> {
                     // Weapon icons
                     let have_points = {
                         let available = self.skill_set.available_sp(skill_group);
+
                         let earned = self.skill_set.earned_sp(skill_group);
                         let total_cost = skill_group.total_skill_point_cost();
 
@@ -621,7 +638,7 @@ impl<'a> Widget for Diary<'a> {
                         .image_color(color)
                         .with_tooltip(
                             self.tooltip_manager,
-                            skilltree_name,
+                            &skilltree_name,
                             &tooltip_txt,
                             &diary_tooltip,
                             TEXT_COLOR,
