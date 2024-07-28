@@ -7,6 +7,16 @@
 -hud-skill-st_shockwave_title = ""
 
 ## Skill tree UI
+
+hud-skill_tree-general = General Combat
+hud-skill_tree-sword = Sword
+hud-skill_tree-axe = Axe
+hud-skill_tree-hammer = Hammer
+hud-skill_tree-bow = Bow
+hud-skill_tree-staff = Fire Staff
+hud-skill_tree-sceptre = Sceptre
+hud-skill_tree-mining = Mining
+
 hud-rank_up = New skill point
 hud-skill-sp_available =
     { $number ->
