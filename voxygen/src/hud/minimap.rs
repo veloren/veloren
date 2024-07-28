@@ -21,12 +21,13 @@ use common::{
     vol::{ReadVol, RectVolSize},
 };
 use common_net::msg::world_msg::SiteKind;
+use common_state::TerrainChanges;
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use image::{DynamicImage, RgbaImage};
 use specs::WorldExt;
 use std::sync::Arc;
@@ -45,6 +46,7 @@ struct MinimapColumn {
 
 pub struct VoxelMinimap {
     chunk_minimaps: HashMap<Vec2<i32>, MinimapColumn>,
+    chunks_to_replace: HashSet<Vec2<i32>>,
     composited: RgbaImage,
     image_id: img_ids::Rotations,
     last_pos: Vec3<i32>,
@@ -63,6 +65,7 @@ impl VoxelMinimap {
         );
         Self {
             chunk_minimaps: HashMap::new(),
+            chunks_to_replace: HashSet::new(),
             image_id: ui.add_graphic_with_rotations(Graphic::Image(
                 Arc::new(DynamicImage::ImageRgba8(composited.clone())),
                 Some(Rgba::from([0.0, 0.0, 0.0, 0.0])),
@@ -162,7 +165,8 @@ impl VoxelMinimap {
             let delta: Vec2<u32> = (key - cpos).map(i32::abs).as_();
             if delta.x < VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.x
                 && delta.y < VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.y
-                && !self.chunk_minimaps.contains_key(&key)
+                && (!self.chunk_minimaps.contains_key(&key)
+                    || self.chunks_to_replace.contains(&key))
             {
                 if let Some((_, column)) = self.keyed_jobs.spawn(Some(pool), key, || {
                     let arc_chunk = Arc::clone(chunk);
@@ -198,6 +202,7 @@ impl VoxelMinimap {
                         }
                     }
                 }) {
+                    self.chunks_to_replace.remove(&key);
                     self.chunk_minimaps.insert(key, column);
                     new_chunks = true;
                 }
@@ -206,13 +211,30 @@ impl VoxelMinimap {
         new_chunks
     }
 
+    fn add_chunks_to_replace(&mut self, terrain: &TerrainGrid, changes: &TerrainChanges) {
+        changes
+            .modified_blocks
+            .iter()
+            .filter(|(key, old_block)| {
+                terrain.get(**key).map_or(false, |new_block| {
+                    new_block.is_terrain() != old_block.is_terrain()
+                })
+            })
+            .map(|(key, _)| terrain.pos_key(*key))
+            .for_each(|key| {
+                self.chunks_to_replace.insert(key);
+            });
+    }
+
     fn remove_chunks_far(&mut self, terrain: &TerrainGrid, cpos: Vec2<i32>) {
-        self.chunk_minimaps.retain(|key, _| {
+        let key_predicate = |key: &Vec2<i32>| {
             let delta: Vec2<u32> = (key - cpos).map(i32::abs).as_();
             delta.x < 1 + VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.x
                 && delta.y < 1 + VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.y
                 && terrain.get_key(*key).is_some()
-        });
+        };
+        self.chunks_to_replace.retain(&key_predicate);
+        self.chunk_minimaps.retain(|key, _| key_predicate(key));
     }
 
     pub fn maintain(&mut self, client: &Client, ui: &mut Ui) {
@@ -229,6 +251,8 @@ impl VoxelMinimap {
 
         let pool = client.state().ecs().read_resource::<SlowJobPool>();
         let terrain = client.state().terrain();
+        let changed_blocks = client.state().terrain_changes();
+        self.add_chunks_to_replace(&terrain, &changed_blocks);
         let new_chunks = self.add_chunks_near(&pool, &terrain, cpos);
         self.remove_chunks_far(&terrain, cpos);
 
