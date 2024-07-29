@@ -1014,6 +1014,17 @@ impl<'a> Widget for Crafting<'a> {
                             s.ids.craft_slots.resize(2, &mut ui.widget_id_generator());
                         });
                     }
+
+                    // Crafting instructions
+                    Text::new(&self.localized_strings.get_msg("hud-crafting-modular_desc"))
+                        .mid_top_of(state.ids.align_ing)
+                        .w(264.0)
+                        .center_justify()
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(13))
+                        .color(TEXT_COLOR)
+                        .set(state.ids.modular_desc_txt, ui);
+
                     // Modular Weapon Crafting BG-Art
                     Image::new(self.imgs.crafting_modular_art)
                         .down_from(state.ids.modular_desc_txt, 15.0)
@@ -1343,14 +1354,6 @@ impl<'a> Widget for Crafting<'a> {
                             recipe_known,
                         )
                     } else {
-                        Text::new(&self.localized_strings.get_msg("hud-crafting-modular_desc"))
-                            .mid_top_of(state.ids.align_ing)
-                            .w(264.0)
-                            .center_justify()
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .font_size(self.fonts.cyri.scale(13))
-                            .color(TEXT_COLOR)
-                            .set(state.ids.modular_desc_txt, ui);
                         Image::new(self.imgs.icon_mod_weap)
                             .middle_of(state.ids.output_img_frame)
                             .color(Some(bg_col))

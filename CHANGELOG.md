@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Craftable orichalcum helmet
 - Protocol to query game server information (player count, version, etc.) and make ping tests.
 - Unlockable recipes
+- Localization support for prompt dialogs, diary sections, trade and group invitations.
 
 ### Changed
 
@@ -47,12 +48,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loot protection for solo players and NPCs works again
 - New cultist dungeons are less overly abundant, sahagin dungeons spawn again.
 - Cultist dungeons now always have exactly one portal which leads to the boss room.
-- Prompt dialogs are now localized.
 - Image-export for wiki now produces correct images of items as they look like in-game.
 - Limit the minimum vertical scaling value in the world generation UI to 0.1 to prevent an overflow
 - Wood log and worker/linen clothing pricing.
 - Charm recipes can now be found in the Potions tab of the crafting menu
 - Black minimap when some terrain blocks are deleted.
+- Text overflow and flickering in the crafting menu.
 
 ## [0.16.0] - 2024-03-30
 
