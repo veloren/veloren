@@ -556,43 +556,90 @@ impl<'a> Widget for Crafting<'a> {
         let wood_comp_recipe = make_pseudo_recipe(SpriteKind::CraftingBench);
         let repair_recipe = make_pseudo_recipe(SpriteKind::RepairBench);
 
-        // TODO: localize
+        // A BTreeMap is used over a HashMap as when a HashMap is used, the UI shuffles
+        // the positions of these every tick, so a BTreeMap is necessary to keep it
+        // ordered.
         let pseudo_entries = {
-            // A BTreeMap is used over a HashMap as when a HashMap is used, the UI shuffles
-            // the positions of these every tick, so a BTreeMap is necessary to keep it
-            // ordered.
             let mut pseudo_entries = BTreeMap::new();
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.modular_weapon"),
-                (&weapon_recipe, "Modular Weapon", CraftingTab::Weapon),
+                (
+                    &weapon_recipe,
+                    self.localized_strings
+                        .get_msg("pseudo-recipe-modular_weapon-modular_weapon")
+                        .to_string(),
+                    CraftingTab::Weapon,
+                ),
             );
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.modular_weapon_component.sword"),
-                (&metal_comp_recipe, "Sword Blade", CraftingTab::Weapon),
+                (
+                    &metal_comp_recipe,
+                    self.localized_strings
+                        .get_msg("pseudo-recipe-modular_weapon-sword")
+                        .to_string(),
+                    CraftingTab::Weapon,
+                ),
             );
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.modular_weapon_component.axe"),
-                (&metal_comp_recipe, "Axe Head", CraftingTab::Weapon),
+                (
+                    &metal_comp_recipe,
+                    self.localized_strings
+                        .get_msg("pseudo-recipe-modular_weapon-axe")
+                        .to_string(),
+                    CraftingTab::Weapon,
+                ),
             );
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.modular_weapon_component.hammer"),
-                (&metal_comp_recipe, "Hammer Head", CraftingTab::Weapon),
+                (
+                    &metal_comp_recipe,
+                    self.localized_strings
+                        .get_msg("pseudo-recipe-modular_weapon-hammer")
+                        .to_string(),
+                    CraftingTab::Weapon,
+                ),
             );
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.modular_weapon_component.bow"),
-                (&wood_comp_recipe, "Bow Limbs", CraftingTab::Weapon),
+                (
+                    &wood_comp_recipe,
+                    self.localized_strings
+                        .get_msg("pseudo-recipe-modular_weapon-bow")
+                        .to_string(),
+                    CraftingTab::Weapon,
+                ),
             );
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.modular_weapon_component.staff"),
-                (&wood_comp_recipe, "Staff Shaft", CraftingTab::Weapon),
+                (
+                    &wood_comp_recipe,
+                    self.localized_strings
+                        .get_msg("pseudo-recipe-modular_weapon-staff")
+                        .to_string(),
+                    CraftingTab::Weapon,
+                ),
             );
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.modular_weapon_component.sceptre"),
-                (&wood_comp_recipe, "Sceptre Shaft", CraftingTab::Weapon),
+                (
+                    &wood_comp_recipe,
+                    self.localized_strings
+                        .get_msg("pseudo-recipe-modular_weapon-sceptre")
+                        .to_string(),
+                    CraftingTab::Weapon,
+                ),
             );
             pseudo_entries.insert(
                 String::from("veloren.core.pseudo_recipe.repair"),
-                (&repair_recipe, "Repair Equipment", CraftingTab::All),
+                (
+                    &repair_recipe,
+                    self.localized_strings
+                        .get_msg("pseudo-recipe-repair")
+                        .to_string(),
+                    CraftingTab::All,
+                ),
             );
             pseudo_entries
         };
@@ -760,7 +807,7 @@ impl<'a> Widget for Crafting<'a> {
             let title;
             let recipe_name =
                 if let Some((_recipe, pseudo_name, _filter_tab)) = pseudo_entries.get(name) {
-                    *pseudo_name
+                    pseudo_name
                 } else {
                     (title, _) = util::item_text(
                         recipe.output.0.as_ref(),
@@ -888,7 +935,7 @@ impl<'a> Widget for Crafting<'a> {
             let title = if let Some((_recipe, pseudo_name, _filter_tab)) =
                 pseudo_entries.get(&recipe_name)
             {
-                *pseudo_name
+                pseudo_name
             } else {
                 (title, _) = util::item_text(
                     recipe.output.0.as_ref(),
