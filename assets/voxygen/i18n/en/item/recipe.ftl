@@ -88,3 +88,29 @@ recipe-weapons-eldwood = Eldwood Weapon Recipes
     .desc = Eldwood Weapon Recipes
 recipe-default = Default Recipes
     .desc = Default Recipes
+
+## Pseudo
+
+pseudo-recipe-modular_weapon-modular_weapon = Modular Weapon
+    .desc = {""}
+
+pseudo-recipe-modular_weapon-sword = Sword Blade
+    .desc = {""}
+
+pseudo-recipe-modular_weapon-axe = Axe Head
+    .desc = {""}
+
+pseudo-recipe-modular_weapon-hammer = Hammer Head
+    .desc = {""}
+
+pseudo-recipe-modular_weapon-bow = Bow Limbs
+    .desc = {""}
+
+pseudo-recipe-modular_weapon-staff = Staff Shaft
+    .desc = {""}
+
+pseudo-recipe-modular_weapon-sceptre = Sceptre Shaft
+    .desc = {""}
+
+pseudo-recipe-repair = Repair Equipment
+    .desc = {""}
