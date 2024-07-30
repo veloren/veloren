@@ -14,6 +14,7 @@ command-give-inventory-full = Player inventory full. Gave { $given ->
   [1] only one
   *[other] { $given }
 } of { $total } items.
+command-give-inventory-success = Added { $total } x { $item } to the inventory.
 command-invalid-item = Invalid item: { $item }
 command-invalid-block-kind = Invalid block kind: { $kind }
 command-nof-entities-at-least = Number of entities should be at least 1

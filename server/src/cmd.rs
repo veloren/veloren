@@ -38,7 +38,7 @@ use common::{
         invite::InviteKind,
         misc::PortalData,
         AdminRole, Aura, AuraKind, BuffCategory, ChatType, Content, Inventory, Item, LightEmitter,
-        WaypointArea,
+        LocalizationArg, WaypointArea,
     },
     depot,
     effect::Effect,
@@ -515,7 +515,7 @@ fn handle_drop_all(
 
 fn handle_give_item(
     server: &mut Server,
-    _client: EcsEntity,
+    client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
     action: &ServerChatCommand,
@@ -570,6 +570,17 @@ fn handle_give_item(
                             }
                         }
                     });
+            }
+
+            if res.is_ok() {
+                let msg = ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    Content::localized_with_args("command-give-inventory-success", [
+                        ("total", LocalizationArg::from(give_amount as u64)),
+                        ("item", LocalizationArg::from(item_name)),
+                    ]),
+                );
+                server.notify_client(client, msg);
             }
 
             let mut inventory_update = server
