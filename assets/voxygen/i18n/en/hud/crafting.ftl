@@ -3,11 +3,12 @@ hud-crafting-recipes = Recipes
 hud-crafting-ingredients = Ingredients:
 hud-crafting-craft = Craft
 hud-crafting-craft_all = Craft All
-hud-crafting-repair = Repair
-hud-crafting-repair_equipped = Repair Equipped
-hud-crafting-repair_all = Repair All
-hud-crafting-tool_cata = Requires:
-hud-crafting-req_crafting_station = Requires:
+hud-crafting-repair-selection = Selection
+hud-crafting-repair_equipped = Equipped
+hud-crafting-repair_all = All
+hud-crafting-tool_cata = Tools:
+hud-crafting-req_crafting_station = Station:
+hud-crafting-required_crafting_station = Station:
 hud-crafting-anvil = Anvil
 hud-crafting-cauldron = Cauldron
 hud-crafting-cooking_pot = Cooking Pot
@@ -37,6 +38,7 @@ hud-crafting-dismantle_explanation =
 
     Double-Click them to start dismantling.
 hud-crafting-modular_desc = Drag Item-Parts here to craft a weapon
+hud-crafting-repair_desc = Drag damaged items here to repair them
 hud-crafting-mod_weap_prim_slot_title = Primary Weapon Component
 hud-crafting-mod_weap_prim_slot_desc = Place a primary weapon component here (e.g. a sword blade, axe head, or bow limbs).
 hud-crafting-mod_weap_sec_slot_title = Secondary Weapon Component
