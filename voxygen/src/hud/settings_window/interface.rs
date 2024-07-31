@@ -700,7 +700,6 @@ impl<'a> Widget for Interface<'a> {
         .right_from(state.ids.show_shortcuts_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .graphics_for(state.ids.show_shortcuts_button)
         .color(TEXT_COLOR)
         .set(state.ids.show_shortcuts_text, ui);
         // Buff Position
@@ -732,7 +731,7 @@ impl<'a> Widget for Interface<'a> {
         .right_from(state.ids.buff_pos_bar_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .graphics_for(state.ids.show_shortcuts_button)
+        .graphics_for(state.ids.buff_pos_bar_button)
         .color(TEXT_COLOR)
         .set(state.ids.buff_pos_bar_text, ui);
         // Buffs left from minimap
@@ -759,7 +758,7 @@ impl<'a> Widget for Interface<'a> {
             .right_from(state.ids.buff_pos_map_button, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.show_shortcuts_button)
+            .graphics_for(state.ids.buff_pos_map_button)
             .color(TEXT_COLOR)
             .set(state.ids.buff_pos_map_text, ui);
         // Slots text
