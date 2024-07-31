@@ -583,6 +583,7 @@ impl Controls {
             Message::DeleteServer => {
                 if let Some(server_index) = self.selected_server_index {
                     events.push(Event::DeleteServer { server_index });
+                    self.selected_server_index = None;
                 }
             },
             /* Note: Keeping in case we re-add the disclaimer */
