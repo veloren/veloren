@@ -3,13 +3,6 @@ hud-crafting-recipes = Рецепти
 hud-crafting-ingredients = Інгрідієнти:
 hud-crafting-craft = Створити
 hud-crafting-craft_all = Створити Все
-hud-crafting-repair = Ремонтувати
-hud-crafting-repair_equipped =
-    Ремонтувати
-    екіпіроване
-hud-crafting-repair_all = Ремонтувати все
-hud-crafting-tool_cata = Необхідно:
-hud-crafting-req_crafting_station = Необхідно:
 hud-crafting-anvil = Ковадло
 hud-crafting-cauldron = Казан для зілля
 hud-crafting-cooking_pot = Казан для їжї

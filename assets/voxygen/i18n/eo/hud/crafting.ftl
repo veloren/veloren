@@ -2,9 +2,7 @@ hud-crafting = Kreante
 hud-crafting-recipes = Receptoj
 hud-crafting-ingredients = Konsistigaĵoj =
 hud-crafting-craft = Krei
-hud-crafting-tool_cata = Bezonas =
 ## Crafting Stations
-hud-crafting-req_crafting_station = Bezonas =
 hud-crafting-anvil = Amboso
 hud-crafting-cauldron = Kaldrono
 hud-crafting-cooking_pot = Kuirpoto

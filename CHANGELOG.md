@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved Mindflayer anticheese measures.
 - Recipe pricing with NPCs.
 - Broad entity and loot updates to Gnarling Fortifications
+- Reworked spacing and labels in crafting menu.
+- Reworked design of repair equipment interface in crafting menu.
 
 ### Removed
 

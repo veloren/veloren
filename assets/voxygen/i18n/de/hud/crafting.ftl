@@ -3,11 +3,11 @@ hud-crafting-recipes = Rezepte
 hud-crafting-ingredients = Zutaten:
 hud-crafting-craft = Herstellen
 hud-crafting-craft_all = Alle herstellen
-hud-crafting-tool_cata = Benötigt:
-hud-crafting-repair = Reparieren
-hud-crafting-repair_equipped = Repariere ausgerüstete
-hud-crafting-repair_all = Repariere alles
-hud-crafting-req_crafting_station = Benötigt:
+hud-crafting-tool_cata = Werkzeuge:
+hud-crafting-repair-selection = Auswahl
+hud-crafting-repair_equipped = Ausgerüstete
+hud-crafting-repair_all = Alle
+hud-crafting-req_crafting_station = Station:
 hud-crafting-anvil = Amboss
 hud-crafting-cauldron = Kessel
 hud-crafting-cooking_pot = Kochtopf
@@ -41,6 +41,7 @@ hud-crafting-dismantle_explanation =
 ## Modular Weapons
 
 hud-crafting-modular_desc = Lege Item Bauteile hier ab, um eine Waffe herzustellen.
+hud-crafting-repair_desc = Lege beschädigte Items hier ab, um sie zu reparieren.
 hud-crafting-mod_weap_prim_slot_title = Primäres Waffen Bauteil
 hud-crafting-mod_weap_prim_slot_desc = Lege hier ein primäres Waffen Bauteil ab (z.B. eine Schwertklinge, Axtkopf oder Bogensehne).
 hud-crafting-mod_weap_sec_slot_title = Sekundäres Waffen Bauteil
