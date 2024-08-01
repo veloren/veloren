@@ -378,7 +378,8 @@ impl PlayState for MainMenuState {
                     let validate_tls = net_settings.validate_tls;
                     net_settings.username.clone_from(&username);
                     net_settings.default_server.clone_from(&server_address);
-                    if !net_settings.servers.contains(&server_address) {
+                    if !server_address.is_empty() && !net_settings.servers.contains(&server_address)
+                    {
                         net_settings.servers.push(server_address.clone());
                     }
                     global_state
