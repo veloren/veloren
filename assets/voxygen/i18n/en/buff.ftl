@@ -88,9 +88,6 @@ buff-reckless = Reckless
 ## Polymorped
 buff-polymorphed = Polymorphed
     .desc = Your body changes form.
-## Flame
-buff-flame = Flame
-    .desc = Flame is your ally.
 ## Frigid
 buff-frigid = Frigid
     .desc = Freeze your foes.

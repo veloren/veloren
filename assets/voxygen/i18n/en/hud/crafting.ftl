@@ -8,7 +8,6 @@ hud-crafting-repair_equipped = Equipped
 hud-crafting-repair_all = All
 hud-crafting-tool_cata = Tools:
 hud-crafting-req_crafting_station = Station:
-hud-crafting-required_crafting_station = Station:
 hud-crafting-anvil = Anvil
 hud-crafting-cauldron = Cauldron
 hud-crafting-cooking_pot = Cooking Pot
