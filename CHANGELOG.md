@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Obsolete localization keys
+
 ### Fixed
 
 - NPC path-finding, especially for merchants and travellers is now less dumb.

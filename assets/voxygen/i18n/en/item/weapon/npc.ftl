@@ -160,9 +160,6 @@ common-items-npc_weapons-unique-crab_pincer = Crab Pincer
 common-items-npc_weapons-unique-dagon = Dagon Kit
     .desc = Ocean Power!
 
-common-items-npc_weapons-unique-deadwood = Deadwood
-    .desc = testing123
-
 common-items-npc_weapons-unique-driggle = Starter Grace
     .desc = Fret not, newbies shant cry.
 
@@ -229,14 +226,8 @@ common-items-npc_weapons-unique-husk = Husk
 common-items-npc_weapons-unique-husk_brute = Husk Brute
     .desc = testing123
 
-common-items-npc_weapons-unique-icedrake = Ice Drake
-    .desc = testing123
-
 common-items-npc_weapons-unique-irrwurz = Starter Grace
     .desc = Fret not, newbies shant cry.
-
-common-items-npc_weapons-unique-maneater = Maneater
-    .desc = testing123
 
 common-items-npc_weapons-unique-mossysnail = Starter Grace
     .desc = Fret not, newbies shant cry.
