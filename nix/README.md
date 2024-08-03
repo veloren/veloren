@@ -6,7 +6,7 @@ Since this repo uses a new Nix feature called "Flakes", it is recommended to ena
 It massively improves the `nix` CLI UX, and adds many useful features.
 We include instructions for Nix without flakes enabled, but using flakes is the recommended way.
 
-See the [NixOS wiki](https://nixos.wiki/wiki/Flakes) for information on how to enable and use flakes.
+See the [NixOS wiki](https://wiki.nixos.org/wiki/Flakes) for information on how to enable and use flakes.
 
 It is recommended to first set up the [Cachix](https://cachix.org) cache to save time with builds:
 ```shell
