@@ -3411,6 +3411,10 @@
         "voxel.object.potion_combustion",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
+    Simple("common.items.consumable.potion_freezing"): VoxTrans(
+        "voxel.object.potion_blue_1",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
     Simple("common.items.consumable.potion_agility"): VoxTrans(
         "voxel.object.potion_agility",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,

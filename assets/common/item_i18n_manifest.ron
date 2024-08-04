@@ -3184,6 +3184,9 @@
             "common.items.consumable.potion_minor",
         ): "object-potion_minor",
         Simple(
+            "common.items.consumable.potion_freezing",
+        ): "object-potion_freezing",
+        Simple(
             "common.items.lantern.black_0",
         ): "lantern-black",
         Simple(

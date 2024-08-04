@@ -31,6 +31,15 @@
         ],
         craft_sprite: Some(Anvil),
     ),
+    "potion_freezing": (
+        output: ("common.items.consumable.potion_freezing", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.empty_vial"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.icy_fang"), 3, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
     "potion_combustion": (
         output: ("common.items.consumable.potion_combustion", 1),
         inputs: [

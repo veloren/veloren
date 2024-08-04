@@ -74,10 +74,6 @@ pub struct Stats {
     pub original_body: Body,
     pub damage_reduction: StatsSplit,
     pub poise_reduction: StatsSplit,
-    pub heal_multiplier: f32,
-    // Note: This is used to counteract agility as a "potion sickness" right now, and otherwise
-    // does not impact movement speed
-    pub move_speed_multiplier: f32,
     pub max_health_modifiers: StatsModifier,
     pub move_speed_modifier: f32,
     pub jump_modifier: f32,
@@ -102,6 +98,7 @@ pub struct Stats {
     pub effects_on_death: Vec<DeathEffect>,
     pub disable_auxiliary_abilities: bool,
     pub crowd_control_resistance: f32,
+    pub item_effect_reduction: f32,
 }
 
 impl Stats {
@@ -111,8 +108,6 @@ impl Stats {
             original_body: body,
             damage_reduction: StatsSplit::default(),
             poise_reduction: StatsSplit::default(),
-            heal_multiplier: 1.0,
-            move_speed_multiplier: 1.0,
             max_health_modifiers: StatsModifier::default(),
             move_speed_modifier: 1.0,
             jump_modifier: 1.0,
@@ -132,6 +127,7 @@ impl Stats {
             effects_on_death: Vec::new(),
             disable_auxiliary_abilities: false,
             crowd_control_resistance: 0.0,
+            item_effect_reduction: 1.0,
         }
     }
 

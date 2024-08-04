@@ -27,9 +27,9 @@ use common::{
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
-        Alignment, Auras, Body, CharacterState, Energy, Group, Health, Inventory, Object,
-        PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind, SkillSet, Stats,
-        BASE_ABILITY_LIMIT,
+        Alignment, Auras, Body, BuffEffect, CharacterState, Energy, Group, Health, Inventory,
+        Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind, SkillSet,
+        Stats, BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
@@ -1630,9 +1630,19 @@ impl ServerEvent for BuffEvent {
                 use buff::BuffChange;
                 match ev.buff_change {
                     BuffChange::Add(new_buff) => {
+                        let immunity_by_buff = buffs
+                            .buffs
+                            .values_mut()
+                            .flat_map(|b| b.kind.effects(&b.data))
+                            .find(|b| match b {
+                                BuffEffect::BuffImmunity(kind) => new_buff.kind == *kind,
+                                _ => false,
+                            });
+
                         if !bodies
                             .get(ev.entity)
                             .map_or(false, |body| body.immune_to(new_buff.kind))
+                            && immunity_by_buff.is_none()
                             && healths.get(ev.entity).map_or(true, |h| !h.is_dead)
                         {
                             if let Some(strength) =

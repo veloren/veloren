@@ -19,6 +19,9 @@ object-potion_med = Medium Potion
 object-potion_minor = Minor Potion
     .desc = A small potion concocted from apples and honey.
 
+object-potion_freezing = Freezing Potion
+    .desc = Freezes the user's brain.
+
 object-burning_charm = Blazing Charm
     .desc = Flame is your ally, harness its power to burn your foes.
 
