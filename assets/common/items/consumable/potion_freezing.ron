@@ -1,14 +1,14 @@
 ItemDef(
-    legacy_name: "Potion of Combustion",
-    legacy_description: "Sets the user ablaze",
+    legacy_name: "Freezing Potion",
+    legacy_description: "Freezes the user's brain",
     kind: Consumable(
         kind: Drink,
         effects: All([
             Buff((
-                kind: Burning,
+                kind: Frozen,
                 data: (
-                    strength: 1.0,
-                    duration: Some(10)
+                    strength: 0.1,
+                    duration: Some(30)
                 ),
                 cat_ids: [Natural],
             )),

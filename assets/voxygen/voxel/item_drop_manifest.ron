@@ -862,6 +862,7 @@
     Simple("common.items.consumable.potion_big"): "voxel.object.potion_red",
     Simple("common.items.consumable.potion_curious"): "voxel.object.potion_curious",
     Simple("common.items.consumable.potion_combustion"): "voxel.object.potion_combustion",
+    Simple("common.items.consumable.potion_freezing"): "voxel.object.potion_blue_1",
     Simple("common.items.consumable.potion_agility"): "voxel.object.potion_agility",
     Simple("common.items.charms.burning_charm"): "voxel.object.burning_charm",
     Simple("common.items.charms.frozen_charm"): "voxel.object.frozen_charm",

@@ -152,6 +152,7 @@ pub enum BuffKind {
     // =================
     /// Does damage to a creature over time.
     /// Strength should be the DPS of the debuff.
+    /// Provides immunity against Frozen.
     Burning,
     /// Lowers health over time for some duration.
     /// Strength should be the DPS of the debuff.
@@ -168,10 +169,12 @@ pub enum BuffKind {
     /// Strength scales the attack speed debuff non-linearly. 0.5 is ~50%
     /// speed, 1.0 is 33% speed. Movement speed debuff is scaled to be slightly
     /// smaller than attack speed debuff.
+    /// Provides immunity against Heatstroke.
     Frozen,
     /// Makes you wet and causes you to have reduced friction on the ground.
     /// Strength scales the friction you ignore non-linearly. 0.5 is 50% ground
     /// friction, 1.0 is 33% ground friction.
+    /// Provides immunity against Burning.
     Wet,
     /// Makes you move slower.
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
@@ -319,7 +322,7 @@ impl BuffKind {
     /// only the strongest.
     pub fn stacks(self) -> bool { matches!(self, BuffKind::PotionSickness | BuffKind::Resilience) }
 
-    pub fn effects(&self, data: &BuffData, stats: Option<&Stats>) -> Vec<BuffEffect> {
+    pub fn effects(&self, data: &BuffData) -> Vec<BuffEffect> {
         // Normalized nonlinear scaling
         // TODO: Do we want to make denominator term parameterized. Come back to if we
         // add nn_scaling3.
@@ -347,16 +350,14 @@ impl BuffKind {
             }],
             BuffKind::Potion => {
                 vec![BuffEffect::HealthChangeOverTime {
-                    rate: data.strength * stats.map_or(1.0, |s| s.heal_multiplier),
+                    rate: data.strength,
                     kind: ModifierKind::Additive,
                     instance,
                     tick_dur: Secs(0.1),
                 }]
             },
             BuffKind::Agility => vec![
-                BuffEffect::MovementSpeed(
-                    1.0 + data.strength * stats.map_or(1.0, |s| s.move_speed_multiplier),
-                ),
+                BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::DamageReduction(-1.0),
                 BuffEffect::AttackDamage(0.0),
             ],
@@ -399,12 +400,15 @@ impl BuffKind {
                 // strength. 0.5 also still provides 50% damage reduction.
                 nn_scaling(data.strength),
             )],
-            BuffKind::Burning => vec![BuffEffect::HealthChangeOverTime {
-                rate: -data.strength,
-                kind: ModifierKind::Additive,
-                instance,
-                tick_dur: Secs(0.25),
-            }],
+            BuffKind::Burning => vec![
+                BuffEffect::HealthChangeOverTime {
+                    rate: -data.strength,
+                    kind: ModifierKind::Additive,
+                    instance,
+                    tick_dur: Secs(0.25),
+                },
+                BuffEffect::BuffImmunity(BuffKind::Frozen),
+            ],
             BuffKind::Poisoned => vec![BuffEffect::EnergyChangeOverTime {
                 rate: -data.strength,
                 kind: ModifierKind::Additive,
@@ -431,8 +435,12 @@ impl BuffKind {
             BuffKind::Frozen => vec![
                 BuffEffect::MovementSpeed(f32::powf(1.0 - nn_scaling(data.strength), 1.1)),
                 BuffEffect::AttackSpeed(1.0 - nn_scaling(data.strength)),
+                BuffEffect::BuffImmunity(BuffKind::Heatstroke),
             ],
-            BuffKind::Wet => vec![BuffEffect::GroundFriction(1.0 - nn_scaling(data.strength))],
+            BuffKind::Wet => vec![
+                BuffEffect::GroundFriction(1.0 - nn_scaling(data.strength)),
+                BuffEffect::BuffImmunity(BuffKind::Burning),
+            ],
             BuffKind::Ensnared => vec![BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength))],
             BuffKind::Hastened => vec![
                 BuffEffect::MovementSpeed(1.0 + data.strength),
@@ -447,11 +455,7 @@ impl BuffKind {
                 BuffEffect::RecoverySpeed(0.25),
                 BuffEffect::PrecisionVulnerabilityOverride(1.0),
             ],
-            //TODO: Handle potion sickness in a more general way.
-            BuffKind::PotionSickness => vec![
-                BuffEffect::HealReduction(data.strength),
-                BuffEffect::MoveSpeedReduction(data.strength),
-            ],
+            BuffKind::PotionSickness => vec![BuffEffect::ItemEffectReduction(data.strength)],
             BuffKind::Reckless => vec![
                 BuffEffect::DamageReduction(-data.strength),
                 BuffEffect::AttackDamage(1.0 + data.strength),
@@ -562,6 +566,7 @@ impl BuffKind {
         mut data: BuffData,
         source_mass: Option<&Mass>,
         dest_info: DestInfo,
+        source: BuffSource,
     ) -> BuffData {
         // TODO: Remove clippy allow after another buff needs this
         #[allow(clippy::single_match)]
@@ -580,6 +585,7 @@ impl BuffKind {
                 .map_or(1.0, |s| (1.0 - s.crowd_control_resistance).max(0.0));
             data.duration = data.duration.map(|dur| dur * dur_mult as f64);
         }
+        self.apply_item_effect_reduction(&mut data, source, dest_info);
         data
     }
 
@@ -591,6 +597,27 @@ impl BuffKind {
             BuffKind::Frozen => Some(data.strength),
             _ => None,
         }
+    }
+
+    pub fn apply_item_effect_reduction(
+        &self,
+        data: &mut BuffData,
+        source: BuffSource,
+        dest_info: DestInfo,
+    ) {
+        if !matches!(source, BuffSource::Item) {
+            return;
+        }
+        let item_effect_reduction = dest_info.stats.map_or(1.0, |s| s.item_effect_reduction);
+        match self {
+            BuffKind::Potion | BuffKind::Agility => {
+                data.strength *= item_effect_reduction;
+            },
+            BuffKind::Burning | BuffKind::Frozen | BuffKind::Resilience => {
+                data.duration = data.duration.map(|dur| dur * item_effect_reduction as f64);
+            },
+            _ => {},
+        };
     }
 }
 
@@ -705,10 +732,6 @@ pub enum BuffEffect {
     GroundFriction(f32),
     /// Reduces poise damage taken after armor is accounted for by this fraction
     PoiseReduction(f32),
-    /// Reduces amount healed by consumables
-    HealReduction(f32),
-    /// Reduces amount of speed increase by consumables
-    MoveSpeedReduction(f32),
     /// Increases poise damage dealt when health is lost
     PoiseDamageFromLostHealth(f32),
     /// Modifier to the amount of damage dealt with attacks
@@ -737,6 +760,8 @@ pub enum BuffEffect {
     DisableAuxiliaryAbilities,
     /// Reduces duration of crowd control debuffs
     CrowdControlResistance(f32),
+    /// Reduces the strength or duration of item buff
+    ItemEffectReduction(f32),
 }
 
 /// Actual de/buff.
@@ -796,8 +821,8 @@ impl Buff {
         // Create source_info if we need more parameters from source
         source_mass: Option<&Mass>,
     ) -> Self {
-        let data = kind.modify_data(data, source_mass, dest_info);
-        let effects = kind.effects(&data, dest_info.stats);
+        let data = kind.modify_data(data, source_mass, dest_info, source);
+        let effects = kind.effects(&data);
         let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids

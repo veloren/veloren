@@ -740,7 +740,7 @@ impl<'a> AgentData<'a> {
         relaxed: bool,
     ) -> bool {
         // Wait for potion sickness to wear off if potions are less than 50% effective.
-        let heal_multiplier = self.stats.map_or(1.0, |s| s.heal_multiplier);
+        let heal_multiplier = self.stats.map_or(1.0, |s| s.item_effect_reduction);
         if heal_multiplier < 0.5 {
             return false;
         }
@@ -754,7 +754,7 @@ impl<'a> AgentData<'a> {
                 },
                 Effect::Buff(BuffEffect { kind, data, .. }) => {
                     if let Some(duration) = data.duration {
-                        for effect in kind.effects(data, self.stats) {
+                        for effect in kind.effects(data) {
                             match effect {
                                 comp::BuffEffect::HealthChangeOverTime { rate, kind, .. } => {
                                     let amount = match kind {
@@ -766,7 +766,7 @@ impl<'a> AgentData<'a> {
 
                                     value += amount;
                                 },
-                                comp::BuffEffect::HealReduction(amount) => {
+                                comp::BuffEffect::ItemEffectReduction(amount) => {
                                     heal_reduction =
                                         heal_reduction + amount - heal_reduction * amount;
                                 },
