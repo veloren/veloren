@@ -1298,6 +1298,7 @@ pub struct Hud {
     voxel_minimap: VoxelMinimap,
     map_drag: Vec2<f64>,
     force_chat: bool,
+    clear_chat: bool,
 }
 
 impl Hud {
@@ -1435,8 +1436,11 @@ impl Hud {
             },
             map_drag: Vec2::zero(),
             force_chat: false,
+            clear_chat: false,
         }
     }
+
+    pub fn clear_chat(&mut self) { self.clear_chat = true; }
 
     pub fn set_prompt_dialog(&mut self, prompt_dialog: PromptDialogSettings) {
         self.show.prompt_dialog = Some(prompt_dialog);
@@ -3524,6 +3528,7 @@ impl Hud {
                 &self.fonts,
                 i18n,
                 scale,
+                self.clear_chat,
             )
             .and_then(self.force_chat_input.take(), |c, input| c.input(input))
             .and_then(self.tab_complete.take(), |c, input| {
@@ -3575,6 +3580,7 @@ impl Hud {
 
         self.new_messages.clear();
         self.new_notifications.clear();
+        self.clear_chat = false;
 
         // Windows
 

@@ -87,6 +87,7 @@ pub struct Chat<'a> {
     scale: Scale,
 
     localized_strings: &'a Localization,
+    clear_messages: bool,
 }
 
 impl<'a> Chat<'a> {
@@ -99,6 +100,7 @@ impl<'a> Chat<'a> {
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
         scale: Scale,
+        clear_messages: bool,
     ) -> Self {
         Self {
             pulse,
@@ -114,6 +116,7 @@ impl<'a> Chat<'a> {
             history_max: 32,
             localized_strings,
             scale,
+            clear_messages,
         }
     }
 
@@ -239,6 +242,10 @@ impl<'a> Widget for Chat<'a> {
         let chat_size = Vec2::new(chat_settings.chat_size_x, chat_settings.chat_size_y);
         let chat_pos = Vec2::new(chat_settings.chat_pos_x, chat_settings.chat_pos_y);
         let chat_box_input_width = chat_size.x - CHAT_ICON_WIDTH - 12.0;
+
+        if self.clear_messages {
+            state.update(|s| s.messages.clear());
+        }
 
         // Empty old messages
         state.update(|s| {
