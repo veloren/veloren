@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Black minimap when some terrain blocks are deleted.
 - Text overflow and flickering in the crafting menu.
 - Crash when deleting entries from the server list.
+- Active buttons in repair equipment interface when missing requirements.
 
 ## [0.16.0] - 2024-03-30
 
