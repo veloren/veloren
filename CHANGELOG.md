@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unlockable recipes
 - Localization support for prompt dialogs, diary sections, trade and group invitations.
 - Added Freezing Potion
+- Clear command to delete chat messages.
 
 ### Changed
 
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Broad entity and loot updates to Gnarling Fortifications
 - Reworked spacing and labels in crafting menu.
 - Reworked design of repair equipment interface in crafting menu.
+- Help command can be used on client commands too.
 
 ### Removed
 

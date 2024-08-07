@@ -25,6 +25,7 @@ use strum::{EnumIter, IntoEnumIterator};
 // Please keep this sorted alphabetically, same as with server commands :-)
 #[derive(Clone, Copy, strum::EnumIter)]
 pub enum ClientChatCommand {
+    Clear,
     ExperimentalShader,
     Help,
     Mute,
@@ -37,6 +38,11 @@ impl ClientChatCommand {
         use Requirement::*;
         let cmd = ChatCommandData::new;
         match self {
+            ClientChatCommand::Clear => cmd(
+                Vec::new(),
+                "Clears all messages in chat. Affects all chat tabs.",
+                None,
+            ),
             ClientChatCommand::ExperimentalShader => cmd(
                 vec![Enum(
                     "Shader",
@@ -68,6 +74,7 @@ impl ClientChatCommand {
 
     pub fn keyword(&self) -> &'static str {
         match self {
+            ClientChatCommand::Clear => "clear",
             ClientChatCommand::ExperimentalShader => "experimental_shader",
             ClientChatCommand::Help => "help",
             ClientChatCommand::Mute => "mute",
@@ -301,16 +308,15 @@ pub fn run_command(
 
     preproccess_command(session_state, &command, &mut args)?;
 
-    let client = &mut session_state.client.borrow_mut();
-
     match command {
         ChatCommandKind::Server(cmd) => {
-            client.send_command(cmd.keyword().into(), args);
+            session_state
+                .client
+                .borrow_mut()
+                .send_command(cmd.keyword().into(), args);
             Ok(None) // The server will provide a response when the command is run
         },
-        ChatCommandKind::Client(cmd) => {
-            Ok(Some(run_client_command(client, global_state, cmd, args)?))
-        },
+        ChatCommandKind::Client(cmd) => run_client_command(session_state, global_state, cmd, args),
     }
 }
 
@@ -344,29 +350,43 @@ fn invalid_command_message(client: &Client, user_entered_invalid_command: String
 }
 
 fn run_client_command(
-    client: &mut Client,
+    session_state: &mut SessionState,
     global_state: &mut GlobalState,
     command: ClientChatCommand,
     args: Vec<String>,
-) -> Result<String, String> {
+) -> CommandResult {
     let command = match command {
+        ClientChatCommand::Clear => handle_clear,
         ClientChatCommand::ExperimentalShader => handle_experimental_shader,
         ClientChatCommand::Help => handle_help,
         ClientChatCommand::Mute => handle_mute,
         ClientChatCommand::Unmute => handle_unmute,
     };
 
-    command(client, global_state, args)
+    command(session_state, global_state, args)
+}
+
+fn handle_clear(
+    session_state: &mut SessionState,
+    _global_state: &mut GlobalState,
+    _args: Vec<String>,
+) -> CommandResult {
+    session_state.hud.clear_chat();
+    Ok(None)
 }
 
 fn handle_help(
-    client: &Client,
+    session_state: &mut SessionState,
     _global_state: &mut GlobalState,
     args: Vec<String>,
-) -> Result<String, String> {
-    if let Some(cmd) = parse_cmd_args!(args, ServerChatCommand) {
-        Ok(cmd.help_string())
+) -> CommandResult {
+    if let Some(cmd) = parse_cmd_args!(&args, ServerChatCommand) {
+        Ok(Some(cmd.help_string()))
+    } else if let Some(cmd) = parse_cmd_args!(&args, ClientChatCommand) {
+        Ok(Some(cmd.help_string()))
     } else {
+        let client = &mut session_state.client.borrow_mut();
+
         let mut message = String::new();
         let entity_role = client
             .state()
@@ -392,16 +412,18 @@ fn handle_help(
             .for_each(|(k, cmd)| {
                 message += &format!(" /{} => /{}", k, cmd.keyword());
             });
-        Ok(message)
+        Ok(Some(message))
     }
 }
 
 fn handle_mute(
-    client: &Client,
+    session_state: &mut SessionState,
     global_state: &mut GlobalState,
     args: Vec<String>,
-) -> Result<String, String> {
+) -> CommandResult {
     if let Some(alias) = parse_cmd_args!(args, String) {
+        let client = &mut session_state.client.borrow_mut();
+
         let target = client
             .player_list()
             .values()
@@ -420,7 +442,7 @@ fn handle_mute(
             .insert(target.uuid, alias.clone())
             .is_none()
         {
-            Ok(format!("Successfully muted player {}.", alias))
+            Ok(Some(format!("Successfully muted player {}.", alias)))
         } else {
             Err(format!("{} is already muted.", alias))
         }
@@ -430,10 +452,10 @@ fn handle_mute(
 }
 
 fn handle_unmute(
-    client: &Client,
+    session_state: &mut SessionState,
     global_state: &mut GlobalState,
     args: Vec<String>,
-) -> Result<String, String> {
+) -> CommandResult {
     // Note that we don't care if this is a real player, so that it's possible
     // to unmute someone when they're offline
     if let Some(alias) = parse_cmd_args!(args, String) {
@@ -444,6 +466,8 @@ fn handle_unmute(
             .find(|(_, v)| **v == alias)
             .map(|(k, _)| *k)
         {
+            let client = &mut session_state.client.borrow_mut();
+
             if let Some(me) = client.uid().and_then(|uid| client.player_list().get(&uid)) {
                 if uuid == me.uuid {
                     return Err("You cannot unmute yourself.".to_string());
@@ -451,7 +475,7 @@ fn handle_unmute(
             }
 
             global_state.profile.mutelist.remove(&uuid);
-            Ok(format!("Successfully unmuted player {}.", alias))
+            Ok(Some(format!("Successfully unmuted player {}.", alias)))
         } else {
             Err(format!("Could not find a muted player named {}.", alias))
         }
@@ -461,35 +485,37 @@ fn handle_unmute(
 }
 
 fn handle_experimental_shader(
-    _client: &Client,
+    _session_state: &mut SessionState,
     global_state: &mut GlobalState,
     args: Vec<String>,
-) -> Result<String, String> {
+) -> CommandResult {
     if args.is_empty() {
-        ExperimentalShader::iter()
-            .map(|s| {
-                let is_active = global_state
-                    .settings
-                    .graphics
-                    .render_mode
-                    .experimental_shaders
-                    .contains(&s);
-                format!("[{}] {}", if is_active { "x" } else { "  " }, s)
-            })
-            .reduce(|mut a, b| {
-                a.push('\n');
-                a.push_str(&b);
-                a
-            })
-            .ok_or("There are no experimental shaders.".to_string())
+        Ok(Some(
+            ExperimentalShader::iter()
+                .map(|s| {
+                    let is_active = global_state
+                        .settings
+                        .graphics
+                        .render_mode
+                        .experimental_shaders
+                        .contains(&s);
+                    format!("[{}] {}", if is_active { "x" } else { "  " }, s)
+                })
+                .reduce(|mut a, b| {
+                    a.push('\n');
+                    a.push_str(&b);
+                    a
+                })
+                .ok_or("There are no experimental shaders.".to_string())?,
+        ))
     } else if let Some(item) = parse_cmd_args!(args, String) {
         if let Ok(shader) = ExperimentalShader::from_str(&item) {
             let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
             let res = if new_render_mode.experimental_shaders.remove(&shader) {
-                Ok(format!("Disabled {item}."))
+                Ok(Some(format!("Disabled {item}.")))
             } else {
                 new_render_mode.experimental_shaders.insert(shader);
-                Ok(format!("Enabled {item}."))
+                Ok(Some(format!("Enabled {item}.")))
             };
 
             change_render_mode(

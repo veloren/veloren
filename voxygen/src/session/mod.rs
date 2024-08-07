@@ -102,7 +102,7 @@ pub struct SessionState {
     scene: Scene,
     pub(crate) client: Rc<RefCell<Client>>,
     metadata: UpdateCharacterMetadata,
-    hud: Hud,
+    pub(crate) hud: Hud,
     key_state: KeyState,
     inputs: comp::ControllerInputs,
     inputs_state: HashSet<GameInput>,
