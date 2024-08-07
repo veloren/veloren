@@ -889,6 +889,7 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::SpinningWheel) => Some("SpinningWheel"),
                     Some(SpriteKind::TanningRack) => Some("TanningRack"),
                     Some(SpriteKind::DismantlingBench) => Some("DismantlingBench"),
+                    Some(SpriteKind::RepairBench) => Some("RepairBench"),
                     _ => None,
                 };
 
@@ -1551,25 +1552,47 @@ impl<'a> Widget for Crafting<'a> {
                             )
                     };
 
+                    let can_perform = self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
+                        == recipe.craft_sprite;
+
+                    let color = if can_perform {
+                        TEXT_COLOR
+                    } else {
+                        TEXT_GRAY_COLOR
+                    };
+
+                    let btn_image_hover = if can_perform {
+                        self.imgs.button_hover
+                    } else {
+                        self.imgs.button
+                    };
+
+                    let btn_image_press = if can_perform {
+                        self.imgs.button_press
+                    } else {
+                        self.imgs.button
+                    };
+
                     // Repair equipped button
                     if Button::image(self.imgs.button)
                         .w_h(105.0, 25.0)
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
+                        .hover_image(btn_image_hover)
+                        .press_image(btn_image_press)
                         .label(
                             &self
                                 .localized_strings
                                 .get_msg("hud-crafting-repair_equipped"),
                         )
                         .label_y(conrod_core::position::Relative::Scalar(1.0))
-                        .label_color(TEXT_COLOR)
+                        .label_color(color)
                         .label_font_size(self.fonts.cyri.scale(12))
                         .label_font_id(self.fonts.cyri.conrod_id)
-                        .image_color(TEXT_COLOR)
+                        .image_color(color)
                         .down_from(state.ids.craft_slots[0], 45.0)
                         .x_relative_to(state.ids.craft_slots[0], 0.0)
                         .set(state.ids.repair_buttons[0], ui)
                         .was_clicked()
+                        && can_perform
                     {
                         self.inventory
                             .equipped_items_with_slot()
@@ -1584,18 +1607,19 @@ impl<'a> Widget for Crafting<'a> {
                     // Repair all button
                     if Button::image(self.imgs.button)
                         .w_h(105.0, 25.0)
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
+                        .hover_image(btn_image_hover)
+                        .press_image(btn_image_press)
                         .label(&self.localized_strings.get_msg("hud-crafting-repair_all"))
                         .label_y(conrod_core::position::Relative::Scalar(1.0))
-                        .label_color(TEXT_COLOR)
+                        .label_color(color)
                         .label_font_size(self.fonts.cyri.scale(12))
                         .label_font_id(self.fonts.cyri.conrod_id)
-                        .image_color(TEXT_COLOR)
+                        .image_color(color)
                         .down_from(state.ids.repair_buttons[0], 5.0)
                         .x_relative_to(state.ids.craft_slots[0], 0.0)
                         .set(state.ids.repair_buttons[1], ui)
                         .was_clicked()
+                        && can_perform
                     {
                         self.inventory
                             .equipped_items_with_slot()
@@ -1615,7 +1639,8 @@ impl<'a> Widget for Crafting<'a> {
                             });
                     }
 
-                    let can_perform = repair_slot.item(self.inventory).map_or(false, can_repair);
+                    let can_perform =
+                        repair_slot.item(self.inventory).map_or(false, can_repair) && can_perform;
 
                     (repair_slot.slot, None, can_perform, true)
                 },
