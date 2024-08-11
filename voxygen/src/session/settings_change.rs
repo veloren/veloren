@@ -118,7 +118,6 @@ pub enum Interface {
     SpeechBubbleSelf(bool),
     SpeechBubbleDarkMode(bool),
     SpeechBubbleIcon(bool),
-    ToggleHelp(bool),
     ToggleDebug(bool),
     ToggleHitboxes(bool),
     ToggleChat(bool),
@@ -588,9 +587,6 @@ impl SettingsChange {
                     },
                     Interface::SpeechBubbleIcon(sbi) => {
                         settings.interface.speech_bubble_icon = sbi;
-                    },
-                    Interface::ToggleHelp(_) => {
-                        // implemented in hud
                     },
                     Interface::ToggleDebug(toggle_debug) => {
                         settings.interface.toggle_debug = toggle_debug;

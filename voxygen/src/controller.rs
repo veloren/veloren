@@ -178,9 +178,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.settings)
                     .or_default()
                     .push(GameInput::Settings);
-                map.entry(settings.game_buttons.help)
+                map.entry(settings.game_buttons.controls)
                     .or_default()
-                    .push(GameInput::Help);
+                    .push(GameInput::Controls);
                 map.entry(settings.game_buttons.toggle_interface)
                     .or_default()
                     .push(GameInput::ToggleInterface);
@@ -413,9 +413,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_layer_buttons.settings)
                     .or_default()
                     .push(GameInput::Settings);
-                map.entry(settings.game_layer_buttons.help)
+                map.entry(settings.game_layer_buttons.controls)
                     .or_default()
-                    .push(GameInput::Help);
+                    .push(GameInput::Controls);
                 map.entry(settings.game_layer_buttons.toggle_interface)
                     .or_default()
                     .push(GameInput::ToggleInterface);

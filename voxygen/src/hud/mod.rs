@@ -890,7 +890,6 @@ impl TradeAmountInput {
 pub struct Show {
     ui: bool,
     intro: bool,
-    help: bool,
     crafting: bool,
     bag: bool,
     bag_inv: bool,
@@ -1075,7 +1074,6 @@ impl Show {
     }
 
     // TODO: Add self updating key-bindings element
-    //fn toggle_help(&mut self) { self.help = !self.help }
 
     fn any_window_requires_cursor(&self) -> bool {
         self.bag
@@ -1085,7 +1083,6 @@ impl Show {
             || self.social
             || self.crafting
             || self.diary
-            || self.help
             || self.intro
             || self.quest
             || !matches!(self.open_windows, Windows::None)
@@ -1096,7 +1093,6 @@ impl Show {
             self.bag = false;
             self.trade = false;
             self.esc_menu = false;
-            self.help = false;
             self.intro = false;
             self.map = false;
             self.social = false;
@@ -1382,7 +1378,6 @@ impl Hud {
             //intro: false,
             //intro_2: false,
             show: Show {
-                help: false,
                 intro: false,
                 bag: false,
                 bag_inv: false,
@@ -1599,30 +1594,28 @@ impl Hud {
                     5.0 * dt.as_secs_f32(),
                 );
 
-                if !self.show.help {
-                    Image::new(
-                        // TODO: Do we want to match on this every frame?
-                        match global_state.settings.interface.crosshair_type {
-                            CrosshairType::Round => self.imgs.crosshair_outer_round,
-                            CrosshairType::RoundEdges => self.imgs.crosshair_outer_round_edges,
-                            CrosshairType::Edges => self.imgs.crosshair_outer_edges,
-                        },
-                    )
-                    .w_h(21.0 * 1.5, 21.0 * 1.5)
-                    .middle_of(ui_widgets.window)
-                    .color(Some(Color::Rgba(
-                        1.0,
-                        1.0,
-                        1.0,
-                        self.crosshair_opacity * global_state.settings.interface.crosshair_opacity,
-                    )))
-                    .set(self.ids.crosshair_outer, ui_widgets);
-                    Image::new(self.imgs.crosshair_inner)
-                        .w_h(21.0 * 2.0, 21.0 * 2.0)
-                        .middle_of(self.ids.crosshair_outer)
-                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
-                        .set(self.ids.crosshair_inner, ui_widgets);
-                }
+                Image::new(
+                    // TODO: Do we want to match on this every frame?
+                    match global_state.settings.interface.crosshair_type {
+                        CrosshairType::Round => self.imgs.crosshair_outer_round,
+                        CrosshairType::RoundEdges => self.imgs.crosshair_outer_round_edges,
+                        CrosshairType::Edges => self.imgs.crosshair_outer_edges,
+                    },
+                )
+                .w_h(21.0 * 1.5, 21.0 * 1.5)
+                .middle_of(ui_widgets.window)
+                .color(Some(Color::Rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    self.crosshair_opacity * global_state.settings.interface.crosshair_opacity,
+                )))
+                .set(self.ids.crosshair_outer, ui_widgets);
+                Image::new(self.imgs.crosshair_inner)
+                    .w_h(21.0 * 2.0, 21.0 * 2.0)
+                    .middle_of(self.ids.crosshair_outer)
+                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
+                    .set(self.ids.crosshair_inner, ui_widgets);
             }
 
             // Max amount the sct font size increases when "flashing"
@@ -2996,8 +2989,12 @@ impl Hud {
         }
 
         if global_state.settings.interface.toggle_hotkey_hints {
-            // Help Window
-            if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
+            // Controls, Keybindings
+            if let Some(help_key) = global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Controls)
+            {
                 Text::new(&i18n.get_msg_ctx(
                     "hud-press_key_to_show_keybindings_fmt",
                     &i18n::fluent_args! {
@@ -3616,18 +3613,6 @@ impl Hud {
                         self.show.chat_tab_settings_index = tab;
                     },
                     settings_window::Event::SettingsChange(settings_change) => {
-                        match &settings_change {
-                            SettingsChange::Interface(interface_change) => match interface_change {
-                                InterfaceChange::ToggleHelp(toggle_help) => {
-                                    self.show.help = *toggle_help;
-                                },
-                                InterfaceChange::ResetInterfaceSettings => {
-                                    self.show.help = false;
-                                },
-                                _ => {},
-                            },
-                            _ => {},
-                        }
                         events.push(Event::SettingsChange(settings_change));
                     },
                 }
@@ -4803,7 +4788,7 @@ impl Hud {
                         self.show.toggle_settings(global_state);
                         true
                     },
-                    GameInput::Help if state => {
+                    GameInput::Controls if state => {
                         self.show.toggle_settings(global_state);
                         self.show.settings_tab = SettingsTab::Controls;
                         true

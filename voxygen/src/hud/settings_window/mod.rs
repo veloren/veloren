@@ -256,14 +256,13 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Content Area
         let global_state = self.global_state;
-        let show = self.show;
         let imgs = self.imgs;
         let fonts = self.fonts;
         let localized_strings = self.localized_strings;
         match self.show.settings_tab {
             SettingsTab::Interface => {
                 for change in
-                    interface::Interface::new(global_state, show, imgs, fonts, localized_strings)
+                    interface::Interface::new(global_state, imgs, fonts, localized_strings)
                         .top_left_with_margins_on(state.ids.settings_content_align, 0.0, 0.0)
                         .wh_of(state.ids.settings_content_align)
                         .set(state.ids.interface, ui)

@@ -103,10 +103,10 @@ pub enum GameInput {
     Spellbook,
     #[strum(serialize = "gameinput-settings")]
     Settings,
+    #[strum(serialize = "gameinput-controls")]
+    Controls,
     #[strum(serialize = "gameinput-toggleinterface")]
     ToggleInterface,
-    #[strum(serialize = "gameinput-help")]
-    Help,
     #[strum(serialize = "gameinput-toggledebug")]
     ToggleDebug,
     #[cfg(feature = "egui-ui")]
