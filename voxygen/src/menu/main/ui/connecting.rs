@@ -115,7 +115,7 @@ impl Screen {
                     };
                     let keys = i18n::fluent_args! {
                         "gameinput-togglelantern" => key(GameInput::ToggleLantern),
-                        "gameinput-help" => key(GameInput::Help),
+                        "gameinput-controls" => key(GameInput::Controls),
                         "gameinput-settings" => key(GameInput::Settings),
                         "gameinput-social" => key(GameInput::Social),
                         "gameinput-dance" => key(GameInput::Dance),

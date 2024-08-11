@@ -156,7 +156,7 @@ impl ControlSettings {
             GameInput::Crafting => Some(KeyMouse::Key(VirtualKeyCode::C)),
             GameInput::Spellbook => Some(KeyMouse::Key(VirtualKeyCode::P)),
             GameInput::Settings => Some(KeyMouse::Key(VirtualKeyCode::F10)),
-            GameInput::Help => Some(KeyMouse::Key(VirtualKeyCode::F1)),
+            GameInput::Controls => Some(KeyMouse::Key(VirtualKeyCode::F1)),
             GameInput::ToggleInterface => Some(KeyMouse::Key(VirtualKeyCode::F2)),
             GameInput::ToggleDebug => Some(KeyMouse::Key(VirtualKeyCode::F3)),
             #[cfg(feature = "egui-ui")]

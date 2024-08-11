@@ -2,7 +2,7 @@ use super::{ScaleChange, RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
     hud::{
-        img_ids::Imgs, BarNumbers, BuffPosition, CrosshairType, ShortcutNumbers, Show, MENU_BG,
+        img_ids::Imgs, BarNumbers, BuffPosition, CrosshairType, ShortcutNumbers, MENU_BG,
         TEXT_COLOR,
     },
     session::settings_change::{Interface as InterfaceChange, Interface::*},
@@ -23,8 +23,6 @@ widget_ids! {
         window_r,
         window_scrollbar,
         reset_interface_button,
-        button_help,
-        show_help_label,
         ui_scale_label,
         ui_scale_slider,
         ui_scale_value,
@@ -116,7 +114,6 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Interface<'a> {
     global_state: &'a GlobalState,
-    show: &'a Show,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
@@ -126,14 +123,12 @@ pub struct Interface<'a> {
 impl<'a> Interface<'a> {
     pub fn new(
         global_state: &'a GlobalState,
-        show: &'a Show,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
     ) -> Self {
         Self {
             global_state,
-            show,
             imgs,
             fonts,
             localized_strings,
@@ -192,30 +187,6 @@ impl<'a> Widget for Interface<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.general_txt, ui);
 
-        // Help
-        let show_help = ToggleButton::new(
-            self.show.help,
-            self.imgs.checkbox,
-            self.imgs.checkbox_checked,
-        )
-        .w_h(18.0, 18.0)
-        .down_from(state.ids.general_txt, 20.0)
-        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-        .set(state.ids.button_help, ui);
-
-        if self.show.help != show_help {
-            events.push(ToggleHelp(show_help));
-        }
-
-        Text::new(&self.localized_strings.get_msg("hud-settings-help_window"))
-            .right_from(state.ids.button_help, 10.0)
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.button_help)
-            .color(TEXT_COLOR)
-            .set(state.ids.show_help_label, ui);
-
         // Loading Screen Tips
         let show_tips = ToggleButton::new(
             self.global_state.settings.interface.loading_tips,
@@ -223,7 +194,7 @@ impl<'a> Widget for Interface<'a> {
             self.imgs.checkbox_checked,
         )
         .w_h(18.0, 18.0)
-        .down_from(state.ids.button_help, 8.0)
+        .down_from(state.ids.general_txt, 20.0)
         .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
         .set(state.ids.load_tips_button, ui);
