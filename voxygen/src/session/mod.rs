@@ -19,8 +19,8 @@ use common::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{tool::ToolKind, ItemDesc},
-        CharacterActivity, ChatType, Content, Fluid, InputKind, InventoryUpdateEvent, Pos,
-        PresenceKind, Stats, UtteranceKind, Vel,
+        Alignment, CharacterActivity, ChatType, Content, Fluid, InputKind, InventoryUpdateEvent,
+        Pos, PresenceKind, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
@@ -1133,8 +1133,26 @@ impl PlayState for SessionState {
                                         match interactable {
                                             Interactable::Block(_, _, _) => {},
                                             Interactable::Entity(entity) => {
-                                                if let Some(uid) =
-                                                    client.state().ecs().uid_from_entity(*entity)
+                                                let can_trade_to = client
+                                                    .state()
+                                                    .read_component_cloned::<Alignment>(*entity)
+                                                    .is_some_and(|a| match a {
+                                                        Alignment::Npc => true,
+                                                        Alignment::Owned(owner)
+                                                            if client.uid().is_some_and(
+                                                                |uid| owner == uid,
+                                                            ) =>
+                                                        {
+                                                            true
+                                                        },
+                                                        _ => false,
+                                                    });
+
+                                                if can_trade_to
+                                                    && let Some(uid) = client
+                                                        .state()
+                                                        .ecs()
+                                                        .uid_from_entity(*entity)
                                                 {
                                                     let name = client
                                                         .player_list()
@@ -1149,12 +1167,14 @@ impl PlayState for SessionState {
                                                                 |e| e.name.to_owned(),
                                                             )
                                                         });
+
                                                     self.hud.new_message(ChatType::Meta.into_msg(
                                                         Content::localized_with_args(
                                                             "hud-trade-invite_sent",
                                                             [("playername", name)],
                                                         ),
                                                     ));
+
                                                     client.send_invite(uid, InviteKind::Trade)
                                                 };
                                             },
