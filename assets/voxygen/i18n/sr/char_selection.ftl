@@ -1,15 +1,10 @@
 char_selection-loading_characters = Учитавање ликова...
 char_selection-delete_permanently = Заувек обриши Лик?
-char_selection-change_server = Промени Сервер
 char_selection-enter_world = Уђи у Свет
 char_selection-logout = Одјави се
 char_selection-create_new_character = Направи Нови Лик
 char_selection-creating_character = Направи Лик...
-char_selection-character_creation = Прављење Лика
-char_selection-human_default = Човек Подразумевано
-char_selection-level_fmt = Ниво { $level_nb }
 char_selection-uncanny_valley = Дивљина
-char_selection-plains_of_uncertainty = Равнице Неизвесности
 char_selection-beard = Брада
 char_selection-hair_style = Стил Косе
 char_selection-hair_color = Боја Косе

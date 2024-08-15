@@ -36,7 +36,6 @@ main-login-failed_auth_server_url_invalid = Chyba v připojení k ověřovacímu
 main-login-insecure_auth_scheme = Ověření přes HTTP není podporováno. Není to bezpečné! Pro účely vývoje je HTTP povoleno pro 'localhost' nebo pro ladění
 main-login-server_full = Server je plný
 main-login-untrusted_auth_server = Ověřovací server je nedůvěryhodný
-main-login-outdated_client_or_server = ServerWentMad: Pravděpodobně jsou verze nekompatibilní, zkontrolujte aktualizace!
 main-login-timeout = Timeout: Server neodpověděl včas. (Přetížení nebo chyby v síti).
 main-login-server_shut_down = Server Uzavřen
 main-login-network_error = Chyba sítě.

@@ -127,8 +127,6 @@ buff-polymorphed = Polymorferad
 
 ## Flame
 
-buff-flame = Flamma
-    .desc = Flamman är din allierade.
 
 ## Frigid
 

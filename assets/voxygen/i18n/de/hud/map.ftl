@@ -38,3 +38,5 @@ hud-map-placed_by = Platziert von { $name }
 hud-map-haniwa = Haniwa-Katakomben
 hud-map-terracotta = Terrakottaruinen
 hud-map-df_mine = Bergwerk
+hud-map-cultist = Kultist-Kerker
+hud-map-sahagin = Sahagin-Insel

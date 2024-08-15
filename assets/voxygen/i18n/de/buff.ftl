@@ -132,9 +132,6 @@ buff-fury = Wut
 # Defiance
 buff-defiance = Trotz
     .desc = Du kannst mächtigeren und erschütternderen Schlägen widerstehen und Combo mit jedem Treffer erzielen, jedoch bist du langsamer.
-# Flame
-buff-flame = Flamme
-    .desc = Flammen sind deine Verbündeten.
 # Polymorped
 buff-polymorphed = Verwandelt
     .desc = Dein Körper verändert die Form.

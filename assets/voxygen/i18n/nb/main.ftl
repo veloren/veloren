@@ -35,7 +35,6 @@ main-login-server_not_found = Server ikke funnet
 main-login-authentication_error = Innloggingsfeil på serveren
 main-login-server_full = Serveren er full
 main-login-untrusted_auth_server = Godkjenningsserver kan ikke stoles på
-main-login-outdated_client_or_server = Sannsynligvis er versjoner inkompatible, se etter oppdateringer.
 main-login-timeout = Serveren svarte ikke i tide. (Overbelastet eller nettverksproblemer).
 main-login-server_shut_down = Serveren stoppet
 main-login-network_error = Nettverksfeil

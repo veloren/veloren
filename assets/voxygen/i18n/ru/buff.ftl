@@ -125,23 +125,20 @@ buff-reckless = Безрассудный
 buff-text-over_seconds =
     более { $dur_secs ->
         [one] секунды
-        *[other] { $dur_secs } секунд
+       *[other] { $dur_secs } секунд
     }
 buff-text-for_seconds =
     на { $dur_secs ->
         [one] { $dur_secs } секунду
         [few] { $dur_secs } секунды
         [many] { $dur_secs } секунд
-        *[other] { $dur_secs } секунд
+       *[other] { $dur_secs } секунд
     }
 buff-remove = Нажмите, чтобы удалить
 # Imminent Critical
 buff-imminentcritical =
     .desc = Ваша следующая атака нанесет противнику критический удар.
 buff-mysterious = Таинственный эффект
-# Flame
-buff-flame = Пламя
-    .desc = Пламя — ваш союзник.
 # Polymorped
 buff-polymorphed =
     .desc = Ваше тело меняет форму.

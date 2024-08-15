@@ -1,4 +1,3 @@
-common-username = Brukernavn
 common-singleplayer = Enspiller
 common-multiplayer = Flerspiller
 common-servers = Servere
@@ -25,10 +24,7 @@ common-disclaimer = Bemerk
 common-cancel = Avbryt
 common-none = Ingen
 common-error = Feil
-common-fatal_error = Kritisk Feil
-common-you = Du
 common-automatic = Automatisk
-common-random = Tilfeldig
 common-interface_settings = Grensesnitt Instillinger
 common-gameplay_settings = Spillbarhet Innstillinger
 common-controls_settings = Kontroller Innstillinger

@@ -1,17 +1,12 @@
 char_selection-loading_characters = Ładowanie Postaci...
 char_selection-delete_permanently = Czy na pewno chcesz usunąć tę Postać na zawsze?
-char_selection-change_server = Zmień Serwer
 char_selection-enter_world = Dołącz do Świata
 char_selection-spectate = Oglądnij świat
 char_selection-joining_character = Dołączanie do świata...
 char_selection-logout = Wyloguj się
 char_selection-create_new_character = Stwórz nową Postać
 char_selection-creating_character = Tworzenie nowej Postaci...
-char_selection-character_creation = Tworzenie Postaci
-char_selection-human_default = Domyślny człowiek
-char_selection-level_fmt = Poziom { $level_nb }
 char_selection-uncanny_valley = Dzicz
-char_selection-plains_of_uncertainty = Niepewne ziemie
 char_selection-beard = Broda
 char_selection-hair_style = Fryzura
 char_selection-hair_color = Kolor włosów

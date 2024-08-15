@@ -1,14 +1,9 @@
 char_selection-loading_characters = Karakters Worden Geladen...
 char_selection-delete_permanently = Karakter Permanent Verwijderen?
-char_selection-change_server = Server Wisselen
 char_selection-enter_world = Wereld Betreden
 char_selection-logout = Uitloggen
 char_selection-creating_character = Karakter Wordt Aangemaakt...
-char_selection-character_creation = Karaktercreatie
-char_selection-human_default = Standaard Mens
-char_selection-level_fmt = Level { $level_nb }
 char_selection-uncanny_valley = Wildernis
-char_selection-plains_of_uncertainty = Vlaktes van Onzekerheid
 char_selection-beard = Baard
 char_selection-hair_style = Haarstijl
 char_selection-hair_color = Haarkleur

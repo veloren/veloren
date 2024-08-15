@@ -2,7 +2,6 @@ hud-settings-general = Általános
 hud-settings-none = Egyik sem
 hud-settings-press_behavior-toggle = Átváltás
 hud-settings-press_behavior-hold = Tartás
-hud-settings-help_window = Súgóablak
 hud-settings-debug_info = Hibakeresési információk
 hud-settings-show_hitboxes = Hitboxok megjelenítése
 hud-settings-show_chat = Csevegés megjelenítése

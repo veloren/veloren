@@ -17,14 +17,12 @@ common-accept = Приемане
 common-decline = Отказване
 common-cancel = Отмяна
 common-error = Грешка
-common-fatal_error = Критична Грешка
-common-you = Вие
 common-automatic = Автоматично
-common-random = Случаен
 common-empty = Празно
 common-confirm = Потвърди
 
 ## Settings Window title
+
 common-interface_settings = Настройки на интерфейса
 common-gameplay_settings = Настройки за игра
 common-controls_settings = Настройки на контролите
@@ -32,12 +30,10 @@ common-video_settings = Графични настройки
 common-sound_settings = Настройки на Звука
 common-language_settings = Настройки на Езика
 common-chat_settings = Настройки на чата
-
 common-species-orc = Орк
 common-species-human = Човек
 common-species-dwarf = Джудже
 common-species-elf = Елф
-
 common-weapons-axe = Брадва
 common-weapons-sword = Меч
 common-weapons-staff = Огнен жезъл
@@ -49,11 +45,8 @@ common-tool-pick = Кирка
 common-kind-throwable = Може да бъде хвърлен
 common-kind-ingredient = Съставка
 common-kind-lantern = Фенер
-
 common-rand_name = Произволно име
-
 common-stats-armor = Броня
-
 common-material-metal = Метал
 common-material-wood = Дърво
 common-material-stone = Камък

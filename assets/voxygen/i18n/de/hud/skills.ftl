@@ -7,17 +7,17 @@ hud-skill-sp_available =
     }
 hud-skill-not_unlocked = Noch nicht freigeschaltet
 hud-skill-req_sp = { "\u000A" }Benötigt { $number } SP
-hud-skill-unlck_sword_title = Schwert freischalten
-hud-skill-unlck_sword = Schaltet den Schwert-Fähigkeitenbaum frei{ $SP }
-hud-skill-unlck_axe_title = Axt freischalten
+hud-skill-unlck_sword_title = Schwertkenntnisse
+hud-skill-unlck_sword = Schaltet den Schwert-Fähigkeitsbaum frei.{ $SP }
+hud-skill-unlck_axe_title = Axtkenntnisse
 hud-skill-unlck_axe = Schaltet den Axt-Fähigkeitenbaum frei.{ $SP }
-hud-skill-unlck_hammer_title = Hammer freischalten
+hud-skill-unlck_hammer_title = Hammer-Kenntnisse
 hud-skill-unlck_hammer = Schaltet den Hammer-Fähigkeitenbaum frei.{ $SP }
-hud-skill-unlck_bow_title = Bogen freischalten
+hud-skill-unlck_bow_title = Bogenkenntnisse
 hud-skill-unlck_bow = Schaltet den Bogen-Fähigkeitenbaum frei.{ $SP }
-hud-skill-unlck_staff_title = Stab freischalten
+hud-skill-unlck_staff_title = Stabkenntnisse
 hud-skill-unlck_staff = Schaltet den Stab-Fähigkeitenbaum frei.{ $SP }
-hud-skill-unlck_sceptre_title = Zepter freischalten
+hud-skill-unlck_sceptre_title = Zepterkenntnisse
 hud-skill-unlck_sceptre = Schaltet den Zepter-Fähigkeitenbaum frei.{ $SP }
 hud-skill-climbing_title = Klettern
 hud-skill-climbing = Fähigkeit, Wände zu erklimmen
@@ -72,9 +72,9 @@ hud-skill-st_shockwave_unlock = Verleiht die Fähigkeit, Gegner mit Feuer wegzus
 hud-skill-st_flamethrower_title = Flammenwerfer
 hud-skill-st_flamethrower = Ein flammendes Inferno heizt deinen Feinden ordentlich ein!
 hud-skill-st_flame_velocity_title = Geschwindigkeit der Flammen
-hud-skill-st_flame_velocity = Verkohlt deinen Feinden die Augenbrauen schneller, { $boost }% schneller{ $SP }
+hud-skill-st_flame_velocity = Verkohlt deinen Feinden die Augenbrauen schneller, { $boost }% schneller.{ $SP }
 hud-skill-st_flamethrower_range_title = Reichweite des Flammenwerfers
-hud-skill-st_flamethrower_range = Wenn die Flammen einfach nicht weit genug reichen, reichen sie hiermit um { $boost }% weiter{ $SP }
+hud-skill-st_flamethrower_range = Wenn die Flammen einfach nicht weit genug reichen, reichen sie hiermit um { $boost }% weiter.{ $SP }
 hud-skill-st_energy_drain_title = Energieverbrauch
 hud-skill-st_energy_drain = Vermindert den Energieverbrauch um { $boost } %.{ $SP }
 hud-skill-st_flamethrower_damage_title = Schaden des Flammenwerfers
@@ -82,50 +82,74 @@ hud-skill-st_flamethrower_damage = Erhöht den Schaden um { $boost } %.{ $SP }
 hud-skill-st_explosion_radius_title = Explosionsradius
 hud-skill-st_explosion_radius = Größer ist besser, erhöht den Radius der Explosion um { $boost } %.{ $SP }
 hud-skill-st_energy_regen_title = Ausdauerregeneration
-hud-skill-st_energy_regen = Erhöht den Ausdauergewinn um { $boost }%{ $SP }
+hud-skill-st_energy_regen = Erhöht den Ausdauergewinn um { $boost }%.{ $SP }
 hud-skill-st_fireball_title = Feuerball
 hud-skill-st_fireball = Sende brennende Kugeln in Richtung deiner Feinde.
 hud-skill-st_damage_title = Schaden
-hud-skill-st_damage = Erhöht den Schaden um { $boost }%{ $SP }
+hud-skill-st_damage = Erhöht den Schaden um { $boost }%.{ $SP }
 hud-skill-bow_projectile_speed_title = Pfeilgeschw.
-hud-skill-bow_projectile_speed = Erlaubt es dir deine Pfeile schneller und weiter zu schießen{ $SP }
+hud-skill-bow_projectile_speed = Erlaubt es dir deine Pfeile um { $boost }% schneller und weiter zu schießen.{ $SP }
 hud-skill-bow_repeater_title = Salvenschüsse
-hud-skill-bow_repeater = Schaltet die Fähigkeit frei, in die Luft zu springen und ein Salve von Pfeilen abzuschießen{ $SP }
+hud-skill-bow_repeater = Schießt schneller je länger du feuerst.{ $SP }
 hud-skill-bow_repeater_damage_title = Schaden der Salvenschüsse
-hud-skill-bow_repeater_damage = Erhöht den Schaden um { $boost }%{ $SP }
+hud-skill-bow_repeater_damage = Erhöht den verursachten Schaden um { $boost } %.{ $SP }
 hud-skill-bow_repeater_cost_title = Ausdauerkosten der Salvenschüsse
 hud-skill-bow_repeater_cost = Verringert die Kosten um { $boost }%{ $SP }
 hud-skill-bow_repeater_speed_title = Geschw. der Salvenschüsse
-hud-skill-bow_repeater_speed = Erhöht die Rate um { $boost }%, mit welcher du Pfeile schießt { $SP }
+hud-skill-bow_repeater_speed = Erhöht die Rate mit welcher du Pfeile schießt um { $boost }%.{ $SP }
 hud-skill-bow_shotgun_unlock_title = Mehrfachschuss freischalten
-hud-skill-bow_shotgun_unlock = Schaltet die Fähigkeit frei, mehrere Pfeile auf einmal abzuschießen{ $SP }
+hud-skill-bow_shotgun_unlock = Schaltet die Fähigkeit frei, mehrere Pfeile auf einmal zu schießen.{ $SP }
 hud-skill-bow_shotgun_damage_title = Schaden des Mehrfachschusses
-hud-skill-bow_shotgun_damage = Erhöht den Schaden um { $boost }%{ $SP }
+hud-skill-bow_shotgun_damage = Erhöht den verursachten Schaden um { $boost } %.{ $SP }
 hud-skill-bow_shotgun_cost_title = Ausdauerkosten des Mehrfachschusses
 hud-skill-bow_shotgun_cost = Verringert die Ausdauerkosten des Mehrfachschusses um { $boost }%{ $SP }
 hud-skill-bow_shotgun_arrow_count_title = Pfeilanzahl des Mehrfachschusses
-hud-skill-bow_shotgun_arrow_count = Erhöht die Anzahl der Pfeile eines Schusses um { $boost }{ $SP }
+hud-skill-bow_shotgun_arrow_count = Erhöht die Anzahl der Pfeile eines Schusses um { $boost }.{ $SP }
 hud-skill-bow_shotgun_spread_title = Streuung des Mehrfachschusses
-hud-skill-bow_shotgun_spread = Verringert die Streuung der Pfeile des Mehrfachschusses um { $boost }%{ $SP }
+hud-skill-bow_shotgun_spread = Verringert die Streuung der Pfeile um { $boost }%.{ $SP }
 hud-skill-bow_charged_title = Aufgeladener Schuss
-hud-skill-bow_charged = Geduld zahlt sich aus
+hud-skill-bow_charged = Geduld zahlt sich aus.
 hud-skill-bow_charged_damage_title = Schaden: Aufladen
-hud-skill-bow_charged_damage = Erhöht den Schaden um { $boost }%{ $SP }
+hud-skill-bow_charged_damage = Erhöht den Schaden um { $boost }%.{ $SP }
 hud-skill-bow_charged_energy_regen_title = Ausdauerregeneration
-hud-skill-bow_charged_energy_regen = Erhöht den Ausdauergewinn um { $boost }%{ $SP }
+hud-skill-bow_charged_energy_regen = Erhöht den Ausdauergewinn um { $boost }%.{ $SP }
 hud-skill-bow_charged_knockback_title = Rückstoß bei aufgeladenem Schuss
-hud-skill-bow_charged_knockback = Stößt deine Feinde um { $boost }% weiter von dir{ $SP }
+hud-skill-bow_charged_knockback = Stößt deine Feinde um { $boost }% weiter von dir.{ $SP }
 hud-skill-bow_charged_speed_title = Spanngeschwindigkeit
-hud-skill-bow_charged_speed = Erhöht die Geschwindigkeit mit der du den Bogen spannst um { $boost }%{ $SP }
+hud-skill-bow_charged_speed = Erhöht die Geschwindigkeit mit der du den Bogen spannst um { $boost }%.{ $SP }
 hud-skill-bow_charged_move_title = Bewegungsgeschw. beim Spannen
-hud-skill-bow_charged_move = Erhöht die Bewegungsgeschw. um { $boost }% während du den Bogen spannst{ $SP }
+hud-skill-bow_charged_move = Erhöht die Bewegungsgeschwindigkeit beim Bogenspannen um { $boost }%.{ $SP }
 hud-skill-mining_title = Bergbau
 hud-skill-pick_strike_title = Spitzhackenschlag
-hud-skill-pick_strike = Baue Steine mit deiner Spitzhacke ab, um Erze, seltene Edelsteine und EP zu erhalten
+hud-skill-pick_strike = Baue Steine mit der Spitzhacke ab, um Erze, Edelsteine und Erfahrung zu sammeln.
 hud-skill-pick_strike_speed_title = Geschwindigkeit des Spitzhackenhiebs
-hud-skill-pick_strike_speed = Baue schneller ab{ $SP }
+hud-skill-pick_strike_speed = Baue schneller ab.{ $SP }
 hud-skill-pick_strike_oregain_title = Ausbeute von Erzen
-hud-skill-pick_strike_oregain = Erhöht die Chance auf mehr Erze beim Abbauen ({ $boost }% höher pro Level){ $SP }
+hud-skill-pick_strike_oregain = Erhöht die Chance auf mehr Erze beim Abbauen ({ $boost } % pro Level).{ $SP }
 hud-skill-pick_strike_gemgain_title = Ausbeute von Edelsteinen
-hud-skill-pick_strike_gemgain = Erhöht die Chance auf mehr Edelsteine beim Abbauen ({ $boost }% höher pro Level){ $SP }
+hud-skill-pick_strike_gemgain = Erhöht die Chance auf mehr Edelsteine beim Abbauen ({ $boost }% pro Level).{ $SP }
 hud-skill-set_as_exp_bar = Fortschritt mit Erfahrungsleiste verfolgen
+# Skill tree UI
+hud-skill_tree-general = Allgemeiner Kampf
+# Skill tree error dialog
+hud-skill-persistence-skills_unlock_failed = Deine Fähigkeiten konnte man nicht in der Reihenfolge erhalten, in der du sie erlangt hast. Voraussetzungen oder Kosten könnten sich geändert haben.
+# Skill tree error dialog
+hud-skill-persistence-common_message = Einige deiner Fähigkeitspunkte wurden zurückgesetzt. Du musst sie neu zuordnen.
+# Skill tree error dialog
+hud-skill-persistence-hash_mismatch = Seit deinem letzten Spiel wurde eine Abweichung in einer deiner Fähigkeitsgruppen festgestellt.
+# Skill tree error dialog
+hud-skill-persistence-deserialization_failure = Es gab einen Fehler, einige deiner Fähigkeiten aus der Datenbank zu laden.
+# Skill tree error dialog
+hud-skill-persistence-spent_experience_missing = Die Anzahl an freier Erfahrung in einer deiner Fähigkeitsgruppen, wich von deinem letzten Spiel ab.
+# Skill tree UI
+hud-skill_tree-axe = Axt
+# Skill tree UI
+hud-skill_tree-sword = Schwert
+# Skill tree UI
+hud-skill_tree-hammer = Hammer
+# Skill tree UI
+hud-skill_tree-bow = Bogen
+# Skill tree UI
+hud-skill_tree-mining = Bergbau
+# Skill tree UI
+hud-skill_tree-sceptre = Zepter

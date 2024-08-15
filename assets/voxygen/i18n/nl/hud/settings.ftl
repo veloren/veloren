@@ -2,7 +2,6 @@ hud-settings-general = Algemeen
 hud-settings-none = Geen
 hud-settings-press_behavior-toggle = Omschakelbaar
 hud-settings-press_behavior-hold = Inhouden
-hud-settings-help_window = Help Venster
 hud-settings-debug_info = Debug Informatie
 hud-settings-tips_on_startup = Tips-Bij-Opstarten
 hud-settings-ui_scale = UI-Schaal

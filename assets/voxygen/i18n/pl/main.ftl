@@ -39,7 +39,6 @@ main-login-failed_auth_server_url_invalid = Błąd w łączeniu się z serwerem 
 main-login-insecure_auth_scheme = Schemat autoryzacji HTTP NIE JEST wspierany. Jest niezabezpieczony! W celach programistycznych, jest dozwolony dla adresu 'localhost' oraz wersji deweloperskich.
 main-login-server_full = Serwer jest pełny
 main-login-untrusted_auth_server = Serwer autoryzacji nie jest zaufany
-main-login-outdated_client_or_server = Serwer odrzucił połączenie: prawdopodobnie masz inną wersję gry niż serwer - spróbuj zaaktualizować grę.
 main-login-timeout = Przekroczenie czasu oczekiwania: serwer nie odpowiedział na czas (Przeciążenie lub problemy z połączeniem).
 main-login-server_shut_down = Serwer został wyłączony
 main-login-network_error = Błąd sieci

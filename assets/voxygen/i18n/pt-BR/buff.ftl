@@ -134,8 +134,6 @@ buff-polymorphed = Polimorfado
 
 ## Em chamas
 
-buff-flame = Chamas
-    .desc = Chamas são suas aliadas.
 
 ## Congelante
 

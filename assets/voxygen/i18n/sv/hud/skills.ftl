@@ -154,3 +154,17 @@ hud-skill-persistence-skills_unlock_failed = Dina erfarenheter kunde inte erhål
 hud-skill-persistence-deserialization_failure = Det var ett fel i laddandet av några av dina erfarenhetspoäng från databasen.
 # Skill tree error dialog
 hud-skill-persistence-spent_experience_missing = Mängden gratis erfarenhet du hade i en av dina erfarenhetsgrupper skiljde sig från senast du spelade.
+# Skill tree UI
+hud-skill_tree-general = Allmän Strid
+# Skill tree UI
+hud-skill_tree-sword = Svärd
+# Skill tree UI
+hud-skill_tree-axe = Yxa
+# Skill tree UI
+hud-skill_tree-hammer = Hammare
+# Skill tree UI
+hud-skill_tree-bow = Pilbåge
+# Skill tree UI
+hud-skill_tree-staff = Eldstav
+# Skill tree UI
+hud-skill_tree-sceptre = Spira

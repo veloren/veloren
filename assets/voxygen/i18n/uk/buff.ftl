@@ -140,8 +140,6 @@ buff-polymorphed = Поліморф
 
 ## Flame
 
-buff-flame = Полум’я
-    .desc = Полум’я - ваш союзник.
 
 ## Frigid
 

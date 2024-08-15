@@ -39,7 +39,6 @@ main-login-failed_auth_server_url_invalid = No s'ha pogut connectar al Servidor 
 main-login-insecure_auth_scheme = L'esquema d'autentificació HTTP NO és suportat. És insegur! Per al desenvolupament, HTTP està permès per a l'ordinador local (localhost) o versions de depuració
 main-login-server_full = El Servidor és ple
 main-login-untrusted_auth_server = Servidor d'Autentificació poc fiable
-main-login-outdated_client_or_server = ServerEmbogit: Probablement les versions són incompatibles, comprova si hi ha actualitzacions.
 main-login-timeout = Fora de Temps: el Servidor no ha donat resposta a temps. (Sobrecàrrega o problemes de xarxa).
 main-login-server_shut_down = Servidor Apagat
 main-login-network_error = Error de Xarxa

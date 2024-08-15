@@ -69,9 +69,6 @@ main-login-server_full =
 main-login-untrusted_auth_server =
     เซิร์ฟเวอร์ที่ใช้ในการยืนยันรหัสไม่น่าไว้วางใจ
     Auth server not trusted
-main-login-outdated_client_or_server =
-    เซิร์ฟเวอร์ล้มเหลว: อาจเกิดจากตัวเกมไม่ได้รับการอัพเดท โปรดอัพเดทตัวเกม
-    ServerWentMad: Probably versions are incompatible, check for updates.
 main-login-timeout =
     หมดเวลา: เซิร์ฟเวอร์ไม่ตอบกลับในเวลาที่กำหนด (เซิร์ฟเวอร์อาจเต็มหรือเกิดปัญหากับเคลือข่าย)
     Timeout: Server did not respond in time. (Overloaded or network issues).

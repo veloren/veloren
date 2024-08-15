@@ -2,7 +2,6 @@ hud-settings-general = Genel
 hud-settings-none = Yok
 hud-settings-press_behavior-toggle = Aç/kapa
 hud-settings-press_behavior-hold = Basılı tut
-hud-settings-help_window = Yardım Penceresi
 hud-settings-debug_info = Hata Ayıklama Bilgileri
 hud-settings-tips_on_startup = Açılışta İpuçlarını Göster
 hud-settings-ui_scale = Arayüz Ölçeği

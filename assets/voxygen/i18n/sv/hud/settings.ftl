@@ -4,7 +4,6 @@ hud-settings-press_behavior-toggle = Slå av eller på
 hud-settings-press_behavior-hold = Håll
 hud-settings-autopress_behavior-toggle = Slå av eller på
 hud-settings-autopress_behavior-auto = Auto
-hud-settings-help_window = Hjälpfönster
 hud-settings-debug_info = Felsökningsinformation
 hud-settings-show_hitboxes = Visa kollisionsgränser
 hud-settings-show_chat = Visa chatt

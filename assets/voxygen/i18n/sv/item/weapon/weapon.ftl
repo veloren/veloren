@@ -58,3 +58,5 @@ weapon-axe-2haxe_malachite-0 = Malakityxa
     .desc = Etsat yxhuvud dekorerat med malakit på bladen för att ge magiska egenskaper.
 weapon-sceptre-wood-simple = Naturalistisk prommenadkäpp
     .desc = Läker dina allierade med kraften av naturen.
+weapon-shield-wood-0 = En Sliten Targe
+    .desc = Borde motså några fler träffar, förhoppningsvis...

@@ -1,4 +1,3 @@
-common-username = Spelernaam
 common-singleplayer = Alleen spelen
 common-multiplayer = Samen spelen
 common-servers = Servers
@@ -24,10 +23,7 @@ common-disclaimer = Vrijwaring
 common-cancel = Annuleren
 common-none = Geen
 common-error = Fout
-common-fatal_error = Fatale fout
-common-you = Jij
 common-automatic = Auto
-common-random = Willekeurig
 common-interface_settings = Interface Instellingen
 common-gameplay_settings = Gameplay Instellingen
 common-controls_settings = Besturing Instellingen

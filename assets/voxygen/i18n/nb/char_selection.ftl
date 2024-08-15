@@ -1,15 +1,10 @@
 char_selection-loading_characters = Laster inn karakterer...
 char_selection-delete_permanently = Slett denne karakteren permanent?
-char_selection-change_server = Bytt server
 char_selection-enter_world = Gå inn i verden
 char_selection-logout = Logg ut
 char_selection-create_new_character = Lag ny karakter
 char_selection-creating_character = Skaper karakter...
-char_selection-character_creation = Karakterskaping
-char_selection-human_default = Menneskestandarder
-char_selection-level_fmt = Nivå { $level_nb }
 char_selection-uncanny_valley = Villmark
-char_selection-plains_of_uncertainty = Usikkerhetssletter
 char_selection-beard = Skjegg
 char_selection-hair_style = Hårstil
 char_selection-hair_color = Hårfarge

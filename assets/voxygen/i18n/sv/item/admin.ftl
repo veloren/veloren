@@ -1,6 +1,6 @@
 armor-tabard_admin = Administratörens Tappert
     .desc = Med stor kraft kommer stort ansvar.
-armor-misc-back-admin = Administratörens Mantel
+armor-misc-back-admin = Administratörens Cape
     .desc =
         Med stor kraft kommer
         stort ansvar.
@@ -8,13 +8,13 @@ armor-tabard-admin_tabard = Administratörens Tappert
     .desc =
         Med stor kraft kommer
         stort ansvar.
-armor-misc-back-admin_back = Administratörens Mantel
+armor-misc-back-admin_back = Administratörens Cape
     .desc =
         Med stor kraft kommer
         stort ansvar.
 armor-misc-bag-admin_black_hole = Administratörens Svarta Hål
     .desc = De säger att den får plats med vad som helst.
-armor-velorite-back = Veloritadministratörsmantel
+armor-velorite-back = Velorit Administratörscape
     .desc = Var lade jag min banhammare igen?
 armor-velorite-belt = Veloritbälte
     .desc = { "" }

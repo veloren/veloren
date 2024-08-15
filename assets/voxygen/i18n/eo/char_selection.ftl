@@ -1,10 +1,7 @@
-char_selection-change_server = Ŝanĝi Servilon
 char_selection-enter_world = Eniri Mondon
 char_selection-logout = Elsaluti
 char_selection-create_new_character = Krei Novan Karakteron
 char_selection-creating_character = Kreanta Karakteron...
-char_selection-character_creation = Krei Karakteron
-char_selection-human_default = Defaŭlta Homo
 char_selection-beard = Barbo
 char_selection-hair_style = Stilo de Hairo
 char_selection-hair_color = Koloro de Hairo

@@ -68,3 +68,7 @@ sprite-crafting_ing-hide-plate = Plaque
     .desc = Plaque durable d'un animal blindé.
 sprite-crafting_ing-hide-scale = Écailles
     .desc = Écailles brillantes trouvées sur un animal.
+sprite-crafting_ing-dwarven_battery = Batterie naine
+    .desc = Conteneur d'énergie magique.
+sprite-rocks-rock-0 = Pierres
+    .desc = Cailloux du sol, rien d'extraordinaire.

@@ -148,9 +148,6 @@ buff-defiance = Desafiante
 # Sunderer
 buff-sunderer = Desgarrador
     .desc = Tus ataques pueden atravesar las defensas enemigas y refrescarte con más energía.
-# Flame
-buff-flame = Ardiente
-    .desc = El fuego es tu aliado.
 # Salamander's Aspect
 buff-salamanderaspect = Piel de Salamandra
 # Frigid

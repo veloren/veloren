@@ -2,7 +2,6 @@ hud-settings-general = General
 hud-settings-none = Cap
 hud-settings-press_behavior-toggle = Mostra
 hud-settings-press_behavior-hold = Manté
-hud-settings-help_window = Finestra d'Ajuda
 hud-settings-debug_info = Informació de Depurat
 hud-settings-show_hitboxes = Mostra caixes d'impacte
 hud-settings-show_chat = Mostra Xat

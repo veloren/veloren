@@ -1,4 +1,3 @@
-common-username = 帳號名稱
 common-singleplayer = 單人模式
 common-multiplayer = 多人模式
 common-servers = 伺服器
@@ -23,7 +22,6 @@ common-disclaimer = 免責聲明
 common-cancel = 取消
 common-none = 無
 common-error = 錯誤
-common-fatal_error = 致命錯誤
 common-connection_lost =
     連線中斷！
     檢查看看伺服器重啟了嗎？

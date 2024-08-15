@@ -2,7 +2,6 @@ hud-settings-general = Общие
 hud-settings-none = Нет
 hud-settings-press_behavior-toggle = Вкл/Выкл
 hud-settings-press_behavior-hold = Удержание
-hud-settings-help_window = Окно помощи
 hud-settings-debug_info = Отладочная информация
 hud-settings-show_hitboxes = Отображать хитбоксы
 hud-settings-show_chat = Отображать чат

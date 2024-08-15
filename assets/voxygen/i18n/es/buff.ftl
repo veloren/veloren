@@ -148,8 +148,6 @@ buff-agility = Agilidad
         A su vez, disminuye en gran medida tu poder de ataque y defensa.
 buff-heatstroke = Golpe de calor
     .desc = Las altas temperaturas te han provocado un golpe de calor. Tu ganancia de energía y velocidad de movimiento se ven reducidas. Refréscate.
-buff-flame = Llama
-    .desc = La llama es tu aliada.
 buff-frigid = Gélido
     .desc = Congela a tus enemigos.
 buff-salamanderaspect = Aspecto de la salamandra

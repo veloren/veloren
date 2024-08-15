@@ -1,13 +1,8 @@
-char_selection-delete_permanently = Deletar esta personagem permanentemente?
-char_selection-change_server = Mudar de servidor
+char_selection-delete_permanently = Deletar este personagem permanentemente?
 char_selection-enter_world = Entrar no mundo
 char_selection-logout = Desconectar
 char_selection-create_new_character = Criar nova personagem
-char_selection-character_creation = Criação de personagem
-char_selection-human_default = Humano padrão
-char_selection-level_fmt = Nível { $level_nb }
 char_selection-uncanny_valley = Vale da estranheza
-char_selection-plains_of_uncertainty = Planícies da incerteza
 char_selection-beard = Barba
 char_selection-hair_style = Estilo do cabelo
 char_selection-hair_color = Cor do cabelo

@@ -2,7 +2,6 @@ hud-settings-general = ทั่วไป
 hud-settings-none = ไม่มี
 hud-settings-press_behavior-toggle = เปิด/ปิด
 hud-settings-press_behavior-hold = กดค้าง
-hud-settings-help_window = หน้าต่างช่วยเหลือ
 hud-settings-debug_info = ข้อมูลเชิงลึก
 hud-settings-show_hitboxes = แสดง Hitbox
 hud-settings-show_chat = แสดงช่องสนทนา

@@ -1,17 +1,12 @@
 char_selection-loading_characters = 캐릭터를 불러오는 중...
 char_selection-delete_permanently = 이 캐릭터를 영구히 삭제하시겠습니까?
-char_selection-change_server = 서버 바꾸기
 char_selection-enter_world = 세계 들어가기
 char_selection-spectate = 세계 관전하기
 char_selection-joining_character = 세계 불러오는 중...
 char_selection-logout = 로그아웃
 char_selection-create_new_character = 새 캐릭터 만들기
 char_selection-creating_character = 캐릭터 만드는 중...
-char_selection-character_creation = 캐릭터 만들기
-char_selection-human_default = Human Default
-char_selection-level_fmt = 레벨 { $level_nb }
 char_selection-uncanny_valley = Wilderness
-char_selection-plains_of_uncertainty = Plains of Uncertainty
 char_selection-beard = 수염
 char_selection-hair_style = 머리 모양
 char_selection-hair_color = 머리 색깔

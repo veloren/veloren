@@ -72,3 +72,5 @@ armor-misc-bag-sturdy_red_backpack = Stabile rote Satteltasche
     .desc = Eine wirklich zuverlässige und große Tasche, bestickt mit Amethyst und dickem Leder.
 armor-misc-bag-woven_red_bag = Gewebter Roter Beutel
     .desc = Eine mittelgroße rote Tasche. Obwohl sie ziemlich zugekramt wirkt.
+lantern-delvers_lamp = Delvers Lampe
+    .desc = Perfekt für den Bergbau.

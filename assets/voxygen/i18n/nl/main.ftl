@@ -33,7 +33,6 @@ main-login-server_not_found = Server niet gevonden.
 main-login-authentication_error = Authenticatie fout op de server.
 main-login-server_full = Server zit vol
 main-login-untrusted_auth_server = Onvertrouwde authenticatie server
-main-login-outdated_client_or_server = Versieprobleem: De versie tussen de client en de server komen niet overeen. Check of er updates zijn/
 main-login-timeout = Timeout: De server deed er te lang over om te antwoorden. (Overblast of netwerk problemen).
 main-login-server_shut_down = Server is afgesloten
 main-login-network_error = Network problemen

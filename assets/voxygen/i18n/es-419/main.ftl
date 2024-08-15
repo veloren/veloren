@@ -39,7 +39,6 @@ main-login-failed_auth_server_url_invalid = Error para conectar con el servidor 
 main-login-insecure_auth_scheme = El esquema de autenticación HTTP No es compatible. ¡Es inseguro! Para propósitos de desarrollo, HTTP está permitido para 'localhost' o versiones de depuración
 main-login-server_full = El servidor está lleno
 main-login-untrusted_auth_server = El servidor de autenticación no es confiable
-main-login-outdated_client_or_server = ServerWentMad: Probablemente las versiones son incompatibles, intenta actualizar tu cliente.
 main-login-timeout = Timeout: El servidor no respondió a tiempo. (Puede estar sobrecargado o tener problemas de red).
 main-login-server_shut_down = El servidor se apagó
 main-login-network_error = Error de red
