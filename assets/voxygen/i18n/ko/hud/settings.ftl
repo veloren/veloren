@@ -2,7 +2,6 @@ hud-settings-general = 일반 설정
 hud-settings-none = 없음
 hud-settings-press_behavior-toggle = 토글
 hud-settings-press_behavior-hold = 누르기
-hud-settings-help_window = 도움창
 hud-settings-debug_info = 디버그 정보
 hud-settings-show_hitboxes = 피격판정 보이기
 hud-settings-show_chat = 채팅 보이기

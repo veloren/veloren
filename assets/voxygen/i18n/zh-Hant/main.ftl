@@ -31,7 +31,6 @@ main-login-server_not_found = 找不到伺服器
 main-login-authentication_error = 伺服器認證錯誤
 main-login-server_full = 伺服器已滿
 main-login-untrusted_auth_server = 認證伺服器不可信
-main-login-outdated_client_or_server = 伺服器錯誤：版本可能不相容，請檢查更新。
 main-login-timeout = 逾時：伺服器無法即時回應（也許試過載或者網路問題）。
 main-login-server_shut_down = 伺服器已關閉
 main-login-network_error = 網路錯誤

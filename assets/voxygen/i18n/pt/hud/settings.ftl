@@ -2,7 +2,6 @@ hud-settings-general = Geral
 hud-settings-none = Nenhum
 hud-settings-press_behavior-toggle = Alternar
 hud-settings-press_behavior-hold = Segurar
-hud-settings-help_window = Janela de ajuda
 hud-settings-debug_info = Informação de depuração
 hud-settings-tips_on_startup = Dicas no início
 hud-settings-ui_scale = Escala da interface

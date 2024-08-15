@@ -2,7 +2,6 @@ hud-settings-general = General
 hud-settings-none = Nimic
 hud-settings-press_behavior-toggle = Comută
 hud-settings-press_behavior-hold = Ține apăsat
-hud-settings-help_window = Fereastra de Ajutor
 hud-settings-debug_info = Debug Info
 hud-settings-show_hitboxes = Show hitboxes
 hud-settings-show_chat = Arată chat

@@ -1,4 +1,3 @@
-common-username = nome de utilizador
 common-singleplayer = Um jogador
 common-multiplayer = Multijogador
 common-servers = Servidores
@@ -23,7 +22,6 @@ common-disclaimer = Aviso
 common-cancel = Cancelar
 common-none = Nenhum
 common-error = Erro
-common-fatal_error = Erro fatal
 common-connection_lost =
     Conexâo perdida!
     Será que o server reiniciou?

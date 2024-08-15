@@ -20,3 +20,5 @@ object-potion_red = Potent Dryck
     .desc = En potent läkande dryck.
 object-potion_curious = Nyfiken Dryck
     .desc = Undrar vad det här gör...
+object-potion_freezing = Frysande Dryck
+    .desc = Fryser användarens hjärna.

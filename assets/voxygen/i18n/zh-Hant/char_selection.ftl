@@ -1,12 +1,7 @@
 char_selection-delete_permanently = 永久刪除這個角色嗎？
-char_selection-change_server = 變更伺服器
 char_selection-enter_world = 進入世界
 char_selection-logout = 登出
-char_selection-character_creation = 角色建立
-char_selection-human_default = 預設人類
-char_selection-level_fmt = 等級 { $level_nb }
 char_selection-uncanny_valley = 怪異峽谷
-char_selection-plains_of_uncertainty = 疑惑平原
 char_selection-beard = 鬍鬚
 char_selection-hair_style = 頭髮造型
 char_selection-hair_color = 頭髮顏色

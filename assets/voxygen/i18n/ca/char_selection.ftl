@@ -1,15 +1,10 @@
 char_selection-loading_characters = Carregant personatges...
 char_selection-delete_permanently = Esborrar permanentment aquest Personatge?
-char_selection-change_server = Canviar Servidor
 char_selection-enter_world = Entrar al Món
 char_selection-logout = Tancar Sessió
 char_selection-create_new_character = Crear Nou Personatge
 char_selection-creating_character = Creant Personatge...
-char_selection-character_creation = Creador de Personatge
-char_selection-human_default = Humà per defecte
-char_selection-level_fmt = Nivell { $level_nb }
 char_selection-uncanny_valley = Terra Salvatge
-char_selection-plains_of_uncertainty = Planes de la Incertesa
 char_selection-beard = Barba
 char_selection-hair_style = Pentinat
 char_selection-hair_color = Color de Pèl

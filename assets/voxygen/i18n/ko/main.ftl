@@ -39,7 +39,6 @@ main-login-failed_auth_server_url_invalid = 인증 서버에 연결 실패
 main-login-insecure_auth_scheme = HTTP 인증 방식은 지원되지 않습니다. 개발 과정을 위해 HTTP는 'localhost'나 디버그 빌드 용으로만 있습니다.
 main-login-server_full = 서버가 가득 참
 main-login-untrusted_auth_server = 인증 서버가 신뢰되지 않음
-main-login-outdated_client_or_server = 서버가 화남: 버전이 맞지 않을 가능성이 높음. 업데이트를 해주세요.
 main-login-timeout = 타임아웃: 서버가 시간 내에 응답하지 않음. (서버 과부하나 인터넷 연결 문제).
 main-login-server_shut_down = 서버가 문닫음
 main-login-network_error = 네트워크 오류

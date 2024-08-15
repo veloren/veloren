@@ -18,3 +18,7 @@ object-lifesteal_charm = Abschöpfender Zauber
     .desc = Sauge deinem Ziel das Leben aus und verwende es für dein eigenes.
 object-potion_med = Mittlerer Trank
     .desc = Eine innovative Entdeckung eines Apothekers, besser als die kleineren Vorgänger.
+object-potion_curious = Neugieriger Trank
+    .desc = Ich frage mich, was der tut …
+object-potion_freezing = Gefrierender Trank
+    .desc = Gefriert des Nutzers Gehirn.

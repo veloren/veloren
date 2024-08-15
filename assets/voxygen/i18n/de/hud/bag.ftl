@@ -41,3 +41,23 @@ hud-bag-sort_by_category = Nach Kategorie sortieren
 hud-bag-sort_by_quantity = Nach Anzahl sortieren
 hud-bag-backpack = Rucksack
 hud-bag-sort_by_tag = Nach Label sortieren
+hud-bag-swap_slots_drop_items =
+    { $slot_deficit ->
+        [1] Dadurch wird ein Item auf den Boden fallen gelassen. Bist du sicher?
+       *[other] Dadurch werden { $slot_deficit } Items auf den Boden fallen gelassen. Bist du sicher?
+    }
+hud-bag-split_swap_slots_drop_items =
+    { $slot_deficit ->
+        [1] Dadurch wird ein Item auf den Boden fallen gelassen. Bist du sicher?
+       *[other] Dadurch werden { $slot_deficit } Items auf den Boden fallen gelassen. Bist du sicher?
+    }
+hud-bag-use_slot_unequip_drop_items =
+    { $slot_deficit ->
+        [1] Das Abrüsten dieses Items wird zu fehlendem Platz in deinem Inventar führen, um alle Dinge zu behalten. Ein Item wird auf den Boden fallen. Möchtest du fortfahren?
+       *[other] Das Abrüsten dieses Items wird zu fehlendem Platz in deinem Inventar führen, um alle Dinge zu behalten. { $slot_deficit } Dinge werde auf den Boden fallen. Möchtest du fortfahren?
+    }
+hud-bag-use_slot_equip_drop_items =
+    { $slot_deficit ->
+        [1] Das Ausrüsten dieses Items wird zu fehlendem Platz in deinem Inventar führen, um alle Dinge zu behalten. Ein Item wird auf den Boden fallen. Möchtest du fortfahren?
+       *[other] Das Ausrüsten dieses Items wird zu fehlendem Platz in deinem Inventar führen, um alle Dinge zu behalten. { $slot_deficit } Dinge werde auf den Boden fallen. Möchtest du fortfahren?
+    }

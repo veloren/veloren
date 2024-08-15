@@ -2,7 +2,6 @@ hud-settings-general = 一般
 hud-settings-none = 無
 hud-settings-press_behavior-toggle = 切換
 hud-settings-press_behavior-hold = 按住
-hud-settings-help_window = 協助視窗
 hud-settings-debug_info = 除錯資訊
 hud-settings-tips_on_startup = 開啟時顯示提示
 hud-settings-ui_scale = 界面大小

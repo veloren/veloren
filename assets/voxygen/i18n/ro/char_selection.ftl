@@ -1,15 +1,10 @@
 char_selection-loading_characters = Se încarcă Personajele...
 char_selection-delete_permanently = Vrei să ștergi acest Personaj pentru totdeauna?
-char_selection-change_server = Schimbă Serverul
 char_selection-enter_world = Intră în lume
 char_selection-logout = Ieși din cont
 char_selection-create_new_character = Creează un Personaj Nou
 char_selection-creating_character = Se Creaază Personajul...
-char_selection-character_creation = Creearea Personajului
-char_selection-human_default = Om Inițial
-char_selection-level_fmt = Nivel { $level_nb }
 char_selection-uncanny_valley = Pustietate
-char_selection-plains_of_uncertainty = Câmpiile Incertitudinii
 char_selection-beard = Barbă
 char_selection-hair_style = Stilul Părului
 char_selection-hair_color = Culoarea Parului

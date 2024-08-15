@@ -4,7 +4,6 @@ hud-settings-press_behavior-toggle = Alternar
 hud-settings-press_behavior-hold = Mantener
 hud-settings-autopress_behavior-toggle = Alternar
 hud-settings-autopress_behavior-auto = Auto
-hud-settings-help_window = Ventana de Ayuda
 hud-settings-debug_info = Información de Depuración
 hud-settings-show_hitboxes = Mostrar hitboxes
 hud-settings-show_chat = Mostrar Chat

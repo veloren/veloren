@@ -39,7 +39,6 @@ main-login-failed_auth_server_url_invalid = Nem sikerült kapcsolódni a hiteles
 main-login-insecure_auth_scheme = A HTTP hitelesítés nem támogatott, mert nem biztonságos! A fejlesztés során csak a 'localhost' és a debug build-ek esetén alkalmazunk HTTP-t.
 main-login-server_full = A szerver megtelt
 main-login-untrusted_auth_server = A hitelesítő szerver nem megbízható
-main-login-outdated_client_or_server = ServerWentMad: A játákverziók minden bizonnyal inkompatibilisek, frissítés szükséges.
 main-login-timeout = Időtúllépés: Nem válaszolt időben a szerver (vagy túlterhelés, vagy hálózati problémák miatt).
 main-login-server_shut_down = Leállt a szerver
 main-login-network_error = Hálózati hiba

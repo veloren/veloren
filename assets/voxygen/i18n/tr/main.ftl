@@ -40,7 +40,6 @@ main-login-failed_auth_server_url_invalid = Kimlik doğrulama sunucusuna bağlan
 main-login-insecure_auth_scheme = HTTP kimlik doğrulama desteklenmiyor. Güvenli değil! Geliştirme amacıyla, HTTP'ye 'localhost' ve debug buildleri için izin verilir.
 main-login-server_full = Sunucu dolu
 main-login-untrusted_auth_server = Kimlik doğrulama sunucusu güvenilir değil
-main-login-outdated_client_or_server = SunucuÇılgınaDöndü: Muhtemelen versiyonlar uyuşmuyor, güncellemeleri kontrol et.
 main-login-timeout = Zamanaşımı: Sunucu zamanında cevap vermedi. (Aşırı yüklenme veya ağ sorunları).
 main-login-server_shut_down = Sunucu kapandı
 main-login-network_error = Ağ hatası

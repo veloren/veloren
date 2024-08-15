@@ -1,5 +1,5 @@
 sprite-grass-grass_long_5 = Langes Gras
-    .desc = Grüner als eine Orc-Schnauze.
+    .desc = Grüner als des Ork's Schnauze.
 sprite-wood-item-bamboo = Bambus
     .desc = Riesiges hölzernes Gras. Kann zum Herstellen hölzerner Waffen verwendet werden.
 sprite-wood-item-eldwood = Eldholz-Stämme
@@ -240,3 +240,7 @@ sprite-mineral-gem-sapphiregem = Saphir
     .desc = Ein bunter kobaltblauer Edelstein.
 sprite-crafting_ing-alkahest = Alkahest
     .desc = Alchemistisches Lösungsmittel.
+sprite-crafting_ing-dwarven_battery = Zwergenbatterie
+    .desc = Behälter voll magischer Energie.
+sprite-mineral-ore-ancient_gold = Antikes Gold
+    .desc = Antiker Goldbarren, getränkt mit magischer Energie.

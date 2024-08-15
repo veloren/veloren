@@ -37,7 +37,6 @@ main-login-failed_auth_server_url_invalid = 認証サーバーへの接続に失
 main-login-insecure_auth_scheme = HTTPの認証機構はサポートしていません。これは安全ではありません。HTTPは、開発目的向けにlocalhostまたはデバッグビルドだけに許可されています。
 main-login-server_full = サーバーがいっぱいです
 main-login-untrusted_auth_server = 信頼できない認証サーバーです
-main-login-outdated_client_or_server = サーバーがおかしいです: おそらく、このバージョンには互換性がありません。アップデートをチェックしてください。
 main-login-timeout = タイムアウト: サーバーは時間内に応答しませんでした。（サーバー過負荷かネットワークの問題の可能性）
 main-login-server_shut_down = サーバーが起動していません
 main-login-network_error = ネットワーク エラー

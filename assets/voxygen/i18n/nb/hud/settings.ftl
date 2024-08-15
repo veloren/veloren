@@ -2,7 +2,6 @@ hud-settings-general = Generell
 hud-settings-none = Ingen
 hud-settings-press_behavior-toggle = Veksle
 hud-settings-press_behavior-hold = Hold
-hud-settings-help_window = Hjelpevindu
 hud-settings-debug_info = Feilsøkingsinformasjon
 hud-settings-tips_on_startup = Tips-På-Oppstart
 hud-settings-ui_scale = UI-Skalering

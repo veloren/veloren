@@ -2,7 +2,6 @@ hud-settings-general = Orokorra
 hud-settings-none = Bat ere ez
 hud-settings-press_behavior-toggle = Aukeratu
 hud-settings-press_behavior-hold = Mantendu
-hud-settings-help_window = Laguntza leihoa
 hud-settings-debug_info = Arazketa informazioa
 hud-settings-show_hitboxes = Erakutsi kolpe kutxak
 hud-settings-show_chat = Erakutsi txata

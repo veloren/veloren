@@ -2,7 +2,6 @@ hud-settings-general = Ogólne
 hud-settings-none = Brak
 hud-settings-press_behavior-toggle = Przełącz
 hud-settings-press_behavior-hold = Przytrzymaj
-hud-settings-help_window = Okno pomocy
 hud-settings-debug_info = Informacje debugowania
 hud-settings-show_hitboxes = Pokaż hitboxy
 hud-settings-show_chat = Pokaż czat

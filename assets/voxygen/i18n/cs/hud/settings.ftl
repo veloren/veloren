@@ -2,7 +2,6 @@ hud-settings-general = Obecné
 hud-settings-none = Nic
 hud-settings-press_behavior-toggle = Přepnout
 hud-settings-press_behavior-hold = Podržet
-hud-settings-help_window = Okno nápovědy
 hud-settings-debug_info = Ladící informace
 hud-settings-show_hitboxes = Ukaž hitboxy
 hud-settings-show_chat = Ukaž chat

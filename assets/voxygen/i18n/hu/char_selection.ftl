@@ -1,15 +1,10 @@
 char_selection-loading_characters = Karakterek betöltése...
 char_selection-delete_permanently = Végérvényesen törlöd ezt a karaktert?
-char_selection-change_server = Váltás másik szerverre
 char_selection-enter_world = Világ betöltése
 char_selection-logout = Kijelentkezés
 char_selection-create_new_character = Új karakter létrehozása
 char_selection-creating_character = Karakter létrehozása...
-char_selection-character_creation = Karakterkészítés
-char_selection-human_default = Alapértelmezetten ember
-char_selection-level_fmt = Szint { $level_nb }
 char_selection-uncanny_valley = Vadon
-char_selection-plains_of_uncertainty = Bizonytalanság síksága
 char_selection-beard = Szakáll
 char_selection-hair_style = Fazon
 char_selection-hair_color = Hajszín

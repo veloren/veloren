@@ -54,3 +54,5 @@ hud-crafting-mod_comp_sec_slot_title = Tiermaterial
 hud-crafting-mod_comp_sec_slot_desc = Lege hier bestimmte Tiermaterialien zur Herstellung ab (nur bestimmte Materialien können zur Herstellung von Waffen verwendet werden).
 hud-crafting-repair_slot_title = Beschädigter Gegenstand
 hud-crafting-repair_slot_desc = Lege hier einen Gegenstand ab, um die Reparaturkosten auf der aktuellen Haltbarkeitsstufe zu sehen.
+hud-crafting-recipe-unlearned = Du musst erst lernen, wie du dieses Rezept herstellst.
+hud-crafting-recipe-uncraftable = Rezept kann nicht hergestellt werden

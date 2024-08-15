@@ -1,6 +1,6 @@
 hud-group = Gruppe
-hud-group-invite_to_join = [{ $name }] hat dich in eine Gruppe eingeladen!
-hud-group-invite_to_trade = [{ $name }] will mit dir handeln.
+hud-group-invite_to_join = { "[" }{ $name }] hat dich in eine Gruppe eingeladen!
+hud-group-invite_to_trade = { "[" }{ $name }] will mit dir handeln.
 hud-group-invite = Einladen
 hud-group-kick = Aus der Gruppe kicken
 hud-group-assign_leader = Zum Gruppenanführer machen
@@ -11,3 +11,6 @@ hud-group-add_friend = Zur Freundesliste hinzufügen
 hud-group-link_group = Gruppe verlinken
 hud-group-in_menu = Im Menü
 hud-group-members = Gruppenmitglieder
+hug-group-invite-accepted = { $target } hat deine Gruppeneinladung akzeptiert.
+hud-group-invite-declined = { $target } hat deine Gruppeneinladung abgelehnt.
+hud-group-invite-timed_out = Zeitüberschreitung bei Gruppeneinladung an { $target }.

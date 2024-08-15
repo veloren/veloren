@@ -2,7 +2,6 @@ hud-settings-general = 全般
 hud-settings-none = なし
 hud-settings-press_behavior-toggle = トグル
 hud-settings-press_behavior-hold = 固定
-hud-settings-help_window = ヘルプウィンドウ表示
 hud-settings-debug_info = デバッグ情報表示
 hud-settings-tips_on_startup = スタート時のヒント
 hud-settings-ui_scale = UIスケール

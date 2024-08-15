@@ -37,7 +37,6 @@ main-login-failed_auth_server_url_invalid = Ezin izan da autentikazio zerbitzari
 main-login-insecure_auth_scheme = HTTP eskema ez da onartzen autenfikaziorako. Ez da segurua! Jokoa garatzeko bakarrik erabili dezakezu HTTP, betiere 'localhost' bidez.
 main-login-server_full = Zerbitzaria beteta dago
 main-login-untrusted_auth_server = Autentikazio zerbitzaria ez da fidagarria
-main-login-outdated_client_or_server = ZerbitzariaErotuDa: ziurrenik bertsioak ez dira bateragarrik, ziurtatu jokoa eguneratuta duzula.
 main-login-timeout = Iraungi da: zerbitziak ez du garaiz erantzun. Zerbitzaria gainkargatuta dago edo sare arazoak ditu/dituzu.
 main-login-server_shut_down = Zerbitzaria itzalita dago
 main-login-network_error = Sare errorea

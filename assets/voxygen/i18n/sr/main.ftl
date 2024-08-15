@@ -37,7 +37,6 @@ main-login-failed_auth_server_url_invalid = Грешка при повезива
 main-login-insecure_auth_scheme = HTTP потврдна шема НИЈЕ подржана. Несигурна је! Из развојних потреба, HTTP је дозвољен за 'localhost' или тест изградњама
 main-login-server_full = Сервер је пун
 main-login-untrusted_auth_server = Потврдни сервер није пуздан
-main-login-outdated_client_or_server = Полудели Сервер: Вероватно верзија није подударна, провери ажурирања.
 main-login-timeout = Истекло време: Сервер није одговоријо на време. (Преоптерећење или грешка на мрежи).
 main-login-server_shut_down = Сервер искључен
 main-login-network_error = Грешка на мрежи

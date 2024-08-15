@@ -4,7 +4,6 @@ hud-settings-press_behavior-toggle = Перемикання
 hud-settings-press_behavior-hold = Утримування
 hud-settings-autopress_behavior-toggle = Перемкнути
 hud-settings-autopress_behavior-auto = Автоматично
-hud-settings-help_window = Вікно довідки
 hud-settings-debug_info = Технічна інформація
 hud-settings-show_hitboxes = Відображати хітбокси
 hud-settings-show_chat = Відображати чат

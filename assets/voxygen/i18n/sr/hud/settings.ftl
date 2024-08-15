@@ -2,7 +2,6 @@ hud-settings-general = Општа
 hud-settings-none = Ништа
 hud-settings-press_behavior-toggle = Ис/Укључи
 hud-settings-press_behavior-hold = Држи
-hud-settings-help_window = Прозор за Помоћ
 hud-settings-debug_info = Дебаг Инфо
 hud-settings-show_hitboxes = Прикажи сударне облике
 hud-settings-show_chat = Прикажи Причаоницу

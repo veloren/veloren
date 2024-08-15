@@ -2,7 +2,6 @@ hud-settings-general = Cài đặt chung
 hud-settings-none = Không
 hud-settings-press_behavior-toggle = Bật/Tắt
 hud-settings-press_behavior-hold = Giữ
-hud-settings-help_window = Cửa sổ giúp đỡ
 hud-settings-debug_info = Thông tin gỡ lỗi
 hud-settings-show_hitboxes = Hiện hitboxes
 hud-settings-show_chat = Hiện trò chuyện

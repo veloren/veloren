@@ -37,7 +37,6 @@ main-login-failed_auth_server_url_invalid = Không thể kết nối tới máy 
 main-login-insecure_auth_scheme = Xác thực qua HTTP KHÔNG được hỗ trợ vì thiếu bảo mật! HTTP chỉ dành cho mục đích phát triển với 'localhost' hoặc các bản build gỡ lỗi
 main-login-server_full = Máy chủ đã đầy
 main-login-untrusted_auth_server = Máy chủ xác thực không đáng tin cậy
-main-login-outdated_client_or_server = ServerWentMad: Có thể do phiên bản không tương thích, hãy thử cập nhật.
 main-login-timeout = Hết giờ: máy chủ không phản hồi kịp thời. (quá tải hoặc lỗi mạng).
 main-login-server_shut_down = Máy chủ ngừng hoạt động
 main-login-network_error = Lỗi mạng

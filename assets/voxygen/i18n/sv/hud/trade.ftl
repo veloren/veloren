@@ -32,3 +32,6 @@ hud-trade-your_offer = Ditt erbjudande
 hud-trade-their_offer = Deras erbjudande
 hud-trade-amount_input = Välj ett föremål
 hud-confirm-trade-for-nothing = Vill du verkligen ge bort dessa föremål utan något i utbyte?
+hud-trade-invite-accepted = { $target } accepterade din byteshandelsbegäran.
+hud-trade-invite-declined = { $target } Avböjde din byteshandelsbegäran.
+hud-trade-invite-timed_out = Byteshandelsbegäran till { $target } utgick.

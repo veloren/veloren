@@ -133,9 +133,6 @@ buff-salamanderaspect = Allure des salamandres
 # Frigid
 buff-frigid = Glacé
     .desc = Gèle vos ennemis.
-# Flame
-buff-flame = Enflammé
-    .desc = Les flammes sont vos alliés.
 # Imminent Critical
 buff-imminentcritical = Coup critique imminent
     .desc = Votre prochaine attaque frappera votre ennemie de manière critique.

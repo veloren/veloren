@@ -1,13 +1,9 @@
 char_selection-loading_characters = Đang tải nhân vật...
 char_selection-delete_permanently = Xóa vĩnh viễn Nhân vật này?
-char_selection-change_server = Đổi Máy Chủ
 char_selection-enter_world = Vào Trò Chơi
 char_selection-logout = Đăng xuất
 char_selection-create_new_character = Tạo Nhân Vật Mới
 char_selection-creating_character = Đang Tạo Nhân Vật...
-char_selection-character_creation = Tạo Nhân Vật
-char_selection-human_default = Con Người Mặc Định
-char_selection-level_fmt = Cấp Độ { $level_nb }
 char_selection-beard = Râu
 char_selection-hair_style = Kiểu Tóc
 char_selection-hair_color = Màu Tóc

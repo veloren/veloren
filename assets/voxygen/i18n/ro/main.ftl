@@ -39,7 +39,6 @@ main-login-failed_auth_server_url_invalid = Nu s-a putut conecta la serverul de 
 main-login-insecure_auth_scheme = Schema de autentificare HTTP NU este acceptată. Este nesigur! În scopuri de dezvoltare, HTTP este permis pentru „localhost” sau versiuni de depanare
 main-login-server_full = Serverul este plin
 main-login-untrusted_auth_server = Serverul de autentificare nu este de încredere
-main-login-outdated_client_or_server = ServerWentMad: Probabil că versiunile sunt incompatibile, verifică pentru actualizări.
 main-login-timeout = Timeout: Serverul nu a răspuns la timp. (Probleme de supraîncărcare sau de rețea).
 main-login-server_shut_down = Serverul s-a oprit
 main-login-network_error = Eroare de rețea
