@@ -1133,7 +1133,7 @@ impl PlayState for SessionState {
                                         match interactable {
                                             Interactable::Block(_, _, _) => {},
                                             Interactable::Entity(entity) => {
-                                                let can_trade_to = client
+                                                let can_trade_to_alignment = client
                                                     .state()
                                                     .read_component_cloned::<Alignment>(*entity)
                                                     .is_some_and(|a| match a {
@@ -1148,11 +1148,10 @@ impl PlayState for SessionState {
                                                         _ => false,
                                                     });
 
-                                                if can_trade_to
-                                                    && let Some(uid) = client
-                                                        .state()
-                                                        .ecs()
-                                                        .uid_from_entity(*entity)
+                                                if let Some(uid) =
+                                                    client.state().ecs().uid_from_entity(*entity)
+                                                    && (can_trade_to_alignment
+                                                        || client.player_list().contains_key(&uid))
                                                 {
                                                     let name = client
                                                         .player_list()
