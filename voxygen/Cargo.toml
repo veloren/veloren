@@ -35,6 +35,7 @@ egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
 bin_img_export = ["common-assets"]
+bin_cmd_doc_gen = []
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
 default-publish = [
@@ -174,3 +175,7 @@ name = "meshing_benchmark"
 [[bin]]
 name = "img_export"
 required-features = ["bin_img_export"]
+
+[[bin]]
+name = "cmd_doc_gen"
+required-features = ["bin_cmd_doc_gen"]
