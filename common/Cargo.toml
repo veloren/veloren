@@ -11,7 +11,6 @@ simd = ["vek/platform_intrinsics"]
 bin_csv = ["ron", "csv", "clap"]
 bin_graphviz = ["petgraph", "clap"]
 bin_recipe_gen = ["ron"]
-bin_cmd_doc_gen = []
 bin_asset_migrate = ["ron"]
 rrt_pathfinding = ["kiddo"]
 calendar_events = []
@@ -118,7 +117,3 @@ required-features = ["bin_graphviz"]
 [[bin]]
 name = "skill_graphviz"
 required-features = ["bin_graphviz"]
-
-[[bin]]
-name = "cmd_doc_gen"
-required-features = ["bin_cmd_doc_gen"]
