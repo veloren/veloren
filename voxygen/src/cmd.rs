@@ -16,6 +16,7 @@ use common::{
     uid::Uid,
     uuid::Uuid,
 };
+use common_i18n::Content;
 use common_net::sync::WorldSyncExt;
 use itertools::Itertools;
 use levenshtein::levenshtein;
@@ -38,11 +39,9 @@ impl ClientChatCommand {
         use Requirement::*;
         let cmd = ChatCommandData::new;
         match self {
-            ClientChatCommand::Clear => cmd(
-                Vec::new(),
-                "Clears all messages in chat. Affects all chat tabs.",
-                None,
-            ),
+            ClientChatCommand::Clear => {
+                cmd(Vec::new(), Content::localized("command-clear-desc"), None)
+            },
             ClientChatCommand::ExperimentalShader => cmd(
                 vec![Enum(
                     "Shader",
@@ -51,22 +50,22 @@ impl ClientChatCommand {
                         .collect(),
                     Optional,
                 )],
-                "Toggles an experimental shader.",
+                Content::localized("command-experimental_shader-desc"),
                 None,
             ),
             ClientChatCommand::Help => cmd(
                 vec![Command(Optional)],
-                "Display information about commands",
+                Content::localized("command-help-desc"),
                 None,
             ),
             ClientChatCommand::Mute => cmd(
                 vec![PlayerName(Required)],
-                "Mutes chat messages from a player.",
+                Content::localized("command-mute-desc"),
                 None,
             ),
             ClientChatCommand::Unmute => cmd(
                 vec![PlayerName(Required)],
-                "Unmutes a player muted with the 'mute' command.",
+                Content::localized("command-unmute-desc"),
                 None,
             ),
         }
@@ -83,13 +82,18 @@ impl ClientChatCommand {
     }
 
     /// A message that explains what the command does
-    pub fn help_string(&self) -> String {
+    pub fn help_content(&self) -> Content {
         let data = self.data();
+
         let usage = std::iter::once(format!("/{}", self.keyword()))
             .chain(data.args.iter().map(|arg| arg.usage_string()))
             .collect::<Vec<_>>()
             .join(" ");
-        format!("{}: {}", usage, data.description)
+
+        Content::localized_with_args("command-help-template", [
+            ("usage", Content::Plain(usage)),
+            ("description", data.description),
+        ])
     }
 
     /// Returns a format string for parsing arguments with scan_fmt
@@ -377,13 +381,15 @@ fn handle_clear(
 
 fn handle_help(
     session_state: &mut SessionState,
-    _global_state: &mut GlobalState,
+    global_state: &mut GlobalState,
     args: Vec<String>,
 ) -> CommandResult {
+    let i18n = global_state.i18n.read();
+
     if let Some(cmd) = parse_cmd_args!(&args, ServerChatCommand) {
-        Ok(Some(cmd.help_string()))
+        Ok(Some(i18n.get_content(&cmd.help_content())))
     } else if let Some(cmd) = parse_cmd_args!(&args, ClientChatCommand) {
-        Ok(Some(cmd.help_string()))
+        Ok(Some(i18n.get_content(&cmd.help_content())))
     } else {
         let client = &mut session_state.client.borrow_mut();
 
@@ -395,17 +401,17 @@ fn handle_help(
             .map(|admin| admin.0);
 
         ClientChatCommand::iter().for_each(|cmd| {
-            message += &cmd.help_string();
+            message += &i18n.get_content(&cmd.help_content());
             message += "\n";
         });
         // Iterate through all ServerChatCommands you have permission to use.
         ServerChatCommand::iter()
             .filter(|cmd| cmd.needs_role() <= entity_role)
             .for_each(|cmd| {
-                message += &cmd.help_string();
+                message += &i18n.get_content(&cmd.help_content());
                 message += "\n";
             });
-        message += "Additionally, you can use the following shortcuts:";
+        message += &i18n.get_msg("command-help-additional-shortcuts");
         ServerChatCommand::iter()
             .filter(|cmd| cmd.needs_role() <= entity_role)
             .filter_map(|cmd| cmd.short_keyword().map(|k| (k, cmd)))

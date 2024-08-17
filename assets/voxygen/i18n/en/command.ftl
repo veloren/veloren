@@ -1,3 +1,116 @@
+# Descriptions and Help
+
+command-help-template = { $usage } { $description }
+command-help-additional-shortcuts = Additionally, you can use the following shortcuts:
+
+## Server Commands
+
+command-adminify-desc = Temporarily gives a player a restricted admin role or removes the current one (if not given)
+command-airship-desc = Spawns an airship
+command-alias-desc = Change your alias
+command-area_add-desc = Adds a new build area
+command-area_list-desc = List all build areas
+command-area_remove-desc = Removes specified build area
+command-aura-desc = Create an aura
+command-body-desc = Change your body to different species
+command-buff-desc = Cast a buff on player
+command-build-desc = Toggles build mode on and off
+command-ban-desc = Ban a player with a given username, for a given duration (if provided). Pass true for overwrite to alter an existing ban.
+command-battlemode-desc = Set your battle mode to:
+  + pvp (player vs player)
+  + pve (player vs environment).
+  If called without arguments will show current battle mode.
+command-battlemode_force-desc = Change your battle mode flag without any checks
+command-campfire-desc = Spawns a campfire
+command-clear_persisted_terrain-desc = Clears nearby persisted terrain
+command-create_location-desc = Create a location at the current position
+command-debug_column-desc = Prints some debug information about a column
+command-debug_ways-desc = Prints some debug information about a column's ways
+command-delete_location-desc = Delete a location
+command-destroy_tethers-desc = Destroy all tethers connected to you
+command-disconnect_all_players-desc = Disconnects all players from the server
+command-dismount-desc = Dismount if you are riding, or dismount anything riding you
+command-dropall-desc = Drops all your items on the ground
+command-dummy-desc = Spawns a training dummy
+command-explosion-desc = Explodes the ground around you
+command-faction-desc = Send messages to your faction
+command-give_item-desc = Give yourself some items. For an example or to auto complete use Tab.
+command-goto-desc = Teleport to a position
+command-group-desc = Send messages to your group
+command-group_invite-desc = Invite a player to join a group
+command-group_kick-desc = Remove a player from a group
+command-group_leave-desc = Leave the current group
+command-group_promote-desc = Promote a player to group leader
+command-health-desc = Set your current health
+command-into_npc-desc = Convert yourself to an NPC. Be careful!
+command-join_faction-desc = Join/leave the specified faction
+command-jump-desc = Offset your current position
+command-kick-desc = Kick a player with a given username
+command-kill-desc = Kill yourself
+command-kill_npcs-desc = Kill the NPCs
+command-kit-desc = Place a set of items into your inventory.
+command-lantern-desc = Change your lantern's strength and color
+command-light-desc = Spawn entity with light
+command-lightning-desc = Lightning strike at current position
+command-location-desc = Teleport to a location
+command-make_block-desc = Make a block at your location with a color
+command-make_npc-desc = Spawn entity from config near you.
+  For an example or to auto complete use Tab.
+command-make_sprite-desc = Make a sprite at your location
+command-make_volume-desc = Create a volume (experimental)
+command-motd-desc = View the server description
+command-mount-desc = Mount an entity
+command-object-desc = Spawn an object
+command-permit_build-desc = Grants player a bounded box they can build in
+command-players-desc = Lists players currently online
+command-portal-desc = Spawns a portal
+command-region-desc = Send messages to everyone in your region of the world
+command-reload_chunks-desc = Reloads chunks loaded on the server
+command-remove_lights-desc = Removes all lights spawned by players
+command-repair_equipment-desc = Repairs all equipped items
+command-reset_recipes-desc = Resets your recipe book
+command-respawn-desc = Teleport to your waypoint
+command-revoke_build-desc = Revokes build area permission for player
+command-revoke_build_all-desc = Revokes all build area permissions for player
+command-safezone-desc = Creates a safezone
+command-say-desc = Send messages to everyone within shouting distance
+command-scale-desc = Scale your character
+command-server_physics-desc = Set/unset server-authoritative physics for an account
+command-set_motd-desc = Set the server description
+command-ship-desc = Spawns a ship
+command-site-desc = Teleport to a site
+command-skill_point-desc = Give yourself skill points for a particular skill tree
+command-skill_preset-desc = Gives your character desired skills.
+command-spawn-desc = Spawn a test entity
+command-sudo-desc = Run command as if you were another entity
+command-tell-desc = Send a message to another player
+command-tether-desc = Tether another entity to yourself
+command-time-desc = Set the time of day
+command-time_scale-desc = Set scaling of delta time
+command-tp-desc = Teleport to another entity
+command-rtsim_chunk-desc = Display information about the current chunk from rtsim
+command-rtsim_info-desc = Display information about an rtsim NPC
+command-rtsim_npc-desc = List rtsim NPCs that fit a given query (e.g: simulated,merchant) in order of distance
+command-rtsim_purge-desc = Purge rtsim data on next startup
+command-rtsim_tp-desc = Teleport to an rtsim npc
+command-unban-desc = Remove the ban for the given username
+command-version-desc = Prints server version
+command-waypoint-desc = Set your waypoint to your current position
+command-weather_zone-desc = Create a weather zone
+command-whitelist-desc = Adds/removes username to whitelist
+command-wiring-desc = Create wiring element
+command-world-desc = Send messages to everyone on the server
+
+## Voxygen Client Commands
+
+command-clear-desc = Clears all messages in chat. Affects all chat tabs.
+command-experimental_shader-desc = Toggles an experimental shader.
+command-help-desc = Display information about commands
+command-mute-desc = Mutes chat messages from a player.
+command-unmute-desc = Unmutes a player muted with the 'mute' command.
+
+# Results and Warning
+
 command-no-permission = You don't have permission to use '/{ $command_name }'
 command-position-unavailable = Cannot get position for { $target }
 command-player-role-unavailable = Cannot get administrator roles for { $target }

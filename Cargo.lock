@@ -7503,6 +7503,7 @@ dependencies = [
  "veloren-common-base",
  "veloren-common-ecs",
  "veloren-common-frontend",
+ "veloren-common-i18n",
  "veloren-common-net",
  "veloren-common-state",
  "veloren-common-systems",
