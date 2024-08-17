@@ -10,6 +10,7 @@ use crate::{
     recipe::RecipeBookManifest,
     terrain,
 };
+use common_i18n::Content;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -24,18 +25,14 @@ use tracing::warn;
 pub struct ChatCommandData {
     /// A list of arguments useful for both tab completion and parsing
     pub args: Vec<ArgumentSpec>,
-    /// A one-line message that explains what the command does
-    pub description: &'static str,
+    /// The i18n content for the description of the command
+    pub description: Content,
     /// Whether the command requires administrator permissions.
     pub needs_role: Option<Role>,
 }
 
 impl ChatCommandData {
-    pub fn new(
-        args: Vec<ArgumentSpec>,
-        description: &'static str,
-        needs_role: Option<Role>,
-    ) -> Self {
+    pub fn new(args: Vec<ArgumentSpec>, description: Content, needs_role: Option<Role>) -> Self {
         Self {
             args,
             description,
@@ -358,7 +355,6 @@ pub enum ServerChatCommand {
     GroupLeave,
     GroupPromote,
     Health,
-    Help,
     IntoNpc,
     JoinFaction,
     Jump,
@@ -427,8 +423,7 @@ impl ServerChatCommand {
         match self {
             ServerChatCommand::Adminify => cmd(
                 vec![PlayerName(Required), Enum("role", ROLES.clone(), Optional)],
-                "Temporarily gives a player a restricted admin role or removes the current one \
-                 (if not given)",
+                Content::localized("command-adminify-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Airship => cmd(
@@ -443,12 +438,12 @@ impl ServerChatCommand {
                     ),
                     Float("destination_degrees_ccw_of_east", 90.0, Optional),
                 ],
-                "Spawns an airship",
+                Content::localized("command-airship-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Alias => cmd(
                 vec![Any("name", Required)],
-                "Change your alias",
+                Content::localized("command-alias-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::Aura => cmd(
@@ -460,7 +455,7 @@ impl ServerChatCommand {
                     Enum("aura_kind", AuraKindVariant::all_options(), Required),
                     Any("aura spec", Optional),
                 ],
-                "Create an aura",
+                Content::localized("command-aura-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Buff => cmd(
@@ -470,7 +465,7 @@ impl ServerChatCommand {
                     Float("duration", 10.0, Optional),
                     Any("buff data spec", Optional),
                 ],
-                "Cast a buff on player",
+                Content::localized("command-buff-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Ban => cmd(
@@ -480,8 +475,7 @@ impl ServerChatCommand {
                     Any("ban duration", Optional),
                     Message(Optional),
                 ],
-                "Ban a player with a given username, for a given duration (if provided).  Pass \
-                 true for overwrite to alter an existing ban..",
+                Content::localized("command-ban-desc"),
                 Some(Moderator),
             ),
             #[rustfmt::skip]
@@ -491,10 +485,7 @@ impl ServerChatCommand {
                     vec!["pvp".to_owned(), "pve".to_owned()],
                     Optional,
                 )],
-                "Set your battle mode to:\n\
-                * pvp (player vs player)\n\
-                * pve (player vs environment).\n\
-                If called without arguments will show current battle mode.",
+                Content::localized("command-battlemode-desc"),
                 None,
 
             ),
@@ -505,12 +496,12 @@ impl ServerChatCommand {
                     ENTITY_CONFIGS.clone(),
                     Required,
                 )],
-                "Convert yourself to an NPC. Be careful!",
+                Content::localized("command-into_npc-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Body => cmd(
                 vec![Enum("body", ENTITIES.clone(), Required)],
-                "Change your body to different species",
+                Content::localized("command-body-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::BattleModeForce => cmd(
@@ -519,10 +510,10 @@ impl ServerChatCommand {
                     vec!["pvp".to_owned(), "pve".to_owned()],
                     Required,
                 )],
-                "Change your battle mode flag without any checks",
+                Content::localized("command-battlemode_force-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Build => cmd(vec![], "Toggles build mode on and off", None),
+            ServerChatCommand::Build => cmd(vec![], Content::localized("command-build-desc"), None),
             ServerChatCommand::AreaAdd => cmd(
                 vec![
                     Any("name", Required),
@@ -534,53 +525,65 @@ impl ServerChatCommand {
                     Integer("zlo", 0, Required),
                     Integer("zhi", 10, Required),
                 ],
-                "Adds a new build area",
+                Content::localized("command-area_add-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::AreaList => cmd(vec![], "List all build areas", Some(Admin)),
+            ServerChatCommand::AreaList => cmd(
+                vec![],
+                Content::localized("command-area_list-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::AreaRemove => cmd(
                 vec![
                     Any("name", Required),
                     Enum("kind", AREA_KINDS.clone(), Required),
                 ],
-                "Removes specified build area",
+                Content::localized("command-area_remove-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Campfire => cmd(vec![], "Spawns a campfire", Some(Admin)),
+            ServerChatCommand::Campfire => cmd(
+                vec![],
+                Content::localized("command-campfire-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::ClearPersistedTerrain => cmd(
                 vec![Integer("chunk_radius", 6, Required)],
-                "Clears nearby persisted terrain",
+                Content::localized("command-clear_persisted_terrain-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::DebugColumn => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
-                "Prints some debug information about a column",
+                Content::localized("command-debug_column-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::DebugWays => cmd(
                 vec![Integer("x", 15000, Required), Integer("y", 15000, Required)],
-                "Prints some debug information about a column's ways",
+                Content::localized("command-debug_ways-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::DisconnectAllPlayers => cmd(
                 vec![Any("confirm", Required)],
-                "Disconnects all players from the server",
+                Content::localized("command-disconnect_all_players-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::DropAll => cmd(
                 vec![],
-                "Drops all your items on the ground",
+                Content::localized("command-dropall-desc"),
                 Some(Moderator),
             ),
-            ServerChatCommand::Dummy => cmd(vec![], "Spawns a training dummy", Some(Admin)),
+            ServerChatCommand::Dummy => cmd(
+                vec![],
+                Content::localized("command-dummy-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::Explosion => cmd(
                 vec![Float("radius", 5.0, Required)],
-                "Explodes the ground around you",
+                Content::localized("command-explosion-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Faction => cmd(
                 vec![Message(Optional)],
-                "Send messages to your faction",
+                Content::localized("command-faction-desc"),
                 None,
             ),
             ServerChatCommand::GiveItem => cmd(
@@ -588,7 +591,7 @@ impl ServerChatCommand {
                     AssetPath("item", "common.items.", ITEM_SPECS.clone(), Required),
                     Integer("num", 1, Optional),
                 ],
-                "Give yourself some items.\nFor an example or to auto complete use Tab.",
+                Content::localized("command-give_item-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Goto => cmd(
@@ -598,42 +601,45 @@ impl ServerChatCommand {
                     Float("z", 0.0, Required),
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
-                "Teleport to a position",
+                Content::localized("command-goto-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Group => {
-                cmd(vec![Message(Optional)], "Send messages to your group", None)
-            },
+            ServerChatCommand::Group => cmd(
+                vec![Message(Optional)],
+                Content::localized("command-group-desc"),
+                None,
+            ),
             ServerChatCommand::GroupInvite => cmd(
                 vec![PlayerName(Required)],
-                "Invite a player to join a group",
+                Content::localized("command-group_invite-desc"),
                 None,
             ),
             ServerChatCommand::GroupKick => cmd(
                 vec![PlayerName(Required)],
-                "Remove a player from a group",
+                Content::localized("command-group_kick-desc"),
                 None,
             ),
-            ServerChatCommand::GroupLeave => cmd(vec![], "Leave the current group", None),
+            ServerChatCommand::GroupLeave => {
+                cmd(vec![], Content::localized("command-group_leave-desc"), None)
+            },
             ServerChatCommand::GroupPromote => cmd(
                 vec![PlayerName(Required)],
-                "Promote a player to group leader",
+                Content::localized("command-group_promote-desc"),
                 None,
             ),
             ServerChatCommand::Health => cmd(
                 vec![Integer("hp", 100, Required)],
-                "Set your current health",
+                Content::localized("command-health-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Help => ChatCommandData::new(
-                vec![Command(Optional)],
-                "Display information about commands",
-                None,
+            ServerChatCommand::Respawn => cmd(
+                vec![],
+                Content::localized("command-respawn-desc"),
+                Some(Moderator),
             ),
-            ServerChatCommand::Respawn => cmd(vec![], "Teleport to your waypoint", Some(Moderator)),
-            ServerChatCommand::JoinFaction => ChatCommandData::new(
+            ServerChatCommand::JoinFaction => cmd(
                 vec![Any("faction", Optional)],
-                "Join/leave the specified faction",
+                Content::localized("command-join_faction-desc"),
                 None,
             ),
             ServerChatCommand::Jump => cmd(
@@ -643,23 +649,23 @@ impl ServerChatCommand {
                     Float("z", 0.0, Required),
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
-                "Offset your current position",
+                Content::localized("command-jump-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Kick => cmd(
                 vec![PlayerName(Required), Message(Optional)],
-                "Kick a player with a given username",
+                Content::localized("command-kick-desc"),
                 Some(Moderator),
             ),
-            ServerChatCommand::Kill => cmd(vec![], "Kill yourself", None),
+            ServerChatCommand::Kill => cmd(vec![], Content::localized("command-kill-desc"), None),
             ServerChatCommand::KillNpcs => cmd(
                 vec![Float("radius", 100.0, Optional), Flag("--also-pets")],
-                "Kill the NPCs",
+                Content::localized("command-kill_npcs-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Kit => cmd(
                 vec![Enum("kit_name", KITS.to_vec(), Required)],
-                "Place a set of items into your inventory.",
+                Content::localized("command-kit-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Lantern => cmd(
@@ -669,7 +675,7 @@ impl ServerChatCommand {
                     Float("g", 1.0, Optional),
                     Float("b", 1.0, Optional),
                 ],
-                "Change your lantern's strength and color",
+                Content::localized("command-lantern-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Light => cmd(
@@ -682,7 +688,7 @@ impl ServerChatCommand {
                     Float("z", 0.0, Optional),
                     Float("strength", 5.0, Optional),
                 ],
-                "Spawn entity with light",
+                Content::localized("command-light-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::MakeBlock => cmd(
@@ -692,7 +698,7 @@ impl ServerChatCommand {
                     Integer("g", 255, Optional),
                     Integer("b", 255, Optional),
                 ],
-                "Make a block at your location with a color",
+                Content::localized("command-make_block-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::MakeNpc => cmd(
@@ -705,26 +711,28 @@ impl ServerChatCommand {
                     ),
                     Integer("num", 1, Optional),
                 ],
-                "Spawn entity from config near you.\nFor an example or to auto complete use Tab.",
+                Content::localized("command-make_npc-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::MakeSprite => cmd(
                 vec![Enum("sprite", SPRITE_KINDS.clone(), Required)],
-                "Make a sprite at your location",
+                Content::localized("command-make_sprite-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Motd => cmd(vec![], "View the server description", None),
+            ServerChatCommand::Motd => cmd(vec![], Content::localized("command-motd-desc"), None),
             ServerChatCommand::Object => cmd(
                 vec![Enum("object", OBJECTS.clone(), Required)],
-                "Spawn an object",
+                Content::localized("command-object-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::PermitBuild => cmd(
                 vec![Any("area_name", Required)],
-                "Grants player a bounded box they can build in",
+                Content::localized("command-permit_build-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Players => cmd(vec![], "Lists players currently online", None),
+            ServerChatCommand::Players => {
+                cmd(vec![], Content::localized("command-players-desc"), None)
+            },
             ServerChatCommand::Portal => cmd(
                 vec![
                     Float("x", 0., Required),
@@ -733,43 +741,47 @@ impl ServerChatCommand {
                     Boolean("requires_no_aggro", "true".to_string(), Optional),
                     Float("buildup_time", 5., Optional),
                 ],
-                "Spawns a portal",
+                Content::localized("command-portal-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::ReloadChunks => cmd(
                 vec![Integer("chunk_radius", 6, Optional)],
-                "Reloads chunks loaded on the server",
+                Content::localized("command-reload_chunks-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::ResetRecipes => cmd(vec![], "Resets your recipe book", Some(Admin)),
+            ServerChatCommand::ResetRecipes => cmd(
+                vec![],
+                Content::localized("command-reset_recipes-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::RemoveLights => cmd(
                 vec![Float("radius", 20.0, Optional)],
-                "Removes all lights spawned by players",
+                Content::localized("command-remove_lights-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::RevokeBuild => cmd(
                 vec![Any("area_name", Required)],
-                "Revokes build area permission for player",
+                Content::localized("command-revoke_build-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::RevokeBuildAll => cmd(
                 vec![],
-                "Revokes all build area permissions for player",
+                Content::localized("command-revoke_build_all-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Region => cmd(
                 vec![Message(Optional)],
-                "Send messages to everyone in your region of the world",
+                Content::localized("command-region-desc"),
                 None,
             ),
             ServerChatCommand::Safezone => cmd(
                 vec![Float("range", 100.0, Optional)],
-                "Creates a safezone",
+                Content::localized("command-safezone-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::Say => cmd(
                 vec![Message(Optional)],
-                "Send messages to everyone within shouting distance",
+                Content::localized("command-say-desc"),
                 None,
             ),
             ServerChatCommand::ServerPhysics => cmd(
@@ -777,12 +789,12 @@ impl ServerChatCommand {
                     PlayerName(Required),
                     Boolean("enabled", "true".to_string(), Optional),
                 ],
-                "Set/unset server-authoritative physics for an account",
+                Content::localized("command-server_physics-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::SetMotd => cmd(
                 vec![Any("locale", Optional), Message(Optional)],
-                "Set the server description",
+                Content::localized("command-set_motd-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Ship => cmd(
@@ -802,7 +814,7 @@ impl ServerChatCommand {
                     ),
                     Float("destination_degrees_ccw_of_east", 90.0, Optional),
                 ],
-                "Spawns a ship",
+                Content::localized("command-ship-desc"),
                 Some(Admin),
             ),
             // Uses Message because site names can contain spaces,
@@ -812,7 +824,7 @@ impl ServerChatCommand {
                     SiteName(Required),
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
-                "Teleport to a site",
+                Content::localized("command-site-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::SkillPoint => cmd(
@@ -820,12 +832,12 @@ impl ServerChatCommand {
                     Enum("skill tree", SKILL_TREES.clone(), Required),
                     Integer("amount", 1, Optional),
                 ],
-                "Give yourself skill points for a particular skill tree",
+                Content::localized("command-skill_point-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::SkillPreset => cmd(
                 vec![Enum("preset_name", PRESET_LIST.to_vec(), Required)],
-                "Gives your character desired skills.",
+                Content::localized("command-skill_preset-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Spawn => cmd(
@@ -837,27 +849,27 @@ impl ServerChatCommand {
                     Float("scale", 1.0, Optional),
                     Boolean("tethered", "false".to_string(), Optional),
                 ],
-                "Spawn a test entity",
+                Content::localized("command-spawn-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Sudo => cmd(
                 vec![EntityTarget(Required), SubCommand],
-                "Run command as if you were another entity",
+                Content::localized("command-sudo-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::Tell => cmd(
                 vec![PlayerName(Required), Message(Optional)],
-                "Send a message to another player",
+                Content::localized("command-tell-desc"),
                 None,
             ),
             ServerChatCommand::Time => cmd(
                 vec![Enum("time", TIMES.clone(), Optional)],
-                "Set the time of day",
+                Content::localized("command-time-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::TimeScale => cmd(
                 vec![Float("time scale", 1.0, Optional)],
-                "Set scaling of delta time",
+                Content::localized("command-time_scale-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Tp => cmd(
@@ -865,7 +877,7 @@ impl ServerChatCommand {
                     EntityTarget(Optional),
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
-                "Teleport to another entity",
+                Content::localized("command-tp-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::RtsimTp => cmd(
@@ -873,18 +885,17 @@ impl ServerChatCommand {
                     Integer("npc index", 0, Required),
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
-                "Teleport to an rtsim npc",
+                Content::localized("command-rtsim_tp-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::RtsimInfo => cmd(
                 vec![Integer("npc index", 0, Required)],
-                "Display information about an rtsim NPC",
+                Content::localized("command-rtsim_info-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::RtsimNpc => cmd(
                 vec![Any("query", Required), Integer("max number", 20, Optional)],
-                "List rtsim NPCs that fit a given query (e.g: simulated,merchant) in order of \
-                 distance",
+                Content::localized("command-rtsim_npc-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::RtsimPurge => cmd(
@@ -893,52 +904,60 @@ impl ServerChatCommand {
                     true.to_string(),
                     Required,
                 )],
-                "Purge rtsim data on next startup",
+                Content::localized("command-rtsim_purge-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::RtsimChunk => cmd(
                 vec![],
-                "Display information about the current chunk from rtsim",
+                Content::localized("command-rtsim_chunk-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Unban => cmd(
                 vec![PlayerName(Required)],
-                "Remove the ban for the given username",
+                Content::localized("command-unban-desc"),
                 Some(Moderator),
             ),
-            ServerChatCommand::Version => cmd(vec![], "Prints server version", None),
+            ServerChatCommand::Version => {
+                cmd(vec![], Content::localized("command-version-desc"), None)
+            },
             ServerChatCommand::Waypoint => cmd(
                 vec![],
-                "Set your waypoint to your current position",
+                Content::localized("command-waypoint-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Wiring => cmd(vec![], "Create wiring element", Some(Admin)),
+            ServerChatCommand::Wiring => cmd(
+                vec![],
+                Content::localized("command-wiring-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::Whitelist => cmd(
                 vec![Any("add/remove", Required), PlayerName(Required)],
-                "Adds/removes username to whitelist",
+                Content::localized("command-whitelist-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::World => cmd(
                 vec![Message(Optional)],
-                "Send messages to everyone on the server",
+                Content::localized("command-world-desc"),
                 None,
             ),
             ServerChatCommand::MakeVolume => cmd(
                 vec![Integer("size", 15, Optional)],
-                "Create a volume (experimental)",
+                Content::localized("command-make_volume-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Location => {
-                cmd(vec![Any("name", Required)], "Teleport to a location", None)
-            },
+            ServerChatCommand::Location => cmd(
+                vec![Any("name", Required)],
+                Content::localized("command-location-desc"),
+                None,
+            ),
             ServerChatCommand::CreateLocation => cmd(
                 vec![Any("name", Required)],
-                "Create a location at the current position",
+                Content::localized("command-create_location-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::DeleteLocation => cmd(
                 vec![Any("name", Required)],
-                "Delete a location",
+                Content::localized("command-delete_location-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::WeatherZone => cmd(
@@ -947,40 +966,48 @@ impl ServerChatCommand {
                     Float("radius", 500.0, Optional),
                     Float("time", 300.0, Optional),
                 ],
-                "Create a weather zone",
+                Content::localized("command-weather_zone-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::Lightning => {
-                cmd(vec![], "Lightning strike at current position", Some(Admin))
-            },
+            ServerChatCommand::Lightning => cmd(
+                vec![],
+                Content::localized("command-lightning-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::Scale => cmd(
                 vec![
                     Float("factor", 1.0, Required),
                     Boolean("reset_mass", true.to_string(), Optional),
                 ],
-                "Scale your character",
+                Content::localized("command-scale-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::RepairEquipment => {
-                cmd(vec![], "Repairs all equipped items", Some(Admin))
-            },
+            ServerChatCommand::RepairEquipment => cmd(
+                vec![],
+                Content::localized("command-repair_equipment-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::Tether => cmd(
                 vec![
                     EntityTarget(Required),
                     Boolean("automatic length", "true".to_string(), Optional),
                 ],
-                "Tether another entity to yourself",
+                Content::localized("command-tether-desc"),
                 Some(Admin),
             ),
-            ServerChatCommand::DestroyTethers => {
-                cmd(vec![], "Destroy all tethers connected to you", Some(Admin))
-            },
-            ServerChatCommand::Mount => {
-                cmd(vec![EntityTarget(Required)], "Mount an entity", Some(Admin))
-            },
+            ServerChatCommand::DestroyTethers => cmd(
+                vec![],
+                Content::localized("command-destroy_tethers-desc"),
+                Some(Admin),
+            ),
+            ServerChatCommand::Mount => cmd(
+                vec![EntityTarget(Required)],
+                Content::localized("command-mount-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::Dismount => cmd(
                 vec![EntityTarget(Required)],
-                "Dismount if you are riding, or dismount anything riding you",
+                Content::localized("command-dismount-desc"),
                 Some(Admin),
             ),
         }
@@ -1019,7 +1046,6 @@ impl ServerChatCommand {
             ServerChatCommand::GroupLeave => "group_leave",
             ServerChatCommand::GroupPromote => "group_promote",
             ServerChatCommand::Health => "health",
-            ServerChatCommand::Help => "help",
             ServerChatCommand::IntoNpc => "into_npc",
             ServerChatCommand::JoinFaction => "join_faction",
             ServerChatCommand::Jump => "jump",
@@ -1102,13 +1128,18 @@ impl ServerChatCommand {
     pub fn iter() -> impl Iterator<Item = Self> + Clone { <Self as IntoEnumIterator>::iter() }
 
     /// A message that explains what the command does
-    pub fn help_string(&self) -> String {
+    pub fn help_content(&self) -> Content {
         let data = self.data();
+
         let usage = std::iter::once(format!("/{}", self.keyword()))
             .chain(data.args.iter().map(|arg| arg.usage_string()))
             .collect::<Vec<_>>()
             .join(" ");
-        format!("{}: {}", usage, data.description)
+
+        Content::localized_with_args("command-help-template", [
+            ("usage", Content::Plain(usage)),
+            ("description", data.description),
+        ])
     }
 
     /// Produce an iterator that first goes over all the short keywords

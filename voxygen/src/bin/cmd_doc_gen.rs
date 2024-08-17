@@ -1,9 +1,14 @@
 use common::cmd::{ChatCommandData, ServerChatCommand};
+use i18n::{LocalizationGuard, LocalizationHandle};
 use veloren_voxygen::cmd::ClientChatCommand;
 
 /// This binary generates the markdown tables used for the `players/commands.md`
 /// page in the Veloren Book. It can be run with `cargo cmd-doc-gen`.
 fn main() {
+    let i18n = LocalizationHandle::load(i18n::REFERENCE_LANG)
+        .unwrap()
+        .read();
+
     let table_header = "|Command|Description|Requires|Arguments|";
     let table_seperator = "|-|-|-|-|";
 
@@ -11,7 +16,7 @@ fn main() {
     println!("{table_seperator}");
 
     for cmd in ServerChatCommand::iter() {
-        println!("{}", format_row(cmd.keyword(), &cmd.data()))
+        println!("{}", format_row(cmd.keyword(), &cmd.data(), &i18n))
     }
 
     println!();
@@ -20,11 +25,11 @@ fn main() {
     println!("{table_seperator}");
 
     for cmd in ClientChatCommand::iter() {
-        println!("{}", format_row(cmd.keyword(), &cmd.data()))
+        println!("{}", format_row(cmd.keyword(), &cmd.data(), &i18n))
     }
 }
 
-fn format_row(keyword: &str, data: &ChatCommandData) -> String {
+fn format_row(keyword: &str, data: &ChatCommandData, i18n: &LocalizationGuard) -> String {
     let args = data
         .args
         .iter()
@@ -35,7 +40,7 @@ fn format_row(keyword: &str, data: &ChatCommandData) -> String {
     format!(
         "|/{}|{}|{}|{}|",
         keyword,
-        data.description,
+        i18n.get_content(&data.description),
         data.needs_role
             .map_or("".to_string(), |role| format!("{:?}", role)),
         if !args.is_empty() {

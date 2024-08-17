@@ -166,7 +166,6 @@ fn do_command(
         ServerChatCommand::GroupLeave => handle_group_leave,
         ServerChatCommand::GroupPromote => handle_group_promote,
         ServerChatCommand::Health => handle_health,
-        ServerChatCommand::Help => handle_help,
         ServerChatCommand::IntoNpc => handle_into_npc,
         ServerChatCommand::JoinFaction => handle_join_faction,
         ServerChatCommand::Jump => handle_jump,
@@ -604,7 +603,7 @@ fn handle_give_item(
             )]))
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -638,7 +637,7 @@ fn handle_make_block(
             ))
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -662,7 +661,7 @@ fn handle_into_npc(
     }
 
     let Some(entity_config) = parse_cmd_args!(args, String) else {
-        return Err(Content::Plain(action.help_string()));
+        return Err(action.help_content());
     };
 
     let config = match EntityConfig::load(&entity_config) {
@@ -711,7 +710,7 @@ fn handle_make_npc(
 ) -> CmdResult<()> {
     let (entity_config, number) = parse_cmd_args!(args, String, i8);
 
-    let entity_config = entity_config.ok_or_else(|| action.help_string())?;
+    let entity_config = entity_config.ok_or_else(|| action.help_content())?;
     let number = match number {
         // Number of entities must be larger than 1
         Some(i8::MIN..=0) => {
@@ -815,7 +814,7 @@ fn handle_make_sprite(
             )]))
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -903,7 +902,7 @@ fn handle_set_motd(
                 unreachable!("edit always returns Some")
             })
         },
-        _ => Err(Content::Plain(action.help_string())),
+        _ => Err(action.help_content()),
     }
 }
 
@@ -922,7 +921,7 @@ fn handle_jump(
                 current_pos.0 += Vec3::new(x, y, z)
             })
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -941,7 +940,7 @@ fn handle_goto(
                 current_pos.0 = Vec3::new(x, y, z)
             })
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -989,7 +988,7 @@ fn handle_site(
                 current_pos.0 = site_pos
             })
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -1366,7 +1365,7 @@ fn handle_alias(
         }
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -1383,7 +1382,7 @@ fn handle_tp(
     } else if client != target {
         client
     } else {
-        return Err(Content::Plain(action.help_string()));
+        return Err(action.help_content());
     };
     let player_pos = position(server, player, "player")?;
     server
@@ -1415,7 +1414,7 @@ fn handle_rtsim_tp(
             .ok_or_else(|| format!("No NPC has the id {id}"))?
             .wpos
     } else {
-        return Err(Content::Plain(action.help_string()));
+        return Err(action.help_content());
     };
     server
         .state
@@ -1479,7 +1478,7 @@ fn handle_rtsim_info(
 
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -1551,7 +1550,7 @@ fn handle_rtsim_npc(
 
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -1588,7 +1587,7 @@ fn handle_rtsim_purge(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -1780,7 +1779,7 @@ fn handle_spawn(
             );
             Ok(())
         },
-        _ => Err(Content::Plain(action.help_string())),
+        _ => Err(action.help_content()),
     }
 }
 
@@ -2045,7 +2044,7 @@ fn handle_clear_persisted_terrain(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     let Some(radius) = parse_cmd_args!(args, i32) else {
-        return Err(Content::Plain(action.help_string()));
+        return Err(action.help_content());
     };
     // Clamp the radius to prevent accidentally passing too large radiuses
     let radius = radius.clamp(0, 64);
@@ -2148,7 +2147,7 @@ fn handle_permit_build(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -2189,7 +2188,7 @@ fn handle_revoke_build(
             Err(Content::localized("command-no-buid-perms"))
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -2279,7 +2278,7 @@ fn handle_spawn_portal(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -2364,7 +2363,7 @@ fn handle_area_add(
         server.notify_client(client, msg);
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -2433,46 +2432,8 @@ fn handle_area_remove(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
-}
-
-fn handle_help(
-    server: &mut Server,
-    client: EcsEntity,
-    _target: EcsEntity,
-    args: Vec<String>,
-    _action: &ServerChatCommand,
-) -> CmdResult<()> {
-    if let Some(cmd) = parse_cmd_args!(args, ServerChatCommand) {
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, cmd.help_string()),
-        )
-    } else {
-        let mut message = String::new();
-        let entity_role = server.entity_admin_role(client);
-
-        // Iterate through all commands you have permission to use.
-        ServerChatCommand::iter()
-            .filter(|cmd| cmd.needs_role() <= entity_role)
-            .for_each(|cmd| {
-                message += &cmd.help_string();
-                message += "\n";
-            });
-        message += "Additionally, you can use the following shortcuts:";
-        ServerChatCommand::iter()
-            .filter_map(|cmd| cmd.short_keyword().map(|k| (k, cmd)))
-            .for_each(|(k, cmd)| {
-                message += &format!(" /{} => /{}", k, cmd.keyword());
-            });
-
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, message),
-        )
-    }
-    Ok(())
 }
 
 fn parse_alignment(owner: Uid, alignment: &str) -> CmdResult<Alignment> {
@@ -2632,7 +2593,7 @@ fn handle_kit(
             ServerGeneral::server_msg(ChatType::CommandInfo, format!("Gave kit: {}", kit_name)),
         );
     };
-    let name = parse_cmd_args!(args, String).ok_or_else(|| action.help_string())?;
+    let name = parse_cmd_args!(args, String).ok_or_else(|| action.help_content())?;
 
     match name.as_str() {
         "all" => {
@@ -2910,7 +2871,7 @@ fn handle_lantern(
             Err(Content::localized("command-lantern-unequiped"))
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -3090,7 +3051,7 @@ fn handle_adminify(
                 "admin" => AdminRole::Admin,
                 "moderator" => AdminRole::Moderator,
                 _ => {
-                    return Err(Content::Plain(action.help_string()));
+                    return Err(action.help_content());
                 },
             })
         } else {
@@ -3182,7 +3143,7 @@ fn handle_adminify(
         server.state.notify_players(msg);
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -3221,7 +3182,7 @@ fn handle_tell(
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -3317,7 +3278,7 @@ fn handle_group_invite(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -3338,7 +3299,7 @@ fn handle_group_kick(
             .emit_event_now(GroupManipEvent(target, comp::GroupManip::Kick(uid)));
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -3372,7 +3333,7 @@ fn handle_group_promote(
             .emit_event_now(GroupManipEvent(target, comp::GroupManip::AssignLeader(uid)));
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -3393,7 +3354,7 @@ fn handle_reset_recipes(
         server.notify_client(target, ServerGeneral::UpdateRecipes);
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -3724,7 +3685,7 @@ fn handle_skill_point(
             Err("Entity has no stats!".into())
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -3918,7 +3879,7 @@ fn handle_sudo(
             Err(Content::localized("command-unknown"))
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4008,10 +3969,10 @@ fn handle_whitelist(
                     });
             edit_setting_feedback(server, client, edit, || format!("{}{}", err_info, username))
         } else {
-            Err(Content::Plain(action.help_string()))
+            Err(action.help_content())
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4067,7 +4028,7 @@ fn handle_kick(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4145,7 +4106,7 @@ fn handle_ban(
         }
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4161,7 +4122,7 @@ fn handle_aura(
     let (Some(aura_radius), aura_duration, new_entity, aura_target, Some(aura_kind_variant), spec) =
         parse_cmd_args!(args, f32, f32, bool, GroupTarget, AuraKindVariant, ..Vec<String>)
     else {
-        return Err(Content::Plain(action.help_string()));
+        return Err(action.help_content());
     };
     let new_entity = new_entity.unwrap_or(false);
     let aura_kind = match aura_kind_variant {
@@ -4377,7 +4338,7 @@ fn handle_battlemode_force(
     if !settings.gameplay.battle_mode.allow_choosing() {
         return Err(Content::localized("command-disabled-by-settings"));
     }
-    let mode = parse_cmd_args!(args, String).ok_or_else(|| action.help_string())?;
+    let mode = parse_cmd_args!(args, String).ok_or_else(|| action.help_content())?;
     let mode = match mode.as_str() {
         "pvp" => BattleMode::PvP,
         "pve" => BattleMode::PvE,
@@ -4442,7 +4403,7 @@ fn handle_unban(
             format!("{} was already unbanned", username)
         })
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4474,7 +4435,7 @@ fn handle_server_physics(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4488,7 +4449,7 @@ fn handle_buff(
     let (Some(buff), strength, duration, misc_data_spec) =
         parse_cmd_args!(args, String, f32, f64, String)
     else {
-        return Err(Content::Plain(action.help_string()));
+        return Err(action.help_content());
     };
 
     let strength = strength.unwrap_or(0.01);
@@ -4656,7 +4617,7 @@ fn handle_skill_preset(
             Err("Player has no stats!".into())
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4755,7 +4716,7 @@ fn handle_create_location(
 
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4782,7 +4743,7 @@ fn handle_delete_location(
 
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4866,7 +4827,7 @@ fn handle_weather_zone(
             _ => Err(Content::localized("command-weather-valid-values")),
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4910,7 +4871,7 @@ fn handle_body(
         }
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4946,7 +4907,7 @@ fn handle_scale(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -4978,7 +4939,7 @@ fn handle_repair_equipment(
         );
         Ok(())
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -5037,7 +4998,7 @@ fn handle_tether(
             Err("Tether members don't have Uids.".into())
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
@@ -5097,7 +5058,7 @@ fn handle_mount(
             Err("Mount and/or rider doesn't have an Uid component.".into())
         }
     } else {
-        Err(Content::Plain(action.help_string()))
+        Err(action.help_content())
     }
 }
 
