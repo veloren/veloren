@@ -197,6 +197,7 @@ pub type ChatMsg = GenericChatMsg<String>;
 pub type UnresolvedChatMsg = GenericChatMsg<Group>;
 
 impl<G> GenericChatMsg<G> {
+    pub const MAX_BYTES_PLAYER_CHAT_MSG: usize = 256;
     pub const NPC_DISTANCE: f32 = 100.0;
     pub const NPC_SAY_DISTANCE: f32 = 30.0;
     pub const REGION_DISTANCE: f32 = 1000.0;
