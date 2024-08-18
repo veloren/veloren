@@ -504,10 +504,7 @@ impl<'a> Widget for Chat<'a> {
                 .set(state.ids.chat_input, ui)
             {
                 input.retain(|c| c != '\n');
-
-                if input.len() <= ChatMsg::MAX_BYTES_PLAYER_CHAT_MSG {
-                    state.update(|s| s.input.message = input);
-                }
+                state.update(|s| s.input.message = input);
             }
         }
 
