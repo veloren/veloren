@@ -1,7 +1,7 @@
 use crate::settings::ModerationSettings;
 use authc::Uuid;
 use censor::Censor;
-use common::comp::{AdminRole, ChatType, Group};
+use common::comp::{AdminRole, ChatMsg, ChatType, Group};
 use hashbrown::HashMap;
 use std::{
     fmt,
@@ -9,8 +9,6 @@ use std::{
     time::{Duration, Instant},
 };
 use tracing::info;
-
-pub const MAX_BYTES_CHAT_MSG: usize = 256;
 
 pub enum ActionNote {
     SpamWarn,
@@ -45,7 +43,7 @@ impl fmt::Display for ActionErr {
             ActionErr::TooLong => write!(
                 f,
                 "Your message was too long, no more than {} characters are permitted.",
-                MAX_BYTES_CHAT_MSG
+                ChatMsg::MAX_BYTES_PLAYER_CHAT_MSG
             ),
             ActionErr::SpamMuted(dur) => write!(
                 f,
@@ -99,7 +97,7 @@ impl AutoMod {
         msg: &str,
     ) -> Result<Option<ActionNote>, ActionErr> {
         // TODO: Consider using grapheme cluster count instead of size in bytes
-        if msg.len() > MAX_BYTES_CHAT_MSG {
+        if msg.len() > ChatMsg::MAX_BYTES_PLAYER_CHAT_MSG {
             Err(ActionErr::TooLong)
         } else if !self.settings.automod
             // Is this a private chat message?
