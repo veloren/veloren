@@ -2,11 +2,18 @@
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
 
-use clap::Parser;
+use clap::{builder::ValueParser, Parser};
 use common::comp;
 use server::persistence::SqlLogMode;
-use std::sync::mpsc::Sender;
+use std::{str::FromStr, sync::mpsc::Sender};
 use tracing::error;
+
+// Custom value parser for case-insensitive parsing of AdminRole
+fn admin_role_value_parser() -> ValueParser {
+    ValueParser::new(move |s: &str| -> Result<comp::AdminRole, String> {
+        comp::AdminRole::from_str(&s.to_lowercase()).map_err(|err| err.to_string())
+    })
+}
 
 #[derive(Clone, Debug, Parser)]
 pub enum Admin {
@@ -14,8 +21,8 @@ pub enum Admin {
     Add {
         /// Name of the admin to whom to assign a role
         username: String,
-        /// role to assign to the admin
-        #[arg(ignore_case = true, value_parser =  clap::value_parser!(comp::AdminRole))]
+        /// Role to assign to the admin
+        #[arg(value_parser = admin_role_value_parser())]
         role: comp::AdminRole,
     },
     Remove {
