@@ -278,16 +278,17 @@ impl PlayState for CharSelectionState {
                                     Rc::clone(&self.client),
                                 )));
                             },
-                            client::Event::PluginDataReceived(_data) => {
+                            #[cfg_attr(not(feature = "plugins"), allow(unused_variables))]
+                            client::Event::PluginDataReceived(data) => {
                                 #[cfg(feature = "plugins")]
                                 {
-                                    tracing::info!("plugin data {}", _data.len());
+                                    tracing::info!("plugin data {}", data.len());
                                     let mut client = self.client.borrow_mut();
                                     let hash = client
                                         .state()
                                         .ecs()
                                         .write_resource::<PluginMgr>()
-                                        .cache_server_plugin(&global_state.config_dir, _data);
+                                        .cache_server_plugin(&global_state.config_dir, data);
                                     match hash {
                                         Ok(hash) => {
                                             if client.plugin_received(hash) == 0 {

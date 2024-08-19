@@ -284,16 +284,17 @@ impl PlayState for MainMenuState {
                                 );
                                 self.init = InitState::None;
                             },
-                            client::Event::PluginDataReceived(_data) => {
+                            #[cfg_attr(not(feature = "plugins"), allow(unused_variables))]
+                            client::Event::PluginDataReceived(data) => {
                                 #[cfg(feature = "plugins")]
                                 {
-                                    tracing::info!("plugin data {}", _data.len());
+                                    tracing::info!("plugin data {}", data.len());
                                     if let InitState::Pipeline(client) = &mut self.init {
                                         let hash = client
                                             .state()
                                             .ecs()
                                             .write_resource::<PluginMgr>()
-                                            .cache_server_plugin(&global_state.config_dir, _data);
+                                            .cache_server_plugin(&global_state.config_dir, data);
                                         match hash {
                                             Ok(hash) => {
                                                 if client.plugin_received(hash) == 0 {

@@ -439,7 +439,7 @@ impl Client {
         auth_trusted: impl FnMut(&str) -> bool,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
-        #[allow(unused_variables)] config_dir: PathBuf,
+        #[cfg_attr(not(feature = "plugins"), allow(unused_variables))] config_dir: PathBuf,
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), &runtime);
 
@@ -615,7 +615,6 @@ impl Client {
         init_stage_update(ClientInitStage::LoadingInitData);
         // Wait for initial sync
         let mut ping_interval = tokio::time::interval(Duration::from_secs(1));
-        #[allow(unused_variables)]
         let ServerInit::GameSync {
             entity_package,
             time_of_day,
@@ -629,7 +628,7 @@ impl Client {
             server_constants,
             repair_recipe_book,
             description,
-            active_plugins,
+            active_plugins: _active_plugins,
         } = loop {
             tokio::select! {
                 // Spawn in a blocking thread (leaving the network thread free).  This is mostly
@@ -666,14 +665,15 @@ impl Client {
                 #[cfg(feature = "plugins")]
                 common_state::plugin::PluginMgr::from_asset_or_default(),
             );
-            #[allow(unused_mut)]
+
+            #[cfg_attr(not(feature = "plugins"), allow(unused_mut))]
             let mut missing_plugins: Vec<PluginHash> = Vec::new();
-            #[allow(unused_mut)]
+            #[cfg_attr(not(feature = "plugins"), allow(unused_mut))]
             let mut local_plugins: Vec<PathBuf> = Vec::new();
             #[cfg(feature = "plugins")]
             {
                 let already_present = state.ecs().read_resource::<PluginMgr>().plugin_list();
-                for hash in active_plugins.iter() {
+                for hash in _active_plugins.iter() {
                     if !already_present.contains(hash) {
                         // look in config_dir first (cache)
                         if let Ok(local_path) = common_state::plugin::find_cached(&config_dir, hash)
