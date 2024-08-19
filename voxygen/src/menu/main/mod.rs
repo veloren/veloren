@@ -23,6 +23,7 @@ use common_state::plugin::PluginMgr;
 use i18n::LocalizationHandle;
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
+#[cfg(feature = "singleplayer")]
 use specs::WorldExt;
 use std::{path::Path, sync::Arc};
 use tokio::runtime;
@@ -283,16 +284,16 @@ impl PlayState for MainMenuState {
                                 );
                                 self.init = InitState::None;
                             },
-                            client::Event::PluginDataReceived(data) => {
+                            client::Event::PluginDataReceived(_data) => {
                                 #[cfg(feature = "plugins")]
                                 {
-                                    tracing::info!("plugin data {}", data.len());
+                                    tracing::info!("plugin data {}", _data.len());
                                     if let InitState::Pipeline(client) = &mut self.init {
                                         let hash = client
                                             .state()
                                             .ecs()
                                             .write_resource::<PluginMgr>()
-                                            .cache_server_plugin(&global_state.config_dir, data);
+                                            .cache_server_plugin(&global_state.config_dir, _data);
                                         match hash {
                                             Ok(hash) => {
                                                 if client.plugin_received(hash) == 0 {

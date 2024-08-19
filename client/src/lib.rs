@@ -439,7 +439,7 @@ impl Client {
         auth_trusted: impl FnMut(&str) -> bool,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
-        config_dir: PathBuf,
+        #[allow(unused_variables)] config_dir: PathBuf,
     ) -> Result<Self, Error> {
         let network = Network::new(Pid::new(), &runtime);
 
@@ -615,6 +615,7 @@ impl Client {
         init_stage_update(ClientInitStage::LoadingInitData);
         // Wait for initial sync
         let mut ping_interval = tokio::time::interval(Duration::from_secs(1));
+        #[allow(unused_variables)]
         let ServerInit::GameSync {
             entity_package,
             time_of_day,
@@ -665,7 +666,9 @@ impl Client {
                 #[cfg(feature = "plugins")]
                 common_state::plugin::PluginMgr::from_asset_or_default(),
             );
+            #[allow(unused_mut)]
             let mut missing_plugins: Vec<PluginHash> = Vec::new();
+            #[allow(unused_mut)]
             let mut local_plugins: Vec<PathBuf> = Vec::new();
             #[cfg(feature = "plugins")]
             {
