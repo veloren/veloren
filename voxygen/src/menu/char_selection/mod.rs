@@ -278,6 +278,7 @@ impl PlayState for CharSelectionState {
                                     Rc::clone(&self.client),
                                 )));
                             },
+                            #[cfg_attr(not(feature = "plugins"), allow(unused_variables))]
                             client::Event::PluginDataReceived(data) => {
                                 #[cfg(feature = "plugins")]
                                 {

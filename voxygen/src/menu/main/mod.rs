@@ -23,6 +23,7 @@ use common_state::plugin::PluginMgr;
 use i18n::LocalizationHandle;
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
+#[cfg(feature = "singleplayer")]
 use specs::WorldExt;
 use std::{path::Path, sync::Arc};
 use tokio::runtime;
@@ -283,6 +284,7 @@ impl PlayState for MainMenuState {
                                 );
                                 self.init = InitState::None;
                             },
+                            #[cfg_attr(not(feature = "plugins"), allow(unused_variables))]
                             client::Event::PluginDataReceived(data) => {
                                 #[cfg(feature = "plugins")]
                                 {
