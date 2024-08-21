@@ -341,7 +341,7 @@ fn verify_above_role(
     server: &mut Server,
     (client, client_uuid): (EcsEntity, Uuid),
     (player, player_uuid): (EcsEntity, Uuid),
-    reason: &str,
+    reason: Content,
 ) -> CmdResult<()> {
     let client_temp = server.entity_admin_role(client);
     let client_perm = server
@@ -360,7 +360,7 @@ fn verify_above_role(
     if client_perm > player_perm || client_perm == player_perm && client_temp > player_temp {
         Ok(())
     } else {
-        Err(reason.into())
+        Err(reason)
     }
 }
 
@@ -429,8 +429,8 @@ fn uuid_to_username(
 fn edit_setting_feedback<S: EditableSetting>(
     server: &mut Server,
     client: EcsEntity,
-    result: Option<(String, Result<(), SettingError<S>>)>,
-    failure: impl FnOnce() -> String,
+    result: Option<(Content, Result<(), SettingError<S>>)>,
+    failure: impl FnOnce() -> Content,
 ) -> CmdResult<()> {
     let (info, result) = result.ok_or_else(failure)?;
     match result {
@@ -445,19 +445,17 @@ fn edit_setting_feedback<S: EditableSetting>(
             warn!(
                 ?err,
                 "Failed to write settings file to disk, but succeeded in memory (success message: \
-                 {})",
+                 {:?})",
                 info,
             );
             server.notify_client(
                 client,
                 ServerGeneral::server_msg(
                     ChatType::CommandError,
-                    format!(
-                        "Failed to write settings file to disk, but succeeded in memory.\n
-                            Error (storage): {:?}\n
-                            Success (memory): {}",
-                        err, info
-                    ),
+                    Content::localized_with_args("command-error-write-settings", [
+                        ("error", Content::Plain(format!("{:?}", err))),
+                        ("message", info),
+                    ]),
                 ),
             );
             Ok(())
@@ -655,7 +653,7 @@ fn handle_into_npc(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                Content::Plain("I hope you aren't abusing this!".to_owned()),
+                Content::localized("command-into_npc-warning"),
             ),
         );
     }
@@ -866,7 +864,10 @@ fn handle_set_motd(
                     .editable_settings_mut()
                     .server_description
                     .edit(data_dir.as_ref(), |d| {
-                        let info = format!("Server message of the day set to {:?}", msg);
+                        let info = Content::localized_with_args(
+                            "command-set_motd-message-added",
+                            [("message", format!("{:?}", msg))],
+                        );
 
                         if let Some(description) = d.descriptions.get_mut(&locale) {
                             description.motd = msg;
@@ -892,9 +893,9 @@ fn handle_set_motd(
                     .edit(data_dir.as_ref(), |d| {
                         if let Some(description) = d.descriptions.get_mut(&locale) {
                             description.motd.clear();
-                            Some("Removed server message of the day".to_string())
+                            Some(Content::localized("command-set_motd-message-removed"))
                         } else {
-                            Some("This locale had no motd set".to_string())
+                            Some(Content::localized("command-set_motd-message-not-set"))
                         }
                     });
             drop(data_dir);
@@ -974,7 +975,7 @@ fn handle_site(
                 site.site_tmp
                     .map_or(false, |id| server.index.sites[id].name() == dest_name)
             })
-            .ok_or_else(|| "Site not found".to_string())?;
+            .ok_or_else(|| Content::localized("command-site-not-found"))?;
 
         let site_pos = server.world.find_accessible_pos(
             server.index.as_index_ref(),
@@ -1003,7 +1004,7 @@ fn handle_respawn(
         .state
         .read_storage::<comp::Waypoint>()
         .get(target)
-        .ok_or("No waypoint set")?
+        .ok_or(Content::localized("command-respawn-no-waypoint"))?
         .get_pos();
 
     server.state.position_mut(target, true, |current_pos| {
@@ -1179,8 +1180,11 @@ fn handle_time(
                 0,
             );
             let msg = match current_time {
-                Some(time) => format!("It is {}", time.format("%H:%M")),
-                None => String::from("Unknown Time"),
+                Some(time) => Content::localized_with_args("command-time-current", [(
+                    "t",
+                    time.format("%H:%M").to_string(),
+                )]),
+                None => Content::localized("command-time-unknown"),
             };
             server.notify_client(
                 client,
@@ -1244,14 +1248,23 @@ fn handle_time_scale(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!("The current time scale is {time_scale}."),
+                Content::localized_with_args("command-time_scale-current", [(
+                    "scale",
+                    time_scale.to_string(),
+                )]),
             ),
         );
     } else if let Some(scale) = parse_cmd_args!(args, f64) {
         time_scale.0 = scale.clamp(0.0001, 1000.0);
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, format!("Set time scale to {scale}.")),
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::localized_with_args("command-time_scale-changed", [(
+                    "scale",
+                    scale.to_string(),
+                )]),
+            ),
         );
         // Update all clients with the new TimeOfDay (without this they would have to
         // wait for the next 100th tick to receive the update).
@@ -3073,7 +3086,7 @@ fn handle_adminify(
             server,
             (client, client_uuid),
             (player, player_uuid),
-            "Cannot reassign a role for anyone with your role or higher.",
+            Content::localized("command-adminify-reassign-to-above"),
         )?;
 
         // Ensure that it's not possible to assign someone a higher role than your own
@@ -3091,18 +3104,18 @@ fn handle_adminify(
         // ban.  So if we change how bans work, we should change how things work
         // here, too, for consistency.
         if desired_role > Some(client_real_role) {
-            return Err(
-                "Cannot assign someone a temporary role higher than your own permanent one".into(),
-            );
+            return Err(Content::localized(
+                "command-adminify-assign-higher-than-own",
+            ));
         }
 
         let mut admin_storage = server.state.ecs().write_storage::<comp::Admin>();
         let entry = admin_storage
             .entry(player)
-            .map_err(|_| "Cannot find player entity!".to_string())?;
+            .map_err(|_| Content::localized("command-adminify-cannot-find-player"))?;
         match (entry, desired_role) {
             (StorageEntry::Vacant(_), None) => {
-                return Err("Player already has no role!".into());
+                return Err(Content::localized("command-adminify-already-has-no-role"));
             },
             (StorageEntry::Occupied(o), None) => {
                 let old_role = o.remove().0;
@@ -3110,26 +3123,32 @@ fn handle_adminify(
                     client,
                     ServerGeneral::server_msg(
                         ChatType::CommandInfo,
-                        format!("Role removed from player {}: {:?}", alias, old_role),
+                        Content::localized_with_args("command-adminify-removed-role", [
+                            ("player", alias),
+                            ("role", format!("{:?}", old_role)),
+                        ]),
                     ),
                 );
             },
             (entry, Some(desired_role)) => {
-                let verb = match entry
+                let key = match entry
                     .replace(comp::Admin(desired_role))
                     .map(|old_admin| old_admin.0.cmp(&desired_role))
                 {
                     Some(Ordering::Equal) => {
-                        return Err("Player already has that role!".into());
+                        return Err(Content::localized("command-adminify-already-has-role"));
                     },
-                    Some(Ordering::Greater) => "downgraded",
-                    Some(Ordering::Less) | None => "upgraded",
+                    Some(Ordering::Greater) => "command-adminify-role-downgraded",
+                    Some(Ordering::Less) | None => "command-adminify-role-upgraded",
                 };
                 server.notify_client(
                     client,
                     ServerGeneral::server_msg(
                         ChatType::CommandInfo,
-                        format!("Role for player {} {} to {:?}", alias, verb, desired_role),
+                        Content::localized_with_args(key, [
+                            ("player", alias),
+                            ("role", format!("{:?}", desired_role)),
+                        ]),
                     ),
                 );
             },
@@ -3161,7 +3180,7 @@ fn handle_tell(
         let player = find_alias(ecs, &alias)?.0;
 
         if player == target {
-            return Err("You can't /tell yourself.".into());
+            return Err(Content::localized("command-tell-to-yourself"));
         }
         let target_uid = uid(server, target, "target")?;
         let player_uid = uid(server, player, "player")?;
@@ -3211,7 +3230,7 @@ fn handle_faction(
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
     } else {
-        Err("Please join a faction with /join_faction".into())
+        Err(Content::localized("command-faction-join"))
     }
 }
 
@@ -3240,7 +3259,7 @@ fn handle_group(
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
     } else {
-        Err("Please create a group first".into())
+        Err(Content::localized("command-group-join"))
     }
 }
 
@@ -3264,7 +3283,10 @@ fn handle_group_invite(
                 target,
                 ServerGeneral::server_msg(
                     ChatType::CommandInfo,
-                    format!("{} has been invited to your group.", target_alias),
+                    Content::localized_with_args("command-group_invite-invited-to-your-group", [(
+                        "player",
+                        target_alias.to_owned(),
+                    )]),
                 ),
             );
         }
@@ -3273,7 +3295,10 @@ fn handle_group_invite(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!("Invited {} to the group.", target_alias),
+                Content::localized_with_args("command-group_invite-invited-to-group", [(
+                    "player",
+                    target_alias.to_owned(),
+                )]),
             ),
         );
         Ok(())
@@ -3864,10 +3889,12 @@ fn handle_sudo(
                         server,
                         (client, client_uuid),
                         (entity, player_uuid),
-                        "Cannot sudo players with roles higher than your own.",
+                        Content::localized("command-sudo-higher-role"),
                     )?;
                 } else if server.entity_admin_role(client) < Some(AdminRole::Admin) {
-                    return Err("You don't have permission to sudo non-players.".into());
+                    return Err(Content::localized(
+                        "command-sudo-no-permission-for-non-players",
+                    ));
                 }
             }
 
@@ -3894,11 +3921,10 @@ fn handle_version(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            format!(
-                "Server is running {}[{}]",
-                *common::util::GIT_HASH,
-                *common::util::GIT_DATE,
-            ),
+            Content::localized_with_args("command-version-current", [
+                ("hash", (*common::util::GIT_HASH).to_owned()),
+                ("date", (*common::util::GIT_DATE).to_owned()),
+            ]),
         ),
     );
     Ok(())
@@ -3939,18 +3965,23 @@ fn handle_whitelist(
                         if w.insert(uuid, record).is_some() {
                             None
                         } else {
-                            Some(format!("added to whitelist: {}", username))
+                            Some(Content::localized_with_args("command-whitelist-added", [(
+                                "username",
+                                username.to_owned(),
+                            )]))
                         }
                     });
             edit_setting_feedback(server, client, edit, || {
-                format!("already in whitelist: {}!", username)
+                Content::localized_with_args("command-whitelist-already-added", [(
+                    "username", username,
+                )])
             })
         } else if whitelist_action.eq_ignore_ascii_case("remove") {
             let client_uuid = uuid(server, client, "client")?;
             let client_role = real_role(server, client_uuid, "client")?;
 
             let uuid = find_username(server, &username)?;
-            let mut err_info = "not part of whitelist: ";
+            let mut err_key = "command-whitelist-unlisted";
             let edit =
                 server
                     .editable_settings_mut()
@@ -3961,13 +3992,20 @@ fn handle_whitelist(
                                 if record.whitelisted_by_role() <= client_role.into() {
                                     true
                                 } else {
-                                    err_info = "permission denied to remove user: ";
+                                    err_key = "command-whitelist-permission-denied";
                                     false
                                 }
                             })
-                            .map(|_| format!("removed from whitelist: {}", username))
+                            .map(|_| {
+                                Content::localized_with_args("command-whitelist-removed", [(
+                                    "username",
+                                    username.to_owned(),
+                                )])
+                            })
                     });
-            edit_setting_feedback(server, client, edit, || format!("{}{}", err_info, username))
+            edit_setting_feedback(server, client, edit, || {
+                Content::localized_with_args(err_key, [("username", username)])
+            })
         } else {
             Err(action.help_content())
         }
@@ -3986,7 +4024,7 @@ fn kick_player(
         server,
         (client, client_uuid),
         (target_player, target_player_uuid),
-        "Cannot kick players with roles higher than your own.",
+        Content::localized("command-kick-higher-role"),
     )?;
     server.notify_client(
         target_player,
@@ -4084,13 +4122,16 @@ fn handle_ban(
             )
             .map(|result| {
                 (
-                    format!("Added {} to the banlist with reason: {}", username, reason),
+                    Content::localized_with_args("command-ban-added", [
+                        ("player", username.to_owned()),
+                        ("reason", reason.to_owned()),
+                    ]),
                     result,
                 )
             });
 
         edit_setting_feedback(server, client, edit, || {
-            format!("{} is already on the banlist", username)
+            Content::localized_with_args("command-ban-already-added", [("player", username)])
         })?;
         // If the player is online kick them (this may fail if the player is a hardcoded
         // admin; we don't care about that case because hardcoded admins can log on even
@@ -4397,10 +4438,18 @@ fn handle_unban(
                 unban,
                 false,
             )
-            .map(|result| (format!("{} was successfully unbanned", username), result));
+            .map(|result| {
+                (
+                    Content::localized_with_args("command-unban-successful", [(
+                        "player",
+                        username.to_owned(),
+                    )]),
+                    result,
+                )
+            });
 
         edit_setting_feedback(server, client, edit, || {
-            format!("{} was already unbanned", username)
+            Content::localized_with_args("command-unban-already-unbanned", [("player", username)])
         })
     } else {
         Err(action.help_content())

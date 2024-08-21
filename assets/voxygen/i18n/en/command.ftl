@@ -122,6 +122,9 @@ command-username-uuid-unavailable = Unable to determine UUID for username { $use
 command-uuid-username-unavailable = Unable to determine username for UUID  { $uuid }
 command-no-sudo = It's rude to impersonate people
 command-entity-dead = Entity '{ $entity }' is dead!
+command-error-write-settings = Failed to write settings file to disk, but succeeded in memory.
+  Error (storage): { $error }
+  Success (memory): { $message }
 command-error-while-evaluating-request = Encountered an error while validating the request: { $error }
 command-give-inventory-full = Player inventory full. Gave { $given ->
   [1] only one
@@ -139,6 +142,8 @@ command-time-parse-too-large = { $n } is invalid, cannot be larger than 16 digit
 command-time-parse-negative = { $n } is invalid, cannot be negative.
 command-time-backwards = { $t } is before the current time, time cannot go backwards.
 command-time-invalid = { $t } is not a valid time.
+command-time-current = It is { $t }
+command-time-unknown = Time unknown
 command-rtsim-purge-perms = You must be a real admin (not just a temporary admin) to purge rtsim data.
 command-chunk-not-loaded = Chunk { $x }, { $y } not loaded
 command-chunk-out-of-bounds = Chunk { $x }, { $y } not within map bounds
@@ -159,6 +164,9 @@ command-no-buid-perms = You do not have permission to build.
 command-set-build-mode-off = Toggled build mode off.
 command-set-build-mode-on-persistent = Toggled build mode on. Experimental terrain persistence is enabled. The server will attempt to persist changes, but this is not guaranteed.
 command-set-build-mode-on-unpersistent = Toggled build mode on. Changes will not be persisted when a chunk unloads.
+command-set_motd-message-added = Server message of the day set to { $message }
+command-set_motd-message-removed = Removed server message of the day
+command-set_motd-message-not-set = This locale had no motd set
 command-invalid-alignment = Invalid alignment: { $alignment }
 command-kit-not-enough-slots = Inventory doesn't have enough slots
 command-lantern-unequiped = Please equip a lantern first
@@ -198,6 +206,7 @@ command-repaired-items = Repaired all equipped items
 command-message-group-missing = You are using group chat but do not belong to a group. Use /world or
   /region to change chat.
 command-tell-request = { $sender } wants to talk to you.
+command-tell-to-yourself = You can't /tell yourself.
 command-transform-invalid-presence = Cannot transform in the current presence
 command-aura-invalid-buff-parameters = Invalid buff parameters for aura
 command-aura-spawn = Spawned new aura attached to entity
@@ -205,6 +214,36 @@ command-aura-spawn-new-entity = Spawned new aura
 command-reloaded-chunks = Reloaded { $reloaded } chunks
 command-server-no-experimental-terrain-persistence = Server was compiled without terrain persistence enabled
 command-experimental-terrain-persistence-disabled = Experimental terrain persistence is disabled
+command-adminify-assign-higher-than-own = Cannot assign someone a temporary role higher than your own permanent one.
+command-adminify-reassign-to-above = Cannot reassign a role for anyone with your role or higher.
+command-adminify-cannot-find-player = Cannot find player entity!
+command-adminify-already-has-role = Player already has that role!
+command-adminify-already-has-no-role = Player already has no role!
+command-adminify-role-downgraded = Role for player { $player } downgraded to { $role }
+command-adminify-role-upgraded = Role for player { $player } upgraded to { $role }
+command-adminify-removed-role = Role removed from player { $player }: { $role }
+command-ban-added = Added { $player } to the banlist with reason: { $reason }
+command-ban-already-added = { $player } is already on the banlist
+command-faction-join = Please join a faction with /join_faction
+command-group-join = Please create a group first
+command-group_invite-invited-to-group = Invited { $player } to the group.
+command-group_invite-invited-to-your-group = { $player } has been invited to your group.
+command-into_npc-warning = I hope you aren't abusing this!
+command-kick-higher-role = Cannot kick players with roles higher than your own.
+command-respawn-no-waypoint = No waypoint set
+command-site-not-found = Site not found
+command-sudo-higher-role = Cannot sudo players with roles higher than your own.
+command-sudo-no-permission-for-non-players = You don't have permission to sudo non-players.
+command-time_scale-current = The current time scale is { $scale }.
+command-time_scale-changed = Set time scale to { $scale }.
+command-unban-successful = { $player } was successfully unbanned.
+command-unban-already-unbanned = { $player } was already unbanned.
+command-version-current = Server is running { $hash }[{ $date }]
+command-whitelist-added = Added to whitelist: { $username }
+command-whitelist-already-added = Already in whitelist: { $username }!
+command-whitelist-removed = Removed from whitelist: { $username }
+command-whitelist-unlisted = Not part of whitelist: { $username }
+command-whitelist-permission-denied = Permission denied to remove user: { $username }
 
 # Unreachable/untestable but added for consistency
 
