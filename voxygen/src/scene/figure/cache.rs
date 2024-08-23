@@ -76,6 +76,8 @@ pub type TerrainMeshWorkerCell<const N: usize> =
 pub trait ModelEntryFuture<const N: usize> {
     type ModelEntry: ModelEntry;
 
+    // TODO: is there a potential use for this?
+    #[allow(dead_code)]
     fn into_done(self) -> Option<Self::ModelEntry>;
 
     fn get_done(&self) -> Option<&Self::ModelEntry>;
@@ -278,7 +280,7 @@ impl CharacterCacheKey {
     }
 }
 
-pub struct FigureModelCache<Skel = anim::character::CharacterSkeleton>
+pub(crate) struct FigureModelCache<Skel = anim::character::CharacterSkeleton>
 where
     Skel: Skeleton,
     Skel::Body: BodySpec,
@@ -636,7 +638,7 @@ where
         extra: <Skel::Body as BodySpec>::Extra,
         tick: u64,
         slow_jobs: &SlowJobPool,
-        sprite_render_state: &SpriteRenderState,
+        sprite_render_state: &Arc<SpriteRenderState>,
     ) -> (TerrainModelEntryLod<'c>, &'c Skel::Attr)
     where
         for<'a> &'a Skel::Body: Into<Skel::Attr>,
@@ -699,8 +701,7 @@ where
                 let key = v.key().clone();
                 let slot = Arc::new(atomic::AtomicCell::new(None));
                 let manifests = self.manifests.clone();
-                let sprite_data = Arc::clone(&sprite_render_state.sprite_data);
-                let sprite_config = Arc::clone(&sprite_render_state.sprite_config);
+                let sprite_render_state = Arc::clone(sprite_render_state);
                 let slot_ = Arc::clone(&slot);
 
                 slow_jobs.spawn("FIGURE_MESHING", move || {
@@ -851,8 +852,8 @@ where
                                 |p| p.as_(),
                                 |_| 1.0,
                                 |pos| dyna.get(pos).ok().and_then(|block| block.get_glow()).map(|glow| glow as f32 / 255.0).unwrap_or(0.0),
-                                &sprite_data,
-                                &sprite_config,
+                                &sprite_render_state.sprite_data,
+                                &sprite_render_state.missing_sprite_placeholder,
                             );
                             instances
                         },

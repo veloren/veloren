@@ -1,8 +1,8 @@
 mod sprite;
 mod watcher;
 
-use self::sprite::SpriteSpec;
 pub use self::watcher::{BlocksOfInterest, FireplaceType, Interaction};
+use sprite::{FilteredSpriteData, SpriteData, SpriteModelData, SpriteSpec};
 
 use crate::{
     mesh::{
@@ -41,7 +41,6 @@ use std::sync::{
     atomic::{AtomicU64, Ordering},
     Arc,
 };
-use strum::IntoEnumIterator;
 use tracing::warn;
 use treeculler::{BVol, Frustum, AABB};
 use vek::*;
@@ -153,82 +152,87 @@ struct MeshWorkerResponse {
     blocks_of_interest: BlocksOfInterest,
 }
 
-pub fn get_sprite_instances<'a, I: 'a>(
+pub(super) fn get_sprite_instances<'a, I: 'a>(
     lod_levels: &'a mut [I; SPRITE_LOD_LEVELS],
     set_instance: impl Fn(&mut I, SpriteInstance, Vec3<i32>),
     blocks: impl Iterator<Item = (Vec3<f32>, Block)>,
     mut to_wpos: impl FnMut(Vec3<f32>) -> Vec3<i32>,
     mut light_map: impl FnMut(Vec3<i32>) -> f32,
     mut glow_map: impl FnMut(Vec3<i32>) -> f32,
-    sprite_data: &HashMap<(SpriteKind, usize, usize), [SpriteData; SPRITE_LOD_LEVELS]>,
-    sprite_config: &SpriteSpec,
+    sprite_data: &HashMap<SpriteKind, FilteredSpriteData>,
+    missing_sprite_placeholder: &SpriteData,
 ) {
     prof_span!("extract sprite_instances");
     for (rel_pos, block) in blocks {
         let Some(sprite) = block.get_sprite() else {
             continue;
         };
-
-        let Some((cfg_i, cfg)) = sprite_config.get_for_block(&block) else {
+        // Short-circuit and skip hashmap interaction since this is every fluid block
+        // (including air)
+        if matches!(sprite, SpriteKind::Empty) {
             continue;
-        };
+        }
+
+        let data = sprite_data
+            .get(&sprite)
+            .and_then(|filtered| filtered.for_block(&block))
+            .unwrap_or(missing_sprite_placeholder);
+
+        if data.variations.is_empty() {
+            continue;
+        }
 
         let wpos = to_wpos(rel_pos);
         let seed = (wpos.x as u64)
-            .overflowing_mul(3)
-            .0
-            .overflowing_add((wpos.y as u64).overflowing_mul(7).0)
-            .0
-            .overflowing_add((wpos.x as u64).overflowing_mul(wpos.y as u64).0)
-            .0; // Awful PRNG
+            .wrapping_mul(3)
+            .wrapping_add((wpos.y as u64).wrapping_mul(7))
+            .wrapping_add((wpos.x as u64).wrapping_mul(wpos.y as u64)); // Awful PRNG
 
         // % 4 is non uniform, take 7 and combine two lesser probable outcomes
         let ori = (block.get_ori().unwrap_or((((seed % 7) + 1) / 2) as u8 * 2)) & 0b111;
-        if !cfg.variations.is_empty() {
-            // try to make the variation more uniform as the PRNG is highly unfair
-            let variation = match cfg.variations.len() {
-                1 => 0,
-                2 => (seed as usize % 4) / 3,
-                3 => (seed as usize % 5) / 2,
-                // for four use a different seed than for ori to not have them match always
-                4 => (((seed.overflowing_add(wpos.x as u64).0) as usize % 7) + 1) / 2,
-                _ => seed as usize % cfg.variations.len(),
-            };
-            let key = (sprite, variation, cfg_i);
+        // try to make the variation more uniform as the PRNG is highly unfair
+        let variation = match data.variations.len() {
+            1 => 0,
+            2 => (seed as usize % 4) / 3,
+            3 => (seed as usize % 5) / 2,
+            // for four use a different seed than for ori to not have them match always
+            4 => (((seed.wrapping_add(wpos.x as u64)) as usize % 7) + 1) / 2,
+            _ => seed as usize % data.variations.len(),
+        };
+        let variant = &data.variations[variation];
 
-            // NOTE: Safe because we called sprite_config_for already.
-            // NOTE: Safe because 0 ≤ ori < 8
-            let light = light_map(wpos);
-            let glow = glow_map(wpos);
+        // NOTE: Safe because 0 ≤ ori < 8 (TODO: what is safe?)
+        let light = light_map(wpos);
+        let glow = glow_map(wpos);
 
-            for (lod_level, sprite_data) in lod_levels.iter_mut().zip(&sprite_data[&key]) {
-                let mat = Mat4::identity()
-                    // Scaling for different LOD resolutions
-                    .scaled_3d(sprite_data.scale)
-                    // Offset
-                    .translated_3d(sprite_data.offset)
-                    .scaled_3d(SPRITE_SCALE)
-                    .rotated_z(f32::consts::PI * 0.25 * ori as f32)
-                    .translated_3d(
-                        rel_pos + Vec3::new(0.5, 0.5, 0.0)
-                    );
-                // Add an instance for each page in the sprite model
-                for page in sprite_data.vert_pages.clone() {
-                    // TODO: could be more efficient to create once and clone while
-                    // modifying vert_page
-                    let instance = SpriteInstance::new(
-                        mat,
-                        cfg.wind_sway,
-                        sprite_data.scale.z,
-                        rel_pos.as_(),
-                        ori,
-                        light,
-                        glow,
-                        page,
-                        sprite.is_door(),
-                    );
-                    set_instance(lod_level, instance, wpos);
-                }
+        for (lod_level, model_data) in lod_levels.iter_mut().zip(variant) {
+            // TODO: worth precomputing the constant parts of this?
+            let mat = Mat4::identity()
+                // Scaling for different LOD resolutions
+                .scaled_3d(model_data.scale)
+                // Offset
+                .translated_3d(model_data.offset)
+                .scaled_3d(SPRITE_SCALE)
+                .rotated_z(f32::consts::PI * 0.25 * ori as f32)
+                .translated_3d(
+                    rel_pos + Vec3::new(0.5, 0.5, 0.0)
+                );
+            // Add an instance for each page in the sprite model
+            for page in model_data.vert_pages.clone() {
+                // TODO: could be more efficient to create once outside this loop and clone
+                // while modifying vert_page?
+                let instance = SpriteInstance::new(
+                    mat,
+                    data.wind_sway,
+                    model_data.scale.z,
+                    rel_pos.as_(),
+                    ori,
+                    light,
+                    glow,
+                    page,
+                    sprite.is_door(),
+                );
+                set_instance(lod_level, instance, wpos);
             }
         }
     }
@@ -247,8 +251,7 @@ fn mesh_worker(
     max_texture_size: u16,
     chunk: Arc<TerrainChunk>,
     range: Aabb<i32>,
-    sprite_data: &HashMap<(SpriteKind, usize, usize), [SpriteData; SPRITE_LOD_LEVELS]>,
-    sprite_config: &SpriteSpec,
+    sprite_render_state: &SpriteRenderState,
 ) -> MeshWorkerResponse {
     span!(_guard, "mesh_worker");
     let blocks_of_interest = BlocksOfInterest::from_blocks(
@@ -345,8 +348,8 @@ fn mesh_worker(
                 to_wpos,
                 light_map,
                 glow_map,
-                sprite_data,
-                sprite_config,
+                &sprite_render_state.sprite_data,
+                &sprite_render_state.missing_sprite_placeholder,
             );
 
             instances.map(|(deep_level, shallow_level, surface_level)| {
@@ -369,15 +372,6 @@ fn mesh_worker(
         blocks_of_interest,
         started_tick,
     }
-}
-
-pub struct SpriteData {
-    // Sprite vert page ranges that need to be drawn
-    vert_pages: core::ops::Range<u32>,
-    // Scale
-    scale: Vec3<f32>,
-    // Offset
-    offset: Vec3<f32>,
 }
 
 pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
@@ -424,8 +418,8 @@ pub struct Terrain<V: RectRasterableVol = TerrainChunk> {
 
     // GPU data
     // Maps sprite kind + variant to data detailing how to render it
-    pub sprite_render_state: SpriteRenderState,
-    pub sprite_globals: SpriteGlobalsBindGroup,
+    pub(super) sprite_render_state: Arc<SpriteRenderState>,
+    pub(super) sprite_globals: SpriteGlobalsBindGroup,
     /// As stated previously, this is always the very latest texture into which
     /// we allocate.  Code cannot assume that this is the assigned texture
     /// for any particular chunk; look at the `texture` field in
@@ -439,21 +433,22 @@ impl TerrainChunkData {
     pub fn can_shadow_sun(&self) -> bool { self.visible.is_visible() || self.can_shadow_sun }
 }
 
-#[derive(Clone)]
-pub struct SpriteRenderState {
-    /// FIXME: This could possibly become an `AssetHandle<SpriteSpec>`, to get
-    /// hot-reloading for free, but I am not sure if sudden changes of this
-    /// value would break something
-    pub sprite_config: Arc<SpriteSpec>,
+pub(super) struct SpriteRenderState {
+    // TODO: This could be an `AssetHandle<SpriteSpec>`, to get hot-reloading. However, this would
+    // need to regenerate `sprite_data` and `sprite_atlas_textures`, and re-run
+    // `get_sprite_instances` for any meshed chunks.
+    //pub sprite_config: Arc<SpriteSpec>,
+
     // Maps sprite kind + variant to data detailing how to render it
-    pub sprite_data: Arc<HashMap<(SpriteKind, usize, usize), [SpriteData; SPRITE_LOD_LEVELS]>>,
-    pub sprite_atlas_textures: Arc<AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>>,
+    pub sprite_data: HashMap<SpriteKind, FilteredSpriteData>,
+    pub missing_sprite_placeholder: SpriteData,
+    pub sprite_atlas_textures: AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>,
 }
 
 #[derive(Clone)]
 pub struct SpriteRenderContext {
-    pub state: SpriteRenderState,
-    pub sprite_verts_buffer: Arc<SpriteVerts>,
+    pub(super) state: Arc<SpriteRenderState>,
+    pub(super) sprite_verts_buffer: Arc<SpriteVerts>,
 }
 
 pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;
@@ -463,8 +458,9 @@ impl SpriteRenderContext {
         let max_texture_size = renderer.max_texture_size();
 
         struct SpriteWorkerResponse {
-            sprite_config: Arc<SpriteSpec>,
-            sprite_data: HashMap<(SpriteKind, usize, usize), [SpriteData; SPRITE_LOD_LEVELS]>,
+            //sprite_config: Arc<SpriteSpec>,
+            sprite_data: HashMap<SpriteKind, FilteredSpriteData>,
+            missing_sprite_placeholder: SpriteData,
             sprite_atlas_texture_data: FigureSpriteAtlasData,
             sprite_atlas_size: Vec2<u16>,
             sprite_mesh: Mesh<SpriteVertex>,
@@ -482,104 +478,89 @@ impl SpriteRenderContext {
                 crate::mesh::greedy::sprite_config(),
             );
             let mut sprite_mesh = Mesh::new();
-            // NOTE: Tracks the start vertex of the next model to be meshed.
-            let sprite_data: HashMap<(SpriteKind, usize, usize), _> = SpriteKind::iter()
-                .flat_map(|kind| {
-                    sprite_config
-                        .get(kind)
-                        .enumerate()
-                        .map(move |(i, (v, _))| (kind, v, i))
-                })
-                .flat_map(|(kind, sprite_config, filter_variant)| {
-                    sprite_config.variations.iter().enumerate().map(
-                        move |(
-                            variation,
-                            SpriteModelConfig {
-                                model,
-                                offset,
-                                lod_axes,
-                            },
-                        )| {
-                            let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
-                            let offset = Vec3::from(*offset);
-                            let lod_axes = Vec3::from(*lod_axes);
-                            let model = DotVoxAsset::load_expect(model);
-                            let zero = Vec3::zero();
-                            let model_size = model
-                                .read()
-                                .0
-                                .models
-                                .first()
-                                .map(
-                                    |&dot_vox::Model {
-                                         size: dot_vox::Size { x, y, z },
-                                         ..
-                                     }| Vec3::new(x, y, z),
-                                )
-                                .unwrap_or(zero);
-                            let max_model_size = Vec3::new(31.0, 31.0, 63.0);
-                            let model_scale =
-                                max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
-                                    let scale = max_sz / max_sz.max(cur_sz as f32);
-                                    if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
-                                        scale - 0.001
-                                    } else {
-                                        scale
-                                    }
-                                });
-                            move |greedy: &mut GreedyMesh<
-                                FigureSpriteAtlasData,
-                                SpriteAtlasAllocator,
-                            >,
-                                  sprite_mesh: &mut Mesh<SpriteVertex>| {
-                                prof_span!("mesh sprite");
-                                let lod_sprite_data = scaled.map(|lod_scale_orig| {
-                                    let lod_scale = model_scale
-                                        * if lod_scale_orig == 1.0 {
-                                            Vec3::broadcast(1.0)
-                                        } else {
-                                            lod_axes * lod_scale_orig
-                                                + lod_axes.map(|e| if e == 0.0 { 1.0 } else { 0.0 })
-                                        };
 
-                                    // Get starting page count of opaque mesh
-                                    let start_page_num = sprite_mesh.vertices().len()
-                                        / SPRITE_VERT_PAGE_SIZE as usize;
-                                    // Mesh generation exclusively acts using side effects; it
-                                    // has no interesting return value, but updates the mesh.
-                                    generate_mesh_base_vol_sprite(
-                                        Segment::from_vox_model_index(&model.read().0, 0)
-                                            .scaled_by(lod_scale),
-                                        (greedy, sprite_mesh, false),
-                                        offset.map(|e: f32| e.floor()) * lod_scale,
-                                    );
-                                    // Get the number of pages after the model was meshed
-                                    let end_page_num = (sprite_mesh.vertices().len()
-                                        + SPRITE_VERT_PAGE_SIZE as usize
-                                        - 1)
-                                        / SPRITE_VERT_PAGE_SIZE as usize;
-                                    // Fill the current last page up with degenerate verts
-                                    sprite_mesh.vertices_mut_vec().resize_with(
-                                        end_page_num * SPRITE_VERT_PAGE_SIZE as usize,
-                                        SpriteVertex::default,
-                                    );
+            let mut config_to_data = |sprite_model_config: &_| {
+                let SpriteModelConfig {
+                    model,
+                    offset,
+                    lod_axes,
+                } = sprite_model_config;
+                let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
+                let offset = Vec3::from(*offset);
+                let lod_axes = Vec3::from(*lod_axes);
+                let model = DotVoxAsset::load_expect(model);
+                let zero = Vec3::zero();
+                let model = &model.read().0;
+                let model_size = if let Some(model) = model.models.first() {
+                    let dot_vox::Size { x, y, z } = model.size;
+                    Vec3::new(x, y, z)
+                } else {
+                    zero
+                };
+                let max_model_size = Vec3::new(31.0, 31.0, 63.0);
+                let model_scale = max_model_size.map2(model_size, |max_sz: f32, cur_sz| {
+                    let scale = max_sz / max_sz.max(cur_sz as f32);
+                    if scale < 1.0 && (cur_sz as f32 * scale).ceil() > max_sz {
+                        scale - 0.001
+                    } else {
+                        scale
+                    }
+                });
+                prof_span!(guard, "mesh sprite");
+                let lod_sprite_data = scaled.map(|lod_scale_orig| {
+                    let lod_scale = model_scale
+                        * if lod_scale_orig == 1.0 {
+                            Vec3::broadcast(1.0)
+                        } else {
+                            lod_axes * lod_scale_orig
+                                + lod_axes.map(|e| if e == 0.0 { 1.0 } else { 0.0 })
+                        };
 
-                                    let sprite_scale = Vec3::one() / lod_scale;
+                    // Get starting page count of opaque mesh
+                    let start_page_num =
+                        sprite_mesh.vertices().len() / SPRITE_VERT_PAGE_SIZE as usize;
+                    // Mesh generation exclusively acts using side effects; it
+                    // has no interesting return value, but updates the mesh.
+                    generate_mesh_base_vol_sprite(
+                        Segment::from_vox_model_index(model, 0).scaled_by(lod_scale),
+                        (&mut greedy, &mut sprite_mesh, false),
+                        offset.map(|e: f32| e.floor()) * lod_scale,
+                    );
+                    // Get the number of pages after the model was meshed
+                    let end_page_num =
+                        (sprite_mesh.vertices().len() + SPRITE_VERT_PAGE_SIZE as usize - 1)
+                            / SPRITE_VERT_PAGE_SIZE as usize;
+                    // Fill the current last page up with degenerate verts
+                    sprite_mesh.vertices_mut_vec().resize_with(
+                        end_page_num * SPRITE_VERT_PAGE_SIZE as usize,
+                        SpriteVertex::default,
+                    );
 
-                                    SpriteData {
-                                        vert_pages: start_page_num as u32..end_page_num as u32,
-                                        scale: sprite_scale,
-                                        offset: offset.map(|e| e.rem_euclid(1.0)),
-                                    }
-                                });
+                    let sprite_scale = Vec3::one() / lod_scale;
 
-                                ((kind, variation, filter_variant), lod_sprite_data)
-                            }
-                        },
-                    )
-                })
-                .map(|f| f(&mut greedy, &mut sprite_mesh))
-                .collect();
+                    SpriteModelData {
+                        vert_pages: start_page_num as u32..end_page_num as u32,
+                        scale: sprite_scale,
+                        offset: offset.map(|e| e.rem_euclid(1.0)),
+                    }
+                });
+                drop(guard);
+
+                lod_sprite_data
+            };
+
+            let sprite_data = sprite_config.map_to_data(&mut config_to_data);
+
+            // TODO: test appearance of this
+            let missing_sprite_placeholder = SpriteData {
+                variations: vec![config_to_data(&SpriteModelConfig {
+                    model: "voxygen.voxel.not_found".into(),
+                    offset: (-5.5, -5.5, 0.0),
+                    lod_axes: (1.0, 1.0, 1.0),
+                })]
+                .into(),
+                wind_sway: 1.0,
+            };
 
             let (sprite_atlas_texture_data, sprite_atlas_size) = {
                 prof_span!("finalize");
@@ -587,8 +568,9 @@ impl SpriteRenderContext {
             };
 
             SpriteWorkerResponse {
-                sprite_config,
+                //sprite_config,
                 sprite_data,
+                missing_sprite_placeholder,
                 sprite_atlas_texture_data,
                 sprite_atlas_size,
                 sprite_mesh,
@@ -603,8 +585,9 @@ impl SpriteRenderContext {
             // satisfy the size requirements for meshing, both of which are
             // considered invariant violations.
             let SpriteWorkerResponse {
-                sprite_config,
+                //sprite_config,
                 sprite_data,
+                missing_sprite_placeholder,
                 sprite_atlas_texture_data,
                 sprite_atlas_size,
                 sprite_mesh,
@@ -625,12 +608,13 @@ impl SpriteRenderContext {
             let sprite_verts_buffer = renderer.create_sprite_verts(sprite_mesh);
 
             Self {
-                state: SpriteRenderState {
+                state: Arc::new(SpriteRenderState {
                     // TODO: these are all Arcs, would it makes sense to factor out the Arc?
-                    sprite_config: Arc::clone(&sprite_config),
-                    sprite_data: Arc::new(sprite_data),
-                    sprite_atlas_textures: Arc::new(sprite_atlas_textures),
-                },
+                    //sprite_config: Arc::clone(&sprite_config),
+                    sprite_data,
+                    missing_sprite_placeholder,
+                    sprite_atlas_textures,
+                }),
                 sprite_verts_buffer: Arc::new(sprite_verts_buffer),
             }
         };
@@ -1148,15 +1132,13 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             // Queue the worker thread.
             let started_tick = todo.started_tick;
-            let sprite_data = Arc::clone(&self.sprite_render_state.sprite_data);
-            let sprite_config = Arc::clone(&self.sprite_render_state.sprite_config);
+            let sprite_render_state = Arc::clone(&self.sprite_render_state);
             let cnt = Arc::clone(&self.mesh_todos_active);
             cnt.fetch_add(1, Ordering::Relaxed);
             scene_data
                 .state
                 .slow_job_pool()
                 .spawn("TERRAIN_MESHING", move || {
-                    let sprite_data = sprite_data;
                     let _ = send.send(mesh_worker(
                         pos,
                         (min_z as f32, max_z as f32),
@@ -1166,8 +1148,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         max_texture_size as u16,
                         chunk,
                         aabb,
-                        &sprite_data,
-                        &sprite_config,
+                        &sprite_render_state,
                     ));
                     cnt.fetch_sub(1, Ordering::Relaxed);
                 });

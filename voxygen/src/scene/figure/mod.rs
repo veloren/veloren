@@ -2,7 +2,7 @@ mod cache;
 pub mod load;
 mod volume;
 
-pub use cache::FigureModelCache;
+pub(super) use cache::FigureModelCache;
 use common_net::synced_components::Heads;
 pub use load::load_mesh; // TODO: Don't make this public.
 pub use volume::VolumeKey;

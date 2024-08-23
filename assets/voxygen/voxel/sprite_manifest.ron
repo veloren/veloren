@@ -1,9 +1,9 @@
 #![enable(unwrap_newtypes, implicit_some)]
 {
 // Represents the lack of a sprite.
-(Empty, ()): None,
+Empty: [()],
 // Windows
-(Window1, ()): (
+Window1: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.window.window-0",
@@ -12,8 +12,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Window2, ()): (
+)],
+Window2: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.window.window-1",
@@ -22,8 +22,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Window3, ()): (
+)],
+Window3: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.window.window-2",
@@ -32,8 +32,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Window4, ()): (
+)],
+Window4: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.window.window-3",
@@ -42,9 +42,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Cacti
-(BarrelCactus, ()): (
+BarrelCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.barrel_cactus",
@@ -58,8 +58,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(LargeCactus, ()): (
+)],
+LargeCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.large_cactus",
@@ -89,8 +89,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(TallCactus, ()): (
+)],
+TallCactus: [(
     variations: [
 		(
             model: "voxygen.voxel.sprite.cacti.tall",
@@ -104,8 +104,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(RoundCactus, ()): (
+)],
+RoundCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.cactus_round",
@@ -114,8 +114,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(ShortCactus, ()): (
+)],
+ShortCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.cactus_short",
@@ -124,8 +124,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(MedFlatCactus, ()): (
+)],
+MedFlatCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.flat_cactus_med",
@@ -134,8 +134,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(ShortFlatCactus, ()): (
+)],
+ShortFlatCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.flat_cactus_short",
@@ -144,9 +144,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Flowers
-(BlueFlower, ()): (
+BlueFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.flower_blue_1",
@@ -200,8 +200,8 @@
         ),
     ],
     wind_sway: 0.1,
-),
-(PinkFlower, ()): (
+)],
+PinkFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.flower_pink_1",
@@ -225,8 +225,8 @@
         ),
     ],
     wind_sway: 0.1,
-),
-(PurpleFlower, ()): (
+)],
+PurpleFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.flower_purple_1",
@@ -270,8 +270,8 @@
         ),
     ],
     wind_sway: 0.1,
-),
-(RedFlower, ()): (
+)],
+RedFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.flower_red_1",
@@ -310,8 +310,8 @@
         ),
     ],
     wind_sway: 0.1,
-),
-(WhiteFlower, ()): (
+)],
+WhiteFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.flower_white_1",
@@ -340,8 +340,8 @@
         ),
     ],
     wind_sway: 0.1,
-),
-(YellowFlower, ()): (
+)],
+YellowFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.flower_yellow-1",
@@ -355,8 +355,8 @@
         ),
     ],
     wind_sway: 0.1,
-),
-(Sunflower, ()): (
+)],
+Sunflower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.sunflower_1",
@@ -370,9 +370,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // Grass
-(LongGrass, ()): (
+LongGrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_long_1",
@@ -411,8 +411,8 @@
         ),
     ],
     wind_sway: 0.8,
-),
-(MediumGrass, ()): (
+)],
+MediumGrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_med_1",
@@ -441,8 +441,8 @@
         ),
     ],
     wind_sway: 0.5,
-),
-(ShortGrass, ()): (
+)],
+ShortGrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_short_1",
@@ -471,8 +471,8 @@
         ),
     ],
     wind_sway: 0.1,
-),
-(LargeGrass, ()): (
+)],
+LargeGrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_large-0",
@@ -491,8 +491,8 @@
         ),
     ],
     wind_sway: 0.5,
-),
-(JungleRedGrass, ()): (
+)],
+JungleRedGrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.jungleredgrass.jungle_grass_red-0",
@@ -526,9 +526,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // Fruit
-(Apple, ()): (
+Apple: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.fruit.apple",
@@ -537,9 +537,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Mushrooms
-(Mushroom, ()): (
+Mushroom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mushrooms.mushroom-0",
@@ -598,9 +598,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // Sewer Mushrooms
-(SewerMushroom, ()): (
+SewerMushroom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.mushroom-0",
@@ -609,9 +609,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Lush cave biome mushrooms
-(LushMushroom, ()): (
+LushMushroom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mushrooms.mushroom-0",
@@ -655,9 +655,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Rocky cave biome mushrooms
-(RockyMushroom, ()): (
+RockyMushroom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.mushroom-0",
@@ -686,9 +686,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Mushroom cave biome mushrooms
-(GlowMushroom, ()): (
+GlowMushroom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.mushroom-3",
@@ -742,9 +742,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Cave Mushrooms
-(CaveMushroom, ()): (
+CaveMushroom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.mushroom-0",
@@ -793,9 +793,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Ceiling Mushrooms
-(CeilingMushroom, ()): (
+CeilingMushroom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.ceiling.mushroom-0",
@@ -814,8 +814,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Mold, ()): (
+)],
+Mold: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.ceiling.mold-0",
@@ -854,8 +854,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Root, ()): (
+)],
+Root: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.ceiling.root-0",
@@ -894,8 +894,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CeilingLanternPlant, ()): (
+)],
+CeilingLanternPlant: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.ceiling.cave_lantern_plant-0",
@@ -909,8 +909,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CeilingLanternFlower, ()): (
+)],
+CeilingLanternFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.ceiling.cave_lantern_flower-0",
@@ -929,8 +929,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CeilingJungleLeafyPlant, ()): (
+)],
+CeilingJungleLeafyPlant: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.leafy_plant.jungle_plant_ceiling-0",
@@ -959,8 +959,8 @@
         ),
     ],
     wind_sway: 0.4,
-),
-(LushFlower, ()): (
+)],
+LushFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.cave_flower-0",
@@ -984,8 +984,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(LanternFlower, ()): (
+)],
+LanternFlower: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.cave_lantern_flower-0",
@@ -1004,8 +1004,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(LanternPlant, ()): (
+)],
+LanternPlant: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.cave_lantern_plant-0",
@@ -1024,8 +1024,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(SporeReed, ()): (
+)],
+SporeReed: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.spore_reed-0",
@@ -1049,8 +1049,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Orb, ()): (
+)],
+Orb: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.ceiling.orb-0",
@@ -1074,9 +1074,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Lianas,
-(Liana, ()): (
+Liana: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.lianas.liana-0",
@@ -1090,9 +1090,9 @@
         ),
     ],
     wind_sway: 0.5,
-),
+)],
 // Velorite
-(Velorite, ()): (
+Velorite: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.velorite.velorite_ore",
@@ -1101,8 +1101,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(VeloriteFrag, ()): (
+)],
+VeloriteFrag: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.velorite.velorite",
@@ -1111,9 +1111,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Chests
-(Chest, ()): (
+Chest: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest",
@@ -1132,8 +1132,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CommonLockedChest, ()): (
+)],
+CommonLockedChest: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_gold",
@@ -1143,9 +1143,9 @@
 
     ],
     wind_sway: 0.0,
-),
+)],
 // Dungeon Chests
-(DungeonChest0, ()): (
+DungeonChest0: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_vines",
@@ -1154,8 +1154,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DungeonChest1, ()): (
+)],
+DungeonChest1: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_skull",
@@ -1164,8 +1164,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DungeonChest2, ()): (
+)],
+DungeonChest2: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_light",
@@ -1174,8 +1174,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DungeonChest3, ()): (
+)],
+DungeonChest3: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_gold",
@@ -1184,8 +1184,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DungeonChest4, ()): (
+)],
+DungeonChest4: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_gold",
@@ -1194,8 +1194,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DungeonChest5, ()): (
+)],
+DungeonChest5: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_demon",
@@ -1204,9 +1204,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Rope
-(Rope, ()): (
+Rope: [(
      variations: [
          (
             model: "voxygen.voxel.sprite.misc.rope",
@@ -1215,9 +1215,9 @@
          ),
      ],
      wind_sway: 0.0,
-),
+)],
 // Coral Chest
-(CoralChest, ()): (
+CoralChest: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_coral",
@@ -1226,9 +1226,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Sea DecorChain
-(SeaDecorChain, ()): (
+SeaDecorChain: [(
         variations: [
             (
                 model: "voxygen.voxel.sprite.misc.sea_decor_chain",
@@ -1237,9 +1237,9 @@
             ),
         ],
         wind_sway: 0.0,
-),
+)],
 // Sea DecorBlock
-(SeaDecorBlock, ()): (
+SeaDecorBlock: [(
      variations: [
          (
              model: "voxygen.voxel.sprite.misc.sea_decor_block",
@@ -1248,9 +1248,9 @@
          ),
      ],
     wind_sway: 0.0,
-),
+)],
 // Sea DecorWindow Horizontal
-(SeaDecorWindowHor, ()): (
+SeaDecorWindowHor: [(
      variations: [
          (
             model: "voxygen.voxel.sprite.misc.sea_decor_window_hor",
@@ -1259,9 +1259,9 @@
          ),
      ],
      wind_sway: 0.0,
-),
+)],
 // Sea DecorWindow Vertical
-(SeaDecorWindowVer, ()): (
+SeaDecorWindowVer: [(
      variations: [
          (
             model: "voxygen.voxel.sprite.misc.sea_decor_window_ver",
@@ -1270,9 +1270,9 @@
          ),
      ],
      wind_sway: 0.0,
-),
+)],
 // Sea Decor Emblem
-(SeaDecorEmblem, ()): (
+SeaDecorEmblem: [(
      variations: [
          (
             model: "voxygen.voxel.sprite.misc.sea_decor_emblem",
@@ -1281,9 +1281,9 @@
          ),
      ],
      wind_sway: 0.0,
-),
+)],
 // Sea Decor Pillar
-(SeaDecorPillar, ()): (
+SeaDecorPillar: [(
      variations: [
          (
             model: "voxygen.voxel.sprite.misc.sea_decor_pillar-0",
@@ -1327,9 +1327,9 @@
          ),
      ],
      wind_sway: 0.0,
-),
+)],
 // SeashellLantern
-(SeashellLantern, ()): (
+SeashellLantern: [(
      variations: [
          (
             model: "voxygen.voxel.object.seashell_lantern",
@@ -1338,9 +1338,9 @@
          ),
      ],
      wind_sway: 0.0,
-),
+)],
 // GlassBarrier
-(GlassBarrier, ()): (
+GlassBarrier: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.glass_barrier_block",
@@ -1349,8 +1349,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(GlassKeyhole, ()): (
+)],
+GlassKeyhole: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.glass_keyhole_block",
@@ -1359,8 +1359,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(VampireKeyDoor, ()): (
+)],
+VampireKeyDoor: [(
      variations: [
          (
                 model: "voxygen.voxel.sprite.furniture.vampire_keydoor",
@@ -1369,8 +1369,8 @@
          ),
      ],
     wind_sway: 0.0,
-),
-(VampireKeyhole, ()): (
+)],
+VampireKeyhole: [(
      variations: [
          (
              model: "voxygen.voxel.sprite.furniture.vampire_keyhole",
@@ -1379,8 +1379,8 @@
          ),
      ],
     wind_sway: 0.0,
-),
-(BloodmoonKeyhole, ()): (
+)],
+BloodmoonKeyhole: [(
      variations: [
          (
              model: "voxygen.voxel.sprite.furniture.bloodmoon_keyhole",
@@ -1389,8 +1389,8 @@
          ),
      ],
     wind_sway: 0.0,
-),
-(HaniwaKeyDoor, ()): (
+)],
+HaniwaKeyDoor: [(
      variations: [
          (
              model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
@@ -1399,8 +1399,8 @@
          ),
      ],
     wind_sway: 0.0,
-),
-(HaniwaKeyhole, ()): (
+)],
+HaniwaKeyhole: [(
      variations: [
          (
              model: "voxygen.voxel.sprite.furniture.haniwa_keyhole_block",
@@ -1409,8 +1409,8 @@
          ),
      ],
     wind_sway: 0.0,
-),
-(HaniwaUrn, ()): (
+)],
+HaniwaUrn: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_haniwa_urn",
@@ -1420,9 +1420,9 @@
 
     ],
     wind_sway: 0.0,
-),
+)],
 // Haniwa Trap
-(HaniwaTrap, ()): (
+HaniwaTrap: [(
      variations: [
          (
              model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
@@ -1431,8 +1431,8 @@
          ),
      ],
     wind_sway: 0.0,
-),
-(HaniwaTrapTriggered, ()): (
+)],
+HaniwaTrapTriggered: [(
      variations: [
          (
              model: "voxygen.voxel.sprite.furniture.haniwa_trap_triggered-0",
@@ -1446,9 +1446,9 @@
          ),
      ],
     wind_sway: 0.0,
-),
+)],
 // Sahagin Door, Keyhole, Chest, Statue
-(SahaginKeyDoor, ()): (
+SahaginKeyDoor: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.sahagin_keydoor",
@@ -1457,8 +1457,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(SahaginKeyhole, ()): (
+)],
+SahaginKeyhole: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.sahagin_keyhole",
@@ -1467,8 +1467,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(SahaginChest, ()): (
+)],
+SahaginChest: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_sahagin",
@@ -1477,9 +1477,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Terracotta Door, Keyhole, Chest, Statue
-(TerracottaKeyDoor, ()): (
+TerracottaKeyDoor: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.terracotta_keydoor",
@@ -1488,8 +1488,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(TerracottaKeyhole, ()): (
+)],
+TerracottaKeyhole: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.terracotta_keyhole",
@@ -1498,8 +1498,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(TerracottaChest, ()): (
+)],
+TerracottaChest: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.chests.chest_terracotta",
@@ -1508,8 +1508,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(TerracottaStatue, ()): (
+)],
+TerracottaStatue: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.terracotta_statue_0",
@@ -1528,8 +1528,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(TerracottaBlock, ()): (
+)],
+TerracottaBlock: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.misc.terracotta_block-0",
@@ -1563,9 +1563,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Welwitch
-(Welwitch, ()): (
+Welwitch: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.welwitch.1",
@@ -1574,9 +1574,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // MetalChain
-(MetalChain, ()): (
+MetalChain: [(
         variations: [
             (
                 model: "voxygen.voxel.sprite.misc.metal_chain",
@@ -1585,9 +1585,9 @@
             ),
         ],
         wind_sway: 0.0,
-),
+)],
 // Pumpkins
-(Pumpkin, ()): (
+Pumpkin: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.pumpkin.1",
@@ -1626,9 +1626,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Lingonberries
-(LingonBerry, ()): (
+LingonBerry: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.lingonberry.1",
@@ -1647,9 +1647,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Leafy Plants
-(LeafyPlant, ()): (
+LeafyPlant: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.leafy_plant.1",
@@ -1703,8 +1703,8 @@
         ),
     ],
     wind_sway: 0.4,
-),
-(JungleLeafyPlant, ()): (
+)],
+JungleLeafyPlant: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.leafy_plant.jungle_plant-0",
@@ -1733,9 +1733,9 @@
         ),
     ],
     wind_sway: 0.4,
-),
+)],
 // Ferns
-(Fern, ()): (
+Fern: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.ferns.1",
@@ -1804,8 +1804,8 @@
         ),
     ],
     wind_sway: 0.4,
-),
-(JungleFern, ()): (
+)],
+JungleFern: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.junglefern.1",
@@ -1829,9 +1829,9 @@
         ),
     ],
     wind_sway: 0.4,
-),
+)],
 // Savanna Flora
-(SavannaGrass, ()): (
+SavannaGrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_savanna-0",
@@ -1870,8 +1870,8 @@
         ),
     ],
 	wind_sway: 0.5,
-),
-(TallSavannaGrass, ()): (
+)],
+TallSavannaGrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_savanna_tall-0",
@@ -1910,8 +1910,8 @@
         ),
     ],
 	wind_sway: 0.8,
-),
-(RedSavannaGrass, ()): (
+)],
+RedSavannaGrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_savanna_red-0",
@@ -1935,8 +1935,8 @@
         ),
     ],
 	wind_sway: 0.8,
-),
-(SavannaBush, ()): (
+)],
+SavannaBush: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.savanna_bush.1",
@@ -1970,9 +1970,9 @@
         ),
     ],
     wind_sway: 0.2,
-),
+)],
 // Dead Bush
-(DeadBush, ()): (
+DeadBush: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.dead_bush.1",
@@ -1996,9 +1996,9 @@
         ),
     ],
     wind_sway: 0.2,
-),
+)],
 // Dead Plant
-(DeadPlant, ()): (
+DeadPlant: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.dead_plant.dead_plant-0",
@@ -2022,10 +2022,10 @@
         ),
     ],
     wind_sway: 0.2,
-),
+)],
 // Blueberries
 // NOTE: Why are these commented out?
-(Blueberry, ()): None/* (
+Blueberry: [()]/* [(
     variations: [
         (
             model: "voxygen.voxel.sprite.blueberry.1",
@@ -2074,9 +2074,10 @@
         ),
     ],
     wind_sway: 0.0,
+)]
 */,
 // Ember
-(Ember, ()): (
+Ember: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.ember.1",
@@ -2085,9 +2086,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // FireBlock
-(FireBlock, ()): (
+FireBlock: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.misc.fireblock",
@@ -2096,9 +2097,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Smoke dummy
-(SmokeDummy, ()): (
+SmokeDummy: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.ember.dummy",
@@ -2107,9 +2108,9 @@
         ),
     ],
     wind_sway: 0.8,
-),
+)],
 // Corn
-(Corn, ()): (
+Corn: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.corn.corn-0",
@@ -2143,9 +2144,9 @@
         ),
     ],
     wind_sway: 0.4,
-),
+)],
 // Yellow Wheat
-(WheatYellow, ()): (
+WheatYellow: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wheat_yellow.wheat-0",
@@ -2199,9 +2200,9 @@
         ),
     ],
     wind_sway: 0.4,
-),
+)],
 // Green Wheat
-(WheatGreen, ()): (
+WheatGreen: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wheat_green.wheat-0",
@@ -2255,9 +2256,9 @@
         ),
     ],
     wind_sway: 0.4,
-),
+)],
 // Cabbage
-(Cabbage, ()): (
+Cabbage: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cabbage.cabbage-0",
@@ -2276,9 +2277,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Flax
-(Flax, ()): (
+Flax: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flax.flax-0",
@@ -2312,9 +2313,9 @@
         ),
     ],
     wind_sway: 0.4,
-),
+)],
 // Carrot
-(Carrot, ()): (
+Carrot: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.carrot.0",
@@ -2348,9 +2349,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // Tomato
-(Tomato, ()): (
+Tomato: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.tomato.0",
@@ -2379,9 +2380,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Radish
-(Radish, ()): (
+Radish: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.radish.0",
@@ -2410,9 +2411,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // Turnip
-(Turnip, ()): (
+Turnip: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.turnip.turnip-0",
@@ -2446,9 +2447,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // Coconut
-(Coconut, ()): (
+Coconut: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.fruit.coconut",
@@ -2457,9 +2458,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Scarecrow
-(Scarecrow, ()): (
+Scarecrow: [(
     variations: [
     (
         model: "voxygen.voxel.sprite.misc.scarecrow",
@@ -2468,9 +2469,9 @@
     ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Street Light
-(StreetLamp, ()): (
+StreetLamp: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.misc.street_lamp",
@@ -2479,8 +2480,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(StreetLampTall, ()): (
+)],
+StreetLampTall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.street_lamp-0",
@@ -2490,10 +2491,10 @@
 
     ],
     wind_sway: 0.0,
-),
+)],
 // Door
 // To make doors swing add them in voxygen\src\scene\terrain L. 333
-(Door, ()): (
+Door: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.door.door-0",
@@ -2502,8 +2503,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DoorDark, ()): (
+)],
+DoorDark: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.door.door_dark-0",
@@ -2512,8 +2513,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DoorWide, ()): (
+)],
+DoorWide: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.door.door-wide",
@@ -2522,9 +2523,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Bed
-(Bed, ()): (
+Bed: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.bed-0",
@@ -2533,9 +2534,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Bench
-(Bench, ()): (
+Bench: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.bench-0",
@@ -2544,9 +2545,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Chair
-(ChairSingle, ()): (
+ChairSingle: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.chair_single-0",
@@ -2560,8 +2561,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(ChairDouble, ()): (
+)],
+ChairDouble: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.chair_double-0",
@@ -2575,9 +2576,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Helm
-(Helm, ()): (
+Helm: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.helm",
@@ -2586,9 +2587,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // CoatRack
-(CoatRack, ()): (
+CoatRack: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.coatrack-0",
@@ -2602,9 +2603,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Crate
-(Crate, ()): (
+Crate: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.crate-0",
@@ -2643,9 +2644,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // DrawerLarge
-(DrawerLarge, ()): (
+DrawerLarge: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.drawer_large-0",
@@ -2659,9 +2660,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // DrawerMedium
-(DrawerMedium, ()): (
+DrawerMedium: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.drawer_medium-0",
@@ -2675,9 +2676,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // DrawerSmall
-(DrawerSmall, ()): (
+DrawerSmall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.drawer_small-0",
@@ -2691,9 +2692,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // DungeonWallDecor
-(DungeonWallDecor, ()): (
+DungeonWallDecor: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.dungeon_wall-0",
@@ -2747,9 +2748,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // HangingBasket
-(HangingBasket, ()): (
+HangingBasket: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.hanging_basket-0",
@@ -2763,9 +2764,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // HangingSign
-(HangingSign, ()): (
+HangingSign: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.hanging_sign-0",
@@ -2774,9 +2775,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // WallLamp
-(WallLamp, ()): (
+WallLamp: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.lamp_wall-1",
@@ -2785,9 +2786,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // WallLampSmall
-(WallLampSmall, ()): (
+WallLampSmall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.lamp_wall-0",
@@ -2796,8 +2797,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(WallLampWizard, ()): (
+)],
+WallLampWizard: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.lamp_wall-2",
@@ -2806,8 +2807,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(ChristmasOrnament, ()): (
+)],
+ChristmasOrnament: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.snowflake_light",
@@ -2831,8 +2832,8 @@
         ),
     ],
     wind_sway: 0.2,
-),
-(ChristmasWreath, ()): (
+)],
+ChristmasWreath: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wreath-0",
@@ -2841,9 +2842,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // WallSconce
-(WallSconce, ()): (
+WallSconce: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.sconce_wall-0",
@@ -2852,9 +2853,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Planter
-(Planter, ()): (
+Planter: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.planter-0",
@@ -2893,9 +2894,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Shelf
-(Shelf, ()): (
+Shelf: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.shelf-0",
@@ -2909,9 +2910,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // TableSide
-(TableSide, ()): (
+TableSide: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.table_side-0",
@@ -2925,9 +2926,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // TableDining
-(TableDining, ()): (
+TableDining: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.table_dining-0",
@@ -2941,9 +2942,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // TableDouble
-(TableDouble, ()): (
+TableDouble: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.table_double-0",
@@ -2953,9 +2954,9 @@
 
     ],
     wind_sway: 0.0,
-),
+)],
 // WardrobeDouble
-(WardrobeDouble, ()): (
+WardrobeDouble: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wardrobe_double-0",
@@ -2969,9 +2970,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // WardrobeSingle
-(WardrobeSingle, ()): (
+WardrobeSingle: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wardrobe_single-0",
@@ -2985,9 +2986,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Pot
-(Pot, ()): (
+Pot: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.pot-0",
@@ -3001,9 +3002,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Stones
-(Stones, ()): (
+Stones: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.rocks.rock-0",
@@ -3022,8 +3023,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Stones2, ()): (
+)],
+Stones2: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.rocks.rock-0",
@@ -3037,9 +3038,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Twigs
-(Twigs, ()): (
+Twigs: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.twigs.twigs-0",
@@ -3058,9 +3059,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Drop Gate Parts
-(DropGate, ()): (
+DropGate: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.castle.drop_gate_bars-0",
@@ -3069,8 +3070,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DropGateBottom, ()): (
+)],
+DropGateBottom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.castle.drop_gate_bottom-0",
@@ -3079,9 +3080,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Snow covered Grass
-(GrassSnow, ()): (
+GrassSnow: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_snow_0",
@@ -3135,9 +3136,9 @@
         ),
     ],
     wind_sway: 0.2,
-),
+)],
 // Reed
-(Reed, ()): (
+Reed: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.reed.reed-0",
@@ -3191,9 +3192,9 @@
         ),
     ],
     wind_sway: 0.3,
-),
+)],
 // Beehive
-(Beehive, ()): (
+Beehive: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.beehive.beehive",
@@ -3202,9 +3203,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // Empty Flask
-(VialEmpty, ()): (
+VialEmpty: [(
     variations: [
         (
             model: "voxygen.voxel.object.potion_empty",
@@ -3213,9 +3214,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Bowls
-(Bowl, ()): (
+Bowl: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.crafting_ing.bowl",
@@ -3224,9 +3225,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Minor Potion
-(PotionMinor, ()): (
+PotionMinor: [(
     variations: [
         (
             model: "voxygen.voxel.object.potion_red",
@@ -3235,8 +3236,8 @@
         ),
 ],
     wind_sway: 0.0,
-),
-(PotionDummy, ()): (
+)],
+PotionDummy: [(
     variations: [
         (
             model: "voxygen.voxel.object.potion_green",
@@ -3245,9 +3246,9 @@
         ),
 ],
     wind_sway: 0.0,
-),
+)],
 // Ground Fire Bowls
-(FireBowlGround, ()): (
+FireBowlGround: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.misc.lantern_ground_open",
@@ -3256,9 +3257,9 @@
         ),
 ],
     wind_sway: 0.0,
-),
+)],
 // Underwater Grass
-(GrassBlue, ()): (
+GrassBlue: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.underwater_grass.blue-0",
@@ -3272,9 +3273,9 @@
         ),
     ],
     wind_sway: 1.0,
-),
+)],
 // Underwater Chests
-(ChestBuried, ()): (
+ChestBuried: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.underwater_chests.chest_skull",
@@ -3288,9 +3289,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Stony Coral
-(StonyCoral, ()): (
+StonyCoral: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.coral.yellow_fire_coral-0",
@@ -3399,9 +3400,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Soft Coral
-(SoftCoral, ()): (
+SoftCoral: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.coral.yellow_gorgonian-0",
@@ -3495,9 +3496,9 @@
         ),
     ],
     wind_sway: 1.0,
-),
+)],
 // Sea Anemones
-(SeaAnemone, ()): (
+SeaAnemone: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.coral.sea_anemone-1",
@@ -3506,9 +3507,9 @@
         ),
     ],
     wind_sway: 1.0,
-),
+)],
 //Bull kelp
-(BullKelp, ()): (
+BullKelp: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.algae.nereocystis_kelp-0",
@@ -3557,9 +3558,9 @@
         ),
     ],
     wind_sway: 0.5,
-),
+)],
 //scattered temperate type Seaweed
-(SeaweedTemperate, ()): (
+SeaweedTemperate: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.algae.kelp_sprig-0",
@@ -3583,9 +3584,9 @@
         ),
     ],
     wind_sway: 0.5,
-),
+)],
 //scattered tropical type seaweed
-(SeaweedTropical, ()): (
+SeaweedTropical: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.grass_short_1",
@@ -3629,9 +3630,9 @@
         ),
     ],
     wind_sway: 0.7,
-),
+)],
 //Mermaids fan algae patch
-(MermaidsFan, ()): (
+MermaidsFan: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.algae.udotea-0",
@@ -3650,9 +3651,9 @@
         ),
     ],
     wind_sway: 0.7,
-),
+)],
 //Caulerpa prolifera patch
-(WavyAlgae, ()): (
+WavyAlgae: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.algae.caulerpa_prolifera-0",
@@ -3676,9 +3677,9 @@
         ),
     ],
     wind_sway: 0.7,
-),
+)],
 //Caulerpa lentillifera patch
-(SeaGrapes, ()): (
+SeaGrapes: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.algae.caulerpa_lentillifera-0",
@@ -3702,9 +3703,9 @@
         ),
     ],
     wind_sway: 0.7,
-),
+)],
 //Giant Kelp
-(GiantKelp, ()): (
+GiantKelp: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.algae.macrocystis_kelp-0",
@@ -3728,13 +3729,13 @@
         ),
     ],
     wind_sway: 0.2,
-),
+)],
 // Red Algae
-(RedAlgae, ()): None,
+RedAlgae: [()],
 // Underwater Vent
-(UnderwaterVent, ()): None,
+UnderwaterVent: [()],
 // Seagrass
-(Seagrass, ()): (
+Seagrass: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grass.seagrass-0",
@@ -3763,9 +3764,9 @@
         ),
     ],
     wind_sway: 0.7,
-),
+)],
 // Seashells
-(Seashells, ()): (
+Seashells: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.seashells.shell-0",
@@ -3779,9 +3780,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Underwater Mud Piles
-(Mud, ()): (
+Mud: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.underwater_mud.mud-0",
@@ -3795,9 +3796,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Amethyst Ore
-(Amethyst, ()): (
+Amethyst: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.amethyst-0",
@@ -3806,9 +3807,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Ruby Ore
-(Ruby, ()): (
+Ruby: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.ruby-0",
@@ -3817,9 +3818,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Diamond Ore
-(Diamond, ()): (
+Diamond: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.diamond-0",
@@ -3828,9 +3829,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Sapphire Ore
-(Sapphire, ()): (
+Sapphire: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.sapphire-0",
@@ -3839,9 +3840,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Emerald Ore
-(Emerald, ()): (
+Emerald: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.emerald-0",
@@ -3850,9 +3851,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Topaz Ore
-(Topaz, ()): (
+Topaz: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.topaz-0",
@@ -3861,9 +3862,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Small Amethyst Ore
-(AmethystSmall, ()): (
+AmethystSmall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.amethyst_S-0",
@@ -3872,9 +3873,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Small Topaz Ore
-(TopazSmall, ()): (
+TopazSmall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.topaz_S-0",
@@ -3883,9 +3884,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Small Ruby Ore
-(RubySmall, ()): (
+RubySmall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.ruby_S-0",
@@ -3894,9 +3895,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Small Emerald Ore
-(EmeraldSmall, ()): (
+EmeraldSmall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.emerald_S-0",
@@ -3905,9 +3906,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Small Diamond Ore
-(DiamondSmall, ()): (
+DiamondSmall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.diamond_S-0",
@@ -3916,9 +3917,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Small Sapphire Ore
-(SapphireSmall, ()): (
+SapphireSmall: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.gem.sapphire_S-0",
@@ -3927,8 +3928,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Bloodstone, ()): (
+)],
+Bloodstone: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.bloodstone",
@@ -3937,8 +3938,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Coal, ()): (
+)],
+Coal: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.coal",
@@ -3947,8 +3948,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Cobalt, ()): (
+)],
+Cobalt: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.cobalt",
@@ -3957,8 +3958,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Copper, ()): (
+)],
+Copper: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.copper",
@@ -3967,8 +3968,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Iron, ()): (
+)],
+Iron: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.iron",
@@ -3977,8 +3978,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Tin, ()): (
+)],
+Tin: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.tin",
@@ -3987,8 +3988,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Silver, ()): (
+)],
+Silver: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.silver",
@@ -3997,8 +3998,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Gold, ()): (
+)],
+Gold: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.gold",
@@ -4007,8 +4008,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CrystalHigh, ()): (
+)],
+CrystalHigh: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.crystal.ceiling.green-0",
@@ -4062,8 +4063,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CrystalLow, ()): (
+)],
+CrystalLow: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.mineral.deposit.crystal.floor.blue-0",
@@ -4112,8 +4113,8 @@
         )
     ],
     wind_sway: 0.0,
-),
-(Cotton, ()): (
+)],
+Cotton: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.cotton",
@@ -4122,8 +4123,8 @@
         ),
     ],
     wind_sway: 0.4,
-),
-(Moonbell, ()): (
+)],
+Moonbell: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.moonbell",
@@ -4132,8 +4133,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Pyrebloom, ()): (
+)],
+Pyrebloom: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flowers.pyrebloom",
@@ -4142,8 +4143,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(WildFlax, ()): (
+)],
+WildFlax: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.flax.flax-0",
@@ -4177,9 +4178,9 @@
         ),
     ],
     wind_sway: 0.4,
-),
+)],
 // Lantern
-(Lantern, ()): (
+Lantern: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.lantern.mine_lamp",
@@ -4188,9 +4189,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // CliffTown & DesertCity Decor
-(WindowArabic, ()): (
+WindowArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.window.window_arabic",
@@ -4199,8 +4200,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(BookshelfArabic, ()): (
+)],
+BookshelfArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.bookshelf_arabic",
@@ -4209,8 +4210,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DecorSetArabic, ()): (
+)],
+DecorSetArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.decor_set_arabic-0",
@@ -4219,8 +4220,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(SepareArabic, ()): (
+)],
+SepareArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.separe_arabic",
@@ -4229,8 +4230,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CushionArabic, ()): (
+)],
+CushionArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.cushion_arabic",
@@ -4239,8 +4240,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(JugArabic, ()): (
+)],
+JugArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.jug_arabic",
@@ -4249,8 +4250,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(TableArabicSmall, ()): (
+)],
+TableArabicSmall: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.table_arabic_small",
@@ -4259,8 +4260,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(TableArabicLarge, ()): (
+)],
+TableArabicLarge: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.table_arabic_large",
@@ -4269,8 +4270,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CanapeArabic, ()): (
+)],
+CanapeArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.canape_arabic",
@@ -4279,8 +4280,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CupboardArabic, ()): (
+)],
+CupboardArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.cupboard_arabic",
@@ -4289,8 +4290,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(WallTableArabic, ()): (
+)],
+WallTableArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.wall_table_arabic",
@@ -4299,8 +4300,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(JugAndBowlArabic, ()): (
+)],
+JugAndBowlArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.jug_and_bowl_arabic",
@@ -4309,8 +4310,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Melon, ()): (
+)],
+Melon: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.melon_cut",
@@ -4324,8 +4325,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(FountainArabic, ()): (
+)],
+FountainArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.fountain_arabic",
@@ -4334,8 +4335,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(OvenArabic, ()): (
+)],
+OvenArabic: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.oven_arabic",
@@ -4344,8 +4345,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Hearth, ()): (
+)],
+Hearth: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.hearth",
@@ -4354,8 +4355,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(ForgeTools, ()): (
+)],
+ForgeTools: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.forge_tools",
@@ -4364,9 +4365,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // CliffTown Sprites
-(CliffDecorBlock, ()): (
+CliffDecorBlock: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.cliff_decor_block-0",
@@ -4430,8 +4431,8 @@
         ),                                                                                                        
     ],
     wind_sway: 0.0,
-),
-(BedMesa, ()): (
+)],
+BedMesa: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.bed_mesa",
@@ -4440,8 +4441,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CupboardMesa, ()): (
+)],
+CupboardMesa: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.cupboard_mesa",
@@ -4450,8 +4451,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(WallLampMesa, ()): (
+)],
+WallLampMesa: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wall_lamp_mesa",
@@ -4460,8 +4461,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(MesaLantern, ()): (
+)],
+MesaLantern: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.lantern.lantern_mesa",
@@ -4470,8 +4471,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(MirrorMesa, ()): (
+)],
+MirrorMesa: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.mirror_mesa",
@@ -4480,8 +4481,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(WallTableMesa, ()): (
+)],
+WallTableMesa: [(
     variations: [
         (
            model: "voxygen.voxel.sprite.furniture.wall_table_mesa",
@@ -4490,8 +4491,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(WardrobeDoubleMesa, ()): (
+)],
+WardrobeDoubleMesa: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wardrobe_double_mesa-0",
@@ -4510,8 +4511,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(WardrobeSingleMesa, ()): (
+)],
+WardrobeSingleMesa: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wardrobe_single-0",
@@ -4525,9 +4526,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Anvil
-(Anvil, ()): (
+Anvil: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.anvil.anvil-0",
@@ -4536,9 +4537,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Cauldron
-(Cauldron, ()): (
+Cauldron: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cauldron.cauldron-0",
@@ -4547,9 +4548,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Forge
-(Forge, ()): (
+Forge: [(
     variations: [
         (
             model: "voxygen.voxel.object.forge",
@@ -4558,8 +4559,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Loom, ()): (
+)],
+Loom: [(
     variations: [
         (
             model: "voxygen.voxel.object.loom",
@@ -4568,9 +4569,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // DismantlingBench
-(DismantlingBench, ()): (
+DismantlingBench: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.salvaging_station.salvaging_station-0",
@@ -4579,8 +4580,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(SpinningWheel, ()): (
+)],
+SpinningWheel: [(
     variations: [
         (
             model: "voxygen.voxel.object.spinning_wheel",
@@ -4589,8 +4590,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(TanningRack, ()): (
+)],
+TanningRack: [(
     variations: [
         (
             model: "voxygen.voxel.object.tanning_rack",
@@ -4599,9 +4600,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Crafting Bench
-(CraftingBench, ()): (
+CraftingBench: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.crafting_bench.crafting_bench-0",
@@ -4610,9 +4611,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Cooking Pot
-(CookingPot, ()): (
+CookingPot: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cooking_pot.pot-0",
@@ -4621,9 +4622,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Repair Bench
-(RepairBench, ()): (
+RepairBench: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.repair_bench.repair_bench-0",
@@ -4632,9 +4633,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Ensnaring Vines
-(EnsnaringVines, ()): (
+EnsnaringVines: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.misc.ensnaring_vines",
@@ -4643,9 +4644,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Sea Urchin
-(SeaUrchin, ()): (
+SeaUrchin: [(
     variations: [
         (
             model: "voxygen.voxel.object.sea_urchin",
@@ -4654,9 +4655,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Iron Spike
-(IronSpike, ()): (
+IronSpike: [(
     variations: [
         (
             model: "voxygen.voxel.object.iron_spike",
@@ -4665,9 +4666,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // WitchWindow
-(WitchWindow, ()): (
+WitchWindow: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.window.witch_purple",
@@ -4676,8 +4677,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Keyhole, ()): (
+)],
+Keyhole: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.keyhole_block",
@@ -4686,8 +4687,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(KeyDoor, ()): (
+)],
+KeyDoor: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.door_block",
@@ -4696,8 +4697,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(BoneKeyhole, ()): (
+)],
+BoneKeyhole: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.bone_keyhole_block",
@@ -4706,8 +4707,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(BoneKeyDoor, ()): (
+)],
+BoneKeyDoor: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.bone_door_block",
@@ -4716,9 +4717,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Bones
-(Bones, ()): (
+Bones: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.bone.bone-1",
@@ -4747,9 +4748,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Short Grass Blue
-(GrassBlueShort, ()): (
+GrassBlueShort: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.grass_blue_short-0",
@@ -4778,9 +4779,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Medium Grass Blue
-(GrassBlueMedium, ()): (
+GrassBlueMedium: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.grass_blue_med-0",
@@ -4804,9 +4805,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Long Grass Blue
-(GrassBlueLong, ()): (
+GrassBlueLong: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.grass_blue_long-0",
@@ -4850,9 +4851,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Cavern Lillypads Blue
-(CavernLillypadBlue, ()): (
+CavernLillypadBlue: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cavern.lillypad-0",
@@ -4881,9 +4882,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Cave Hanging Mycel Blue
-(MycelBlue, ()): (
+MycelBlue: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cave.ceiling.mycel-0",
@@ -4907,9 +4908,9 @@
         ),
     ],
     wind_sway: 0.1,
-),
+)],
 // LillyPads on rivers
-(LillyPads, ()): (
+LillyPads: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-1",
@@ -4958,8 +4959,8 @@
         ),
     ],
     wind_sway: 0.6,
-),
-(Bomb, ()): (
+)],
+Bomb: [(
     variations: [
         (
             model: "voxygen.voxel.object.bomb",
@@ -4968,8 +4969,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(EnsnaringWeb, ()): (
+)],
+EnsnaringWeb: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.misc.ensnaring_web",
@@ -4978,9 +4979,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Ice spike
-(IceSpike, ()): (
+IceSpike: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.misc.icespike",
@@ -4989,9 +4990,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // WOOOOOOD
-(Wood, ()): (
+Wood: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wood.log.wood",
@@ -5000,8 +5001,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Bamboo, ()): (
+)],
+Bamboo: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wood.log.bamboo",
@@ -5010,8 +5011,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Hardwood, ()): (
+)],
+Hardwood: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wood.log.hardwood",
@@ -5020,8 +5021,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Ironwood, ()): (
+)],
+Ironwood: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wood.log.ironwood",
@@ -5030,8 +5031,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Frostwood, ()): (
+)],
+Frostwood: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wood.log.frostwood",
@@ -5040,8 +5041,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Eldwood, ()): (
+)],
+Eldwood: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wood.log.eldwood",
@@ -5050,9 +5051,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Bedrolls
-(Bedroll, ()): (
+Bedroll: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.camp.camp",
@@ -5061,8 +5062,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Tent, ()): (
+)],
+Tent: [(
     variations: [
         (
             model: "voxygen.voxel.object.tent",
@@ -5071,8 +5072,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(BedrollSnow, ()): (
+)],
+BedrollSnow: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.camp.camp_snow",
@@ -5081,8 +5082,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(BedrollPirate, ()): (
+)],
+BedrollPirate: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.camp.camp_pirate",
@@ -5091,9 +5092,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Graves
-(Grave, ()): (
+Grave: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grave.mud",
@@ -5102,8 +5103,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Gravestone, ()): (
+)],
+Gravestone: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.grave.grave_0",
@@ -5142,9 +5143,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 // Wizard assets
-(MagicalBarrier, ()): (
+MagicalBarrier: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wizard.magical_barrier",
@@ -5153,8 +5154,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(MagicalSeal, ()): (
+)],
+MagicalSeal: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wizard.magical_seal",
@@ -5163,8 +5164,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Candle, ()): (
+)],
+Candle: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.wizard.candle",
@@ -5173,8 +5174,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(DoorBars, ()): (
+)],
+DoorBars: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.bars.0",
@@ -5183,8 +5184,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(KeyholeBars, ()): (
+)],
+KeyholeBars: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.bars.keyhole",
@@ -5193,8 +5194,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(IceCrystal, ()): (
+)],
+IceCrystal: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.crystal.ice_crystal_0",
@@ -5258,9 +5259,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 
-(GlowIceCrystal, ()): (
+GlowIceCrystal: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_0",
@@ -5294,12 +5295,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(OneWayWall, ()): (
-    variations: [],
-    wind_sway: 0.0,
-),
-(Sign, ()): (
+)],
+OneWayWall: [()],
+Sign: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.sign.basic",
@@ -5308,8 +5306,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(WoodBarricades, ()): (
+)],
+WoodBarricades: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.barricades_wood.barricades-0",
@@ -5334,8 +5332,8 @@
 
     ],
     wind_sway: 0.0,
-),
-(DiamondLight, ()): (
+)],
+DiamondLight: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.misc.floating_diamond",
@@ -5344,8 +5342,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(SmithingTable, ()): (
+)],
+SmithingTable: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.smith_table-0",
@@ -5354,8 +5352,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Forge0, ()): (
+)],
+Forge0: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.forge-0",
@@ -5364,8 +5362,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(GearWheel0, ()): (
+)],
+GearWheel0: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.gear_wheel-0",
@@ -5374,8 +5372,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(Quench0, ()): (
+)],
+Quench0: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.quench-0",
@@ -5384,12 +5382,9 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(HotSurface, ()): (
-    variations: [],
-    wind_sway: 0.0,
-),
-(Barrel, ()): (
+)],
+HotSurface: [()],
+Barrel: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.barrel",
@@ -5398,8 +5393,8 @@
         ),
     ],
     wind_sway: 0.0,
-),
-(CrateBlock, ()): (
+)],
+CrateBlock: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.crate_block",
@@ -5408,5 +5403,5 @@
         ),
     ],
     wind_sway: 0.0,
-),
+)],
 }

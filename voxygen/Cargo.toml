@@ -133,6 +133,7 @@ rayon = { workspace = true }
 rodio = { version = "0.18", default-features = false, features = ["vorbis"] }
 ron = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
+serde_with = { version = "3.9.0", features = ["hashbrown_0_14"] }
 slab = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }
