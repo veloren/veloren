@@ -436,7 +436,7 @@ impl Screen {
                                         Row::with_children(vec![
                                             Space::new(Length::FillPortion(5), Length::Units(0))
                                                 .into(),
-                                            Text::new(shape.to_string())
+                                            Text::new(i18n.get_msg(Self::map_kind_key(shape)))
                                                 .width(Length::FillPortion(95))
                                                 .size(fonts.cyri.scale(14))
                                                 .vertical_alignment(iced::VerticalAlignment::Center)
@@ -665,6 +665,13 @@ impl Screen {
             }
         } else {
             all.into()
+        }
+    }
+
+    fn map_kind_key(map_kind: MapKind) -> &'static str {
+        match map_kind {
+            MapKind::Circle => "main-singleplayer-map_shape-circle",
+            MapKind::Square => "main-singleplayer-map_shape-square",
         }
     }
 }
