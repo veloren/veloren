@@ -101,8 +101,8 @@ widget_ids! {
         exp_img_frame,
         exp_img,
         exp_lvl,
-        spellbook_txt_bg,
-        spellbook_txt,
+        diary_txt_bg,
+        diary_txt,
         sp_arrow,
         sp_arrow_txt_bg,
         sp_arrow_txt,
@@ -799,18 +799,18 @@ impl<'a> Skillbar<'a> {
             .set(state.ids.exp_img, ui);
 
             // Show Shortcut
-            if let Some(spell) = &self
+            if let Some(diary) = &self
                 .global_state
                 .settings
                 .controls
-                .get_binding(GameInput::Spellbook)
+                .get_binding(GameInput::Diary)
             {
                 self.create_new_button_with_shadow(
                     ui,
-                    spell,
+                    diary,
                     state.ids.exp_img,
-                    state.ids.spellbook_txt_bg,
-                    state.ids.spellbook_txt,
+                    state.ids.diary_txt_bg,
+                    state.ids.diary_txt,
                 );
             }
         } else {
@@ -837,18 +837,18 @@ impl<'a> Skillbar<'a> {
                 .set(state.ids.exp_img, ui);
 
             // Show Shortcut
-            if let Some(spell) = &self
+            if let Some(diary) = &self
                 .global_state
                 .settings
                 .controls
-                .get_binding(GameInput::Spellbook)
+                .get_binding(GameInput::Diary)
             {
                 self.create_new_button_with_shadow(
                     ui,
-                    spell,
+                    diary,
                     state.ids.exp_img,
-                    state.ids.spellbook_txt_bg,
-                    state.ids.spellbook_txt,
+                    state.ids.diary_txt_bg,
+                    state.ids.diary_txt,
                 );
             }
         }

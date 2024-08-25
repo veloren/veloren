@@ -99,8 +99,8 @@ pub enum GameInput {
     Social,
     #[strum(serialize = "gameinput-crafting")]
     Crafting,
-    #[strum(serialize = "gameinput-spellbook")]
-    Spellbook,
+    #[strum(serialize = "gameinput-diary")]
+    Diary,
     #[strum(serialize = "gameinput-settings")]
     Settings,
     #[strum(serialize = "gameinput-controls")]

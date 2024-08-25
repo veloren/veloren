@@ -1050,7 +1050,7 @@ impl Show {
 
     fn toggle_crafting(&mut self) { self.crafting(!self.crafting) }
 
-    fn toggle_spell(&mut self) { self.diary(!self.diary) }
+    fn toggle_diary(&mut self) { self.diary(!self.diary) }
 
     fn toggle_ui(&mut self) { self.ui = !self.ui; }
 
@@ -4780,8 +4780,8 @@ impl Hud {
                         self.show.toggle_crafting();
                         true
                     },
-                    GameInput::Spellbook if state => {
-                        self.show.toggle_spell();
+                    GameInput::Diary if state => {
+                        self.show.toggle_diary();
                         true
                     },
                     GameInput::Settings if state => {

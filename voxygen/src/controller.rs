@@ -172,9 +172,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.crafting)
                     .or_default()
                     .push(GameInput::Crafting);
-                map.entry(settings.game_buttons.spellbook)
+                map.entry(settings.game_buttons.diary)
                     .or_default()
-                    .push(GameInput::Spellbook);
+                    .push(GameInput::Diary);
                 map.entry(settings.game_buttons.settings)
                     .or_default()
                     .push(GameInput::Settings);
@@ -407,9 +407,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_layer_buttons.crafting)
                     .or_default()
                     .push(GameInput::Crafting);
-                map.entry(settings.game_layer_buttons.spellbook)
+                map.entry(settings.game_layer_buttons.diary)
                     .or_default()
-                    .push(GameInput::Spellbook);
+                    .push(GameInput::Diary);
                 map.entry(settings.game_layer_buttons.settings)
                     .or_default()
                     .push(GameInput::Settings);
