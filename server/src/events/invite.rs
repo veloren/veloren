@@ -10,7 +10,7 @@ use common::{
         agent::{Agent, AgentEvent},
         group::GroupManager,
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
-        ChatType, Group, Health, Pos,
+        ChatType, Content, Group, Health, Pos,
     },
     consts::MAX_TRADE_RANGE,
     event::{InitiateInviteEvent, InviteResponseEvent},
@@ -80,7 +80,7 @@ impl ServerEvent for InitiateInviteEvent {
                     if let Some(client) = clients.get(inviter) {
                         client.send_fallible(ServerGeneral::server_msg(
                             ChatType::Meta,
-                            "Invite failed, target does not exist.",
+                            Content::Plain("Invite failed, target does not exist.".to_string()),
                         ));
                     }
                     continue;
@@ -146,7 +146,7 @@ impl ServerEvent for InitiateInviteEvent {
                 if let Some(client) = clients.get(inviter) {
                     client.send_fallible(ServerGeneral::server_msg(
                         ChatType::Meta,
-                        "This player already has a pending invite.",
+                        Content::Plain("This player already has a pending invite.".to_string()),
                     ));
                 }
                 continue;
@@ -206,7 +206,7 @@ impl ServerEvent for InitiateInviteEvent {
             } else if let Some(client) = clients.get(inviter) {
                 client.send_fallible(ServerGeneral::server_msg(
                     ChatType::Meta,
-                    "Can't invite, not a player or npc",
+                    Content::Plain("Can't invite, not a player or npc".to_string()),
                 ));
             }
 
@@ -301,8 +301,11 @@ pub fn handle_invite_accept(data: &mut InviteResponseData, entity: Entity) {
                         {
                             client.send_fallible(ServerGeneral::server_msg(
                                 ChatType::Meta,
-                                "Trade failed, inviter initiated new trade since sending trade \
-                                 request.",
+                                Content::Plain(
+                                    "Trade failed, inviter initiated new trade since sending \
+                                     trade request."
+                                        .to_string(),
+                                ),
                             ));
                         }
                         return;

@@ -1384,7 +1384,9 @@ impl Server {
                         entity,
                         ServerGeneral::server_msg(
                             comp::ChatType::CommandError,
-                            "Can't get player UUID (player may be disconnected?)",
+                            common::comp::Content::Plain(
+                                "Can't get player UUID (player may be disconnected?)".to_string(),
+                            ),
                         ),
                     );
                     return;
@@ -1395,10 +1397,10 @@ impl Server {
                             entity,
                             ServerGeneral::server_msg(
                                 comp::ChatType::CommandError,
-                                format!(
+                                common::comp::Content::Plain(format!(
                                     "Unknown command '/{name}'.\nType '/help' for available \
                                      commands",
-                                ),
+                                )),
                             ),
                         ),
                     Ok(value) => {
@@ -1406,7 +1408,7 @@ impl Server {
                             entity,
                             ServerGeneral::server_msg(
                                 comp::ChatType::CommandInfo,
-                                value.join("\n"),
+                                common::comp::Content::Plain(value.join("\n")),
                             ),
                         );
                     },
@@ -1415,7 +1417,9 @@ impl Server {
                             entity,
                             ServerGeneral::server_msg(
                                 comp::ChatType::CommandError,
-                                format!("Error occurred while executing command '/{name}'.\n{err}"),
+                                common::comp::Content::Plain(format!(
+                                    "Error occurred while executing command '/{name}'.\n{err}"
+                                )),
                             ),
                         );
                     },
@@ -1425,10 +1429,10 @@ impl Server {
                             entity,
                             ServerGeneral::server_msg(
                                 comp::ChatType::CommandError,
-                                format!(
+                                common::comp::Content::Plain(format!(
                                     "Internal error {err:?} while executing '/{name}'.\nContact \
                                      the server administrator",
-                                ),
+                                )),
                             ),
                         );
                     },

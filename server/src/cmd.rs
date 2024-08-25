@@ -592,7 +592,7 @@ fn handle_give_item(
                         target,
                         comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
                     )
-                    .map_err(|_| "Entity target is dead!")?;
+                    .map_err(|_| Content::Plain("Entity target is dead!".to_string()))?;
             }
             res
         } else {
@@ -834,12 +834,14 @@ fn handle_motd(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            server
-                .editable_settings()
-                .server_description
-                .get(locale.as_deref())
-                .map_or("", |d| &d.motd)
-                .to_string(),
+            Content::Plain(
+                server
+                    .editable_settings()
+                    .server_description
+                    .get(locale.as_deref())
+                    .map_or("", |d| &d.motd)
+                    .to_string(),
+            ),
         ),
     );
     Ok(())
@@ -953,7 +955,9 @@ fn handle_site(
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    Err("Unsupported without worldgen enabled".into())
+    Err(Content::Plain(
+        "Unsupported without worldgen enabled".into(),
+    ))
 }
 
 /// TODO: Add autocompletion if possible (might require modifying enum to handle
@@ -1223,7 +1227,7 @@ fn handle_time(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!("Time changed to: {}", new_time.format("%H:%M")),
+                Content::Plain(format!("Time changed to: {}", new_time.format("%H:%M"))),
             ),
         );
     }
@@ -1290,7 +1294,7 @@ fn handle_time_scale(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandError,
-                "Wrong parameter, expected f32.".to_string(),
+                Content::Plain("Wrong parameter, expected f32.".to_string()),
             ),
         );
     }
@@ -1323,10 +1327,10 @@ fn handle_health(
             health.change_by(change);
             Ok(())
         } else {
-            Err("You have no health".into())
+            Err(Content::Plain("You have no health".into()))
         }
     } else {
-        Err("You must specify health amount!".into())
+        Err(Content::Plain("You must specify health amount!".into()))
     }
 }
 
@@ -1339,7 +1343,7 @@ fn handle_alias(
 ) -> CmdResult<()> {
     if let Some(alias) = parse_cmd_args!(args, String) {
         // Prevent silly aliases
-        comp::Player::alias_validate(&alias).map_err(|e| e.to_string())?;
+        comp::Player::alias_validate(&alias).map_err(|e| Content::Plain(e.to_string()))?;
 
         let old_alias_optional = server
             .state
@@ -1365,7 +1369,7 @@ fn handle_alias(
             if ecs.read_storage::<comp::Body>().get(target).is_some() {
                 server.state.notify_players(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
-                    format!("{} is now known as {}.", old_alias, player.alias),
+                    Content::Plain(format!("{} is now known as {}.", old_alias, player.alias)),
                 ));
             }
         }
@@ -1373,7 +1377,10 @@ fn handle_alias(
             // Notify target that an admin changed the alias due to /sudo
             server.notify_client(
                 target,
-                ServerGeneral::server_msg(ChatType::CommandInfo, "An admin changed your alias."),
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    Content::Plain("An admin changed your alias.".to_string()),
+                ),
             );
         }
         Ok(())
@@ -1424,7 +1431,7 @@ fn handle_rtsim_tp(
             .npcs
             .values()
             .find(|npc| npc.uid == id)
-            .ok_or_else(|| format!("No NPC has the id {id}"))?
+            .ok_or_else(|| Content::Plain(format!("No NPC has the id {id}")))?
             .wpos
     } else {
         return Err(action.help_content());
@@ -1451,7 +1458,7 @@ fn handle_rtsim_info(
             .npcs
             .iter()
             .find(|(_, npc)| npc.uid == id)
-            .ok_or_else(|| format!("No NPC has the id {id}"))?;
+            .ok_or_else(|| Content::Plain(format!("No NPC has the id {id}")))?;
 
         let mut info = String::new();
 
@@ -1486,7 +1493,7 @@ fn handle_rtsim_info(
 
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, info),
+            ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(info)),
         );
 
         Ok(())
@@ -1558,7 +1565,7 @@ fn handle_rtsim_npc(
 
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, info),
+            ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(info)),
         );
 
         Ok(())
@@ -1592,10 +1599,10 @@ fn handle_rtsim_purge(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!(
+                Content::Plain(format!(
                     "Rtsim data {} be purged on next startup",
                     if should_purge { "WILL" } else { "will NOT" },
-                ),
+                )),
             ),
         );
         Ok(())
@@ -1659,7 +1666,7 @@ fn handle_rtsim_chunk(
 
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, info),
+        ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(info)),
     );
 
     Ok(())
@@ -1691,7 +1698,9 @@ fn handle_spawn(
                     .read_storage::<comp::Anchor>()
                     .contains(target)
             {
-                return Err("Spawning this pet would create an anchor chain".into());
+                return Err(Content::Plain(
+                    "Spawning this pet would create an anchor chain".into(),
+                ));
             }
 
             let amount = opt_amount.filter(|x| *x > 0).unwrap_or(1).min(50);
@@ -1757,9 +1766,9 @@ fn handle_spawn(
                                 follower,
                                 tether_length: 4.0,
                             })
-                            .map_err(|_| "Failed to tether entities")?;
+                            .map_err(|_| Content::Plain("Failed to tether entities".to_string()))?;
                     } else {
-                        return Err("Tether members don't have Uids.".into());
+                        return Err(Content::Plain("Tether members don't have Uids.".into()));
                     }
                 }
 
@@ -1787,7 +1796,7 @@ fn handle_spawn(
                 client,
                 ServerGeneral::server_msg(
                     ChatType::CommandInfo,
-                    format!("Spawned {} entities", amount),
+                    Content::Plain(format!("Spawned {} entities", amount)),
                 ),
             );
             Ok(())
@@ -1860,7 +1869,7 @@ fn handle_spawn_airship(
         *comp::ship::ALL_AIRSHIPS
             .iter()
             .find(|body| format!("{body:?}") == body_name)
-            .ok_or_else(|| format!("No such airship '{body_name}'."))?
+            .ok_or_else(|| Content::Plain(format!("No such airship '{body_name}'.")))?
     } else {
         comp::ship::Body::random_airship_with(&mut thread_rng())
     };
@@ -1907,7 +1916,7 @@ fn handle_spawn_ship(
         *comp::ship::ALL_SHIPS
             .iter()
             .find(|body| format!("{body:?}") == body_name)
-            .ok_or_else(|| format!("No such airship '{body_name}'."))?
+            .ok_or_else(|| Content::Plain(format!("No such airship '{body_name}'.")))?
     } else {
         comp::ship::Body::random_airship_with(&mut thread_rng())
     };
@@ -1961,15 +1970,18 @@ fn handle_spawn_ship(
                     follower,
                     tether_length,
                 })
-                .map_err(|_| "Failed to tether entities")?;
+                .map_err(|_| Content::Plain("Failed to tether entities".to_string()))?;
         } else {
-            return Err("Tether members don't have Uids.".into());
+            return Err(Content::Plain("Tether members don't have Uids.".into()));
         }
     }
 
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned a ship"),
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            Content::Plain("Spawned a ship".to_string()),
+        ),
     );
     Ok(())
 }
@@ -2132,7 +2144,7 @@ fn handle_permit_build(
         let mut can_build = server.state.ecs().write_storage::<comp::CanBuild>();
         let entry = can_build
             .entry(target)
-            .map_err(|_| "Cannot find target entity!".to_string())?;
+            .map_err(|_| Content::Plain("Cannot find target entity!".to_string()))?;
         let mut comp_can_build = entry.or_insert(comp::CanBuild {
             enabled: false,
             build_areas: HashSet::new(),
@@ -2253,10 +2265,10 @@ fn handle_players(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            entity_tuples.join().fold(
+            Content::Plain(entity_tuples.join().fold(
                 format!("{} online players:", entity_tuples.join().count()),
                 |s, (_, player, stat)| format!("{}\n[{}]{}", s, player.alias, stat.name,),
-            ),
+            )),
         ),
     );
     Ok(())
@@ -2287,7 +2299,10 @@ fn handle_spawn_portal(
 
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned portal"),
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::Plain("Spawned portal".to_string()),
+            ),
         );
         Ok(())
     } else {
@@ -2328,7 +2343,9 @@ fn handle_build(
         server.notify_client(client, chat_msg);
         Ok(())
     } else {
-        Err("You do not have permission to build.".into())
+        Err(Content::Plain(
+            "You do not have permission to build.".into(),
+        ))
     }
 }
 
@@ -2340,7 +2357,7 @@ fn get_areas_mut<'l>(kind: &str, state: &'l mut State) -> CmdResult<&'l mut Area
         Some(AreaKind::NoDurability) => state
             .mut_resource::<AreasContainer<NoDurabilityArea>>()
             .deref_mut(),
-        None => Err(format!("Invalid area type '{kind}'"))?,
+        None => Err(Content::Plain(format!("Invalid area type '{kind}'")))?,
     })
 }
 
@@ -2365,14 +2382,16 @@ fn handle_area_add(
         let special_areas = get_areas_mut(&kind, &mut server.state)?;
         let msg = ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            format!("Created {kind} zone {}", area_name),
+            Content::Plain(format!("Created {kind} zone {}", area_name)),
         );
         special_areas
             .insert(area_name, Aabb {
                 min: Vec3::new(xlo, ylo, zlo),
                 max: Vec3::new(xhi, yhi, zhi),
             })
-            .map_err(|area_name| format!("{kind} zone {} already exists!", area_name))?;
+            .map_err(|area_name| {
+                Content::Plain(format!("{kind} zone {} already exists!", area_name))
+            })?;
         server.notify_client(client, msg);
         Ok(())
     } else {
@@ -2412,7 +2431,7 @@ fn handle_area_list(
 
     let msg = ServerGeneral::server_msg(
         ChatType::CommandInfo,
-        [build_message, no_dura_message].join("\n"),
+        Content::Plain([build_message, no_dura_message].join("\n")),
     );
 
     server.notify_client(client, msg);
@@ -2430,17 +2449,19 @@ fn handle_area_remove(
         let areas = get_areas_mut(&kind, &mut server.state)?;
 
         areas.remove(&area_name).map_err(|err| match err {
-            SpecialAreaError::Reserved => format!(
+            SpecialAreaError::Reserved => Content::Plain(format!(
                 "Special area is reserved and cannot be removed: {}",
                 area_name
-            ),
-            SpecialAreaError::NotFound => format!("No such build area {}", area_name),
+            )),
+            SpecialAreaError::NotFound => {
+                Content::Plain(format!("No such build area {}", area_name))
+            },
         })?;
         server.notify_client(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!("Removed {kind} zone {area_name}"),
+                Content::Plain(format!("Removed {kind} zone {area_name}")),
             ),
         );
         Ok(())
@@ -2576,7 +2597,7 @@ fn handle_kill_npcs(
 
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, text),
+        ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(text)),
     );
 
     Ok(())
@@ -2603,7 +2624,10 @@ fn handle_kit(
     let notify = |server: &mut Server, kit_name: &str| {
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, format!("Gave kit: {}", kit_name)),
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::Plain(format!("Gave kit: {}", kit_name)),
+            ),
         );
     };
     let name = parse_cmd_args!(args, String).ok_or_else(|| action.help_content())?;
@@ -2628,12 +2652,17 @@ fn handle_kit(
         kit_name => {
             let kits = KitManifest::load(KIT_MANIFEST_PATH)
                 .map(|kits| kits.read())
-                .map_err(|_| format!("Could not load manifest file {}", KIT_MANIFEST_PATH))?;
+                .map_err(|_| {
+                    Content::Plain(format!(
+                        "Could not load manifest file {}",
+                        KIT_MANIFEST_PATH
+                    ))
+                })?;
 
             let kit = kits
                 .0
                 .get(kit_name)
-                .ok_or(format!("Kit '{}' not found", kit_name))?;
+                .ok_or(Content::Plain(format!("Kit '{}' not found", kit_name)))?;
 
             let res = push_kit(
                 kit.iter()
@@ -2693,11 +2722,12 @@ fn push_item(
 ) -> CmdResult<()> {
     let items = match item_id {
         KitEntry::Spec(KitSpec::Item(item_id)) => vec![
-            Item::new_from_asset(&item_id).map_err(|_| format!("Unknown item: {:#?}", item_id))?,
+            Item::new_from_asset(&item_id)
+                .map_err(|_| Content::Plain(format!("Unknown item: {:#?}", item_id)))?,
         ],
         KitEntry::Spec(KitSpec::ModularWeapon { tool, material }) => {
             comp::item::modular::generate_weapons(tool, material, None)
-                .map_err(|err| format!("{:#?}", err))?
+                .map_err(|err| Content::Plain(format!("{:#?}", err)))?
         },
         KitEntry::Item(item) => vec![item],
     };
@@ -2749,7 +2779,7 @@ fn handle_object(
         .read_storage::<comp::Ori>()
         .get(target)
         .copied()
-        .ok_or_else(|| "Cannot get orientation for target".to_string())?;
+        .ok_or_else(|| Content::Plain("Cannot get orientation for target".to_string()))?;
     /*let builder = server.state
     .create_object(pos, ori, obj_type)
     .with(ori);*/
@@ -2783,12 +2813,15 @@ fn handle_object(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!("Spawned: {}", obj_str_res.unwrap_or("<Unknown object>")),
+                Content::Plain(format!(
+                    "Spawned: {}",
+                    obj_str_res.unwrap_or("<Unknown object>")
+                )),
             ),
         );
         Ok(())
     } else {
-        Err("Object not found!".into())
+        Err(Content::Plain("Object not found!".into()))
     }
 }
 
@@ -2807,7 +2840,9 @@ fn handle_light(
 
     if let (Some(r), Some(g), Some(b)) = (opt_r, opt_g, opt_b) {
         if r < 0.0 || g < 0.0 || b < 0.0 {
-            return Err("cr, cg and cb values mustn't be negative.".into());
+            return Err(Content::Plain(
+                "cr, cg and cb values mustn't be negative.".into(),
+            ));
         }
 
         let r = r.clamp(0.0, 1.0);
@@ -2841,7 +2876,10 @@ fn handle_light(
     }
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned object."),
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            Content::Plain("Spawned object.".to_string()),
+        ),
     );
     Ok(())
 }
@@ -2956,7 +2994,10 @@ fn handle_waypoint(
     )?;
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, "Waypoint saved!"),
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            Content::Plain("Waypoint saved!".to_string()),
+        ),
     );
     server.notify_client(
         target,
@@ -3045,7 +3086,7 @@ fn handle_spawn_wiring(
 
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, "Wire"),
+        ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain("Wire".to_string())),
     );
     Ok(())
 }
@@ -3500,7 +3541,7 @@ fn handle_join_faction(
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
     } else {
-        Err("Could not find your player alias".into())
+        Err(Content::Plain("Could not find your player alias".into()))
     }
 }
 
@@ -3512,7 +3553,9 @@ fn handle_debug_column(
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    Err("Unsupported without worldgen enabled".into())
+    Err(Content::Plain(
+        "Unsupported without worldgen enabled".into(),
+    ))
 }
 
 #[cfg(feature = "worldgen")]
@@ -3591,10 +3634,13 @@ cliff_height {:?} "#,
         ))
     };
     if let Some(s) = msg_generator(&calendar) {
-        server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, s));
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(s)),
+        );
         Ok(())
     } else {
-        Err("Not a pre-generated chunk.".into())
+        Err(Content::Plain("Not a pre-generated chunk.".into()))
     }
 }
 
@@ -3606,7 +3652,9 @@ fn handle_debug_ways(
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    Err("Unsupported without worldgen enabled".into())
+    Err(Content::Plain(
+        "Unsupported without worldgen enabled".into(),
+    ))
 }
 
 #[cfg(feature = "worldgen")]
@@ -3636,10 +3684,13 @@ fn handle_debug_ways(
         Some(ret)
     };
     if let Some(s) = msg_generator() {
-        server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, s));
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(s)),
+        );
         Ok(())
     } else {
-        Err("Not a pre-generated chunk.".into())
+        Err(Content::Plain("Not a pre-generated chunk.".into()))
     }
 }
 
@@ -3707,7 +3758,7 @@ fn handle_skill_point(
             skill_set.add_skill_points(skill_tree, sp);
             Ok(())
         } else {
-            Err("Entity has no stats!".into())
+            Err(Content::Plain("Entity has no stats!".into()))
         }
     } else {
         Err(action.help_content())
@@ -3829,7 +3880,10 @@ fn handle_remove_lights(
 
     server.notify_client(
         client,
-        ServerGeneral::server_msg(ChatType::CommandInfo, format!("Removed {} lights!", size)),
+        ServerGeneral::server_msg(
+            ChatType::CommandInfo,
+            Content::Plain(format!("Removed {} lights!", size)),
+        ),
     );
     Ok(())
 }
@@ -4058,10 +4112,10 @@ fn handle_kick(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!(
+                Content::Plain(format!(
                     "Kicked {} from the server with reason: {}",
                     target_alias, reason
-                ),
+                )),
             ),
         );
         Ok(())
@@ -4093,7 +4147,7 @@ fn handle_ban(
         let end_date = parse_duration
             .map(|duration| chrono::Duration::from_std(duration.into()))
             .transpose()
-            .map_err(|err| format!("Error converting to duration: {}", err))?
+            .map_err(|err| Content::Plain(format!("Error converting to duration: {}", err)))?
             // On overflow (someone adding some ridiculous time span), just make the ban infinite.
             .and_then(|duration| now.checked_add_signed(duration));
 
@@ -4303,7 +4357,7 @@ fn handle_battlemode(
         let mut players = ecs.write_storage::<comp::Player>();
         let mut player_info = players.get_mut(target).ok_or_else(|| {
             error!("Can't get player component for player");
-            "Error!"
+            Content::Plain("Error!".to_string())
         })?;
         if let Some(Time(last_change)) = player_info.last_battlemode_change {
             let Time(time) = *time;
@@ -4340,7 +4394,7 @@ fn handle_battlemode(
         let players = ecs.read_storage::<comp::Player>();
         let player = players.get(target).ok_or_else(|| {
             error!("Can't get player component for player");
-            "Error!"
+            Content::Plain("Error!".to_string())
         })?;
         let mut msg = format!("Current battle mode: {:?}.", player.battle_mode);
         if settings.gameplay.battle_mode.allow_choosing() {
@@ -4361,7 +4415,7 @@ fn handle_battlemode(
         }
         server.notify_client(
             client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, msg),
+            ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(msg)),
         );
         Ok(())
     }
@@ -4386,9 +4440,9 @@ fn handle_battlemode_force(
         _ => return Err(Content::localized("command-battlemode-available-modes")),
     };
     let mut players = ecs.write_storage::<comp::Player>();
-    let mut player_info = players
-        .get_mut(target)
-        .ok_or("Cannot get player component for target")?;
+    let mut player_info = players.get_mut(target).ok_or(Content::Plain(
+        "Cannot get player component for target".to_string(),
+    ))?;
     player_info.battle_mode = mode;
     server.notify_client(
         client,
@@ -4476,10 +4530,10 @@ fn handle_server_physics(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!(
+                Content::Plain(format!(
                     "Updated physics settings for {} ({}): {:?}",
                     username, uuid, entry
-                ),
+                )),
             ),
         );
         Ok(())
@@ -4663,7 +4717,7 @@ fn handle_skill_preset(
                 preset => set_skills(&mut skill_set, preset),
             }
         } else {
-            Err("Player has no stats!".into())
+            Err(Content::Plain("Player has no stats!".into()))
         }
     } else {
         Err(action.help_content())
@@ -4693,7 +4747,7 @@ fn set_skills(skill_set: &mut comp::SkillSet, preset: &str) -> CmdResult<()> {
                 skill_set.add_skill_points(group, cost);
                 match skill_set.unlock_skill(*skill) {
                     Ok(_) | Err(comp::skillset::SkillUnlockError::SkillAlreadyUnlocked) => Ok(()),
-                    Err(err) => Err(format!("{:?}", err)),
+                    Err(err) => Err(Content::Plain(format!("{:?}", err))),
                 }?;
             }
         }
@@ -4804,7 +4858,9 @@ fn handle_weather_zone(
     _args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    Err("Unsupported without worldgen enabled".into())
+    Err(Content::Plain(
+        "Unsupported without worldgen enabled".into(),
+    ))
 }
 
 #[cfg(feature = "worldgen")]
@@ -5042,9 +5098,9 @@ fn handle_tether(
                     follower,
                     tether_length,
                 })
-                .map_err(|_| "Failed to tether entities".into())
+                .map_err(|_| Content::Plain("Failed to tether entities".into()))
         } else {
-            Err("Tether members don't have Uids.".into())
+            Err(Content::Plain("Tether members don't have Uids.".into()))
         }
     } else {
         Err(action.help_content())
@@ -5102,9 +5158,11 @@ fn handle_mount(
             server
                 .state
                 .link(common::mounting::Mounting { mount, rider })
-                .map_err(|_| "Failed to mount entities".into())
+                .map_err(|_| Content::Plain("Failed to mount entities".into()))
         } else {
-            Err("Mount and/or rider doesn't have an Uid component.".into())
+            Err(Content::Plain(
+                "Mount and/or rider doesn't have an Uid component.".into(),
+            ))
         }
     } else {
         Err(action.help_content())

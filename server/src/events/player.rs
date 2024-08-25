@@ -4,8 +4,7 @@ use crate::{
     state_ext::StateExt, BattleModeBuffer, Server,
 };
 use common::{
-    comp,
-    comp::{group, pet::is_tameable, Presence, PresenceKind},
+    comp::{self, group, pet::is_tameable, Content, Presence, PresenceKind},
     event::{DeleteCharacterEvent, PossessEvent},
     resources::Time,
     uid::{IdMaps, Uid},
@@ -223,7 +222,10 @@ pub fn handle_client_disconnect(
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
     ) {
-        state.notify_players(ServerGeneral::server_msg(comp::ChatType::Offline(*uid), ""));
+        state.notify_players(ServerGeneral::server_msg(
+            comp::ChatType::Offline(*uid),
+            Content::Plain("".to_string()),
+        ));
 
         state.notify_players(ServerGeneral::PlayerListUpdate(PlayerListUpdate::Remove(
             *uid,
