@@ -13,7 +13,7 @@ use crate::{
 #[cfg(feature = "worldgen")]
 use common::terrain::TerrainChunkSize;
 use common::{
-    comp::{Admin, AdminRole, ChatType, Player, Presence, Waypoint},
+    comp::{Admin, AdminRole, ChatType, Content, Player, Presence, Waypoint},
     event::{
         ChatEvent, ClientDisconnectEvent, DeleteCharacterEvent, EmitExt, InitializeCharacterEvent,
         InitializeSpectatorEvent,
@@ -68,7 +68,9 @@ impl Sys {
             if !localized_description.map_or(true, |d| d.motd.is_empty()) {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
-                    localized_description.map_or("", |d| &d.motd),
+                    localized_description.map_or(Content::Plain("".to_string()), |d| {
+                        Content::Plain(d.motd.to_owned())
+                    }),
                 ))?;
             }
 
@@ -76,7 +78,9 @@ impl Sys {
             if automod.enabled() {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
-                    "Automatic moderation is enabled: play nice and have fun!",
+                    Content::Plain(
+                        "Automatic moderation is enabled: play nice and have fun!".to_string(),
+                    ),
                 ))?;
             }
 

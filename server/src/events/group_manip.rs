@@ -4,7 +4,7 @@ use common::{
         self,
         group::{ChangeNotification, Group, GroupManager},
         invite::{InviteKind, PendingInvites},
-        ChatType, GroupManip,
+        ChatType, Content, GroupManip,
     },
     event::GroupManipEvent,
     uid::{IdMaps, Uid},
@@ -39,7 +39,9 @@ pub fn can_invite(
         if let Some(client) = clients.get(inviter) {
             client.send_fallible(ServerGeneral::server_msg(
                 ChatType::Meta,
-                "Invite failed, can't invite someone already in your group",
+                Content::Plain(
+                    "Invite failed, can't invite someone already in your group".to_string(),
+                ),
             ));
         }
         return false;
@@ -70,9 +72,11 @@ pub fn can_invite(
         if let Some(client) = clients.get(inviter) {
             client.send_fallible(ServerGeneral::server_msg(
                 ChatType::Meta,
-                "Invite failed, pending invites plus current group size have reached the group \
-                 size limit"
-                    .to_owned(),
+                Content::Plain(
+                    "Invite failed, pending invites plus current group size have reached the \
+                     group size limit"
+                        .to_owned(),
+                ),
             ));
         }
         return false;
@@ -160,7 +164,9 @@ impl ServerEvent for GroupManipEvent {
                             if let Some(client) = clients.get(entity) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "Kick failed, target does not exist.",
+                                    Content::Plain(
+                                        "Kick failed, target does not exist.".to_string(),
+                                    ),
                                 ));
                             }
                             continue;
@@ -173,7 +179,7 @@ impl ServerEvent for GroupManipEvent {
                         if let Some(general_stream) = clients.get(entity) {
                             general_stream.send_fallible(ServerGeneral::server_msg(
                                 ChatType::Meta,
-                                "Kick failed, you can't kick pets.",
+                                Content::Plain("Kick failed, you can't kick pets.".to_string()),
                             ));
                         }
                         continue;
@@ -183,7 +189,7 @@ impl ServerEvent for GroupManipEvent {
                         if let Some(client) = clients.get(entity) {
                             client.send_fallible(ServerGeneral::server_msg(
                                 ChatType::Meta,
-                                "Kick failed, you can't kick yourself.",
+                                Content::Plain("Kick failed, you can't kick yourself.".to_string()),
                             ));
                         }
                         continue;
@@ -226,14 +232,14 @@ impl ServerEvent for GroupManipEvent {
                             if let Some(client) = clients.get(target) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "You were removed from the group.",
+                                    Content::Plain("You were removed from the group.".to_string()),
                                 ));
                             }
                             // Tell kicker that they were successful
                             if let Some(client) = clients.get(entity) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "Player kicked.",
+                                    Content::Plain("Player kicked.".to_string()),
                                 ));
                             }
                         },
@@ -242,7 +248,11 @@ impl ServerEvent for GroupManipEvent {
                             if let Some(client) = clients.get(entity) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "Kick failed: You are not the leader of the target's group.",
+                                    Content::Plain(
+                                        "Kick failed: You are not the leader of the target's \
+                                         group."
+                                            .to_string(),
+                                    ),
                                 ));
                             }
                         },
@@ -251,7 +261,9 @@ impl ServerEvent for GroupManipEvent {
                             if let Some(client) = clients.get(entity) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "Kick failed: Your target is not in a group.",
+                                    Content::Plain(
+                                        "Kick failed: Your target is not in a group.".to_string(),
+                                    ),
                                 ));
                             }
                         },
@@ -265,7 +277,10 @@ impl ServerEvent for GroupManipEvent {
                             if let Some(client) = clients.get(entity) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "Leadership transfer failed, target does not exist",
+                                    Content::Plain(
+                                        "Leadership transfer failed, target does not exist"
+                                            .to_string(),
+                                    ),
                                 ));
                             }
                             continue;
@@ -307,14 +322,16 @@ impl ServerEvent for GroupManipEvent {
                             if let Some(client) = clients.get(target) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "You are the group leader now.",
+                                    Content::Plain("You are the group leader now.".to_string()),
                                 ));
                             }
                             // Tell the old leader that the transfer was succesful
                             if let Some(client) = clients.get(entity) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "You are no longer the group leader.",
+                                    Content::Plain(
+                                        "You are no longer the group leader.".to_string(),
+                                    ),
                                 ));
                             }
                         },
@@ -323,8 +340,11 @@ impl ServerEvent for GroupManipEvent {
                             if let Some(client) = clients.get(entity) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "Transfer failed: You are not the leader of the target's \
-                                     group.",
+                                    Content::Plain(
+                                        "Transfer failed: You are not the leader of the target's \
+                                         group."
+                                            .to_string(),
+                                    ),
                                 ));
                             }
                         },
@@ -333,7 +353,10 @@ impl ServerEvent for GroupManipEvent {
                             if let Some(client) = clients.get(entity) {
                                 client.send_fallible(ServerGeneral::server_msg(
                                     ChatType::Meta,
-                                    "Transfer failed: Your target is not in a group.",
+                                    Content::Plain(
+                                        "Transfer failed: Your target is not in a group."
+                                            .to_string(),
+                                    ),
                                 ));
                             }
                         },

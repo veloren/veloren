@@ -40,16 +40,6 @@ pub enum Content {
     },
 }
 
-// TODO: Remove impl and make use of `Plain(...)` explicit (to discourage it)
-impl From<String> for Content {
-    fn from(text: String) -> Self { Self::Plain(text) }
-}
-
-// TODO: Remove impl and make use of `Plain(...)` explicit (to discourage it)
-impl<'a> From<&'a str> for Content {
-    fn from(text: &'a str) -> Self { Self::Plain(text.to_string()) }
-}
-
 /// A localisation argument for localised content (see [`Content::Localized`]).
 // TODO: Do we want it to be Enum or just wrapper around Content, to add
 // additional `impl From<T>` for our arguments?
