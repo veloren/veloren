@@ -112,7 +112,7 @@ server = { package = "veloren-server", path = "../server", optional = true, defa
 clap = { workspace = true }
 
 # Utility
-assets_manager = { version = "0.11", features = ["ab_glyph"] }
+assets_manager = { version = "0.12", features = ["ab_glyph"] }
 backtrace = "0.3.40"
 chrono = { workspace = true }
 chumsky = "0.9"

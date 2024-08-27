@@ -320,14 +320,15 @@ dependencies = [
 
 [[package]]
 name = "assets_manager"
-version = "0.11.6"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4dde42f7d78f1a1d0149ac8526e21c6c849090ce6aa191ae94b90b0cb2e4aed"
+checksum = "eadb8d5c3ec796630a35133c038842b02bcfc2a8a324349fc24fd6db5d679474"
 dependencies = [
  "ab_glyph",
  "ahash 0.8.11",
  "bincode",
  "crossbeam-channel",
+ "hashbrown 0.14.5",
  "log",
  "notify",
  "ron",
