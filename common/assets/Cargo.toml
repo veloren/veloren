@@ -7,7 +7,7 @@ version = "0.10.0"
 
 [dependencies]
 lazy_static = { workspace = true }
-assets_manager = { version = "0.11.1", features = ["bincode", "ron", "json"] }
+assets_manager = { version = "0.12", features = ["bincode", "ron", "json"] }
 ron = { workspace = true }
 dot_vox = "5.1"
 wavefront = "0.2" # TODO: Use vertex-colors branch when we have models that have them
