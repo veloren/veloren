@@ -3217,7 +3217,7 @@ impl Hud {
                     self.show.diary(true);
                     self.show.open_skill_tree(skillgroup);
                 },
-                Some(skillbar::Event::OpenBag) => self.show.bag = !self.show.bag,
+                Some(skillbar::Event::OpenBag) => self.show.bag(!self.show.bag),
                 None => {},
             }
         }
