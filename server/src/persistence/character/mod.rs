@@ -13,11 +13,12 @@ use crate::{
         character::conversions::{
             convert_active_abilities_from_database, convert_active_abilities_to_database,
             convert_body_from_database, convert_body_to_database_json,
-            convert_character_from_database, convert_inventory_from_database_items,
-            convert_items_to_database_items, convert_loadout_from_database_items,
-            convert_recipe_book_from_database_items, convert_skill_groups_to_database,
-            convert_skill_set_from_database, convert_stats_from_database,
-            convert_waypoint_from_database_json, convert_waypoint_to_database_json,
+            convert_character_from_database, convert_hardcore_from_database,
+            convert_inventory_from_database_items, convert_items_to_database_items,
+            convert_loadout_from_database_items, convert_recipe_book_from_database_items,
+            convert_skill_groups_to_database, convert_skill_set_from_database,
+            convert_stats_from_database, convert_waypoint_from_database_json,
+            convert_waypoint_to_database_json,
         },
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         character_updater::PetPersistenceData,
@@ -142,6 +143,7 @@ pub fn load_character_data(
         SELECT  c.character_id,
                 c.alias,
                 c.waypoint,
+                c.hardcore,
                 b.variant,
                 b.body_data
         FROM    character c
@@ -158,12 +160,13 @@ pub fn load_character_data(
                 player_uuid: requesting_player_uuid,
                 alias: row.get(1)?,
                 waypoint: row.get(2)?,
+                hardcore: row.get(3)?,
             };
 
             let body_data = Body {
                 body_id: row.get(0)?,
-                variant: row.get(3)?,
-                body_data: row.get(4)?,
+                variant: row.get(4)?,
+                body_data: row.get(5)?,
             };
 
             Ok((body_data, character_data))
@@ -279,6 +282,7 @@ pub fn load_character_data(
     Ok((
         PersistedComponents {
             body,
+            hardcore: convert_hardcore_from_database(character_data.hardcore),
             stats: convert_stats_from_database(character_data.alias, body),
             skill_set,
             inventory: convert_inventory_from_database_items(
@@ -313,7 +317,8 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
         "
             SELECT  character_id,
                     alias,
-                    waypoint
+                    waypoint,
+                    hardcore
             FROM    character
             WHERE   player_uuid = ?1
             ORDER BY character_id",
@@ -326,6 +331,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
                 alias: row.get(1)?,
                 player_uuid: player_uuid_.to_owned(),
                 waypoint: row.get(2)?,
+                hardcore: row.get(3)?,
             })
         })?
         .map(|x| x.unwrap())
@@ -380,6 +386,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
             Ok(CharacterItem {
                 character: char,
                 body: char_body,
+                hardcore: convert_hardcore_from_database(character_data.hardcore).is_some(),
                 inventory: Inventory::with_loadout(loadout, char_body)
                     .with_recipe_book(recipe_book),
                 location: character_data.waypoint.as_ref().cloned(),
@@ -398,6 +405,7 @@ pub fn create_character(
 
     let PersistedComponents {
         body,
+        hardcore,
         stats: _,
         skill_set,
         inventory,
@@ -505,8 +513,9 @@ pub fn create_character(
         INSERT INTO character (character_id,
                                player_uuid,
                                alias,
-                               waypoint)
-        VALUES (?1, ?2, ?3, ?4)",
+                               waypoint,
+                               hardcore)
+        VALUES (?1, ?2, ?3, ?4, ?5)",
     )?;
 
     stmt.execute([
@@ -514,6 +523,7 @@ pub fn create_character(
         &uuid,
         &character_alias,
         &convert_waypoint_to_database_json(waypoint, map_marker),
+        &(if hardcore.is_some() { 1_i64 } else { 0_i64 }) as &dyn ToSql,
     ])?;
     drop(stmt);
 

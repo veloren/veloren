@@ -38,7 +38,7 @@ use crate::settings::Settings;
 //use std::time::Duration;
 //use ui::ice::widget;
 use iced::{
-    button, scrollable, slider, text_input, Align, Button, Color, Column, Container,
+    button, scrollable, slider, text_input, Align, Button, Checkbox, Color, Column, Container,
     HorizontalAlignment, Length, Row, Scrollable, Slider, Space, Text, TextInput,
 };
 use std::sync::Arc;
@@ -98,6 +98,9 @@ image_ids_ice! {
         bow: "voxygen.element.weapons.bow",
         staff: "voxygen.element.weapons.staff",
 
+        // Hardcore icon
+        hardcore: "voxygen.element.ui.map.icons.dif_map_icon",
+
         // Dice icons
         dice: "voxygen.element.ui.char_select.icons.dice",
         dice_hover: "voxygen.element.ui.char_select.icons.dice_hover",
@@ -144,6 +147,7 @@ pub enum Event {
         mainhand: Option<String>,
         offhand: Option<String>,
         body: comp::Body,
+        hardcore: bool,
         start_site: Option<SiteId>,
     },
     EditCharacter {
@@ -182,6 +186,7 @@ enum Mode {
         species_buttons: [button::State; 6],
         tool_buttons: [button::State; 6],
         sliders: Sliders,
+        hardcore_enabled: bool,
         left_scroll: scrollable::State,
         right_scroll: scrollable::State,
         name_input: text_input::State,
@@ -239,6 +244,7 @@ impl Mode {
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
             sliders: Default::default(),
+            hardcore_enabled: false,
             left_scroll: Default::default(),
             right_scroll: Default::default(),
             name_input: Default::default(),
@@ -269,6 +275,7 @@ impl Mode {
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
             sliders: Default::default(),
+            hardcore_enabled: false,
             left_scroll: Default::default(),
             right_scroll: Default::default(),
             name_input: Default::default(),
@@ -333,6 +340,7 @@ enum Message {
     Species(humanoid::Species),
     Tool((Option<&'static str>, Option<&'static str>)),
     RandomizeCharacter,
+    HardcoreEnabled(bool),
     RandomizeName,
     CancelDeletion,
     ConfirmDeletion,
@@ -636,21 +644,42 @@ impl Controls {
                                     AspectRatioContainer::new(
                                         Button::new(
                                             select_button,
-                                            Column::with_children(vec![
-                                                Text::new(&character.character.alias)
-                                                    .size(fonts.cyri.scale(26))
-                                                    .into(),
-                                                Text::new(character.location.as_ref().map_or_else(
-                                                    || {
-                                                        i18n.get_msg(
-                                                            "char_selection-uncanny_valley",
+                                            Row::with_children({
+                                                let mut elements = vec![
+                                                    Column::with_children(vec![
+                                                        Text::new(&character.character.alias)
+                                                            .size(fonts.cyri.scale(26))
+                                                            .into(),
+                                                        Text::new(
+                                                            character
+                                                                .location
+                                                                .as_ref()
+                                                                .map_or_else(
+                                                                    || {
+                                                                        i18n.get_msg(
+                                                                    "char_selection-uncanny_valley",
+                                                                )
+                                                                .to_string()
+                                                                    },
+                                                                    |s| s.clone(),
+                                                                ),
                                                         )
-                                                        .to_string()
-                                                    },
-                                                    |s| s.clone(),
-                                                ))
-                                                .into(),
-                                            ]),
+                                                        .into(),
+                                                    ])
+                                                    .into(),
+                                                ];
+
+                                                if character.hardcore {
+                                                    elements.push(
+                                                        Image::new(imgs.hardcore)
+                                                            .width(Length::Fill)
+                                                            .height(Length::Fill)
+                                                            .into(),
+                                                    );
+                                                }
+
+                                                elements
+                                            }),
                                         )
                                         .padding(10)
                                         .style(
@@ -944,6 +973,7 @@ impl Controls {
                 ref mut species_buttons,
                 ref mut tool_buttons,
                 ref mut sliders,
+                ref mut hardcore_enabled,
                 ref mut name_input,
                 ref mut back_button,
                 ref mut create_button,
@@ -1335,6 +1365,26 @@ impl Controls {
                 .max_width(200)
                 .padding(5);
 
+                let hardcore_checkbox = if character_id.is_some() {
+                    Row::new()
+                } else {
+                    Row::with_children(vec![
+                        Checkbox::new(
+                            *hardcore_enabled,
+                            i18n.get_msg("char_selection-hardcore"),
+                            Message::HardcoreEnabled,
+                        )
+                        .size(32)
+                        .spacing(8)
+                        .text_size(24)
+                        .style(style::checkbox::Style::new(
+                            imgs.icon_border,
+                            self.imgs.hardcore,
+                        ))
+                        .into(),
+                    ])
+                };
+
                 const CHAR_DICE_SIZE: u16 = 50;
                 let rand_character = Button::new(
                     rand_character_button,
@@ -1356,6 +1406,7 @@ impl Controls {
                     tool.into(),
                     species.into(),
                     slider_options.into(),
+                    hardcore_checkbox.into(),
                     rand_character.into(),
                 ];
 
@@ -1803,6 +1854,7 @@ impl Controls {
                 if let Mode::CreateOrEdit {
                     name,
                     body,
+                    hardcore_enabled,
                     mainhand,
                     offhand,
                     start_site_idx,
@@ -1814,6 +1866,7 @@ impl Controls {
                         mainhand: mainhand.map(String::from),
                         offhand: offhand.map(String::from),
                         body: comp::Body::Humanoid(*body),
+                        hardcore: *hardcore_enabled,
                         start_site: self
                             .possible_starting_sites
                             .get(start_site_idx.unwrap_or_default())
@@ -1890,7 +1943,15 @@ impl Controls {
                     body.eyes = rng.gen_range(0..species.num_eyes(body_type));
                 }
             },
-
+            Message::HardcoreEnabled(checked) => {
+                if let Mode::CreateOrEdit {
+                    hardcore_enabled: hardcore_checkbox,
+                    ..
+                } = &mut self.mode
+                {
+                    *hardcore_checkbox = checked;
+                }
+            },
             Message::RandomizeName => {
                 if let Mode::CreateOrEdit { name, body, .. } = &mut self.mode {
                     use common::npc;

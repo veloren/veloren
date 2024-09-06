@@ -13,8 +13,8 @@ use common::{
     mounting::{Mount, Rider, VolumeRider, VolumeRiders},
     outcome::Outcome,
     resources::{
-        DeltaTime, EntitiesDiedLastTick, GameMode, PlayerEntity, PlayerPhysicsSettings,
-        ProgramTime, Time, TimeOfDay, TimeScale,
+        DeltaTime, EntitiesDiedLastTick, GameMode, HardcoreDeletionQueue, PlayerEntity,
+        PlayerPhysicsSettings, ProgramTime, Time, TimeOfDay, TimeScale,
     },
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
@@ -237,6 +237,7 @@ impl State {
         ecs.register_sync_marker();
         // Register server -> all clients synced components.
         ecs.register::<comp::Body>();
+        ecs.register::<comp::Hardcore>();
         ecs.register::<comp::body::parts::Heads>();
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();
@@ -341,6 +342,7 @@ impl State {
         ecs.insert(EventBus::<Outcome>::default());
         ecs.insert(common::CachedSpatialGrid::default());
         ecs.insert(EntitiesDiedLastTick::default());
+        ecs.insert(HardcoreDeletionQueue::default());
 
         let num_cpu = num_cpus::get() as u64;
         let slow_limit = (num_cpu / 2 + num_cpu / 4).max(1);

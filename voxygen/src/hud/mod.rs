@@ -1489,6 +1489,7 @@ impl Hud {
             let stats = ecs.read_storage::<comp::Stats>();
             let skill_sets = ecs.read_storage::<comp::SkillSet>();
             let healths = ecs.read_storage::<Health>();
+            let hardcore = ecs.read_storage::<comp::Hardcore>();
             let buffs = ecs.read_storage::<comp::Buffs>();
             let energy = ecs.read_storage::<comp::Energy>();
             let mut hp_floater_lists = ecs.write_storage::<HpFloaterList>();
@@ -2403,6 +2404,7 @@ impl Hud {
                             } else {
                                 None
                             },
+                            hardcore: hardcore.contains(entity),
                             stance,
                         });
                         // Only render bubble if nearby or if its me and setting is on

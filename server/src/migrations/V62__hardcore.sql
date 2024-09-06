@@ -1,0 +1,1 @@
+ALTER TABLE "character" ADD COLUMN hardcore INT DEFAULT 0;

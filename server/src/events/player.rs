@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{self, group, pet::is_tameable, Content, Presence, PresenceKind},
     event::{DeleteCharacterEvent, PossessEvent},
-    resources::Time,
+    resources::{HardcoreDeletionQueue, Time},
     uid::{IdMaps, Uid},
 };
 use common_base::span;
@@ -147,6 +147,18 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
             "Failed to delete entity when removing character"
         );
     }
+
+    // Delete any dead hardcore characters now that the player has exited the world
+    if let Some((uuid, character_id)) = server
+        .state
+        .ecs()
+        .fetch_mut::<HardcoreDeletionQueue>()
+        .0
+        .remove(&entity)
+    {
+        let mut updater = server.state.ecs().fetch_mut::<CharacterUpdater>();
+        updater.queue_character_deletion(uuid.to_string(), character_id);
+    }
 }
 
 fn get_reason_str(reason: &comp::DisconnectReason) -> &str {
@@ -240,6 +252,18 @@ pub fn handle_client_disconnect(
     // Delete client entity
     if let Err(e) = server.state.delete_entity_recorded(entity) {
         error!(?e, ?entity, "Failed to delete disconnected client");
+    }
+
+    // Delete any dead hardcore characters now that the player has exited the world
+    if let Some((uuid, character_id)) = server
+        .state
+        .ecs()
+        .fetch_mut::<HardcoreDeletionQueue>()
+        .0
+        .remove(&entity)
+    {
+        let mut updater = server.state.ecs().fetch_mut::<CharacterUpdater>();
+        updater.queue_character_deletion(uuid.to_string(), character_id);
     }
 
     Event::ClientDisconnected { entity }

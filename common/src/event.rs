@@ -299,6 +299,7 @@ pub struct UpdateCharacterDataEvent {
     pub entity: EcsEntity,
     pub components: (
         comp::Body,
+        Option<comp::Hardcore>,
         comp::Stats,
         comp::SkillSet,
         comp::Inventory,

@@ -27,19 +27,19 @@ use common::{
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
-        Alignment, Auras, Body, BuffEffect, CharacterState, Energy, Group, Health, Inventory,
-        Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind, SkillSet,
-        Stats, BASE_ABILITY_LIMIT,
+        Alignment, Auras, Body, BuffEffect, CharacterState, Energy, Group, Hardcore, Health,
+        Inventory, Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind,
+        SkillSet, Stats, BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
         AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
         ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         DeleteEvent, DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent,
-        EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent,
-        MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent,
-        RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
-        TransformEvent, UpdateMapMarkerEvent,
+        EventBus, ExitIngameEvent, ExplosionEvent, HealthChangeEvent, KnockbackEvent,
+        LandOnGroundEvent, MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent,
+        RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent,
+        TeleportToPositionEvent, TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
     generation::EntityInfo,
@@ -47,7 +47,7 @@ use common::{
     lottery::distribute_many,
     mounting::{Rider, VolumeRider},
     outcome::{HealthChangeInfo, Outcome},
-    resources::{ProgramTime, Secs, Time},
+    resources::{HardcoreDeletionQueue, ProgramTime, Secs, Time},
     spiral::Spiral2d,
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
@@ -122,6 +122,10 @@ event_emitters! {
         combo_change: ComboChangeEvent,
         knockback: KnockbackEvent,
         energy_change: EnergyChangeEvent,
+    }
+
+    struct ExitIngameEvents[ExitIngameEmitters] {
+        exit_ingame: ExitIngameEvent
     }
 }
 
@@ -369,6 +373,8 @@ pub struct DestroyEventData<'a> {
     energies: WriteStorage<'a, Energy>,
     character_states: WriteStorage<'a, CharacterState>,
     players: ReadStorage<'a, Player>,
+    hardcore: ReadStorage<'a, Hardcore>,
+    hardcore_deletion_queue: Write<'a, HardcoreDeletionQueue>,
     clients: ReadStorage<'a, Client>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
@@ -475,6 +481,23 @@ impl ServerEvent for DestroyEvent {
                         },
                     }
                 }
+            }
+
+            // Delete character if it had hardcore enabled
+            if let Some((
+                player,
+                Presence {
+                    kind: PresenceKind::Character(character_id),
+                    ..
+                },
+                _hardcore,
+            )) = (&data.players, &data.presences, &data.hardcore)
+                .lend_join()
+                .get(ev.entity, &data.entities)
+            {
+                data.hardcore_deletion_queue
+                    .0
+                    .insert(ev.entity, (player.uuid(), *character_id));
             }
 
             // Chat message
@@ -984,7 +1007,9 @@ impl ServerEvent for RespawnEvent {
         WriteStorage<'a, comp::ForceUpdate>,
         WriteStorage<'a, Heads>,
         ReadStorage<'a, Client>,
+        ReadStorage<'a, Hardcore>,
         ReadStorage<'a, comp::Waypoint>,
+        ExitIngameEvents<'a>,
     );
 
     fn handle(
@@ -998,11 +1023,17 @@ impl ServerEvent for RespawnEvent {
             mut force_updates,
             mut heads,
             clients,
+            hardcore,
             waypoints,
+            exit_ingame_events,
         ): Self::SystemData<'_>,
     ) {
         for RespawnEvent(entity) in events {
-            if clients.contains(entity) {
+            // Hardcore characters cannot respawn, kick them to character selection
+            if hardcore.contains(entity) {
+                let mut exit_ingame_emitter = exit_ingame_events.get_emitters();
+                exit_ingame_emitter.emit(ExitIngameEvent { entity });
+            } else if clients.contains(entity) {
                 let respawn_point = waypoints
                     .get(entity)
                     .map(|wp| wp.get_pos())

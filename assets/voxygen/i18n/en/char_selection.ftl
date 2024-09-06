@@ -14,6 +14,7 @@ char_selection-eye_color = Eye Color
 char_selection-skin = Skin
 char_selection-eyeshape = Eye Details
 char_selection-accessories = Accessories
+char_selection-hardcore = Hardcore
 char_selection-starting_site = Select Starting Area
 char_selection-starting_site_next = Next
 char_selection-starting_site_prev = Previous

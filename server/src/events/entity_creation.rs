@@ -70,13 +70,14 @@ pub fn handle_initialize_spectator(server: &mut Server, ev: InitializeSpectatorE
 pub fn handle_loaded_character_data(server: &mut Server, ev: UpdateCharacterDataEvent) {
     let loaded_components = PersistedComponents {
         body: ev.components.0,
-        stats: ev.components.1,
-        skill_set: ev.components.2,
-        inventory: ev.components.3,
-        waypoint: ev.components.4,
-        pets: ev.components.5,
-        active_abilities: ev.components.6,
-        map_marker: ev.components.7,
+        hardcore: ev.components.1,
+        stats: ev.components.2,
+        skill_set: ev.components.3,
+        inventory: ev.components.4,
+        waypoint: ev.components.5,
+        pets: ev.components.6,
+        active_abilities: ev.components.7,
+        map_marker: ev.components.8,
     };
     if let Some(marker) = loaded_components.map_marker {
         server.notify_client(

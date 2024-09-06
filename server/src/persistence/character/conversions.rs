@@ -765,6 +765,14 @@ pub fn convert_stats_from_database(alias: String, body: CompBody) -> Stats {
     new_stats
 }
 
+pub fn convert_hardcore_from_database(hardcore: i64) -> Option<common::comp::Hardcore> {
+    if hardcore != 0 {
+        Some(common::comp::Hardcore)
+    } else {
+        None
+    }
+}
+
 /// NOTE: This does *not* return an error on failure, since we can partially
 /// recover from some failures.  Instead, it returns the error in the second
 /// return value; make sure to handle it if present!

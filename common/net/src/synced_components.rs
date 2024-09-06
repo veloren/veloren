@@ -21,6 +21,7 @@ macro_rules! synced_components {
     ($macro:ident) => {
         $macro! {
             body: Body,
+            hardcore: Hardcore,
             stats: Stats,
             buffs: Buffs,
             auras: Auras,
@@ -115,6 +116,10 @@ synced_components!(reexport_comps);
 use crate::sync::{NetSync, SyncFrom};
 
 impl NetSync for Body {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for Hardcore {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

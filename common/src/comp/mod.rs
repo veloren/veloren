@@ -15,6 +15,7 @@ pub mod dialogue;
 mod energy;
 pub mod fluid_dynamics;
 pub mod group;
+mod hardcore;
 mod health;
 mod inputs;
 pub mod inventory;
@@ -72,6 +73,7 @@ pub use self::{
     energy::Energy,
     fluid_dynamics::Fluid,
     group::Group,
+    hardcore::Hardcore,
     inputs::CanBuild,
     inventory::{
         item::{

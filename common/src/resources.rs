@@ -1,7 +1,9 @@
-use crate::comp::Pos;
+use crate::{character::CharacterId, comp::Pos};
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::Entity;
 use std::ops::{Mul, MulAssign};
+use uuid::Uuid;
 use vek::Vec3;
 
 /// A resource that stores the time of day.
@@ -139,3 +141,8 @@ pub enum BattleMode {
     PvP,
     PvE,
 }
+
+/// Tracks any hardcore characters that have died in order to delete them after
+/// the player exits the world.
+#[derive(Default)]
+pub struct HardcoreDeletionQueue(pub HashMap<Entity, (Uuid, CharacterId)>);

@@ -47,6 +47,7 @@ widget_ids! {
         // HP
         level,
         level_skull,
+        hardcore,
         health_bar,
         decay_bar,
         health_bar_bg,
@@ -72,6 +73,7 @@ pub struct Info<'a> {
     pub buffs: Option<&'a Buffs>,
     pub energy: Option<&'a Energy>,
     pub combat_rating: Option<f32>,
+    pub hardcore: bool,
     pub stance: Option<&'a Stance>,
 }
 
@@ -152,6 +154,7 @@ impl<'a> Ingameable for Overhead<'a> {
         // If HP Info is shown:
         // - 1 for level: either Text or Image <-- Not used currently, will be replaced
         //   by something else
+        // - 1 if hardcore
         // - 3 for HP + fg + bg
         // - 1 for HP text
         // - If there's mana
@@ -176,6 +179,7 @@ impl<'a> Ingameable for Overhead<'a> {
                 } else {
                     0
                 }
+                + if info.hardcore { 1 } else { 0 }
                 + if info.health.map_or(false, should_show_healthbar) {
                     5 + usize::from(info.energy.is_some())
                 } else {
@@ -211,6 +215,7 @@ impl<'a> Widget for Overhead<'a> {
             buffs,
             energy,
             combat_rating,
+            hardcore,
             stance,
         }) = self.info
         {
@@ -473,6 +478,15 @@ impl<'a> Widget for Overhead<'a> {
                             .parent(id)
                             .set(state.ids.level, ui);
                         }
+                    }
+
+                    if hardcore {
+                        Image::new(self.imgs.hardcore)
+                            .w_h(18.0 * BARSIZE, 18.0 * BARSIZE)
+                            .x_y(39.0 * BARSIZE, MANA_BAR_Y + 13.0)
+                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                            .parent(id)
+                            .set(state.ids.hardcore, ui);
                     }
                 },
                 _ => {},
