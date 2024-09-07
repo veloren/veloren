@@ -610,76 +610,76 @@ impl Controls {
                                     (255, 255, 255)
                                 };
                                 Overlay::new(
-                                    Container::new(
-                                        Row::with_children(vec![
-                                            // Edit button
-                                            Button::new(
-                                                edit_button,
-                                                Space::new(Length::Units(16), Length::Units(16)),
-                                            )
-                                            .style(
-                                                style::button::Style::new(imgs.edit_button)
-                                                    .hover_image(imgs.edit_button_hover)
-                                                    .press_image(imgs.edit_button_press),
-                                            )
-                                            .on_press(Message::Edit(i))
+                                    Container::new(Column::with_children({
+                                        let mut elements = if character.hardcore {
+                                            vec![
+                                                Image::new(imgs.hardcore)
+                                                    .width(Length::Units(32))
+                                                    .height(Length::Units(32))
+                                                    .into(),
+                                            ]
+                                        } else {
+                                            Vec::new()
+                                        };
+                                        elements.push(
+                                            Row::with_children(vec![
+                                                // Edit button
+                                                Button::new(
+                                                    edit_button,
+                                                    Space::new(
+                                                        Length::Units(16),
+                                                        Length::Units(16),
+                                                    ),
+                                                )
+                                                .style(
+                                                    style::button::Style::new(imgs.edit_button)
+                                                        .hover_image(imgs.edit_button_hover)
+                                                        .press_image(imgs.edit_button_press),
+                                                )
+                                                .on_press(Message::Edit(i))
+                                                .into(),
+                                                // Delete button
+                                                Button::new(
+                                                    delete_button,
+                                                    Space::new(
+                                                        Length::Units(16),
+                                                        Length::Units(16),
+                                                    ),
+                                                )
+                                                .style(
+                                                    style::button::Style::new(imgs.delete_button)
+                                                        .hover_image(imgs.delete_button_hover)
+                                                        .press_image(imgs.delete_button_press),
+                                                )
+                                                .on_press(Message::Delete(i))
+                                                .into(),
+                                            ])
+                                            .spacing(5)
                                             .into(),
-                                            // Delete button
-                                            Button::new(
-                                                delete_button,
-                                                Space::new(Length::Units(16), Length::Units(16)),
-                                            )
-                                            .style(
-                                                style::button::Style::new(imgs.delete_button)
-                                                    .hover_image(imgs.delete_button_hover)
-                                                    .press_image(imgs.delete_button_press),
-                                            )
-                                            .on_press(Message::Delete(i))
-                                            .into(),
-                                        ])
-                                        .spacing(5),
-                                    )
+                                        );
+
+                                        elements
+                                    }))
                                     .padding(4),
                                     // Select Button
                                     AspectRatioContainer::new(
                                         Button::new(
                                             select_button,
-                                            Row::with_children({
-                                                let mut elements = vec![
-                                                    Column::with_children(vec![
-                                                        Text::new(&character.character.alias)
-                                                            .size(fonts.cyri.scale(26))
-                                                            .into(),
-                                                        Text::new(
-                                                            character
-                                                                .location
-                                                                .as_ref()
-                                                                .map_or_else(
-                                                                    || {
-                                                                        i18n.get_msg(
-                                                                    "char_selection-uncanny_valley",
-                                                                )
-                                                                .to_string()
-                                                                    },
-                                                                    |s| s.clone(),
-                                                                ),
-                                                        )
-                                                        .into(),
-                                                    ])
+                                            Column::with_children(vec![
+                                                Text::new(&character.character.alias)
+                                                    .size(fonts.cyri.scale(26))
                                                     .into(),
-                                                ];
-
-                                                if character.hardcore {
-                                                    elements.push(
-                                                        Image::new(imgs.hardcore)
-                                                            .width(Length::Fill)
-                                                            .height(Length::Fill)
-                                                            .into(),
-                                                    );
-                                                }
-
-                                                elements
-                                            }),
+                                                Text::new(character.location.as_ref().map_or_else(
+                                                    || {
+                                                        i18n.get_msg(
+                                                            "char_selection-uncanny_valley",
+                                                        )
+                                                        .to_string()
+                                                    },
+                                                    |s| s.clone(),
+                                                ))
+                                                .into(),
+                                            ]),
                                         )
                                         .padding(10)
                                         .style(
