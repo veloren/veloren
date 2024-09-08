@@ -179,9 +179,8 @@ impl<'a> Ingameable for Overhead<'a> {
                 } else {
                     0
                 }
-                + if info.hardcore { 1 } else { 0 }
                 + if info.health.map_or(false, should_show_healthbar) {
-                    5 + usize::from(info.energy.is_some())
+                    5 + usize::from(info.energy.is_some()) + if info.hardcore { 1 } else { 0 }
                 } else {
                     0
                 }
