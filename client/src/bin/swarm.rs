@@ -151,6 +151,7 @@ fn run_client(
             Some("common.items.weapons.sword.starter".into()),
             None,
             body(),
+            false,
             None,
         );
 

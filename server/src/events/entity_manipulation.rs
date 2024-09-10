@@ -387,7 +387,6 @@ pub struct DestroyEventData<'a> {
     agents: ReadStorage<'a, Agent>,
     #[cfg(feature = "worldgen")]
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
-    #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, Presence>,
     buff_events: Read<'a, EventBus<BuffEvent>>,
     masses: ReadStorage<'a, comp::Mass>,
