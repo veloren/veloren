@@ -24,6 +24,7 @@ use common::{
         item::{ItemDef, ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         Body, Energy, Health, Inventory, Poise, SkillSet, Stats,
     },
+    recipe::RecipeBookManifest,
 };
 use conrod_core::{
     color,
@@ -676,6 +677,7 @@ pub struct Bag<'a> {
     show: &'a Show,
     body: &'a Body,
     msm: &'a MaterialStatManifest,
+    rbm: &'a RecipeBookManifest,
     poise: &'a Poise,
 }
 
@@ -702,6 +704,7 @@ impl<'a> Bag<'a> {
         show: &'a Show,
         body: &'a Body,
         msm: &'a MaterialStatManifest,
+        rbm: &'a RecipeBookManifest,
         poise: &'a Poise,
     ) -> Self {
         Self {
@@ -726,6 +729,7 @@ impl<'a> Bag<'a> {
             show,
             body,
             msm,
+            rbm,
             poise,
         }
     }
@@ -837,6 +841,7 @@ impl<'a> Widget for Bag<'a> {
             self.item_imgs,
             self.pulse,
             self.msm,
+            self.rbm,
             self.localized_strings,
             self.item_i18n,
         )

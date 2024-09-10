@@ -14,6 +14,7 @@ use common::{
         },
         Energy,
     },
+    recipe::RecipeBookManifest,
     trade::SitePrices,
 };
 use conrod_core::{
@@ -286,6 +287,7 @@ pub struct ItemTooltip<'a> {
     common: widget::CommonBuilder,
     item: &'a dyn ItemDesc,
     msm: &'a MaterialStatManifest,
+    rbm: &'a RecipeBookManifest,
     prices: &'a Option<SitePrices>,
     image: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
@@ -350,6 +352,7 @@ impl<'a> ItemTooltip<'a> {
         item { item = &'a dyn ItemDesc }
         prices { prices = &'a Option<SitePrices> }
         msm { msm = &'a MaterialStatManifest }
+        rbm { rbm = &'a RecipeBookManifest }
         image_dims { image_dims = Option<(f64, f64)> }
         transparency { transparency = f32 }
     }
@@ -362,6 +365,7 @@ impl<'a> ItemTooltip<'a> {
         item_imgs: &'a ItemImgs,
         pulse: f32,
         msm: &'a MaterialStatManifest,
+        rbm: &'a RecipeBookManifest,
         localized_strings: &'a Localization,
         item_i18n: &'a ItemI18n,
     ) -> Self {
@@ -370,6 +374,7 @@ impl<'a> ItemTooltip<'a> {
             style: Style::default(),
             item: &*EMPTY_ITEM,
             msm,
+            rbm,
             prices: &None,
             transparency: 1.0,
             image_frame,
@@ -1036,23 +1041,39 @@ impl<'a> Widget for ItemTooltip<'a> {
             },
             ItemKind::Consumable { effects, .. } => {
                 for (i, desc) in util::consumable_desc(effects, i18n).iter().enumerate() {
-                    if i == 0 {
-                        widget::Text::new(desc)
+                    let (down_from, pad) = match i {
+                        0 => (state.ids.item_frame, V_PAD),
+                        _ => (state.ids.stats[i - 1], V_PAD_STATS),
+                    };
+                    widget::Text::new(desc)
+                        .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(down_from, pad)
+                        .set(state.ids.stats[i], ui);
+                }
+            },
+            ItemKind::RecipeGroup { recipes } => {
+                for (i, desc) in recipes.iter().enumerate() {
+                    if let Some(recipe) = self.rbm.get(desc) {
+                        let (item_name, _) = util::item_text(
+                            recipe.output.0.as_ref(),
+                            self.localized_strings,
+                            self.item_i18n,
+                        );
+                        let (down_from, pad) = match i {
+                            0 => (state.ids.item_frame, V_PAD),
+                            _ => (state.ids.stats[i - 1], V_PAD_STATS),
+                        };
+                        widget::Text::new(&item_name)
                             .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
                             .graphics_for(id)
                             .parent(id)
                             .with_style(self.style.desc)
                             .color(text_color)
-                            .down_from(state.ids.item_frame, V_PAD)
-                            .set(state.ids.stats[0], ui);
-                    } else {
-                        widget::Text::new(desc)
-                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .down_from(state.ids.stats[i - 1], V_PAD_STATS)
+                            .down_from(down_from, pad)
                             .set(state.ids.stats[i], ui);
                     }
                 }

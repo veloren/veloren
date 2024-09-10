@@ -3204,6 +3204,7 @@ impl Hud {
                 i18n,
                 &self.item_i18n,
                 &msm,
+                &rbm,
                 self.floaters.combo_floater,
                 &context,
                 combo,
@@ -3259,6 +3260,7 @@ impl Hud {
                     &self.show,
                     body,
                     &msm,
+                    &rbm,
                     poise,
                 )
                 .set(self.ids.bag, ui_widgets)
@@ -3298,6 +3300,7 @@ impl Hud {
                 i18n,
                 &self.item_i18n,
                 &msm,
+                &rbm,
                 self.pulse,
                 &mut self.show,
             )
@@ -3497,6 +3500,7 @@ impl Hud {
             i18n,
             &self.item_i18n,
             &msm,
+            &rbm,
             item_tooltip_manager,
             self.pulse,
         )

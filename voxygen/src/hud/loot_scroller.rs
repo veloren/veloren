@@ -11,6 +11,7 @@ use common::{
         inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         FrontendItem,
     },
+    recipe::RecipeBookManifest,
     uid::Uid,
 };
 use common_net::sync::WorldSyncExt;
@@ -67,6 +68,7 @@ pub struct LootScroller<'a> {
     localized_strings: &'a Localization,
     item_i18n: &'a ItemI18n,
     msm: &'a MaterialStatManifest,
+    rbm: &'a RecipeBookManifest,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     pulse: f32,
 
@@ -86,6 +88,7 @@ impl<'a> LootScroller<'a> {
         localized_strings: &'a Localization,
         item_i18n: &'a ItemI18n,
         msm: &'a MaterialStatManifest,
+        rbm: &'a RecipeBookManifest,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         pulse: f32,
     ) -> Self {
@@ -101,6 +104,7 @@ impl<'a> LootScroller<'a> {
             localized_strings,
             item_i18n,
             msm,
+            rbm,
             item_tooltip_manager,
             pulse,
             common: widget::CommonBuilder::default(),
@@ -162,6 +166,7 @@ impl<'a> Widget for LootScroller<'a> {
             self.item_imgs,
             self.pulse,
             self.msm,
+            self.rbm,
             self.localized_strings,
             self.item_i18n,
         )
