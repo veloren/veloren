@@ -364,6 +364,7 @@ impl<'a> Widget for Crafting<'a> {
             self.item_imgs,
             self.pulse,
             self.msm,
+            self.rbm,
             self.localized_strings,
             self.item_i18n,
         )

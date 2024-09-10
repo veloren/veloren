@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Localization support for prompt dialogs, diary sections, trade and group invitations, command descriptions.
 - Added Freezing Potion
 - Clear command to delete chat messages.
+- List unlocked recipes from recipe scroll items in tooltips
 
 ### Changed
 

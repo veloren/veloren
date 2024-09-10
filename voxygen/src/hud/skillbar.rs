@@ -21,16 +21,19 @@ use crate::{
 use i18n::Localization;
 
 use client::{self, Client};
-use common::comp::{
-    self,
-    ability::{AbilityInput, Stance},
-    item::{
-        tool::{AbilityContext, ToolKind},
-        ItemDesc, ItemI18n, MaterialStatManifest,
+use common::{
+    comp::{
+        self,
+        ability::{AbilityInput, Stance},
+        item::{
+            tool::{AbilityContext, ToolKind},
+            ItemDesc, ItemI18n, MaterialStatManifest,
+        },
+        skillset::SkillGroupKind,
+        Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
+        PoiseState, SkillSet, Stats,
     },
-    skillset::SkillGroupKind,
-    Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Health, Inventory, Poise,
-    PoiseState, SkillSet, Stats,
+    recipe::RecipeBookManifest,
 };
 use conrod_core::{
     color,
@@ -312,6 +315,7 @@ pub struct Skillbar<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     msm: &'a MaterialStatManifest,
+    rbm: &'a RecipeBookManifest,
     combo_floater: Option<ComboFloater>,
     context: &'a AbilityContext,
     combo: Option<&'a Combo>,
@@ -347,6 +351,7 @@ impl<'a> Skillbar<'a> {
         localized_strings: &'a Localization,
         item_i18n: &'a ItemI18n,
         msm: &'a MaterialStatManifest,
+        rbm: &'a RecipeBookManifest,
         combo_floater: Option<ComboFloater>,
         context: &'a AbilityContext,
         combo: Option<&'a Combo>,
@@ -380,6 +385,7 @@ impl<'a> Skillbar<'a> {
             localized_strings,
             item_i18n,
             msm,
+            rbm,
             combo_floater,
             context,
             combo,
@@ -1013,6 +1019,7 @@ impl<'a> Skillbar<'a> {
             self.item_imgs,
             self.pulse,
             self.msm,
+            self.rbm,
             self.localized_strings,
             self.item_i18n,
         )

@@ -144,6 +144,7 @@ pub fn stats_count(item: &dyn ItemDesc, msm: &MaterialStatManifest) -> usize {
             Effects::Any(_) | Effects::One(_) => 1,
             Effects::All(effects) => effects.len(),
         },
+        ItemKind::RecipeGroup { recipes } => recipes.len(),
         ItemKind::ModularComponent { .. } => 6,
         _ => 0,
     };
