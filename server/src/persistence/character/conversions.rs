@@ -20,7 +20,7 @@ use common::{
         },
         item,
         skillset::{self, skills::Skill, SkillGroupKind, SkillSet},
-        ActiveAbilities, Body as CompBody, Inventory, MapMarker, Stats, Waypoint,
+        ActiveAbilities, Body as CompBody, Hardcore, Inventory, MapMarker, Stats, Waypoint,
     },
     resources::Time,
 };
@@ -765,12 +765,16 @@ pub fn convert_stats_from_database(alias: String, body: CompBody) -> Stats {
     new_stats
 }
 
-pub fn convert_hardcore_from_database(hardcore: i64) -> Option<common::comp::Hardcore> {
+pub fn convert_hardcore_from_database(hardcore: i64) -> Option<Hardcore> {
     if hardcore != 0 {
         Some(common::comp::Hardcore)
     } else {
         None
     }
+}
+
+pub fn convert_hardcore_to_database(hardcore: Option<Hardcore>) -> i64 {
+    if hardcore.is_some() { 1_i64 } else { 0_i64 }
 }
 
 /// NOTE: This does *not* return an error on failure, since we can partially

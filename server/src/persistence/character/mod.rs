@@ -14,11 +14,11 @@ use crate::{
             convert_active_abilities_from_database, convert_active_abilities_to_database,
             convert_body_from_database, convert_body_to_database_json,
             convert_character_from_database, convert_hardcore_from_database,
-            convert_inventory_from_database_items, convert_items_to_database_items,
-            convert_loadout_from_database_items, convert_recipe_book_from_database_items,
-            convert_skill_groups_to_database, convert_skill_set_from_database,
-            convert_stats_from_database, convert_waypoint_from_database_json,
-            convert_waypoint_to_database_json,
+            convert_hardcore_to_database, convert_inventory_from_database_items,
+            convert_items_to_database_items, convert_loadout_from_database_items,
+            convert_recipe_book_from_database_items, convert_skill_groups_to_database,
+            convert_skill_set_from_database, convert_stats_from_database,
+            convert_waypoint_from_database_json, convert_waypoint_to_database_json,
         },
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         character_updater::PetPersistenceData,
@@ -523,7 +523,7 @@ pub fn create_character(
         &uuid,
         &character_alias,
         &convert_waypoint_to_database_json(waypoint, map_marker),
-        &(if hardcore.is_some() { 1_i64 } else { 0_i64 }) as &dyn ToSql,
+        &convert_hardcore_to_database(hardcore),
     ])?;
     drop(stmt);
 

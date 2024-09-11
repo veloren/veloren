@@ -36,7 +36,7 @@ use common::{
         AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
         ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         DeleteEvent, DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent,
-        EventBus, ExitIngameEvent, ExplosionEvent, HealthChangeEvent, KnockbackEvent,
+        EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent,
         LandOnGroundEvent, MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent,
         RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent,
         TeleportToPositionEvent, TransformEvent, UpdateMapMarkerEvent,
@@ -122,10 +122,6 @@ event_emitters! {
         combo_change: ComboChangeEvent,
         knockback: KnockbackEvent,
         energy_change: EnergyChangeEvent,
-    }
-
-    struct ExitIngameEvents[ExitIngameEmitters] {
-        exit_ingame: ExitIngameEvent
     }
 }
 
@@ -1008,7 +1004,6 @@ impl ServerEvent for RespawnEvent {
         ReadStorage<'a, Client>,
         ReadStorage<'a, Hardcore>,
         ReadStorage<'a, comp::Waypoint>,
-        ExitIngameEvents<'a>,
     );
 
     fn handle(
@@ -1024,15 +1019,11 @@ impl ServerEvent for RespawnEvent {
             clients,
             hardcore,
             waypoints,
-            exit_ingame_events,
         ): Self::SystemData<'_>,
     ) {
         for RespawnEvent(entity) in events {
-            // Hardcore characters cannot respawn, kick them to character selection
-            if hardcore.contains(entity) {
-                let mut exit_ingame_emitter = exit_ingame_events.get_emitters();
-                exit_ingame_emitter.emit(ExitIngameEvent { entity });
-            } else if clients.contains(entity) {
+            // Hardcore characters cannot respawn
+            if !hardcore.contains(entity) && clients.contains(entity) {
                 let respawn_point = waypoints
                     .get(entity)
                     .map(|wp| wp.get_pos())
