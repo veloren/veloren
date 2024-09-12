@@ -1417,6 +1417,10 @@
                 keyword: "driggle",
                 generic: "Driggle"
             ),
+            hydra: (
+                keyword: "hydra",
+                generic: "Hydra"
+            ),
         )
     ),
     arthropod: (

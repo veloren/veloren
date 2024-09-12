@@ -425,6 +425,12 @@ where
         match self.models.entry(key) {
             Entry::Occupied(o) => {
                 let ((model, skel), last_used) = o.into_mut();
+
+                #[cfg(feature = "hot-reloading")]
+                {
+                    *skel = skeleton_attr;
+                }
+
                 *last_used = tick;
                 (
                     match model {

@@ -99,6 +99,7 @@ const int AIRFLOW = 59;
 const int SPORE = 60;
 const int SURPRISE_EGG = 61;
 const int FLAME_TORNADO = 62;
+const int POISON = 63;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1050,6 +1051,16 @@ void main() {
                 spiral_motion(vec3(0, 0, 3), abs(rand0) * 3 + percent() * 70.0, percent(), -8.0 + (rand0 * 3), rand1 * 360.),
                 vec3((-2.5 * (1 - slow_start(0.05)))),
                 vec4(6, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case POISON:
+            f_reflect = 0.0; // Poison doesn't reflect to look like magic
+            float poison_color = 1.9 + rand5 * 0.3;
+            attr = Attr(
+                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                vec3((3.5 * (1 - slow_start(0.2)))),
+                vec4(0.3 * poison_color , 0.7 * poison_color , 0.37 * poison_color , 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;

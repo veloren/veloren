@@ -32,6 +32,112 @@ impl Animation for ComboAnimation {
 
         for strike in 0..=current_strike {
             match ability_id {
+                Some("common.abilities.custom.hydra.multi_bite") => {
+                    let (movement1base, movement2base, movement3) = match stage_section {
+                        StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),
+                        StageSection::Action => (1.0, anim_time.powi(4), 0.0),
+                        StageSection::Recover => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - movement3;
+                    let subtract = global_time - timer;
+                    let check = subtract - subtract.trunc();
+                    let mirror = (check - 0.5).signum();
+                    let twitch3 = (mirror * movement3 * 9.0).sin();
+                    let movement1 = mirror * movement1base * pullback;
+                    let movement2 = mirror * movement2base * pullback;
+                    let movement1abs = movement1base * pullback;
+                    let movement2abs = movement2base * pullback;
+
+                    match strike {
+                        2 => {
+                            next.head_l_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+
+                            next.head_l_lower.orientation =
+                                Quaternion::rotation_z(movement1abs * 0.5 + movement2abs * 0.2)
+                                    * Quaternion::rotation_y(
+                                        movement1abs * -0.4 + movement2abs * -0.2,
+                                    )
+                                    * Quaternion::rotation_x(
+                                        movement1abs * 0.35 + movement2abs * -0.9,
+                                    );
+
+                            next.jaw_l.orientation =
+                                Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
+
+                            next.head_c_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+
+                            next.head_c_lower.orientation =
+                                Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9);
+
+                            next.jaw_c.orientation =
+                                Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
+
+                            next.head_r_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+
+                            next.head_r_lower.orientation =
+                                Quaternion::rotation_z(movement1abs * -0.5 + movement2abs * -0.2)
+                                    * Quaternion::rotation_y(
+                                        movement1abs * 0.4 + movement2abs * 0.2,
+                                    )
+                                    * Quaternion::rotation_x(
+                                        movement1abs * 0.35 + movement2abs * -0.9,
+                                    );
+
+                            next.jaw_r.orientation =
+                                Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
+
+                            next.chest.orientation =
+                                Quaternion::rotation_z(movement1 * -0.2 + movement2 * 0.6);
+
+                            next.tail_front.orientation = Quaternion::rotation_x(0.25)
+                                * Quaternion::rotation_z(movement1 * -1.0 + movement2 * 2.2);
+
+                            next.tail_rear.orientation = Quaternion::rotation_x(-0.12)
+                                * Quaternion::rotation_z(movement1 * -0.6 + movement2 * 0.6);
+                        },
+                        0 | 1 => {
+                            let dir = match strike {
+                                0 => 1.0,
+                                _ => -1.0,
+                            };
+                            next.head_l_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+
+                            next.head_l_lower.orientation =
+                                Quaternion::rotation_x(movement1abs * 0.4 + movement2abs * -1.2);
+
+                            next.jaw_l.orientation =
+                                Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
+
+                            next.head_c_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+
+                            next.head_c_lower.orientation =
+                                Quaternion::rotation_x(movement1abs * 0.5 + movement2abs * -1.5);
+
+                            next.jaw_c.orientation =
+                                Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
+
+                            next.head_r_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+
+                            next.head_r_lower.orientation =
+                                Quaternion::rotation_x(movement1abs * 0.4 + movement2abs * -1.2);
+
+                            next.jaw_r.orientation =
+                                Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
+
+                            next.chest.orientation = Quaternion::rotation_z(
+                                movement1 * 0.2 * dir + movement2 * -0.3 * dir,
+                            );
+
+                            next.tail_front.orientation = Quaternion::rotation_x(0.15)
+                                * Quaternion::rotation_z(movement1 * 0.4 + movement2 * 0.2);
+
+                            next.tail_rear.orientation = Quaternion::rotation_x(-0.12)
+                                * Quaternion::rotation_z(movement1 * 0.4 + movement2 * 0.2);
+                        },
+                        _ => {},
+                    }
+                },
                 Some(
                     "common.abilities.custom.icedrake.multi_bite"
                     | "common.abilities.custom.icedrake.icy_bite"
@@ -55,13 +161,13 @@ impl Animation for ComboAnimation {
 
                     match strike {
                         0 | 2 => {
-                            next.head_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+                            next.head_c_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
 
-                            next.head_lower.orientation =
+                            next.head_c_lower.orientation =
                                 Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
                                     * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
 
-                            next.jaw.orientation =
+                            next.jaw_c.orientation =
                                 Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
                             next.chest.orientation =
                                 Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)
@@ -74,13 +180,13 @@ impl Animation for ComboAnimation {
                                 * Quaternion::rotation_z(movement1 * -0.4 + movement2 * -0.2);
                         },
                         1 => {
-                            next.head_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+                            next.head_c_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
 
-                            next.head_lower.orientation =
+                            next.head_c_lower.orientation =
                                 Quaternion::rotation_x(movement1abs * 0.15 + movement2abs * -0.6)
                                     * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.15);
 
-                            next.jaw.orientation =
+                            next.jaw_c.orientation =
                                 Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
                             next.chest.orientation =
                                 Quaternion::rotation_y(movement1 * 0.08 + movement2 * -0.15)
@@ -178,12 +284,12 @@ impl Animation for ComboAnimation {
                     let movement1abs = movement1base * pullback;
                     let movement2abs = movement2base * pullback;
 
-                    next.head_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
-                    next.head_lower.orientation =
+                    next.head_c_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+                    next.head_c_lower.orientation =
                         Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.4)
                             * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -0.7);
 
-                    next.jaw.orientation =
+                    next.jaw_c.orientation =
                         Quaternion::rotation_x(movement2abs * -0.8 + movement3 * -0.6);
                     next.chest.orientation =
                         Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)

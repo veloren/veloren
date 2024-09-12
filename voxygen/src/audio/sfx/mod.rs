@@ -103,7 +103,7 @@ use event_mapper::SfxEventMapper;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use serde::Deserialize;
-use tracing::{debug, warn};
+use tracing::{debug, error, warn};
 use vek::*;
 
 /// We watch the states of nearby entities in order to emit SFX at their
@@ -858,6 +858,21 @@ impl SfxMgr {
                     Some(3.0),
                     underwater,
                 );
+            },
+            Outcome::HeadLost { uid, .. } => {
+                let positions = client.state().ecs().read_storage::<common::comp::Pos>();
+                if let Some(pos) = client
+                    .state()
+                    .ecs()
+                    .read_resource::<common::uid::IdMaps>()
+                    .uid_entity(*uid)
+                    .and_then(|entity| positions.get(entity))
+                {
+                    let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Death);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, Some(2.0), underwater);
+                } else {
+                    error!("Couldn't get position of entity that lost head");
+                }
             },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},
         }

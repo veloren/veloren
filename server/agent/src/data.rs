@@ -1,7 +1,8 @@
 use crate::util::*;
 use common::{
     comp::{
-        ability::{CharacterAbility, BASE_ABILITY_LIMIT},
+        ability::{Amount, CharacterAbility, BASE_ABILITY_LIMIT},
+        body::parts::Heads,
         buff::{BuffKind, Buffs},
         character_state::AttackFilters,
         group,
@@ -59,6 +60,7 @@ pub struct AgentData<'a> {
     pub glider_equipped: bool,
     pub is_gliding: bool,
     pub health: Option<&'a Health>,
+    pub heads: Option<&'a Heads>,
     pub char_state: &'a CharacterState,
     pub active_abilities: &'a ActiveAbilities,
     pub combo: Option<&'a Combo>,
@@ -256,6 +258,7 @@ pub enum Tactic {
     Dullahan,
     Cyclops,
     IceDrake,
+    Hydra,
     Flamekeeper,
     Forgemaster,
 
@@ -394,6 +397,7 @@ pub struct ReadData<'a> {
     pub orientations: ReadStorage<'a, Ori>,
     pub scales: ReadStorage<'a, Scale>,
     pub healths: ReadStorage<'a, Health>,
+    pub heads: ReadStorage<'a, Heads>,
     pub inventories: ReadStorage<'a, Inventory>,
     pub stats: ReadStorage<'a, Stats>,
     pub skill_set: ReadStorage<'a, SkillSet>,
@@ -500,7 +504,7 @@ pub enum AbilityData {
         energy: f32,
         projectile_speed: f32,
         projectile_spread: f32,
-        num_projectiles: u32,
+        num_projectiles: Amount,
     },
     BasicMelee {
         energy: f32,
@@ -530,6 +534,9 @@ pub enum AbilityData {
     // Note, buff check not done as auras could be non-buff and auras could target either in or
     // out of group
     StaticAura {
+        energy: f32,
+    },
+    RegrowHead {
         energy: f32,
     },
 }
@@ -728,6 +735,9 @@ impl AbilityData {
                 combo: minimum_combo.unwrap_or(0),
             },
             StaticAura { energy_cost, .. } => Self::StaticAura {
+                energy: *energy_cost,
+            },
+            RegrowHead { energy_cost, .. } => Self::RegrowHead {
                 energy: *energy_cost,
             },
             _ => {
@@ -978,6 +988,7 @@ impl AbilityData {
                     && combo_check(*combo, false)
             },
             StaticAura { energy } => energy_check(*energy),
+            RegrowHead { energy } => energy_check(*energy),
         }
     }
 }

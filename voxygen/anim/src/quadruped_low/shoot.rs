@@ -33,20 +33,20 @@ impl Animation for ShootAnimation {
         let twitch1 = (movement1 * 18.0).sin();
         match ability_id {
             Some("common.abilities.custom.dwarves.snaretongue.bombs") => {
-                next.head_upper.position =
+                next.head_c_upper.position =
                     Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1 - movement1 * 2.0);
-                next.head_upper.orientation =
+                next.head_c_upper.orientation =
                     Quaternion::rotation_x((movement1 * 0.3 + movement2 * 0.2) * (1.0 - movement3))
                         * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
 
-                next.head_lower.position =
+                next.head_c_lower.position =
                     Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1 - movement1 * 0.5);
-                next.head_lower.orientation = Quaternion::rotation_x(
+                next.head_c_lower.orientation = Quaternion::rotation_x(
                     (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.2) * (0.5 - movement3),
                 );
 
-                next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-                next.jaw.orientation = Quaternion::rotation_x(movement1 * -0.5 + movement3 * 0.5);
+                next.jaw_c.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                next.jaw_c.orientation = Quaternion::rotation_x(movement1 * -0.5 + movement3 * 0.5);
 
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1 * 0.5);
                 next.chest.orientation = Quaternion::rotation_x(0.0 + movement1 * 0.1);
@@ -72,20 +72,20 @@ impl Animation for ShootAnimation {
                 };
             },
             Some("common.abilities.custom.dagon.dagonbombs") => {
-                next.head_upper.position =
+                next.head_c_upper.position =
                     Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1 - movement1 * 2.0);
-                next.head_upper.orientation =
+                next.head_c_upper.orientation =
                     Quaternion::rotation_x((movement1 * 0.3 + movement2 * 0.2) * (1.0 - movement3))
                         * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
 
-                next.head_lower.position =
+                next.head_c_lower.position =
                     Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1 - movement1 * 0.5);
-                next.head_lower.orientation = Quaternion::rotation_x(
+                next.head_c_lower.orientation = Quaternion::rotation_x(
                     (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.2) * (0.5 - movement3),
                 );
 
-                next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-                next.jaw.orientation = Quaternion::rotation_x(movement1 * -0.5 + movement3 * 0.5);
+                next.jaw_c.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                next.jaw_c.orientation = Quaternion::rotation_x(movement1 * -0.5 + movement3 * 0.5);
 
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement1 * 0.5);
                 next.chest.orientation = Quaternion::rotation_x(0.0 + movement1 * 0.1);
@@ -117,18 +117,63 @@ impl Animation for ShootAnimation {
                 };
             },
             _ => {
-                next.head_upper.position = Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1);
-                next.head_upper.orientation =
+                // Center head
+                next.head_c_upper.position = Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1);
+                next.head_c_upper.orientation =
                     Quaternion::rotation_x((movement1 * 0.6 + movement2 * 0.7) * (1.0 - movement3))
                         * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
 
-                next.head_lower.position = Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1);
-                next.head_lower.orientation = Quaternion::rotation_x(
+                next.head_c_lower.position = Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1);
+                next.head_c_lower.orientation = Quaternion::rotation_x(
                     (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.6) * (1.0 - movement3),
                 );
 
-                next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
-                next.jaw.orientation = Quaternion::rotation_x(movement1 * -0.5);
+                next.jaw_c.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                next.jaw_c.orientation = Quaternion::rotation_x(movement1 * -0.5);
+
+                // Left head
+                next.head_l_upper.position = Vec3::new(
+                    -s_a.side_head_upper.0,
+                    s_a.side_head_upper.1,
+                    s_a.side_head_upper.2,
+                );
+                next.head_l_upper.orientation =
+                    Quaternion::rotation_x((movement1 * 0.6 + movement2 * 0.7) * (1.0 - movement3))
+                        * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
+
+                next.head_l_lower.position = Vec3::new(
+                    -s_a.side_head_lower.0,
+                    s_a.side_head_lower.1,
+                    s_a.side_head_lower.2,
+                );
+                next.head_l_lower.orientation = Quaternion::rotation_x(
+                    (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.6) * (1.0 - movement3),
+                );
+
+                next.jaw_l.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                next.jaw_l.orientation = Quaternion::rotation_x(movement1 * -0.5);
+
+                // Right head
+                next.head_r_upper.position = Vec3::new(
+                    s_a.side_head_upper.0,
+                    s_a.side_head_upper.1,
+                    s_a.side_head_upper.2,
+                );
+                next.head_r_upper.orientation =
+                    Quaternion::rotation_x((movement1 * 0.6 + movement2 * 0.7) * (1.0 - movement3))
+                        * Quaternion::rotation_z((twitch1 * 0.1) * (1.0 - movement3));
+
+                next.head_r_lower.position = Vec3::new(
+                    s_a.side_head_lower.0,
+                    s_a.side_head_lower.1,
+                    s_a.side_head_lower.2,
+                );
+                next.head_r_lower.orientation = Quaternion::rotation_x(
+                    (twitch1 * 0.05 + movement1 * 0.3 + movement2 * 0.6) * (1.0 - movement3),
+                );
+
+                next.jaw_r.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+                next.jaw_r.orientation = Quaternion::rotation_x(movement1 * -0.5);
 
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
                 next.chest.orientation = Quaternion::rotation_x(0.0);

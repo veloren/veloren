@@ -1,0 +1,7 @@
+#![enable(implicit_some)]
+RegrowHead(
+    buildup_duration: 0.5,
+    recover_duration: 0.4,
+    energy_cost: 0.0,
+    specifier: Hydra,
+)

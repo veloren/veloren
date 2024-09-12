@@ -195,8 +195,16 @@ struct VoxSpec<T>(String, [T; 3], #[serde(default)] u32);
 #[derive(Deserialize)]
 struct VoxSimple(String);
 
+impl Default for VoxSimple {
+    fn default() -> Self { VoxSimple("armor.empty".to_string()) }
+}
+
 #[derive(Deserialize)]
 struct VoxMirror(String, bool);
+
+impl Default for VoxMirror {
+    fn default() -> Self { VoxMirror("armor.empty".to_string(), false) }
+}
 
 #[derive(Deserialize)]
 struct ArmorVoxSpec {
@@ -1106,13 +1114,14 @@ fn mesh_hold() -> BoneMeshes {
 struct QuadrupedSmallCentralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSCentralVoxSpec>);
 impl_concatenate_for_wrapper!(QuadrupedSmallCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedQSCentralVoxSpec {
     head: QuadrupedSmallCentralSubSpec,
     chest: QuadrupedSmallCentralSubSpec,
     tail: QuadrupedSmallCentralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct QuadrupedSmallCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -1124,14 +1133,15 @@ struct QuadrupedSmallCentralSubSpec {
 struct QuadrupedSmallLateralSpec(HashMap<(QSSpecies, QSBodyType), SidedQSLateralVoxSpec>);
 impl_concatenate_for_wrapper!(QuadrupedSmallLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedQSLateralVoxSpec {
     left_front: QuadrupedSmallLateralSubSpec,
     right_front: QuadrupedSmallLateralSubSpec,
     left_back: QuadrupedSmallLateralSubSpec,
     right_back: QuadrupedSmallLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct QuadrupedSmallLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -1323,7 +1333,8 @@ impl QuadrupedSmallLateralSpec {
 struct QuadrupedMediumCentralSpec(HashMap<(QMSpecies, QMBodyType), SidedQMCentralVoxSpec>);
 impl_concatenate_for_wrapper!(QuadrupedMediumCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedQMCentralVoxSpec {
     head: QuadrupedMediumCentralSubSpec,
     neck: QuadrupedMediumCentralSubSpec,
@@ -1333,7 +1344,7 @@ struct SidedQMCentralVoxSpec {
     torso_back: QuadrupedMediumCentralSubSpec,
     tail: QuadrupedMediumCentralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct QuadrupedMediumCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -1344,7 +1355,9 @@ struct QuadrupedMediumCentralSubSpec {
 #[derive(Deserialize)]
 struct QuadrupedMediumLateralSpec(HashMap<(QMSpecies, QMBodyType), SidedQMLateralVoxSpec>);
 impl_concatenate_for_wrapper!(QuadrupedMediumLateralSpec);
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedQMLateralVoxSpec {
     leg_fl: QuadrupedMediumLateralSubSpec,
     leg_fr: QuadrupedMediumLateralSubSpec,
@@ -1355,7 +1368,7 @@ struct SidedQMLateralVoxSpec {
     foot_bl: QuadrupedMediumLateralSubSpec,
     foot_br: QuadrupedMediumLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct QuadrupedMediumLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -1701,13 +1714,14 @@ impl QuadrupedMediumLateralSpec {
 struct BirdMediumCentralSpec(HashMap<(BMSpecies, BMBodyType), SidedBMCentralVoxSpec>);
 impl_concatenate_for_wrapper!(BirdMediumCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedBMCentralVoxSpec {
     head: BirdMediumCentralSubSpec,
     chest: BirdMediumCentralSubSpec,
     tail: BirdMediumCentralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct BirdMediumCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -1719,7 +1733,8 @@ struct BirdMediumCentralSubSpec {
 struct BirdMediumLateralSpec(HashMap<(BMSpecies, BMBodyType), SidedBMLateralVoxSpec>);
 impl_concatenate_for_wrapper!(BirdMediumLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedBMLateralVoxSpec {
     wing_in_l: BirdMediumLateralSubSpec,
     wing_in_r: BirdMediumLateralSubSpec,
@@ -1728,7 +1743,7 @@ struct SidedBMLateralVoxSpec {
     leg_l: BirdMediumLateralSubSpec,
     leg_r: BirdMediumLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct BirdMediumLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -1957,7 +1972,8 @@ impl BirdMediumLateralSpec {
 struct TheropodCentralSpec(HashMap<(TSpecies, TBodyType), SidedTCentralVoxSpec>);
 impl_concatenate_for_wrapper!(TheropodCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedTCentralVoxSpec {
     head: TheropodCentralSubSpec,
     jaw: TheropodCentralSubSpec,
@@ -1967,7 +1983,7 @@ struct SidedTCentralVoxSpec {
     tail_front: TheropodCentralSubSpec,
     tail_back: TheropodCentralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct TheropodCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -1978,7 +1994,8 @@ struct TheropodCentralSubSpec {
 struct TheropodLateralSpec(HashMap<(TSpecies, TBodyType), SidedTLateralVoxSpec>);
 impl_concatenate_for_wrapper!(TheropodLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedTLateralVoxSpec {
     hand_l: TheropodLateralSubSpec,
     hand_r: TheropodLateralSubSpec,
@@ -1987,7 +2004,7 @@ struct SidedTLateralVoxSpec {
     foot_l: TheropodLateralSubSpec,
     foot_r: TheropodLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct TheropodLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -2289,12 +2306,13 @@ impl TheropodLateralSpec {
 struct ArthropodCentralSpec(HashMap<(ASpecies, ABodyType), SidedACentralVoxSpec>);
 impl_concatenate_for_wrapper!(ArthropodCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedACentralVoxSpec {
     head: ArthropodCentralSubSpec,
     chest: ArthropodCentralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct ArthropodCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -2305,7 +2323,8 @@ struct ArthropodCentralSubSpec {
 struct ArthropodLateralSpec(HashMap<(ASpecies, ABodyType), SidedALateralVoxSpec>);
 impl_concatenate_for_wrapper!(ArthropodLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedALateralVoxSpec {
     mandible_l: ArthropodLateralSubSpec,
     mandible_r: ArthropodLateralSubSpec,
@@ -2322,7 +2341,7 @@ struct SidedALateralVoxSpec {
     leg_bl: ArthropodLateralSubSpec,
     leg_br: ArthropodLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct ArthropodLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -2691,13 +2710,15 @@ impl ArthropodLateralSpec {
 struct CrustaceanCentralSpec(HashMap<(CSpecies, CBodyType), CrustCentralVoxSpec>);
 impl_concatenate_for_wrapper!(CrustaceanCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct CrustCentralVoxSpec {
     chest: CrustaceanCentralSubSpec,
     tail_f: CrustaceanCentralSubSpec,
     tail_b: CrustaceanCentralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct CrustaceanCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -2708,7 +2729,8 @@ struct CrustaceanCentralSubSpec {
 struct CrustaceanLateralSpec(HashMap<(CSpecies, CBodyType), CrustLateralVoxSpec>);
 impl_concatenate_for_wrapper!(CrustaceanLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct CrustLateralVoxSpec {
     arm_l: CrustaceanLateralSubSpec,
     pincer_l0: CrustaceanLateralSubSpec,
@@ -2723,10 +2745,10 @@ struct CrustLateralVoxSpec {
     leg_cr: CrustaceanLateralSubSpec,
     leg_br: CrustaceanLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct CrustaceanLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
-    lateral: VoxSimple,
+    lateral: VoxMirror,
     #[serde(default)]
     model_index: u32,
 }
@@ -2868,8 +2890,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral =
-            graceful_load_segment_flipped(&spec.arm_l.lateral.0, true, spec.arm_l.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.arm_l.lateral.0,
+            spec.arm_l.lateral.1,
+            spec.arm_l.model_index,
+        );
 
         (lateral, Vec3::from(spec.arm_l.offset))
     }
@@ -2888,7 +2913,7 @@ impl CrustaceanLateralSpec {
         };
         let lateral = graceful_load_segment_flipped(
             &spec.pincer_l0.lateral.0,
-            true,
+            spec.pincer_l0.lateral.1,
             spec.pincer_l0.model_index,
         );
 
@@ -2909,7 +2934,7 @@ impl CrustaceanLateralSpec {
         };
         let lateral = graceful_load_segment_flipped(
             &spec.pincer_l1.lateral.0,
-            true,
+            spec.pincer_l0.lateral.1,
             spec.pincer_l1.model_index,
         );
 
@@ -2927,7 +2952,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.arm_r.lateral.0, spec.arm_r.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.arm_r.lateral.0,
+            spec.arm_r.lateral.1,
+            spec.arm_r.model_index,
+        );
 
         (lateral, Vec3::from(spec.arm_r.offset))
     }
@@ -2944,7 +2973,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.pincer_r0.lateral.0, spec.pincer_r0.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.pincer_r0.lateral.0,
+            spec.pincer_r0.lateral.1,
+            spec.pincer_r0.model_index,
+        );
 
         (lateral, Vec3::from(spec.pincer_r0.offset))
     }
@@ -2961,7 +2994,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.pincer_r1.lateral.0, spec.pincer_r1.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.pincer_r1.lateral.0,
+            spec.pincer_r1.lateral.1,
+            spec.pincer_r1.model_index,
+        );
 
         (lateral, Vec3::from(spec.pincer_r1.offset))
     }
@@ -2977,8 +3014,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral =
-            graceful_load_segment_flipped(&spec.leg_fl.lateral.0, true, spec.leg_fl.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.leg_fl.lateral.0,
+            spec.leg_fl.lateral.1,
+            spec.leg_fl.model_index,
+        );
 
         (lateral, Vec3::from(spec.leg_fl.offset))
     }
@@ -2994,8 +3034,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral =
-            graceful_load_segment_flipped(&spec.leg_cl.lateral.0, true, spec.leg_cl.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.leg_cl.lateral.0,
+            spec.leg_cl.lateral.1,
+            spec.leg_cl.model_index,
+        );
 
         (lateral, Vec3::from(spec.leg_cl.offset))
     }
@@ -3011,8 +3054,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral =
-            graceful_load_segment_flipped(&spec.leg_bl.lateral.0, true, spec.leg_bl.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.leg_bl.lateral.0,
+            spec.leg_bl.lateral.1,
+            spec.leg_bl.model_index,
+        );
 
         (lateral, Vec3::from(spec.leg_bl.offset))
     }
@@ -3028,7 +3074,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_fr.lateral.0, spec.leg_fr.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.leg_fr.lateral.0,
+            spec.leg_fr.lateral.1,
+            spec.leg_fr.model_index,
+        );
 
         (lateral, Vec3::from(spec.leg_fr.offset))
     }
@@ -3044,7 +3094,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_cr.lateral.0, spec.leg_cr.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.leg_cr.lateral.0,
+            spec.leg_cr.lateral.1,
+            spec.leg_cr.model_index,
+        );
 
         (lateral, Vec3::from(spec.leg_cr.offset))
     }
@@ -3060,7 +3114,11 @@ impl CrustaceanLateralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let lateral = graceful_load_segment(&spec.leg_br.lateral.0, spec.leg_br.model_index);
+        let lateral = graceful_load_segment_flipped(
+            &spec.leg_br.lateral.0,
+            spec.leg_br.lateral.1,
+            spec.leg_br.model_index,
+        );
 
         (lateral, Vec3::from(spec.leg_br.offset))
     }
@@ -3070,7 +3128,8 @@ impl CrustaceanLateralSpec {
 struct FishMediumCentralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMCentralVoxSpec>);
 impl_concatenate_for_wrapper!(FishMediumCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedFMCentralVoxSpec {
     head: FishMediumCentralSubSpec,
     jaw: FishMediumCentralSubSpec,
@@ -3078,22 +3137,26 @@ struct SidedFMCentralVoxSpec {
     chest_back: FishMediumCentralSubSpec,
     tail: FishMediumCentralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct FishMediumCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
     #[serde(default)]
     model_index: u32,
 }
+
 #[derive(Deserialize)]
 struct FishMediumLateralSpec(HashMap<(FMSpecies, FMBodyType), SidedFMLateralVoxSpec>);
 impl_concatenate_for_wrapper!(FishMediumLateralSpec);
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedFMLateralVoxSpec {
     fin_l: FishMediumLateralSubSpec,
     fin_r: FishMediumLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct FishMediumLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -3278,27 +3341,33 @@ impl FishMediumLateralSpec {
 struct FishSmallCentralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSCentralVoxSpec>);
 impl_concatenate_for_wrapper!(FishSmallCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedFSCentralVoxSpec {
     chest: FishSmallCentralSubSpec,
     tail: FishSmallCentralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct FishSmallCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
     #[serde(default)]
     model_index: u32,
 }
+
 #[derive(Deserialize)]
 struct FishSmallLateralSpec(HashMap<(FSSpecies, FSBodyType), SidedFSLateralVoxSpec>);
 impl_concatenate_for_wrapper!(FishSmallLateralSpec);
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedFSLateralVoxSpec {
     fin_l: FishSmallLateralSubSpec,
     fin_r: FishSmallLateralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct FishSmallLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -3707,7 +3776,8 @@ impl BipedSmallWeaponSpec {
 struct DragonCentralSpec(HashMap<(DSpecies, DBodyType), SidedDCentralVoxSpec>);
 impl_concatenate_for_wrapper!(DragonCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedDCentralVoxSpec {
     upper: DragonCentralSubSpec,
     lower: DragonCentralSubSpec,
@@ -3717,7 +3787,7 @@ struct SidedDCentralVoxSpec {
     tail_front: DragonCentralSubSpec,
     tail_rear: DragonCentralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct DragonCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -3729,7 +3799,8 @@ struct DragonCentralSubSpec {
 struct DragonLateralSpec(HashMap<(DSpecies, DBodyType), SidedDLateralVoxSpec>);
 impl_concatenate_for_wrapper!(DragonLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedDLateralVoxSpec {
     wing_in_l: DragonLateralSubSpec,
     wing_in_r: DragonLateralSubSpec,
@@ -3740,7 +3811,7 @@ struct SidedDLateralVoxSpec {
     foot_bl: DragonLateralSubSpec,
     foot_br: DragonLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct DragonLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -4080,7 +4151,8 @@ impl DragonLateralSpec {
 struct BirdLargeCentralSpec(HashMap<(BLASpecies, BLABodyType), SidedBLACentralVoxSpec>);
 impl_concatenate_for_wrapper!(BirdLargeCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedBLACentralVoxSpec {
     head: BirdLargeCentralSubSpec,
     beak: BirdLargeCentralSubSpec,
@@ -4089,7 +4161,8 @@ struct SidedBLACentralVoxSpec {
     tail_front: BirdLargeCentralSubSpec,
     tail_rear: BirdLargeCentralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct BirdLargeCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -4101,7 +4174,8 @@ struct BirdLargeCentralSubSpec {
 struct BirdLargeLateralSpec(HashMap<(BLASpecies, BLABodyType), SidedBLALateralVoxSpec>);
 impl_concatenate_for_wrapper!(BirdLargeLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedBLALateralVoxSpec {
     wing_in_l: BirdLargeLateralSubSpec,
     wing_in_r: BirdLargeLateralSubSpec,
@@ -4114,7 +4188,8 @@ struct SidedBLALateralVoxSpec {
     foot_l: BirdLargeLateralSubSpec,
     foot_r: BirdLargeLateralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct BirdLargeLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -4485,7 +4560,8 @@ impl BirdLargeLateralSpec {
 struct BipedLargeCentralSpec(HashMap<(BLSpecies, BLBodyType), SidedBLCentralVoxSpec>);
 impl_concatenate_for_wrapper!(BipedLargeCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedBLCentralVoxSpec {
     head: BipedLargeCentralSubSpec,
     jaw: BipedLargeCentralSubSpec,
@@ -4493,7 +4569,7 @@ struct SidedBLCentralVoxSpec {
     torso_lower: BipedLargeCentralSubSpec,
     tail: BipedLargeCentralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct BipedLargeCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -4505,7 +4581,8 @@ struct BipedLargeCentralSubSpec {
 struct BipedLargeLateralSpec(HashMap<(BLSpecies, BLBodyType), SidedBLLateralVoxSpec>);
 impl_concatenate_for_wrapper!(BipedLargeLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedBLLateralVoxSpec {
     shoulder_l: BipedLargeLateralSubSpec,
     shoulder_r: BipedLargeLateralSubSpec,
@@ -4516,19 +4593,23 @@ struct SidedBLLateralVoxSpec {
     foot_l: BipedLargeLateralSubSpec,
     foot_r: BipedLargeLateralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct BipedLargeLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
     #[serde(default)]
     model_index: u32,
 }
+
 #[derive(Deserialize)]
 struct BipedLargeMainSpec(HashMap<ToolKey, ArmorVoxSpec>);
 impl_concatenate_for_wrapper!(BipedLargeMainSpec);
+
 #[derive(Deserialize)]
 struct BipedLargeSecondSpec(HashMap<ToolKey, ArmorVoxSpec>);
 impl_concatenate_for_wrapper!(BipedLargeSecondSpec);
+
 make_vox_spec!(
     biped_large::Body,
     struct BipedLargeSpec {
@@ -4908,14 +4989,16 @@ impl BipedLargeSecondSpec {
 struct GolemCentralSpec(HashMap<(GSpecies, GBodyType), SidedGCentralVoxSpec>);
 impl_concatenate_for_wrapper!(GolemCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedGCentralVoxSpec {
     head: GolemCentralSubSpec,
     jaw: GolemCentralSubSpec,
     torso_upper: GolemCentralSubSpec,
     torso_lower: GolemCentralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct GolemCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -4927,7 +5010,8 @@ struct GolemCentralSubSpec {
 struct GolemLateralSpec(HashMap<(GSpecies, GBodyType), SidedGLateralVoxSpec>);
 impl_concatenate_for_wrapper!(GolemLateralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedGLateralVoxSpec {
     shoulder_l: GolemLateralSubSpec,
     shoulder_r: GolemLateralSubSpec,
@@ -4938,7 +5022,8 @@ struct SidedGLateralVoxSpec {
     foot_l: GolemLateralSubSpec,
     foot_r: GolemLateralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct GolemLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxSimple,
@@ -5220,7 +5305,8 @@ impl GolemLateralSpec {
 struct QuadrupedLowCentralSpec(HashMap<(QLSpecies, QLBodyType), SidedQLCentralVoxSpec>);
 impl_concatenate_for_wrapper!(QuadrupedLowCentralSpec);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedQLCentralVoxSpec {
     upper: QuadrupedLowCentralSubSpec,
     lower: QuadrupedLowCentralSubSpec,
@@ -5229,7 +5315,8 @@ struct SidedQLCentralVoxSpec {
     tail_front: QuadrupedLowCentralSubSpec,
     tail_rear: QuadrupedLowCentralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct QuadrupedLowCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,
@@ -5240,14 +5327,22 @@ struct QuadrupedLowCentralSubSpec {
 #[derive(Deserialize)]
 struct QuadrupedLowLateralSpec(HashMap<(QLSpecies, QLBodyType), SidedQLLateralVoxSpec>);
 impl_concatenate_for_wrapper!(QuadrupedLowLateralSpec);
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedQLLateralVoxSpec {
+    left_upper: QuadrupedLowLateralSubSpec,
+    left_lower: QuadrupedLowLateralSubSpec,
+    left_jaw: QuadrupedLowLateralSubSpec,
+    right_upper: QuadrupedLowLateralSubSpec,
+    right_lower: QuadrupedLowLateralSubSpec,
+    right_jaw: QuadrupedLowLateralSubSpec,
     front_left: QuadrupedLowLateralSubSpec,
     front_right: QuadrupedLowLateralSubSpec,
     back_left: QuadrupedLowLateralSubSpec,
     back_right: QuadrupedLowLateralSubSpec,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 struct QuadrupedLowLateralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     lateral: VoxMirror,
@@ -5283,6 +5378,30 @@ make_vox_spec!(
                     body.body_type,
                 )
             }),
+            Some(spec.lateral.read().0.mesh_left_head_upper(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_left_head_lower(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_left_jaw(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_right_head_upper(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_right_head_lower(
+                body.species,
+                body.body_type,
+            )),
+            Some(spec.lateral.read().0.mesh_right_jaw(
+                body.species,
+                body.body_type,
+            )),
             Some(spec.central.read().0.mesh_chest(
                 body.species,
                 body.body_type,
@@ -5311,12 +5430,6 @@ make_vox_spec!(
                 body.species,
                 body.body_type,
             )),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
         ]
     },
 );
@@ -5421,6 +5534,120 @@ impl QuadrupedLowCentralSpec {
 }
 
 impl QuadrupedLowLateralSpec {
+    fn mesh_left_head_upper(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No left upper head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+
+        let latspec = &spec.left_upper.lateral;
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, latspec.1, spec.left_upper.model_index);
+
+        (lateral, Vec3::from(spec.left_upper.offset))
+    }
+
+    fn mesh_left_head_lower(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No left lower head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+
+        let latspec = &spec.left_lower.lateral;
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, latspec.1, spec.left_lower.model_index);
+
+        (lateral, Vec3::from(spec.left_lower.offset))
+    }
+
+    fn mesh_left_jaw(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No left jaw specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+
+        let latspec = &spec.left_jaw.lateral;
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, latspec.1, spec.left_jaw.model_index);
+
+        (lateral, Vec3::from(spec.left_jaw.offset))
+    }
+
+    fn mesh_right_head_upper(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No right upper head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+
+        let latspec = &spec.right_upper.lateral;
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, latspec.1, spec.right_upper.model_index);
+
+        (lateral, Vec3::from(spec.right_upper.offset))
+    }
+
+    fn mesh_right_head_lower(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No right lower head specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+
+        let latspec = &spec.right_lower.lateral;
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, latspec.1, spec.right_lower.model_index);
+
+        (lateral, Vec3::from(spec.right_lower.offset))
+    }
+
+    fn mesh_right_jaw(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
+        let spec = match self.0.get(&(species, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No right jaw specification exists for the combination of {:?} and {:?}",
+                    species, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
+            },
+        };
+
+        let latspec = &spec.right_jaw.lateral;
+        let lateral =
+            graceful_load_segment_flipped(&latspec.0, latspec.1, spec.right_jaw.model_index);
+
+        (lateral, Vec3::from(spec.right_jaw.offset))
+    }
+
     fn mesh_foot_fl(&self, species: QLSpecies, body_type: QLBodyType) -> BoneMeshes {
         let spec = match self.0.get(&(species, body_type)) {
             Some(spec) => spec,
@@ -5498,12 +5725,14 @@ impl QuadrupedLowLateralSpec {
 #[derive(Deserialize)]
 struct ObjectCentralSpec(HashMap<object::Body, SidedObjectCentralVoxSpec>);
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct SidedObjectCentralVoxSpec {
     bone0: ObjectCentralSubSpec,
     bone1: ObjectCentralSubSpec,
 }
-#[derive(Deserialize)]
+
+#[derive(Deserialize, Default)]
 struct ObjectCentralSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     central: VoxSimple,

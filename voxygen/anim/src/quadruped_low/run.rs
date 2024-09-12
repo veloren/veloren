@@ -1,3 +1,5 @@
+use common::comp::body::parts::HeadState;
+
 use super::{
     super::{vek::*, Animation},
     QuadrupedLowSkeleton, SkeletonAttr,
@@ -7,7 +9,15 @@ use std::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency<'a> = (f32, Vec3<f32>, Vec3<f32>, f32, Vec3<f32>, f32);
+    type Dependency<'a> = (
+        f32,
+        Vec3<f32>,
+        Vec3<f32>,
+        f32,
+        Vec3<f32>,
+        f32,
+        [HeadState; 3],
+    );
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +26,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_run")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'_>,
+        (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel, head_states): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -73,22 +83,70 @@ impl Animation for RunAnimation {
         } else {
             0.0
         } * 1.3;
-
-        next.jaw.scale = Vec3::one() * 0.98;
         next.tail_front.scale = Vec3::one() * 0.98;
         next.tail_rear.scale = Vec3::one() * 0.98;
 
-        next.head_upper.position = Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1);
-        next.head_upper.orientation = Quaternion::rotation_x(-s_a.lean.0 + x_tilt * -1.0)
+        // Center head
+        next.jaw_c.scale = Vec3::one() * 0.98;
+        next.head_c_upper.position = Vec3::new(0.0, s_a.head_upper.0, s_a.head_upper.1);
+        next.head_c_upper.orientation = Quaternion::rotation_x(-s_a.lean.0 + x_tilt * -1.0)
             * Quaternion::rotation_y(tilt * 0.3)
             * Quaternion::rotation_z(short * -0.06 + tilt * -1.5);
 
-        next.head_lower.position = Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1);
-        next.head_lower.orientation = Quaternion::rotation_y(tilt * 1.0)
+        next.head_c_lower.position = Vec3::new(0.0, s_a.head_lower.0, s_a.head_lower.1);
+        next.head_c_lower.orientation = Quaternion::rotation_y(tilt * 1.0)
             * Quaternion::rotation_z(short * -0.15 + tilt * -0.8)
             * Quaternion::rotation_x(x_tilt * 0.4);
+        next.head_c_lower.scale = Vec3::one() * (head_states[1].is_attached() as i32 as f32);
 
-        next.jaw.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+        next.jaw_c.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+
+        // Left head
+        next.jaw_l.scale = Vec3::one() * 0.98;
+        next.head_l_upper.position = Vec3::new(
+            -s_a.side_head_upper.0,
+            s_a.side_head_upper.1,
+            s_a.side_head_upper.2,
+        );
+        next.head_l_upper.orientation = Quaternion::rotation_x(-s_a.lean.0 + x_tilt * -1.0)
+            * Quaternion::rotation_y(tilt * 0.3)
+            * Quaternion::rotation_z(short * -0.06 + tilt * -1.5);
+
+        next.head_l_lower.position = Vec3::new(
+            -s_a.side_head_lower.0,
+            s_a.side_head_lower.1,
+            s_a.side_head_lower.2,
+        );
+        next.head_l_lower.orientation = Quaternion::rotation_y(tilt * 1.0)
+            * Quaternion::rotation_z(short * -0.15 + tilt * -0.8)
+            * Quaternion::rotation_x(x_tilt * 0.4);
+        next.head_l_lower.scale = Vec3::one() * (head_states[0].is_attached() as i32 as f32);
+
+        next.jaw_l.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+
+        // Right head
+        next.jaw_r.scale = Vec3::one() * 0.98;
+        next.head_r_upper.position = Vec3::new(
+            s_a.side_head_upper.0,
+            s_a.side_head_upper.1,
+            s_a.side_head_upper.2,
+        );
+        next.head_r_upper.orientation = Quaternion::rotation_x(-s_a.lean.0 + x_tilt * -1.0)
+            * Quaternion::rotation_y(tilt * 0.3)
+            * Quaternion::rotation_z(short * -0.06 + tilt * -1.5);
+
+        next.head_r_lower.position = Vec3::new(
+            s_a.side_head_lower.0,
+            s_a.side_head_lower.1,
+            s_a.side_head_lower.2,
+        );
+        next.head_r_lower.orientation = Quaternion::rotation_y(tilt * 1.0)
+            * Quaternion::rotation_z(short * -0.15 + tilt * -0.8)
+            * Quaternion::rotation_x(x_tilt * 0.4);
+        next.head_r_lower.scale = Vec3::one() * (head_states[2].is_attached() as i32 as f32);
+
+        next.jaw_r.position = Vec3::new(0.0, s_a.jaw.0, s_a.jaw.1);
+
         if s_a.tongue_for_tail {
             next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
             next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);

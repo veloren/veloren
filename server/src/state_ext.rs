@@ -180,7 +180,8 @@ impl StateExt for State {
         inventory: Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder {
-        self.ecs_mut()
+        let npc = self
+            .ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
@@ -209,6 +210,9 @@ impl StateExt for State {
             .with(comp::Auras::default())
             .with(comp::EnteredAuras::default())
             .with(comp::Stance::default())
+            .maybe_with(body.heads().map(comp::body::parts::Heads::new));
+
+        npc
     }
 
     fn create_empty(&mut self, pos: comp::Pos) -> EcsEntityBuilder {

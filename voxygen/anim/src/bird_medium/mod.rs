@@ -77,7 +77,6 @@ impl Skeleton for BirdMediumSkeleton {
         ];
         use common::comp::body::bird_medium::Species::*;
         Offsets {
-            lantern: None,
             viewpoint: match body.species {
                 Bat => Some((head_mat * Vec4::new(0.0, 5.0, -4.0, 1.0)).xyz()),
                 _ => Some((head_mat * Vec4::new(0.0, 3.0, 2.0, 1.0)).xyz()),
@@ -90,8 +89,7 @@ impl Skeleton for BirdMediumSkeleton {
                     .into(),
                 ..Default::default()
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }

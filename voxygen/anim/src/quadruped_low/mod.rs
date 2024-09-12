@@ -31,9 +31,15 @@ use core::convert::TryFrom;
 pub type Body = comp::quadruped_low::Body;
 
 skeleton_impls!(struct QuadrupedLowSkeleton {
-    + head_upper,
-    + head_lower,
-    + jaw,
+    + head_c_upper,
+    + pub head_c_lower,
+    + jaw_c,
+    + head_l_upper,
+    + pub head_l_lower,
+    + jaw_l,
+    + head_r_upper,
+    + pub head_r_lower,
+    + jaw_r,
     + chest,
     + tail_front,
     + tail_rear,
@@ -48,7 +54,7 @@ impl Skeleton for QuadrupedLowSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
 
-    const BONE_COUNT: usize = 10;
+    const BONE_COUNT: usize = 16;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"quadruped_low_compute_mats\0";
 
@@ -59,20 +65,32 @@ impl Skeleton for QuadrupedLowSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
     ) -> Offsets {
-        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
+        let attr = SkeletonAttr::from(&body);
+        let base_mat = base_mat * Mat4::scaling_3d(attr.scaler / 11.0);
 
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
         let tail_front = chest_mat * Mat4::<f32>::from(self.tail_front);
-        let head_lower_mat = chest_mat * Mat4::<f32>::from(self.head_lower);
-        let head_upper_mat = head_lower_mat * Mat4::<f32>::from(self.head_upper);
+        let tail_rear = tail_front * Mat4::<f32>::from(self.tail_rear);
+        let head_c_lower_mat = chest_mat * Mat4::<f32>::from(self.head_c_lower);
+        let head_c_upper_mat = head_c_lower_mat * Mat4::<f32>::from(self.head_c_upper);
+        let head_l_lower_mat = chest_mat * Mat4::<f32>::from(self.head_l_lower);
+        let head_l_upper_mat = head_l_lower_mat * Mat4::<f32>::from(self.head_l_upper);
+        let head_r_lower_mat = chest_mat * Mat4::<f32>::from(self.head_r_lower);
+        let head_r_upper_mat = head_r_lower_mat * Mat4::<f32>::from(self.head_r_upper);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_upper_mat),
-            make_bone(head_lower_mat),
-            make_bone(head_upper_mat * Mat4::<f32>::from(self.jaw)),
+            make_bone(head_c_upper_mat),
+            make_bone(head_c_lower_mat),
+            make_bone(head_c_upper_mat * Mat4::<f32>::from(self.jaw_c)),
+            make_bone(head_l_upper_mat),
+            make_bone(head_l_lower_mat),
+            make_bone(head_l_upper_mat * Mat4::<f32>::from(self.jaw_l)),
+            make_bone(head_r_upper_mat),
+            make_bone(head_r_lower_mat),
+            make_bone(head_r_upper_mat * Mat4::<f32>::from(self.jaw_r)),
             make_bone(chest_mat),
             make_bone(tail_front),
-            make_bone(tail_front * Mat4::<f32>::from(self.tail_rear)),
+            make_bone(tail_rear),
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_fl)),
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_fr)),
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_bl)),
@@ -88,8 +106,10 @@ impl Skeleton for QuadrupedLowSkeleton {
         use comp::quadruped_low::Species::*;
         let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
             (Maneater, _) => (
-                head_upper_mat,
-                self.chest.orientation * self.head_lower.orientation * self.head_upper.orientation,
+                head_c_upper_mat,
+                self.chest.orientation
+                    * self.head_c_lower.orientation
+                    * self.head_c_upper.orientation,
             ),
             _ => (chest_mat, self.chest.orientation),
         };
@@ -99,15 +119,22 @@ impl Skeleton for QuadrupedLowSkeleton {
         let mount_orientation = mount_bone_ori;
 
         Offsets {
-            lantern: None,
-            viewpoint: Some((head_upper_mat * Vec4::new(0.0, 4.0, 1.0, 1.0)).xyz()),
+            viewpoint: Some((head_c_upper_mat * Vec4::new(0.0, 4.0, 1.0, 1.0)).xyz()),
             mount_bone: Transform {
                 position: mount_position,
                 orientation: mount_orientation,
                 scale: Vec3::one(),
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            heads: vec![
+                (head_l_upper_mat * Vec4::unit_w()).xyz(),
+                (head_c_upper_mat * Vec4::unit_w()).xyz(),
+                (head_r_upper_mat * Vec4::unit_w()).xyz(),
+            ],
+            tail: Some((
+                (tail_front * Vec4::unit_w()).xyz(),
+                (tail_rear * Vec4::new(0.0, -attr.tail_rear_length, 0.0, 1.0)).xyz(),
+            )),
+            ..Default::default()
         }
     }
 }
@@ -116,9 +143,12 @@ pub struct SkeletonAttr {
     head_upper: (f32, f32),
     head_lower: (f32, f32),
     jaw: (f32, f32),
+    side_head_lower: (f32, f32, f32),
+    side_head_upper: (f32, f32, f32),
     chest: (f32, f32),
     tail_front: (f32, f32),
     tail_rear: (f32, f32),
+    tail_rear_length: f32,
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
     lean: (f32, f32),
@@ -144,9 +174,12 @@ impl Default for SkeletonAttr {
             head_upper: (0.0, 0.0),
             head_lower: (0.0, 0.0),
             jaw: (0.0, 0.0),
+            side_head_lower: (0.0, 0.0, 0.0),
+            side_head_upper: (0.0, 0.0, 0.0),
             chest: (0.0, 0.0),
             tail_front: (0.0, 0.0),
             tail_rear: (0.0, 0.0),
+            tail_rear_length: 0.0,
             feet_f: (0.0, 0.0, 0.0),
             feet_b: (0.0, 0.0, 0.0),
             lean: (0.0, 0.0),
@@ -185,6 +218,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mossdrake, _) => (7.0, 8.0),
                 (Driggle, _) => (3.0, 4.0),
                 (Snaretongue, _) => (7.0, 5.5),
+                (Hydra, _) => (12.0, 19.0),
             },
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),
@@ -210,6 +244,15 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mossdrake, _) => (9.0, -6.0),
                 (Driggle, _) => (6.0, -3.0),
                 (Snaretongue, _) => (8.5, 0.0),
+                (Hydra, _) => (8.0, -6.5),
+            },
+            side_head_lower: match (body.species, body.body_type) {
+                (Hydra, _) => (9.0, 10.0, -6.5),
+                _ => (0.0, 0.0, 0.0),
+            },
+            side_head_upper: match (body.species, body.body_type) {
+                (Hydra, _) => ((1.0), (7.0), (17.0)),
+                _ => (0.0, 0.0, 0.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Crocodile, _) => (2.5, -3.0),
@@ -235,6 +278,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mossdrake, _) => (3.0, -5.0),
                 (Driggle, _) => (-2.0, -5.0),
                 (Snaretongue, _) => (-7.0, -7.0),
+                (Hydra, _) => (1.0, -2.0),
             },
             chest: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.0, 5.0),
@@ -260,6 +304,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mossdrake, _) => (0.0, 16.5),
                 (Driggle, _) => (0.0, 8.0),
                 (Snaretongue, _) => (-8.0, 9.0),
+                (Hydra, _) => (0.0, 16.0),
             },
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
@@ -285,6 +330,34 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mossdrake, _) => (-12.0, -2.0),
                 (Driggle, _) => (-4.0, 0.0),
                 (Snaretongue, _) => (5.0, 0.0),
+                (Hydra, _) => (-16.0, -1.0),
+            },
+            tail_rear_length: match (body.species, body.body_type) {
+                // TODO: Tweak tails as needed
+                (Crocodile, _) => 1.0,
+                (SeaCrocodile, _) => 1.0,
+                (Alligator, _) => 1.0,
+                (Salamander, _) => 1.0,
+                (Elbst, _) => 1.0,
+                (Monitor, _) => 1.0,
+                (Asp, _) => 1.0,
+                (Tortoise, _) => 1.0,
+                (Rocksnapper, _) => 1.0,
+                (Rootsnapper, _) => 1.0,
+                (Reefsnapper, _) => 1.0,
+                (Pangolin, _) => 1.0,
+                (Maneater, _) => 1.0,
+                (Sandshark, _) => 1.0,
+                (Hakulaq, _) => 1.0,
+                (Dagon, _) => 1.0,
+                (Lavadrake, _) => 1.0,
+                (Icedrake, _) => 1.0,
+                (Basilisk, _) => 1.0,
+                (Deadwood, _) => 1.0,
+                (Mossdrake, _) => 1.0,
+                (Driggle, _) => 1.0,
+                (Snaretongue, _) => 1.0,
+                (Hydra, _) => 10.0,
             },
             tail_front: match (body.species, body.body_type) {
                 (Crocodile, _) => (-6.0, 0.0),
@@ -310,6 +383,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mossdrake, _) => (-7.0, -4.5),
                 (Driggle, _) => (-5.5, -4.0),
                 (Snaretongue, _) => (5.0, -2.0),
+                (Hydra, _) => (-14.0, -7.5),
             },
             feet_f: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, 6.0, -1.0),
@@ -335,6 +409,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mossdrake, _) => (4.5, 4.0, -6.5),
                 (Driggle, _) => (4.5, 2.5, -4.0),
                 (Snaretongue, _) => (6.5, 6.5, 1.0),
+                (Hydra, _) => (13.0, 7.0, -3.0),
             },
             feet_b: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, -6.0, -1.0),
@@ -360,6 +435,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Mossdrake, _) => (3.5, -8.0, -6.5),
                 (Driggle, _) => (3.5, -3.5, -5.0),
                 (Snaretongue, _) => (1.5, 1.5, 2.0),
+                (Hydra, _) => (5.0, -6.5, -5.0),
             },
             lean: match (body.species, body.body_type) {
                 (Pangolin, _) => (0.4, 0.0),
@@ -385,6 +461,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Basilisk, _) => 1.3,
                 (Mossdrake, _) => 1.12,
                 (Snaretongue, _) => 1.0,
+                (Hydra, _) => 1.5,
                 _ => 0.9,
             },
             tempo: match (body.species, body.body_type) {
@@ -407,6 +484,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Basilisk, _) => 0.8,
                 (Mossdrake, _) => 1.1,
                 (Snaretongue, _) => 0.7,
+                (Hydra, _) => 0.6,
                 _ => 1.0,
             },
             // bool to special case Snaretongue
@@ -440,6 +518,7 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Mossdrake, _) => (0.0, 2.0, -0.5),
         (Driggle, _) => (0.0, 2.0, 0.0),
         (Snaretongue, _) => (0.0, 2.0, 0.0),
+        (Hydra, _) => (0.0, -2.0, 5.0),
     }
     .into()
 }
@@ -468,12 +547,33 @@ pub fn quadruped_low_alpha(
     let movement1abs = movement1base * pullback;
     let movement2abs = movement2base * pullback;
 
-    next.head_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+    // Center head
+    next.head_c_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
 
-    next.head_lower.orientation = Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
-        * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
+    next.head_c_lower.orientation =
+        Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
+            * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
 
-    next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
+    next.jaw_c.orientation = Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
+
+    // Left head
+    next.head_l_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+
+    next.head_l_lower.orientation =
+        Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
+            * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
+
+    next.jaw_l.orientation = Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
+
+    // Right head
+    next.head_r_upper.orientation = Quaternion::rotation_z(twitch3 * -0.7);
+
+    next.head_r_lower.orientation =
+        Quaternion::rotation_x(movement1abs * 0.35 + movement2abs * -0.9)
+            * Quaternion::rotation_y(movement1 * 0.7 + movement2 * -1.0);
+
+    next.jaw_r.orientation = Quaternion::rotation_x(movement1abs * -0.5 + movement2abs * 0.5);
+
     next.chest.orientation = Quaternion::rotation_y(movement1 * -0.08 + movement2 * 0.15)
         * Quaternion::rotation_z(movement1 * -0.2 + movement2 * 0.6);
 
@@ -508,12 +608,33 @@ pub fn quadruped_low_beta(
     let movement1abs = movement1base * pullback;
     let movement2abs = movement2base * pullback;
 
-    next.head_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+    // Center head
+    next.head_c_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
 
-    next.head_lower.orientation = Quaternion::rotation_x(movement1abs * 0.15 + movement2abs * -0.6)
-        * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.15);
+    next.head_c_lower.orientation =
+        Quaternion::rotation_x(movement1abs * 0.15 + movement2abs * -0.6)
+            * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.15);
 
-    next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
+    next.jaw_c.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
+
+    // Left head
+    next.head_l_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+
+    next.head_l_lower.orientation =
+        Quaternion::rotation_x(movement1abs * 0.15 + movement2abs * -0.6)
+            * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.15);
+
+    next.jaw_l.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
+
+    // Right head
+    next.head_r_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+
+    next.head_r_lower.orientation =
+        Quaternion::rotation_x(movement1abs * 0.15 + movement2abs * -0.6)
+            * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.15);
+
+    next.jaw_r.orientation = Quaternion::rotation_x(movement1abs * -0.9 + movement2abs * 0.9);
+
     next.chest.orientation = Quaternion::rotation_y(movement1 * 0.08 + movement2 * -0.15)
         * Quaternion::rotation_z(movement1 * 0.2 + movement2 * -0.3);
 

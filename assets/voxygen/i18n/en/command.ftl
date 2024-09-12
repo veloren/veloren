@@ -61,6 +61,7 @@ command-make_volume-desc = Create a volume (experimental)
 command-motd-desc = View the server description
 command-mount-desc = Mount an entity
 command-object-desc = Spawn an object
+command-outcome-desc = Create an outcome
 command-permit_build-desc = Grants player a bounded box they can build in
 command-players-desc = Lists players currently online
 command-portal-desc = Spawns a portal
@@ -244,6 +245,14 @@ command-whitelist-already-added = Already in whitelist: { $username }!
 command-whitelist-removed = Removed from whitelist: { $username }
 command-whitelist-unlisted = Not part of whitelist: { $username }
 command-whitelist-permission-denied = Permission denied to remove user: { $username }
+command-outcome-variant_expected = Outcome variant expected
+command-outcome-expected_body_arg = Expected body argument
+command-outcome-expected_entity_arg = Expected entity argument
+command-outcome-expected_skill_group_kind = Expected valid ron SkillGroupKind
+command-outcome-expected_frontent_specifier = Expected frontent specifier
+command-outcome-expected_integer = Expected integer
+command-outcome-expected_sprite_kind = Expected SpriteKind
+command-outcome-invalid_outcome = { $outcome } is not a valid outcome
 
 # Unreachable/untestable but added for consistency
 

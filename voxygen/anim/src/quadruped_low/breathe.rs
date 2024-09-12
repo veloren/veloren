@@ -41,13 +41,33 @@ impl Animation for BreatheAnimation {
 
         let movement1abs = movement1base * pullback;
 
-        next.head_upper.orientation =
+        // Center head
+        next.head_c_upper.orientation =
             Quaternion::rotation_x(movement1abs * 0.3 + twitch2alt * 0.02);
 
-        next.head_lower.orientation =
+        next.head_c_lower.orientation =
             Quaternion::rotation_x(movement1abs * -0.3) * Quaternion::rotation_y(twitch2 * 0.02);
 
-        next.jaw.orientation = Quaternion::rotation_x(movement1abs * -0.7 + twitch2 * 0.1);
+        next.jaw_c.orientation = Quaternion::rotation_x(movement1abs * -0.7 + twitch2 * 0.1);
+
+        // Left head
+        next.head_l_upper.orientation =
+            Quaternion::rotation_x(movement1abs * 0.3 + twitch2alt * 0.02);
+
+        next.head_l_lower.orientation =
+            Quaternion::rotation_x(movement1abs * -0.3) * Quaternion::rotation_y(twitch2 * 0.02);
+
+        next.jaw_l.orientation = Quaternion::rotation_x(movement1abs * -0.7 + twitch2 * 0.1);
+
+        // Right head
+        next.head_r_upper.orientation =
+            Quaternion::rotation_x(movement1abs * 0.3 + twitch2alt * 0.02);
+
+        next.head_r_lower.orientation =
+            Quaternion::rotation_x(movement1abs * -0.3) * Quaternion::rotation_y(twitch2 * 0.02);
+
+        next.jaw_r.orientation = Quaternion::rotation_x(movement1abs * -0.7 + twitch2 * 0.1);
+
         next.chest.orientation =
             Quaternion::rotation_y(twitch2 * -0.02) * Quaternion::rotation_z(0.0);
         if s_a.tongue_for_tail {

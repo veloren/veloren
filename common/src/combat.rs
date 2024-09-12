@@ -394,6 +394,7 @@ impl Attack {
                             emitters.emit(EnergyChangeEvent {
                                 entity: target.entity,
                                 change: -energy_change,
+                                reset_rate: false,
                             });
                         }
                     },
@@ -473,6 +474,7 @@ impl Attack {
                                         * compute_energy_reward_mod(attacker.inventory, msm)
                                         * strength_modifier
                                         * attacker.stats.map_or(1.0, |s| s.energy_reward_modifier),
+                                    reset_rate: false,
                                 });
                             }
                         },
@@ -654,6 +656,7 @@ impl Attack {
                             emitters.emit(EnergyChangeEvent {
                                 entity,
                                 change: -*r,
+                                reset_rate: false,
                             });
                         }
 
@@ -720,6 +723,7 @@ impl Attack {
                                     * compute_energy_reward_mod(attacker.inventory, msm)
                                     * strength_modifier
                                     * attacker.stats.map_or(1.0, |s| s.energy_reward_modifier),
+                                reset_rate: false,
                             });
                         }
                     },

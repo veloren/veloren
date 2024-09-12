@@ -36,7 +36,6 @@ impl Skeleton for ItemDropSkeleton {
             [make_bone(bone0_mat)];
         Offsets {
             lantern: Some((bone0_mat * Vec4::new(0.0, 0.0, 3.5, 1.0)).xyz()),
-            viewpoint: None,
             mount_bone: Transform {
                 position: comp::Body::ItemDrop(body)
                     .mount_offset()
@@ -44,8 +43,7 @@ impl Skeleton for ItemDropSkeleton {
                     .into(),
                 ..Default::default()
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }

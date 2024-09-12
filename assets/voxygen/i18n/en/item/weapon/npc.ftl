@@ -394,6 +394,9 @@ common-items-npc_weapons-unique-quadruped_low-maneater = Maneater
 common-items-npc_weapons-unique-quadruped_low-tortoise = Tortoise
     .desc = testing123
 
+common-items-npc_weapons-unique-quadruped_low-hydra = Hydra
+    .desc = testing123
+
 common-items-npc_weapons-unique-quadruped_medium-alpaca = Alpaca
     .desc = testing123
 

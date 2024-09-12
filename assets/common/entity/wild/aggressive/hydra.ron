@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("hydra"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.quad_low.hydra"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

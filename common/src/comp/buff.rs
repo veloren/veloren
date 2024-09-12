@@ -384,6 +384,7 @@ impl BuffKind {
                 rate: data.strength,
                 kind: ModifierKind::Additive,
                 tick_dur: Secs(0.25),
+                reset_rate_on_tick: false,
             }],
             BuffKind::IncreaseMaxEnergy => vec![BuffEffect::MaxEnergyModifier {
                 value: data.strength,
@@ -413,6 +414,7 @@ impl BuffKind {
                 rate: -data.strength,
                 kind: ModifierKind::Additive,
                 tick_dur: Secs(0.5),
+                reset_rate_on_tick: true,
             }],
             BuffKind::Crippled => vec![
                 BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
@@ -703,6 +705,7 @@ pub enum BuffEffect {
         rate: f32,
         kind: ModifierKind,
         tick_dur: Secs,
+        reset_rate_on_tick: bool,
     },
     /// Changes maximum health by a certain amount
     MaxHealthModifier {

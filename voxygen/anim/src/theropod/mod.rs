@@ -74,7 +74,6 @@ impl Skeleton for TheropodSkeleton {
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
         Offsets {
-            lantern: None,
             viewpoint: Some((head_mat * Vec4::new(0.0, 2.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
@@ -84,8 +83,7 @@ impl Skeleton for TheropodSkeleton {
                     .into(),
                 ..Default::default()
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }

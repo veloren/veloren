@@ -17,7 +17,7 @@ BasicRanged(
     ),
     projectile_body: Object(FireRainDrop),
     projectile_speed: 0.0,
-    num_projectiles: 1,
+    num_projectiles: Value(1),
     projectile_spread: 0.0,
     move_efficiency: 0.3,
 )

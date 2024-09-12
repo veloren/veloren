@@ -19,7 +19,7 @@ BasicRanged(
     projectile_body: Object(BoltBesieger),
     projectile_light: None,
     projectile_speed: 60.0,
-    num_projectiles: 4,
+    num_projectiles: Value(4),
     projectile_spread: 0.05,
     move_efficiency: 0.3,
 )

@@ -20,6 +20,6 @@ BasicRanged(
     projectile_body: Object(Arrow),
     projectile_light: None,
     projectile_speed: 80.0,
-    num_projectiles: 5,
+    num_projectiles: Value(5),
     move_efficiency: 0.3,
 )

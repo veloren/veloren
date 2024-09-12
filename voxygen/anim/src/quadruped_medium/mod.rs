@@ -106,7 +106,6 @@ impl Skeleton for QuadrupedMediumSkeleton {
         let mount_orientation = mount_bone_ori;
 
         Offsets {
-            lantern: None,
             viewpoint: match body.species {
                 Akhlut | Catoblepas | Lion => {
                     Some((head_mat * Vec4::new(0.0, 8.0, 0.0, 1.0)).xyz())
@@ -136,8 +135,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
                 orientation: mount_orientation,
                 scale: Vec3::one(),
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }

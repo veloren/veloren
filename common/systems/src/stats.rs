@@ -180,6 +180,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::BasicBlock(_)
                 | CharacterState::UseItem(_)
                 | CharacterState::Transform(_)
+                | CharacterState::RegrowHead(_)
                 | CharacterState::SpriteInteract(_) => {},
             }
         });

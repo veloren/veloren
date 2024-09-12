@@ -689,6 +689,9 @@ fn default_main_tool(body: &Body) -> Item {
             quadruped_low::Species::Rocksnapper => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.rocksnapper",
             )),
+            quadruped_low::Species::Hydra => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.quadruped_low.hydra",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadlowbasic",
             )),
@@ -1169,7 +1172,8 @@ impl LoadoutBuilder {
                 | quadruped_low::Species::Rocksnapper
                 | quadruped_low::Species::Rootsnapper
                 | quadruped_low::Species::Tortoise
-                | quadruped_low::Species::Basilisk => Some("common.items.npc_armor.generic_high"),
+                | quadruped_low::Species::Basilisk
+                | quadruped_low::Species::Hydra => Some("common.items.npc_armor.generic_high"),
                 quadruped_low::Species::Dagon => Some("common.items.npc_armor.quadruped_low.dagon"),
                 _ => None,
             },

@@ -6,14 +6,21 @@ use super::{
     },
     QuadrupedLowSkeleton, SkeletonAttr,
 };
-use common::states::utils::StageSection;
+use common::{comp::body::parts::HeadState, states::utils::StageSection};
 //use std::ops::Rem;
 use std::f32::consts::PI;
 
 pub struct DashAnimation;
 
 impl Animation for DashAnimation {
-    type Dependency<'a> = (Option<&'a str>, f32, f32, Option<StageSection>, f32);
+    type Dependency<'a> = (
+        Option<&'a str>,
+        f32,
+        f32,
+        Option<StageSection>,
+        f32,
+        [HeadState; 3],
+    );
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -22,7 +29,7 @@ impl Animation for DashAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_dash")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (ability_id, _velocity, global_time, stage_section, timer): Self::Dependency<'_>,
+        (ability_id, _velocity, global_time, stage_section, timer, heads): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -40,18 +47,20 @@ impl Animation for DashAnimation {
                 };
                 let quick_buildup = buildup.powf(0.2);
                 let elastic_recover = elastic(recover);
-                next.head_upper.position = Vec3::new(
+                next.head_c_upper.position = Vec3::new(
                     0.0,
                     s_a.head_upper.0 + (-1.0 * quick_buildup + elastic_recover) * 10.0,
                     s_a.head_upper.1,
                 );
-                next.head_upper.scale = Vec3::one() * (1.0 - buildup + elastic_recover);
-                next.head_lower.position = Vec3::new(
+                next.head_c_upper.scale = Vec3::one() * (1.0 - buildup + elastic_recover);
+                next.head_c_lower.position = Vec3::new(
                     0.0,
                     s_a.head_lower.0 + (-1.0 * quick_buildup + elastic_recover) * 10.0,
                     s_a.head_lower.1,
                 );
-                next.head_lower.scale = Vec3::one() * (1.0 - buildup + elastic_recover);
+                next.head_c_lower.scale = Vec3::one()
+                    * (1.0 - buildup + elastic_recover)
+                    * heads[1].is_attached() as i32 as f32;
                 next.foot_fl.position = Vec3::new(
                     -s_a.feet_f.0 + (quick_buildup - elastic_recover) * 8.0,
                     s_a.feet_f.1 + (-1.0 * quick_buildup + elastic_recover) * 8.0,
@@ -122,20 +131,54 @@ impl Animation for DashAnimation {
                 let shortalt =
                     (anim_time * 16.0_f32 + PI * 0.25).sin() * chargemovementbase * pullback;
 
-                next.head_upper.orientation =
+                // Central head
+                next.head_c_upper.orientation =
                     Quaternion::rotation_x(buildup_abs * 0.4 + action_abs * 0.3)
                         * Quaternion::rotation_z(short * -0.06 + twitch1 * -0.3);
 
-                next.head_lower.orientation =
+                next.head_c_lower.orientation =
                     Quaternion::rotation_x(buildup_abs * -0.4 + action_abs * -0.5)
                         * Quaternion::rotation_z(short * 0.15 + twitch1 * 0.3);
 
-                next.jaw.orientation = Quaternion::rotation_x(
+                next.jaw_c.orientation = Quaternion::rotation_x(
                     twitch1fast * 0.2
                         + buildup_abs * -0.3
                         + action_abs * 1.2
                         + chargemovementbase * -0.5,
                 );
+
+                // Left head
+                next.head_l_upper.orientation =
+                    Quaternion::rotation_x(buildup_abs * 0.4 + action_abs * 0.3)
+                        * Quaternion::rotation_z(short * -0.06 + twitch1 * -0.3);
+
+                next.head_l_lower.orientation =
+                    Quaternion::rotation_x(buildup_abs * -0.4 + action_abs * -0.5)
+                        * Quaternion::rotation_z(short * 0.15 + twitch1 * 0.3);
+
+                next.jaw_l.orientation = Quaternion::rotation_x(
+                    twitch1fast * 0.2
+                        + buildup_abs * -0.3
+                        + action_abs * 1.2
+                        + chargemovementbase * -0.5,
+                );
+
+                // Right head
+                next.head_r_upper.orientation =
+                    Quaternion::rotation_x(buildup_abs * 0.4 + action_abs * 0.3)
+                        * Quaternion::rotation_z(short * -0.06 + twitch1 * -0.3);
+
+                next.head_r_lower.orientation =
+                    Quaternion::rotation_x(buildup_abs * -0.4 + action_abs * -0.5)
+                        * Quaternion::rotation_z(short * 0.15 + twitch1 * 0.3);
+
+                next.jaw_r.orientation = Quaternion::rotation_x(
+                    twitch1fast * 0.2
+                        + buildup_abs * -0.3
+                        + action_abs * 1.2
+                        + chargemovementbase * -0.5,
+                );
+
                 next.chest.orientation =
                     Quaternion::rotation_z(twitch1 * 0.06) * Quaternion::rotation_y(short * 0.06);
 

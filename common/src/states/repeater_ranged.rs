@@ -157,6 +157,7 @@ impl CharacterBehavior for Data {
                     output_events.emit_server(EnergyChangeEvent {
                         entity: data.entity,
                         change: -self.static_data.energy_cost,
+                        reset_rate: false,
                     });
 
                     // Sets new speed of shoot. Scales based off of the number of projectiles fired.

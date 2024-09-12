@@ -126,6 +126,7 @@ make_case_elim!(
         IronPikeBomb = 111,
         Lavathrower = 112,
         Scroll = 113,
+        PoisonBall = 114,
     }
 );
 
@@ -136,7 +137,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 114] = [
+pub const ALL_OBJECTS: [Body; 115] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -251,6 +252,7 @@ pub const ALL_OBJECTS: [Body; 114] = [
     Body::IronPikeBomb,
     Body::Lavathrower,
     Body::Scroll,
+    Body::PoisonBall,
 ];
 
 impl From<Body> for super::Body {
@@ -374,6 +376,7 @@ impl Body {
             Body::BubbleBomb => "bubble_bomb",
             Body::IronPikeBomb => "iron_pike_bomb",
             Body::Scroll => "recipe",
+            Body::PoisonBall => "poison_ball",
         }
     }
 
@@ -443,7 +446,8 @@ impl Body {
             | Body::Pebble
             | Body::BubbleBomb
             | Body::IronPikeBomb
-            | Body::BoltBesieger => 1.0,
+            | Body::BoltBesieger
+            | Body::PoisonBall => 1.0,
             Body::SpitPoison => 100.0,
             Body::Bomb | Body::DagonBomb | Body::SurpriseEgg | Body::TerracottaDemolisherBomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
@@ -534,7 +538,7 @@ impl Body {
             | Body::Dart
             | Body::AdletSpear => Vec3::new(0.01, 0.8, 0.01),
             Body::AdletTrap => Vec3::new(1.0, 0.6, 0.3),
-            Body::BoltFire => Vec3::new(0.1, 0.1, 0.1),
+            Body::BoltFire | Body::PoisonBall => Vec3::new(0.1, 0.1, 0.1),
             Body::SpectralSwordSmall => Vec3::new(0.2, 0.9, 0.1),
             Body::SpectralSwordLarge => Vec3::new(0.2, 1.5, 0.1),
             Body::Crossbow => Vec3::new(3.0, 3.0, 1.5),

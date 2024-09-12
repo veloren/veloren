@@ -14,6 +14,8 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, VecStorage};
 use vek::*;
 
+use super::ability::Dodgeable;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Melee {
     pub attack: Attack,
@@ -26,6 +28,7 @@ pub struct Melee {
     pub simultaneous_hits: u32,
     pub precision_flank_multipliers: FlankMults,
     pub precision_flank_invert: bool,
+    pub dodgeable: Dodgeable,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -77,6 +80,8 @@ pub struct MeleeConstructor {
     pub multi_target: Option<MultiTarget>,
     pub damage_effect: Option<CombatEffect>,
     pub attack_effect: Option<(CombatEffect, CombatRequirement)>,
+    #[serde(default)]
+    pub dodgeable: Dodgeable,
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
     pub custom_combo: Option<CustomCombo>,
@@ -399,6 +404,7 @@ impl MeleeConstructor {
             simultaneous_hits: self.simultaneous_hits,
             precision_flank_multipliers: self.precision_flank_multipliers,
             precision_flank_invert: self.precision_flank_invert,
+            dodgeable: self.dodgeable,
         }
     }
 

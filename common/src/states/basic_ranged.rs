@@ -1,6 +1,7 @@
 use crate::{
     combat::{self, CombatEffect},
     comp::{
+        ability::Amount,
         character_state::OutputEvents,
         object::Body::{GrenadeClay, LaserBeam, LaserBeamSmall},
         Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
@@ -32,7 +33,7 @@ pub struct StaticData {
     pub projectile_light: Option<LightEmitter>,
     pub projectile_speed: f32,
     /// How many projectiles are simultaneously fired
-    pub num_projectiles: u32,
+    pub num_projectiles: Amount,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     pub damage_effect: Option<CombatEffect>,
@@ -116,7 +117,12 @@ impl CharacterBehavior for Data {
                         self.static_data.damage_effect,
                     );
                     // Shoots all projectiles simultaneously
-                    for i in 0..self.static_data.num_projectiles {
+                    let num_projectiles = self
+                        .static_data
+                        .num_projectiles
+                        .compute(data.heads.map_or(1, |heads| heads.amount() as u32));
+
+                    for i in 0..num_projectiles {
                         // Gets offsets
                         let body_offsets = data.body.projectile_offsets(
                             update.ori.look_vec(),

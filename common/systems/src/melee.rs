@@ -1,11 +1,12 @@
 use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
+        ability::Dodgeable,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         melee::MultiTarget,
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass,
-        Melee, Ori, Player, Pos, Scale, Stats,
+        Melee, Ori, PhysicsState, Player, Pos, Scale, Stats,
     },
     event::{self, EmitExt, EventBus},
     event_emitters,
@@ -57,6 +58,7 @@ pub struct ReadData<'a> {
     inventories: ReadStorage<'a, Inventory>,
     groups: ReadStorage<'a, Group>,
     char_states: ReadStorage<'a, CharacterState>,
+    physic_states: ReadStorage<'a, PhysicsState>,
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
     buffs: ReadStorage<'a, Buffs>,
@@ -160,11 +162,18 @@ impl<'a> System<'a> for Sys {
                 let rad_b = body_b.max_radius() * scale_b;
 
                 // Check if entity is dodging
-                let target_dodging = read_data
-                    .char_states
-                    .get(target)
-                    .and_then(|cs| cs.attack_immunities())
-                    .map_or(false, |i| i.melee);
+                let target_dodging = match melee_attack.dodgeable {
+                    Dodgeable::Roll => read_data
+                        .char_states
+                        .get(target)
+                        .and_then(|cs| cs.roll_attack_immunities())
+                        .map_or(false, |i| i.melee),
+                    Dodgeable::Jump => read_data
+                        .physic_states
+                        .get(target)
+                        .map_or(false, |ps| ps.on_ground.is_none()),
+                    Dodgeable::No => false,
+                };
 
                 // Check if it is a hit
                 let hit = attacker != target
