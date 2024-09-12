@@ -4,9 +4,7 @@ use crate::{
         DamageKind, DamageSource, GroupTarget, Knockback,
     },
     comp::{
-        character_state::OutputEvents,
-        shockwave::{self, ShockwaveDodgeable},
-        CharacterState, StateUpdate,
+        ability::Dodgeable, character_state::OutputEvents, shockwave, CharacterState, StateUpdate,
     },
     event::{LocalEvent, ShockwaveEvent},
     outcome::Outcome,
@@ -42,7 +40,7 @@ pub struct StaticData {
     /// How long the shockwave travels for
     pub shockwave_duration: Duration,
     /// If the shockwave can be dodged, and in what way
-    pub dodgeable: ShockwaveDodgeable,
+    pub dodgeable: Dodgeable,
     /// Movement speed efficiency
     pub move_efficiency: f32,
     /// What key is used to press ability

@@ -40,14 +40,36 @@ impl Animation for SpriteSummonAnimation {
         let movement1abs = movement1base * pullback;
         let movement2abs = movement2base * pullback;
 
-        next.head_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+        // Center head
+        next.head_c_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
 
-        next.head_lower.orientation =
+        next.head_c_lower.orientation =
             Quaternion::rotation_x(movement1abs * 0.5 + movement2abs * -0.6)
                 * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.5);
 
-        next.jaw.orientation = Quaternion::rotation_x(movement1abs * 0.0 + movement2abs * 0.3)
+        next.jaw_c.orientation = Quaternion::rotation_x(movement1abs * 0.0 + movement2abs * 0.3)
             * Quaternion::rotation_z(twitch3 * 0.2);
+
+        // Left head
+        next.head_l_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+
+        next.head_l_lower.orientation =
+            Quaternion::rotation_x(movement1abs * 0.5 + movement2abs * -0.6)
+                * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.5);
+
+        next.jaw_l.orientation = Quaternion::rotation_x(movement1abs * 0.0 + movement2abs * 0.3)
+            * Quaternion::rotation_z(twitch3 * 0.2);
+
+        // Right head
+        next.head_r_upper.orientation = Quaternion::rotation_z(twitch3 * 0.2);
+
+        next.head_r_lower.orientation =
+            Quaternion::rotation_x(movement1abs * 0.5 + movement2abs * -0.6)
+                * Quaternion::rotation_y(movement1 * -0.1 + movement2 * 0.5);
+
+        next.jaw_r.orientation = Quaternion::rotation_x(movement1abs * 0.0 + movement2abs * 0.3)
+            * Quaternion::rotation_z(twitch3 * 0.2);
+
         next.chest.orientation = Quaternion::rotation_y(movement1 * 0.08 + movement2 * -0.15)
             * Quaternion::rotation_z(movement1 * 0.2 + movement2 * -0.3);
 

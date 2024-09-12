@@ -11,11 +11,8 @@ use crate::{
 use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
-        self, aura, beam, body, buff,
-        item::Reagent,
-        object,
-        shockwave::{self, ShockwaveDodgeable},
-        Beam, Body, CharacterActivity, CharacterState, Fluid, Ori, PhysicsState, Pos, Scale,
+        self, ability::Dodgeable, aura, beam, body, buff, item::Reagent, object, shockwave, Beam,
+        Body, CharacterActivity, CharacterState, Fluid, Inventory, Ori, PhysicsState, Pos, Scale,
         Shockwave, Vel,
     },
     figure::Segment,
@@ -30,7 +27,7 @@ use common::{
 use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
-use specs::{Join, LendJoin, WorldExt};
+use specs::{Entity, Join, LendJoin, WorldExt};
 use std::{
     f32::consts::{PI, TAU},
     time::Duration,
@@ -61,7 +58,12 @@ impl ParticleMgr {
         }
     }
 
-    pub fn handle_outcome(&mut self, outcome: &Outcome, scene_data: &SceneData) {
+    pub fn handle_outcome(
+        &mut self,
+        outcome: &Outcome,
+        scene_data: &SceneData,
+        figure_mgr: &FigureMgr,
+    ) {
         span!(_guard, "handle_outcome", "ParticleMgr::handle_outcome");
         let time = scene_data.state.get_time();
         let mut rng = thread_rng();
@@ -463,6 +465,32 @@ impl ParticleMgr {
                     )
                 });
             },
+            Outcome::HeadLost { uid, head } => {
+                if let Some(entity) = scene_data
+                    .state
+                    .ecs()
+                    .read_resource::<IdMaps>()
+                    .uid_entity(*uid)
+                {
+                    if let Some(pos) = scene_data.state.read_component_copied::<Pos>(entity) {
+                        let heads = figure_mgr.get_heads(scene_data, entity);
+                        let head_pos =
+                            pos.0 + heads.get(*head).map(|v| Vec3::from(*v)).unwrap_or_default();
+
+                        self.particles.resize_with(self.particles.len() + 40, || {
+                            Particle::new(
+                                Duration::from_millis(1000),
+                                time,
+                                ParticleMode::Death,
+                                head_pos
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.gen_range(-0.1..0.1))
+                                        .normalized(),
+                            )
+                        });
+                    }
+                };
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
@@ -506,7 +534,7 @@ impl ParticleMgr {
 
             // add new Particle
             self.maintain_body_particles(scene_data);
-            self.maintain_char_state_particles(scene_data);
+            self.maintain_char_state_particles(scene_data, figure_mgr);
             self.maintain_beam_particles(scene_data, lights);
             self.maintain_block_particles(scene_data, terrain, figure_mgr);
             self.maintain_shockwave_particles(scene_data);
@@ -587,6 +615,63 @@ impl ParticleMgr {
                 _ => {},
             }
         }
+    }
+
+    fn maintain_hydra_tail_swipe_particles(
+        &mut self,
+        scene_data: &SceneData,
+        figure_mgr: &FigureMgr,
+        entity: Entity,
+        pos: Vec3<f32>,
+        state: &CharacterState,
+        inventory: Option<&Inventory>,
+    ) {
+        let Some(ability_id) = state
+            .ability_info()
+            .and_then(|info| info.ability.map(|a| a.ability_id(Some(state), inventory)))
+        else {
+            return;
+        };
+
+        if ability_id != Some("common.abilities.custom.hydra.tail_swipe") {
+            return;
+        }
+
+        let Some(stage_section) = state.stage_section() else {
+            return;
+        };
+
+        let particle_count = match stage_section {
+            StageSection::Charge => 1,
+            StageSection::Action => 10,
+            _ => return,
+        };
+
+        let Some((start, end)) = figure_mgr.get_tail(scene_data, entity) else {
+            return;
+        };
+
+        let start = pos + Vec3::from(start);
+        let end = pos + Vec3::from(end);
+
+        let time = scene_data.state.get_time();
+        let mut rng = thread_rng();
+
+        self.particles.resize_with(
+            self.particles.len()
+                + particle_count * self.scheduler.heartbeats(Duration::from_millis(33)) as usize,
+            || {
+                let t = rng.gen_range(0.0..1.0);
+                let p = start * t + end * (1.0 - t) - Vec3::new(0.0, 0.0, 0.5);
+
+                Particle::new(
+                    Duration::from_millis(500),
+                    time,
+                    ParticleMode::GroundShockwave,
+                    p,
+                )
+            },
+        );
     }
 
     fn maintain_campfirelit_particles(
@@ -927,7 +1012,7 @@ impl ParticleMgr {
         }
     }
 
-    fn maintain_char_state_particles(&mut self, scene_data: &SceneData) {
+    fn maintain_char_state_particles(&mut self, scene_data: &SceneData, figure_mgr: &FigureMgr) {
         span!(
             _guard,
             "char_state_particles",
@@ -939,18 +1024,28 @@ impl ParticleMgr {
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
 
-        for (entity, interpolated, vel, character_state, body, ori, character_activity, physics) in
-            (
-                &ecs.entities(),
-                &ecs.read_storage::<Interpolated>(),
-                ecs.read_storage::<Vel>().maybe(),
-                &ecs.read_storage::<CharacterState>(),
-                &ecs.read_storage::<Body>(),
-                &ecs.read_storage::<Ori>(),
-                &ecs.read_storage::<CharacterActivity>(),
-                &ecs.read_storage::<PhysicsState>(),
-            )
-                .join()
+        for (
+            entity,
+            interpolated,
+            vel,
+            character_state,
+            body,
+            ori,
+            character_activity,
+            physics,
+            inventory,
+        ) in (
+            &ecs.entities(),
+            &ecs.read_storage::<Interpolated>(),
+            ecs.read_storage::<Vel>().maybe(),
+            &ecs.read_storage::<CharacterState>(),
+            &ecs.read_storage::<Body>(),
+            &ecs.read_storage::<Ori>(),
+            &ecs.read_storage::<CharacterActivity>(),
+            &ecs.read_storage::<PhysicsState>(),
+            ecs.read_storage::<Inventory>().maybe(),
+        )
+            .join()
         {
             match character_state {
                 CharacterState::Boost(_) => {
@@ -1528,6 +1623,16 @@ impl ParticleMgr {
                         }
                     }
                 },
+                CharacterState::ChargedMelee(_melee) => {
+                    self.maintain_hydra_tail_swipe_particles(
+                        scene_data,
+                        figure_mgr,
+                        entity,
+                        interpolated.pos,
+                        character_state,
+                        inventory,
+                    );
+                },
                 _ => {},
             }
         }
@@ -1698,7 +1803,7 @@ impl ParticleMgr {
                             Particle::new_directed(
                                 Duration::from_secs_f64(beam.duration.0),
                                 time,
-                                ParticleMode::CultistFlame,
+                                ParticleMode::Poison,
                                 beam.bezier.start,
                                 beam.bezier.start + random_ori * beam.range,
                             )
@@ -2781,7 +2886,7 @@ impl ParticleMgr {
                     self.particles.reserve(new_particle_count);
 
                     for i in 0..particles_per_length {
-                        let angle = dtheta * i as f32;
+                        let angle = theta + dtheta * i as f32;
                         let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
                         for j in 0..heartbeats {
                             // Sub tick dt
@@ -2794,10 +2899,51 @@ impl ParticleMgr {
                             self.particles.push(Particle::new_directed(
                                 Duration::from_secs_f32(0.5),
                                 time,
-                                ParticleMode::CultistFlame,
+                                ParticleMode::Poison,
                                 pos1,
                                 pos2,
                             ));
+                        }
+                    }
+                },
+                FrontendSpecifier::AcidCloud => {
+                    let particles_per_height = 5;
+                    // 1 particle per unit length of arc
+                    let particles_per_length = arc_length as usize;
+                    let dtheta = radians / particles_per_length as f32;
+                    // Scales number of desired heartbeats from speed - thicker arc = higher speed =
+                    // lower duration = more particles
+                    let heartbeats = self
+                        .scheduler
+                        .heartbeats(Duration::from_secs_f32(1.0 / speed));
+
+                    // Reserves capacity for new particles
+                    let new_particle_count =
+                        particles_per_length * heartbeats as usize * particles_per_height;
+                    self.particles.reserve(new_particle_count);
+
+                    for i in 0..particles_per_height {
+                        let height = (i as f32 / (particles_per_height as f32 - 1.0)) * 4.0;
+                        for j in 0..particles_per_length {
+                            let angle = theta + dtheta * j as f32;
+                            let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
+                            for k in 0..heartbeats {
+                                // Sub tick dt
+                                let dt = (k as f32 / heartbeats as f32) * dt;
+                                let distance = distance + speed * dt;
+                                let pos1 = pos + distance * direction - Vec3::unit_z()
+                                    + Vec3::unit_z() * height;
+                                let pos2 = pos1 + direction;
+                                let time = time + dt as f64;
+
+                                self.particles.push(Particle::new_directed(
+                                    Duration::from_secs_f32(0.5),
+                                    time,
+                                    ParticleMode::Poison,
+                                    pos1,
+                                    pos2,
+                                ));
+                            }
                         }
                     }
                 },
@@ -2816,7 +2962,7 @@ impl ParticleMgr {
                     self.particles.reserve(new_particle_count);
 
                     for i in 0..particles_per_length {
-                        let angle = dtheta * i as f32;
+                        let angle = theta + dtheta * i as f32;
                         let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
                         for j in 0..heartbeats {
                             // Sub tick dt
@@ -2855,8 +3001,7 @@ impl ParticleMgr {
                     let new_particle_count = particles_per_length * heartbeats as usize;
                     self.particles.reserve(new_particle_count);
                     // higher wave when wave doesn't require ground
-                    let wave = if matches!(shockwave.properties.dodgeable, ShockwaveDodgeable::Jump)
-                    {
+                    let wave = if matches!(shockwave.properties.dodgeable, Dodgeable::Jump) {
                         0.5
                     } else {
                         8.0

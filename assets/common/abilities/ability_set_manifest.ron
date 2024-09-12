@@ -503,6 +503,16 @@
             Simple(None, "common.abilities.custom.basilisk.dash"),
         ],
     ),
+    Custom("Hydra"): (
+        primary: Simple(None, "common.abilities.custom.hydra.multi_bite"),
+        secondary: Simple(None, "common.abilities.custom.hydra.poison"),
+        abilities: [
+            Simple(None, "common.abilities.custom.hydra.poison_wave"),
+            Simple(None, "common.abilities.custom.hydra.poison_ball"),
+            Simple(None, "common.abilities.custom.hydra.growhead"),
+            Simple(None, "common.abilities.custom.hydra.tail_swipe"),
+        ],
+    ),
     Custom("Asp"): (
         primary: Simple(None, "common.abilities.custom.asp.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.asp.firebomb"),

@@ -40,15 +40,12 @@ impl Skeleton for ObjectSkeleton {
             make_bone(scale_mat * Mat4::<f32>::from(self.bone1)), /* Decorellated from ori */
         ];
         Offsets {
-            lantern: None,
-            viewpoint: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::Object(body).mount_offset().into_tuple().into(),
                 ..Default::default()
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }

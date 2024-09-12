@@ -251,7 +251,7 @@ impl<'a> System<'a> for Sys {
                             let target_dodging = read_data
                                 .character_states
                                 .get(target)
-                                .and_then(|cs| cs.attack_immunities())
+                                .and_then(|cs| cs.roll_attack_immunities())
                                 .map_or(false, |i| i.beams);
                             // PvP check
                             let permit_pvp = combat::permit_pvp(

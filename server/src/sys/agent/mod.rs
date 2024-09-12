@@ -234,6 +234,7 @@ impl<'a> System<'a> for Sys {
                         glider_equipped,
                         is_gliding,
                         health: read_data.healths.get(entity),
+                        heads: read_data.heads.get(entity),
                         char_state,
                         active_abilities,
                         combo,

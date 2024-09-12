@@ -2626,6 +2626,9 @@
             "common.items.npc_weapons.unique.quadruped_low.maneater",
         ): "common-items-npc_weapons-unique-quadruped_low-maneater",
         Simple(
+            "common.items.npc_weapons.unique.quadruped_low.hydra",
+        ): "common-items-npc_weapons-unique-quadruped_low-hydra",
+        Simple(
             "common.items.npc_weapons.unique.quadruped_small.boar",
         ): "common-items-npc_weapons-unique-quadruped_small-boar",
         Simple(

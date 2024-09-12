@@ -1174,6 +1174,7 @@ impl<'a> AgentData<'a> {
                             "Adlet Hunter" => Tactic::AdletHunter,
                             "Adlet Icepicker" => Tactic::AdletIcepicker,
                             "Adlet Tracker" => Tactic::AdletTracker,
+                            "Hydra" => Tactic::Hydra,
                             "Ice Drake" => Tactic::IceDrake,
                             "Frostfang" => Tactic::RandomAbilities {
                                 primary: 1,
@@ -1729,6 +1730,9 @@ impl<'a> AgentData<'a> {
             },
             Tactic::IceDrake => {
                 self.handle_icedrake(agent, controller, &attack_data, tgt_data, read_data, rng)
+            },
+            Tactic::Hydra => {
+                self.handle_hydra(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
             Tactic::RandomAbilities {
                 primary,

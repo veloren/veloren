@@ -40,15 +40,15 @@
             offset: (-7.0, -0.0, -4.0),//full x dimension, 0 y dimension, full z dimension
             lateral: ("npc.sea_crocodile.male.foot_fr", false),
         ),
-    front_right: (
+        front_right: (
             offset: (0.0, -0.0, -4.0),//0 x dimension, 0 y dimension, full z dimension
             lateral: ("npc.sea_crocodile.male.foot_fr", false),
         ),
-    back_left: (
+        back_left: (
             offset: (-8.0, -0.0, -4.0),//full x dimension, 0 y dimension, full z dimension
             lateral: ("npc.sea_crocodile.male.foot_br", false),
         ),
-    back_right: (
+        back_right: (
             offset: (0.0, -0.0, -4.0),//0 x dimension, 0 y dimension, full z dimension
             lateral: ("npc.sea_crocodile.male.foot_br", false),
         ),
@@ -834,5 +834,110 @@
             offset: (0.0, 0.0, -3.0),
             lateral: ("npc.driggle.male.foot_br", false),
         ),
+    ),
+    (Hydra, Male): (
+        left_upper: (
+            offset: (-4.5, -3.0, -6.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 2,
+        ),
+        left_lower: (
+            offset: (-4.5, -6.0, -3.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 6,
+        ),
+        left_jaw: (
+            offset: (-2.5, 0.0, -3.0),
+            lateral: ("npc.hydra.hydra", false),
+            model_index: 5,
+        ),
+        right_upper: (
+            offset: (-4.5, -3.0, -6.0),
+            lateral: ("npc.hydra.hydra", false),
+            model_index: 2,
+        ),
+        right_lower: (
+            offset: (-4.5, -6.0, -3.0),
+            lateral: ("npc.hydra.hydra", false),
+            model_index: 6,
+        ),
+        right_jaw: (
+            offset: (-2.5, 0.0, -3.0),
+            lateral: ("npc.hydra.hydra", false),
+            model_index: 5,
+        ),
+        front_left: (
+            offset: (-3.0, -5.0, -13.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 4,
+        ),
+        front_right: (
+            offset: (-6.0, -5.0, -13.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 4,
+        ),
+        back_left: (
+            offset: (-14.0, -10.0, -11.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 0,
+        ),
+        back_right: (
+            offset: (0.0, -10.0, -11.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 0,
+        ),
+    ),
+    (Hydra, Female): (
+        left_upper: (
+            offset: (-4.5, -3.0, -6.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 2,
+        ),
+        left_lower: (
+            offset: (-4.5, -6.0, -3.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 6,
+        ),
+        left_jaw: (
+            offset: (-2.5, 0.0, -3.0),
+            lateral: ("npc.hydra.hydra", false),
+            model_index: 5,
+        ),
+        right_upper: (
+            offset: (-4.5, -3.0, -6.0),
+            lateral: ("npc.hydra.hydra", false),
+            model_index: 2,
+        ),
+        right_lower: (
+            offset: (-4.5, -6.0, -3.0),
+            lateral: ("npc.hydra.hydra", false),
+            model_index: 6,
+        ),
+        right_jaw: (
+            offset: (-2.5, 0.0, -3.0),
+            lateral: ("npc.hydra.hydra", false),
+            model_index: 5,
+        ),
+        front_left: (
+            offset: (-3.0, -5.0, -13.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 4,
+        ),
+        front_right: (
+            offset: (-6.0, -5.0, -13.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 4,
+        ),
+        back_left: (
+            offset: (-14.0, -10.0, -11.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 0,
+        ),
+        back_right: (
+            offset: (0.0, -10.0, -11.0),
+            lateral: ("npc.hydra.hydra", true),
+            model_index: 0,
+        ),
+
     ),
 })

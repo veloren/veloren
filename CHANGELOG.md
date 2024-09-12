@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Freezing Potion
 - Clear command to delete chat messages.
 - List unlocked recipes from recipe scroll items in tooltips
+- Hydra.
 
 ### Changed
 

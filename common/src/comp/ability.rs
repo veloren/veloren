@@ -36,8 +36,6 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{borrow::Cow, time::Duration};
 
-use super::shockwave::ShockwaveDodgeable;
-
 pub const BASE_ABILITY_LIMIT: usize = 5;
 
 // NOTE: different AbilitySpec on same ToolKind share the same key
@@ -735,8 +733,38 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
             | CharacterState::Transform(_)
+            | CharacterState::RegrowHead(_)
             | CharacterState::Wallrun(_)
             | CharacterState::StaticAura(_) => Self::Other,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+pub enum Dodgeable {
+    #[default]
+    Roll,
+    Jump,
+    No,
+}
+
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+pub enum Amount {
+    PerHead(u32),
+    Value(u32),
+}
+
+impl Amount {
+    pub fn add(&mut self, value: u32) {
+        match self {
+            Self::PerHead(v) | Self::Value(v) => *v += value,
+        }
+    }
+
+    pub fn compute(&self, heads: u32) -> u32 {
+        match self {
+            Amount::PerHead(v) => v * heads,
+            Amount::Value(v) => *v,
         }
     }
 }
@@ -766,7 +794,7 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
-        num_projectiles: u32,
+        num_projectiles: Amount,
         projectile_spread: f32,
         damage_effect: Option<CombatEffect>,
         move_efficiency: f32,
@@ -876,7 +904,7 @@ pub enum CharacterAbility {
         shockwave_vertical_angle: f32,
         shockwave_speed: f32,
         shockwave_duration: f32,
-        dodgeable: ShockwaveDodgeable,
+        dodgeable: Dodgeable,
         move_efficiency: f32,
         damage_kind: DamageKind,
         specifier: comp::shockwave::FrontendSpecifier,
@@ -929,7 +957,7 @@ pub enum CharacterAbility {
         shockwave_vertical_angle: f32,
         shockwave_speed: f32,
         shockwave_duration: f32,
-        dodgeable: ShockwaveDodgeable,
+        dodgeable: Dodgeable,
         move_efficiency: f32,
         damage_kind: DamageKind,
         specifier: comp::shockwave::FrontendSpecifier,
@@ -1107,6 +1135,15 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    RegrowHead {
+        buildup_duration: f32,
+        recover_duration: f32,
+        energy_cost: f32,
+        #[serde(default)]
+        specifier: Option<regrow_head::FrontendSpecifier>,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -1132,6 +1169,7 @@ impl Default for CharacterAbility {
                 attack_effect: None,
                 simultaneous_hits: 1,
                 custom_combo: None,
+                dodgeable: Dodgeable::Roll,
                 precision_flank_multipliers: Default::default(),
                 precision_flank_invert: false,
             },
@@ -1182,7 +1220,10 @@ impl CharacterAbility {
                     energy_cost,
                     sprite_info: None,
                     ..
-                } => update.energy.try_change_by(-*energy_cost).is_ok(),
+                }
+                | CharacterAbility::RegrowHead { energy_cost, .. } => {
+                    update.energy.try_change_by(-*energy_cost).is_ok()
+                },
                 // Consumes energy within state, so value only checked before entering state
                 CharacterAbility::RepeaterRanged { energy_cost, .. } => {
                     update.energy.current() >= *energy_cost
@@ -1825,6 +1866,17 @@ impl CharacterAbility {
                 *recover_duration /= stats.speed;
             },
             GlideBoost { .. } => {},
+            RegrowHead {
+                ref mut buildup_duration,
+                ref mut recover_duration,
+                ref mut energy_cost,
+                specifier: _,
+                meta: _,
+            } => {
+                *buildup_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                *energy_cost /= stats.energy_efficiency;
+            },
         }
         self
     }
@@ -1853,7 +1905,8 @@ impl CharacterAbility {
             | DiveMelee { energy_cost, .. }
             | RiposteMelee { energy_cost, .. }
             | RapidMelee { energy_cost, .. }
-            | StaticAura { energy_cost, .. } => *energy_cost,
+            | StaticAura { energy_cost, .. }
+            | RegrowHead { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -1920,7 +1973,8 @@ impl CharacterAbility {
             | BasicSummon { .. }
             | SpriteSummon { .. }
             | Transform { .. }
-            | StaticAura { .. } => 0,
+            | StaticAura { .. }
+            | RegrowHead { .. } => 0,
         }
     }
 
@@ -1954,7 +2008,8 @@ impl CharacterAbility {
             | RiposteMelee { meta, .. }
             | RapidMelee { meta, .. }
             | Transform { meta, .. }
-            | StaticAura { meta, .. } => *meta,
+            | StaticAura { meta, .. }
+            | RegrowHead { meta, .. } => *meta,
         }
     }
 
@@ -2073,7 +2128,7 @@ impl CharacterAbility {
                     *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
                 if let Ok(level) = skillset.skill_level(Bow(SArrows)) {
-                    *num_projectiles += u32::from(level) * modifiers.num_projectiles;
+                    num_projectiles.add(u32::from(level) * modifiers.num_projectiles);
                 }
                 if let Ok(level) = skillset.skill_level(Bow(SSpread)) {
                     *projectile_spread *= modifiers.spread.powi(level.into());
@@ -2993,6 +3048,23 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     specifier: *specifier,
                     allow_players: *allow_players,
                     target: target.to_owned(),
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::RegrowHead {
+                buildup_duration,
+                recover_duration,
+                energy_cost,
+                specifier,
+                meta: _,
+            } => CharacterState::RegrowHead(regrow_head::Data {
+                static_data: regrow_head::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    specifier: *specifier,
+                    energy_cost: *energy_cost,
                     ability_info,
                 },
                 timer: Duration::default(),

@@ -147,15 +147,13 @@ impl Skeleton for BipedLargeSkeleton {
             * self.shoulder_r.orientation;
 
         Offsets {
-            lantern: None,
             viewpoint: Some((jaw_mat * Vec4::new(0.0, 4.0, 0.0, 1.0)).xyz()),
             mount_bone: Transform {
                 position: mount_position,
                 orientation: mount_orientation,
                 scale: Vec3::one(),
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }

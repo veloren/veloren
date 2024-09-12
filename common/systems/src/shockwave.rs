@@ -1,9 +1,9 @@
 use common::{
     combat::{self, AttackOptions, AttackerInfo, TargetInfo},
     comp::{
+        ability::Dodgeable,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
-        shockwave::ShockwaveDodgeable,
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
         PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
@@ -213,8 +213,8 @@ impl<'a> System<'a> for Sys {
                     }
                     && (pos_b_ground - pos.0).angle_between(pos_b.0 - pos.0) < max_angle
                     && match shockwave.dodgeable {
-                        ShockwaveDodgeable::Roll | ShockwaveDodgeable::No => true,
-                        ShockwaveDodgeable::Jump => physics_state_b.on_ground.is_some()
+                        Dodgeable::Roll | Dodgeable::No => true,
+                        Dodgeable::Jump => physics_state_b.on_ground.is_some()
                     };
 
                 if hit {
@@ -254,11 +254,11 @@ impl<'a> System<'a> for Sys {
                     let target_dodging = read_data
                         .character_states
                         .get(target)
-                        .and_then(|cs| cs.attack_immunities())
+                        .and_then(|cs| cs.roll_attack_immunities())
                         .map_or(false, |i| match shockwave.dodgeable {
-                            ShockwaveDodgeable::Roll => i.air_shockwaves,
-                            ShockwaveDodgeable::Jump => i.ground_shockwaves,
-                            ShockwaveDodgeable::No => false,
+                            Dodgeable::Roll => i.air_shockwaves,
+                            Dodgeable::Jump => i.ground_shockwaves,
+                            Dodgeable::No => false,
                         });
                     // PvP check
                     let permit_pvp = combat::permit_pvp(
@@ -285,7 +285,7 @@ impl<'a> System<'a> for Sys {
                         dir,
                         attack_options,
                         1.0,
-                        shockwave.dodgeable.to_attack_source(),
+                        shockwave.dodgeable.shockwave_attack_source(),
                         *read_data.time,
                         &mut emitters,
                         |o| outcomes_emitter.emit(o),

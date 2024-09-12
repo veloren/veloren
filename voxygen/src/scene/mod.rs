@@ -475,7 +475,8 @@ impl Scene {
             .get(cam_pos.map(|e| e.floor() as i32))
             .map(|b| b.is_liquid())
             .unwrap_or(false);
-        self.particle_mgr.handle_outcome(outcome, scene_data);
+        self.particle_mgr
+            .handle_outcome(outcome, scene_data, &self.figure_mgr);
         self.sfx_mgr
             .handle_outcome(outcome, audio, scene_data.client, underwater);
 

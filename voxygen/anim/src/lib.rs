@@ -4,11 +4,11 @@
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
 
 macro_rules! skeleton_impls {
-    { struct $Skeleton:ident { $( $(+)? $bone:ident ),* $(,)? $(:: $($field:ident : $field_ty:ty),* $(,)? )? } } => {
+    { struct $Skeleton:ident { $( $(+ $bone_vis:vis)? $bone:ident ),* $(,)? $(:: $($field:ident : $field_ty:ty),* $(,)? )? } } => {
         #[derive(Clone, Default)]
         pub struct $Skeleton {
             $(
-                $bone: $crate::Bone,
+                $($bone_vis)? $bone: $crate::Bone,
             )*
             $($(
                 $field : $field_ty,
@@ -103,12 +103,15 @@ lazy_static! {
 pub fn init() { lazy_static::initialize(&LIB); }
 
 // Offsets that will be returned after computing the skeleton matrices
+#[derive(Default)]
 pub struct Offsets {
     pub lantern: Option<Vec3<f32>>,
     pub viewpoint: Option<Vec3<f32>>,
     pub mount_bone: Transform<f32, f32, f32>,
     pub primary_trail_mat: Option<(Mat4<f32>, TrailSource)>,
     pub secondary_trail_mat: Option<(Mat4<f32>, TrailSource)>,
+    pub heads: Vec<Vec3<f32>>,
+    pub tail: Option<(Vec3<f32>, Vec3<f32>)>,
 }
 
 #[derive(Clone, Copy)]

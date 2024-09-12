@@ -207,6 +207,7 @@ impl Skeleton for CharacterSkeleton {
                 self.glider_trails
                     .then_some((glider_mat, TrailSource::GliderRight))
             },
+            ..Default::default()
         }
     }
 }

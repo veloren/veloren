@@ -6,7 +6,7 @@ use crate::{
         AdminRole as Role, Skill,
     },
     generation::try_all_entity_configs,
-    npc,
+    npc, outcome,
     recipe::RecipeBookManifest,
     terrain,
 };
@@ -18,7 +18,7 @@ use std::{
     fmt::{self, Display},
     str::FromStr,
 };
-use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
+use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator, VariantNames};
 use tracing::warn;
 
 /// Struct representing a command that a user can run from server chat.
@@ -231,6 +231,11 @@ lazy_static! {
         .cloned()
         .collect();
 
+    static ref OUTCOME_KINDS: Vec<String> = outcome::Outcome::VARIANTS
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+
     static ref ROLES: Vec<String> = ["admin", "moderator"].iter().copied().map(Into::into).collect();
 
     /// List of item's asset specifiers. Useful for tab completing.
@@ -373,6 +378,7 @@ pub enum ServerChatCommand {
     Motd,
     Mount,
     Object,
+    Outcome,
     PermitBuild,
     Players,
     Portal,
@@ -725,6 +731,11 @@ impl ServerChatCommand {
                 Content::localized("command-object-desc"),
                 Some(Admin),
             ),
+            ServerChatCommand::Outcome => cmd(
+                vec![Enum("outcome", OUTCOME_KINDS.clone(), Required)],
+                Content::localized("command-outcome-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::PermitBuild => cmd(
                 vec![Any("area_name", Required)],
                 Content::localized("command-permit_build-desc"),
@@ -1061,6 +1072,7 @@ impl ServerChatCommand {
             ServerChatCommand::MakeSprite => "make_sprite",
             ServerChatCommand::Motd => "motd",
             ServerChatCommand::Object => "object",
+            ServerChatCommand::Outcome => "outcome",
             ServerChatCommand::PermitBuild => "permit_build",
             ServerChatCommand::Players => "players",
             ServerChatCommand::Portal => "portal",

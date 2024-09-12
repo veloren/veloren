@@ -18,7 +18,7 @@ BasicRanged(
     projectile_body: Object(Mine),
     projectile_light: None,
     projectile_speed: 30.0,
-    num_projectiles: 12,
+    num_projectiles: Value(12),
     projectile_spread: 0.6,
     move_efficiency: 0.8,
 )

@@ -42,7 +42,6 @@ impl Skeleton for FishSmallSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.fin_r)),
         ];
         Offsets {
-            lantern: None,
             viewpoint: Some((chest_mat * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
@@ -52,8 +51,7 @@ impl Skeleton for FishSmallSkeleton {
                     .into(),
                 ..Default::default()
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }

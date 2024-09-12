@@ -180,6 +180,7 @@ fn do_command(
         ServerChatCommand::MakeSprite => handle_make_sprite,
         ServerChatCommand::Motd => handle_motd,
         ServerChatCommand::Object => handle_object,
+        ServerChatCommand::Outcome => handle_outcome,
         ServerChatCommand::PermitBuild => handle_permit_build,
         ServerChatCommand::Players => handle_players,
         ServerChatCommand::Portal => handle_spawn_portal,
@@ -2823,6 +2824,271 @@ fn handle_object(
     } else {
         Err(Content::Plain("Object not found!".into()))
     }
+}
+
+fn handle_outcome(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let mut i = 0;
+
+    macro_rules! arg {
+        () => {
+            args.get(i).map(|r| {
+                i += 1;
+                r
+            })
+        };
+        ($err:expr) => {
+            arg!().ok_or_else(|| Content::Key(($err).to_string()))
+        };
+    }
+
+    let target_pos = server
+        .state
+        .read_component_copied::<comp::Pos>(target)
+        .unwrap_or(comp::Pos(Vec3::zero()));
+    let target_uid = server
+        .state
+        .read_component_copied::<Uid>(target)
+        .expect("All entities should have uids");
+
+    macro_rules! vec_arg {
+        () => {{
+            let old_i = i;
+            let pos = arg!().and_then(|arg| {
+                let x = arg.parse().ok()?;
+                let y = arg!()?.parse().ok()?;
+                let z = arg!()?.parse().ok()?;
+
+                Some(Vec3::new(x, y, z))
+            });
+
+            #[allow(unused_assignments)]
+            if let Some(pos) = pos {
+                pos
+            } else {
+                i = old_i;
+                Vec3::default()
+            }
+        }};
+    }
+
+    macro_rules! pos_arg {
+        () => {{
+            let old_i = i;
+            let pos = arg!().and_then(|arg| {
+                let x = arg.parse().ok()?;
+                let y = arg!()?.parse().ok()?;
+                let z = arg!()?.parse().ok()?;
+
+                Some(Vec3::new(x, y, z))
+            });
+
+            #[allow(unused_assignments)]
+            if let Some(pos) = pos {
+                pos
+            } else {
+                i = old_i;
+                target_pos.0.as_()
+            }
+        }};
+    }
+
+    macro_rules! parse {
+        ($err:expr, $expr:expr) => {
+            arg!()
+                .and_then($expr)
+                .ok_or_else(|| Content::Key(($err).to_string()))
+        };
+        ($err:expr) => {
+            parse!($err, |arg| arg.parse().ok())
+        };
+    }
+
+    macro_rules! body_arg {
+        () => {{ parse!("command-outcome-expected_body_arg").map(|npc::NpcBody(_, mut body)| body()) }};
+    }
+
+    macro_rules! uid_arg {
+        () => {{
+            parse!("command-outcome-expected_entity_arg").and_then(|entity| {
+                let entity = get_entity_target(entity, server)?;
+                Ok(server
+                    .state()
+                    .read_component_copied::<Uid>(entity)
+                    .expect("All entities have uids"))
+            })
+        }};
+    }
+
+    macro_rules! parse_or_default {
+        ($default:expr, @$expr:expr) => {{
+            let old_i = i;
+            let f = arg!().and_then($expr);
+
+            #[allow(unused_assignments)]
+            if let Some(f) = f {
+                f
+            } else {
+                i = old_i;
+                $default
+            }
+        }};
+        (@$expr:expr) => {{ parse_or_default!(Default::default(), @$expr) }};
+        ($default:expr) => {{ parse_or_default!($default, @|arg| arg.parse().ok()) }};
+        () => {
+            parse_or_default!(Default::default())
+        };
+    }
+
+    let mut rng = rand::thread_rng();
+
+    let outcome = arg!("command-outcome-variant_expected")?;
+
+    let outcome = match outcome.as_str() {
+        "Explosion" => Outcome::Explosion {
+            pos: pos_arg!(),
+            power: parse_or_default!(1.0),
+            radius: parse_or_default!(1.0),
+            is_attack: parse_or_default!(),
+            reagent: parse_or_default!(@|arg| comp::item::Reagent::from_str(arg).ok().map(Some)),
+        },
+        "Lightning" => Outcome::Lightning { pos: pos_arg!() },
+        "ProjectileShot" => Outcome::ProjectileShot {
+            pos: pos_arg!(),
+            body: body_arg!()?,
+            vel: vec_arg!(),
+        },
+        "ProjectileHit" => Outcome::ProjectileHit {
+            pos: pos_arg!(),
+            body: body_arg!()?,
+            vel: vec_arg!(),
+            source: uid_arg!().ok(),
+            target: uid_arg!().ok(),
+        },
+        "Beam" => Outcome::Beam {
+            pos: pos_arg!(),
+            specifier: parse!("command-outcome-expected_frontent_specifier", |arg| {
+                comp::beam::FrontendSpecifier::from_str(arg).ok()
+            })?,
+        },
+        "ExpChange" => Outcome::ExpChange {
+            uid: uid_arg!().unwrap_or(target_uid),
+            exp: parse!("command-outcome-expected_integer")?,
+            xp_pools: {
+                let mut hashset = HashSet::new();
+                while let Some(arg) = arg!() {
+                    hashset.insert(ron::from_str(arg).map_err(|_| {
+                        Content::Key("command-outcome-expected_skill_group_kind".to_string())
+                    })?);
+                }
+                hashset
+            },
+        },
+        "SkillPointGain" => Outcome::SkillPointGain {
+            uid: uid_arg!().unwrap_or(target_uid),
+            skill_tree: arg!("command-outcome-expected_skill_group_kind").and_then(|arg| {
+                ron::from_str(arg).map_err(|_| {
+                    Content::Key("command-outcome-expected_skill_group_kind".to_string())
+                })
+            })?,
+            total_points: parse!("Expected an integer amount of points")?,
+        },
+        "ComboChange" => Outcome::ComboChange {
+            uid: uid_arg!().unwrap_or(target_uid),
+            combo: parse!("command-outcome-expected_integer")?,
+        },
+        "BreakBlock" => Outcome::BreakBlock {
+            pos: pos_arg!(),
+            color: Some(Rgb::from(vec_arg!())),
+        },
+        "SummonedCreature" => Outcome::SummonedCreature {
+            pos: pos_arg!(),
+            body: body_arg!()?,
+        },
+        "HealthChange" => Outcome::HealthChange {
+            pos: pos_arg!(),
+            info: common::outcome::HealthChangeInfo {
+                amount: parse_or_default!(),
+                precise: parse_or_default!(),
+                target: uid_arg!().unwrap_or(target_uid),
+                by: uid_arg!().map(common::combat::DamageContributor::Solo).ok(),
+                cause: None,
+                instance: rng.gen(),
+            },
+        },
+        "Death" => Outcome::Death { pos: pos_arg!() },
+        "Block" => Outcome::Block {
+            pos: pos_arg!(),
+            parry: parse_or_default!(),
+            uid: uid_arg!().unwrap_or(target_uid),
+        },
+        "PoiseChange" => Outcome::PoiseChange {
+            pos: pos_arg!(),
+            state: parse_or_default!(comp::PoiseState::Normal, @|arg| comp::PoiseState::from_str(arg).ok()),
+        },
+        "GroundSlam" => Outcome::GroundSlam { pos: pos_arg!() },
+        "IceSpikes" => Outcome::IceSpikes { pos: pos_arg!() },
+        "IceCrack" => Outcome::IceCrack { pos: pos_arg!() },
+        "FlashFreeze" => Outcome::FlashFreeze { pos: pos_arg!() },
+        "Steam" => Outcome::Steam { pos: pos_arg!() },
+        "LaserBeam" => Outcome::LaserBeam { pos: pos_arg!() },
+        "CyclopsCharge" => Outcome::CyclopsCharge { pos: pos_arg!() },
+        "FlamethrowerCharge" => Outcome::FlamethrowerCharge { pos: pos_arg!() },
+        "FuseCharge" => Outcome::FuseCharge { pos: pos_arg!() },
+        "TerracottaStatueCharge" => Outcome::TerracottaStatueCharge { pos: pos_arg!() },
+        "SurpriseEgg" => Outcome::SurpriseEgg { pos: pos_arg!() },
+        "Utterance" => Outcome::Utterance {
+            pos: pos_arg!(),
+            body: body_arg!()?,
+            kind: parse_or_default!(comp::UtteranceKind::Greeting, @|arg| comp::UtteranceKind::from_str(arg).ok()),
+        },
+        "Glider" => Outcome::Glider {
+            pos: pos_arg!(),
+            wielded: parse_or_default!(true),
+        },
+        "SpriteDelete" => Outcome::SpriteDelete {
+            pos: pos_arg!(),
+            sprite: parse!("command-outcome-expected_sprite_kind", |arg| {
+                SpriteKind::try_from(arg.as_str()).ok()
+            })?,
+        },
+        "SpriteUnlocked" => Outcome::SpriteUnlocked { pos: pos_arg!() },
+        "FailedSpriteUnlock" => Outcome::FailedSpriteUnlock { pos: pos_arg!() },
+        "Whoosh" => Outcome::Whoosh { pos: pos_arg!() },
+        "Swoosh" => Outcome::Swoosh { pos: pos_arg!() },
+        "Slash" => Outcome::Slash { pos: pos_arg!() },
+        "FireShockwave" => Outcome::FireShockwave { pos: pos_arg!() },
+        "GroundDig" => Outcome::GroundDig { pos: pos_arg!() },
+        "PortalActivated" => Outcome::PortalActivated { pos: pos_arg!() },
+        "TeleportedByPortal" => Outcome::TeleportedByPortal { pos: pos_arg!() },
+        "FromTheAshes" => Outcome::FromTheAshes { pos: pos_arg!() },
+        "ClayGolemDash" => Outcome::ClayGolemDash { pos: pos_arg!() },
+        "Bleep" => Outcome::Bleep { pos: pos_arg!() },
+        "Charge" => Outcome::Charge { pos: pos_arg!() },
+        "HeadLost" => Outcome::HeadLost {
+            uid: uid_arg!().unwrap_or(target_uid),
+            head: parse_or_default!(),
+        },
+        _ => {
+            return Err(Content::localized_with_args(
+                "command-outcome-invalid_outcome",
+                [("outcome", Content::Plain(outcome.to_string()))],
+            ));
+        },
+    };
+
+    server
+        .state()
+        .ecs()
+        .read_resource::<EventBus<Outcome>>()
+        .emit_now(outcome);
+
+    Ok(())
 }
 
 fn handle_light(

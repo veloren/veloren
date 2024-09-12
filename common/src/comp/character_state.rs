@@ -52,6 +52,7 @@ event_emitters! {
         knockback: event::KnockbackEvent,
         sprite_light: event::ToggleSpriteLightEvent,
         transform: event::TransformEvent,
+        regrow_head: event::RegrowHeadEvent,
         create_aura_entity: event::CreateAuraEntityEvent,
     }
 }
@@ -177,6 +178,8 @@ pub enum CharacterState {
     RapidMelee(rapid_melee::Data),
     /// Transforms an entity into another
     Transform(transform::Data),
+    /// Regrow a missing head
+    RegrowHead(regrow_head::Data),
 }
 
 impl CharacterState {
@@ -421,7 +424,7 @@ impl CharacterState {
 
     pub fn is_music(&self) -> bool { matches!(self, CharacterState::Music(_)) }
 
-    pub fn attack_immunities(&self) -> Option<AttackFilters> {
+    pub fn roll_attack_immunities(&self) -> Option<AttackFilters> {
         if let CharacterState::Roll(c) = self {
             (c.stage_section == StageSection::Movement).then_some(c.static_data.attack_immunities)
         } else {
@@ -538,6 +541,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => data.behavior(j, output_events),
             CharacterState::RapidMelee(data) => data.behavior(j, output_events),
             CharacterState::Transform(data) => data.behavior(j, output_events),
+            CharacterState::RegrowHead(data) => data.behavior(j, output_events),
             CharacterState::StaticAura(data) => data.behavior(j, output_events),
         }
     }
@@ -593,6 +597,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RapidMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::Transform(data) => data.handle_event(j, output_events, action),
+            CharacterState::RegrowHead(data) => data.handle_event(j, output_events, action),
             CharacterState::StaticAura(data) => data.handle_event(j, output_events, action),
         }
     }
@@ -647,6 +652,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RapidMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Transform(data) => Some(data.static_data.ability_info),
+            CharacterState::RegrowHead(data) => Some(data.static_data.ability_info),
             CharacterState::StaticAura(data) => Some(data.static_data.ability_info),
         }
     }
@@ -693,6 +699,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => Some(data.stage_section),
             CharacterState::RapidMelee(data) => Some(data.stage_section),
             CharacterState::Transform(data) => Some(data.stage_section),
+            CharacterState::RegrowHead(data) => Some(data.stage_section),
             CharacterState::StaticAura(data) => Some(data.stage_section),
         }
     }
@@ -879,6 +886,11 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
+            CharacterState::RegrowHead(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
             CharacterState::StaticAura(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
                 action: Some(data.static_data.cast_duration),
@@ -930,6 +942,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => Some(data.timer),
             CharacterState::RapidMelee(data) => Some(data.timer),
             CharacterState::Transform(data) => Some(data.timer),
+            CharacterState::RegrowHead(data) => Some(data.timer),
             CharacterState::StaticAura(data) => Some(data.timer),
         }
     }
@@ -973,9 +986,11 @@ impl CharacterState {
                     AttackSource::Projectile
                 })
             },
-            CharacterState::Shockwave(data) => Some(data.static_data.dodgeable.to_attack_source()),
+            CharacterState::Shockwave(data) => {
+                Some(data.static_data.dodgeable.shockwave_attack_source())
+            },
             CharacterState::LeapShockwave(data) => {
-                Some(data.static_data.dodgeable.to_attack_source())
+                Some(data.static_data.dodgeable.shockwave_attack_source())
             },
             CharacterState::BasicBeam(_) => Some(AttackSource::Beam),
             CharacterState::BasicAura(_) => None,
@@ -991,6 +1006,7 @@ impl CharacterState {
             CharacterState::RiposteMelee(_) => Some(AttackSource::Melee),
             CharacterState::RapidMelee(_) => Some(AttackSource::Melee),
             CharacterState::Transform(_) => None,
+            CharacterState::RegrowHead(_) => None,
             CharacterState::StaticAura(_) => None,
         }
     }

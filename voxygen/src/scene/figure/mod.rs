@@ -3,6 +3,7 @@ pub mod load;
 mod volume;
 
 pub use cache::FigureModelCache;
+use common_net::synced_components::Heads;
 pub use load::load_mesh; // TODO: Don't make this public.
 pub use volume::VolumeKey;
 
@@ -36,6 +37,7 @@ use anim::{
 };
 use common::{
     comp::{
+        body::parts::HeadState,
         inventory::slot::EquipSlot,
         item::{armor::ArmorKind, Hands, ItemKind, ToolKind},
         ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
@@ -869,7 +871,7 @@ impl FigureMgr {
                 inventory,
                 item,
                 light_emitter,
-                (is_rider, is_volume_rider, collider),
+                (is_rider, is_volume_rider, collider, heads),
             ),
         ) in (
             &ecs.entities(),
@@ -891,6 +893,7 @@ impl FigureMgr {
                 ecs.read_storage::<Is<Rider>>().maybe(),
                 ecs.read_storage::<Is<VolumeRider>>().maybe(),
                 ecs.read_storage::<Collider>().maybe(),
+                ecs.read_storage::<Heads>().maybe(),
             ),
         )
             .join()
@@ -2424,6 +2427,24 @@ impl FigureMgr {
                         state.state_time = 0.0;
                     }
 
+                    let heads = heads
+                        .and_then(|heads| {
+                            let res = heads.heads().try_into().ok();
+
+                            if res.is_none() {
+                                tracing::error!(
+                                    "Server sent another amount of heads than 3 for a \
+                                     QuadrupedLow body"
+                                );
+                            }
+                            res
+                        })
+                        .unwrap_or([
+                            HeadState::Attached,
+                            HeadState::Attached,
+                            HeadState::Attached,
+                        ]);
+
                     let target_base = match (
                         physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
@@ -2433,7 +2454,7 @@ impl FigureMgr {
                         (true, false, false) => {
                             anim::quadruped_low::IdleAnimation::update_skeleton(
                                 &QuadrupedLowSkeleton::default(),
-                                time,
+                                (time, heads),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -2450,6 +2471,7 @@ impl FigureMgr {
                                 time,
                                 rel_avg_vel,
                                 state.acc_vel,
+                                heads,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -2466,6 +2488,7 @@ impl FigureMgr {
                                 time,
                                 rel_avg_vel,
                                 state.acc_vel,
+                                heads,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -2482,6 +2505,7 @@ impl FigureMgr {
                                 time,
                                 rel_avg_vel,
                                 state.acc_vel,
+                                heads,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -2616,6 +2640,7 @@ impl FigureMgr {
                             anim::quadruped_low::TailwhipAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    ability_id,
                                     rel_vel.magnitude(),
                                     time,
                                     Some(s.stage_section),
@@ -2749,6 +2774,7 @@ impl FigureMgr {
                                     time,
                                     Some(s.stage_section),
                                     state.state_time,
+                                    heads,
                                 ),
                                 stage_progress,
                                 &mut state_animation_rate,
@@ -2774,7 +2800,7 @@ impl FigureMgr {
                             };
                             anim::quadruped_low::LeapShockAnimation::update_skeleton(
                                 &target_base,
-                                (ability_id, rel_vel, time, Some(s.stage_section)),
+                                (ability_id, rel_vel, time, Some(s.stage_section), heads),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -6928,6 +6954,140 @@ impl FigureMgr {
         }
     }
 
+    pub fn get_heads(&self, scene_data: &SceneData, entity: EcsEntity) -> &[anim::vek::Vec3<f32>] {
+        scene_data
+            .state
+            .ecs()
+            .read_storage::<Body>()
+            .get(entity)
+            .and_then(|b| match b {
+                Body::Humanoid(_) => self
+                    .states
+                    .character_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::QuadrupedSmall(_) => self
+                    .states
+                    .quadruped_small_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::QuadrupedMedium(_) => self
+                    .states
+                    .quadruped_medium_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::BirdMedium(_) => self
+                    .states
+                    .bird_medium_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::FishMedium(_) => self
+                    .states
+                    .fish_medium_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::Dragon(_) => self
+                    .states
+                    .dragon_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::BirdLarge(_) => self
+                    .states
+                    .bird_large_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::FishSmall(_) => self
+                    .states
+                    .fish_small_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::BipedLarge(_) => self
+                    .states
+                    .biped_large_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::BipedSmall(_) => self
+                    .states
+                    .biped_small_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::Golem(_) => self
+                    .states
+                    .golem_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::Theropod(_) => self
+                    .states
+                    .theropod_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::QuadrupedLow(_) => self
+                    .states
+                    .quadruped_low_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::Arthropod(_) => self
+                    .states
+                    .arthropod_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::Object(_) => self
+                    .states
+                    .object_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::Ship(_) => self
+                    .states
+                    .ship_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::ItemDrop(_) => self
+                    .states
+                    .item_drop_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+                Body::Crustacean(_) => self
+                    .states
+                    .crustacean_states
+                    .get(&entity)
+                    .map(|state| &state.heads),
+            })
+            .map(|v| v.as_slice())
+            .unwrap_or(&[])
+    }
+
+    pub fn get_tail(
+        &self,
+        scene_data: &SceneData,
+        entity: EcsEntity,
+    ) -> Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)> {
+        scene_data
+            .state
+            .ecs()
+            .read_storage::<Body>()
+            .get(entity)
+            .and_then(|b| match b {
+                Body::Humanoid(_) => self.states.character_states.get(&entity)?.tail,
+                Body::QuadrupedSmall(_) => self.states.quadruped_small_states.get(&entity)?.tail,
+                Body::QuadrupedMedium(_) => self.states.quadruped_medium_states.get(&entity)?.tail,
+                Body::BirdMedium(_) => self.states.bird_medium_states.get(&entity)?.tail,
+                Body::FishMedium(_) => self.states.fish_medium_states.get(&entity)?.tail,
+                Body::Dragon(_) => self.states.dragon_states.get(&entity)?.tail,
+                Body::BirdLarge(_) => self.states.bird_large_states.get(&entity)?.tail,
+                Body::FishSmall(_) => self.states.fish_small_states.get(&entity)?.tail,
+                Body::BipedLarge(_) => self.states.biped_large_states.get(&entity)?.tail,
+                Body::BipedSmall(_) => self.states.biped_small_states.get(&entity)?.tail,
+                Body::Golem(_) => self.states.golem_states.get(&entity)?.tail,
+                Body::Theropod(_) => self.states.theropod_states.get(&entity)?.tail,
+                Body::QuadrupedLow(_) => self.states.quadruped_low_states.get(&entity)?.tail,
+                Body::Arthropod(_) => self.states.arthropod_states.get(&entity)?.tail,
+                Body::Object(_) => self.states.object_states.get(&entity)?.tail,
+                Body::Ship(_) => self.states.ship_states.get(&entity)?.tail,
+                Body::ItemDrop(_) => self.states.item_drop_states.get(&entity)?.tail,
+                Body::Crustacean(_) => self.states.crustacean_states.get(&entity)?.tail,
+            })
+    }
+
     pub fn viewpoint_offset(&self, scene_data: &SceneData, entity: EcsEntity) -> Vec3<f32> {
         scene_data
             .state
@@ -7204,6 +7364,8 @@ impl FigureAtlas {
 pub struct FigureStateMeta {
     lantern_offset: Option<anim::vek::Vec3<f32>>,
     viewpoint_offset: Option<anim::vek::Vec3<f32>>,
+    heads: Vec<anim::vek::Vec3<f32>>,
+    tail: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     main_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     off_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     // Animation to be applied to rider of this entity
@@ -7323,6 +7485,8 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
             meta: FigureStateMeta {
                 lantern_offset: offsets.lantern,
                 viewpoint_offset: offsets.viewpoint,
+                heads: offsets.heads.clone(),
+                tail: offsets.tail,
                 main_abs_trail_points: None,
                 off_abs_trail_points: None,
                 mount_transform: offsets.mount_bone,
@@ -7505,6 +7669,8 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
         self.lantern_offset = offsets.lantern;
         self.viewpoint_offset = offsets.viewpoint;
+        self.heads.clone_from(&offsets.heads);
+        self.tail = offsets.tail;
         // Handle weapon trails
         fn handle_weapon_trails(
             trail_mgr: &mut TrailMgr,

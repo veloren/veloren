@@ -59,7 +59,7 @@ pub struct Poise {
 }
 
 /// States to define effects of a poise change
-#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize, Eq, Hash, strum::EnumString)]
 pub enum PoiseState {
     /// No effect applied
     Normal,

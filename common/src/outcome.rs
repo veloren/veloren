@@ -19,7 +19,7 @@ pub struct HealthChangeInfo {
 /// occur, nor is it something that may be cancelled or otherwise altered. Its
 /// primary purpose is to act as something for frontends (both server and
 /// client) to listen to in order to receive feedback about events in the world.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, strum::VariantNames)]
 pub enum Outcome {
     Explosion {
         pos: Vec3<f32>,
@@ -170,6 +170,10 @@ pub enum Outcome {
     Charge {
         pos: Vec3<f32>,
     },
+    HeadLost {
+        uid: Uid,
+        head: usize,
+    },
 }
 
 impl Outcome {
@@ -217,7 +221,8 @@ impl Outcome {
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }
             | Outcome::Lightning { .. }
-            | Outcome::SkillPointGain { .. } => None,
+            | Outcome::SkillPointGain { .. }
+            | Outcome::HeadLost { .. } => None,
         }
     }
 }

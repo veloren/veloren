@@ -1,6 +1,7 @@
 use crate::{
     comp::{
         self,
+        body::parts::Heads,
         character_state::OutputEvents,
         item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Alignment, Beam, Body, CharacterActivity, CharacterState, Combo,
@@ -141,6 +142,7 @@ pub struct JoinData<'a> {
     pub controller: &'a Controller,
     pub inputs: &'a ControllerInputs,
     pub health: Option<&'a Health>,
+    pub heads: Option<&'a Heads>,
     pub energy: &'a Energy,
     pub inventory: Option<&'a Inventory>,
     pub body: &'a Body,
@@ -178,6 +180,7 @@ pub struct JoinStruct<'a> {
     pub inventory: Option<&'a Inventory>,
     pub controller: &'a mut Controller,
     pub health: Option<&'a Health>,
+    pub heads: Option<&'a Heads>,
     pub body: &'a Body,
     pub physics: &'a PhysicsState,
     pub melee_attack: Option<&'a Melee>,
@@ -221,6 +224,7 @@ impl<'a> JoinData<'a> {
             controller: j.controller,
             inputs: &j.controller.inputs,
             health: j.health,
+            heads: j.heads,
             body: j.body,
             physics: j.physics,
             melee_attack: j.melee_attack,

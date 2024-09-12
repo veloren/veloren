@@ -131,7 +131,7 @@ pub enum GroupManip {
     AssignLeader(Uid),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, strum::EnumString)]
 pub enum UtteranceKind {
     Calm,
     Angry,

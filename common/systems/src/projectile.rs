@@ -389,7 +389,7 @@ fn dispatch_hit(
             let target_dodging = read_data
                 .character_states
                 .get(target)
-                .and_then(|cs| cs.attack_immunities())
+                .and_then(|cs| cs.roll_attack_immunities())
                 .map_or(false, |i| i.projectiles);
 
             let precision_from_flank = combat::precision_mult_from_flank(

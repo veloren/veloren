@@ -689,6 +689,7 @@ fn execute_effect(
             rate,
             kind,
             tick_dur,
+            reset_rate_on_tick,
         } => {
             if let Some(num_ticks) = num_ticks(*tick_dur) {
                 let amount = *rate * num_ticks * tick_dur.0 as f32;
@@ -700,6 +701,7 @@ fn execute_effect(
                 server_emitter.emit(EnergyChangeEvent {
                     entity,
                     change: amount,
+                    reset_rate: *reset_rate_on_tick,
                 });
             };
         },

@@ -4,27 +4,11 @@
             offset: (-5.0, -4.5, 2.0),
             central: ("npc.crab.crab"),
         ),
-        tail_f: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
-        ),
-        tail_b: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
-        ),
     ),
     (Crab, Female): (
         chest: (
             offset: (-5.0, -4.5, 2.0),
             central: ("npc.crab.crab"),
-        ),
-        tail_f: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
-        ),
-        tail_b: (
-            offset: (0.0, 0.0, 0.0),
-            central: ("armor.empty"),
         ),
     ),
 })

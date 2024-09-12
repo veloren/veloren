@@ -6200,7 +6200,11 @@ impl<'a> AgentData<'a> {
                 ..
             }) = self.extract_ability(AbilityInput::Secondary)
             {
-                (projectile_speed, projectile_spread, num_projectiles)
+                (
+                    projectile_speed,
+                    projectile_spread,
+                    num_projectiles.compute(self.heads.map_or(1, |heads| heads.amount() as u32)),
+                )
             } else {
                 (0.0, 0.0, 0)
             }
@@ -6768,6 +6772,131 @@ impl<'a> AgentData<'a> {
                 Path::Separate,
                 None,
             );
+        }
+    }
+
+    pub fn handle_hydra(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        enum ActionStateTimers {
+            RegrowHeadNoDamage,
+            RegrowHeadNoAttack,
+        }
+
+        let could_use_input = |input| {
+            Option::from(input)
+                .and_then(|ability| {
+                    Some(self.extract_ability(ability)?.could_use(
+                        attack_data,
+                        self,
+                        tgt_data,
+                        read_data,
+                        AbilityPreferences::default(),
+                    ))
+                })
+                .unwrap_or(false)
+        };
+
+        const FOCUS_ATTACK_RANGE: f32 = 5.0;
+
+        if attack_data.dist_sqrd < FOCUS_ATTACK_RANGE.powi(2) {
+            agent.combat_state.timers[ActionStateTimers::RegrowHeadNoAttack as usize] = 0.0;
+        } else {
+            agent.combat_state.timers[ActionStateTimers::RegrowHeadNoAttack as usize] +=
+                read_data.dt.0;
+        }
+
+        if let Some(health) = self.health.filter(|health| health.last_change.amount < 0.0) {
+            agent.combat_state.timers[ActionStateTimers::RegrowHeadNoDamage as usize] =
+                (read_data.time.0 - health.last_change.time.0) as f32;
+        } else {
+            agent.combat_state.timers[ActionStateTimers::RegrowHeadNoDamage as usize] +=
+                read_data.dt.0;
+        }
+
+        if let Some(input) = self.char_state.ability_info().map(|ai| ai.input) {
+            match self.char_state {
+                CharacterState::ChargedMelee(c) => {
+                    if c.charge_frac() < 1.0 && could_use_input(input) {
+                        controller.push_basic_input(input);
+                    }
+                },
+                CharacterState::ChargedRanged(c) => {
+                    if c.charge_frac() < 1.0 && could_use_input(input) {
+                        controller.push_basic_input(input);
+                    }
+                },
+                _ => {},
+            }
+        }
+
+        let continued_attack = match self.char_state.ability_info().map(|ai| ai.input) {
+            Some(input @ InputKind::Primary) => {
+                if !matches!(self.char_state.stage_section(), Some(StageSection::Recover))
+                    && could_use_input(input)
+                {
+                    controller.push_basic_input(input);
+                    true
+                } else {
+                    false
+                }
+            },
+            _ => false,
+        };
+
+        let has_heads = self.heads.map_or(true, |heads| heads.amount() > 0);
+
+        let move_forwards = if !continued_attack {
+            if could_use_input(InputKind::Ability(1))
+                && rng.gen_bool(0.9)
+                && (agent.combat_state.timers[ActionStateTimers::RegrowHeadNoDamage as usize] > 5.0
+                    || agent.combat_state.timers[ActionStateTimers::RegrowHeadNoAttack as usize]
+                        > 6.0)
+                && self.heads.map_or(false, |heads| heads.amount_missing() > 0)
+            {
+                controller.push_basic_input(InputKind::Ability(2));
+                false
+            } else if has_heads && could_use_input(InputKind::Primary) && rng.gen_bool(0.8) {
+                controller.push_basic_input(InputKind::Primary);
+                true
+            } else if has_heads && could_use_input(InputKind::Secondary) && rng.gen_bool(0.4) {
+                controller.push_basic_input(InputKind::Secondary);
+                false
+            } else if has_heads && could_use_input(InputKind::Ability(1)) && rng.gen_bool(0.6) {
+                controller.push_basic_input(InputKind::Ability(1));
+                true
+            } else if !has_heads && could_use_input(InputKind::Ability(3)) && rng.gen_bool(0.7) {
+                controller.push_basic_input(InputKind::Ability(3));
+                true
+            } else if could_use_input(InputKind::Ability(0)) {
+                controller.push_basic_input(InputKind::Ability(0));
+                true
+            } else {
+                true
+            }
+        } else {
+            true
+        };
+
+        if move_forwards {
+            if has_heads {
+                self.path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Separate,
+                    None,
+                );
+            } else {
+                self.flee(agent, controller, read_data, tgt_data.pos);
+            }
         }
     }
 

@@ -47,8 +47,6 @@ impl Skeleton for ShipSkeleton {
             make_bone(bone0_mat * Mat4::<f32>::from(self.bone3)),
         ];
         Offsets {
-            lantern: None,
-            viewpoint: None,
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: (base_mat * scale_mat)
@@ -61,6 +59,7 @@ impl Skeleton for ShipSkeleton {
             secondary_trail_mat: attr
                 .bone2_prop_trail_offset
                 .map(|offset| (bone2_mat, TrailSource::Propeller(offset))),
+            ..Default::default()
         }
     }
 }

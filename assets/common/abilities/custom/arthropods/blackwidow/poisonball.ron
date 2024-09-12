@@ -23,7 +23,7 @@ BasicRanged(
     ),
     projectile_body: Object(SpitPoison),
     projectile_speed: 25.0,
-    num_projectiles: 1,
+    num_projectiles: Value(1),
     projectile_spread: 0.3,
     move_efficiency: 0.3,
 )

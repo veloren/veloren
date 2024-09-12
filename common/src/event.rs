@@ -64,6 +64,7 @@ pub struct NpcBuilder {
     pub pets: Vec<(NpcBuilder, Vec3<f32>)>,
     pub rtsim_entity: Option<RtSimEntity>,
     pub projectile: Option<comp::Projectile>,
+    pub heads: Option<comp::body::parts::Heads>,
 }
 
 impl NpcBuilder {
@@ -83,7 +84,13 @@ impl NpcBuilder {
             rtsim_entity: None,
             projectile: None,
             pets: Vec::new(),
+            heads: None,
         }
+    }
+
+    pub fn with_heads(mut self, heads: impl Into<Option<comp::body::parts::Heads>>) -> Self {
+        self.heads = heads.into();
+        self
     }
 
     pub fn with_health(mut self, health: impl Into<Option<comp::Health>>) -> Self {
@@ -321,6 +328,7 @@ pub struct BuffEvent {
 pub struct EnergyChangeEvent {
     pub entity: EcsEntity,
     pub change: f32,
+    pub reset_rate: bool,
 }
 
 pub struct ComboChangeEvent {
@@ -440,6 +448,10 @@ pub struct CreateAuraEntityEvent {
     pub pos: Pos,
     pub creator_uid: Uid,
     pub duration: Option<Secs>,
+}
+
+pub struct RegrowHeadEvent {
+    pub entity: EcsEntity,
 }
 
 pub struct EventBus<E> {
@@ -566,6 +578,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<TransformEvent>::default());
     ecs.insert(EventBus::<RequestPluginsEvent>::default());
     ecs.insert(EventBus::<CreateAuraEntityEvent>::default());
+    ecs.insert(EventBus::<RegrowHeadEvent>::default());
 }
 
 /// Define ecs read data for event busses. And a way to convert them all to

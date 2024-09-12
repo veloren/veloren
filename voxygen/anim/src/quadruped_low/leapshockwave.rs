@@ -6,13 +6,19 @@ use super::{
     },
     QuadrupedLowSkeleton, SkeletonAttr,
 };
-use common::states::utils::StageSection;
+use common::{comp::body::parts::HeadState, states::utils::StageSection};
 use core::f32::consts::PI;
 
 pub struct LeapShockAnimation;
 
 impl Animation for LeapShockAnimation {
-    type Dependency<'a> = (Option<&'a str>, Vec3<f32>, f32, Option<StageSection>);
+    type Dependency<'a> = (
+        Option<&'a str>,
+        Vec3<f32>,
+        f32,
+        Option<StageSection>,
+        [HeadState; 3],
+    );
     type Skeleton = QuadrupedLowSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -21,7 +27,7 @@ impl Animation for LeapShockAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_leapshockwave")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (ability_id, _velocity, _global_time, stage_section): Self::Dependency<'_>,
+        (ability_id, _velocity, _global_time, stage_section, heads): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -37,14 +43,16 @@ impl Animation for LeapShockAnimation {
         match ability_id {
             Some("common.abilities.custom.rocksnapper.leapshockwave") => {
                 let elastic_recover = elastic(recover);
-                next.head_upper.scale = Vec3::one() * (1.0 - movement + elastic_recover);
-                next.head_upper.position = Vec3::new(
+                next.head_c_upper.scale = Vec3::one() * (1.0 - movement + elastic_recover);
+                next.head_c_upper.position = Vec3::new(
                     0.0,
                     s_a.head_upper.0 + (-1.0 * movement + elastic_recover) * 10.0,
                     s_a.head_upper.1,
                 );
-                next.head_lower.scale = Vec3::one() * (1.0 - movement + elastic_recover);
-                next.head_lower.position = Vec3::new(
+                next.head_c_lower.scale = Vec3::one()
+                    * (1.0 - movement + elastic_recover)
+                    * heads[1].is_attached() as i32 as f32;
+                next.head_c_lower.position = Vec3::new(
                     0.0,
                     s_a.head_lower.0 + (-1.0 * movement + elastic_recover) * 15.0,
                     s_a.head_lower.1,

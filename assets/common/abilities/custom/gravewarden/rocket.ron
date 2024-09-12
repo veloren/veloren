@@ -18,7 +18,7 @@ BasicRanged(
     projectile_body: Object(ClayRocket),
     projectile_light: None,
     projectile_speed: 30.0,
-    num_projectiles: 1,
+    num_projectiles: Value(1),
     projectile_spread: 0.0,
     move_efficiency: 0.3,
 )

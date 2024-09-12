@@ -1141,4 +1141,14 @@
             central: ("armor.empty"),
         )
     ),
+    PoisonBall: (
+        bone0: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("weapon.projectile.poison_ball"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

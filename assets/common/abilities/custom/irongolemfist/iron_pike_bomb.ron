@@ -18,7 +18,7 @@ BasicRanged(
     projectile_body: Object(IronPikeBomb),
     projectile_light: None,
     projectile_speed: 500.0,
-    num_projectiles: 3,
+    num_projectiles: Value(3),
     projectile_spread: 0.3,
     move_efficiency: 0.3,
 )

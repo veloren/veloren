@@ -6,12 +6,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::time::Duration;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum ShockwaveDodgeable {
-    Roll,
-    Jump,
-    No,
-}
+use super::ability::Dodgeable;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Properties {
@@ -19,7 +14,7 @@ pub struct Properties {
     pub vertical_angle: f32,
     pub speed: f32,
     pub attack: Attack,
-    pub dodgeable: ShockwaveDodgeable,
+    pub dodgeable: Dodgeable,
     pub duration: Duration,
     pub owner: Option<Uid>,
     pub specifier: FrontendSpecifier,
@@ -63,12 +58,13 @@ pub enum FrontendSpecifier {
     IceSpikes,
     Steam,
     Poison,
+    AcidCloud,
     Ink,
     Lightning,
 }
 
-impl ShockwaveDodgeable {
-    pub fn to_attack_source(&self) -> AttackSource {
+impl Dodgeable {
+    pub fn shockwave_attack_source(&self) -> AttackSource {
         match self {
             Self::Roll => AttackSource::AirShockwave,
             Self::Jump => AttackSource::GroundShockwave,

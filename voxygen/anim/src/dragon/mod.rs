@@ -72,15 +72,13 @@ impl Skeleton for DragonSkeleton {
             make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_br)),
         ];
         Offsets {
-            lantern: None,
             viewpoint: Some((head_upper_mat * Vec4::new(0.0, 8.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: comp::Body::Dragon(body).mount_offset().into_tuple().into(),
                 ..Default::default()
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }

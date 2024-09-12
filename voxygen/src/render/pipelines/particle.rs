@@ -114,6 +114,7 @@ pub enum ParticleMode {
     Spore = 60,
     SurpriseEgg = 61,
     FlameTornado = 62,
+    Poison = 63,
 }
 
 impl ParticleMode {

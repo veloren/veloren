@@ -1,3 +1,4 @@
+use common_net::synced_components::Heads;
 use specs::{
     shred, Entities, LazyUpdate, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
 };
@@ -34,6 +35,7 @@ pub struct ReadData<'a> {
     time: Read<'a, Time>,
     lazy_update: Read<'a, LazyUpdate>,
     healths: ReadStorage<'a, Health>,
+    heads: ReadStorage<'a, Heads>,
     bodies: ReadStorage<'a, Body>,
     masses: ReadStorage<'a, Mass>,
     scales: ReadStorage<'a, Scale>,
@@ -120,8 +122,9 @@ impl<'a> System<'a> for Sys {
             read_data.inventories.maybe(),
             &mut controllers,
             read_data.healths.maybe(),
-            &read_data.bodies,
+            read_data.heads.maybe(),
             (
+                &read_data.bodies,
                 &read_data.physics_states,
                 read_data.scales.maybe(),
                 &read_data.stats,
@@ -147,8 +150,8 @@ impl<'a> System<'a> for Sys {
                 inventory,
                 controller,
                 health,
-                body,
-                (physics, scale, stat, skill_set, active_abilities, is_rider),
+                heads,
+                (body, physics, scale, stat, skill_set, active_abilities, is_rider),
                 combo,
             ) = comps;
             // Being dead overrides all other states
@@ -207,6 +210,7 @@ impl<'a> System<'a> for Sys {
                 inventory,
                 controller,
                 health,
+                heads,
                 body,
                 physics,
                 melee_attack: read_data.melee_attacks.get(entity),

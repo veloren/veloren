@@ -11,6 +11,7 @@ pub mod golem;
 pub mod humanoid;
 pub mod item_drop;
 pub mod object;
+pub mod parts;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
@@ -281,6 +282,17 @@ impl Body {
         }
     }
 
+    /// How many heads this body has in the `Heads` component if any.
+    pub fn heads(&self) -> Option<usize> {
+        match self {
+            Body::QuadrupedLow(body) => match body.species {
+                quadruped_low::Species::Hydra => Some(3),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
     pub fn is_campfire(&self) -> bool { matches!(self, Body::Object(object::Body::CampfireLit)) }
@@ -435,6 +447,7 @@ impl Body {
                 quadruped_low::Species::Dagon => 600.0,
                 quadruped_low::Species::Basilisk => 800.0,
                 quadruped_low::Species::Driggle => 55.0,
+                quadruped_low::Species::Hydra => 800.0,
             },
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Bear => 500.0, // ~✅ (350-700 kg)
@@ -641,6 +654,7 @@ impl Body {
                 quadruped_low::Species::Tortoise => Vec3::new(1.7, 2.7, 1.5),
                 quadruped_low::Species::Driggle => Vec3::new(1.6, 2.7, 1.0),
                 quadruped_low::Species::Snaretongue => Vec3::new(2.0, 2.8, 1.6),
+                quadruped_low::Species::Hydra => Vec3::new(3.0, 5.0, 2.8),
                 _ => Vec3::new(1.0, 1.6, 1.3),
             },
             Body::Ship(ship) => ship.dimensions(),
@@ -1050,6 +1064,7 @@ impl Body {
                 quadruped_low::Species::Reefsnapper => 400,
                 quadruped_low::Species::Rootsnapper => 400,
                 quadruped_low::Species::Sandshark => 540,
+                quadruped_low::Species::Hydra => 1000,
                 // T3B
                 quadruped_low::Species::Basilisk => 660,
                 quadruped_low::Species::Snaretongue => 1500,
@@ -1341,6 +1356,7 @@ impl Body {
                 | quadruped_low::Species::Lavadrake
                 | quadruped_low::Species::Icedrake
                 | quadruped_low::Species::Basilisk
+                | quadruped_low::Species::Hydra
                 | quadruped_low::Species::Mossdrake => 205,
                 quadruped_low::Species::Elbst
                 | quadruped_low::Species::Salamander

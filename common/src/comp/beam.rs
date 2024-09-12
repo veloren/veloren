@@ -31,7 +31,7 @@ impl Component for Beam {
     type Storage = DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, strum::EnumString)]
 pub enum FrontendSpecifier {
     Flamethrower,
     LifestealBeam,

@@ -167,6 +167,7 @@ impl Body {
                 quadruped_low::Species::Mossdrake => 100.0,
                 quadruped_low::Species::Driggle => 120.0,
                 quadruped_low::Species::Snaretongue => 120.0,
+                quadruped_low::Species::Hydra => 100.0,
             },
             Body::Ship(ship::Body::Carriage) => 40.0,
             Body::Ship(_) => 0.0,

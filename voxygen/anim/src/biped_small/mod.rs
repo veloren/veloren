@@ -91,7 +91,6 @@ impl Skeleton for BipedSmallSkeleton {
             make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
         ];
         Offsets {
-            lantern: None,
             viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
@@ -101,8 +100,7 @@ impl Skeleton for BipedSmallSkeleton {
                     .into(),
                 ..Default::default()
             },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
+            ..Default::default()
         }
     }
 }
