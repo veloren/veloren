@@ -279,10 +279,11 @@ pub fn load_character_data(
     let (skill_set, skill_set_persistence_load_error) =
         convert_skill_set_from_database(&skill_group_data);
     let body = convert_body_from_database(&body_data.variant, &body_data.body_data)?;
+    let hardcore = convert_hardcore_from_database(character_data.hardcore)?;
     Ok((
         PersistedComponents {
             body,
-            hardcore: convert_hardcore_from_database(character_data.hardcore),
+            hardcore,
             stats: convert_stats_from_database(character_data.alias, body),
             skill_set,
             inventory: convert_inventory_from_database_items(
@@ -362,6 +363,8 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
 
             let char_body = convert_body_from_database(&db_body.variant, &db_body.body_data)?;
 
+            let hardcore = convert_hardcore_from_database(character_data.hardcore)?;
+
             let loadout_container_id = get_pseudo_container_id(
                 connection,
                 CharacterId(character_data.character_id),
@@ -386,7 +389,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
             Ok(CharacterItem {
                 character: char,
                 body: char_body,
-                hardcore: convert_hardcore_from_database(character_data.hardcore).is_some(),
+                hardcore: hardcore.is_some(),
                 inventory: Inventory::with_loadout(loadout, char_body)
                     .with_recipe_book(recipe_book),
                 location: character_data.waypoint.as_ref().cloned(),

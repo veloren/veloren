@@ -611,16 +611,15 @@ impl Controls {
                                 };
                                 Overlay::new(
                                     Container::new(Column::with_children({
-                                        let mut elements = if character.hardcore {
-                                            vec![
+                                        let mut elements = Vec::new();
+                                        if character.hardcore {
+                                            elements.push(
                                                 Image::new(imgs.hardcore)
                                                     .width(Length::Units(32))
                                                     .height(Length::Units(32))
                                                     .into(),
-                                            ]
-                                        } else {
-                                            Vec::new()
-                                        };
+                                            );
+                                        }
                                         elements.push(
                                             Row::with_children(vec![
                                                 // Edit button
@@ -1381,6 +1380,10 @@ impl Controls {
                             imgs.icon_border,
                             self.imgs.hardcore,
                         ))
+                        .with_tooltip(tooltip_manager, move || {
+                            let tooltip_text = i18n.get_msg("char_selection-hardcore_tooltip");
+                            tooltip::text(&tooltip_text, tooltip_style)
+                        })
                         .into(),
                     ])
                 };

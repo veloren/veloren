@@ -76,11 +76,7 @@ pub fn create_character(
 
     character_updater.create_character(entity, player_uuid, character_alias, PersistedComponents {
         body,
-        hardcore: if hardcore {
-            Some(common::comp::Hardcore)
-        } else {
-            None
-        },
+        hardcore: hardcore.then_some(common::comp::Hardcore),
         stats,
         skill_set,
         inventory,

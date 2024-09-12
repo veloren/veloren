@@ -765,16 +765,18 @@ pub fn convert_stats_from_database(alias: String, body: CompBody) -> Stats {
     new_stats
 }
 
-pub fn convert_hardcore_from_database(hardcore: i64) -> Option<Hardcore> {
-    if hardcore != 0 {
-        Some(common::comp::Hardcore)
-    } else {
-        None
+pub fn convert_hardcore_from_database(hardcore: i64) -> Result<Option<Hardcore>, PersistenceError> {
+    match hardcore {
+        0 => Ok(None),
+        1 => Ok(Some(common::comp::Hardcore)),
+        _ => Err(PersistenceError::ConversionError(format!(
+            "Invalid hardcore field: {hardcore}"
+        ))),
     }
 }
 
 pub fn convert_hardcore_to_database(hardcore: Option<Hardcore>) -> i64 {
-    if hardcore.is_some() { 1_i64 } else { 0_i64 }
+    if hardcore.is_some() { 1 } else { 0 }
 }
 
 /// NOTE: This does *not* return an error on failure, since we can partially

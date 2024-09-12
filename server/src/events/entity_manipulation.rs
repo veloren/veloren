@@ -36,10 +36,10 @@ use common::{
         AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
         ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         DeleteEvent, DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent,
-        EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent,
-        LandOnGroundEvent, MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent,
-        RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent,
-        TeleportToPositionEvent, TransformEvent, UpdateMapMarkerEvent,
+        EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent,
+        MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent,
+        RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
+        TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
     generation::EntityInfo,
@@ -47,7 +47,7 @@ use common::{
     lottery::distribute_many,
     mounting::{Rider, VolumeRider},
     outcome::{HealthChangeInfo, Outcome},
-    resources::{HardcoreDeletionQueue, ProgramTime, Secs, Time},
+    resources::{ProgramTime, Secs, Time},
     spiral::Spiral2d,
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
@@ -369,8 +369,6 @@ pub struct DestroyEventData<'a> {
     energies: WriteStorage<'a, Energy>,
     character_states: WriteStorage<'a, CharacterState>,
     players: ReadStorage<'a, Player>,
-    hardcore: ReadStorage<'a, Hardcore>,
-    hardcore_deletion_queue: Write<'a, HardcoreDeletionQueue>,
     clients: ReadStorage<'a, Client>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
@@ -383,6 +381,7 @@ pub struct DestroyEventData<'a> {
     agents: ReadStorage<'a, Agent>,
     #[cfg(feature = "worldgen")]
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, Presence>,
     buff_events: Read<'a, EventBus<BuffEvent>>,
     masses: ReadStorage<'a, comp::Mass>,
@@ -476,23 +475,6 @@ impl ServerEvent for DestroyEvent {
                         },
                     }
                 }
-            }
-
-            // Delete character if it had hardcore enabled
-            if let Some((
-                player,
-                Presence {
-                    kind: PresenceKind::Character(character_id),
-                    ..
-                },
-                _hardcore,
-            )) = (&data.players, &data.presences, &data.hardcore)
-                .lend_join()
-                .get(ev.entity, &data.entities)
-            {
-                data.hardcore_deletion_queue
-                    .0
-                    .insert(ev.entity, (player.uuid(), *character_id));
             }
 
             // Chat message

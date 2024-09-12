@@ -1,1 +1,1 @@
-ALTER TABLE "character" ADD COLUMN hardcore INT DEFAULT 0;
+ALTER TABLE "character" ADD COLUMN hardcore INT NOT NULL DEFAULT 0;
