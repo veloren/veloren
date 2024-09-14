@@ -246,13 +246,16 @@ pub fn handle_client_disconnect(
 }
 
 /// When a player logs out, their data is queued for persistence in the next
-/// tick of the persistence batch update. The player will be
-/// temporarily unable to log in during this period to avoid
-/// the race condition of their login fetching their old data
-/// and overwriting the data saved here.
+/// tick of the persistence batch update unless the character logging out is
+/// dead and has hardcore enabled, in which case the character is deleted
+/// instead of being persisted. The player will be temporarily unable to log in
+/// during this period to avoid the race condition of their login fetching their
+/// old data and overwriting the data saved here.
 ///
 /// This function is also used by the Transform event and MUST NOT assume that
-/// the persisting entity is deleted afterwards.
+/// the persisting entity is deleted afterwards. It is however safe to assume
+/// that this function will not be called twice on an entity with the same
+/// character id.
 pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
     if let (
         Some(presence),
@@ -283,52 +286,63 @@ pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity 
                 );
             },
             PresenceKind::Character(char_id) => {
-                let waypoint = state
-                    .ecs()
-                    .read_storage::<comp::Waypoint>()
-                    .get(entity)
-                    .cloned();
-                let map_marker = state
-                    .ecs()
-                    .read_storage::<comp::MapMarker>()
-                    .get(entity)
-                    .cloned();
-                // Store last battle mode change
-                if let Some(change) = player_info.last_battlemode_change {
-                    let mode = player_info.battle_mode;
-                    let save = (mode, change);
-                    battlemode_buffer.push(char_id, save);
+                if state.read_storage::<comp::Hardcore>().get(entity).is_some()
+                    && state
+                        .read_storage::<comp::Health>()
+                        .get(entity)
+                        .map_or(false, |health| health.is_dead)
+                {
+                    // Delete dead hardcore characters instead of persisting
+                    character_updater
+                        .queue_character_deletion(player_info.uuid().to_string(), char_id);
+                } else {
+                    let waypoint = state
+                        .ecs()
+                        .read_storage::<comp::Waypoint>()
+                        .get(entity)
+                        .cloned();
+                    let map_marker = state
+                        .ecs()
+                        .read_storage::<comp::MapMarker>()
+                        .get(entity)
+                        .cloned();
+                    // Store last battle mode change
+                    if let Some(change) = player_info.last_battlemode_change {
+                        let mode = player_info.battle_mode;
+                        let save = (mode, change);
+                        battlemode_buffer.push(char_id, save);
+                    }
+
+                    // Get player's pets
+                    let alignments = state.ecs().read_storage::<comp::Alignment>();
+                    let bodies = state.ecs().read_storage::<comp::Body>();
+                    let stats = state.ecs().read_storage::<comp::Stats>();
+                    let pets = state.ecs().read_storage::<comp::Pet>();
+                    let pets = (&alignments, &bodies, &stats, &pets)
+                        .join()
+                        .filter_map(|(alignment, body, stats, pet)| match alignment {
+                            // Don't try to persist non-tameable pets (likely spawned
+                            // using /spawn) since there isn't any code to handle
+                            // persisting them
+                            common::comp::Alignment::Owned(ref pet_owner)
+                                if pet_owner == player_uid && is_tameable(body) =>
+                            {
+                                Some(((*pet).clone(), *body, stats.clone()))
+                            },
+                            _ => None,
+                        })
+                        .collect();
+
+                    character_updater.add_pending_logout_update((
+                        char_id,
+                        skill_set.clone(),
+                        inventory.clone(),
+                        pets,
+                        waypoint,
+                        active_abilities.clone(),
+                        map_marker,
+                    ));
                 }
-
-                // Get player's pets
-                let alignments = state.ecs().read_storage::<comp::Alignment>();
-                let bodies = state.ecs().read_storage::<comp::Body>();
-                let stats = state.ecs().read_storage::<comp::Stats>();
-                let pets = state.ecs().read_storage::<comp::Pet>();
-                let pets = (&alignments, &bodies, &stats, &pets)
-                    .join()
-                    .filter_map(|(alignment, body, stats, pet)| match alignment {
-                        // Don't try to persist non-tameable pets (likely spawned
-                        // using /spawn) since there isn't any code to handle
-                        // persisting them
-                        common::comp::Alignment::Owned(ref pet_owner)
-                            if pet_owner == player_uid && is_tameable(body) =>
-                        {
-                            Some(((*pet).clone(), *body, stats.clone()))
-                        },
-                        _ => None,
-                    })
-                    .collect();
-
-                character_updater.add_pending_logout_update((
-                    char_id,
-                    skill_set.clone(),
-                    inventory.clone(),
-                    pets,
-                    waypoint,
-                    active_abilities.clone(),
-                    map_marker,
-                ));
             },
             PresenceKind::Spectator => { /* Do nothing, spectators do not need persisting */ },
             PresenceKind::Possessor => { /* Do nothing, possessor's are not persisted */ },

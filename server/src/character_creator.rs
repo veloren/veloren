@@ -34,6 +34,7 @@ pub fn create_character(
     character_mainhand: Option<String>,
     character_offhand: Option<String>,
     body: Body,
+    hardcore: bool,
     character_updater: &mut WriteExpect<'_, CharacterUpdater>,
     waypoint: Option<Waypoint>,
 ) -> Result<(), CreationError> {
@@ -75,6 +76,7 @@ pub fn create_character(
 
     character_updater.create_character(entity, player_uuid, character_alias, PersistedComponents {
         body,
+        hardcore: hardcore.then_some(common::comp::Hardcore),
         stats,
         skill_set,
         inventory,

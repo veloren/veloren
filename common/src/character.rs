@@ -24,6 +24,7 @@ pub struct Character {
 pub struct CharacterItem {
     pub character: Character,
     pub body: comp::Body,
+    pub hardcore: bool,
     pub inventory: Inventory,
     // this string changes between database representation and human readable name in server.tick
     pub location: Option<String>,

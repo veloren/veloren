@@ -237,6 +237,7 @@ impl State {
         ecs.register_sync_marker();
         // Register server -> all clients synced components.
         ecs.register::<comp::Body>();
+        ecs.register::<comp::Hardcore>();
         ecs.register::<comp::body::parts::Heads>();
         ecs.register::<comp::Player>();
         ecs.register::<comp::Stats>();

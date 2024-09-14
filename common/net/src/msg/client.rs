@@ -52,6 +52,8 @@ pub enum ClientGeneral {
         mainhand: Option<String>,
         offhand: Option<String>,
         body: comp::Body,
+        // Character will be deleted upon death if true
+        hardcore: bool,
         start_site: Option<SiteId>,
     },
     DeleteCharacter(CharacterId),

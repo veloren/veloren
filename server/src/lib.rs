@@ -1084,6 +1084,7 @@ impl Server {
                                 Ok((character_data, skill_set_persistence_load_error)) => {
                                     let PersistedComponents {
                                         body,
+                                        hardcore,
                                         stats,
                                         skill_set,
                                         inventory,
@@ -1094,6 +1095,7 @@ impl Server {
                                     } = character_data;
                                     let character_data = (
                                         body,
+                                        hardcore,
                                         stats,
                                         skill_set,
                                         inventory,

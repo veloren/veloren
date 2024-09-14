@@ -27,9 +27,9 @@ use common::{
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
-        Alignment, Auras, Body, BuffEffect, CharacterState, Energy, Group, Health, Inventory,
-        Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind, SkillSet,
-        Stats, BASE_ABILITY_LIMIT,
+        Alignment, Auras, Body, BuffEffect, CharacterState, Energy, Group, Hardcore, Health,
+        Inventory, Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind,
+        SkillSet, Stats, BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
@@ -984,6 +984,7 @@ impl ServerEvent for RespawnEvent {
         WriteStorage<'a, comp::ForceUpdate>,
         WriteStorage<'a, Heads>,
         ReadStorage<'a, Client>,
+        ReadStorage<'a, Hardcore>,
         ReadStorage<'a, comp::Waypoint>,
     );
 
@@ -998,11 +999,13 @@ impl ServerEvent for RespawnEvent {
             mut force_updates,
             mut heads,
             clients,
+            hardcore,
             waypoints,
         ): Self::SystemData<'_>,
     ) {
         for RespawnEvent(entity) in events {
-            if clients.contains(entity) {
+            // Hardcore characters cannot respawn
+            if !hardcore.contains(entity) && clients.contains(entity) {
                 let respawn_point = waypoints
                     .get(entity)
                     .map(|wp| wp.get_pos())

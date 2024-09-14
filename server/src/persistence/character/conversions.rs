@@ -20,7 +20,7 @@ use common::{
         },
         item,
         skillset::{self, skills::Skill, SkillGroupKind, SkillSet},
-        ActiveAbilities, Body as CompBody, Inventory, MapMarker, Stats, Waypoint,
+        ActiveAbilities, Body as CompBody, Hardcore, Inventory, MapMarker, Stats, Waypoint,
     },
     resources::Time,
 };
@@ -763,6 +763,20 @@ pub fn convert_stats_from_database(alias: String, body: CompBody) -> Stats {
     let mut new_stats = Stats::empty(body);
     new_stats.name = alias;
     new_stats
+}
+
+pub fn convert_hardcore_from_database(hardcore: i64) -> Result<Option<Hardcore>, PersistenceError> {
+    match hardcore {
+        0 => Ok(None),
+        1 => Ok(Some(common::comp::Hardcore)),
+        _ => Err(PersistenceError::ConversionError(format!(
+            "Invalid hardcore field: {hardcore}"
+        ))),
+    }
+}
+
+pub fn convert_hardcore_to_database(hardcore: Option<Hardcore>) -> i64 {
+    if hardcore.is_some() { 1 } else { 0 }
 }
 
 /// NOTE: This does *not* return an error on failure, since we can partially

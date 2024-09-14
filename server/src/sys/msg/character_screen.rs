@@ -172,6 +172,7 @@ impl Sys {
                 mainhand,
                 offhand,
                 body,
+                hardcore,
                 #[cfg(feature = "worldgen")]
                 start_site,
                 #[cfg(not(feature = "worldgen"))]
@@ -222,6 +223,7 @@ impl Sys {
                         mainhand.clone(),
                         offhand.clone(),
                         body,
+                        hardcore,
                         character_updater,
                         waypoint,
                     ) {

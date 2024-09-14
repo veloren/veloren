@@ -60,6 +60,7 @@ widget_ids! {
         dead_txt[],
         health_txt[],
         combat_rating_indicators[],
+        hardcore_indicators[],
         timeout_bg,
         timeout,
     }
@@ -366,6 +367,13 @@ impl<'a> Widget for Group<'a> {
                         .resize(group_size, &mut ui.widget_id_generator())
                 })
             };
+            if state.ids.hardcore_indicators.len() < group_size {
+                state.update(|s| {
+                    s.ids
+                        .hardcore_indicators
+                        .resize(group_size, &mut ui.widget_id_generator())
+                })
+            };
             let client_state = self.client.state();
             let stats = client_state.ecs().read_storage::<Stats>();
             let skill_sets = client_state.ecs().read_storage::<common::comp::SkillSet>();
@@ -377,6 +385,7 @@ impl<'a> Widget for Group<'a> {
             let bodies = client_state.ecs().read_storage::<common::comp::Body>();
             let poises = client_state.ecs().read_storage::<common::comp::Poise>();
             let stances = client_state.ecs().read_storage::<common::comp::Stance>();
+            let hardcore = client_state.ecs().read_storage::<common::comp::Hardcore>();
 
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;
@@ -393,6 +402,7 @@ impl<'a> Widget for Group<'a> {
                 let body = entity.and_then(|entity| bodies.get(entity));
                 let poise = entity.and_then(|entity| poises.get(entity));
                 let stance = entity.and_then(|entity| stances.get(entity));
+                let hardcore = entity.and_then(|entity| hardcore.get(entity));
 
                 if let (
                     Some(stats),
@@ -499,9 +509,15 @@ impl<'a> Widget for Group<'a> {
                         .top_left_with_margins_on(state.ids.member_panels_frame[i], -20.0, 2.0)
                         .color(Some(indicator_col))
                         .set(state.ids.combat_rating_indicators[i], ui);
+                    if hardcore.is_some() {
+                        Image::new(self.imgs.hardcore)
+                            .w_h(18.0, 18.0)
+                            .top_left_with_margins_on(state.ids.member_panels_frame[i], -20.0, 22.0)
+                            .set(state.ids.hardcore_indicators[i], ui);
+                    }
                     // Panel Text
                     Text::new(&char_name)
-                     .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 22.0)
+                     .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 22.0 + hardcore.map_or(0.0, |_| 20.0))
                      .font_size(20)
                      .font_id(self.fonts.cyri.conrod_id)
                      .color(BLACK)

@@ -28,7 +28,7 @@ use common::{
         skills::Skill,
         slot::{EquipSlot, InvSlotId, Slot},
         CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
-        GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
+        GroupManip, Hardcore, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
         MapMarkerChange, PresenceKind, UtteranceKind,
     },
     event::{EventBus, LocalEvent, PluginHash, UpdateCharacterMetadata},
@@ -274,6 +274,7 @@ pub struct Client {
     weather: WeatherLerp,
     player_list: HashMap<Uid, PlayerInfo>,
     character_list: CharacterList,
+    character_being_deleted: Option<CharacterId>,
     sites: HashMap<SiteId, SiteInfoRich>,
     possible_starting_sites: Vec<SiteId>,
     pois: Vec<PoiInfo>,
@@ -1010,6 +1011,7 @@ impl Client {
             weather: WeatherLerp::default(),
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
+            character_being_deleted: None,
             sites: sites
                 .iter()
                 .map(|s| {
@@ -1278,6 +1280,7 @@ impl Client {
         mainhand: Option<String>,
         offhand: Option<String>,
         body: comp::Body,
+        hardcore: bool,
         start_site: Option<SiteId>,
     ) {
         self.character_list.loading = true;
@@ -1286,6 +1289,7 @@ impl Client {
             mainhand,
             offhand,
             body,
+            hardcore,
             start_site,
         });
     }
@@ -1843,7 +1847,12 @@ impl Client {
             .get(self.entity())
             .map_or(false, |h| h.is_dead)
         {
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
+            // Hardcore characters cannot respawn, kick them to character selection
+            if self.current::<Hardcore>().is_some() {
+                self.request_remove_character();
+            } else {
+                self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
+            }
         }
     }
 
@@ -2224,6 +2233,14 @@ impl Client {
             let mut tod = self.state.ecs_mut().write_resource::<TimeOfDay>();
             tod.0 = target_tod.0;
             self.target_time_of_day = None;
+        }
+
+        // Save dead hardcore character ids to avoid displaying in the character list
+        // while the server is still in the process of deleting the character
+        if self.current::<Hardcore>().is_some() && self.is_dead() {
+            if let Some(PresenceKind::Character(character_id)) = self.presence {
+                self.character_being_deleted = Some(character_id);
+            }
         }
 
         // 4) Tick the client's LocalState
@@ -2885,6 +2902,18 @@ impl Client {
         match msg {
             ServerGeneral::CharacterListUpdate(character_list) => {
                 self.character_list.characters = character_list;
+                if self.character_being_deleted.is_some() {
+                    if let Some(pos) = self
+                        .character_list
+                        .characters
+                        .iter()
+                        .position(|x| x.character.id == self.character_being_deleted)
+                    {
+                        self.character_list.characters.remove(pos);
+                    } else {
+                        self.character_being_deleted = None;
+                    }
+                }
                 self.character_list.loading = false;
             },
             ServerGeneral::CharacterActionError(error) => {

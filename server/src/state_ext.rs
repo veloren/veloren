@@ -579,6 +579,7 @@ impl StateExt for State {
     ) -> Result<(), String> {
         let PersistedComponents {
             body,
+            hardcore,
             stats,
             skill_set,
             inventory,
@@ -638,6 +639,10 @@ impl StateExt for State {
                 entity,
                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
             );
+
+            if let Some(hardcore) = hardcore {
+                self.write_component_ignore_entity_dead(entity, hardcore);
+            }
 
             if let Some(waypoint) = waypoint {
                 self.write_component_ignore_entity_dead(entity, RepositionOnChunkLoad {

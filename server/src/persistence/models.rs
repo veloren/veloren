@@ -4,6 +4,7 @@ pub struct Character {
     pub player_uuid: String,
     pub alias: String,
     pub waypoint: Option<String>,
+    pub hardcore: i64,
 }
 
 #[derive(Debug)]

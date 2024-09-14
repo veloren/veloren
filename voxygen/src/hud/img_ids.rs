@@ -489,6 +489,7 @@ image_ids! {
 
 
         // Other Icons/Art
+        hardcore: "voxygen.element.ui.map.icons.dif_map_icon",
         skull: "voxygen.element.ui.generic.icons.skull",
         skull_2: "voxygen.element.ui.generic.icons.skull_2",
         fireplace: "voxygen.element.ui.generic.fireplace",
