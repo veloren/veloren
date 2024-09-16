@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Active buttons in repair equipment interface when missing requirements.
 - Ability to send trade requests to every entity.
 - Naming of entries in controls settings.
+- Percentage values in descriptions of potion sickness and agility potion.
 
 ## [0.16.0] - 2024-03-30
 
