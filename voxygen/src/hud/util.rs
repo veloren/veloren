@@ -292,7 +292,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Agility => {
                             let key = buff_key(buff.kind);
                             i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
-                                "strength" => format_float(strength),
+                                "strength" => format_float(strength * 100.0),
                             })
                         },
                         // Independent of strength
