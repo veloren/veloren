@@ -39,7 +39,6 @@ gameinput-bag = Ранац
 gameinput-trade = Трампа
 gameinput-social = Социјала
 gameinput-sit = Седни
-gameinput-spellbook = Магије
 gameinput-settings = Подешавања
 gameinput-respawn = Препород
 gameinput-togglewield = Ис/Укључи Руку

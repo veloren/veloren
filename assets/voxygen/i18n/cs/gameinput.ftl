@@ -36,7 +36,6 @@ gameinput-bag = Batoh
 gameinput-trade = Obchod
 gameinput-social = Společnost
 gameinput-sit = Sednout
-gameinput-spellbook = Dovednosti
 gameinput-settings = Nastavení
 gameinput-respawn = Oživení
 gameinput-togglewield = Vzít zbraň do ruky

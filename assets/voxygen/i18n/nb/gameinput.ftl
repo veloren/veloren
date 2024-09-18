@@ -35,7 +35,6 @@ gameinput-map = Kart
 gameinput-bag = Bag
 gameinput-social = Sosial
 gameinput-sit = Sitt
-gameinput-spellbook = Trylleformler
 gameinput-settings = Innstillinger
 gameinput-respawn = Gjennopstå
 gameinput-togglewield = Veksle Våpen

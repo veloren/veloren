@@ -18,3 +18,7 @@ object-potion_combustion = Зілля Горіння
     .desc = Підпалює користувача.
 object-potion_agility = Зілля Спритності
     .desc = Біжи, Форест, біжи!
+object-potion_curious = Дивне Зілля
+    .desc = Цікаво, що воно робить...
+object-potion_freezing = Морозне Зілля
+    .desc = Заморожує мозок того, хто випив.

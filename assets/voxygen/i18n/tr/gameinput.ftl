@@ -35,7 +35,6 @@ gameinput-map = Harita
 gameinput-bag = Envanter
 gameinput-social = Sosyal
 gameinput-sit = Otur
-gameinput-spellbook = Büyüler
 gameinput-settings = Ayarlar
 gameinput-respawn = Yeniden Canlan
 gameinput-togglewield = Kuşan/koy

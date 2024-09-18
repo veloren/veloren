@@ -39,7 +39,6 @@ gameinput-bag = Торба
 gameinput-trade = Гандляваць
 gameinput-social = Іншыя гульцы
 gameinput-sit = Сесці
-gameinput-spellbook = Здольнасці
 gameinput-settings = Налады
 gameinput-respawn = Адрадзіцца
 gameinput-togglewield = Дастаць/схаваць зброю

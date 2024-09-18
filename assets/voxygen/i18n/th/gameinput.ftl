@@ -39,7 +39,6 @@ gameinput-bag = กระเป๋า
 gameinput-trade = แลกของ
 gameinput-social = สังคม
 gameinput-sit = นั่ง
-gameinput-spellbook = หนังสือเวทย์มนต์
 gameinput-settings = การตั้งค่า
 gameinput-respawn = เกิดใหม่
 gameinput-togglewield = สลับมือ

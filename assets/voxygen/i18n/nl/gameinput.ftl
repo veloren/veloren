@@ -35,7 +35,6 @@ gameinput-map = Kaart
 gameinput-bag = Rugzak
 gameinput-social = Sociaal
 gameinput-sit = Zit
-gameinput-spellbook = Spreuken
 gameinput-settings = Instellingen
 gameinput-respawn = Respawn
 gameinput-togglewield = Wapen Vastnemen/Wegsteken

@@ -40,7 +40,6 @@ gameinput-bag = Sac
 gameinput-trade = Échanger
 gameinput-social = Social
 gameinput-sit = S'asseoir
-gameinput-spellbook = Sorts
 gameinput-settings = Paramètres
 gameinput-respawn = Réapparaître
 gameinput-togglewield = Ranger Arme

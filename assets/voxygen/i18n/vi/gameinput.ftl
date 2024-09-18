@@ -39,7 +39,6 @@ gameinput-bag = Túi
 gameinput-trade = Giao Dịch
 gameinput-social = Xã Hội
 gameinput-sit = Ngồi
-gameinput-spellbook = Phép
 gameinput-settings = Cài Đặt
 gameinput-respawn = Tái Sinh
 gameinput-togglewield = Bật/Tắt Wield

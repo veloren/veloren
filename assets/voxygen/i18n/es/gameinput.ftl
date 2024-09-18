@@ -39,7 +39,6 @@ gameinput-bag = Abrir inventario
 gameinput-trade = Comerciar
 gameinput-social = Social
 gameinput-sit = Sentarse
-gameinput-spellbook = Abrir libro de habilidades
 gameinput-settings = Opciones
 gameinput-respawn = Reaparecer
 gameinput-togglewield = Sacar/Guardar armas

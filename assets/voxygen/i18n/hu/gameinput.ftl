@@ -37,7 +37,6 @@ gameinput-bag = Holmi
 gameinput-trade = Üzletelés
 gameinput-social = Közösségi
 gameinput-sit = Leülés
-gameinput-spellbook = Varázslatok
 gameinput-settings = Beállítások
 gameinput-respawn = Újraéledés
 gameinput-togglewield = Fegyver elővétele/elrakása

@@ -39,7 +39,6 @@ gameinput-bag = 가방
 gameinput-trade = 거래
 gameinput-social = 소셜
 gameinput-sit = 앉기
-gameinput-spellbook = 주문
 gameinput-settings = 설정
 gameinput-respawn = 리스폰
 gameinput-togglewield = 무기 넣었다빼기
