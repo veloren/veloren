@@ -39,7 +39,6 @@ gameinput-bag = Torba
 gameinput-trade = Handel
 gameinput-social = Społeczność
 gameinput-sit = Usiądź
-gameinput-spellbook = Czary
 gameinput-settings = Ustawienia
 gameinput-respawn = Odrodzenie
 gameinput-togglewield = Przełącz broń

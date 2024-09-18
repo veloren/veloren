@@ -40,7 +40,6 @@ gameinput-bag = Borsa
 gameinput-trade = Commercio
 gameinput-social = Social
 gameinput-sit = Sedersi
-gameinput-spellbook = Incantesimi
 gameinput-settings = Impostazioni
 gameinput-respawn = Rinascita
 gameinput-togglewield = Impugna/rinfodera

@@ -109,3 +109,5 @@ main-singleplayer-seed = Seed
 menu-singleplayer-confirm_regenerate = Bist du dir sicher, dass du „{ $world_name }“ regenerieren möchtest?
 main-singleplayer-map_scale = Vertikale Skalierung
 main-server-rules-seen-before = Diese Regeln haben sich geändert, seitdem du sie zuletzt akzeptiert hast.
+main-singleplayer-map_shape-circle = Kreis
+main-singleplayer-map_shape-square = Quadrat

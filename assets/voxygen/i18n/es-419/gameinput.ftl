@@ -39,7 +39,6 @@ gameinput-bag = Inventario
 gameinput-trade = Comerciar
 gameinput-social = Lista de jugadores
 gameinput-sit = Sentarse
-gameinput-spellbook = Hechizos
 gameinput-settings = Configuración
 gameinput-respawn = Reaparecer
 gameinput-togglewield = Alternar empuñadura

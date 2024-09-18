@@ -108,3 +108,4 @@ common-sprite-signboard = Вивіска
 common-sprite-street_lamp = Вулична Лампа
 common-sprite-lantern = Ліхтар
 common-sprite-seashell_lantern = Ліхтар з Морської Мушлі
+common-kind-recipegroup = Рецепти

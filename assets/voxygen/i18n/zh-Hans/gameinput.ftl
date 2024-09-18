@@ -40,7 +40,6 @@ gameinput-bag = 背包
 gameinput-trade = 交易
 gameinput-social = 社交
 gameinput-sit = 坐下
-gameinput-spellbook = 法术
 gameinput-settings = 设置
 gameinput-respawn = 重生
 gameinput-togglewield = 切换手持

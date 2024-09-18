@@ -39,7 +39,6 @@ gameinput-bag = Zorroa
 gameinput-trade = Trukaketa
 gameinput-social = Soziala
 gameinput-sit = Eseri
-gameinput-spellbook = Sorginkeria liburua
 gameinput-settings = Ezarpenak
 gameinput-respawn = Birsortu
 gameinput-togglewield = Arma

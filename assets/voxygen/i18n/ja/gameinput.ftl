@@ -36,7 +36,6 @@ gameinput-bag = バッグ
 gameinput-trade = 取引
 gameinput-social = ソーシャル
 gameinput-sit = 座る
-gameinput-spellbook = 唱える
 gameinput-settings = 設定
 gameinput-respawn = リスポーン
 gameinput-togglewield = 振り回し切り替え

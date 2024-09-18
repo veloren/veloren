@@ -39,7 +39,6 @@ gameinput-bag = Rucsac
 gameinput-trade = Negocează
 gameinput-social = Social
 gameinput-sit = Asează-te
-gameinput-spellbook = Vrăji
 gameinput-settings = Setări
 gameinput-respawn = Reînvie
 gameinput-togglewield = Cumută Mânuire

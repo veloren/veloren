@@ -79,3 +79,4 @@ hud-init-stage-client-load-init-data = { "[" }{ -client }]: Завантажен
 hud-init-stage-client-starting-client = { "[" }{ -client }]: Підготовка клієнта...
 hud-init-stage-render-pipeline = Створення render pipeline ({ $done }/{ $total })
 hud-deactivate = Деактивувати
+hud-pet = Пестити

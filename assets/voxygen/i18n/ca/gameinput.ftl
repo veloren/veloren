@@ -39,7 +39,6 @@ gameinput-bag = Bossa
 gameinput-trade = Comerciar
 gameinput-social = Social
 gameinput-sit = Seure
-gameinput-spellbook = Encanteris
 gameinput-settings = Opcions
 gameinput-respawn = Reaparèixer
 gameinput-togglewield = Alternar Empunyadura

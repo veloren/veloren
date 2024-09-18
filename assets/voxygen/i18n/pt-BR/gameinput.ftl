@@ -39,7 +39,6 @@ gameinput-bag = Mochila
 gameinput-trade = Troca
 gameinput-social = Social
 gameinput-sit = Sentar
-gameinput-spellbook = Magias
 gameinput-settings = Configurações
 gameinput-respawn = Renascer
 gameinput-togglewield = Alternar Empunhadura

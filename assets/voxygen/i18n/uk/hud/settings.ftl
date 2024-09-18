@@ -173,3 +173,6 @@ hud-settings-aim_offset_x = Горизонтальне Зміщення Приц
 hud-settings-aim_offset_y = Вертикальне Зміщення Прицілу
 hud-settings-present_mode-vsync_adaptive = Адаптивна vsync
 hud-settings-language_send_to_server = Надіслати налаштовану мову на сервери (для локалізації правил і "повідомлень дня")
+hud-settings-keybind-helper =
+    ЛМК щоб назначити
+    ПКМ щоб видалити

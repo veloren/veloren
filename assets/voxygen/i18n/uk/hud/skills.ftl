@@ -5,31 +5,31 @@ hud-skill-req_sp =
     { "\u000A" }
 
     Необхідно { $number } ОУ
-hud-skill-set_as_exp_bar = Встановити як шкалу досвіду
-hud-skill-unlck_sword_title = Меч
+hud-skill-set_as_exp_bar = Відстежувати прогрес на шкалі досвіду
+hud-skill-unlck_sword_title = Володіння мечем
 hud-skill-unlck_sword = Відкриває дерево навичок володіння мечем{ $SP }
-hud-skill-unlck_axe_title = Сокира
-hud-skill-unlck_axe = Відкриває дерево навичок володіння сокирою{ $SP }
-hud-skill-unlck_hammer_title = Молот
-hud-skill-unlck_hammer = Відкриває дерево навичок володіння молотом{ $SP }
-hud-skill-unlck_bow_title = Лук
-hud-skill-unlck_bow = Відкриває дерево навичок володіння луком{ $SP }
-hud-skill-unlck_staff_title = Посох
-hud-skill-unlck_staff = Відкриває дерево навичок володіння посохом{ $SP }
-hud-skill-unlck_sceptre_title = Цілющий скіпетр
-hud-skill-unlck_sceptre = Відкриває дерево навичок володіння цілющим скіпетром{ $SP }
+hud-skill-unlck_axe_title = Володіння сокирою
+hud-skill-unlck_axe = Відкриває дерево навичок володіння сокирою.{ $SP }
+hud-skill-unlck_hammer_title = Володіння молотом
+hud-skill-unlck_hammer = Відкриває дерево навичок володіння молотом.{ $SP }
+hud-skill-unlck_bow_title = Володіння луком
+hud-skill-unlck_bow = Відкриває дерево навичок володіння луком.{ $SP }
+hud-skill-unlck_staff_title = Володіння посохом
+hud-skill-unlck_staff = Відкриває дерево навичок володіння посохом.{ $SP }
+hud-skill-unlck_sceptre_title = Володіння цілющим скіпетром
+hud-skill-unlck_sceptre = Відкриває дерево навичок володіння цілющим скіпетром.{ $SP }
 hud-skill-climbing_title = Лазiння
 hud-skill-climbing = Стрибай вище
 hud-skill-climbing_cost_title = Витрати на лазiння
-hud-skill-climbing_cost = Лазіння витрачає на { $boost }% енергії менше{ $SP }
+hud-skill-climbing_cost = Лазіння витрачає на { $boost }% енергії менше.{ $SP }
 hud-skill-climbing_speed_title = Швидкість лазіння
-hud-skill-climbing_speed = Лізь на { $boost }% швидше{ $SP }
+hud-skill-climbing_speed = Лізь на { $boost }% швидше.{ $SP }
 hud-skill-swim_title = Плавання
-hud-skill-swim = Пересування у вологому середовищі
+hud-skill-swim = Рух у воді
 hud-skill-swim_speed_title = Швидкість плавання
-hud-skill-swim_speed = Пливи на { $boost }% швидше{ $SP }
+hud-skill-swim_speed = Пливи на { $boost }% швидше.{ $SP }
 hud-skill-sc_lifesteal_title = Промінь життєкрада
-hud-skill-sc_lifesteal = Випивай життя зі своїх ворогів
+hud-skill-sc_lifesteal = Випивай життя зі своїх ворогів.
 hud-skill-sc_lifesteal_damage_title = Шкода
 hud-skill-sc_lifesteal_damage = Завдає на { $boost }% більше ушкоджень{ $SP }
 hud-skill-sc_lifesteal_range_title = Дальність
@@ -127,3 +127,19 @@ hud-skill-pick_strike_oregain_title = Щасливий удар (Руди)
 hud-skill-pick_strike_oregain = Шанс здобути додаткову руду (+{ $boost }% за рівень){ $SP }
 hud-skill-pick_strike_gemgain_title = Щасливий удар (Камені)
 hud-skill-pick_strike_gemgain = Шанс здобути додатковий камінь (+{ $boost }% за рівень){ $SP }
+# Skill tree UI
+hud-skill_tree-sword = Меч
+# Skill tree UI
+hud-skill_tree-axe = Сокира
+# Skill tree UI
+hud-skill_tree-hammer = Молот
+# Skill tree UI
+hud-skill_tree-bow = Лук
+# Skill tree UI
+hud-skill_tree-staff = Вогняний Посох
+# Skill tree UI
+hud-skill_tree-sceptre = Цілющий Скіпетр
+# Skill tree error dialog
+hud-skill-persistence-hash_mismatch = Була виявлена різниця в одній із ваших груп навичок з моменту як ви грали востаннє.
+# Skill tree error dialog
+hud-skill-persistence-deserialization_failure = Сталась помилка під час завантаження деяких ваших навичок із бази даних.

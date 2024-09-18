@@ -21,7 +21,7 @@ hud-bag-inactive_mainhand = Неактивный слот левой руки
 hud-bag-inactive_offhand = Неактивный слот правой руки
 hud-bag-swap_equipped_weapons_title = Поменять местами экипированное оружие
 hud-bag-swap_equipped_weapons_desc = Нажмите { $key }
-hud-bag-bag = Рюкзак
+hud-bag-bag = Сумка
 hud-bag-health = Здоровье
 hud-bag-energy = Энергия
 hud-bag-combat_rating = Боевой Рейтинг
@@ -31,7 +31,7 @@ hud-bag-stealth = Скрытность
 hud-bag-combat_rating_desc =
     Рассчитано с учетом вашего
     оборудования и здоровья.
-hud-bag-protection_desc = Снижение урона за счет брони
+hud-bag-protection_desc = Снижение урона за счет брони.
 hud-bag-stun_res_desc =
     Устойчивость к оглушению от последовательных ударов.
     Восстанавливается как энергия.

@@ -39,7 +39,6 @@ gameinput-bag = Säck
 gameinput-trade = Byteshandla
 gameinput-social = Socialt
 gameinput-sit = Sitt
-gameinput-spellbook = Trollformler
 gameinput-settings = Inställningar
 gameinput-respawn = Återuppliva
 gameinput-togglewield = Växla draget vapen
