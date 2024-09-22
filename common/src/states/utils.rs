@@ -313,7 +313,9 @@ impl Body {
     pub fn fly_thrust(&self) -> Option<f32> {
         match self {
             Body::BirdMedium(body) => match body.species {
-                bird_medium::Species::Bat => Some(GRAVITY * self.mass().0 * 0.5),
+                bird_medium::Species::Bat | bird_medium::Species::BloodmoonBat => {
+                    Some(GRAVITY * self.mass().0 * 0.5)
+                },
                 _ => Some(GRAVITY * self.mass().0 * 2.0),
             },
             Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 0.5),

@@ -271,6 +271,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (-2.0, 13.5),
                 (Cursekeeper, _) => (2.0, 6.5),
                 (Forgemaster, _) => (5.0, 6.0),
+                (Strigoi, _) => (10.0, 8.0),
+                (Executioner, _) => (0.0, 10.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -305,6 +307,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (10.5, -7.0),
                 (Cursekeeper, _) => (10.5, -7.0),
                 (Forgemaster, _) => (-1.0, 5.5),
+                (Strigoi, _) => (-2.0, -4.0),
+                (Executioner, _) => (-2.0, -4.0),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
@@ -340,6 +344,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (3.0, 15.5),
                 (Cursekeeper, _) => (-4.0, 20.0),
                 (Forgemaster, _) => (-1.0, 32.0),
+                (Strigoi, _) => (-4.0, 27.5),
+                (Executioner, _) => (0.0, 24.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -375,6 +381,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (-1.5, -2.5),
                 (Cursekeeper, _) => (-1.5, -4.5),
                 (Forgemaster, _) => (0.0, -5.5),
+                (Strigoi, _) => (3.0, -9.0),
+                (Executioner, _) => (-3.0, -5.0),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -383,6 +391,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Slysaurok, _) => (-4.5, -6.0),
                 (Minotaur, _) => (-3.0, -6.0),
                 (AdletElder, _) => (-4.5, -6.0),
+                (Strigoi, _) => (-4.5, -8.0),
                 _ => (0.0, 0.0),
             },
             shoulder: match (body.species, body.body_type) {
@@ -419,6 +428,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (9.0, -1.0, 4.0),
                 (Cursekeeper, _) => (9.5, -0.5, 2.5),
                 (Forgemaster, _) => (20.0, 4.0, 13.0),
+                (Strigoi, _) => (13.5, 2.0, 0.5),
+                (Executioner, _) => (8.5, 0.0, 4.0),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
@@ -454,6 +465,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (10.0, -1.0, -1.5),
                 (Cursekeeper, _) => (11.0, -1.0, -4.0),
                 (Forgemaster, _) => (19.0, 4.0, -1.0),
+                (Strigoi, _) => (17.0, 2.5, -5.5),
+                (Executioner, _) => (9.0, 0.5, -1.5),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -489,6 +502,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (3.5, 1.0, -5.0),
                 (Cursekeeper, _) => (5.0, 0.5, -6.0),
                 (Forgemaster, _) => (9.0, 0.0, -10.0),
+                (Strigoi, _) => (5.0, 1.0, -6.0),
+                (Executioner, _) => (3.0, 1.0, -7.0),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
@@ -524,6 +539,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (3.5, 2.5, -10.5),
                 (Cursekeeper, _) => (5.5, 2.5, -13.0),
                 (Forgemaster, _) => (8.5, 2.0, -19.5),
+                (Strigoi, _) => (6.0, 2.5, -14.0),
+                (Executioner, _) => (3.0, 7.5, -13.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.12,
@@ -559,6 +576,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => 1.0,
                 (Cursekeeper, _) => 1.0,
                 (Forgemaster, _) => 1.0,
+                (Strigoi, _) => 1.0,
+                (Executioner, _) => 1.0,
             },
             tempo: match (body.species, body.body_type) {
                 (Ogre, Male) => 0.9,
@@ -610,6 +629,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (TerracottaPursuer, _) => (6.0, 0.0),
                 (Cursekeeper, _) => (14.0, 0.0),
                 (Forgemaster, _) => (16.0, 0.0),
+                (Strigoi, _) => (12.5, 0.0),
+                (Executioner, _) => (8.0, 0.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
@@ -713,6 +734,8 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (TerracottaPursuer, _) => (0.0, 0.0, -1.0),
         (Cursekeeper, _) => (0.0, 0.0, -1.0),
         (Forgemaster, _) => (1.0, 2.0, 4.0),
+        (Strigoi, _) => (0.0, 0.0, -1.0),
+        (Executioner, _) => (0.0, 0.0, -1.0),
     }
     .into()
 }

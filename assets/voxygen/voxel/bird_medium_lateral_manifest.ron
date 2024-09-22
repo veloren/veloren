@@ -831,4 +831,108 @@
             lateral: ("npc.toucan.female.leg_r"),
         ),
     ),
+    (BloodmoonBat, Male): (
+        wing_in_l: (
+            offset: (-11.0, -9.0, -1.5),
+            lateral: ("npc.bloodmoon_bat.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -9.0, -1.5),
+            lateral: ("npc.bloodmoon_bat.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-14.0, -17.0, -0.5),
+            lateral: ("npc.bloodmoon_bat.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -17.0, -0.5),
+            lateral: ("npc.bloodmoon_bat.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-6.0, -1.5, -6.0),
+            lateral: ("npc.bloodmoon_bat.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-0.0, -1.5, -6.0),
+            lateral: ("npc.bloodmoon_bat.male.leg_r"),
+        )
+    ),
+    (BloodmoonBat, Female): (
+        wing_in_l: (
+            offset: (-11.0, -9.0, -1.5),
+            lateral: ("npc.bloodmoon_bat.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -9.0, -1.5),
+            lateral: ("npc.bloodmoon_bat.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-14.0, -17.0, -0.5),
+            lateral: ("npc.bloodmoon_bat.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -17.0, -0.5),
+            lateral: ("npc.bloodmoon_bat.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-6.0, -1.5, -6.0),
+            lateral: ("npc.bloodmoon_bat.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-0.0, -1.5, -6.0),
+            lateral: ("npc.bloodmoon_bat.male.leg_r"),
+        )
+    ),
+    (VampireBat, Male): (
+        wing_in_l: (
+            offset: (-5.0, -6.0, -1.0),
+            lateral: ("npc.vampire_bat.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -6.0, -1.0),
+            lateral: ("npc.vampire_bat.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-11.0, -10.0, -1.0),
+            lateral: ("npc.vampire_bat.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -10.0, -1.0),
+            lateral: ("npc.vampire_bat.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.0, 2.0, -8.5),
+            lateral: ("npc.vampire_bat.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.0, 2.0, -8.5),
+            lateral: ("npc.vampire_bat.male.leg_r"),
+        )
+    ),
+    (VampireBat, Female): (
+        wing_in_l: (
+            offset: (-5.0, -6.0, -1.0),
+            lateral: ("npc.vampire_bat.male.wing_in_r"),
+        ),
+        wing_in_r: (
+            offset: (-0.0, -6.0, -1.0),
+            lateral: ("npc.vampire_bat.male.wing_in_r"),
+        ),
+        wing_out_l: (
+            offset: (-11.0, -10.0, -1.0),
+            lateral: ("npc.vampire_bat.male.wing_out_r"),
+        ),
+        wing_out_r: (
+            offset: (0.0, -10.0, -1.0),
+            lateral: ("npc.vampire_bat.male.wing_out_r"),
+        ),
+        leg_l: (
+            offset: (-2.0, 2.0, -8.5),
+            lateral: ("npc.vampire_bat.male.leg_r"),
+        ),
+        leg_r: (
+            offset: (-2.0, 2.0, -8.5),
+            lateral: ("npc.vampire_bat.male.leg_r"),
+        )
+    ),
 })

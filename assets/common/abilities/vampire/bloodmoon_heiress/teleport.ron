@@ -1,0 +1,6 @@
+Blink(
+    buildup_duration: 0.2,
+    recover_duration: 0.2,
+    max_range: 100.0,
+    frontend_specifier: Some(CultistFlame),
+)

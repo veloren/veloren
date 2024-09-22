@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("vampire_bat"),
+    alignment: Alignment(Enemy),
+    loot: Nothing,
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

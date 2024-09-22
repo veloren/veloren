@@ -156,6 +156,7 @@ pub enum SiteKind {
     DwarvenMine,
     Cultist,
     Sahagin,
+    VampireCastle,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

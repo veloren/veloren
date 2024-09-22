@@ -86,7 +86,7 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam, biped_large, biped_small, bird_large, golem, humanoid,
+        beam, biped_large, biped_small, bird_large, bird_medium, golem, humanoid,
         item::{item_key::ItemKey, AbilitySpec, ItemDefinitionId, ItemDesc, ItemKind, ToolKind},
         object,
         poise::PoiseState,
@@ -185,6 +185,8 @@ pub enum SfxEvent {
     SurpriseEgg,
     Bleep,
     Charge,
+    StrigoiHead,
+    BloodmoonHeiressSummon,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -219,6 +221,7 @@ pub enum VoiceKind {
     Wolf,
     Wyvern,
     Phoenix,
+    VampireBat,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -267,7 +270,12 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             quadruped_medium::Species::Antelope => VoiceKind::Antelope,
             _ => return None,
         },
-        Body::BirdMedium(_) => VoiceKind::Bird,
+        Body::BirdMedium(body) => match body.species {
+            bird_medium::Species::BloodmoonBat | bird_medium::Species::VampireBat => {
+                VoiceKind::VampireBat
+            },
+            _ => VoiceKind::Bird,
+        },
         Body::BirdLarge(body) => match body.species {
             bird_large::Species::CloudWyvern
             | bird_large::Species::FlameWyvern
@@ -512,13 +520,17 @@ impl SfxMgr {
                         _ => {},
                     },
                     Body::BipedLarge(body) => match body.species {
-                        biped_large::Species::Cursekeeper => {
-                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Swoosh);
-                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
-                        },
                         biped_large::Species::TerracottaBesieger
                         | biped_large::Species::TerracottaPursuer => {
                             let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
+                        },
+                        _ => {},
+                    },
+                    Body::BirdMedium(body) => match body.species {
+                        bird_medium::Species::Bat => {
+                            let sfx_trigger_item =
+                                triggers.get_key_value(&SfxEvent::BloodmoonHeiressSummon);
                             audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                         },
                         _ => {},
@@ -584,6 +596,7 @@ impl SfxMgr {
                         | object::Body::ArrowTurret
                         | object::Body::ArrowClay
                         | object::Body::BoltBesieger
+                        | object::Body::HarlequinDagger
                         | object::Body::SpectralSwordSmall
                         | object::Body::SpectralSwordLarge,
                     ) => {
@@ -618,6 +631,10 @@ impl SfxMgr {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Yeet);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
+                    Body::Object(object::Body::StrigoiHead) => {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::StrigoiHead);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
+                    },
                     _ => {
                         // not mapped to sfx file
                     },
@@ -637,6 +654,7 @@ impl SfxMgr {
                     | object::Body::ArrowTurret
                     | object::Body::ArrowClay
                     | object::Body::BoltBesieger
+                    | object::Body::HarlequinDagger
                     | object::Body::SpectralSwordSmall
                     | object::Body::SpectralSwordLarge,
                 ) => {
@@ -657,7 +675,10 @@ impl SfxMgr {
                     }
                 },
                 Body::Object(
-                    object::Body::AdletTrap | object::Body::Mine | object::Body::Pebble,
+                    object::Body::AdletTrap
+                    | object::Body::Mine
+                    | object::Body::Pebble
+                    | object::Body::StrigoiHead,
                 ) => {
                     if target.is_none() {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);

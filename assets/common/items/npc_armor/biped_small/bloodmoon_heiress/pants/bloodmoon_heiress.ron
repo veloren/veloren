@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Bloodmoon Heiress Pants",
+    legacy_description: "Bloodmoon Heiress Pants",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct((
+            protection: Some(Normal(12.0)),
+            poise_resilience: Some(Normal(6.0)),
+            precision_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

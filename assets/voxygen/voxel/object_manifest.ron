@@ -49,6 +49,16 @@
             central: ("armor.empty"),
         )
     ),
+    BloodBomb: (
+        bone0: (
+            offset: (-5.5, -5.5, 0.0),
+            central: ("object.blood_bomb"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     FireworkBlue: (
         bone0: (
             offset: (0.0, 0.0, 0.0),
@@ -253,6 +263,16 @@
         bone0: (
             offset: (-4.0, -5.0, 0.0),
             central: ("object.pumpkin_5"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    StrigoiHead: (
+        bone0: (
+            offset: (-9.5, -5.5, 0.0),
+            central: ("weapon.projectile.strigoi_head"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
@@ -1135,6 +1155,16 @@
         bone0: (
             offset: (0.0, 0.0, 0.0),
             central: ("object.recipe"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    HarlequinDagger: (
+        bone0: (
+            offset: (-0.5, -7.0, -1.0),
+            central: ("weapon.projectile.harlequin-dagger"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),

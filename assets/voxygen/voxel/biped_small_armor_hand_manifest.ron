@@ -256,5 +256,29 @@
                  vox_spec: ("npc.jiangshi.hand_r", (0.0, -2.0, -11.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.bloodmoon_heiress.hand.bloodmoon_heiress": (
+            left: (
+                vox_spec: ("npc.bloodmoon_heiress.hand", (-7.0, -4.0, -10.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.bloodmoon_heiress.hand", (0.0, -4.0, -10.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.bloodservant.hand.bloodservant": (
+            left: (
+                vox_spec: ("npc.bloodservant.hand_r", (-3.0, -1.5, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.bloodservant.hand_r", (0.0, -1.5, -9.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.harlequin.hand.harlequin": (
+            left: (
+                vox_spec: ("npc.harlequin.hand_r", (-4.0, -2.5, -10.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.harlequin.hand_r", (0.0, -2.5, -10.0)),
+            )
+        ),
     }
 ))

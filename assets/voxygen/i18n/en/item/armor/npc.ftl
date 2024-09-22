@@ -13,6 +13,9 @@ common-items-npc_armor-bird_large-phoenix = Phoenix Armor
 common-items-npc_armor-bird_large-wyvern = Wyvern Armor
     .desc = Generic Protection.
 
+common-items-npc_armor-bird_medium-bloodmoon_bat = Bloodmoon Bat Armor
+    .desc = Poise Resilience.
+
 common-items-npc_armor-golem-claygolem = Clay Golem Armor
     .desc = Worn by clay golem.
 
@@ -530,6 +533,51 @@ common-items-npc_armor-biped_small-shamanic_spirit-pants-shamanic_spirit = Shama
     .desc = Ceremonial attire used by members.
 
 common-items-npc_armor-biped_small-shamanic_spirit-hand-shamanic_spirit = Shamanic Spirit
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodmoon_heiress-head-bloodmoon_heiress = Bloodmoon Heiress
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodmoon_heiress-chest-bloodmoon_heiress = Bloodmoon Heiress
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodmoon_heiress-pants-bloodmoon_heiress = Bloodmoon Heiress
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodmoon_heiress-hand-bloodmoon_heiress = Bloodmoon Heiress
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodmoon_heiress-foot-bloodmoon_heiress = Bloodmoon Heiress
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodservant-head-bloodservant = Bloodservant
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodservant-chest-bloodservant = Bloodservant
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodservant-pants-bloodservant = Bloodservant
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodservant-hand-bloodservant = Bloodservant
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-bloodservant-foot-bloodservant = Bloodservant
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-harlequin-head-harlequin = Harlequin
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-harlequin-chest-harlequin = Harlequin
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-harlequin-pants-harlequin = Harlequin
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-harlequin-hand-harlequin = Harlequin
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-harlequin-foot-harlequin = Harlequin
     .desc = Ceremonial attire used by members.
 
 common-items-npc_armor-chest-plate_red = Iron Chestplate

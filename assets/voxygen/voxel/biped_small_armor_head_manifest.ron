@@ -91,5 +91,14 @@
         "common.items.npc_armor.biped_small.jiangshi.head.jiangshi": (
             vox_spec: ("npc.jiangshi.head", (-8.0, -9.0, -8.5)),
         ),
+        "common.items.npc_armor.biped_small.bloodmoon_heiress.head.bloodmoon_heiress": (
+            vox_spec: ("npc.bloodmoon_heiress.head", (-8.5, -11.5, 0.0)),
+        ),
+        "common.items.npc_armor.biped_small.bloodservant.head.bloodservant": (
+            vox_spec: ("npc.bloodservant.head", (-8.0, -7.0, -6.5)),
+        ),
+        "common.items.npc_armor.biped_small.harlequin.head.harlequin": (
+            vox_spec: ("npc.harlequin.head", (-10.0, -4.5, -5.5)),
+        ),
     },
 ))

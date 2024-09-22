@@ -50,10 +50,12 @@ make_case_elim!(
         HaniwaKeyhole(consumes: String) = 30,
         TerracottaKeyhole(consumes: String) = 31,
         SahaginKeyhole(consumes: String) = 32,
-        MapleLeaves = 33,
-        CherryLeaves = 34,
-        AutumnLeaves = 35,
-        RedwoodWood = 36,
+        VampireKeyhole(consumes: String) = 33,
+        BloodmoonKeyhole(consumes: String) = 34,
+        MapleLeaves = 35,
+        CherryLeaves = 36,
+        AutumnLeaves = 37,
+        RedwoodWood = 38,
     }
 );
 

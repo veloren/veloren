@@ -207,6 +207,8 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::BoneKeyhole
             | SpriteKind::HaniwaKeyhole
             | SpriteKind::SahaginKeyhole
+            | SpriteKind::VampireKeyhole
+            | SpriteKind::BloodmoonKeyhole
             | SpriteKind::GlassKeyhole
             | SpriteKind::KeyholeBars
             | SpriteKind::TerracottaKeyhole => Some(SpriteInteractKind::Unlock),

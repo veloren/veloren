@@ -25,6 +25,9 @@
             "common.items.npc_armor.bird_large.wyvern",
         ): "common-items-npc_armor-bird_large-wyvern",
         Simple(
+            "common.items.npc_armor.bird_medium.bloodmoon_bat",
+        ): "common-items-npc_armor-bird_medium-bloodmoon_bat",
+        Simple(
             "common.items.npc_armor.golem.claygolem",
         ): "common-items-npc_armor-golem-claygolem",
         Simple(
@@ -544,6 +547,51 @@
             "common.items.npc_armor.biped_small.shamanic_spirit.hand.shamanic_spirit",
         ): "common-items-npc_armor-biped_small-shamanic_spirit-hand-shamanic_spirit",
         Simple(
+            "common.items.npc_armor.biped_small.bloodmoon_heiress.chest.bloodmoon_heiress",
+        ): "common-items-npc_armor-biped_small-bloodmoon_heiress-chest-bloodmoon_heiress",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodmoon_heiress.foot.bloodmoon_heiress",
+        ): "common-items-npc_armor-biped_small-bloodmoon_heiress-foot-bloodmoon_heiress",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodmoon_heiress.hand.bloodmoon_heiress",
+        ): "common-items-npc_armor-biped_small-bloodmoon_heiress-hand-bloodmoon_heiress",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodmoon_heiress.head.bloodmoon_heiress",
+        ): "common-items-npc_armor-biped_small-bloodmoon_heiress-head-bloodmoon_heiress",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodmoon_heiress.pants.bloodmoon_heiress",
+        ): "common-items-npc_armor-biped_small-bloodmoon_heiress-pants-bloodmoon_heiress",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodservant.chest.bloodservant",
+        ): "common-items-npc_armor-biped_small-bloodservant-chest-bloodservant",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodservant.foot.bloodservant",
+        ): "common-items-npc_armor-biped_small-bloodservant-foot-bloodservant",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodservant.hand.bloodservant",
+        ): "common-items-npc_armor-biped_small-bloodservant-hand-bloodservant",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodservant.head.bloodservant",
+        ): "common-items-npc_armor-biped_small-bloodservant-head-bloodservant",
+        Simple(
+            "common.items.npc_armor.biped_small.bloodservant.pants.bloodservant",
+        ): "common-items-npc_armor-biped_small-bloodservant-pants-bloodservant",
+        Simple(
+            "common.items.npc_armor.biped_small.harlequin.chest.harlequin",
+        ): "common-items-npc_armor-biped_small-harlequin-chest-harlequin",
+        Simple(
+            "common.items.npc_armor.biped_small.harlequin.foot.harlequin",
+        ): "common-items-npc_armor-biped_small-harlequin-foot-harlequin",
+        Simple(
+            "common.items.npc_armor.biped_small.harlequin.hand.harlequin",
+        ): "common-items-npc_armor-biped_small-harlequin-hand-harlequin",
+        Simple(
+            "common.items.npc_armor.biped_small.harlequin.head.harlequin",
+        ): "common-items-npc_armor-biped_small-harlequin-head-harlequin",
+        Simple(
+            "common.items.npc_armor.biped_small.harlequin.pants.harlequin",
+        ): "common-items-npc_armor-biped_small-harlequin-pants-harlequin",
+        Simple(
             "common.items.npc_armor.chest.leather_blue",
         ): "armor-leather_blue-pants",
         Simple(
@@ -636,6 +684,12 @@
         Simple(
             "common.items.keys.sahagin_key",
         ): "object-key-sahagin",
+        Simple(
+            "common.items.keys.vampire_key",
+        ): "object-key-vampire",
+        Simple(
+            "common.items.keys.bloodmoon_key",
+        ): "object-key-bloodmoon",        
         Simple(
             "common.items.weapons.shield.shield_1",
         ): "weapon-shield-wood-0",
@@ -2410,6 +2464,15 @@
             "common.items.npc_weapons.biped_small.haniwa.soldier",
         ): "common-items-npc_weapons-biped_small-haniwa-soldier",
         Simple(
+            "common.items.npc_weapons.biped_small.vampire.harlequin_dagger",
+        ): "common-items-npc_weapons-biped_small-vampire-harlequin_dagger",
+        Simple(
+            "common.items.npc_weapons.biped_small.vampire.bloodservant_axe",
+        ): "common-items-npc_weapons-biped_small-vampire-bloodservant_axe",
+        Simple(
+            "common.items.npc_weapons.biped_small.vampire.bloodmoon_heiress_sword",
+        ): "common-items-npc_weapons-biped_small-vampire-bloodmoon_heiress_sword",
+        Simple(
             "common.items.npc_weapons.bow.bipedlarge-velorite",
         ): "common-items-npc_weapons-bow-bipedlarge-velorite",
         Simple(
@@ -2421,6 +2484,9 @@
         Simple(
             "common.items.npc_weapons.axe.gigas_frost_axe",
         ): "common-items-npc_weapons-axe-gigas_frost_axe",
+        Simple(
+            "common.items.npc_weapons.axe.executioner_axe",
+        ): "common-items-npc_weapons-axe-executioner_axe",
         Simple(
             "common.items.npc_weapons.axe.minotaur_axe",
         ): "common-items-npc_weapons-axe-minotaur_axe",
@@ -2778,6 +2844,15 @@
         Simple(
             "common.items.npc_weapons.unique.arthropods.weevil",
         ): "common-items-npc_weapons-unique-arthropods-weevil",
+        Simple(
+            "common.items.npc_weapons.unique.bloodmoon_bat",
+        ): "common-items-npc_weapons-unique-bloodmoon_bat",
+        Simple(
+            "common.items.npc_weapons.unique.vampire_bat",
+        ): "common-items-npc_weapons-unique-vampire_bat",
+        Simple(
+            "common.items.npc_weapons.unique.strigoi_claws",
+        ): "common-items-npc_weapons-unique-strigoi_claws",
         Simple(
             "common.items.npc_weapons.hammer.bipedlarge-cultist",
         ): "common-items-npc_weapons-hammer-bipedlarge-cultist",

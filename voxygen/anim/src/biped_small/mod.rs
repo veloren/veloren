@@ -114,6 +114,7 @@ pub struct SkeletonAttr {
     foot: (f32, f32, f32),
     grip: (f32, f32, f32),
     scaler: f32,
+    wing_for_foot: bool,
 }
 
 impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -138,6 +139,7 @@ impl Default for SkeletonAttr {
             foot: (0.0, 0.0, 0.0),
             grip: (0.0, 0.0, 0.0),
             scaler: 0.0,
+            wing_for_foot: false,
         }
     }
 }
@@ -167,6 +169,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Jiangshi, _) => (-1.0, 6.5),
                 (TreasureEgg, _) => (-1.0, 9.0),
                 (GnarlingChieftain, _) => (0.0, 6.0),
+                (BloodmoonHeiress, _) => (0.0, 3.5),
+                (Bloodservant, _) => (-1.0, 6.5),
+                (Harlequin, _) => (0.0, 8.0),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -189,6 +194,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Jiangshi, _) => (0.0, 14.0),
                 (TreasureEgg, _) => (0.0, 3.0),
                 (GnarlingChieftain, _) => (0.0, 7.5),
+                (BloodmoonHeiress, _) => (0.0, 21.0),
+                (Bloodservant, _) => (0.0, 14.0),
+                (Harlequin, _) => (0.0, 13.5),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -211,6 +219,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Jiangshi, _) => (0.5, -6.0),
                 (TreasureEgg, _) => (0.0, 1.0),
                 (GnarlingChieftain, _) => (0.0, -3.0),
+                (BloodmoonHeiress, _) => (0.0, -8.0),
+                (Bloodservant, _) => (0.0, -6.0),
+                (Harlequin, _) => (0.0, -5.5),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -233,6 +244,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Jiangshi, _) => (0.0, 0.0),
                 (TreasureEgg, _) => (0.0, 0.0),
                 (GnarlingChieftain, _) => (-2.0, 1.5),
+                (BloodmoonHeiress, _) => (0.0, 0.0),
+                (Bloodservant, _) => (0.0, 0.0),
+                (Harlequin, _) => (0.0, 0.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -255,6 +269,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Jiangshi, _) => (5.0, -1.0, 3.0),
                 (TreasureEgg, _) => (5.0, 2.0, 5.0),
                 (GnarlingChieftain, _) => (4.0, 0.0, 1.5),
+                (BloodmoonHeiress, _) => (2.5, 2.5, 7.0),
+                (Bloodservant, _) => (5.0, -1.0, 2.0),
+                (Harlequin, _) => (5.0, 0.0, 2.5),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -277,6 +294,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Jiangshi, _) => (3.0, 0.0, 8.0),
                 (TreasureEgg, _) => (2.0, 0.5, 4.0),
                 (GnarlingChieftain, _) => (2.5, 1.0, 5.0),
+                (BloodmoonHeiress, _) => (8.0, 0.5, 32.5),
+                (Bloodservant, _) => (2.5, 1.0, 7.0),
+                (Harlequin, _) => (2.5, 2.0, 10.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -299,6 +319,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Jiangshi, _) => (0.0, 0.0, 8.0),
                 (TreasureEgg, _) => (0.0, 0.0, 7.0),
                 (GnarlingChieftain, _) => (0.0, 0.0, 7.0),
+                (BloodmoonHeiress, _) => (0.0, 0.0, 8.0),
+                (Bloodservant, _) => (0.0, 0.0, 8.0),
+                (Harlequin, _) => (0.0, 0.0, 8.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 0.8,
@@ -321,7 +344,11 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Jiangshi, _) => 1.0,
                 (TreasureEgg, _) => 1.0,
                 (GnarlingChieftain, _) => 0.8,
+                (BloodmoonHeiress, _) => 1.5,
+                (Bloodservant, _) => 1.0,
+                (Harlequin, _) => 1.0,
             },
+            wing_for_foot: matches!((body.species, body.body_type), (BloodmoonHeiress, _)),
         }
     }
 }
@@ -429,11 +456,15 @@ pub fn biped_small_alpha_dagger(
         -1.0 + move1abs * 6.0,
         -2.0,
     );
-
+    let z_offset = if s_a.wing_for_foot {
+        s_a.grip.2 / 3.0
+    } else {
+        -s_a.grip.2 / 2.5
+    };
     next.control.position = Vec3::new(
         -5.0 + move1abs * 5.0 + move2abs * 9.0,
         -1.0 + move2abs * -3.0 + s_a.grip.2,
-        -1.0 + move1abs * 3.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0,
+        -1.0 + move1abs * 3.0 + z_offset + s_a.grip.0 * -2.0,
     );
 
     next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
@@ -456,11 +487,15 @@ pub fn biped_small_wield_sword(
 ) {
     next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
     next.control_r.position = Vec3::new(9.0 + s_a.grip.0 * 2.0, -1.0, -2.0 + speednorm * -3.0);
-
+    let z_offset = if s_a.wing_for_foot {
+        s_a.grip.2 / 3.0
+    } else {
+        -s_a.grip.2 / 2.5
+    };
     next.control.position = Vec3::new(
         -5.0,
         -1.0 + s_a.grip.2,
-        -1.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + speednorm * 2.0,
+        -1.0 + z_offset + s_a.grip.0 * -2.0 + speednorm * 2.0,
     );
 
     next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + slow * 0.1)

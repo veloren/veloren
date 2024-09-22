@@ -207,7 +207,7 @@ impl ProjectileConstructor {
                     owner,
                     ignore_group: true,
                     is_sticky,
-                    is_point: true,
+                    is_point: false,
                 }
             },
             ProjectileConstructorKind::Explosive {

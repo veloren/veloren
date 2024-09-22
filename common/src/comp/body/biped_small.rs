@@ -54,6 +54,9 @@ make_case_elim!(
         Jiangshi = 17,
         TreasureEgg = 18,
         GnarlingChieftain = 19,
+        BloodmoonHeiress = 20,
+        Bloodservant = 21,
+        Harlequin = 22,
     }
 );
 
@@ -82,6 +85,9 @@ pub struct AllSpecies<SpeciesMeta> {
     pub jiangshi: SpeciesMeta,
     pub treasure_egg: SpeciesMeta,
     pub gnarling_chieftain: SpeciesMeta,
+    pub bloodmoon_heiress: SpeciesMeta,
+    pub bloodservant: SpeciesMeta,
+    pub harlequin: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -110,11 +116,14 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Jiangshi => &self.jiangshi,
             Species::TreasureEgg => &self.treasure_egg,
             Species::GnarlingChieftain => &self.gnarling_chieftain,
+            Species::BloodmoonHeiress => &self.bloodmoon_heiress,
+            Species::Bloodservant => &self.bloodservant,
+            Species::Harlequin => &self.harlequin,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 20] = [
+pub const ALL_SPECIES: [Species; 23] = [
     Species::Gnome,
     Species::Sahagin,
     Species::Adlet,
@@ -135,6 +144,9 @@ pub const ALL_SPECIES: [Species; 20] = [
     Species::Jiangshi,
     Species::TreasureEgg,
     Species::GnarlingChieftain,
+    Species::BloodmoonHeiress,
+    Species::Bloodservant,
+    Species::Harlequin,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

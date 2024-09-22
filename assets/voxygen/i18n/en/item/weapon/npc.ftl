@@ -67,6 +67,15 @@ common-items-npc_weapons-biped_small-haniwa-guard = Guard Spear
 common-items-npc_weapons-biped_small-haniwa-soldier = Soldier Sword
     .desc = {""}
 
+common-items-npc_weapons-biped_small-vampire-harlequin_dagger = Harlequin Dagger
+    .desc = {""}
+
+common-items-npc_weapons-biped_small-vampire-bloodservant_axe = Bloodservant Axe
+    .desc = {""}
+
+common-items-npc_weapons-biped_small-vampire-bloodmoon_heiress_sword = Bloodmoon Heiress Sword
+    .desc = {""}
+
 common-items-npc_weapons-bow-bipedlarge-velorite = Giant Velorite Bow
     .desc = Infused with Velorite power.
 
@@ -77,6 +86,9 @@ common-items-npc_weapons-bow-terracotta_besieger_bow = Terracotta Besieger Bow
     .desc = Placeholder
 
 common-items-npc_weapons-axe-gigas_frost_axe = Frost Gigas Axe
+    .desc = Placeholder
+
+common-items-npc_weapons-axe-executioner_axe = Executioner Axe
     .desc = Placeholder
 
 common-items-npc_weapons-axe-minotaur_axe = Minotaur Axe
@@ -462,3 +474,12 @@ common-items-npc_weapons-hammer-yeti_hammer = Yeti Hammer
 
 common-items-npc_weapons-hammer-terracotta_punisher_club = Terracotta Punisher Club
     .desc = Placeholder
+
+common-items-npc_weapons-unique-bloodmoon_bat = Bloodmoon Bat
+    .desc = testing123
+
+common-items-npc_weapons-unique-vampire_bat = Vampire Bat
+    .desc = testing123
+
+common-items-npc_weapons-unique-strigoi_claws = Strigoi Claws
+    .desc = testing123

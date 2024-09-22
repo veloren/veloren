@@ -30,6 +30,7 @@ mod terracotta_house;
 mod terracotta_palace;
 mod terracotta_yard;
 mod troll_cave;
+mod vampire_castle;
 mod workshop;
 
 pub use self::{
@@ -43,7 +44,7 @@ pub use self::{
     savannah_hut::SavannahHut, savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop,
     sea_chapel::SeaChapel, tavern::Tavern, terracotta_house::TerracottaHouse,
     terracotta_palace::TerracottaPalace, terracotta_yard::TerracottaYard, troll_cave::TrollCave,
-    workshop::Workshop,
+    vampire_castle::VampireCastle, workshop::Workshop,
 };
 
 use super::*;
@@ -119,4 +120,5 @@ pub enum PlotKind {
     TerracottaPalace(TerracottaPalace),
     TerracottaHouse(TerracottaHouse),
     TerracottaYard(TerracottaYard),
+    VampireCastle(VampireCastle),
 }

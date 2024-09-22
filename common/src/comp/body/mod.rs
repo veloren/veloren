@@ -326,7 +326,7 @@ impl Body {
     pub fn scale(&self) -> Scale {
         let s = match self {
             Body::BirdMedium(bird_medium) => match bird_medium.species {
-                bird_medium::Species::Bat => 0.5,
+                bird_medium::Species::Bat | bird_medium::Species::VampireBat => 0.5,
                 _ => 1.0,
             },
             _ => 1.0,
@@ -402,6 +402,8 @@ impl Body {
                 bird_medium::Species::Parakeet => 1.0,
                 bird_medium::Species::Puffin => 2.0,
                 bird_medium::Species::Toucan => 4.5,
+                bird_medium::Species::BloodmoonBat => 1.5,
+                bird_medium::Species::VampireBat => 1.5,
             },
             Body::BirdLarge(_) => 250.0,
             Body::Dragon(_) => 20_000.0,
@@ -548,6 +550,8 @@ impl Body {
                 biped_large::Species::TerracottaPursuer => Vec3::new(3.3, 2.5, 3.8),
                 biped_large::Species::Cursekeeper => Vec3::new(3.8, 3.0, 5.0),
                 biped_large::Species::Forgemaster => Vec3::new(6.5, 5.0, 8.0),
+                biped_large::Species::Strigoi => Vec3::new(3.8, 3.0, 5.0),
+                biped_large::Species::Executioner => Vec3::new(2.8, 2.8, 4.7),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
@@ -566,6 +570,9 @@ impl Body {
                 biped_small::Species::Flamekeeper => Vec3::new(1.5, 1.5, 2.5),
                 biped_small::Species::TreasureEgg => Vec3::new(1.1, 1.1, 1.4),
                 biped_small::Species::GnarlingChieftain => Vec3::new(1.0, 0.75, 1.4),
+                biped_small::Species::BloodmoonHeiress => Vec3::new(3.5, 3.5, 5.5),
+                biped_small::Species::Bloodservant => Vec3::new(1.3, 1.8, 2.5),
+                biped_small::Species::Harlequin => Vec3::new(1.3, 2.0, 2.5),
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
             Body::BirdLarge(body) => match body.species {
@@ -702,6 +709,8 @@ impl Body {
                 bird_medium::Species::Parakeet => Vec3::new(0.8, 0.9, 0.7),
                 bird_medium::Species::Puffin => Vec3::new(1.0, 1.0, 1.0),
                 bird_medium::Species::Toucan => Vec3::new(2.1, 1.1, 1.2),
+                bird_medium::Species::BloodmoonBat => Vec3::new(3.5, 3.5, 2.5),
+                bird_medium::Species::VampireBat => Vec3::new(2.0, 1.8, 1.3),
             },
             Body::Crustacean(_) => Vec3::new(1.2, 1.2, 0.7),
         }
@@ -944,6 +953,9 @@ impl Body {
                 bird_medium::Species::Parrot => 15,
                 bird_medium::Species::SnowyOwl => 35,
                 bird_medium::Species::Toucan => 15,
+                // T3B
+                bird_medium::Species::VampireBat => 100,
+                bird_medium::Species::BloodmoonBat => 1200,
             },
             Body::FishSmall(fish_small) => match fish_small.species {
                 // T0
@@ -980,6 +992,8 @@ impl Body {
                 | biped_large::Species::TerracottaPursuer => 300,
                 biped_large::Species::Cursekeeper => 3000,
                 biped_large::Species::Forgemaster => 10000,
+                biped_large::Species::Strigoi => 800,
+                biped_large::Species::Executioner => 800,
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
@@ -997,6 +1011,9 @@ impl Body {
                 biped_small::Species::ShamanicSpirit => 240,
                 biped_small::Species::Jiangshi => 250,
                 biped_small::Species::Flamekeeper => 2000,
+                biped_small::Species::BloodmoonHeiress => 2000,
+                biped_small::Species::Bloodservant => 300,
+                biped_small::Species::Harlequin => 500,
                 _ => 60,
             },
             Body::Object(object) => match object {

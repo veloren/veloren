@@ -27,3 +27,9 @@ object-key-terracotta_door = Terracotta Door Key
 
 object-key-sahagin = Sahagin Key
     .desc = Used to open doors. Will break after use.
+
+object-key-vampire = Vampire Key
+    .desc = Used to open doors. Will break after use.
+
+object-key-bloodmoon = Bloodmoon Key
+    .desc = Used to open doors. Will break after use.

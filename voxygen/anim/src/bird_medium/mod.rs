@@ -78,7 +78,9 @@ impl Skeleton for BirdMediumSkeleton {
         use common::comp::body::bird_medium::Species::*;
         Offsets {
             viewpoint: match body.species {
-                Bat => Some((head_mat * Vec4::new(0.0, 5.0, -4.0, 1.0)).xyz()),
+                Bat | BloodmoonBat | VampireBat => {
+                    Some((head_mat * Vec4::new(0.0, 5.0, -4.0, 1.0)).xyz())
+                },
                 _ => Some((head_mat * Vec4::new(0.0, 3.0, 2.0, 1.0)).xyz()),
             },
             // TODO: see quadruped_medium for how to animate this
@@ -153,6 +155,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parakeet, _) => (0.0, 3.5),
                 (Puffin, _) => (0.0, 6.0),
                 (Toucan, _) => (0.0, 5.0),
+                (BloodmoonBat, _) => (0.0, 7.0),
+                (VampireBat, _) => (0.0, 7.5),
             },
             head: match (body.species, body.body_type) {
                 (SnowyOwl, _) => (3.5, 5.0),
@@ -172,6 +176,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parakeet, _) => (2.0, 4.0),
                 (Puffin, _) => (3.5, 5.5),
                 (Toucan, _) => (2.5, 4.5),
+                (BloodmoonBat, _) => (4.0, 5.0),
+                (VampireBat, _) => (2.5, 5.0),
             },
             tail: match (body.species, body.body_type) {
                 (SnowyOwl, _) => (-6.0, -2.0),
@@ -191,6 +197,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parakeet, _) => (-5.0, -1.0),
                 (Puffin, _) => (-7.0, -2.0),
                 (Toucan, _) => (-6.0, 0.0),
+                (BloodmoonBat, _) => (-6.0, 1.0),
+                (VampireBat, _) => (-5.0, -4.0),
             },
             wing_in: match (body.species, body.body_type) {
                 (SnowyOwl, _) => (2.5, 1.0, 1.5),
@@ -210,6 +218,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parakeet, _) => (1.0, 0.5, 0.0),
                 (Puffin, _) => (2.0, 0.0, 1.0),
                 (Toucan, _) => (2.0, 0.5, 0.0),
+                (BloodmoonBat, _) => (4.0, 3.0, 1.5),
+                (VampireBat, _) => (2.0, 2.0, -2.0),
             },
             wing_out: match (body.species, body.body_type) {
                 (SnowyOwl, _) => (4.5, 3.5, 1.0),
@@ -229,6 +239,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parakeet, _) => (3.0, 0.0, 0.5),
                 (Puffin, _) => (5.0, 3.0, 0.5),
                 (Toucan, _) => (5.0, 3.0, 0.5),
+                (BloodmoonBat, _) => (11.0, 6.0, 0.0),
+                (VampireBat, _) => (5.0, 5.0, 0.0),
             },
             leg: match (body.species, body.body_type) {
                 (SnowyOwl, _) => (1.5, -2.5, 4.8),
@@ -248,6 +260,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parakeet, _) => (1.0, -2.0, 1.3),
                 (Puffin, _) => (1.5, -2.2, 2.5),
                 (Toucan, _) => (1.5, -3.0, 2.3),
+                (BloodmoonBat, _) => (1.5, -3.5, 6.0),
+                (VampireBat, _) => (2.5, -1.0, 6.0),
             },
             scaler: match (body.species, body.body_type) {
                 (SnowyOwl, _) => 0.75,
@@ -266,6 +280,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parakeet, _) => 0.75,
                 (Puffin, _) => 0.75,
                 (Toucan, _) => 0.75,
+                (BloodmoonBat, _) => 1.05,
+                (VampireBat, _) => 0.75,
             },
             feed: match (body.species, body.body_type) {
                 (SnowyOwl, _) => -0.65,
@@ -284,6 +300,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Parakeet, _) => -0.60,
                 (Puffin, _) => -0.75,
                 (Toucan, _) => -0.50,
+                (BloodmoonBat, _) => -0.55,
+                (VampireBat, _) => -0.55,
             },
         }
     }

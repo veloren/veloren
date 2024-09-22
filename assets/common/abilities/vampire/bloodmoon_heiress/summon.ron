@@ -1,0 +1,19 @@
+BasicSummon(
+    buildup_duration: 0.2,
+    cast_duration: 0.3,
+    recover_duration: 0.3,
+    summon_amount: 2,
+    summon_distance: (1, 1),
+    summon_info: (
+        body: BipedSmall((
+            species: Bloodservant,
+            body_type: Male,
+        )),
+        use_npc_name: true,
+        scale: None,
+        has_health: true,
+        loadout_config: Some(BloodservantSummon),
+        skillset_config: Some(Rank5),
+    ),
+    duration: None,
+)

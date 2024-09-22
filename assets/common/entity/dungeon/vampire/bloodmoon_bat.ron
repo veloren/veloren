@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("bloodmoon_bat"),
+    alignment: Alignment(Enemy),
+    loot: Item("common.items.keys.bloodmoon_key"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

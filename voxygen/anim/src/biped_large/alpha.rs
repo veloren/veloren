@@ -382,7 +382,10 @@ impl Animation for AlphaAnimation {
                         * Quaternion::rotation_y(-2.8 + move1 * 3.0 + move2 * -3.0)
                         * Quaternion::rotation_z(move1 * -1.5);
                 },
-                Some("common.abilities.custom.husk_brute.singlestrike") => {
+                Some(
+                    "common.abilities.custom.husk_brute.singlestrike"
+                    | "common.abilities.vampire.strigoi.singlestrike",
+                ) => {
                     next.shoulder_l.position =
                         Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
                     next.shoulder_r.position =

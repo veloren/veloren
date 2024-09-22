@@ -143,6 +143,7 @@ impl Environment {
                     SiteKind::RockCircle(_) => {},
                     SiteKind::TrollCave(_) => {},
                     SiteKind::Camp(_) => {},
+                    SiteKind::VampireCastle(_) => {},
                 }
             }
             if towns.valid() {
