@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Harlequin Head",
+    legacy_description: "Harlequin Head",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(5.0)),
+            poise_resilience: Some(Normal(4.0)),
+            precision_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

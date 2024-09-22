@@ -99,5 +99,14 @@
         "common.items.npc_armor.biped_small.treasure_egg.chest.treasure_egg": (
             vox_spec: ("npc.treasure_egg.male.chest", (-4.0, -4.0, 0.0)),
         ),
+        "common.items.npc_armor.biped_small.bloodmoon_heiress.chest.bloodmoon_heiress": (
+            vox_spec: ("npc.bloodmoon_heiress.chest", (-4.5, -4.5, 0.0)),
+        ),
+        "common.items.npc_armor.biped_small.bloodservant.chest.bloodservant": (
+            vox_spec: ("npc.bloodservant.chest", (-6.0, -4.0, -3.5)),
+        ),
+        "common.items.npc_armor.biped_small.harlequin.chest.harlequin": (
+            vox_spec: ("npc.harlequin.chest", (-5.0, -3.5, -3.5)),
+        ),
     },
 ))

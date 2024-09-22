@@ -447,4 +447,60 @@
             central: ("npc.toucan.female.tail"),
         ),
     ),
+    (BloodmoonBat, Male): (
+        head: (
+            offset: (-5.5, 1.0, -7.0),
+            central: ("npc.bloodmoon_bat.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -7.0, -2.5),
+            central: ("npc.bloodmoon_bat.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -19.0, -2.5),
+            central: ("npc.bloodmoon_bat.male.tail"),
+        )
+    ),
+    (BloodmoonBat, Female): (
+        head: (
+            offset: (-5.5, 1.0, -7.0),
+            central: ("npc.bloodmoon_bat.male.head"),
+        ),
+        chest: (
+            offset: (-4.5, -7.0, -2.5),
+            central: ("npc.bloodmoon_bat.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -19.0, -2.5),
+            central: ("npc.bloodmoon_bat.male.tail"),
+        )
+    ),
+    (VampireBat, Male): (
+        head: (
+            offset: (-4.5, 2.0, -13.0),
+            central: ("npc.vampire_bat.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.0, -7.5),
+            central: ("npc.vampire_bat.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -7.0, -2.5),
+            central: ("npc.vampire_bat.male.tail"),
+        )
+    ),
+    (VampireBat, Female): (
+        head: (
+            offset: (-4.5, 2.0, -13.0),
+            central: ("npc.vampire_bat.male.head"),
+        ),
+        chest: (
+            offset: (-3.5, -5.0, -7.5),
+            central: ("npc.vampire_bat.male.chest"),
+        ),
+        tail: (
+            offset: (-2.5, -7.0, -2.5),
+            central: ("npc.vampire_bat.male.tail"),
+        )
+    ),
 })

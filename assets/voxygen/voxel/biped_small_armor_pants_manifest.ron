@@ -96,5 +96,14 @@
         "common.items.npc_armor.biped_small.jiangshi.pants.jiangshi": (
             vox_spec: ("npc.jiangshi.pants", (-5.0, -4.5, -3.5)),
         ),
+        "common.items.npc_armor.biped_small.bloodmoon_heiress.pants.bloodmoon_heiress": (
+            vox_spec: ("npc.bloodmoon_heiress.pants", (-9.5, -8.5, -9.0)),
+        ),
+        "common.items.npc_armor.biped_small.bloodservant.pants.bloodservant": (
+            vox_spec: ("npc.bloodservant.pants", (-6.0, -5.0, -3.5)),
+        ),
+        "common.items.npc_armor.biped_small.harlequin.pants.harlequin": (
+            vox_spec: ("npc.harlequin.pants", (-6.0, -4.5, -2.0)),
+        ),
     },
 ))

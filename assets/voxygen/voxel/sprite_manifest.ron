@@ -1360,22 +1360,50 @@
     ],
     wind_sway: 0.0,
 ),
-// Haniwa KeyDoor
-(HaniwaKeyDoor, ()): (
+(VampireKeyDoor, ()): (
      variations: [
          (
-                model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
+                model: "voxygen.voxel.sprite.furniture.vampire_keydoor",
              offset: (-5.5, -5.5, -0.0),
              lod_axes: (1.0, 1.0, 1.0),
          ),
      ],
     wind_sway: 0.0,
 ),
-// Haniwa Keyhole
+(VampireKeyhole, ()): (
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.vampire_keyhole",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+),
+(BloodmoonKeyhole, ()): (
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.bloodmoon_keyhole",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+),
+(HaniwaKeyDoor, ()): (
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+),
 (HaniwaKeyhole, ()): (
      variations: [
          (
-                model: "voxygen.voxel.sprite.furniture.haniwa_keyhole_block",
+             model: "voxygen.voxel.sprite.furniture.haniwa_keyhole_block",
              offset: (-5.5, -5.5, -0.0),
              lod_axes: (1.0, 1.0, 1.0),
          ),
@@ -1397,7 +1425,7 @@
 (HaniwaTrap, ()): (
      variations: [
          (
-                model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
+             model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
              offset: (-5.5, -5.5, -0.0),
              lod_axes: (1.0, 1.0, 1.0),
          ),
@@ -1546,6 +1574,17 @@
         ),
     ],
     wind_sway: 0.1,
+),
+// MetalChain
+(MetalChain, ()): (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.misc.metal_chain",
+                offset: (-5.5, -5.5, -0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
 ),
 // Pumpkins
 (Pumpkin, ()): (

@@ -116,6 +116,7 @@ impl Site {
                 PlotKind::Cultist(cl) => Some(cl.spawn_rules(wpos)),
                 PlotKind::Sahagin(sg) => Some(sg.spawn_rules(wpos)),
                 PlotKind::DwarvenMine(dm) => Some(dm.spawn_rules(wpos)),
+                PlotKind::VampireCastle(vc) => Some(vc.spawn_rules(wpos)),
                 _ => None,
             })
             .fold(base_spawn_rules, |a, b| a.combine(b))
@@ -1779,7 +1780,7 @@ impl Site {
             origin,
             name: {
                 let name = NameGen::location(&mut rng).generate();
-                match rng.gen_range(0..4) {
+                match rng.gen_range(0..5) {
                     0 => format!("{} Isle", name),
                     1 => format!("{} Islet", name),
                     2 => format!("{} Key", name),
@@ -1808,6 +1809,46 @@ impl Site {
                 kind: TileKind::Building,
                 plot: Some(plot),
                 hard_alt: Some(sahagin_alt),
+            });
+        }
+        site
+    }
+
+    pub fn generate_vampire_castle(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            name: {
+                let name = NameGen::location(&mut rng).generate_vampire();
+                match rng.gen_range(0..4) {
+                    0 => format!("{} Keep", name),
+                    1 => format!("{} Chateau", name),
+                    2 => format!("{} Manor", name),
+                    _ => format!("{} Palace", name),
+                }
+            },
+            ..Site::default()
+        };
+        let size = 22.0 as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        {
+            let vampire_castle =
+                plot::VampireCastle::generate(land, &mut reseed(&mut rng), &site, aabr);
+            let vampire_castle_alt = vampire_castle.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::VampireCastle(vampire_castle),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(vampire_castle_alt),
             });
         }
         site
@@ -2172,6 +2213,9 @@ impl Site {
                     terracotta_yard.render_collect(self, canvas)
                 },
                 PlotKind::Cultist(cultist) => cultist.render_collect(self, canvas),
+                PlotKind::VampireCastle(vampire_castle) => {
+                    vampire_castle.render_collect(self, canvas)
+                },
                 PlotKind::DesertCityMultiPlot(desert_city_multi_plot) => {
                     desert_city_multi_plot.render_collect(self, canvas)
                 },

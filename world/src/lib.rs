@@ -221,6 +221,7 @@ impl World {
                                 civ::SiteKind::Sahagin => world_msg::SiteKind::Sahagin,
                                 civ::SiteKind::Adlet => world_msg::SiteKind::Adlet,
                                 civ::SiteKind::Haniwa => world_msg::SiteKind::Haniwa,
+                                civ::SiteKind::VampireCastle => world_msg::SiteKind::VampireCastle,
                             },
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }

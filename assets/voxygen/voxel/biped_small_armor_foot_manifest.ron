@@ -256,5 +256,29 @@
                 vox_spec: ("npc.treasure_egg.male.foot_r", (-1.0, -1.5, -4.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.bloodmoon_heiress.foot.bloodmoon_heiress": (
+            left: (
+                vox_spec: ("npc.bloodmoon_heiress.wing", (-11.5, -7.0, -13.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.bloodmoon_heiress.wing", (-11.5, -7.0, -13.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.bloodservant.foot.bloodservant": (
+            left: (
+                vox_spec: ("npc.bloodservant.foot_r", (-1.5, -3.0, -7.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.bloodservant.foot_r", (-1.5, -3.0, -7.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.harlequin.foot.harlequin": (
+            left: (
+                vox_spec: ("npc.harlequin.foot_r", (-2.5, -4.0, -10.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.harlequin.foot_r", (-2.5, -4.0, -10.0)),
+            )
+        ),
     },
 ))

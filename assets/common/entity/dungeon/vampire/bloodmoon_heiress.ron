@@ -1,0 +1,18 @@
+#![enable(implicit_some)]
+(
+    name: Name("Bloodmoon Heiress"),
+    body: RandomWith("bloodmoon_heiress"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.vampire.bloodmoon_heiress"),
+    inventory: (
+        loadout: Inline((
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.vampire.bloodmoon_heiress_sword"), None)),
+            inherit: Asset("common.loadout.dungeon.vampire.bloodmoon_heiress"),
+
+        )),    ),
+        agent: (
+        idle_wander_factor: 0.0,
+        aggro_range_multiplier: 2.0,
+    ),
+    meta: [],
+)

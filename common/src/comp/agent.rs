@@ -381,6 +381,9 @@ impl<'a> From<&'a Body> for Psyche {
                     | biped_small::Species::ShamanicSpirit
                     | biped_small::Species::Jiangshi
                     | biped_small::Species::Bushly
+                    | biped_small::Species::BloodmoonHeiress
+                    | biped_small::Species::Bloodservant
+                    | biped_small::Species::Harlequin
                     | biped_small::Species::GnarlingChieftain => 0.0,
 
                     _ => 0.5,
@@ -402,6 +405,8 @@ impl<'a> From<&'a Body> for Psyche {
                     bird_medium::Species::Parakeet => 0.8,
                     bird_medium::Species::Puffin => 0.8,
                     bird_medium::Species::Toucan => 0.4,
+                    bird_medium::Species::BloodmoonBat => 0.0,
+                    bird_medium::Species::VampireBat => 0.0,
                 },
                 Body::BirdLarge(_) => 0.0,
                 Body::FishSmall(_) => 1.0,

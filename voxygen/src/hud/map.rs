@@ -931,6 +931,7 @@ impl<'a> Widget for Map<'a> {
                         SiteKind::Cultist => i18n.get_msg("hud-map-cultist"),
                         SiteKind::Sahagin => i18n.get_msg("hud-map-sahagin"),
                         SiteKind::DwarvenMine => i18n.get_msg("hud-map-df_mine"),
+                        SiteKind::VampireCastle => i18n.get_msg("hud-map-vampire_castle"),
                     });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (None, i18n.get_msg("hud-map-town")),
@@ -963,6 +964,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cultist => (Some(5), i18n.get_msg("hud-map-cultist")),
                 SiteKind::Sahagin => (Some(2), i18n.get_msg("hud-map-sahagin")),
                 SiteKind::DwarvenMine => (Some(5), i18n.get_msg("hud-map-df_mine")),
+                SiteKind::VampireCastle => (Some(3), i18n.get_msg("hud-map-vampire_castle")),
             };
             let desc = desc.into_owned() + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
@@ -978,6 +980,8 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cultist => self.imgs.mmap_site_cultist,
                 SiteKind::Sahagin => self.imgs.mmap_site_sahagin,
                 SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
+                SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
+
                 SiteKind::Dungeon { difficulty } => match difficulty {
                     4 => self.imgs.mmap_site_minotaur,
                     5 => self.imgs.mmap_site_mindflayer,
@@ -1004,6 +1008,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cultist => self.imgs.mmap_site_cultist_hover,
                 SiteKind::Sahagin => self.imgs.mmap_site_sahagin_hover,
                 SiteKind::DwarvenMine => self.imgs.mmap_site_mine_hover,
+                SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle_hover,
                 SiteKind::Dungeon { difficulty } => match difficulty {
                     4 => self.imgs.mmap_site_minotaur_hover,
                     5 => self.imgs.mmap_site_mindflayer_hover,
@@ -1023,6 +1028,7 @@ impl<'a> Widget for Map<'a> {
                     | SiteKind::ChapelSite
                     | SiteKind::Terracotta
                     | SiteKind::Adlet
+                    | SiteKind::VampireCastle
                     | SiteKind::Haniwa
                     | SiteKind::Cultist
                     | SiteKind::Sahagin
@@ -1057,7 +1063,8 @@ impl<'a> Widget for Map<'a> {
                 | SiteKind::Cultist
                 | SiteKind::Sahagin
                 | SiteKind::Terracotta
-                | SiteKind::Adlet => show_dungeons,
+                | SiteKind::Adlet
+                | SiteKind::VampireCastle => show_dungeons,
                 SiteKind::Castle => show_castles,
                 SiteKind::Cave => show_caves,
                 SiteKind::Tree => show_trees,
@@ -1121,7 +1128,8 @@ impl<'a> Widget for Map<'a> {
                     | SiteKind::Cultist
                     | SiteKind::Sahagin
                     | SiteKind::Terracotta
-                    | SiteKind::Adlet => {
+                    | SiteKind::Adlet
+                    | SiteKind::VampireCastle => {
                         if show_dungeons {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }

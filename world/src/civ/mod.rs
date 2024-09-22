@@ -278,7 +278,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..101) {
+                let (loc, kind) = match ctx.rng.gen_range(0..105) {
                     0..=4 => {
                         if index.features().site2_giant_trees {
                             (
@@ -434,7 +434,17 @@ impl Civs {
                         )?,
                         SiteKind::Sahagin,
                     ),
-                    /*96..=109 => (
+                    96..=101 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.vampire_castle_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::VampireCastle,
+                        )?,
+                        SiteKind::VampireCastle,
+                    ),
+                    /*100..=105 => (
                         find_site_loc(
                             &mut ctx,
                             &ProximityRequirementsBuilder::new()
@@ -445,7 +455,7 @@ impl Civs {
                         )?,
                         SiteKind::Castle,
                     ),
-                    110..=115 => (SiteKind::Citadel, (&castle_enemies, 20)),
+                    106..=111 => (SiteKind::Citadel, (&castle_enemies, 20)),
                     */
                     _ => (
                         find_site_loc(
@@ -502,6 +512,7 @@ impl Civs {
                 SiteKind::DwarvenMine => (8i32, 3.0),
                 SiteKind::Cultist => (24i32, 10.0),
                 SiteKind::Sahagin => (8i32, 3.0),
+                SiteKind::VampireCastle => (10i32, 16.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -696,6 +707,13 @@ impl Civs {
                         &mut rng,
                         wpos,
                     )),
+                    SiteKind::VampireCastle => {
+                        WorldSite::vampire_castle(site2::Site::generate_vampire_castle(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                        ))
+                    },
                 }
             });
             sim_site.site_tmp = Some(site);
@@ -1590,6 +1608,13 @@ impl Civs {
         })
     }
 
+    fn vampire_castle_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
+
     fn dungeon_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
             SiteKind::Tree | SiteKind::GiantTree => None,
@@ -2013,6 +2038,7 @@ pub enum SiteKind {
     JungleRuin,
     Cultist,
     Sahagin,
+    VampireCastle,
 }
 
 impl SiteKind {
@@ -2127,6 +2153,7 @@ impl SiteKind {
                         && !chunk.near_cliffs()
                 },
                 SiteKind::Cultist => on_land() && chunk.temp < 0.5 && chunk.near_cliffs(),
+                SiteKind::VampireCastle => on_land() && chunk.temp <= -0.8 && chunk.near_cliffs(),
                 SiteKind::Castle => {
                     if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {
                         return false;

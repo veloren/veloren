@@ -78,6 +78,7 @@ impl Animation for ComboAnimation {
                 },
                 Some(
                     "common.abilities.axesimple.doublestrike"
+                    | "common.abilities.vampire.bloodservant.doublestrike"
                     | "common.abilities.custom.boreal_warrior.hammer.singlestrike",
                 ) => {
                     let anim_time = anim_time.min(1.0);
@@ -94,7 +95,10 @@ impl Animation for ComboAnimation {
                     init_biped_small_alpha(&mut next, s_a);
                     biped_small_alpha_axe(&mut next, s_a, move1abs, move2abs);
                 },
-                Some("common.abilities.daggersimple.singlestrike") => {
+                Some(
+                    "common.abilities.daggersimple.singlestrike"
+                    | "common.abilities.vampire.bloodmoon_heiress.singlestrike",
+                ) => {
                     let anim_time = anim_time.min(1.0);
                     let (move1base, move2base, move3) = match stage_section {
                         StageSection::Buildup => (anim_time.sqrt(), 0.0, 0.0),

@@ -1,0 +1,8 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.bloodmoon_heiress.head.bloodmoon_heiress"),
+    chest: Item("common.items.npc_armor.biped_small.bloodmoon_heiress.chest.bloodmoon_heiress"),
+    gloves: Item("common.items.npc_armor.biped_small.bloodmoon_heiress.hand.bloodmoon_heiress"),
+    legs: Item("common.items.npc_armor.biped_small.bloodmoon_heiress.pants.bloodmoon_heiress"),
+    feet: Item("common.items.npc_armor.biped_small.bloodmoon_heiress.foot.bloodmoon_heiress"),
+)

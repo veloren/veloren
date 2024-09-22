@@ -190,7 +190,10 @@ impl Animation for ComboAnimation {
                         _ => {},
                     }
                 },
-                Some("common.abilities.custom.oni.doublestrike") => {
+                Some(
+                    "common.abilities.custom.oni.doublestrike"
+                    | "common.abilities.vampire.executioner.doublestrike",
+                ) => {
                     let speed = Vec2::<f32>::from(velocity).magnitude();
                     match strike {
                         0 => {

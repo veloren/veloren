@@ -312,14 +312,17 @@ sprites! {
         TerracottaKeyhole = 0x0C,
         SahaginKeyhole = 0x0D,
         SahaginKeyDoor = 0x0E,
+        VampireKeyDoor = 0x0F,
+        VampireKeyhole = 0x10,
+        BloodmoonKeyhole = 0x11,
 
         // Windows
-        Window1      = 0x10,
-        Window2      = 0x11,
-        Window3      = 0x12,
-        Window4      = 0x13,
-        WitchWindow  = 0x14,
-        WindowArabic = 0x15,
+        Window1      = 0x12,
+        Window2      = 0x13,
+        Window3      = 0x14,
+        Window4      = 0x15,
+        WitchWindow  = 0x16,
+        WindowArabic = 0x17,
         // Walls
         GlassBarrier    = 0x20,
         SeaDecorBlock   = 0x21,
@@ -341,6 +344,7 @@ sprites! {
         HaniwaTrapTriggered = 0x45,
         TerracottaStatue = 0x46,
         TerracottaBlock = 0x47,
+        MetalChain = 0x48,
     },
     // Decorative items, both natural and artificial
     Decor = 6 has Ori {
@@ -451,6 +455,7 @@ impl SpriteKind {
             SpriteKind::SeashellLantern => 2.09,
             SpriteKind::MesaLantern => 1.3,
             SpriteKind::Rope => 1.09,
+            SpriteKind::MetalChain => 1.09,
             SpriteKind::StreetLamp => 2.65,
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,
@@ -519,6 +524,9 @@ impl SpriteKind {
             | SpriteKind::HaniwaKeyDoor
             | SpriteKind::SahaginKeyhole
             | SpriteKind::SahaginKeyDoor
+            | SpriteKind::VampireKeyhole
+            | SpriteKind::BloodmoonKeyhole
+            | SpriteKind::VampireKeyDoor
             | SpriteKind::HaniwaTrap
             | SpriteKind::HaniwaTrapTriggered
             | SpriteKind::TerracottaKeyDoor
@@ -708,6 +716,8 @@ impl SpriteKind {
             SpriteKind::Keyhole
             | SpriteKind::BoneKeyhole
             | SpriteKind::HaniwaKeyhole
+            | SpriteKind::VampireKeyhole
+            | SpriteKind::BloodmoonKeyhole
             | SpriteKind::GlassKeyhole
             | SpriteKind::KeyholeBars
             | SpriteKind::SahaginKeyhole
@@ -814,6 +824,12 @@ impl SpriteKind {
                 SpriteKind::HaniwaKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
                     String::from("common.items.keys.haniwa_key"),
                 )),
+                SpriteKind::VampireKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    String::from("common.items.keys.vampire_key"),
+                )),
+                SpriteKind::BloodmoonKeyhole => UnlockKind::Consumes(
+                    ItemDefinitionIdOwned::Simple(String::from("common.items.keys.bloodmoon_key")),
+                ),
                 SpriteKind::GlassKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
                     String::from("common.items.keys.glass_key"),
                 )),

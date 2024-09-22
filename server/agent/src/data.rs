@@ -272,12 +272,18 @@ pub enum Tactic {
     HaniwaSoldier,
     HaniwaGuard,
     HaniwaArcher,
+
     // Terracotta
     TerracottaStatue,
     Cursekeeper,
     CursekeeperFake,
     ShamanicSpirit,
     Jiangshi,
+
+    // VampireCastle
+    VampireBat,
+    BloodmoonBat,
+    BloodmoonHeiress,
 }
 
 #[derive(Copy, Clone, Debug)]

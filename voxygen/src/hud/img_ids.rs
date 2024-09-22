@@ -601,6 +601,9 @@ image_ids! {
         mmap_site_mine: "voxygen.element.ui.map.buttons.mine",
         mmap_site_mine_hover: "voxygen.element.ui.map.buttons.mine_hover",
         mmap_site_mine_bg: "voxygen.element.ui.map.buttons.mine_bg",
+        mmap_site_vampire_castle_hover: "voxygen.element.ui.map.buttons.bloodmoon_heiress_hover",
+        mmap_site_vampire_castle_bg: "voxygen.element.ui.map.buttons.bloodmoon_heiress_bg",
+        mmap_site_vampire_castle: "voxygen.element.ui.map.buttons.bloodmoon_heiress",
 
         // Window Parts
         window_3: "voxygen.element.ui.generic.frames.window_3",

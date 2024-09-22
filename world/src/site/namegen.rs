@@ -750,6 +750,25 @@ impl<'a, R: Rng> NameGen<'a, R> {
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
 
+    // romania inspired location names for vampire castles
+    pub fn generate_vampire(mut self) -> String {
+        let start = [
+            "al", "ban", "bom", "br", "buc", "cl", "con", "cor", "cr", "dr", "ias", "or", "p",
+            "pit", "pl", "ram", "val", "res", "rom", "sat", "mar", "suc", "tar", "mur", "tim",
+            "vas", "zal",
+        ];
+        let middle = [
+            "d", "r", "st", "t", "s", "p", "br", "tr", "m", "k", "cr", "dr", "pl", "ch", "l", "ap",
+            "ak", "ar", "al", "od", "om", "ep", "er", "em",
+        ];
+        let vowel = ["o", "e", "a", "i", "ea", "au", "oa", "ia"];
+        let end = [
+            "ulia", "icau", "are", "eni", "usov", "uj", "ita", "asi", "edea", "etra", "ira",
+            "asti", "cu", "cea", "ita", "utu", "ire", "iva", "igu", "ares", "ara", "elui", "ilau",
+        ];
+        self.generate_theme_from_parts(&start, &middle, &vowel, &end)
+    }
+
     pub fn generate_tavern(&mut self) -> String {
         let adjectives = [
             "Crazy",

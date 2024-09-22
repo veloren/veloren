@@ -1170,4 +1170,52 @@
         secondary: Simple(None, "common.abilities.custom.biped_large_cultist.bow.basic"),
         abilities: [],
     ),
+    Custom("Bloodmoon Bat"): (
+        primary: Simple(None, "common.abilities.vampire.bloodmoon_bat.shockwave_1"),
+        secondary: Simple(None, "common.abilities.vampire.bloodmoon_bat.shockwave_2"),
+        abilities: [
+            Simple(None, "common.abilities.vampire.bloodmoon_bat.shapeshift"),
+            Simple(None, "common.abilities.vampire.bloodmoon_bat.teleport"),
+            Simple(None, "common.abilities.vampire.bloodmoon_bat.heal"),
+            Simple(None, "common.abilities.vampire.bloodmoon_bat.singlestrike"),
+            Simple(None, "common.abilities.vampire.bloodmoon_bat.lifestealbeam"),
+        ],
+    ),
+    Custom("Strigoi Claws"): (
+        primary: Simple(None, "common.abilities.vampire.strigoi.singlestrike"),
+        secondary: Simple(None, "common.abilities.vampire.strigoi.projectiles"),
+        abilities: [],
+    ),
+    Custom("Vampire Bat"): (
+        primary: Simple(None, "common.abilities.vampire.vampire_bat.upboost"),
+        secondary: Simple(None, "common.abilities.vampire.vampire_bat.shockwave_2"),
+        abilities: [
+            Simple(None, "common.abilities.vampire.vampire_bat.drop"),
+            Simple(None, "common.abilities.vampire.vampire_bat.teleport"),
+        ],
+    ),
+    Custom("Bloodmoon Heiress"): (
+        primary: Simple(None, "common.abilities.vampire.bloodmoon_heiress.singlestrike"),
+        secondary: Simple(None, "common.abilities.vampire.bloodmoon_heiress.dash"),
+        abilities: [
+            Simple(None, "common.abilities.vampire.bloodmoon_heiress.teleport"),
+            Simple(None, "common.abilities.vampire.bloodmoon_heiress.shockwave_2"),
+            Simple(None, "common.abilities.vampire.bloodmoon_heiress.summon"),
+        ],
+    ),
+    Custom("Harlequin"): (
+        primary: Simple(None, "common.abilities.vampire.harlequin.stab"),
+        secondary: Simple(None, "common.abilities.vampire.harlequin.throw"),
+        abilities: [],
+    ),
+    Custom("Bloodservant"): (
+        primary: Simple(None, "common.abilities.vampire.bloodservant.doublestrike"),
+        secondary: Simple(None, "common.abilities.vampire.bloodservant.doublestrike"),
+        abilities: [],
+    ),
+    Custom("Executioner"): (
+        primary: Simple(None, "common.abilities.vampire.executioner.doublestrike"),
+        secondary: Simple(None, "common.abilities.vampire.executioner.doublestrike"),
+        abilities: [],
+    ),
 })

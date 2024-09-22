@@ -1,0 +1,29 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 1.0,
+    recover_duration: 1.5,
+    projectile: (
+        kind: Explosive(
+            radius: 10,
+            min_falloff: 0.5,
+            reagent: Some(Yellow),
+            terrain: None
+        ),
+        attack: Some((
+            damage: 25,
+            energy: 0,
+            buff: Some((
+                kind: Burning,
+                dur_secs: 2,
+                strength: DamageFraction(1.0),
+                chance: 0.6,
+            )),
+        )),
+    ),
+    projectile_body: Object(BloodBomb),
+    projectile_light: None,
+    projectile_speed: 4.0,
+    num_projectiles: Value(2),
+    projectile_spread: 0.2,
+    move_efficiency: 0.3,
+)

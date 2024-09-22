@@ -691,7 +691,7 @@ impl Structure for Sahagin {
 
         painter
             .aabb(Aabb {
-                min: rope_pos.with_z(base + (room_size / 4) + 2),
+                min: rope_pos.with_z(base + (room_size / 4) + 1),
                 max: (rope_pos + 1).with_z(base + room_size - 5),
             })
             .fill(rope.clone());

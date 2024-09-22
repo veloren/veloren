@@ -3378,6 +3378,7 @@ impl FigureMgr {
                             anim::biped_small::DashAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    ability_id,
                                     rel_vel,
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),

@@ -127,6 +127,9 @@ make_case_elim!(
         Lavathrower = 112,
         Scroll = 113,
         PoisonBall = 114,
+        StrigoiHead = 115,
+        HarlequinDagger = 116,
+        BloodBomb = 117,
     }
 );
 
@@ -137,7 +140,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 115] = [
+pub const ALL_OBJECTS: [Body; 118] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -253,6 +256,9 @@ pub const ALL_OBJECTS: [Body; 115] = [
     Body::Lavathrower,
     Body::Scroll,
     Body::PoisonBall,
+    Body::StrigoiHead,
+    Body::HarlequinDagger,
+    Body::BloodBomb,
 ];
 
 impl From<Body> for super::Body {
@@ -377,6 +383,9 @@ impl Body {
             Body::IronPikeBomb => "iron_pike_bomb",
             Body::Scroll => "recipe",
             Body::PoisonBall => "poison_ball",
+            Body::StrigoiHead => "strigoi_head",
+            Body::HarlequinDagger => "harlequin_dagger",
+            Body::BloodBomb => "blood_bomb",
         }
     }
 
@@ -407,9 +416,11 @@ impl Body {
             | Body::SpectralSwordSmall
             | Body::SpectralSwordLarge
             | Body::AdletSpear
+            | Body::HarlequinDagger
             | Body::AdletTrap
             | Body::Flamethrower
-            | Body::Lavathrower => 500.0,
+            | Body::Lavathrower
+            | Body::BloodBomb => 500.0,
             Body::Bomb | Body::Mine | Body::SurpriseEgg => 2000.0, /* I have no idea what it's */
             // supposed to be
             Body::Crate => 300.0, // a lot of wood and maybe some contents
@@ -449,7 +460,11 @@ impl Body {
             | Body::BoltBesieger
             | Body::PoisonBall => 1.0,
             Body::SpitPoison => 100.0,
-            Body::Bomb | Body::DagonBomb | Body::SurpriseEgg | Body::TerracottaDemolisherBomb => {
+            Body::Bomb
+            | Body::DagonBomb
+            | Body::SurpriseEgg
+            | Body::TerracottaDemolisherBomb
+            | Body::BloodBomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
             },
             Body::Campfire | Body::CampfireLit | Body::BarrelOrgan | Body::TerracottaStatue => {
@@ -493,9 +508,12 @@ impl Body {
             Body::BeastMeat => 50.0,
             Body::PotionBlue | Body::PotionGreen | Body::PotionRed => 5.0,
             Body::Pouch => 1.0,
-            Body::Pumpkin | Body::Pumpkin2 | Body::Pumpkin3 | Body::Pumpkin4 | Body::Pumpkin5 => {
-                10.0
-            },
+            Body::Pumpkin
+            | Body::Pumpkin2
+            | Body::Pumpkin3
+            | Body::Pumpkin4
+            | Body::Pumpkin5
+            | Body::StrigoiHead => 10.0,
             Body::Scarecrow => 50.0,
             Body::Table | Body::Table2 | Body::Table3 => 50.0,
             Body::Tent => 50.0,
@@ -520,6 +538,7 @@ impl Body {
             Body::AdletSpear => 1.5,
             Body::AdletTrap => 10.0,
             Body::Mine => 100.0,
+            Body::HarlequinDagger => 1.5,
             Body::LightningBolt | Body::SpearIcicle => 20000.0,
             Body::Portal | Body::PortalActive => 10., // I dont know really
         };
@@ -536,6 +555,7 @@ impl Body {
             | Body::ArrowClay
             | Body::BoltBesieger
             | Body::Dart
+            | Body::HarlequinDagger
             | Body::AdletSpear => Vec3::new(0.01, 0.8, 0.01),
             Body::AdletTrap => Vec3::new(1.0, 0.6, 0.3),
             Body::BoltFire | Body::PoisonBall => Vec3::new(0.1, 0.1, 0.1),

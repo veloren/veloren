@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Bloodservant Pants",
+    legacy_description: "Bloodservant Pants",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct((
+            protection: Some(Normal(5.0)),
+            poise_resilience: Some(Normal(3.0)),
+            precision_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

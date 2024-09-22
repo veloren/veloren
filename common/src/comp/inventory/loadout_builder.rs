@@ -848,6 +848,12 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_large::Species::Huskbrute, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.husk_brute",
             )),
+            (biped_large::Species::Strigoi, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.strigoi_claws",
+            )),
+            (biped_large::Species::Executioner, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.axe.executioner_axe",
+            )),
             (biped_large::Species::Gigasfrost, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.axe.gigas_frost_axe",
             )),
@@ -940,6 +946,15 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_small::Species::Jiangshi, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.jiangshi",
             )),
+            (biped_small::Species::BloodmoonHeiress, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.vampire.bloodmoon_heiress_sword",
+            )),
+            (biped_small::Species::Bloodservant, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.vampire.bloodservant_axe",
+            )),
+            (biped_small::Species::Harlequin, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.vampire.harlequin_dagger",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.biped_small.adlet.hunter",
             )),
@@ -977,6 +992,12 @@ fn default_main_tool(body: &Body) -> Item {
             | bird_medium::Species::Crow
             | bird_medium::Species::Parakeet => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.simpleflyingbasic",
+            )),
+            bird_medium::Species::VampireBat => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.vampire_bat",
+            )),
+            bird_medium::Species::BloodmoonBat => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.bloodmoon_bat",
             )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.birdmediumbasic",
@@ -1017,6 +1038,7 @@ pub enum Preset {
     IronDwarfSummon,
     ShamanicSpiritSummon,
     JiangshiSummon,
+    BloodservantSummon,
 }
 
 impl LoadoutBuilder {
@@ -1151,6 +1173,12 @@ impl LoadoutBuilder {
                 bird_large::Species::Phoenix => Some("common.items.npc_armor.bird_large.phoenix"),
                 _ => None,
             },
+            Body::BirdMedium(body) => match body.species {
+                bird_medium::Species::BloodmoonBat => {
+                    Some("common.items.npc_armor.bird_medium.bloodmoon_bat")
+                },
+                _ => None,
+            },
             Body::Golem(body) => match body.species {
                 golem::Species::ClayGolem => Some("common.items.npc_armor.golem.claygolem"),
                 golem::Species::Gravewarden => Some("common.items.npc_armor.golem.gravewarden"),
@@ -1248,6 +1276,13 @@ impl LoadoutBuilder {
             Preset::JiangshiSummon => {
                 self =
                     self.with_asset_expect("common.loadout.dungeon.terracotta.jiangshi", rng, None);
+            },
+            Preset::BloodservantSummon => {
+                self = self.with_asset_expect(
+                    "common.loadout.dungeon.vampire.bloodservant",
+                    rng,
+                    None,
+                );
             },
         }
 

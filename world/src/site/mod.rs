@@ -86,6 +86,7 @@ pub enum SiteKind {
     Camp(site2::Site),
     Cultist(site2::Site),
     Sahagin(site2::Site),
+    VampireCastle(site2::Site),
 }
 
 impl Site {
@@ -222,6 +223,13 @@ impl Site {
         }
     }
 
+    pub fn vampire_castle(vc: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::VampireCastle(vc),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn dwarven_mine(dm: site2::Site) -> Self {
         Self {
             kind: SiteKind::DwarvenMine(dm),
@@ -283,6 +291,7 @@ impl Site {
             SiteKind::Haniwa(ha) => ha.radius(),
             SiteKind::Cultist(cl) => cl.radius(),
             SiteKind::Sahagin(sg) => sg.radius(),
+            SiteKind::VampireCastle(vc) => vc.radius(),
         }
     }
 
@@ -312,6 +321,7 @@ impl Site {
             SiteKind::Haniwa(ha) => ha.origin,
             SiteKind::Cultist(cl) => cl.origin,
             SiteKind::Sahagin(sg) => sg.origin,
+            SiteKind::VampireCastle(vc) => vc.origin,
         }
     }
 
@@ -341,6 +351,7 @@ impl Site {
             SiteKind::Haniwa(ha) => ha.spawn_rules(wpos),
             SiteKind::Cultist(cl) => cl.spawn_rules(wpos),
             SiteKind::Sahagin(sg) => sg.spawn_rules(wpos),
+            SiteKind::VampireCastle(vc) => vc.spawn_rules(wpos),
         }
     }
 
@@ -370,6 +381,7 @@ impl Site {
             SiteKind::Haniwa(ha) => ha.name(),
             SiteKind::Cultist(cl) => cl.name(),
             SiteKind::Sahagin(sg) => sg.name(),
+            SiteKind::VampireCastle(vc) => vc.name(),
         }
     }
 
@@ -419,6 +431,7 @@ impl Site {
             SiteKind::Haniwa(ha) => ha.render(canvas, dynamic_rng),
             SiteKind::Cultist(cl) => cl.render(canvas, dynamic_rng),
             SiteKind::Sahagin(sg) => sg.render(canvas, dynamic_rng),
+            SiteKind::VampireCastle(vc) => vc.render(canvas, dynamic_rng),
         }
     }
 
@@ -462,6 +475,7 @@ impl Site {
             SiteKind::Haniwa(ha) => ha.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Cultist(cl) => cl.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Sahagin(sg) => sg.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::VampireCastle(vc) => vc.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 
@@ -505,6 +519,7 @@ impl Site {
             SiteKind::Haniwa(site2) => Some(site2),
             SiteKind::Cultist(site2) => Some(site2),
             SiteKind::Sahagin(site2) => Some(site2),
+            SiteKind::VampireCastle(site2) => Some(site2),
         }
     }
 }

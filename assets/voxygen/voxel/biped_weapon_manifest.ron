@@ -1683,6 +1683,10 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
+    Tool("common.items.npc_weapons.unique.strigoi_claws"): (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+        color: None
+    ),
     Tool("common.items.npc_weapons.unique.tursus_claws"): (
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
@@ -1812,12 +1816,28 @@
         vox_spec: ("weapon.biped_small.axe.strategian", (-0.5, -6.0, -4.0)),
         color: None
     ),
+    Tool("common.items.npc_weapons.biped_small.vampire.harlequin_dagger"): (
+        vox_spec: ("weapon.biped_small.dagger.harlequin_dagger", (-1.0, 0.0, 0.0)),
+        color: None
+    ),
+    Tool("common.items.npc_weapons.biped_small.vampire.bloodmoon_heiress_sword"): (
+        vox_spec: ("weapon.sword.bloodmoon_heiress_sword", (-5.0, -2.0, -2.0)),
+        color: None
+    ),
+    Tool("common.items.npc_weapons.biped_small.vampire.bloodservant_axe"): (
+        vox_spec: ("weapon.biped_small.axe.bloodservant_axe", (0.0, 0.0, 0.0)),
+        color: None
+    ),
     Tool("common.items.npc_weapons.biped_small.mandragora"): (
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
     Tool("common.items.npc_weapons.axe.gigas_frost_axe"): (
         vox_spec: ("weapon.axe.2haxe_gigas_frost", (-3.0, -15.5, -14.0)),
+        color: None
+    ),
+    Tool("common.items.npc_weapons.axe.executioner_axe"): (
+        vox_spec: ("weapon.axe.executioner_axe", (-1.0, -2.0, -8.0)),
         color: None
     ),
     Tool("common.items.npc_weapons.biped_small.boreal.bow"): (

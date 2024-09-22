@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Bloodmoon Heiress Head",
+    legacy_description: "Bloodmoon Heiress Head",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(11.0)),
+            poise_resilience: Some(Normal(4.0)),
+            precision_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

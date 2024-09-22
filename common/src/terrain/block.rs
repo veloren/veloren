@@ -434,7 +434,10 @@ impl Block {
                 SpriteKind::TerracottaStatue => 8,
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => 16,
                 SpriteKind::SeaDecorEmblem => 12,
-                SpriteKind::SeaDecorBlock | SpriteKind::HaniwaKeyDoor => 10,
+                SpriteKind::SeaDecorBlock
+                | SpriteKind::HaniwaKeyDoor
+                | SpriteKind::VampireKeyDoor => 10,
+                SpriteKind::BloodmoonKeyhole => 25,
                 _ => return None,
             },
         };
@@ -530,6 +533,9 @@ impl Block {
                 | SpriteKind::HaniwaUrn
                 | SpriteKind::HaniwaKeyDoor
                 | SpriteKind::HaniwaKeyhole
+                | SpriteKind::VampireKeyDoor
+                | SpriteKind::VampireKeyhole
+                | SpriteKind::BloodmoonKeyhole
                 | SpriteKind::HaniwaTrap
                 | SpriteKind::HaniwaTrapTriggered
                 | SpriteKind::ChestBuried
@@ -539,7 +545,9 @@ impl Block {
                 | SpriteKind::SeaDecorChain
                 | SpriteKind::SeaDecorWindowHor
                 | SpriteKind::SeaDecorWindowVer
+                | SpriteKind::WitchWindow
                 | SpriteKind::Rope
+                | SpriteKind::MetalChain
                 | SpriteKind::IronSpike
                 | SpriteKind::HotSurface
                 | SpriteKind::FireBlock

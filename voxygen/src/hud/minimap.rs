@@ -735,6 +735,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Haniwa => Some(3),
                     SiteKind::Cultist => Some(5),
                     SiteKind::DwarvenMine => Some(5),
+                    SiteKind::VampireCastle => Some(2),
                 };
 
                 Image::new(match &site.kind {
@@ -752,6 +753,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Cultist => self.imgs.mmap_site_cultist_bg,
                     SiteKind::Sahagin => self.imgs.mmap_site_sahagin_bg,
                     SiteKind::DwarvenMine => self.imgs.mmap_site_mine_bg,
+                    SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle_bg,
                 })
                 .x_y_position_relative_to(
                     state.ids.map_layers[0],
@@ -784,6 +786,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Cultist => self.imgs.mmap_site_cultist,
                     SiteKind::Sahagin => self.imgs.mmap_site_sahagin,
                     SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
+                    SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
                 })
                 .middle_of(state.ids.mmap_site_icons_bgs[i])
                 .w_h(20.0, 20.0)

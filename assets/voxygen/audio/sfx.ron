@@ -1314,6 +1314,22 @@
             ],
             threshold: 0.4,
         ),
+        StrigoiHead: (
+            files: [
+                    "voxygen.audio.sfx.abilities.strigoi_head",
+            ],
+            threshold: 0.8,
+            subtitle: "subtitle-attack-strigoi_head",
+
+        ),
+        BloodmoonHeiressSummon: (
+            files: [
+                    "voxygen.audio.sfx.abilities.bloodmoon_heiress_summon",
+            ],
+            threshold: 0.5,
+            subtitle: "subtitle-attack-bloodmoon_heiress_summon",
+
+        ),
         SkillPointGain: (
             files: [
                 "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up",
@@ -1590,6 +1606,13 @@
             threshold: 3.1,
             subtitle: "subtitle-utterance-phoenix-angry",
         ),
+        Utterance(Angry, VampireBat): (
+            files: [
+                "voxygen.audio.sfx.utterance.vampire_bat_angry",
+            ],
+            threshold: 1.3,
+            subtitle: "subtitle-utterance-vampire-bat-angry",
+        ),        
         Utterance(Angry, Adlet): (
             files: [
                 "voxygen.audio.sfx.utterance.adlet_angry1",
@@ -1806,6 +1829,13 @@
             threshold: 1.5,
             subtitle: "subtitle-utterance-phoenix-hurt",
         ),
+        Utterance(Hurt, VampireBat): (
+            files: [
+                "voxygen.audio.sfx.utterance.vampire_bat_hurt",
+            ],
+            threshold: 1.2,
+            subtitle: "subtitle-utterance-vampire-bat-hurt",
+        ),        
         Utterance(Angry, Wendigo): (
             files: [
                 "voxygen.audio.sfx.utterance.wendigo_angry1",

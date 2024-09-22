@@ -33,3 +33,5 @@ body-npc-speech-biped_large-terracotta_demolisher = a terracotta demolisher
 body-npc-speech-biped_large-terracotta_punisher = a terracotta punisher
 body-npc-speech-biped_large-terracotta_pursuer = a terracotta pursuer
 body-npc-speech-biped_large-cursekeeper = a terracotta pursuer
+body-npc-speech-biped_large-strigoi = a strigoi
+body-npc-speech-biped_large-executioner = an executioner

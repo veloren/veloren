@@ -145,6 +145,46 @@ impl Animation for SummonAnimation {
                             * Quaternion::rotation_x(move2abs * 0.7);
                 },
             },
+            Some(ToolKind::Sword) => {
+                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 3.0, 3.0);
+                next.control_r.position =
+                    Vec3::new(12.0 + s_a.grip.0 * 2.0, -4.0 + move1abs * -14.0, 3.0);
+
+                next.control.position = Vec3::new(
+                    -5.0 + move1abs * -5.0,
+                    -1.0 + s_a.grip.2 + move1abs * -8.0,
+                    s_a.grip.2 / 2.0,
+                );
+                next.chest.position =
+                    Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + twitch2 + move2abs * 2.0);
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                    * Quaternion::rotation_y(-0.3)
+                    * Quaternion::rotation_z(-0.3);
+                next.control_r.orientation = Quaternion::rotation_x(
+                    PI / 2.0 + s_a.grip.0 * 0.2 + twitch * 0.2 + twitch2 * 0.2,
+                ) * Quaternion::rotation_y(
+                    -0.4 + s_a.grip.0 * 0.2 + move1abs * -2.0,
+                ) * Quaternion::rotation_z(move1abs * 0.5);
+
+                next.chest.position = Vec3::new(
+                    0.0,
+                    s_a.chest.0,
+                    s_a.chest.1 + move1abs * 6.0 + twitch2 + move2abs * 3.0,
+                );
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                    * Quaternion::rotation_y(-0.3)
+                    * Quaternion::rotation_z(-0.3);
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                    * Quaternion::rotation_y(-0.3)
+                    * Quaternion::rotation_z(0.3);
+                next.control.orientation = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.5 + move1abs * 1.0);
+                next.chest.orientation = Quaternion::rotation_x(0.0) * Quaternion::rotation_z(0.0);
+                next.head.orientation =
+                    Quaternion::rotation_z(twitch * 0.2 + twitch2 * 0.4 + move2abs * -0.5)
+                        * Quaternion::rotation_x(move2abs * 0.4);
+            },
             _ => {
                 next.chest.orientation = Quaternion::rotation_x(move2abs * -1.0)
                     * Quaternion::rotation_z(move1 * 1.2 + move2 * -1.8);
