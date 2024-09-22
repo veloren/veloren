@@ -35,13 +35,6 @@ macro_rules! impl_sprite_attribute_filter {
         }
 
         impl SpriteAttributeFilters {
-            fn filter_score(&self) -> usize {
-                [$(self.$field_name.is_some()),+]
-                    .into_iter()
-                    .filter(|o| *o)
-                    .count()
-            }
-
             fn matches_filter(&self, block: &Block) -> bool {
                 $(
                     self.$field_name.as_ref().map_or(true, |$filter_arg| {
@@ -169,18 +162,10 @@ impl SpriteSpec {
                     // represented by an entry with no variantions instead of having an empty
                     // top-level list.
                     filtered_configs => {
-                        let mut list = filtered_configs
+                        let list = filtered_configs
                             .iter()
                             .map(|config| (config.filter.clone(), to_sprite_data(config)))
                             .collect::<Box<[_]>>();
-                        // TODO: do we need filter scoring (i.e. prioritizing filters with more
-                        // conditions)? Using the ordering given in the file would be more
-                        // powerful (via more freedom in what filter is prioritized) and would be
-                        // similar to rust's match semantics.
-                        //
-                        // Sort here so we can just take the first match when processing a terrain
-                        // block.
-                        list.sort_by_key(|(filter, _)| filter.filter_score());
                         FilteredSpriteData::Filtered(list)
                     },
                 };

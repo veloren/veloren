@@ -201,7 +201,6 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
         };
         let variant = &data.variations[variation];
 
-        // NOTE: Safe because 0 ≤ ori < 8 (TODO: what is safe?)
         let light = light_map(wpos);
         let glow = glow_map(wpos);
 
