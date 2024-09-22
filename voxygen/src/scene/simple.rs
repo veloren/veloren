@@ -27,6 +27,7 @@ use common::{
     terrain::{BlockKind, CoordinateConversions},
     vol::{BaseVol, ReadVol},
 };
+use std::sync::Arc;
 use vek::*;
 use winit::event::MouseButton;
 
@@ -55,7 +56,7 @@ pub struct Scene {
     map_bounds: Vec2<f32>,
 
     figure_atlas: FigureAtlas,
-    sprite_render_state: SpriteRenderState,
+    sprite_render_state: Arc<SpriteRenderState>,
     sprite_globals: SpriteGlobalsBindGroup,
 
     turning_camera: bool,

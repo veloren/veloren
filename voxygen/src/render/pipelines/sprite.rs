@@ -77,7 +77,6 @@ impl VertexTrait for Vertex {
 }
 
 pub struct SpriteVerts(Buffer<Vertex>);
-//pub struct SpriteVerts(Texture);
 
 pub(in super::super) fn create_verts_buffer(
     device: &wgpu::Device,
