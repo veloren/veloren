@@ -627,9 +627,6 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.hammer.earthshaker" => imgs.hammer_earthshaker,
         "common.abilities.hammer.judgement" => imgs.hammer_judgement,
         // Bow
-        "common.abilities.bow.charged" => imgs.bow_m1,
-        "common.abilities.bow.repeater" => imgs.bow_m2,
-        "common.abilities.bow.shotgun" => imgs.skill_bow_jump_burst,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

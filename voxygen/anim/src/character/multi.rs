@@ -1531,64 +1531,6 @@ impl Animation for MultiAction {
                 // ==================================
                 //                BOW
                 // ==================================
-                Some("common.abilities.bow.repeater") => {
-                    let speed = Vec2::<f32>::from(d.velocity).magnitude();
-                    let ori_angle = d.orientation.y.atan2(d.orientation.x);
-                    let lookdir_angle = d.look_dir.y.atan2(d.look_dir.x);
-                    let swivel = lookdir_angle - ori_angle;
-
-                    next.hand_l.position = Vec3::new(s_a.bhl.0, s_a.bhl.1, s_a.bhl.2);
-                    next.hand_l.orientation = Quaternion::rotation_x(s_a.bhl.3);
-                    next.hand_r.position = Vec3::new(s_a.bhr.0, s_a.bhr.1, s_a.bhr.2);
-                    next.hand_r.orientation = Quaternion::rotation_x(s_a.bhr.3);
-                    next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                    next.main.orientation =
-                        Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
-
-                    next.hold.position = Vec3::new(0.0, -1.0 + move2 * 2.0, -5.2);
-                    next.hold.orientation =
-                        Quaternion::rotation_x(-PI / 2.0) * Quaternion::rotation_z(0.0);
-                    next.hold.scale = Vec3::one() * (1.0);
-
-                    next.chest.orientation = Quaternion::rotation_z(swivel * 0.8);
-                    next.torso.orientation = Quaternion::rotation_z(swivel * 0.2);
-
-                    if speed < 0.5 {
-                        if !d.is_riding {
-                            next.foot_l.position =
-                                Vec3::new(-s_a.foot.0 - 0.75, s_a.foot.1 + 4.0, s_a.foot.2);
-                            next.foot_l.orientation =
-                                Quaternion::rotation_x(0.2 + move1 * -0.1 + move2 * -0.2)
-                                    * Quaternion::rotation_z(move2 * 0.1);
-
-                            next.foot_r.position =
-                                Vec3::new(s_a.foot.0 + 0.75, s_a.foot.1, s_a.foot.2);
-                            next.foot_r.orientation =
-                                Quaternion::rotation_x(0.06 + move1 * -0.2 + move2 * -0.5)
-                                    * Quaternion::rotation_z(-0.6 + move2 * 0.8);
-                        }
-
-                        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-                        next.chest.orientation = Quaternion::rotation_x(0.0);
-                    };
-                    next.shorts.position = Vec3::new(0.0, s_a.shorts.0 + 2.0, s_a.shorts.1);
-                    next.shorts.orientation = Quaternion::rotation_x(0.2 + move2 * 0.2);
-                    next.belt.position = Vec3::new(0.0, s_a.belt.0 + 1.0, s_a.belt.1);
-                    next.belt.orientation = Quaternion::rotation_x(0.1 + move2 * 0.1);
-                    next.control.position =
-                        Vec3::new(s_a.bc.0 + 5.0, s_a.bc.1 + 3.0, s_a.bc.2 + 5.0);
-                    next.control.orientation = Quaternion::rotation_x(s_a.bc.3 + 0.4)
-                        * Quaternion::rotation_y(s_a.bc.4 + 0.8)
-                        * Quaternion::rotation_z(s_a.bc.5);
-                    next.head.orientation =
-                        Quaternion::rotation_x(0.15) * Quaternion::rotation_y(0.15 + move1 * 0.05);
-                    next.torso.orientation = Quaternion::rotation_x(0.25 + move2 * -0.2);
-
-                    next.hand_l.position = Vec3::new(0.0, -2.5 + move2 * -6.0, 0.0);
-                    next.hand_l.orientation = Quaternion::rotation_x(1.5)
-                        * Quaternion::rotation_y(-0.0)
-                        * Quaternion::rotation_z(-0.3);
-                },
                 // ==================================
                 //              SHIELD
                 // ==================================

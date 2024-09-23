@@ -12,7 +12,7 @@ use common::{
         buff::BuffKind,
         fluid_dynamics::LiquidKind,
         item::tool::AbilityContext,
-        skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
+        skills::{AxeSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
     },
     consts::GRAVITY,
     path::TraversalConfig,
@@ -2070,164 +2070,14 @@ impl AgentData<'_> {
 
     pub fn handle_bow_attack(
         &self,
-        agent: &mut Agent,
-        controller: &mut Controller,
-        attack_data: &AttackData,
-        tgt_data: &TargetData,
-        read_data: &ReadData,
-        rng: &mut impl Rng,
+        _agent: &mut Agent,
+        _controller: &mut Controller,
+        _attack_data: &AttackData,
+        _tgt_data: &TargetData,
+        _read_data: &ReadData,
+        _rng: &mut impl Rng,
     ) {
-        const MIN_CHARGE_FRAC: f32 = 0.5;
-        const OPTIMAL_TARGET_VELOCITY: f32 = 5.0;
-        const DESIRED_ENERGY_LEVEL: f32 = 50.0;
-
-        let line_of_sight_with_target = || {
-            entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                self.scale,
-                tgt_data.pos,
-                tgt_data.body,
-                tgt_data.scale,
-                read_data,
-            )
-        };
-
-        // Logic to use abilities
-        if let CharacterState::ChargedRanged(c) = self.char_state {
-            if !matches!(c.stage_section, StageSection::Recover) {
-                // Don't even bother with this logic if in recover
-                let target_speed_sqd = agent
-                    .target
-                    .as_ref()
-                    .map(|t| t.target)
-                    .and_then(|e| read_data.velocities.get(e))
-                    .map_or(0.0, |v| v.0.magnitude_squared());
-                if c.charge_frac() < MIN_CHARGE_FRAC
-                    || (target_speed_sqd > OPTIMAL_TARGET_VELOCITY.powi(2) && c.charge_frac() < 1.0)
-                {
-                    // If haven't charged to desired level, or target is moving too fast and haven't
-                    // fully charged, keep charging
-                    controller.push_basic_input(InputKind::Primary);
-                }
-                // Else don't send primary input to release the shot
-            }
-        } else if matches!(self.char_state, CharacterState::RepeaterRanged(c) if self.energy.current() > 5.0 && !matches!(c.stage_section, StageSection::Recover))
-        {
-            // If in repeater ranged, have enough energy, and aren't in recovery, try to
-            // keep firing
-            if attack_data.dist_sqrd > attack_data.min_attack_dist.powi(2)
-                && line_of_sight_with_target()
-            {
-                // Only keep firing if not in melee range or if can see target
-                controller.push_basic_input(InputKind::Secondary);
-            }
-        } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
-            if self
-                .skill_set
-                .has_skill(Skill::Bow(BowSkill::UnlockShotgun))
-                && self.energy.current() > 45.0
-                && rng.random_bool(0.5)
-            {
-                // Use shotgun if target close and have sufficient energy
-                controller.push_basic_input(InputKind::Ability(0));
-            } else if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && self.energy.current()
-                    > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
-                && !matches!(self.char_state, CharacterState::BasicRanged(c) if !matches!(c.stage_section, StageSection::Recover))
-            {
-                // Else roll away if can roll and have enough energy, and not using shotgun
-                // (other 2 attacks have interrupt handled above) unless in recover
-                controller.push_basic_input(InputKind::Roll);
-            } else {
-                self.path_toward_target(
-                    agent,
-                    controller,
-                    tgt_data.pos.0,
-                    read_data,
-                    Path::Separate,
-                    None,
-                );
-                if attack_data.angle < 15.0 {
-                    controller.push_basic_input(InputKind::Primary);
-                }
-            }
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) && line_of_sight_with_target() {
-            // If not really far, and can see target, attempt to shoot bow
-            if self.energy.current() < DESIRED_ENERGY_LEVEL {
-                // If low on energy, use primary to attempt to regen energy
-                controller.push_basic_input(InputKind::Primary);
-            } else {
-                // Else we have enough energy, use repeater
-                controller.push_basic_input(InputKind::Secondary);
-            }
-        }
-        // Logic to move. Intentionally kept separate from ability logic so duplicated
-        // work is less necessary.
-        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
-            // Attempt to move away from target if too close
-            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
-                &*read_data.terrain,
-                self.pos.0,
-                self.vel.0,
-                tgt_data.pos.0,
-                TraversalConfig {
-                    min_tgt_dist: 1.25,
-                    ..self.traversal_config
-                },
-                &read_data.time,
-            ) {
-                self.unstuck_if(stuck, controller);
-                controller.inputs.move_dir =
-                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-            }
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            // Else attempt to circle target if neither too close nor too far
-            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
-                &*read_data.terrain,
-                self.pos.0,
-                self.vel.0,
-                tgt_data.pos.0,
-                TraversalConfig {
-                    min_tgt_dist: 1.25,
-                    ..self.traversal_config
-                },
-                &read_data.time,
-            ) {
-                self.unstuck_if(stuck, controller);
-                if line_of_sight_with_target() && attack_data.angle < 45.0 {
-                    controller.inputs.move_dir = bearing
-                        .xy()
-                        .rotated_z(rng.random_range(0.5..1.57))
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero)
-                        * speed;
-                } else {
-                    // Unless cannot see target, then move towards them
-                    controller.inputs.move_dir =
-                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                    self.jump_if(bearing.z > 1.5, controller);
-                    controller.inputs.move_z = bearing.z;
-                }
-            }
-            // Sometimes try to roll
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && rng.random::<f32>() < 0.01
-            {
-                controller.push_basic_input(InputKind::Roll);
-            }
-        } else {
-            // If too far, move towards target
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::AtTarget,
-                None,
-            );
-        }
+        // TODO
     }
 
     pub fn handle_staff_attack(

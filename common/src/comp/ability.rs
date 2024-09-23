@@ -2256,7 +2256,6 @@ impl CharacterAbility {
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
-            Some(ToolKind::Bow) => self.adjusted_by_bow_skills(skillset),
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
             Some(ToolKind::Sceptre) => self.adjusted_by_sceptre_skills(skillset),
             Some(ToolKind::Pick) => self.adjusted_by_mining_skills(skillset),
@@ -2282,97 +2281,6 @@ impl CharacterAbility {
             *buildup_duration /= speed;
             *swing_duration /= speed;
             *recover_duration /= speed;
-        }
-    }
-
-    fn adjusted_by_bow_skills(&mut self, skillset: &SkillSet) {
-        use skills::{BowSkill::*, Skill::Bow};
-
-        let projectile_speed_modifier = SKILL_MODIFIERS.bow_tree.universal.projectile_speed;
-        match self {
-            CharacterAbility::ChargedRanged {
-                projectile,
-                move_speed,
-                initial_projectile_speed,
-                scaled_projectile_speed,
-                charge_duration,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.bow_tree.charged;
-                if let Ok(level) = skillset.skill_level(Bow(ProjSpeed)) {
-                    let projectile_speed_scaling = projectile_speed_modifier.powi(level.into());
-                    *initial_projectile_speed *= projectile_speed_scaling;
-                    *scaled_projectile_speed *= projectile_speed_scaling;
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CDamage)) {
-                    let power = modifiers.damage_scaling.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CRegen)) {
-                    let regen = modifiers.regen_scaling.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(1_f32, regen, 1_f32, 1_f32);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CKnockback)) {
-                    let kb = modifiers.knockback_scaling.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(1_f32, 1_f32, 1_f32, kb);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CSpeed)) {
-                    let charge_time = 1.0 / modifiers.charge_rate;
-                    *charge_duration *= charge_time.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CMove)) {
-                    *move_speed *= modifiers.move_speed.powi(level.into());
-                }
-            },
-            CharacterAbility::RepeaterRanged {
-                energy_cost,
-                projectile,
-                max_speed,
-                projectile_speed,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.bow_tree.repeater;
-                if let Ok(level) = skillset.skill_level(Bow(ProjSpeed)) {
-                    *projectile_speed *= projectile_speed_modifier.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(RDamage)) {
-                    let power = modifiers.power.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(RCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(RSpeed)) {
-                    *max_speed *= modifiers.max_speed.powi(level.into());
-                }
-            },
-            CharacterAbility::BasicRanged {
-                projectile,
-                energy_cost,
-                num_projectiles,
-                projectile_spread,
-                projectile_speed,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.bow_tree.shotgun;
-                if let Ok(level) = skillset.skill_level(Bow(ProjSpeed)) {
-                    *projectile_speed *= projectile_speed_modifier.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(SDamage)) {
-                    let power = modifiers.power.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(SCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(SArrows)) {
-                    num_projectiles.add(u32::from(level) * modifiers.num_projectiles);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(SSpread)) {
-                    *projectile_spread *= modifiers.spread.powi(level.into());
-                }
-            },
-            _ => {},
         }
     }
 

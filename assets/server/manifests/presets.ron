@@ -83,23 +83,23 @@
         // Bow
         (UnlockGroup(Weapon(Bow)), 1),
 
-        (Bow(ProjSpeed), 2),
-
-        (Bow(CDamage), 3),
-        (Bow(CKnockback), 2),
-        (Bow(CSpeed), 2),
-        (Bow(CRegen), 2),
-        (Bow(CMove), 2),
-
-        (Bow(RDamage), 3),
-        (Bow(RCost), 2),
-        (Bow(RSpeed), 2),
-
-        (Bow(UnlockShotgun), 1),
-        (Bow(SDamage), 2),
-        (Bow(SCost), 2),
-        (Bow(SArrows), 2),
-        (Bow(SSpread), 2),
+        (Bow(Foothold), 1),
+        (Bow(SnareShot), 1),
+        (Bow(Barrage), 1),
+        (Bow(EagleEye), 1),
+        (Bow(ArdentHunt), 1),
+        (Bow(OwlTalon), 1),
+        (Bow(HeavyNock), 1),
+        (Bow(IgniteArrow), 1),
+        (Bow(DrenchArrow), 1),
+        (Bow(PiercingGale), 1),
+        (Bow(Hawkstrike), 1),
+        (Bow(Heartseeker), 1),
+        (Bow(Scatterburst), 1),
+        (Bow(FreezeArrow), 1),
+        (Bow(JoltArrow), 1),
+        (Bow(Fusillade), 1),
+        (Bow(DeathVolley), 1),
 
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
@@ -155,24 +155,6 @@
         // Bow
         (UnlockGroup(Weapon(Bow)), 1),
 
-        (Bow(ProjSpeed), 2),
-
-        (Bow(CDamage), 2),
-        (Bow(CKnockback), 2),
-        (Bow(CSpeed), 1),
-        (Bow(CRegen), 1),
-        (Bow(CMove), 2),
-
-        (Bow(RDamage), 3),
-        (Bow(RCost), 1),
-        (Bow(RSpeed), 2),
-
-        (Bow(UnlockShotgun), 1),
-        (Bow(SDamage), 2),
-        (Bow(SCost), 1),
-        (Bow(SArrows), 2),
-        (Bow(SSpread), 2),
-
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
 
@@ -221,8 +203,6 @@
 
         // Bow
         (UnlockGroup(Weapon(Bow)), 1),
-
-        (Bow(UnlockShotgun), 1),
 
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),

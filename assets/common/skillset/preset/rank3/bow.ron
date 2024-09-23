@@ -1,23 +1,10 @@
 [
     Group(Weapon(Bow)),
 
-    // Projectile Speed
-    Skill((Bow(ProjSpeed), 2)),
+    Skill((Bow(Foothold), 1)),
+    Skill((Bow(SnareShot), 1)),
 
-    // Charged
-    Skill((Bow(CDamage), 1)),
-    Skill((Bow(CKnockback), 1)),
-    Skill((Bow(CSpeed), 1)),
-    Skill((Bow(CRegen), 1)),
-    Skill((Bow(CMove), 1)),
-
-    // Repeater
-    Skill((Bow(RDamage), 1)),
-    Skill((Bow(RCost), 1)),
-    Skill((Bow(RSpeed), 1)),
-
-    // Shotgun
-    Skill((Bow(UnlockShotgun), 1)),
-    Skill((Bow(SDamage), 1)),
-    Skill((Bow(SCost), 1)),
+    Skill((Bow(Barrage), 1)),
+    Skill((Bow(EagleEye), 1)),
+    Skill((Bow(ArdentHunt), 1)),
 ]

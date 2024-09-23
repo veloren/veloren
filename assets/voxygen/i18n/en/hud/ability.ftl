@@ -14,12 +14,6 @@ common-abilities-debug-glide_speeder = Vroom
 
 common-abilities-hammer-leap = Smash of Doom
     .desc = An AOE attack with knockback. Leaps to position of cursor.
-common-abilities-bow-charged = Charged Shot
-    .desc = Fires a single arrow with damage based on draw time.
-common-abilities-bow-repeater = Repeater
-    .desc = Shoots arrows continuously and faster the longer you fire for.
-common-abilities-bow-shotgun = Shotgun
-    .desc = Launches a burst of arrows
 common-abilities-staff-firebomb = Firebomb
     .desc = Shoots a fireball that explodes on impact.
 common-abilities-staff-flamethrower = Flamethrower

@@ -1595,60 +1595,6 @@ impl Animation for BasicAction {
             // ==================================
             //                BOW
             // ==================================
-            Some("common.abilities.bow.charged" | "common.abilities.bow.shotgun") => {
-                let move2 = move2base;
-
-                let ori: Vec2<f32> = Vec2::from(d.orientation);
-                let last_ori = Vec2::from(d.last_ori);
-                let tilt = if vek::Vec2::new(ori, last_ori)
-                    .map(|o| o.magnitude_squared())
-                    .map(|m| m > 0.001 && m.is_finite())
-                    .reduce_and()
-                    && ori.angle_between(last_ori).is_finite()
-                {
-                    ori.angle_between(last_ori).min(0.2)
-                        * last_ori.determine_side(Vec2::zero(), ori).signum()
-                } else {
-                    0.0
-                } * 1.3;
-                let ori_angle = d.orientation.y.atan2(d.orientation.x);
-                let lookdir_angle = d.look_dir.y.atan2(d.look_dir.x);
-                let swivel = lookdir_angle - ori_angle;
-
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
-                next.hand_l.position = Vec3::new(
-                    s_a.bhl.0 + move2 * -8.0,
-                    s_a.bhl.1 + move2 * -10.0,
-                    s_a.bhl.2,
-                );
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(s_a.bhl.3) * Quaternion::rotation_y(move2 * 0.7);
-                next.hand_r.position = Vec3::new(s_a.bhr.0, s_a.bhr.1, s_a.bhr.2);
-                next.hand_r.orientation = Quaternion::rotation_x(s_a.bhr.3);
-
-                next.hold.position = Vec3::new(0.0, -1.0 + move2 * 2.0, -5.2 + move2 * 7.0);
-                next.hold.orientation = Quaternion::rotation_x(-PI / 2.0);
-                next.hold.scale = Vec3::one() * 1.0 * (1.0 - move2);
-
-                next.control.position = Vec3::new(
-                    s_a.bc.0 + 11.0 + move2 * 2.0,
-                    s_a.bc.1 + 2.0 + (d.look_dir.z * -5.0).min(-2.0) + move2 * -1.0,
-                    s_a.bc.2 + 8.0 + (d.look_dir.z * 15.0).max(-8.0),
-                );
-                next.control.orientation = Quaternion::rotation_x(d.look_dir.z)
-                    * Quaternion::rotation_y(-d.look_dir.z + s_a.bc.4 - 1.25)
-                    * Quaternion::rotation_z(s_a.bc.5 - 0.2 + move2 * -0.1);
-
-                next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-
-                next.head.orientation = Quaternion::rotation_x(d.look_dir.z * 0.7)
-                    * Quaternion::rotation_z(tilt * -0.0);
-                next.chest.orientation = Quaternion::rotation_z(swivel * 0.8 + 0.8 + move2 * 0.5);
-                next.torso.orientation = Quaternion::rotation_z(swivel * 0.2);
-
-                next.shoulder_l.orientation = Quaternion::rotation_x(move2 * 0.5);
-            },
             // ==================================
             //             FIRE STAFF
             // ==================================
