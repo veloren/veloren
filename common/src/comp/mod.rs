@@ -54,7 +54,7 @@ pub use self::{
     beam::Beam,
     body::{
         arthropod, biped_large, biped_small, bird_large, bird_medium, crustacean, dragon,
-        fish_medium, fish_small, golem, humanoid, item_drop, object, quadruped_low,
+        fish_medium, fish_small, golem, humanoid, item_drop, object, plugin, quadruped_low,
         quadruped_medium, quadruped_small, ship, theropod, AllBodies, Body, BodyData, Gender,
     },
     buff::{

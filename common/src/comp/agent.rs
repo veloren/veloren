@@ -420,6 +420,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::Dragon(_) => 0.0,
                 Body::Arthropod(_) => 0.0,
                 Body::Crustacean(_) => 0.0,
+                Body::Plugin(body) => body.flee_health(),
             },
             sight_dist: match body {
                 Body::BirdLarge(_) => 250.0,

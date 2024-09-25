@@ -24,9 +24,10 @@ pub enum NpcKind {
     Crocodile,
     Tarantula,
     Crab,
+    Plugin,
 }
 
-pub const ALL_NPCS: [NpcKind; 15] = [
+pub const ALL_NPCS: [NpcKind; 16] = [
     NpcKind::Humanoid,
     NpcKind::Wolf,
     NpcKind::Pig,
@@ -42,6 +43,7 @@ pub const ALL_NPCS: [NpcKind; 15] = [
     NpcKind::Crocodile,
     NpcKind::Tarantula,
     NpcKind::Crab,
+    NpcKind::Plugin,
 ];
 
 /// Body-specific NPC name metadata.
@@ -139,6 +141,7 @@ pub fn kind_to_body(kind: NpcKind) -> Body {
         NpcKind::Crocodile => comp::quadruped_low::Body::random().into(),
         NpcKind::Tarantula => comp::arthropod::Body::random().into(),
         NpcKind::Crab => comp::crustacean::Body::random().into(),
+        NpcKind::Plugin => comp::plugin::Body::random().into(),
     }
 }
 
@@ -325,6 +328,15 @@ impl NpcBody {
                     comp::crustacean::Body::random_with,
                 )
             })
+            .or_else(|| {
+                parse(
+                    s,
+                    NpcKind::Plugin,
+                    &npc_names.plugin,
+                    comp::plugin::Body::random_with,
+                )
+            })
+            .or_else(|| crate::comp::body::plugin::parse_name(s))
             .ok_or(())
     }
 }

@@ -12,6 +12,7 @@ pub mod humanoid;
 pub mod item_drop;
 pub mod object;
 pub mod parts;
+pub mod plugin;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;
@@ -55,6 +56,7 @@ make_case_elim!(
         Arthropod(body: arthropod::Body) = 15,
         ItemDrop(body: item_drop::Body) = 16,
         Crustacean(body: crustacean::Body) = 17,
+        Plugin(body: plugin::Body) = 18,
     }
 );
 
@@ -105,6 +107,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub ship: BodyData<BodyMeta, ()>,
     pub arthropod: BodyData<BodyMeta, arthropod::AllSpecies<SpeciesMeta>>,
     pub crustacean: BodyData<BodyMeta, crustacean::AllSpecies<SpeciesMeta>>,
+    pub plugin: BodyData<BodyMeta, plugin::AllSpecies<SpeciesMeta>>,
 }
 
 impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
@@ -129,6 +132,7 @@ impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
             Body::QuadrupedLow(b) => &self.quadruped_low.species[&b.species],
             Body::Arthropod(b) => &self.arthropod.species[&b.species],
             Body::Crustacean(b) => &self.crustacean.species[&b.species],
+            Body::Plugin(b) => &self.plugin.species[&b.species],
             _ => return None,
         })
     }
@@ -156,6 +160,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Crocodile => &self.quadruped_low.body,
             NpcKind::Tarantula => &self.arthropod.body,
             NpcKind::Crab => &self.crustacean.body,
+            NpcKind::Plugin => &self.plugin.body,
         }
     }
 }
@@ -185,6 +190,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::Arthropod(_) => &self.arthropod.body,
             Body::Ship(_) => &self.ship.body,
             Body::Crustacean(_) => &self.crustacean.body,
+            Body::Plugin(_) => &self.plugin.body,
         }
     }
 }
@@ -277,6 +283,10 @@ impl Body {
             Body::Ship(_) => false,
             Body::Crustacean(b1) => match other {
                 Body::Crustacean(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::Plugin(b1) => match other {
+                Body::Plugin(b2) => b1.species == b2.species,
                 _ => false,
             },
         }
@@ -517,6 +527,7 @@ impl Body {
             Body::Arthropod(_) => 200.0,
             // TODO: mass
             Body::Crustacean(_) => 50.0,
+            Body::Plugin(body) => body.mass().0,
         };
         Mass(m)
     }
@@ -713,6 +724,7 @@ impl Body {
                 bird_medium::Species::VampireBat => Vec3::new(2.0, 1.8, 1.3),
             },
             Body::Crustacean(_) => Vec3::new(1.2, 1.2, 0.7),
+            Body::Plugin(body) => body.dimensions(),
         }
     }
 
@@ -1106,6 +1118,7 @@ impl Body {
             },
             Body::Ship(_) => 1000,
             Body::Crustacean(_) => 40,
+            Body::Plugin(body) => body.base_health(),
         }
     }
 

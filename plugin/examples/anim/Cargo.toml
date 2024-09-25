@@ -1,20 +1,21 @@
 [package]
-name = "hello"
+name = "anim"
 version = "0.1.0"
 edition = "2021"
 
 [workspace]
 
 [package.metadata.component]
-package = "component:hello"
+package = "component:anim"
 
 [package.metadata.component.target]
 path = "../../wit/veloren.wit"
-world = "server-plugin"
+world = "animation-plugin"
 
 [package.metadata.component.dependencies]
 
 [dependencies]
+vek = "0.17.0"
 wit-bindgen-rt = "0.30.0"
 
 [lib]

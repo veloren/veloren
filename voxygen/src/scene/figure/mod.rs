@@ -26,6 +26,8 @@ use crate::{
         SceneData, TrailMgr, RAIN_THRESHOLD,
     },
 };
+#[cfg(feature = "plugins")]
+use anim::plugin::PluginSkeleton;
 use anim::{
     arthropod::ArthropodSkeleton, biped_large::BipedLargeSkeleton, biped_small::BipedSmallSkeleton,
     bird_large::BirdLargeSkeleton, bird_medium::BirdMediumSkeleton, character::CharacterSkeleton,
@@ -216,6 +218,8 @@ struct FigureMgrStates {
     volume_states: HashMap<EcsEntity, FigureState<VolumeKey, BoundTerrainLocals>>,
     arthropod_states: HashMap<EcsEntity, FigureState<ArthropodSkeleton>>,
     crustacean_states: HashMap<EcsEntity, FigureState<CrustaceanSkeleton>>,
+    #[cfg(feature = "plugins")]
+    plugin_states: HashMap<EcsEntity, FigureState<PluginSkeleton>>,
 }
 
 impl FigureMgrStates {
@@ -240,6 +244,8 @@ impl FigureMgrStates {
             volume_states: HashMap::new(),
             arthropod_states: HashMap::new(),
             crustacean_states: HashMap::new(),
+            #[cfg(feature = "plugins")]
+            plugin_states: HashMap::new(),
         }
     }
 
@@ -315,6 +321,12 @@ impl FigureMgrStates {
                 .crustacean_states
                 .get_mut(entity)
                 .map(DerefMut::deref_mut),
+            Body::Plugin(_body) => {
+                #[cfg(not(feature = "plugins"))]
+                unreachable!("Plugins require feature");
+                #[cfg(feature = "plugins")]
+                self.plugin_states.get_mut(entity).map(DerefMut::deref_mut)
+            },
         }
     }
 
@@ -350,6 +362,12 @@ impl FigureMgrStates {
             },
             Body::Arthropod(_) => self.arthropod_states.remove(entity).map(|e| e.meta),
             Body::Crustacean(_) => self.crustacean_states.remove(entity).map(|e| e.meta),
+            Body::Plugin(_) => {
+                #[cfg(not(feature = "plugins"))]
+                unreachable!("Plugins require feature");
+                #[cfg(feature = "plugins")]
+                self.plugin_states.remove(entity).map(|e| e.meta)
+            },
         }
     }
 
@@ -374,9 +392,15 @@ impl FigureMgrStates {
         self.volume_states.retain(|k, v| f(k, &mut *v));
         self.arthropod_states.retain(|k, v| f(k, &mut *v));
         self.crustacean_states.retain(|k, v| f(k, &mut *v));
+        #[cfg(feature = "plugins")]
+        self.plugin_states.retain(|k, v| f(k, &mut *v));
     }
 
     fn count(&self) -> usize {
+        #[cfg(feature = "plugins")]
+        let plugin_states = self.plugin_states.len();
+        #[cfg(not(feature = "plugins"))]
+        let plugin_states = 0;
         self.character_states.len()
             + self.quadruped_small_states.len()
             + self.character_states.len()
@@ -397,9 +421,18 @@ impl FigureMgrStates {
             + self.volume_states.len()
             + self.arthropod_states.len()
             + self.crustacean_states.len()
+            + plugin_states
     }
 
     fn count_visible(&self) -> usize {
+        #[cfg(feature = "plugins")]
+        let plugin_states = self
+            .plugin_states
+            .iter()
+            .filter(|(_, c)| c.visible())
+            .count();
+        #[cfg(not(feature = "plugins"))]
+        let plugin_states = 0;
         self.character_states
             .iter()
             .filter(|(_, c)| c.visible())
@@ -490,6 +523,7 @@ impl FigureMgrStates {
                 .iter()
                 .filter(|(_, c)| c.visible())
                 .count()
+            + plugin_states
     }
 
     fn get_terrain_locals<'a, Q>(
@@ -537,6 +571,8 @@ pub struct FigureMgr {
     volume_model_cache: FigureModelCache<VolumeKey>,
     arthropod_model_cache: FigureModelCache<ArthropodSkeleton>,
     crustacean_model_cache: FigureModelCache<CrustaceanSkeleton>,
+    #[cfg(feature = "plugins")]
+    plugin_model_cache: FigureModelCache<PluginSkeleton>,
     states: FigureMgrStates,
 }
 
@@ -563,6 +599,8 @@ impl FigureMgr {
             volume_model_cache: FigureModelCache::new(),
             arthropod_model_cache: FigureModelCache::new(),
             crustacean_model_cache: FigureModelCache::new(),
+            #[cfg(feature = "plugins")]
+            plugin_model_cache: FigureModelCache::new(),
             states: FigureMgrStates::default(),
         }
     }
@@ -570,6 +608,10 @@ impl FigureMgr {
     pub fn atlas(&self) -> &FigureAtlas { &self.atlas }
 
     fn any_watcher_reloaded(&mut self) -> bool {
+        #[cfg(feature = "plugins")]
+        let plugin_reloaded = self.plugin_model_cache.watcher_reloaded();
+        #[cfg(not(feature = "plugins"))]
+        let plugin_reloaded = false;
         self.model_cache.watcher_reloaded()
             || self.theropod_model_cache.watcher_reloaded()
             || self.quadruped_small_model_cache.watcher_reloaded()
@@ -589,6 +631,7 @@ impl FigureMgr {
             || self.volume_model_cache.watcher_reloaded()
             || self.arthropod_model_cache.watcher_reloaded()
             || self.crustacean_model_cache.watcher_reloaded()
+            || plugin_reloaded
     }
 
     pub fn clean(&mut self, tick: u64) {
@@ -616,6 +659,8 @@ impl FigureMgr {
             self.volume_model_cache.clear_models();
             self.arthropod_model_cache.clear_models();
             self.crustacean_model_cache.clear_models();
+            #[cfg(feature = "plugins")]
+            self.plugin_model_cache.clear_models();
         }
 
         self.model_cache.clean(&mut self.atlas, tick);
@@ -639,6 +684,8 @@ impl FigureMgr {
         self.volume_model_cache.clean(&mut self.atlas, tick);
         self.arthropod_model_cache.clean(&mut self.atlas, tick);
         self.crustacean_model_cache.clean(&mut self.atlas, tick);
+        #[cfg(feature = "plugins")]
+        self.plugin_model_cache.clean(&mut self.atlas, tick);
     }
 
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
@@ -1105,6 +1152,9 @@ impl FigureMgr {
                 terrain,
                 ground_vel: physics.ground_vel,
             };
+
+            #[cfg(feature = "plugins")]
+            let mut plugins = ecs.write_resource::<common_state::plugin::PluginMgr>();
 
             match body {
                 Body::Humanoid(body) => {
@@ -6125,6 +6175,95 @@ impl FigureMgr {
                         body,
                     );
                 },
+                Body::Plugin(body) => {
+                    #[cfg(feature = "plugins")]
+                    {
+                        let (model, _skeleton_attr) = self.plugin_model_cache.get_or_create_model(
+                            renderer,
+                            &mut self.atlas,
+                            body,
+                            inventory,
+                            (),
+                            tick,
+                            viewpoint_camera_mode,
+                            viewpoint_character_state,
+                            &slow_jobs,
+                            None,
+                        );
+
+                        let state = self.states.plugin_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, PluginSkeleton::default(), body)
+                        });
+
+                        // Average velocity relative to the current ground
+                        let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                        let idle_state = CharacterState::Idle(idle::Data::default());
+                        let last = Last(idle_state.clone());
+                        let (character, last_character) = match (character, last_character) {
+                            (Some(c), Some(l)) => (c, l),
+                            _ => (&idle_state, &last),
+                        };
+
+                        if !character.same_variant(&last_character.0) {
+                            state.state_time = 0.0;
+                        }
+
+                        let char_state = match character {
+                            CharacterState::BasicMelee(_) => {
+                                common_state::plugin::module::CharacterState::Melee
+                            },
+                            CharacterState::Sit { .. } => {
+                                common_state::plugin::module::CharacterState::Feed
+                            },
+                            CharacterState::Stunned(_) => {
+                                common_state::plugin::module::CharacterState::Stunned
+                            },
+                            _ if physics.on_ground.is_none() => {
+                                common_state::plugin::module::CharacterState::Jump
+                            },
+                            _ if physics.in_liquid().is_some() => {
+                                common_state::plugin::module::CharacterState::Swim
+                            },
+                            _ if rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR => {
+                                common_state::plugin::module::CharacterState::Run
+                            },
+                            _ => common_state::plugin::module::CharacterState::Idle,
+                        };
+
+                        if let Some(bodyobj) = plugins.create_body("lizard") {
+                            let dep = common_state::plugin::module::Dependency {
+                                velocity: state.avg_vel.into_tuple(),
+                                ori: ori.into_vec4().into_tuple(),
+                                last_ori: state.last_ori.into_vec4().into_tuple(),
+                                global_time: time,
+                                avg_vel: rel_avg_vel.into_tuple(),
+                                state: char_state,
+                            };
+
+                            if let Some(target_bones) =
+                                plugins.update_skeleton(&bodyobj, &dep, time)
+                            {
+                                state.skeleton = Lerp::lerp(
+                                    &state.skeleton,
+                                    &PluginSkeleton::from_module(target_bones),
+                                    dt_lerp,
+                                );
+                                state.update(
+                                    renderer,
+                                    trail_mgr,
+                                    &mut update_buf,
+                                    &common_params,
+                                    state_animation_rate,
+                                    model,
+                                    body,
+                                );
+                            }
+                        }
+                    }
+                    #[cfg(not(feature = "plugins"))]
+                    let _ = body;
+                },
             }
         }
 
@@ -6481,6 +6620,8 @@ impl FigureMgr {
             volume_model_cache,
             arthropod_model_cache,
             crustacean_model_cache,
+            #[cfg(feature = "plugins")]
+            plugin_model_cache,
             states:
                 FigureMgrStates {
                     character_states,
@@ -6502,6 +6643,8 @@ impl FigureMgr {
                     volume_states,
                     arthropod_states,
                     crustacean_states,
+                    #[cfg(feature = "plugins")]
+                    plugin_states,
                 },
         } = self;
         let atlas = atlas_;
@@ -6874,6 +7017,35 @@ impl FigureMgr {
                     None
                 }
             },
+            Body::Plugin(body) => {
+                #[cfg(not(feature = "plugins"))]
+                {
+                    let _ = body;
+                    unreachable!("Plugins require feature");
+                }
+                #[cfg(feature = "plugins")]
+                {
+                    plugin_states
+                        .get(&entity)
+                        .filter(|state| filter_state(state))
+                        .map(move |state| {
+                            (
+                                state.bound(),
+                                plugin_model_cache
+                                    .get_model(
+                                        atlas,
+                                        body,
+                                        inventory,
+                                        tick,
+                                        viewpoint_camera_mode,
+                                        character_state,
+                                        item_key,
+                                    )
+                                    .map(ModelEntryRef::Figure),
+                            )
+                        })
+                }
+            },
         } {
             let model_entry = model_entry?;
 
@@ -7052,6 +7224,15 @@ impl FigureMgr {
                     .crustacean_states
                     .get(&entity)
                     .map(|state| &state.heads),
+                Body::Plugin(_) => {
+                    #[cfg(not(feature = "plugins"))]
+                    unreachable!("Plugins require feature");
+                    #[cfg(feature = "plugins")]
+                    self.states
+                        .plugin_states
+                        .get(&entity)
+                        .map(|state| &state.heads)
+                },
             })
             .map(|v| v.as_slice())
             .unwrap_or(&[])
@@ -7086,6 +7267,12 @@ impl FigureMgr {
                 Body::Ship(_) => self.states.ship_states.get(&entity)?.tail,
                 Body::ItemDrop(_) => self.states.item_drop_states.get(&entity)?.tail,
                 Body::Crustacean(_) => self.states.crustacean_states.get(&entity)?.tail,
+                Body::Plugin(_) => {
+                    #[cfg(not(feature = "plugins"))]
+                    unreachable!("Plugins require feature");
+                    #[cfg(feature = "plugins")]
+                    self.states.plugin_states.get(&entity)?.tail
+                },
             })
     }
 
@@ -7186,6 +7373,17 @@ impl FigureMgr {
                     .crustacean_states
                     .get(&entity)
                     .and_then(|state| state.viewpoint_offset),
+                Body::Plugin(_) => {
+                    #[cfg(not(feature = "plugins"))]
+                    unreachable!("Plugins require feature");
+                    #[cfg(feature = "plugins")]
+                    {
+                        self.states
+                            .plugin_states
+                            .get(&entity)
+                            .and_then(|state| state.viewpoint_offset)
+                    }
+                },
             })
             .map(|viewpoint| viewpoint.into())
             .unwrap_or_else(Vec3::zero)

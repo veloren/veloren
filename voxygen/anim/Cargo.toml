@@ -8,11 +8,13 @@ version = "0.10.0"
 use-dyn-lib = ["lazy_static", "common-dynlib"]
 be-dyn-lib = []
 simd = ["vek/platform_intrinsics"]
+plugins = [ "dep:common-state" ]
 
 default = ["simd"]
 
 [dependencies]
 common = {package = "veloren-common", path = "../../common"}
+common-state = {package = "veloren-common-state", path = "../../common/state", optional = true}
 bytemuck = { version = "1.4", features=["derive"] }
 vek = { workspace = true }
 common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}

@@ -1,0 +1,14 @@
+Copyright (C) 2024 The Veloren Project
+
+The interface definition files in this directory are dual licensed 
+under both the GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007 
+(included in the root directory of this game) and the
+Attribution-ShareAlike 4.0 International License at
+https://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1 .
+
+This means that you should be able to use this interface to create plugins for
+Veloren which use non-GPL-compatible licensing.
+
+If your business model relies on this understanding make sure to 
+consult a lawyer to verify that your usage of these files and
+the inclusion into veloren is compliant with their respective licenses.

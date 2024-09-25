@@ -170,6 +170,31 @@ impl Plugin {
 
     /// Get the data of this plugin
     pub fn data_buf(&self) -> &[u8] { &self.data_buf }
+
+    pub fn create_body(&mut self, name: &str) -> Option<module::Body> {
+        let mut result = None;
+        self.modules.iter_mut().for_each(|module| {
+            if let Some(body) = module.create_body(name) {
+                result = Some(body);
+            }
+        });
+        result
+    }
+
+    pub fn update_skeleton(
+        &mut self,
+        body: &module::Body,
+        dep: &module::Dependency,
+        time: f32,
+    ) -> Option<module::Skeleton> {
+        let mut result = None;
+        self.modules.iter_mut().for_each(|module| {
+            if let Some(skel) = module.update_skeleton(body, dep, time) {
+                result = Some(skel);
+            }
+        });
+        result
+    }
 }
 
 #[derive(Default)]
@@ -295,6 +320,31 @@ impl PluginMgr {
                         result = Err(err);
                     }
                 },
+            }
+        });
+        result
+    }
+
+    pub fn create_body(&mut self, name: &str) -> Option<module::Body> {
+        let mut result = None;
+        self.plugins.iter_mut().for_each(|plugin| {
+            if let Some(body) = plugin.create_body(name) {
+                result = Some(body);
+            }
+        });
+        result
+    }
+
+    pub fn update_skeleton(
+        &mut self,
+        body: &module::Body,
+        dep: &module::Dependency,
+        time: f32,
+    ) -> Option<module::Skeleton> {
+        let mut result = None;
+        self.plugins.iter_mut().for_each(|plugin| {
+            if let Some(skeleton) = plugin.update_skeleton(body, dep, time) {
+                result = Some(skeleton);
             }
         });
         result

@@ -1523,6 +1523,18 @@
                 keyword: "crab",
                 generic: "Crab",
             ),
-        )
+        ),
+    ),
+    plugin: (
+        body: (
+            keyword: "plugin",
+            names_0: ["Nobody"]
+        ),
+        species: (
+            plugin: (
+                keyword: "unknown",
+                generic: "unknown",
+            ),
+        ),
     ),
 )
