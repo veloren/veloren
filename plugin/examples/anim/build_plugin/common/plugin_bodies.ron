@@ -1,0 +1,13 @@
+([
+    (
+        id: "lizard",
+        mass: 50.0,
+        dimensions: (1.5, 1.1, 2.5),
+        base_health: 50,
+        flee_health: 0.2,
+        parasite_drag: 0.6,
+        base_accel: 100.0,
+        base_ori_rate: 3.5,
+        swim_thrust: Some(100000.0),
+    ),
+])

@@ -61,6 +61,7 @@ pub mod fixture;
 pub mod golem;
 pub mod item_drop;
 pub mod object;
+#[cfg(feature = "plugins")] pub mod plugin;
 pub mod quadruped_low;
 pub mod quadruped_medium;
 pub mod quadruped_small;

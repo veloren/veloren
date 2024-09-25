@@ -15,19 +15,3 @@ pub enum PluginError {
 pub enum PluginModuleError {
     Wasmtime(wasmtime::Error),
 }
-
-#[derive(Debug)]
-pub enum EcsAccessError {
-    EcsPointerNotAvailable,
-    EcsComponentNotFound(common::uid::Uid, String),
-    EcsResourceNotFound(String),
-    EcsEntityNotFound(common::uid::Uid),
-}
-
-impl std::fmt::Display for EcsAccessError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Debug::fmt(self, f)
-    }
-}
-
-impl std::error::Error for EcsAccessError {}

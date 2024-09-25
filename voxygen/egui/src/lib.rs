@@ -802,6 +802,7 @@ fn body_species(body: &Body) -> String {
         Body::Arthropod(body) => format!("{:?}", body.species),
         Body::Ship(body) => format!("{:?}", body),
         Body::Crustacean(body) => format!("{:?}", body.species),
+        Body::Plugin(body) => format!("{:?}", body),
     }
 }
 

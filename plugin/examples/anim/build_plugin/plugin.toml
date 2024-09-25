@@ -1,0 +1,10 @@
+# The name of the plugin (lowercase, no spaces)
+name = "lizard"
+
+# A list of paths to WASM modules in the plugin (this can be used to group
+# plugins together in a rudimentary way until we implement dependencies).
+modules = ["anim.wasm"]
+
+# Plugins required by this plugin (currently unsupported, keep this empty)
+dependencies = []
+

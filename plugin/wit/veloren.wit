@@ -19,38 +19,123 @@ interface types {
         kick(string),
         none,
     }
+
+    type vec3 = tuple<f32,f32,f32>;
+    type vec4 = tuple<f32,f32,f32,f32>;
+    type quaternion = vec4;
+
+    record transform {
+        position: vec3,
+        orientation: quaternion,
+        scale: vec3,
+    }
+
+    enum character-state {
+        idle,
+        run,
+        swim,
+        jump,
+        melee,
+        feed,
+        stunned,
+    }
+
+    type skeleton = list<transform>;
+
+    record dependency {
+        velocity: vec3,
+        ori: quaternion,
+        last-ori: quaternion,
+        global-time: f32,
+        avg-vel: vec3,
+        state: character-state,
+    }
+
+    type body-index = s32;
+
+    variant error {
+        // some malfunction of the plugin executor
+        runtime-error,
+        ecs-pointer-not-available,
+        ecs-component-not-found,
+        ecs-resource-not-found,
+        ecs-entity-not-found,
+    }
+}
+
+interface animation {
+    use types.{dependency, skeleton, body-index};
+
+    resource body {
+        constructor(factory: body-index);
+        update-skeleton: func(dependency: dependency, time: f32) -> skeleton;
+    }
 }
 
 interface events {
-    use types.{game-mode, uid, player-id, join-result};
+    use types.{game-mode};
 
     load: func(mode: game-mode);
+}
+
+interface server-events {
+    use types.{uid, player-id, join-result};
+
     join: func(player-name: string, player-id: player-id) -> join-result;
     command: func(command: string, command-args: list<string>, player: uid) -> result<list<string>, string>;
 }
 
 interface actions {
-    use types.{uid};
+    use types.{uid, body-index};
 
     register-command: func(name: string);
     player-send-message: func(uid: uid, text: string);
+    register-animation: func(species: string, factory: body-index);
     // for print use the normal WASI stdout
 }
 
 interface information {
-    use types.{uid, health};
+    use types.{uid, health, error};
 
     resource entity {
         // fallible constructor
-        find-entity: static func(uid: uid) -> result<entity>;
+        find-entity: static func(uid: uid) -> result<entity, error>;
 
-        health: func() -> health;
-        name: func() -> string;
+        health: func() -> result<health, error>;
+        name: func() -> result<string, error>;
     }
 }
 
+// Superset of all possible plugin functionality
 world plugin {
+    export events;
+    export server-events;
+    export animation;
+    import actions;
+    import information;
+}
+
+// old style server side plugins (mostly commands)
+world server-plugin {
+    export events;
+    export server-events;
+    import actions;
+    import information;
+}
+
+// new style animation plugins
+world animation-plugin {
+    export events;
+    export animation;
+    import actions;
+}
+
+world common-types {
+    use types.{dependency, transform, skeleton, player-id, join-result};
     export events;
     import actions;
     import information;
+    // to work around that wit-bindgen doesn't export all of types
+    export dummy: func(a: dependency, b: transform, c: skeleton, 
+                        d: player-id, e: join-result);
 }

@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clear command to delete chat messages.
 - List unlocked recipes from recipe scroll items in tooltips
 - Hydra.
+- NPC animations in plugins, multiple types of plugins
 
 ### Changed
 

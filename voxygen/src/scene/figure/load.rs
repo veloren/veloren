@@ -5999,3 +5999,78 @@ impl BodySpec for ship::Body {
         ]
     }
 }
+
+#[cfg(feature = "plugins")]
+mod plugin {
+    use super::assets;
+    use common_assets::{AssetExt, AssetHandle, Concatenate, MultiRon};
+    use hashbrown::HashMap;
+    use serde::Deserialize;
+
+    #[derive(Debug, Deserialize, Default, Clone, Copy)]
+    pub enum Orientation {
+        #[default]
+        Normal,
+        Mirror,
+    }
+
+    #[derive(Debug, Deserialize, Clone)]
+    pub struct BoneMesh {
+        pub model: String,
+        pub offset: [f32; 3],
+        #[serde(default)]
+        pub model_index: u16,
+        #[serde(default)]
+        pub transform: Orientation,
+    }
+
+    #[derive(Deserialize, Clone)]
+    pub struct PluginBoneSpec(pub(super) HashMap<String, Vec<BoneMesh>>);
+
+    impl assets::Compound for PluginBoneSpec {
+        fn load(
+            _cache: assets::AnyCache,
+            _: &assets::SharedString,
+        ) -> Result<Self, assets::BoxedError> {
+            let data: AssetHandle<MultiRon<PluginBoneSpec>> =
+                AssetExt::load("voxygen.voxel.plugin_body_manifest")?;
+            Ok(data.read().0.clone())
+        }
+    }
+
+    impl_concatenate_for_wrapper!(PluginBoneSpec);
+}
+
+#[cfg(feature = "plugins")]
+impl BodySpec for common::comp::plugin::Body {
+    type BoneMesh = BoneMeshes;
+    type Extra = ();
+    type Manifests = AssetHandle<Self::Spec>;
+    type ModelEntryFuture<const N: usize> = FigureModelEntryFuture<N>;
+    type Spec = plugin::PluginBoneSpec;
+
+    fn load_spec() -> Result<Self::Manifests, assets::Error> { Self::Spec::load("") }
+
+    fn reload_watcher(manifests: &Self::Manifests) -> ReloadWatcher { manifests.reload_watcher() }
+
+    fn bone_meshes(
+        key: &FigureKey<Self>,
+        manifests: &Self::Manifests,
+        _extra: Self::Extra,
+    ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT] {
+        let mut result = std::array::from_fn(|_| None);
+        if let Some(bones) = manifests.read().0.get(&key.body.id()) {
+            for (mesh, result) in bones.iter().zip(result.iter_mut()) {
+                *result = Some((
+                    graceful_load_segment_flipped(
+                        &mesh.model,
+                        matches!(mesh.transform, plugin::Orientation::Mirror),
+                        mesh.model_index.into(),
+                    ),
+                    mesh.offset.into(),
+                ));
+            }
+        }
+        result
+    }
+}

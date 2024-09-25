@@ -1,5 +1,3 @@
-#![feature(atomic_bool_fetch_not)]
-
 mod bindings;
 
 use bindings::{
@@ -7,7 +5,7 @@ use bindings::{
     veloren::plugin::{
         actions,
         information::Entity,
-        types::{GameMode, Health, JoinResult, PlayerId, Uid},
+        types::{self, GameMode, Health, JoinResult, PlayerId, Uid},
     },
 };
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -26,8 +24,10 @@ impl Guest for Component {
             GameMode::SinglePlayer => println!("Hello, singleplayer!"),
         }
     }
+}
 
-    fn join(player_name: wit_bindgen::rt::string::String, player_id: PlayerId) -> JoinResult {
+impl bindings::exports::veloren::plugin::server_events::Guest for Component {
+    fn join(player_name: String, player_id: PlayerId) -> JoinResult {
         if COUNTER.fetch_not(Ordering::SeqCst) {
             JoinResult::Kick(format!("Rejected user {player_name}, id {player_id:?}"))
         } else {
@@ -36,19 +36,25 @@ impl Guest for Component {
     }
 
     fn command(
-        command: wit_bindgen::rt::string::String,
-        command_args: wit_bindgen::rt::vec::Vec<wit_bindgen::rt::string::String>,
+        command: String,
+        command_args: Vec<String>,
         player: Uid,
     ) -> Result<Vec<String>, String> {
-        let entity: Result<Entity, ()> = Entity::find_entity(player);
-        let health = entity.as_ref().map(|e| e.health()).unwrap_or(Health {
-            base_max: 0.0,
-            maximum: 0.0,
-            current: 0.0,
-        });
+        let entity: Result<Entity, types::Error> = Entity::find_entity(player);
+        let health = entity
+            .as_ref()
+            .map_err(|err| *err)
+            .and_then(|entity| entity.health())
+            .unwrap_or(Health {
+                base_max: 0.0,
+                maximum: 0.0,
+                current: 0.0,
+            });
         Ok(vec![format!(
             "Player id {player:?} name {} with {health:?} command {command} args {command_args:?}",
-            entity.map(|e| e.name()).unwrap_or_default(),
+            entity.and_then(|e| e.name()).unwrap_or_default(),
         )])
     }
 }
+
+bindings::export!(Component with_types_in bindings);
