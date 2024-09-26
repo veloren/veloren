@@ -224,7 +224,8 @@ armor-misc-shoulder-leather_strip = Leather Strips
     .desc = Tanned animal hide strips formed into loose shoulder pads.
 armor-misc-chest-worker_green = Green Worker Shirt
     .desc = Was used by a farmer, until recently.
-armor-misc-chest-shirt_white = Green Worker Shirt
+
+armor-misc-chest-shirt_white = White Worker Shirt
     .desc = Was used by a farmer, until recently.
 armor-misc-chest-worker_orange_0 = Orange Worker Shirt
     .desc = Was used by a farmer, until recently.
