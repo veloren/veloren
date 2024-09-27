@@ -177,9 +177,12 @@ specs = { git = "https://github.com/amethyst/specs.git", rev = "4e2da1df29ee840b
 # * an issue with spirv & naga in wgpu 0.18 (I assume this is fixed upstream but not in 0.18)
 # * an issue with uint in uniforms for gl. (potentially fixed in 0.19?)
 # * an issue with releasing current context on Windows opengl (fixed in 0.19.1)
-# * another spirv issue: unused builtins not always being removed.  (upstream PR open)
-wgpu = { git = "https://github.com/Imberflur/wgpu.git", tag = "0.18-with-fixes-for-veloren-v1" }
-# wgpu = { path = "../wgpu/wgpu" }
+# * another spirv issue: unused builtins not always being removed.  (fixed upstream)
+# * a few other various shader issues (fixed upstream)
+# * invalid slice::from_raw_parts call (upstream PR open)
+# * gl context locking timeout hit during pipeline creation, fixed by increasing timeout (not upstreamed, might want to just block main thread when gl backend is selected instead)
+wgpu = { git = "https://github.com/Imberflur/wgpu.git", tag = "0.18-with-fixes-for-veloren-v2" }
+#wgpu = { path = "../wgpu/wgpu" }
 
 # keyboard-keynames = { git = "https://gitlab.com/Capucho/keyboard-keynames.git", rev = "7b1375ee4ea01d0e0b80c419cb27f0498e67df3a" }
 
