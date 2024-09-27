@@ -895,7 +895,12 @@ impl ServerEvent for DestroyEvent {
             let actor = entity_as_actor(ev.entity);
 
             #[cfg(feature = "worldgen")]
-            if let Some(actor) = actor {
+            if let Some(actor) = actor
+                // Skip the death hook for rtsim entities if they aren't deleted, otherwise
+                // we'll end up with rtsim respawning an entity that wasn't actually
+                // removed, producing 2 entities having the same RtsimEntityId.
+                && should_delete
+            {
                 data.rtsim.hook_rtsim_actor_death(
                     &data.world,
                     data.index.as_index_ref(),
