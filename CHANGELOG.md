@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reworked design of repair equipment interface in crafting menu.
 - Help command can be used on client commands too.
 - Sword animations.
+- Beam collision.
 
 ### Removed
 

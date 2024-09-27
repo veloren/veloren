@@ -46,3 +46,22 @@ pub enum FrontendSpecifier {
     Lightning,
     PhoenixLaser,
 }
+
+impl FrontendSpecifier {
+    pub fn particles_per_sec(self) -> f32 {
+        (match self {
+            FrontendSpecifier::Flamethrower
+            | FrontendSpecifier::Bubbles
+            | FrontendSpecifier::Steam
+            | FrontendSpecifier::Frost
+            | FrontendSpecifier::Poison
+            | FrontendSpecifier::Ink
+            | FrontendSpecifier::PhoenixLaser
+            | FrontendSpecifier::Gravewarden => 300.0,
+            FrontendSpecifier::LifestealBeam => 420.0,
+            FrontendSpecifier::Cultist => 960.0,
+            FrontendSpecifier::WebStrand => 180.0,
+            FrontendSpecifier::Lightning => 120.0,
+        }) / 1000.0
+    }
+}

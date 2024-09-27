@@ -559,14 +559,8 @@ void main() {
         case LASER:
             f_reflect = 0.0;
             vec3 perp_axis = normalize(cross(inst_dir, vec3(0.0, 0.0, 1.0)));
-            offset = vec3(0.0);
-            if (rand0 > 0.0) {
-                offset = perp_axis * 0.5;
-            } else {
-                offset = perp_axis * -0.5;
-            }
             attr = Attr(
-                inst_dir * percent() + offset,
+                inst_dir * percent(),
                 vec3(1.0, 1.0, 50.0),
                 vec4(vec3(2.0, 0.0, 0.0), 1),
                 spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
