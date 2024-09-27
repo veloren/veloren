@@ -3,6 +3,7 @@ use std::ops::RangeInclusive;
 use crate::{
     assets::{self, AssetExt, Error},
     calendar::Calendar,
+    combat::{DeathEffect, DeathEffects},
     comp::{
         self, agent, humanoid,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
@@ -144,6 +145,9 @@ pub struct EntityConfig {
     #[serde(default)]
     pub pets: Vec<(String, RangeInclusive<usize>)>,
 
+    #[serde(default)]
+    pub death_effects: Vec<DeathEffect>,
+
     /// Meta Info for optional fields
     /// Possible fields:
     /// SkillSetAsset(String) with asset_specifier for skillset
@@ -215,6 +219,7 @@ pub struct EntityInfo {
     >,
     // Skills
     pub skillset_asset: Option<String>,
+    pub death_effects: Option<DeathEffects>,
 
     pub pets: Vec<EntityInfo>,
 
@@ -246,6 +251,7 @@ impl EntityInfo {
             inventory: Vec::new(),
             loadout: LoadoutBuilder::empty(),
             make_loadout: None,
+            death_effects: None,
             skillset_asset: None,
             pets: Vec::new(),
             trading_information: None,
@@ -291,6 +297,7 @@ impl EntityInfo {
             loot,
             meta,
             pets,
+            death_effects,
         } = config;
 
         match body {
@@ -359,6 +366,7 @@ impl EntityInfo {
         self.no_flee = no_flee.unwrap_or(self.no_flee);
         self.idle_wander_factor = idle_wander_factor.unwrap_or(self.idle_wander_factor);
         self.aggro_range_multiplier = aggro_range_multiplier.unwrap_or(self.aggro_range_multiplier);
+        self.death_effects = (!death_effects.is_empty()).then_some(DeathEffects(death_effects));
 
         for field in meta {
             match field {
@@ -731,6 +739,27 @@ mod tests {
         }
     }
 
+    #[cfg(test)]
+    fn validate_death_effects(effects: Vec<DeathEffect>, config_asset: &str) {
+        for effect in effects {
+            match effect {
+                DeathEffect::AttackerBuff {
+                    kind: _,
+                    strength: _,
+                    duration: _,
+                } => {},
+                DeathEffect::Transform { entity_spec } => {
+                    if let Err(error) = EntityConfig::load(&entity_spec) {
+                        panic!(
+                            "Error while loading transform entity spec ({entity_spec}) for entity \
+                             {config_asset}: {error:?}"
+                        );
+                    }
+                },
+            }
+        }
+    }
+
     #[test]
     fn test_all_entity_assets() {
         // Get list of entity configs, load everything, validate content.
@@ -745,6 +774,7 @@ mod tests {
                 loot,
                 meta,
                 alignment: _, // can't fail if serialized, it's a boring enum
+                death_effects,
                 pets,
             } = EntityConfig::from_asset_expect_owned(&config_asset);
 
@@ -756,6 +786,7 @@ mod tests {
             validate_loot(loot, &config_asset);
             validate_meta(meta, &config_asset);
             validate_pets(pets, &config_asset);
+            validate_death_effects(death_effects, &config_asset);
         }
     }
 }

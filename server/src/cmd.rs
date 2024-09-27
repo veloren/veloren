@@ -27,6 +27,7 @@ use common::{
         AreaKind, EntityTarget, KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER,
         KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
     },
+    combat,
     comp::{
         self,
         aura::{AuraKindVariant, AuraTarget},
@@ -151,6 +152,7 @@ fn do_command(
         ServerChatCommand::Build => handle_build,
         ServerChatCommand::Campfire => handle_spawn_campfire,
         ServerChatCommand::ClearPersistedTerrain => handle_clear_persisted_terrain,
+        ServerChatCommand::DeathEffect => handle_death_effect,
         ServerChatCommand::DebugColumn => handle_debug_column,
         ServerChatCommand::DebugWays => handle_debug_ways,
         ServerChatCommand::DisconnectAllPlayers => handle_disconnect_all_players,
@@ -3809,6 +3811,57 @@ fn handle_join_faction(
     } else {
         Err(Content::Plain("Could not find your player alias".into()))
     }
+}
+
+fn handle_death_effect(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let mut args = args.into_iter();
+
+    let Some(effect_str) = args.next() else {
+        return Err(action.help_content());
+    };
+
+    let effect = match effect_str.as_str() {
+        "transform" => {
+            let entity_config = args.next().ok_or(action.help_content())?;
+
+            // We don't actually use this loaded config for anything, this is just a check
+            // to ensure loading succeeds later on.
+            if EntityConfig::load(&entity_config).is_err() {
+                return Err(Content::localized_with_args(
+                    "command-entity-load-failed",
+                    [("config", entity_config)],
+                ));
+            }
+
+            combat::DeathEffect::Transform {
+                entity_spec: entity_config,
+            }
+        },
+        unknown_effect => {
+            return Err(Content::localized_with_args(
+                "command-death_effect-unknown",
+                [("effect", unknown_effect)],
+            ));
+        },
+    };
+
+    let mut death_effects = server.state.ecs().write_storage::<combat::DeathEffects>();
+
+    if let Some(death_effects) = death_effects.get_mut(target) {
+        death_effects.0.push(effect);
+    } else {
+        death_effects
+            .insert(target, combat::DeathEffects(vec![effect]))
+            .unwrap();
+    }
+
+    Ok(())
 }
 
 #[cfg(not(feature = "worldgen"))]

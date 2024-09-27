@@ -437,7 +437,6 @@ impl Block {
                 SpriteKind::SeaDecorBlock
                 | SpriteKind::HaniwaKeyDoor
                 | SpriteKind::VampireKeyDoor => 10,
-                SpriteKind::BloodmoonKeyhole => 25,
                 _ => return None,
             },
         };
@@ -535,7 +534,6 @@ impl Block {
                 | SpriteKind::HaniwaKeyhole
                 | SpriteKind::VampireKeyDoor
                 | SpriteKind::VampireKeyhole
-                | SpriteKind::BloodmoonKeyhole
                 | SpriteKind::HaniwaTrap
                 | SpriteKind::HaniwaTrapTriggered
                 | SpriteKind::ChestBuried

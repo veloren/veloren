@@ -18,7 +18,11 @@ use crate::{
 #[cfg(feature = "worldgen")]
 use common::rtsim::{Actor, RtSimEntity};
 use common::{
-    combat::{self, AttackSource, DamageContributor, DeathEffect, BASE_PARRIED_POISE_PUNISHMENT},
+    assets::AssetExt,
+    combat::{
+        self, AttackSource, DamageContributor, DeathEffect, DeathEffects,
+        BASE_PARRIED_POISE_PUNISHMENT,
+    },
     comp::{
         self,
         aura::{self, EnteredAuras},
@@ -42,7 +46,7 @@ use common::{
         TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
-    generation::EntityInfo,
+    generation::{EntityConfig, EntityInfo},
     link::Is,
     lottery::distribute_many,
     mounting::{Rider, VolumeRider},
@@ -68,7 +72,7 @@ use specs::{
     ReadExpect, ReadStorage, SystemData, WorldExt, Write, WriteStorage,
 };
 #[cfg(feature = "worldgen")] use std::sync::Arc;
-use std::{collections::HashMap, iter, time::Duration};
+use std::{borrow::Cow, collections::HashMap, iter, time::Duration};
 use tracing::{debug, warn};
 use vek::{Vec2, Vec3};
 #[cfg(feature = "worldgen")]
@@ -358,6 +362,7 @@ pub struct DestroyEventData<'a> {
     outcomes: Read<'a, EventBus<Outcome>>,
     create_item_drop: Read<'a, EventBus<CreateItemDropEvent>>,
     delete_event: Read<'a, EventBus<DeleteEvent>>,
+    transform_events: Read<'a, EventBus<TransformEvent>>,
     chat_events: Read<'a, EventBus<ChatEvent>>,
     melees: WriteStorage<'a, comp::Melee>,
     beams: WriteStorage<'a, comp::Beam>,
@@ -368,6 +373,7 @@ pub struct DestroyEventData<'a> {
     force_updates: WriteStorage<'a, comp::ForceUpdate>,
     energies: WriteStorage<'a, Energy>,
     character_states: WriteStorage<'a, CharacterState>,
+    death_effects: WriteStorage<'a, DeathEffects>,
     players: ReadStorage<'a, Player>,
     clients: ReadStorage<'a, Client>,
     uids: ReadStorage<'a, Uid>,
@@ -400,6 +406,8 @@ impl ServerEvent for DestroyEvent {
         let mut delete_emitter = data.delete_event.emitter();
         let mut outcomes_emitter = data.outcomes.emitter();
         let mut buff_emitter = data.buff_events.emitter();
+        let mut transform_emitter = data.transform_events.emitter();
+
         for ev in events {
             // TODO: Investigate duplicate `Destroy` events (but don't remove this).
             // If the entity was already deleted, it can't be destroyed again.
@@ -437,14 +445,29 @@ impl ServerEvent for DestroyEvent {
                 outcomes_emitter.emit(Outcome::Death { pos: pos.0 });
             }
 
+            let mut should_delete = true;
+
             // Handle any effects on death
             if let Some(killed_stats) = data.stats.get(ev.entity) {
                 let attacker_entity = ev.cause.by.and_then(|x| data.id_maps.uid_entity(x.uid()));
                 let killed_uid = data.uids.get(ev.entity);
                 let attacker_stats = attacker_entity.and_then(|e| data.stats.get(e));
                 let attacker_mass = attacker_entity.and_then(|e| data.masses.get(e));
-                for effect in killed_stats.effects_on_death.iter() {
-                    match effect {
+                let mut death_effects = data
+                    .death_effects
+                    .remove(ev.entity)
+                    .map(|ef| ef.0.into_iter().map(Cow::Owned));
+
+                for effect in killed_stats
+                    .effects_on_death
+                    .iter()
+                    .map(Cow::Borrowed)
+                    .chain(death_effects.as_mut().map_or(
+                        &mut core::iter::empty() as &mut dyn Iterator<Item = Cow<DeathEffect>>,
+                        |death_effects| death_effects as &mut dyn Iterator<Item = Cow<DeathEffect>>,
+                    ))
+                {
+                    match effect.as_ref() {
                         DeathEffect::AttackerBuff {
                             kind,
                             strength,
@@ -472,6 +495,45 @@ impl ServerEvent for DestroyEvent {
                                     )),
                                 });
                             }
+                        },
+                        DeathEffect::Transform { entity_spec } => {
+                            let Some(killed_uid) = killed_uid.copied() else {
+                                warn!(
+                                    "Could not handle transform death effect for entity without \
+                                     Uid"
+                                );
+
+                                continue;
+                            };
+
+                            transform_emitter.emit(TransformEvent {
+                                target_entity: killed_uid,
+                                entity_info: {
+                                    let Ok(entity_config) = EntityConfig::load(entity_spec)
+                                        .inspect_err(|error| {
+                                            error!(
+                                                ?entity_spec,
+                                                ?error,
+                                                "Could not load entity configuration for death \
+                                                 effect"
+                                            )
+                                        })
+                                    else {
+                                        continue;
+                                    };
+
+                                    EntityInfo::at(Vec3::zero()).with_entity_config(
+                                        entity_config.read().clone(),
+                                        Some(entity_spec),
+                                        &mut rand::thread_rng(),
+                                        None,
+                                    )
+                                },
+                                allow_players: true,
+                                delete_on_failure: true,
+                            });
+
+                            should_delete = false;
                         },
                     }
                 }
@@ -681,7 +743,7 @@ impl ServerEvent for DestroyEvent {
                 });
             };
 
-            let should_delete = if data.clients.contains(ev.entity) {
+            should_delete &= if data.clients.contains(ev.entity) {
                 if let Some(vel) = data.velocities.get_mut(ev.entity) {
                     vel.0 = Vec3::zero();
                 }
@@ -2307,6 +2369,7 @@ pub fn handle_transform(
         target_entity,
         entity_info,
         allow_players,
+        delete_on_failure,
     }: TransformEvent,
 ) {
     let Some(entity) = server.state().ecs().entity_from_uid(target_entity) else {
@@ -2314,6 +2377,10 @@ pub fn handle_transform(
     };
 
     if let Err(error) = transform_entity(server, entity, entity_info, allow_players) {
+        if delete_on_failure {
+            _ = server.state.delete_entity_recorded(entity);
+        }
+
         error!(?error, ?target_entity, "Failed transform entity");
     }
 }
@@ -2351,15 +2418,22 @@ pub fn transform_entity(
             alignment: _,
             pos: _,
             pets,
+            death_effects,
         }) => {
             fn set_or_remove_component<C: specs::Component>(
                 server: &mut Server,
                 entity: EcsEntity,
                 component: Option<C>,
+                with: Option<fn(&mut C, Option<C>)>,
             ) -> Result<(), TransformEntityError> {
                 let mut storage = server.state.ecs_mut().write_storage::<C>();
 
-                if let Some(component) = component {
+                if let Some(mut component) = component {
+                    if let Some(with) = with {
+                        let prev = storage.remove(entity);
+                        with(&mut component, prev);
+                    }
+
                     storage
                         .insert(entity, component)
                         .and(Ok(()))
@@ -2418,17 +2492,18 @@ pub fn transform_entity(
             }
 
             // Should do basically what StateExt::create_npc does
-            set_or_remove_component(server, entity, Some(inventory))?;
-            set_or_remove_component(server, entity, Some(stats))?;
-            set_or_remove_component(server, entity, Some(skill_set))?;
-            set_or_remove_component(server, entity, Some(poise))?;
-            set_or_remove_component(server, entity, health)?;
-            set_or_remove_component(server, entity, Some(comp::Energy::new(body)))?;
-            set_or_remove_component(server, entity, Some(body))?;
-            set_or_remove_component(server, entity, Some(body.mass()))?;
-            set_or_remove_component(server, entity, Some(body.density()))?;
-            set_or_remove_component(server, entity, Some(body.collider()))?;
-            set_or_remove_component(server, entity, Some(scale))?;
+            set_or_remove_component(server, entity, Some(inventory), None)?;
+            set_or_remove_component(server, entity, Some(stats), None)?;
+            set_or_remove_component(server, entity, Some(skill_set), None)?;
+            set_or_remove_component(server, entity, Some(poise), None)?;
+            set_or_remove_component(server, entity, health, None)?;
+            set_or_remove_component(server, entity, Some(comp::Energy::new(body)), None)?;
+            set_or_remove_component(server, entity, Some(body), None)?;
+            set_or_remove_component(server, entity, Some(body.mass()), None)?;
+            set_or_remove_component(server, entity, Some(body.density()), None)?;
+            set_or_remove_component(server, entity, Some(body.collider()), None)?;
+            set_or_remove_component(server, entity, Some(scale), None)?;
+            set_or_remove_component(server, entity, death_effects, None)?;
             // Reset active abilities
             set_or_remove_component(
                 server,
@@ -2438,13 +2513,29 @@ pub fn transform_entity(
                 } else {
                     comp::ActiveAbilities::default()
                 }),
+                None,
             )?;
-            set_or_remove_component(server, entity, body.heads().map(Heads::new))?;
+            set_or_remove_component(server, entity, body.heads().map(Heads::new), None)?;
 
             // Don't add Agent or ItemDrops to players
             if !is_player {
-                set_or_remove_component(server, entity, agent)?;
-                set_or_remove_component(server, entity, loot.to_items().map(comp::ItemDrops))?;
+                set_or_remove_component(
+                    server,
+                    entity,
+                    agent,
+                    Some(|new_agent, old_agent| {
+                        if let Some(old_agent) = old_agent {
+                            new_agent.target = old_agent.target;
+                            new_agent.awareness = old_agent.awareness;
+                        }
+                    }),
+                )?;
+                set_or_remove_component(
+                    server,
+                    entity,
+                    loot.to_items().map(comp::ItemDrops),
+                    None,
+                )?;
             }
 
             // Spawn pets

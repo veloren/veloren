@@ -1108,6 +1108,17 @@ pub enum DeathEffect {
         strength: f32,
         duration: Option<Secs>,
     },
+    /// Transform into another entity when killed, regaining full health
+    Transform { entity_spec: String },
+}
+
+#[derive(Clone, Debug, PartialEq)]
+/// Permanent entity death effects (unlike `Stats::effects_on_death` which is
+/// only active as long as ie. it has a certain buff)
+pub struct DeathEffects(pub Vec<DeathEffect>);
+
+impl specs::Component for DeathEffects {
+    type Storage = specs::DenseVecStorage<DeathEffects>;
 }
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]

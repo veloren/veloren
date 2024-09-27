@@ -24,6 +24,7 @@ command-battlemode_force-desc = Change your battle mode flag without any checks
 command-campfire-desc = Spawns a campfire
 command-clear_persisted_terrain-desc = Clears nearby persisted terrain
 command-create_location-desc = Create a location at the current position
+command-death_effect-dest = Adds an on-death effect to the target entity
 command-debug_column-desc = Prints some debug information about a column
 command-debug_ways-desc = Prints some debug information about a column's ways
 command-delete_location-desc = Delete a location
@@ -253,6 +254,7 @@ command-outcome-expected_frontent_specifier = Expected frontent specifier
 command-outcome-expected_integer = Expected integer
 command-outcome-expected_sprite_kind = Expected SpriteKind
 command-outcome-invalid_outcome = { $outcome } is not a valid outcome
+command-death_effect-unknown = Unknown death effect { $effect }.
 
 # Unreachable/untestable but added for consistency
 

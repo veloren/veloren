@@ -1,6 +1,6 @@
 use crate::{
     character::CharacterId,
-    combat::AttackSource,
+    combat::{AttackSource, DeathEffects},
     comp::{
         self,
         agent::Sound,
@@ -65,6 +65,7 @@ pub struct NpcBuilder {
     pub rtsim_entity: Option<RtSimEntity>,
     pub projectile: Option<comp::Projectile>,
     pub heads: Option<comp::body::parts::Heads>,
+    pub death_effects: Option<DeathEffects>,
 }
 
 impl NpcBuilder {
@@ -85,6 +86,7 @@ impl NpcBuilder {
             projectile: None,
             pets: Vec::new(),
             heads: None,
+            death_effects: None,
         }
     }
 
@@ -145,6 +147,11 @@ impl NpcBuilder {
 
     pub fn with_pets(mut self, pets: Vec<(NpcBuilder, Vec3<f32>)>) -> Self {
         self.pets = pets;
+        self
+    }
+
+    pub fn with_death_effects(mut self, death_effects: Option<DeathEffects>) -> Self {
+        self.death_effects = death_effects;
         self
     }
 }
@@ -285,6 +292,8 @@ pub struct TransformEvent {
     /// If set to false, players wont be transformed unless with a Possessor
     /// presence kind
     pub allow_players: bool,
+    /// Whether the entity shoud be deleted if transforming fails
+    pub delete_on_failure: bool,
 }
 
 pub struct InitializeCharacterEvent {

@@ -13,6 +13,7 @@ use crate::{
 };
 use common::{
     calendar::Calendar,
+    combat::DeathEffects,
     comp::{
         self, agent, biped_small, bird_medium, BehaviorCapability, ForceUpdate, Pos, Presence,
         Waypoint,
@@ -389,6 +390,7 @@ pub struct NpcData {
     pub scale: comp::Scale,
     pub loot: LootSpec<String>,
     pub pets: Vec<(NpcData, Vec3<f32>)>,
+    pub death_effects: Option<DeathEffects>,
 }
 
 /// Convinient structure to use when you need to create new npc
@@ -426,6 +428,7 @@ impl SpawnEntityData {
             make_loadout,
             trading_information: economy,
             pets,
+            death_effects,
         } = entity;
 
         if let Some(special) = special_entity {
@@ -551,6 +554,7 @@ impl SpawnEntityData {
                     })
                     .collect()
             },
+            death_effects,
         })
     }
 
@@ -577,6 +581,7 @@ impl NpcData {
             scale,
             loot,
             pets,
+            death_effects,
         } = self;
 
         (
@@ -592,7 +597,8 @@ impl NpcData {
                     pets.into_iter()
                         .map(|(pet, offset)| (pet.to_npc_builder().0, offset))
                         .collect::<Vec<_>>(),
-                ),
+                )
+                .with_death_effects(death_effects),
             pos,
         )
     }

@@ -688,9 +688,6 @@
             "common.items.keys.vampire_key",
         ): "object-key-vampire",
         Simple(
-            "common.items.keys.bloodmoon_key",
-        ): "object-key-bloodmoon",        
-        Simple(
             "common.items.weapons.shield.shield_1",
         ): "weapon-shield-wood-0",
         Simple(

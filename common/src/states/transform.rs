@@ -113,6 +113,7 @@ impl CharacterBehavior for Data {
                         target_entity: *data.uid,
                         entity_info,
                         allow_players: self.static_data.allow_players,
+                        delete_on_failure: false,
                     });
                     update.character = CharacterState::Transform(Data {
                         static_data: self.static_data.clone(),

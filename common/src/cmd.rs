@@ -342,6 +342,7 @@ pub enum ServerChatCommand {
     Campfire,
     ClearPersistedTerrain,
     CreateLocation,
+    DeathEffect,
     DebugColumn,
     DebugWays,
     DeleteLocation,
@@ -555,6 +556,22 @@ impl ServerChatCommand {
             ServerChatCommand::ClearPersistedTerrain => cmd(
                 vec![Integer("chunk_radius", 6, Required)],
                 Content::localized("command-clear_persisted_terrain-desc"),
+                Some(Admin),
+            ),
+            ServerChatCommand::DeathEffect => cmd(
+                vec![
+                    Enum("death_effect", vec!["transform".to_string()], Required),
+                    // NOTE: I added this for QoL as transform is currently the only death effect
+                    // and takes an asset path, when more on-death effects are added to the command
+                    // remove this.
+                    AssetPath(
+                        "entity_config",
+                        "common.entity.",
+                        ENTITY_CONFIGS.clone(),
+                        Required,
+                    ),
+                ],
+                Content::localized("command-death_effect-dest"),
                 Some(Admin),
             ),
             ServerChatCommand::DebugColumn => cmd(
@@ -1042,6 +1059,7 @@ impl ServerChatCommand {
             ServerChatCommand::Build => "build",
             ServerChatCommand::Campfire => "campfire",
             ServerChatCommand::ClearPersistedTerrain => "clear_persisted_terrain",
+            ServerChatCommand::DeathEffect => "death_effect",
             ServerChatCommand::DebugColumn => "debug_column",
             ServerChatCommand::DebugWays => "debug_ways",
             ServerChatCommand::DisconnectAllPlayers => "disconnect_all_players",

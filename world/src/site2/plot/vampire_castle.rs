@@ -2075,14 +2075,6 @@ impl Structure for VampireCastle {
                 Dir::NegY,
             )
             .fill(key_door);
-        painter
-            .aabb(Aabb {
-                min: Vec2::new(center.x, center.y + exit_side)
-                    .with_z(side_bldg_base_raw + (2 * castle_height) - 3),
-                max: Vec2::new(center.x + 1, center.y + exit_side + 1)
-                    .with_z(side_bldg_base_raw + (2 * castle_height) - 2),
-            })
-            .fill(Fill::Block(Block::air(SpriteKind::BloodmoonKeyhole)));
         // side_bldg bottom carve
         painter
             .aabb(Aabb {

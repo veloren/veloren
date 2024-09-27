@@ -5198,10 +5198,6 @@
         "voxel.object.key_vampire",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
-    Simple("common.items.keys.bloodmoon_key"): VoxTrans(
-        "voxel.object.key_bloodmoon",
-        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
-    ),    
     // Lockpicks
     Simple("common.items.utility.lockpick_0"): VoxTrans(
         "voxel.object.lockpick",

@@ -3,9 +3,10 @@
     name: Automatic,
     body: RandomWith("bloodmoon_bat"),
     alignment: Alignment(Enemy),
-    loot: Item("common.items.keys.bloodmoon_key"),
+    loot: Nothing,
     inventory: (
         loadout: FromBody,
     ),
+    death_effects: [Transform(entity_spec: "common.entity.dungeon.vampire.bloodmoon_heiress")],
     meta: [],
 )

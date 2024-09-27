@@ -175,12 +175,12 @@ impl<'a> AgentData<'a> {
             {
                 if (home - self.pos.0).xy().magnitude_squared() > (5.0_f32).powi(2) {
                     controller.push_action(ControlAction::StartInput {
-                        input: InputKind::Ability(1),
+                        input: InputKind::Ability(0),
                         target_entity: None,
                         select_pos: Some(home),
                     });
                 } else {
-                    controller.push_basic_input(InputKind::Ability(2));
+                    controller.push_basic_input(InputKind::Ability(1));
                 }
             } else if (tgt_data.pos.0 - self.pos.0).xy().magnitude_squared() > (5.0_f32).powi(2) {
                 maintain_altitude(5.0);
@@ -190,16 +190,16 @@ impl<'a> AgentData<'a> {
                     if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 3.0 {
                         controller.push_basic_input(InputKind::Secondary);
                     } else {
-                        controller.push_basic_input(InputKind::Ability(2));
+                        controller.push_basic_input(InputKind::Ability(1));
                     }
                 } else if attack_data.dist_sqrd < 6.0_f32.powi(2) {
                     // use shockwave or singlestrike when close
                     if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 2.0 {
-                        controller.push_basic_input(InputKind::Ability(3));
+                        controller.push_basic_input(InputKind::Ability(2));
                     } else if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize]
                         < 4.0
                     {
-                        controller.push_basic_input(InputKind::Ability(4));
+                        controller.push_basic_input(InputKind::Ability(3));
                     } else {
                         controller.push_basic_input(InputKind::Primary);
                     }
@@ -207,7 +207,7 @@ impl<'a> AgentData<'a> {
                     && agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 3.0
                 {
                     controller.push_action(ControlAction::StartInput {
-                        input: InputKind::Ability(1),
+                        input: InputKind::Ability(0),
                         target_entity: agent
                             .target
                             .as_ref()
