@@ -1,7 +1,11 @@
 [package]
 name = "veloren-common"
 version = "0.10.0"
-authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Luna Ćwięka <luna@lunareclipse.zone>", "Imbris <imbrisf@gmail.com>"]
+authors = [
+    "Joshua Barretto <joshua.s.barretto@gmail.com>",
+    "Luna Ćwięka <luna@lunareclipse.zone>",
+    "Imbris <imbrisf@gmail.com>",
+]
 edition = "2021"
 
 [features]
@@ -28,7 +32,7 @@ serde = { workspace = true, features = ["rc"] }
 
 # Util
 enum-map = { workspace = true, features = ["serde"] }
-vek = { workspace = true }
+vek = { workspace = true, features = ["repr_simd"] }
 chrono = { workspace = true }
 chrono-tz = { workspace = true }
 itertools = { workspace = true }
@@ -49,12 +53,15 @@ rayon = { workspace = true }
 roots = "0.0.8"
 spin_sleep = "1.0"
 tracing = { workspace = true }
-uuid = { version = "1.4.1", default-features = false, features = ["serde", "v4"] }
+uuid = { version = "1.4.1", default-features = false, features = [
+    "serde",
+    "v4",
+] }
 rand = { workspace = true }
 fxhash = { workspace = true }
 
 # Assets
-common-assets = {package = "veloren-common-assets", path = "assets"}
+common-assets = { package = "veloren-common-assets", path = "assets" }
 dot_vox = "5.1"
 serde_repr = "0.1.6"
 
@@ -75,15 +82,28 @@ slotmap = { version = "1.0", features = ["serde"] }
 indexmap = { version = "2.2.2", features = ["rayon"] }
 
 # ECS
-specs = { workspace = true, features = ["serde", "storage-event-control", "shred-derive"] }
+specs = { workspace = true, features = [
+    "serde",
+    "storage-event-control",
+    "shred-derive",
+] }
 
 [dev-dependencies]
 #bench
-criterion = { version = "0.5.1", default-features=false, features=["rayon", "cargo_bench_support"]}
+criterion = { version = "0.5.1", default-features = false, features = [
+    "rayon",
+    "cargo_bench_support",
+] }
 rand_chacha = { workspace = true }
 
 #test
-tracing-subscriber = { version = "0.3.7", default-features = false, features = ["fmt", "time", "ansi", "smallvec", "env-filter"] }
+tracing-subscriber = { version = "0.3.7", default-features = false, features = [
+    "fmt",
+    "time",
+    "ansi",
+    "smallvec",
+    "env-filter",
+] }
 petgraph = "0.6.0"
 
 [[bench]]
