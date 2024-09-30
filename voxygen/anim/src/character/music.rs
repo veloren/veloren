@@ -88,8 +88,12 @@ impl Animation for MusicAnimation {
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_x(shorte * -0.15);
 
-        next.lantern.orientation =
-            Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4);
+        next.lantern.orientation = match ability_id {
+            Some("common.abilities.music.kora") => {
+                Quaternion::rotation_x(shorte * 0.2) * Quaternion::rotation_y(shorte * 0.2)
+            },
+            _ => Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4),
+        };
 
         next.torso.position = Vec3::new(0.0, -3.3, 0.0);
         next.torso.orientation = Quaternion::rotation_z(short * -0.2);
@@ -112,6 +116,7 @@ impl Animation for MusicAnimation {
                         "common.abilities.music.guitar"
                         | "common.abilities.music.dark_guitar"
                         | "common.abilities.music.lute"
+                        | "common.abilities.music.kora"
                         | "common.abilities.music.sitar",
                     ) => 0.5,
 
@@ -152,6 +157,28 @@ impl Animation for MusicAnimation {
                         next.main.orientation = Quaternion::rotation_x(0.1)
                             * Quaternion::rotation_y(3.0)
                             * Quaternion::rotation_z(PI / -3.0);
+                    },
+                    Some("common.abilities.music.kora") => {
+                        next.hand_l.position = Vec3::new(
+                            5.0 - s_a.hand.0 + shortealt * 1.0,
+                            8.0 + s_a.hand.1 + shortealt * -1.0,
+                            5.0 + s_a.hand.2 + shortealt * -0.5,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(1.2 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.5 - foot * 0.3);
+
+                        next.hand_r.position = Vec3::new(
+                            -4.5 + s_a.hand.0 - shortealt * 1.0,
+                            8.0 + s_a.hand.1 + shortealt * 1.0,
+                            4.0 + s_a.hand.2 + shortealt * 0.5,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
+                            * Quaternion::rotation_y(0.4 + foot * 0.3);
+
+                        next.main.position = Vec3::new(0.0, 16.0, 14.0);
+                        next.main.orientation = Quaternion::rotation_x(-0.5)
+                            * Quaternion::rotation_y(3.0)
+                            * Quaternion::rotation_z(1.3);
                     },
                     Some("common.abilities.music.flute" | "common.abilities.music.glass_flute") => {
                         next.hand_l.position = Vec3::new(

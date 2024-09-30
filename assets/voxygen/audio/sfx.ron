@@ -884,6 +884,25 @@
             threshold: 0.5,
             subtitle: "subtitle-instrument_wildskin_drum",
         ),
+        Music(Instrument, Custom("Kora")): (
+            files: [
+            "voxygen.audio.sfx.instrument.kora.kora_c1e1c2",
+            "voxygen.audio.sfx.instrument.kora.kora_cega",
+            "voxygen.audio.sfx.instrument.kora.kora_deac1",
+            "voxygen.audio.sfx.instrument.kora.kora_eg",
+            "voxygen.audio.sfx.instrument.kora.kora_c1e1g1",
+            "voxygen.audio.sfx.instrument.kora.kora_ce",
+            "voxygen.audio.sfx.instrument.kora.kora_e1g1e2c2",
+            "voxygen.audio.sfx.instrument.kora.kora_cdeg",
+            "voxygen.audio.sfx.instrument.kora.kora_d1a1d2c2",
+            "voxygen.audio.sfx.instrument.kora.kora_egad1c1",
+            "voxygen.audio.sfx.instrument.kora.kora_cec1",
+            "voxygen.audio.sfx.instrument.kora.kora_dad1c1",
+            "voxygen.audio.sfx.instrument.kora.kora_ege1c1",
+            ],
+            threshold: 0.5,
+            subtitle: "subtitle-instrument_kora",
+        ),        
         Inventory(CollectedTool(Instrument)): (
             files: [
             "voxygen.audio.sfx.inventory.add_item",

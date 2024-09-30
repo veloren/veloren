@@ -1690,6 +1690,10 @@
         "voxel.weapon.tool.wooden_sitar",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.2,
     ),
+    Simple("common.items.tool.instruments.kora"): VoxTrans(
+        "voxel.weapon.tool.kora",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
+    ),    
     // Picks
     Simple("common.items.tool.pickaxe_stone"): VoxTrans(
         "voxel.weapon.tool.pickaxe_stone",

@@ -707,6 +707,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.music.washboard" => imgs.instrument,
         "common.abilities.music.steeltonguedrum" => imgs.instrument,
         "common.abilities.music.shamisen" => imgs.instrument,
+        "common.abilities.music.kora" => imgs.instrument,
         // Glider
         "common.abilities.debug.glide_boost" => imgs.flyingrod_m2,
         "common.abilities.debug.glide_speeder" => imgs.flyingrod_m1,
