@@ -109,6 +109,17 @@
         license: "OFL",
         license_link: "https://scripts.sil.org/OFL",
     ),],
+    models: [(
+        name: "Vroom",
+        authors: ["horblegorble"],
+        asset_path: "voxygen/voxel/glider/vroom.vox",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay or model viewing/editing software
+        - official releases of veloren on platforms that have relevant restrictions"
+    ),
+    ],
     other_art: [],
     /// Entry format:
     /// ```

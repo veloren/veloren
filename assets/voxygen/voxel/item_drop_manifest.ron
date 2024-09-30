@@ -1030,6 +1030,7 @@
     Simple("common.items.glider.skullgrin"): "voxel.glider.cultists",
     Simple("common.items.glider.leaves"): "voxel.glider.leaves",
     Simple("common.items.glider.winter_wings"): "voxel.glider.winter_wings",
+    Simple("common.items.debug.glider"): "voxel.glider.vroom",
     // Debug Items
     Simple("common.items.debug.admin_stick"): "voxel.weapon.tool.broom_belzeshrub_purple",
     // Misc

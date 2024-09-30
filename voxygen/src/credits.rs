@@ -74,7 +74,7 @@ mod tests {
     #[test]
     fn all_art_asset_paths_exists() {
         use assets::AssetExt;
-        let credits = Credits::load_expect_cloned("common.credits");
+        let credits = Credits::load_expect_cloned("credits");
 
         credits
             .music

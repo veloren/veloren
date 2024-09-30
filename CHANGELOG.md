@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dwarven-Mine update and activation.
 - Craftable orichalcum helmet
 - Protocol to query game server information (player count, version, etc.) and make ping tests.
+
 - Unlockable recipes
 - Localization support for prompt dialogs, diary sections, trade and group invitations, command descriptions.
 - Added Freezing Potion
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - List unlocked recipes from recipe scroll items in tooltips
 - Hydra.
 - NPC animations in plugins, multiple types of plugins
+- New model for admin vroom glider.
 
 ### Changed
 
