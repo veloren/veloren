@@ -676,13 +676,14 @@ fn handle_into_npc(
     };
 
     let mut loadout_rng = thread_rng();
-    let dummy = Vec3::zero();
-    let entity_info = EntityInfo::at(dummy).with_entity_config(
-        config.clone(),
-        Some(&entity_config),
-        &mut loadout_rng,
-        None,
-    );
+    let entity_info = EntityInfo::at(
+        server
+            .state
+            .read_component_copied::<comp::Pos>(target)
+            .map(|p| p.0)
+            .unwrap_or_default(),
+    )
+    .with_entity_config(config.clone(), Some(&entity_config), &mut loadout_rng, None);
 
     transform_entity(server, target, entity_info, true).map_err(|error| match error {
         TransformEntityError::EntityDead => {

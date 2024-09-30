@@ -522,7 +522,13 @@ impl ServerEvent for DestroyEvent {
                                         continue;
                                     };
 
-                                    EntityInfo::at(Vec3::zero()).with_entity_config(
+                                    EntityInfo::at(
+                                        data.positions
+                                            .get(ev.entity)
+                                            .map(|pos| pos.0)
+                                            .unwrap_or_default(),
+                                    )
+                                    .with_entity_config(
                                         entity_config.read().clone(),
                                         Some(entity_spec),
                                         &mut rand::thread_rng(),
