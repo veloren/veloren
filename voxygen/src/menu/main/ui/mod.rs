@@ -279,7 +279,7 @@ impl Controls {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
-        let credits = Credits::load_expect_cloned("common.credits");
+        let credits = Credits::load_expect_cloned("credits");
 
         // Note: Keeping in case we re-add the disclaimer
         let screen = /* if settings.show_disclaimer {
