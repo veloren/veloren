@@ -1010,6 +1010,11 @@
         secondary: Simple(None, "common.abilities.music.shamisen"),
         abilities: [],
     ),
+    Custom("Kora"): (
+        primary: Simple(None, "common.abilities.music.kora"),
+        secondary: Simple(None, "common.abilities.music.kora"),
+        abilities: [],
+    ),    
     Tool(Debug): (
         primary: Simple(None, "common.abilities.debug.forwardboost"),
         secondary: Simple(None, "common.abilities.debug.upboost"),

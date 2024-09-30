@@ -2349,6 +2349,17 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
+    "kora": (
+        output: ("common.items.tool.instruments.kora", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 4, false),
+            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.crafting_ing.cloth.silk"), 3, false),
+            (Item("common.items.crafting_ing.hide.animal_hide"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),    
     "lockpick": (
         output: ("common.items.utility.lockpick_0", 2),
         inputs: [

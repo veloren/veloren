@@ -2376,6 +2376,9 @@
             "common.items.tool.instruments.shamisen",
         ): "weapon-tool-shamisen",
         Simple(
+            "common.items.tool.instruments.kora",
+        ): "weapon-tool-kora",        
+        Simple(
             "common.items.log.bamboo",
         ): "sprite-wood-item-bamboo",
         Simple(

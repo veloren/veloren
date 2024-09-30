@@ -42,3 +42,6 @@ weapon-tool-steeltonguedrum = Steeltongue Drum
 
 weapon-tool-shamisen = Shamisen
     .desc = Shamisen.
+    
+weapon-tool-kora = Kora
+    .desc = Kora.    
