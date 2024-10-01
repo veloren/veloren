@@ -5,6 +5,7 @@ ChargedRanged(
         kind: Pointed,
         attack: Some((
             damage: 2,
+            poise: 0,
             energy: 2,
             buff: Some((
                 kind: Bleeding,

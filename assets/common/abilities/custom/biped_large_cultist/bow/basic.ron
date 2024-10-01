@@ -6,6 +6,7 @@ BasicRanged(
         kind: Pointed,
         attack: Some((
             damage: 12,
+            poise: 0,
             energy: 4,
             knockback: Some(5),
             buff: Some((

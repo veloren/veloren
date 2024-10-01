@@ -11,6 +11,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 32,
+            poise: 0,
             energy: 5,
             buff: Some((
                 kind: Burning,

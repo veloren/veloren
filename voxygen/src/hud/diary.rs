@@ -2946,6 +2946,7 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
             | ToolKind::Debug
             | ToolKind::Farming
             | ToolKind::Instrument
+            | ToolKind::Throwable
             | ToolKind::Pick
             | ToolKind::Shovel
             | ToolKind::Natural

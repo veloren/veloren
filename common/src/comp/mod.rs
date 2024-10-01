@@ -54,8 +54,8 @@ pub use self::{
     beam::Beam,
     body::{
         AllBodies, Body, BodyData, Gender, arthropod, biped_large, biped_small, bird_large,
-        bird_medium, crustacean, dragon, fish_medium, fish_small, golem, humanoid, item_drop,
-        object, plugin, quadruped_low, quadruped_medium, quadruped_small, ship, theropod,
+        bird_medium, crustacean, dragon, fish_medium, fish_small, golem, humanoid, object, plugin,
+        quadruped_low, quadruped_medium, quadruped_small, ship, theropod,
     },
     buff::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffKey, BuffKind, BuffSource, Buffs,
@@ -78,7 +78,7 @@ pub use self::{
     inventory::{
         CollectFailedReason, Inventory, InventoryUpdate, InventoryUpdateEvent,
         item::{
-            self, FrontendItem, Item, ItemConfig, ItemDrops, PickupItem,
+            self, FrontendItem, Item, ItemConfig, ItemDrops, PickupItem, ThrownItem,
             item_key::ItemKey,
             tool::{self, AbilityItem},
         },

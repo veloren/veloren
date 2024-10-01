@@ -12,6 +12,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 35,
+            poise: 0,
             energy: 0,
         )),
     ),

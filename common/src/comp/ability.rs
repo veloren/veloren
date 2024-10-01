@@ -737,7 +737,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::Transform(_)
             | CharacterState::RegrowHead(_)
             | CharacterState::Wallrun(_)
-            | CharacterState::StaticAura(_) => Self::Other,
+            | CharacterState::StaticAura(_)
+            | CharacterState::Throw(_) => Self::Other,
         }
     }
 }
@@ -945,6 +946,23 @@ pub enum CharacterAbility {
         recover_duration: f32,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
+        initial_projectile_speed: f32,
+        scaled_projectile_speed: f32,
+        damage_effect: Option<CombatEffect>,
+        move_speed: f32,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
+    Throw {
+        energy_cost: f32,
+        energy_drain: f32,
+        buildup_duration: f32,
+        charge_duration: f32,
+        throw_duration: f32,
+        recover_duration: f32,
+        projectile: ProjectileConstructor,
+        projectile_light: Option<LightEmitter>,
+        projectile_dir: throw::ProjectileDir,
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
         damage_effect: Option<CombatEffect>,
@@ -1221,6 +1239,7 @@ impl CharacterAbility {
                 | CharacterAbility::BasicMelee { energy_cost, .. }
                 | CharacterAbility::BasicRanged { energy_cost, .. }
                 | CharacterAbility::ChargedRanged { energy_cost, .. }
+                | CharacterAbility::Throw { energy_cost, .. }
                 | CharacterAbility::ChargedMelee { energy_cost, .. }
                 | CharacterAbility::BasicBlock { energy_cost, .. }
                 | CharacterAbility::RiposteMelee { energy_cost, .. }
@@ -1288,7 +1307,7 @@ impl CharacterAbility {
                     // If either in the air or is on ground and able to be activated from
                     // ground.
                     //
-                    // NOTE: there is a check in CharacterState::from below that must be kept in
+                    // NOTE: there is a check in CharacterState::try_from below that must be kept in
                     // sync with the conditions here (it determines whether this starts in a
                     // movement or buildup stage).
                     (data.physics.on_ground.is_none() || buildup_duration.is_some())
@@ -1608,6 +1627,32 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain *= stats.speed / stats.energy_efficiency;
             },
+            Throw {
+                ref mut energy_cost,
+                ref mut energy_drain,
+                ref mut buildup_duration,
+                ref mut charge_duration,
+                ref mut throw_duration,
+                ref mut recover_duration,
+                ref mut projectile,
+                projectile_light: _,
+                projectile_dir: _,
+                ref mut initial_projectile_speed,
+                ref mut scaled_projectile_speed,
+                damage_effect: _,
+                move_speed: _,
+                meta: _,
+            } => {
+                *projectile = projectile.adjusted_by_stats(stats);
+                *energy_cost /= stats.energy_efficiency;
+                *energy_drain *= stats.speed / stats.energy_efficiency;
+                *buildup_duration /= stats.speed;
+                *charge_duration /= stats.speed;
+                *throw_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                *initial_projectile_speed *= stats.range;
+                *scaled_projectile_speed *= stats.range;
+            },
             Shockwave {
                 ref mut energy_cost,
                 ref mut buildup_duration,
@@ -1913,6 +1958,7 @@ impl CharacterAbility {
             | LeapShockwave { energy_cost, .. }
             | ChargedMelee { energy_cost, .. }
             | ChargedRanged { energy_cost, .. }
+            | Throw { energy_cost, .. }
             | Shockwave { energy_cost, .. }
             | BasicAura { energy_cost, .. }
             | BasicBlock { energy_cost, .. }
@@ -1981,6 +2027,7 @@ impl CharacterAbility {
             | LeapShockwave { .. }
             | ChargedMelee { .. }
             | ChargedRanged { .. }
+            | Throw { .. }
             | BasicBlock { .. }
             | ComboMelee2 { .. }
             | DiveMelee { .. }
@@ -2011,6 +2058,7 @@ impl CharacterAbility {
             | LeapShockwave { meta, .. }
             | ChargedMelee { meta, .. }
             | ChargedRanged { meta, .. }
+            | Throw { meta, .. }
             | Shockwave { meta, .. }
             | BasicAura { meta, .. }
             | BasicBlock { meta, .. }
@@ -2316,9 +2364,19 @@ impl CharacterAbility {
 /// Small helper for #[serde(default)] booleans
 fn default_true() -> bool { true }
 
-impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
-    fn from((ability, ability_info, data): (&CharacterAbility, AbilityInfo, &JoinData)) -> Self {
-        match ability {
+#[derive(Debug)]
+pub enum CharacterStateCreationError {
+    MissingHandInfo,
+    MissingItem,
+}
+
+impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
+    type Error = CharacterStateCreationError;
+
+    fn try_from(
+        (ability, ability_info, data): (&CharacterAbility, AbilityInfo, &JoinData),
+    ) -> Result<Self, Self::Error> {
+        Ok(match ability {
             CharacterAbility::BasicMelee {
                 buildup_duration,
                 swing_duration,
@@ -2691,6 +2749,60 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 projectiles_fired: 0,
                 speed: 1.0,
             }),
+            CharacterAbility::Throw {
+                energy_cost: _,
+                energy_drain,
+                buildup_duration,
+                charge_duration,
+                throw_duration,
+                recover_duration,
+                projectile,
+                projectile_light,
+                projectile_dir,
+                initial_projectile_speed,
+                scaled_projectile_speed,
+                damage_effect,
+                move_speed,
+                meta: _,
+            } => {
+                let equip_slot = if let Some(hand_info) = ability_info.hand {
+                    hand_info.to_equip_slot()
+                } else {
+                    return Err(CharacterStateCreationError::MissingHandInfo);
+                };
+                let item_hash = if let Some(item_hash) = data
+                    .inventory
+                    .and_then(|inv| inv.equipped(equip_slot))
+                    .map(|item| item.item_hash())
+                {
+                    item_hash
+                } else {
+                    return Err(CharacterStateCreationError::MissingItem);
+                };
+
+                CharacterState::Throw(throw::Data {
+                    static_data: throw::StaticData {
+                        buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                        charge_duration: Duration::from_secs_f32(*charge_duration),
+                        throw_duration: Duration::from_secs_f32(*throw_duration),
+                        recover_duration: Duration::from_secs_f32(*recover_duration),
+                        energy_drain: *energy_drain,
+                        projectile: *projectile,
+                        projectile_light: *projectile_light,
+                        projectile_dir: *projectile_dir,
+                        initial_projectile_speed: *initial_projectile_speed,
+                        scaled_projectile_speed: *scaled_projectile_speed,
+                        move_speed: *move_speed,
+                        ability_info,
+                        damage_effect: *damage_effect,
+                        equip_slot,
+                        item_hash,
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                    exhausted: false,
+                })
+            },
             CharacterAbility::Shockwave {
                 energy_cost: _,
                 buildup_duration,
@@ -3096,7 +3208,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),
-        }
+        })
     }
 }
 

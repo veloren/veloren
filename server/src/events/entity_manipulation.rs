@@ -27,13 +27,14 @@ use common::{
     comp::{
         self, Alignment, Auras, BASE_ABILITY_LIMIT, Body, BuffCategory, BuffEffect, CharacterState,
         Energy, Group, Hardcore, Health, Inventory, Object, PickupItem, Player, Poise, PoiseChange,
-        Pos, Presence, PresenceKind, SkillSet, Stats,
+        Pos, Presence, PresenceKind, ProjectileConstructor, SkillSet, Stats,
         aura::{self, EnteredAuras},
         buff,
         chat::{KillSource, KillType},
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
+        projectile::{ProjectileAttack, ProjectileConstructorKind},
     },
     consts::TELEPORTER_RADIUS,
     event::{
@@ -42,11 +43,12 @@ use common::{
         DeleteEvent, DestroyEvent, DownedEvent, EmitExt, Emitter, EnergyChangeEvent,
         EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, HelpDownedEvent,
         KillEvent, KnockbackEvent, LandOnGroundEvent, MakeAdminEvent, ParryHookEvent,
-        PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent,
-        StartInteractionEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
-        TransformEvent, UpdateMapMarkerEvent,
+        PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, ShootEvent,
+        SoundEvent, StartInteractionEvent, StartTeleportingEvent, TeleportToEvent,
+        TeleportToPositionEvent, TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
+    explosion::ColorPreset,
     generation::{EntityConfig, EntityInfo},
     link::Is,
     lottery::distribute_many,
@@ -1796,13 +1798,15 @@ impl ServerEvent for BonkEvent {
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, ProgramTime>,
         Read<'a, EventBus<CreateObjectEvent>>,
+        Read<'a, EventBus<ShootEvent>>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (mut block_change, terrain, program_time, create_object_events): Self::SystemData<'_>,
+        (mut block_change, terrain, program_time, create_object_events, shoot_events): Self::SystemData<'_>,
     ) {
         let mut create_object_emitter = create_object_events.emitter();
+        let mut shoot_emitter = shoot_events.emitter();
         for ev in events {
             if let Some(_target) = ev.target {
                 // TODO: bonk entities but do no damage?
@@ -1818,28 +1822,56 @@ impl ServerEvent for BonkEvent {
                             let msm = &MaterialStatManifest::load().read();
                             let ability_map = &AbilityMap::load().read();
                             for item in flatten_counted_items(&items, ability_map, msm) {
-                                create_object_emitter.emit(CreateObjectEvent {
-                                    pos: Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)),
-                                    vel: comp::Vel::default(),
-                                    body: match block.get_sprite() {
-                                        // Create different containers depending on the original
-                                        // sprite
-                                        Some(SpriteKind::Apple) => comp::object::Body::Apple,
-                                        Some(SpriteKind::Beehive) => comp::object::Body::Hive,
-                                        Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
-                                        Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
-                                        _ => comp::object::Body::Pouch,
-                                    },
-                                    object: match block.get_sprite() {
-                                        Some(SpriteKind::Bomb) => {
-                                            Some(comp::Object::Bomb { owner: ev.owner })
-                                        },
-                                        _ => None,
-                                    },
-                                    item: Some(comp::PickupItem::new(item, *program_time)),
-                                    light_emitter: None,
-                                    stats: None,
-                                });
+                                let pos = Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0));
+                                let vel = comp::Vel::default();
+                                let body = match block.get_sprite() {
+                                    // Create different containers depending on the original
+                                    // sprite
+                                    Some(SpriteKind::Apple) => comp::object::Body::Apple,
+                                    Some(SpriteKind::Beehive) => comp::object::Body::Hive,
+                                    Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
+                                    Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
+                                    _ => comp::object::Body::Pouch,
+                                };
+
+                                if matches!(block.get_sprite(), Some(SpriteKind::Bomb)) {
+                                    shoot_emitter.emit(ShootEvent {
+                                        entity: None,
+                                        pos,
+                                        dir: Dir::from_unnormalized(vel.0).unwrap_or_default(),
+                                        body: Body::Object(body),
+                                        light: None,
+                                        projectile: ProjectileConstructor {
+                                            kind: ProjectileConstructorKind::Explosive {
+                                                radius: 12.0,
+                                                min_falloff: 0.75,
+                                                reagent: None,
+                                                terrain: Some((4.0, ColorPreset::Black)),
+                                            },
+                                            attack: Some(ProjectileAttack {
+                                                damage: 40.0,
+                                                poise: 100.0,
+                                                knockback: None,
+                                                energy: 0.0,
+                                                buff: None,
+                                            }),
+                                            scaled: None,
+                                        }
+                                        .create_projectile(None, 1.0, None),
+                                        speed: vel.0.magnitude(),
+                                        object: None,
+                                    });
+                                } else {
+                                    create_object_emitter.emit(CreateObjectEvent {
+                                        pos,
+                                        vel,
+                                        body,
+                                        object: None,
+                                        item: Some(comp::PickupItem::new(item, *program_time)),
+                                        light_emitter: None,
+                                        stats: None,
+                                    });
+                                }
                             }
                         }
                     }

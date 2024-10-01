@@ -12,8 +12,8 @@ pub use common::event::{
     RemoveLightEmitterEvent, RequestPluginsEvent, RequestSiteInfoEvent, RespawnEvent,
     SetBattleModeEvent, SetLanternEvent, SetPetStayEvent, ShockwaveEvent, ShootEvent, SoundEvent,
     StartInteractionEvent, StartTeleportingEvent, TamePetEvent, TeleportToEvent,
-    TeleportToPositionEvent, ToggleSpriteLightEvent, TransformEvent, UpdateCharacterDataEvent,
-    UpdateMapMarkerEvent,
+    TeleportToPositionEvent, ThrowEvent, ToggleSpriteLightEvent, TransformEvent,
+    UpdateCharacterDataEvent, UpdateMapMarkerEvent,
 };
 
 /// X-macro that provides list of server events to the macro this is called
@@ -43,6 +43,7 @@ macro_rules! server_events {
             GroupManipEvent
             RespawnEvent
             ShootEvent
+            ThrowEvent
             ShockwaveEvent
             KnockbackEvent
             LandOnGroundEvent

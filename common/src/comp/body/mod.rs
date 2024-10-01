@@ -9,7 +9,7 @@ pub mod fish_medium;
 pub mod fish_small;
 pub mod golem;
 pub mod humanoid;
-pub mod item_drop;
+pub mod item;
 pub mod object;
 pub mod parts;
 pub mod plugin;
@@ -54,7 +54,7 @@ make_case_elim!(
         QuadrupedLow(body: quadruped_low::Body) = 13,
         Ship(body: ship::Body) = 14,
         Arthropod(body: arthropod::Body) = 15,
-        ItemDrop(body: item_drop::Body) = 16,
+        Item(body: item::Body) = 16,
         Crustacean(body: crustacean::Body) = 17,
         Plugin(body: plugin::Body) = 18,
     }
@@ -100,7 +100,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
     pub biped_small: BodyData<BodyMeta, biped_small::AllSpecies<SpeciesMeta>>,
     pub object: BodyData<BodyMeta, ()>,
-    pub item_drop: BodyData<BodyMeta, ()>,
+    pub item: BodyData<BodyMeta, ()>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub theropod: BodyData<BodyMeta, theropod::AllSpecies<SpeciesMeta>>,
     pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
@@ -114,7 +114,7 @@ impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
     /// Get species meta associated with the body.
     ///
     /// Returns `None` if the body doesn't have any associated meta, i.e ships,
-    /// objects, itemdrops.
+    /// objects, items.
     pub fn get_species_meta<'a>(&'a self, body: &Body) -> Option<&'a SpeciesMeta> {
         Some(match body {
             Body::Humanoid(b) => &self.humanoid.species[&b.species],
@@ -183,7 +183,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<&Body> for AllBodies<BodyMeta, Spec
             Body::BipedLarge(_) => &self.biped_large.body,
             Body::BipedSmall(_) => &self.biped_small.body,
             Body::Object(_) => &self.object.body,
-            Body::ItemDrop(_) => &self.item_drop.body,
+            Body::Item(_) => &self.item.body,
             Body::Golem(_) => &self.golem.body,
             Body::Theropod(_) => &self.theropod.body,
             Body::QuadrupedLow(_) => &self.quadruped_low.body,
@@ -263,7 +263,7 @@ impl Body {
                 _ => false,
             },
             Body::Object(_) => false,
-            Body::ItemDrop(_) => false,
+            Body::Item(_) => false,
             Body::Golem(b1) => match other {
                 Body::Golem(b2) => b1.species == b2.species,
                 _ => false,
@@ -317,7 +317,7 @@ impl Body {
     pub fn bleeds(&self) -> bool {
         !matches!(
             self,
-            Body::Object(_) | Body::Ship(_) | Body::ItemDrop(_) | Body::Golem(_)
+            Body::Object(_) | Body::Ship(_) | Body::Item(_) | Body::Golem(_)
         )
     }
 
@@ -358,7 +358,7 @@ impl Body {
             Body::Humanoid(_) => HUMAN_DENSITY,
             Body::Ship(ship) => ship.density().0,
             Body::Object(object) => object.density().0,
-            Body::ItemDrop(item_drop) => item_drop.density().0,
+            Body::Item(item) => item.density().0,
             _ => HUMAN_DENSITY,
         };
         Density(d)
@@ -433,7 +433,7 @@ impl Body {
                 65.0 * humanoid.height() / 1.75f32
             },
             Body::Object(obj) => obj.mass().0,
-            Body::ItemDrop(item_drop) => item_drop.mass().0,
+            Body::Item(item) => item.mass().0,
             Body::QuadrupedLow(body) => match body.species {
                 quadruped_low::Species::Alligator => 360.0, // ~✅
                 quadruped_low::Species::Snaretongue => 280.0,
@@ -623,7 +623,7 @@ impl Body {
                 Vec3::new(height / 1.3, 1.75 / 2.0, height)
             },
             Body::Object(object) => object.dimensions(),
-            Body::ItemDrop(item_drop) => item_drop.dimensions(),
+            Body::Item(item) => item.dimensions(),
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Akhlut => Vec3::new(2.5, 7.0, 3.0),
                 quadruped_medium::Species::Barghest => Vec3::new(2.0, 4.4, 2.7),
@@ -1071,7 +1071,7 @@ impl Body {
                 object::Body::GnarlingTotemRed | object::Body::GnarlingTotemWhite => 15,
                 _ => 1000,
             },
-            Body::ItemDrop(_) => 1000,
+            Body::Item(_) => 1000,
             Body::Golem(golem) => match golem.species {
                 golem::Species::WoodGolem => 120,
                 golem::Species::ClayGolem => 350,

@@ -4,16 +4,20 @@ use crate::{
 };
 use common::{
     comp::{
-        self, Alignment, BehaviorCapability, ItemDrops, LightEmitter, Ori, Pos, TradingBehavior,
-        Vel, WaypointArea,
+        self, Alignment, BehaviorCapability, Body, Inventory, ItemDrops, LightEmitter, Ori, Pos,
+        ThrownItem, TradingBehavior, Vel, WaypointArea,
         aura::{Aura, AuraKind, AuraTarget},
+        body,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        item::MaterialStatManifest,
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
+        tool::AbilityMap,
     },
     event::{
         CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         CreateShipEvent, CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent,
-        InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
+        InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent, ThrowEvent,
+        UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -378,11 +382,9 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
     let pos = ev.pos.0;
 
     let vel = *ev.dir * ev.speed
-        + state
-            .ecs()
-            .read_storage::<Vel>()
-            .get(ev.entity)
-            .map_or(Vec3::zero(), |v| v.0);
+        + ev.entity
+            .and_then(|entity| state.ecs().read_storage::<Vel>().get(entity).map(|v| v.0))
+            .unwrap_or(Vec3::zero());
 
     // Add an outcome
     state
@@ -394,15 +396,69 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
             vel,
         });
 
-    let mut builder = state.create_projectile(Pos(pos), Vel(vel), ev.body, ev.projectile);
-    if let Some(light) = ev.light {
-        builder = builder.with(light)
-    }
-    if let Some(object) = ev.object {
-        builder = builder.with(object)
-    }
+    state
+        .create_projectile(Pos(pos), Vel(vel), ev.body, ev.projectile)
+        .maybe_with(ev.light)
+        .maybe_with(ev.object)
+        .build();
+}
 
-    builder.build();
+pub fn handle_throw(server: &mut Server, ev: ThrowEvent) {
+    let state = server.state_mut();
+
+    let thrown_item = state
+        .ecs()
+        .write_storage::<Inventory>()
+        .get_mut(ev.entity)
+        .and_then(|mut inv| {
+            if let Some(thrown_item) = inv.equipped(ev.equip_slot) {
+                let ability_map = state.ecs().read_resource::<AbilityMap>();
+                let msm = state.ecs().read_resource::<MaterialStatManifest>();
+                let time = state.ecs().read_resource::<Time>();
+
+                // If stackable, try to remove the throwable from inv stacks before
+                // removing the equipped one to avoid having to reequip after each throw
+                if let Some(inv_slot) = inv.get_slot_of_item(thrown_item)
+                    && thrown_item.is_stackable()
+                {
+                    inv.take(inv_slot, &ability_map, &msm)
+                } else {
+                    inv.replace_loadout_item(ev.equip_slot, None, *time)
+                }
+            } else {
+                None
+            }
+        })
+        .map(|mut thrown_item| {
+            thrown_item.put_in_world();
+            ThrownItem(thrown_item)
+        });
+
+    if let Some(thrown_item) = thrown_item {
+        let body = Body::Item(body::item::Body::from(&thrown_item));
+
+        let pos = ev.pos.0;
+
+        let vel = *ev.dir * ev.speed
+            + state
+                .ecs()
+                .read_storage::<Vel>()
+                .get(ev.entity)
+                .map_or(Vec3::zero(), |v| v.0);
+
+        // Add an outcome
+        state
+            .ecs()
+            .read_resource::<EventBus<Outcome>>()
+            .emit_now(Outcome::ProjectileShot { pos, body, vel });
+
+        state
+            .create_projectile(Pos(pos), Vel(vel), body, ev.projectile)
+            .with(thrown_item)
+            .maybe_with(ev.light)
+            .maybe_with(ev.object)
+            .build();
+    }
 }
 
 pub fn handle_shockwave(server: &mut Server, ev: ShockwaveEvent) {

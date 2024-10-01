@@ -37,6 +37,7 @@ use std::{
     time::Duration,
 };
 use strum::Display;
+use tracing::warn;
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
@@ -129,7 +130,7 @@ impl Body {
                 _ => 80.0,
             },
             Body::Object(_) => 0.0,
-            Body::ItemDrop(_) => 0.0,
+            Body::Item(_) => 0.0,
             Body::Golem(body) => match body.species {
                 golem::Species::ClayGolem => 120.0,
                 golem::Species::IronGolem => 100.0,
@@ -237,7 +238,7 @@ impl Body {
             },
             Body::BipedSmall(_) => 3.5,
             Body::Object(_) => 2.0,
-            Body::ItemDrop(_) => 2.0,
+            Body::Item(_) => 2.0,
             Body::Golem(golem) => match golem.species {
                 golem::Species::WoodGolem => 1.2,
                 _ => 2.0,
@@ -277,7 +278,7 @@ impl Body {
         Some(
             match self {
                 Body::Object(_) => return None,
-                Body::ItemDrop(_) => return None,
+                Body::Item(_) => return None,
                 Body::Ship(ship::Body::Submarine) => 1000.0 * self.mass().0,
                 Body::Ship(ship) if ship.has_water_thrust() => 500.0 * self.mass().0,
                 Body::Ship(_) => return None,
@@ -343,7 +344,7 @@ impl Body {
     /// Returns jump impulse if the body type can jump, otherwise None
     pub fn jump_impulse(&self) -> Option<f32> {
         match self {
-            Body::Object(_) | Body::Ship(_) | Body::ItemDrop(_) => None,
+            Body::Object(_) | Body::Ship(_) | Body::Item(_) => None,
             Body::BipedLarge(_) | Body::Dragon(_) => Some(0.6 * self.mass().0),
             Body::Golem(_) | Body::QuadrupedLow(_) => Some(0.4 * self.mass().0),
             Body::QuadrupedMedium(_) => Some(0.4 * self.mass().0),
@@ -1420,7 +1421,7 @@ fn handle_ability(
             })
             .filter(|(ability, _, _)| ability.requirements_paid(data, update))
         {
-            update.character = CharacterState::from((
+            match CharacterState::try_from((
                 &ability,
                 AbilityInfo::new(
                     data,
@@ -1430,51 +1431,59 @@ fn handle_ability(
                     ability.ability_meta(),
                 ),
                 data,
-            ));
-            if let Some(init_event) = ability.ability_meta().init_event {
-                match init_event {
-                    AbilityInitEvent::EnterStance(stance) => {
-                        output_events.emit_server(ChangeStanceEvent {
-                            entity: data.entity,
-                            stance,
-                        });
-                    },
-                    AbilityInitEvent::GainBuff {
-                        kind,
-                        strength,
-                        duration,
-                    } => {
-                        let dest_info = DestInfo {
-                            stats: Some(data.stats),
-                            mass: Some(data.mass),
-                        };
-                        output_events.emit_server(BuffEvent {
-                            entity: data.entity,
-                            buff_change: BuffChange::Add(Buff::new(
+            )) {
+                Ok(character_state) => {
+                    update.character = character_state;
+
+                    if let Some(init_event) = ability.ability_meta().init_event {
+                        match init_event {
+                            AbilityInitEvent::EnterStance(stance) => {
+                                output_events.emit_server(ChangeStanceEvent {
+                                    entity: data.entity,
+                                    stance,
+                                });
+                            },
+                            AbilityInitEvent::GainBuff {
                                 kind,
-                                BuffData::new(strength, duration),
-                                vec![BuffCategory::SelfBuff],
-                                BuffSource::Character { by: *data.uid },
-                                *data.time,
-                                dest_info,
-                                Some(data.mass),
-                            )),
-                        });
-                    },
-                }
+                                strength,
+                                duration,
+                            } => {
+                                let dest_info = DestInfo {
+                                    stats: Some(data.stats),
+                                    mass: Some(data.mass),
+                                };
+                                output_events.emit_server(BuffEvent {
+                                    entity: data.entity,
+                                    buff_change: BuffChange::Add(Buff::new(
+                                        kind,
+                                        BuffData::new(strength, duration),
+                                        vec![BuffCategory::SelfBuff],
+                                        BuffSource::Character { by: *data.uid },
+                                        *data.time,
+                                        dest_info,
+                                        Some(data.mass),
+                                    )),
+                                });
+                            },
+                        }
+                    }
+                    if let CharacterState::Roll(roll) = &mut update.character {
+                        if data.character.is_wield() || data.character.was_wielded() {
+                            roll.was_wielded = true;
+                        }
+                        if data.character.is_stealthy() {
+                            roll.is_sneaking = true;
+                        }
+                        if data.character.is_aimed() {
+                            roll.prev_aimed_dir = Some(data.controller.inputs.look_dir);
+                        }
+                    }
+                    return true;
+                },
+                Err(err) => {
+                    warn!("Failed to enter character state: {err:?}");
+                },
             }
-            if let CharacterState::Roll(roll) = &mut update.character {
-                if data.character.is_wield() || data.character.was_wielded() {
-                    roll.was_wielded = true;
-                }
-                if data.character.is_stealthy() {
-                    roll.is_sneaking = true;
-                }
-                if data.character.is_aimed() {
-                    roll.prev_aimed_dir = Some(data.controller.inputs.look_dir);
-                }
-            }
-            return true;
         }
     }
     false

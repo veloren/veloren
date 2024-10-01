@@ -1,18 +1,18 @@
 use super::{
-    super::{Animation, vek::*},
-    ItemDropSkeleton, SkeletonAttr,
+    super::{vek::*, Animation},
+    ItemSkeleton, SkeletonAttr,
 };
 
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
     type Dependency<'a> = f32;
-    type Skeleton = ItemDropSkeleton;
+    type Skeleton = ItemSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"item_drop_idle\0";
+    const UPDATE_FN: &'static [u8] = b"item_idle\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "item_drop_idle"))]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "item_idle"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         _: Self::Dependency<'_>,
@@ -23,6 +23,7 @@ impl Animation for IdleAnimation {
         let mut next = (*skeleton).clone();
 
         next.bone0.position = Vec3::new(s_a.bone0.0, s_a.bone0.1, s_a.bone0.2);
+        next.bone0.orientation.rotate_x(s_a.bone0.3);
 
         next
     }

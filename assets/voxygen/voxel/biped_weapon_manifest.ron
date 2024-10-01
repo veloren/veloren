@@ -1210,6 +1210,42 @@
     ),
     Tool("common.items.tool.instruments.rhythmo"): (
         vox_spec: ("weapon.tool.rhythmo", (-3.5, -7.0, 6.0)),
+    ),
+    // Throwables
+    Tool("common.items.utility.bomb"): (
+        vox_spec: ("object.bomb", (-4.0, -6.0, 0.0)),
+        color: None
+    ),
+    Tool("common.items.utility.firework_white"): (
+        vox_spec: ("weapon.projectile.fireworks_white-0", (-1.0, -6.0, -8.0)),
+        color: None
+    ),
+    Tool("common.items.utility.firework_red"): (
+        vox_spec: ("weapon.projectile.fireworks_red-0", (-1.0, -6.0, -8.0)),
+        color: None
+    ),
+    Tool("common.items.utility.firework_yellow"): (
+        vox_spec: ("weapon.projectile.fireworks_yellow-0", (-1.0, -6.0, -8.0)),
+        color: None
+    ),
+    Tool("common.items.utility.firework_green"): (
+        vox_spec: ("weapon.projectile.fireworks_green-0", (-1.0, -6.0, -8.0)),
+        color: None
+    ),
+    Tool("common.items.utility.firework_blue"): (
+        vox_spec: ("weapon.projectile.fireworks_blue-0", (-1.0, -6.0, -8.0)),
+        color: None
+    ),
+    Tool("common.items.utility.firework_purple"): (
+        vox_spec: ("weapon.projectile.fireworks_purple-0", (-1.0, -6.0, -8.0)),
+        color: None
+    ),
+    Tool("common.items.utility.surprise_egg"): (
+        vox_spec: ("object.surprise_egg", (-4.0, -4.0, 0.0)),
+        color: None
+    ),
+    Tool("common.items.utility.training_dummy"): (
+        vox_spec: ("object.training_dummy", (-6.0, -6.0, -6.0)),
         color: None
     ),
     // Staves

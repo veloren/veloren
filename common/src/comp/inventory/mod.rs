@@ -828,11 +828,38 @@ impl Inventory {
     /// go into inventory. If the item is going to mainhand, put mainhand in
     /// offhand and place offhand into inventory.
     #[must_use = "Returned items will be lost if not used"]
-    pub fn equip(&mut self, inv_slot: InvSlotId, time: Time) -> Vec<Item> {
-        self.get(inv_slot)
-            .and_then(|item| self.loadout.get_slot_to_equip_into(&item.kind()))
-            .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot, time))
-            .unwrap_or_default()
+    pub fn equip(
+        &mut self,
+        inv_slot: InvSlotId,
+        time: Time,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Vec<Item> {
+        if let Some(item) = self.get(inv_slot) {
+            if let Some(equip_slot) = self.loadout.get_slot_to_equip_into(&item.kind()) {
+                let equipped_item = self.equipped(equip_slot);
+                let equipped_also_in_inv = equipped_item
+                    .and_then(|item| self.get_slot_of_item(item))
+                    .is_some();
+
+                if equipped_also_in_inv
+                    || (item.amount() > 1 && (equipped_item.is_none() || self.free_slots() >= 1))
+                {
+                    let item = self.take(inv_slot, ability_map, msm);
+                    let previously_equipped = self.replace_loadout_item(equip_slot, item, time);
+
+                    if let Some(previously_equipped) = previously_equipped {
+                        // Cannot fail since we know there is at least one slot the item can be put
+                        // into
+                        let _ = self.push(previously_equipped);
+                    }
+                } else {
+                    return self.swap_inventory_loadout(inv_slot, equip_slot, time);
+                }
+            }
+        }
+
+        Vec::new()
     }
 
     /// Determines how many free inventory slots will be left after equipping an
@@ -1076,6 +1103,14 @@ impl Inventory {
                 "can_swap = false, tried to swap into non-existent inventory slot: {:?}",
                 inv_slot_id
             );
+            return false;
+        }
+
+        if self
+            .get(inv_slot_id)
+            .is_some_and(|item| item.amount() > 1)
+        {
+            trace!("can_swap = false, equip slot can't hold more than one item");
             return false;
         }
 

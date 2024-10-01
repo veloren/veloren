@@ -1,5 +1,5 @@
 use hashbrown::HashSet;
-use rand::{Rng, seq::IteratorRandom};
+use rand::seq::IteratorRandom;
 use specs::{
     DispatcherBuilder, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData,
     Write, WriteStorage, join::Join, shred,
@@ -33,9 +33,7 @@ use common::{
 use comp::LightEmitter;
 
 use crate::client::Client;
-use common::comp::{
-    Alignment, Body, CollectFailedReason, Group, InventoryUpdateEvent, pet::is_tameable,
-};
+use common::comp::{Alignment, CollectFailedReason, Group, InventoryUpdateEvent, pet::is_tameable};
 use common_net::msg::ServerGeneral;
 
 use super::{ServerEvent, entity_manipulation::emit_effect_events, event_dispatch};
@@ -107,10 +105,8 @@ pub struct InventoryManipData<'a> {
     stats: ReadStorage<'a, comp::Stats>,
     clients: ReadStorage<'a, Client>,
     orientations: ReadStorage<'a, comp::Ori>,
-    controllers: ReadStorage<'a, comp::Controller>,
     agents: ReadStorage<'a, comp::Agent>,
     pets: ReadStorage<'a, comp::Pet>,
-    velocities: ReadStorage<'a, comp::Vel>,
     masses: ReadStorage<'a, comp::Mass>,
     #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, comp::Presence>,
@@ -136,7 +132,6 @@ impl ServerEvent for InventoryManipEvent {
         let mut rng = rand::thread_rng();
 
         let mut dropped_items = Vec::new();
-        let mut thrown_items = Vec::new();
 
         for InventoryManipEvent(entity, manip) in events {
             let uid = if let Some(uid) = data.uids.get(entity) {
@@ -544,17 +539,20 @@ impl ServerEvent for InventoryManipEvent {
                                 }
                                 if let Some(pos) = data.positions.get(entity) {
                                     dropped_items.extend(
-                                        inventory.equip(slot, *data.time).into_iter().map(|item| {
-                                            (
-                                                *pos,
-                                                data.orientations
-                                                    .get(entity)
-                                                    .copied()
-                                                    .unwrap_or_default(),
-                                                PickupItem::new(item, *data.program_time),
-                                                *uid,
-                                            )
-                                        }),
+                                        inventory
+                                            .equip(slot, *data.time, &data.ability_map, &data.msm)
+                                            .into_iter()
+                                            .map(|item| {
+                                                (
+                                                    *pos,
+                                                    data.orientations
+                                                        .get(entity)
+                                                        .copied()
+                                                        .unwrap_or_default(),
+                                                    PickupItem::new(item, *data.program_time),
+                                                    *uid,
+                                                )
+                                            }),
                                     );
                                 }
                                 Some(InventoryUpdateEvent::Used)
@@ -565,26 +563,6 @@ impl ServerEvent for InventoryManipEvent {
                                     ItemKind::Consumable { effects, .. } => {
                                         maybe_effect = Some(effects.clone());
                                         Some(InventoryUpdateEvent::Consumed((&item).into()))
-                                    },
-                                    ItemKind::Throwable { kind, .. } => {
-                                        if let Some(pos) = data.positions.get(entity) {
-                                            let controller = data.controllers.get(entity);
-                                            let look_dir = controller
-                                                .map_or_else(Vec3::zero, |c| {
-                                                    c.inputs.look_dir.to_vec()
-                                                });
-                                            thrown_items.push((
-                                                *pos,
-                                                data.velocities
-                                                    .get(entity)
-                                                    .copied()
-                                                    .unwrap_or_default(),
-                                                look_dir,
-                                                *kind,
-                                                *uid,
-                                            ));
-                                        }
-                                        Some(InventoryUpdateEvent::Used)
                                     },
                                     ItemKind::Utility {
                                         kind: item::Utility::Collar,
@@ -1149,59 +1127,6 @@ impl ServerEvent for InventoryManipEvent {
                 item,
                 loot_owner: Some(LootOwner::new(LootOwnerKind::Player(owner), true)),
             })
-        }
-
-        let mut rng = rand::thread_rng();
-
-        // Throw items
-        for (pos, vel, look_dir, kind, owner) in thrown_items {
-            let vel = match kind {
-                item::Throwable::Firework(_) => Vec3::new(
-                    rng.gen_range(-15.0..15.0),
-                    rng.gen_range(-15.0..15.0),
-                    rng.gen_range(80.0..110.0),
-                ),
-                _ => vel.0 + look_dir * 20.0,
-            };
-
-            emitters.emit(CreateObjectEvent {
-                pos: comp::Pos(pos.0 + Vec3::unit_z() * 0.25),
-                vel: comp::Vel(vel),
-                body: match kind {
-                    item::Throwable::Bomb => comp::object::Body::Bomb,
-                    item::Throwable::SurpriseEgg => comp::object::Body::SurpriseEgg,
-                    item::Throwable::Firework(reagent) => comp::object::Body::for_firework(reagent),
-                    item::Throwable::TrainingDummy => comp::object::Body::TrainingDummy,
-                },
-                object: match kind {
-                    item::Throwable::Bomb => Some(comp::Object::Bomb { owner: Some(owner) }),
-                    item::Throwable::Firework(reagent) => Some(comp::Object::Firework {
-                        owner: Some(owner),
-                        reagent,
-                    }),
-                    item::Throwable::SurpriseEgg => {
-                        Some(comp::Object::SurpriseEgg { owner: Some(owner) })
-                    },
-                    item::Throwable::TrainingDummy => None,
-                },
-                light_emitter: match kind {
-                    item::Throwable::Firework(_) => Some(LightEmitter {
-                        animated: true,
-                        flicker: 2.0,
-                        strength: 2.0,
-                        col: Rgb::new(1.0, 1.0, 0.0),
-                    }),
-                    _ => None,
-                },
-                stats: match kind {
-                    item::Throwable::TrainingDummy => Some(comp::Stats::new(
-                        "Training Dummy".to_string(),
-                        Body::Object(common::comp::object::Body::TrainingDummy),
-                    )),
-                    _ => None,
-                },
-                item: None,
-            });
         }
     }
 }

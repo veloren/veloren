@@ -1149,9 +1149,9 @@
         ),
         species: ()
     ),
-    item_drop: (
+    item: (
         body: (
-            keyword: "item_drop",
+            keyword: "item",
             names_0: []
         ),
         species: ()

@@ -21,6 +21,10 @@ pub enum Effect {
     Stick,
     Possess,
     Bonk, // Knock/dislodge/change objects on hit
+    DropItem,
+    Firework(Reagent),
+    SurpriseEgg,
+    TrainingDummy,
 }
 
 #[derive(Clone, Debug)]
@@ -28,6 +32,7 @@ pub struct Projectile {
     // TODO: use SmallVec for these effects
     pub hit_solid: Vec<Effect>,
     pub hit_entity: Vec<Effect>,
+    pub timeout: Vec<Effect>,
     /// Time left until the projectile will despawn
     pub time_left: Duration,
     pub owner: Option<Uid>,
@@ -61,6 +66,7 @@ pub struct Scaled {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProjectileAttack {
     pub damage: f32,
+    pub poise: f32,
     pub knockback: Option<f32>,
     pub energy: f32,
     pub buff: Option<CombatBuff>,
@@ -90,6 +96,10 @@ pub enum ProjectileConstructorKind {
         is_sticky: bool,
         duration: Secs,
     },
+    ThrownWeapon,
+    Firework(Reagent),
+    SurpriseEgg,
+    TrainingDummy,
 }
 
 impl ProjectileConstructor {
@@ -125,17 +135,22 @@ impl ProjectileConstructor {
             let buff = a.buff.map(CombatEffect::Buff);
 
             let (damage_source, damage_kind) = match self.kind {
-                ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Hazard { .. } => {
+                ProjectileConstructorKind::Pointed
+                | ProjectileConstructorKind::Hazard { .. }
+                | ProjectileConstructorKind::ThrownWeapon => {
                     (DamageSource::Projectile, DamageKind::Piercing)
                 },
                 ProjectileConstructorKind::Blunt => {
                     (DamageSource::Projectile, DamageKind::Crushing)
                 },
                 ProjectileConstructorKind::Explosive { .. }
-                | ProjectileConstructorKind::ExplosiveHazard { .. } => {
+                | ProjectileConstructorKind::ExplosiveHazard { .. }
+                | ProjectileConstructorKind::Firework(_) => {
                     (DamageSource::Explosion, DamageKind::Energy)
                 },
-                ProjectileConstructorKind::Possess => {
+                ProjectileConstructorKind::Possess
+                | ProjectileConstructorKind::SurpriseEgg
+                | ProjectileConstructorKind::TrainingDummy => {
                     dev_panic!("This should be unreachable");
                     (DamageSource::Projectile, DamageKind::Piercing)
                 },
@@ -183,6 +198,7 @@ impl ProjectileConstructor {
                 Projectile {
                     hit_solid: vec![Effect::Stick, Effect::Bonk],
                     hit_entity,
+                    timeout: Vec::new(),
                     time_left: Duration::from_secs(15),
                     owner,
                     ignore_group: true,
@@ -203,6 +219,7 @@ impl ProjectileConstructor {
                 Projectile {
                     hit_solid: vec![Effect::Stick, Effect::Bonk],
                     hit_entity,
+                    timeout: Vec::new(),
                     time_left: Duration::from_secs_f64(duration.0),
                     owner,
                     ignore_group: true,
@@ -239,6 +256,7 @@ impl ProjectileConstructor {
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    timeout: Vec::new(),
                     time_left: Duration::from_secs(10),
                     owner,
                     ignore_group: true,
@@ -277,6 +295,7 @@ impl ProjectileConstructor {
                 Projectile {
                     hit_solid: Vec::new(),
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
+                    timeout: Vec::new(),
                     time_left: Duration::from_secs_f64(duration.0),
                     owner,
                     ignore_group: true,
@@ -287,11 +306,61 @@ impl ProjectileConstructor {
             ProjectileConstructorKind::Possess => Projectile {
                 hit_solid: vec![Effect::Stick],
                 hit_entity: vec![Effect::Stick, Effect::Possess],
+                timeout: Vec::new(),
                 time_left: Duration::from_secs(10),
                 owner,
                 ignore_group: false,
                 is_sticky: true,
                 is_point: true,
+            },
+            ProjectileConstructorKind::ThrownWeapon => {
+                let effects = vec![Effect::DropItem, Effect::Vanish];
+
+                let mut hit_entity = effects.clone();
+                if let Some(attack) = attack {
+                    hit_entity.push(Effect::Attack(attack));
+                }
+
+                Projectile {
+                    hit_solid: effects.clone(),
+                    hit_entity,
+                    timeout: effects,
+                    time_left: Duration::from_secs(10),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                }
+            },
+            ProjectileConstructorKind::Firework(reagent) => Projectile {
+                hit_solid: Vec::new(),
+                hit_entity: Vec::new(),
+                timeout: vec![Effect::Firework(reagent)],
+                time_left: Duration::from_secs(3),
+                owner,
+                ignore_group: true,
+                is_sticky: true,
+                is_point: true,
+            },
+            ProjectileConstructorKind::SurpriseEgg => Projectile {
+                hit_solid: vec![Effect::SurpriseEgg, Effect::Vanish],
+                hit_entity: vec![Effect::SurpriseEgg, Effect::Vanish],
+                timeout: Vec::new(),
+                time_left: Duration::from_secs(15),
+                owner,
+                ignore_group: true,
+                is_sticky: true,
+                is_point: true,
+            },
+            ProjectileConstructorKind::TrainingDummy => Projectile {
+                hit_solid: vec![Effect::TrainingDummy, Effect::Vanish],
+                hit_entity: vec![Effect::TrainingDummy, Effect::Vanish],
+                timeout: vec![Effect::TrainingDummy],
+                time_left: Duration::from_secs(15),
+                owner,
+                ignore_group: true,
+                is_sticky: true,
+                is_point: false,
             },
         }
     }
@@ -339,7 +408,11 @@ impl ProjectileConstructor {
             ProjectileConstructorKind::Pointed
             | ProjectileConstructorKind::Blunt
             | ProjectileConstructorKind::Possess
-            | ProjectileConstructorKind::Hazard { .. } => {},
+            | ProjectileConstructorKind::Hazard { .. }
+            | ProjectileConstructorKind::ThrownWeapon
+            | ProjectileConstructorKind::Firework(_)
+            | ProjectileConstructorKind::SurpriseEgg
+            | ProjectileConstructorKind::TrainingDummy => {},
             ProjectileConstructorKind::Explosive { ref mut radius, .. }
             | ProjectileConstructorKind::ExplosiveHazard { ref mut radius, .. } => {
                 *radius *= stats.range;
@@ -381,7 +454,11 @@ impl ProjectileConstructor {
             ProjectileConstructorKind::Pointed
             | ProjectileConstructorKind::Blunt
             | ProjectileConstructorKind::Possess
-            | ProjectileConstructorKind::Hazard { .. } => false,
+            | ProjectileConstructorKind::Hazard { .. }
+            | ProjectileConstructorKind::ThrownWeapon
+            | ProjectileConstructorKind::Firework(_)
+            | ProjectileConstructorKind::SurpriseEgg
+            | ProjectileConstructorKind::TrainingDummy => false,
             ProjectileConstructorKind::Explosive { .. }
             | ProjectileConstructorKind::ExplosiveHazard { .. } => true,
         }

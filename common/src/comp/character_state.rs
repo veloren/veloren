@@ -40,6 +40,7 @@ event_emitters! {
         combo: event::ComboChangeEvent,
         event: event::AuraEvent,
         shoot: event::ShootEvent,
+        throw: event::ThrowEvent,
         teleport_to: event::TeleportToEvent,
         shockwave: event::ShockwaveEvent,
         explosion: event::ExplosionEvent,
@@ -48,6 +49,7 @@ event_emitters! {
         sprite_summon: event::CreateSpriteEvent,
         change_stance: event::ChangeStanceEvent,
         create_npc: event::CreateNpcEvent,
+        create_object: event::CreateObjectEvent,
         energy_change: event::EnergyChangeEvent,
         knockback: event::KnockbackEvent,
         sprite_light: event::ToggleSpriteLightEvent,
@@ -138,6 +140,8 @@ pub enum CharacterState {
     ChargedMelee(charged_melee::Data),
     /// A repeating ranged attack
     RepeaterRanged(repeater_ranged::Data),
+    /// An item throw
+    Throw(throw::Data),
     /// A ground shockwave attack
     Shockwave(shockwave::Data),
     /// A continuous attack that affects all creatures in a cone originating
@@ -193,6 +197,7 @@ impl CharacterState {
             CharacterState::Wielding(_)
             | CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
+            | CharacterState::Throw(_)
             | CharacterState::DashMelee(_)
             | CharacterState::ComboMelee2(_)
             | CharacterState::BasicBlock(_)
@@ -249,6 +254,7 @@ impl CharacterState {
             | CharacterState::Roll(_)
             | CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
+            | CharacterState::Throw(_)
             | CharacterState::Boost(_)
             | CharacterState::DashMelee(_)
             | CharacterState::ComboMelee2(_)
@@ -299,6 +305,7 @@ impl CharacterState {
             | CharacterState::Wielding(_)
             | CharacterState::BasicMelee(_)
             | CharacterState::BasicRanged(_)
+            | CharacterState::Throw(_)
             | CharacterState::Boost(_)
             | CharacterState::DashMelee(_)
             | CharacterState::ComboMelee2(_)
@@ -366,6 +373,7 @@ impl CharacterState {
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
+                | CharacterState::Throw(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)
@@ -394,6 +402,7 @@ impl CharacterState {
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
+                | CharacterState::Throw(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
@@ -560,6 +569,7 @@ impl CharacterState {
                 | CharacterState::ComboMelee2(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
+                | CharacterState::Throw(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)
                 | CharacterState::BasicSummon(_)
@@ -622,6 +632,7 @@ impl CharacterState {
             CharacterState::ChargedMelee(data) => data.behavior(j, output_events),
             CharacterState::ChargedRanged(data) => data.behavior(j, output_events),
             CharacterState::RepeaterRanged(data) => data.behavior(j, output_events),
+            CharacterState::Throw(data) => data.behavior(j, output_events),
             CharacterState::Shockwave(data) => data.behavior(j, output_events),
             CharacterState::BasicBeam(data) => data.behavior(j, output_events),
             CharacterState::BasicAura(data) => data.behavior(j, output_events),
@@ -680,6 +691,7 @@ impl CharacterState {
             CharacterState::ChargedMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::ChargedRanged(data) => data.handle_event(j, output_events, action),
             CharacterState::RepeaterRanged(data) => data.handle_event(j, output_events, action),
+            CharacterState::Throw(data) => data.handle_event(j, output_events, action),
             CharacterState::Shockwave(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicBeam(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicAura(data) => data.handle_event(j, output_events, action),
@@ -736,6 +748,7 @@ impl CharacterState {
             CharacterState::ChargedMelee(data) => Some(data.static_data.ability_info),
             CharacterState::ChargedRanged(data) => Some(data.static_data.ability_info),
             CharacterState::RepeaterRanged(data) => Some(data.static_data.ability_info),
+            CharacterState::Throw(data) => Some(data.static_data.ability_info),
             CharacterState::Shockwave(data) => Some(data.static_data.ability_info),
             CharacterState::BasicBeam(data) => Some(data.static_data.ability_info),
             CharacterState::BasicAura(data) => Some(data.static_data.ability_info),
@@ -783,6 +796,7 @@ impl CharacterState {
             CharacterState::ChargedMelee(data) => Some(data.stage_section),
             CharacterState::ChargedRanged(data) => Some(data.stage_section),
             CharacterState::RepeaterRanged(data) => Some(data.stage_section),
+            CharacterState::Throw(data) => Some(data.stage_section),
             CharacterState::Shockwave(data) => Some(data.stage_section),
             CharacterState::BasicBeam(data) => Some(data.stage_section),
             CharacterState::BasicAura(data) => Some(data.stage_section),
@@ -897,6 +911,12 @@ impl CharacterState {
             CharacterState::RepeaterRanged(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
                 action: Some(data.static_data.shoot_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
+            CharacterState::Throw(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                charge: Some(data.static_data.charge_duration),
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
@@ -1030,6 +1050,7 @@ impl CharacterState {
             CharacterState::ChargedMelee(data) => Some(data.timer),
             CharacterState::ChargedRanged(data) => Some(data.timer),
             CharacterState::RepeaterRanged(data) => Some(data.timer),
+            CharacterState::Throw(data) => Some(data.timer),
             CharacterState::Shockwave(data) => Some(data.timer),
             CharacterState::BasicBeam(data) => Some(data.timer),
             CharacterState::BasicAura(data) => Some(data.timer),
@@ -1089,6 +1110,7 @@ impl CharacterState {
                     AttackSource::Projectile
                 })
             },
+            CharacterState::Throw(_) => Some(AttackSource::Projectile),
             CharacterState::Shockwave(data) => {
                 Some(data.static_data.dodgeable.shockwave_attack_source())
             },

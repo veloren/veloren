@@ -58,7 +58,7 @@ pub mod fish_medium;
 pub mod fish_small;
 pub mod fixture;
 pub mod golem;
-pub mod item_drop;
+pub mod item;
 pub mod object;
 #[cfg(feature = "plugins")] pub mod plugin;
 pub mod quadruped_low;

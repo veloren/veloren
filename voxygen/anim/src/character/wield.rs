@@ -89,8 +89,10 @@ impl Animation for WieldAnimation {
         // };
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
+        next.main.scale = Vec3::one();
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
+        next.second.scale = Vec3::one();
 
         let is_moving = (speed > 0.2 && velocity.z == 0.0) || is_riding;
 

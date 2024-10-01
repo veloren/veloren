@@ -11,6 +11,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 30,
+            poise: 0,
             knockback: Some(10),
             energy: 0,
         )),

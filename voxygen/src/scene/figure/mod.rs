@@ -33,7 +33,7 @@ use anim::{
     biped_small::BipedSmallSkeleton, bird_large::BirdLargeSkeleton,
     bird_medium::BirdMediumSkeleton, character::CharacterSkeleton, crustacean::CrustaceanSkeleton,
     dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-    golem::GolemSkeleton, item_drop::ItemDropSkeleton, object::ObjectSkeleton,
+    golem::GolemSkeleton, item::ItemSkeleton, object::ObjectSkeleton,
     quadruped_low::QuadrupedLowSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
     quadruped_small::QuadrupedSmallSkeleton, ship::ShipSkeleton, theropod::TheropodSkeleton,
 };
@@ -41,8 +41,8 @@ use common::{
     comp::{
         Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, ItemKey,
         Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem, PoiseState, Pos,
-        Scale, Vel,
-        body::parts::HeadState,
+        Scale, ThrownItem, Vel,
+        body::{self, parts::HeadState},
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind, armor::ArmorKind},
         ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
@@ -219,7 +219,7 @@ pub struct FigureMgrStates {
     biped_small_states: HashMap<EcsEntity, FigureState<BipedSmallSkeleton>>,
     golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
-    item_drop_states: HashMap<EcsEntity, FigureState<ItemDropSkeleton>>,
+    item_states: HashMap<EcsEntity, FigureState<ItemSkeleton>>,
     ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton, BoundTerrainLocals>>,
     volume_states: HashMap<EcsEntity, FigureState<VolumeKey, BoundTerrainLocals>>,
     arthropod_states: HashMap<EcsEntity, FigureState<ArthropodSkeleton>>,
@@ -282,10 +282,7 @@ impl FigureMgrStates {
                 .map(DerefMut::deref_mut),
             Body::Golem(_) => self.golem_states.get_mut(entity).map(DerefMut::deref_mut),
             Body::Object(_) => self.object_states.get_mut(entity).map(DerefMut::deref_mut),
-            Body::ItemDrop(_) => self
-                .item_drop_states
-                .get_mut(entity)
-                .map(DerefMut::deref_mut),
+            Body::Item(_) => self.item_states.get_mut(entity).map(DerefMut::deref_mut),
             Body::Ship(ship) => {
                 if ship.manifest_entry().is_some() {
                     self.ship_states.get_mut(entity).map(DerefMut::deref_mut)
@@ -330,7 +327,7 @@ impl FigureMgrStates {
             Body::BipedSmall(_) => self.biped_small_states.remove(entity).map(|e| e.meta),
             Body::Golem(_) => self.golem_states.remove(entity).map(|e| e.meta),
             Body::Object(_) => self.object_states.remove(entity).map(|e| e.meta),
-            Body::ItemDrop(_) => self.item_drop_states.remove(entity).map(|e| e.meta),
+            Body::Item(_) => self.item_states.remove(entity).map(|e| e.meta),
             Body::Ship(ship) => {
                 if matches!(ship, ship::Body::Volume) {
                     self.volume_states.remove(entity).map(|e| e.meta)
@@ -367,7 +364,7 @@ impl FigureMgrStates {
         self.biped_small_states.retain(|k, v| f(k, &mut *v));
         self.golem_states.retain(|k, v| f(k, &mut *v));
         self.object_states.retain(|k, v| f(k, &mut *v));
-        self.item_drop_states.retain(|k, v| f(k, &mut *v));
+        self.item_states.retain(|k, v| f(k, &mut *v));
         self.ship_states.retain(|k, v| f(k, &mut *v));
         self.volume_states.retain(|k, v| f(k, &mut *v));
         self.arthropod_states.retain(|k, v| f(k, &mut *v));
@@ -396,7 +393,7 @@ impl FigureMgrStates {
             + self.biped_small_states.len()
             + self.golem_states.len()
             + self.object_states.len()
-            + self.item_drop_states.len()
+            + self.item_states.len()
             + self.ship_states.len()
             + self.volume_states.len()
             + self.arthropod_states.len()
@@ -482,11 +479,7 @@ impl FigureMgrStates {
                 .iter()
                 .filter(|(_, c)| c.visible())
                 .count()
-            + self
-                .item_drop_states
-                .iter()
-                .filter(|(_, c)| c.visible())
-                .count()
+            + self.item_states.iter().filter(|(_, c)| c.visible()).count()
             + self
                 .arthropod_states
                 .iter()
@@ -548,6 +541,7 @@ struct FigureReadData<'a> {
     healths: ReadStorage<'a, Health>,
     inventories: ReadStorage<'a, Inventory>,
     pickup_items: ReadStorage<'a, PickupItem>,
+    thrown_items: ReadStorage<'a, ThrownItem>,
     light_emitters: ReadStorage<'a, LightEmitter>,
     is_riders: ReadStorage<'a, Is<Rider>>,
     is_mounts: ReadStorage<'a, Is<Mount>>,
@@ -596,6 +590,7 @@ impl FigureReadData<'_> {
             health: self.healths.get(entity),
             inventory: self.inventories.get(entity),
             pickup_item: self.pickup_items.get(entity),
+            thrown_item: self.thrown_items.get(entity),
             light_emitter: self.light_emitters.get(entity),
             is_rider: self.is_riders.get(entity),
             is_mount: self.is_mounts.get(entity),
@@ -623,6 +618,7 @@ impl FigureReadData<'_> {
             self.inventories.maybe(),
             self.pickup_items.maybe(),
             (
+                self.thrown_items.maybe(),
                 self.light_emitters.maybe(),
                 self.is_riders.maybe(),
                 self.is_mounts.maybe(),
@@ -650,6 +646,7 @@ impl FigureReadData<'_> {
                     inventory,
                     pickup_item,
                     (
+                        thrown_item,
                         light_emitter,
                         is_rider,
                         is_mount,
@@ -673,6 +670,7 @@ impl FigureReadData<'_> {
                     health,
                     inventory,
                     pickup_item,
+                    thrown_item,
                     light_emitter,
                     is_rider,
                     is_mount,
@@ -700,6 +698,7 @@ struct FigureUpdateParams<'a> {
     health: Option<&'a Health>,
     inventory: Option<&'a Inventory>,
     pickup_item: Option<&'a PickupItem>,
+    thrown_item: Option<&'a ThrownItem>,
     light_emitter: Option<&'a LightEmitter>,
     is_rider: Option<&'a Is<Rider>>,
     is_mount: Option<&'a Is<Mount>>,
@@ -724,7 +723,7 @@ pub struct FigureMgr {
     biped_large_model_cache: FigureModelCache<BipedLargeSkeleton>,
     biped_small_model_cache: FigureModelCache<BipedSmallSkeleton>,
     object_model_cache: FigureModelCache<ObjectSkeleton>,
-    item_drop_model_cache: FigureModelCache<ItemDropSkeleton>,
+    item_model_cache: FigureModelCache<ItemSkeleton>,
     ship_model_cache: FigureModelCache<ShipSkeleton>,
     golem_model_cache: FigureModelCache<GolemSkeleton>,
     volume_model_cache: FigureModelCache<VolumeKey>,
@@ -752,7 +751,7 @@ impl FigureMgr {
             biped_large_model_cache: FigureModelCache::new(),
             biped_small_model_cache: FigureModelCache::new(),
             object_model_cache: FigureModelCache::new(),
-            item_drop_model_cache: FigureModelCache::new(),
+            item_model_cache: FigureModelCache::new(),
             ship_model_cache: FigureModelCache::new(),
             golem_model_cache: FigureModelCache::new(),
             volume_model_cache: FigureModelCache::new(),
@@ -784,7 +783,7 @@ impl FigureMgr {
             || self.biped_large_model_cache.watcher_reloaded()
             || self.biped_small_model_cache.watcher_reloaded()
             || self.object_model_cache.watcher_reloaded()
-            || self.item_drop_model_cache.watcher_reloaded()
+            || self.item_model_cache.watcher_reloaded()
             || self.ship_model_cache.watcher_reloaded()
             || self.golem_model_cache.watcher_reloaded()
             || self.volume_model_cache.watcher_reloaded()
@@ -812,7 +811,7 @@ impl FigureMgr {
             self.biped_large_model_cache.clear_models();
             self.biped_small_model_cache.clear_models();
             self.object_model_cache.clear_models();
-            self.item_drop_model_cache.clear_models();
+            self.item_model_cache.clear_models();
             self.ship_model_cache.clear_models();
             self.golem_model_cache.clear_models();
             self.volume_model_cache.clear_models();
@@ -837,7 +836,7 @@ impl FigureMgr {
         self.biped_large_model_cache.clean(&mut self.atlas, tick);
         self.biped_small_model_cache.clean(&mut self.atlas, tick);
         self.object_model_cache.clean(&mut self.atlas, tick);
-        self.item_drop_model_cache.clean(&mut self.atlas, tick);
+        self.item_model_cache.clean(&mut self.atlas, tick);
         self.ship_model_cache.clean(&mut self.atlas, tick);
         self.golem_model_cache.clean(&mut self.atlas, tick);
         self.volume_model_cache.clean(&mut self.atlas, tick);
@@ -1175,6 +1174,7 @@ impl FigureMgr {
             health,
             inventory,
             pickup_item: item,
+            thrown_item,
             light_emitter,
             is_rider,
             is_mount: _,
@@ -6281,9 +6281,15 @@ impl FigureMgr {
                     body,
                 );
             },
-            Body::ItemDrop(body) => {
-                let item_key = item.map(|item| ItemKey::from(item.item()));
-                let (model, skeleton_attr) = self.item_drop_model_cache.get_or_create_model(
+            Body::Item(body) => {
+                let item_key = match body {
+                    body::item::Body::Thrown(_) => {
+                        thrown_item.map(|thrown_item| ItemKey::from(&thrown_item.0))
+                    },
+                    _ => item.map(|item| ItemKey::from(item.item())),
+                };
+
+                let (model, skeleton_attr) = self.item_model_cache.get_or_create_model(
                     renderer,
                     &mut self.atlas,
                     body,
@@ -6296,12 +6302,9 @@ impl FigureMgr {
                     item_key,
                 );
 
-                let state = self
-                    .states
-                    .item_drop_states
-                    .entry(entity)
-                    .or_insert_with(|| {
-                        FigureState::new(renderer, ItemDropSkeleton::default(), body)
+                let state =
+                    self.states.item_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, ItemSkeleton::default(), body)
                     });
 
                 // Average velocity relative to the current ground
@@ -6318,8 +6321,8 @@ impl FigureMgr {
                     state.state_time = 0.0;
                 }
 
-                let target_bones = anim::item_drop::IdleAnimation::update_skeleton(
-                    &ItemDropSkeleton::default(),
+                let target_bones = anim::item::IdleAnimation::update_skeleton(
+                    &ItemSkeleton::default(),
                     time,
                     state.state_time,
                     &mut state_animation_rate,
@@ -6558,6 +6561,7 @@ impl FigureMgr {
         let ecs = state.ecs();
         let time = ecs.read_resource::<Time>();
         let items = ecs.read_storage::<PickupItem>();
+        let thrown_items = ecs.read_storage::<ThrownItem>();
         (
                 &ecs.entities(),
                 &ecs.read_storage::<Pos>(),
@@ -6590,7 +6594,15 @@ impl FigureMgr {
                         _ => 0,
                     },
                     &filter_state,
-                    if matches!(body, Body::ItemDrop(_)) { items.get(entity).map(|item| ItemKey::from(item.item())) } else { None },
+                    match body {
+                        Body::Item(body) => match body {
+                            body::item::Body::Thrown(_) => thrown_items
+                                .get(entity)
+                                .map(|thrown_item| ItemKey::from(&thrown_item.0)),
+                            _ => items.get(entity).map(|item| ItemKey::from(item.item())),
+                        },
+                        _ => None,
+                    }
                 ) {
                     drawer.draw(model, bound);
                 }
@@ -6734,6 +6746,7 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<CharacterState>();
         let character_state = character_state_storage.get(viewpoint_entity);
         let items = ecs.read_storage::<PickupItem>();
+        let thrown_items = ecs.read_storage::<ThrownItem>();
         for (entity, pos, body, _, inventory, scale, collider, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -6767,10 +6780,14 @@ impl FigureMgr {
                     _ => 0,
                 },
                 |state| state.visible(),
-                if matches!(body, Body::ItemDrop(_)) {
-                    items.get(entity).map(|item| ItemKey::from(item.item()))
-                } else {
-                    None
+                match body {
+                    Body::Item(body) => match body {
+                        body::item::Body::Thrown(_) => thrown_items
+                            .get(entity)
+                            .map(|thrown_item| ItemKey::from(&thrown_item.0)),
+                        _ => items.get(entity).map(|item| ItemKey::from(item.item())),
+                    },
+                    _ => None,
                 },
             ) {
                 drawer.draw(model, bound, atlas);
@@ -6792,6 +6809,7 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<CharacterState>();
         let character_state = character_state_storage.get(viewpoint_entity);
         let items = ecs.read_storage::<PickupItem>();
+        let thrown_items = ecs.read_storage::<ThrownItem>();
 
         if let (Some(pos), Some(body), scale) = (
             ecs.read_storage::<Pos>().get(viewpoint_entity),
@@ -6820,12 +6838,16 @@ impl FigureMgr {
                 figure_lod_render_distance,
                 0,
                 |state| state.visible(),
-                if matches!(body, Body::ItemDrop(_)) {
-                    items
-                        .get(viewpoint_entity)
-                        .map(|item| ItemKey::from(item.item()))
-                } else {
-                    None
+                match body {
+                    Body::Item(body) => match body {
+                        body::item::Body::Thrown(_) => thrown_items
+                            .get(viewpoint_entity)
+                            .map(|thrown_item| ItemKey::from(&thrown_item.0)),
+                        _ => items
+                            .get(viewpoint_entity)
+                            .map(|item| ItemKey::from(item.item())),
+                    },
+                    _ => None,
                 },
             ) {
                 drawer.draw(model, bound, atlas);
@@ -6883,7 +6905,7 @@ impl FigureMgr {
             biped_large_model_cache,
             biped_small_model_cache,
             object_model_cache,
-            item_drop_model_cache,
+            item_model_cache,
             ship_model_cache,
             golem_model_cache,
             volume_model_cache,
@@ -6907,7 +6929,7 @@ impl FigureMgr {
                     biped_small_states,
                     golem_states,
                     object_states,
-                    item_drop_states,
+                    item_states,
                     ship_states,
                     volume_states,
                     arthropod_states,
@@ -7222,13 +7244,13 @@ impl FigureMgr {
                             .map(ModelEntryRef::Figure),
                     )
                 }),
-            Body::ItemDrop(body) => item_drop_states
+            Body::Item(body) => item_states
                 .get(&entity)
                 .filter(|state| filter_state(state))
                 .map(move |state| {
                     (
                         state.bound(),
-                        item_drop_model_cache
+                        item_model_cache
                             .get_model(
                                 atlas,
                                 body,
@@ -7483,9 +7505,9 @@ impl FigureMgr {
                     .ship_states
                     .get(&entity)
                     .map(|state| &state.heads),
-                Body::ItemDrop(_) => self
+                Body::Item(_) => self
                     .states
-                    .item_drop_states
+                    .item_states
                     .get(&entity)
                     .map(|state| &state.heads),
                 Body::Crustacean(_) => self
@@ -7534,7 +7556,7 @@ impl FigureMgr {
                 Body::Arthropod(_) => self.states.arthropod_states.get(&entity)?.tail,
                 Body::Object(_) => self.states.object_states.get(&entity)?.tail,
                 Body::Ship(_) => self.states.ship_states.get(&entity)?.tail,
-                Body::ItemDrop(_) => self.states.item_drop_states.get(&entity)?.tail,
+                Body::Item(_) => self.states.item_states.get(&entity)?.tail,
                 Body::Crustacean(_) => self.states.crustacean_states.get(&entity)?.tail,
                 Body::Plugin(_) => {
                     #[cfg(not(feature = "plugins"))]
@@ -7632,9 +7654,9 @@ impl FigureMgr {
                     .ship_states
                     .get(&entity)
                     .and_then(|state| state.viewpoint_offset),
-                Body::ItemDrop(_) => self
+                Body::Item(_) => self
                     .states
-                    .item_drop_states
+                    .item_states
                     .get(&entity)
                     .and_then(|state| state.viewpoint_offset),
                 Body::Crustacean(_) => self

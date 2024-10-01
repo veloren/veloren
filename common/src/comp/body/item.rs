@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Density, Mass, Ori,
+        Density, Mass, Ori, ThrownItem,
         item::{
             Item, ItemKind, Utility,
             armor::ArmorKind,
@@ -20,7 +20,7 @@ make_case_elim!(
     armor,
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     #[repr(u32)]
-    pub enum ItemDropArmorKind {
+    pub enum ItemArmorKind {
         Shoulder = 0,
         Chest = 1,
         Belt = 2,
@@ -45,7 +45,7 @@ make_case_elim!(
         ModularComponent = 1,
         Lantern = 2,
         Glider = 3,
-        Armor(armor: ItemDropArmorKind) = 4,
+        Armor(armor: ItemArmorKind) = 4,
         Utility = 5,
         Consumable = 6,
         Throwable = 7,
@@ -53,11 +53,12 @@ make_case_elim!(
         Coins = 9,
         CoinPouch = 10,
         Empty = 11,
+        Thrown(tool: ToolKind) = 12,
     }
 );
 
 impl From<Body> for super::Body {
-    fn from(body: Body) -> Self { super::Body::ItemDrop(body) }
+    fn from(body: Body) -> Self { super::Body::Item(body) }
 }
 
 impl From<&Item> for Body {
@@ -68,19 +69,19 @@ impl From<&Item> for Body {
             ItemKind::Lantern(_) => Body::Lantern,
             ItemKind::Glider => Body::Glider,
             ItemKind::Armor(armor) => match armor.kind {
-                ArmorKind::Shoulder => Body::Armor(ItemDropArmorKind::Shoulder),
-                ArmorKind::Chest => Body::Armor(ItemDropArmorKind::Chest),
-                ArmorKind::Belt => Body::Armor(ItemDropArmorKind::Belt),
-                ArmorKind::Hand => Body::Armor(ItemDropArmorKind::Hand),
-                ArmorKind::Pants => Body::Armor(ItemDropArmorKind::Pants),
-                ArmorKind::Foot => Body::Armor(ItemDropArmorKind::Foot),
-                ArmorKind::Back => Body::Armor(ItemDropArmorKind::Back),
-                ArmorKind::Backpack => Body::Armor(ItemDropArmorKind::Back),
-                ArmorKind::Ring => Body::Armor(ItemDropArmorKind::Ring),
-                ArmorKind::Neck => Body::Armor(ItemDropArmorKind::Neck),
-                ArmorKind::Head => Body::Armor(ItemDropArmorKind::Head),
-                ArmorKind::Tabard => Body::Armor(ItemDropArmorKind::Tabard),
-                ArmorKind::Bag => Body::Armor(ItemDropArmorKind::Bag),
+                ArmorKind::Shoulder => Body::Armor(ItemArmorKind::Shoulder),
+                ArmorKind::Chest => Body::Armor(ItemArmorKind::Chest),
+                ArmorKind::Belt => Body::Armor(ItemArmorKind::Belt),
+                ArmorKind::Hand => Body::Armor(ItemArmorKind::Hand),
+                ArmorKind::Pants => Body::Armor(ItemArmorKind::Pants),
+                ArmorKind::Foot => Body::Armor(ItemArmorKind::Foot),
+                ArmorKind::Back => Body::Armor(ItemArmorKind::Back),
+                ArmorKind::Backpack => Body::Armor(ItemArmorKind::Back),
+                ArmorKind::Ring => Body::Armor(ItemArmorKind::Ring),
+                ArmorKind::Neck => Body::Armor(ItemArmorKind::Neck),
+                ArmorKind::Head => Body::Armor(ItemArmorKind::Head),
+                ArmorKind::Tabard => Body::Armor(ItemArmorKind::Tabard),
+                ArmorKind::Bag => Body::Armor(ItemArmorKind::Bag),
             },
             ItemKind::Utility { kind, .. } => match kind {
                 Utility::Coins => {
@@ -93,8 +94,16 @@ impl From<&Item> for Body {
                 _ => Body::Utility,
             },
             ItemKind::Consumable { .. } => Body::Consumable,
-            ItemKind::Throwable { .. } => Body::Throwable,
             ItemKind::Ingredient { .. } => Body::Ingredient,
+            _ => Body::Empty,
+        }
+    }
+}
+
+impl From<&ThrownItem> for Body {
+    fn from(thrown_item: &ThrownItem) -> Self {
+        match &*thrown_item.0.kind() {
+            ItemKind::Tool(Tool { kind, .. }) => Body::Thrown(*kind),
             _ => Body::Empty,
         }
     }
@@ -115,6 +124,7 @@ impl Body {
             Body::Coins => "coins",
             Body::CoinPouch => "coin_pouch",
             Body::Empty => "empty",
+            Body::Thrown(_) => "thrown",
         }
     }
 
@@ -128,7 +138,7 @@ impl Body {
         let random = rng.gen_range(-1.0..1.0f32);
         let default = Ori::default();
         match self {
-            Body::Tool(_) => default
+            Body::Tool(_) | Body::Thrown(_) => default
                 .pitched_down(PI / 2.0)
                 .yawed_left(PI / 2.0)
                 .pitched_towards(
@@ -140,9 +150,9 @@ impl Body {
                     .unwrap_or_default(),
                 ),
 
-            Body::Armor(
-                ItemDropArmorKind::Neck | ItemDropArmorKind::Back | ItemDropArmorKind::Tabard,
-            ) => default.yawed_left(random).pitched_down(PI / 2.0),
+            Body::Armor(ItemArmorKind::Neck | ItemArmorKind::Back | ItemArmorKind::Tabard) => {
+                default.yawed_left(random).pitched_down(PI / 2.0)
+            },
             _ => default.yawed_left(random),
         }
     }

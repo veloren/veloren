@@ -1060,6 +1060,50 @@
     Custom("Rhythmo"): (
         primary: Simple(None, "common.abilities.music.rhythmo"),
         secondary: Simple(None, "common.abilities.music.rhythmo"),
+    ),
+    Custom("Bomb"): (
+        primary: Simple(None, "common.abilities.throw.bomb"),
+        secondary: Simple(None, "common.abilities.throw.bomb"),
+        abilities: [],
+    ),
+    Custom("FireworkWhite"): (
+        primary: Simple(None, "common.abilities.throw.firework_white"),
+        secondary: Simple(None, "common.abilities.throw.firework_white"),
+        abilities: [],
+    ),
+    Custom("FireworkRed"): (
+        primary: Simple(None, "common.abilities.throw.firework_red"),
+        secondary: Simple(None, "common.abilities.throw.firework_red"),
+        abilities: [],
+    ),
+    Custom("FireworkYellow"): (
+        primary: Simple(None, "common.abilities.throw.firework_yellow"),
+        secondary: Simple(None, "common.abilities.throw.firework_yellow"),
+        abilities: [],
+    ),
+    Custom("FireworkGreen"): (
+        primary: Simple(None, "common.abilities.throw.firework_green"),
+        secondary: Simple(None, "common.abilities.throw.firework_green"),
+        abilities: [],
+    ),
+    Custom("FireworkBlue"): (
+        primary: Simple(None, "common.abilities.throw.firework_blue"),
+        secondary: Simple(None, "common.abilities.throw.firework_blue"),
+        abilities: [],
+    ),
+    Custom("FireworkPurple"): (
+        primary: Simple(None, "common.abilities.throw.firework_purple"),
+        secondary: Simple(None, "common.abilities.throw.firework_purple"),
+        abilities: [],
+    ),
+    Custom("SurpriseEgg"): (
+        primary: Simple(None, "common.abilities.throw.surprise_egg"),
+        secondary: Simple(None, "common.abilities.throw.surprise_egg"),
+        abilities: [],
+    ),
+    Custom("TrainingDummy"): (
+        primary: Simple(None, "common.abilities.throw.training_dummy"),
+        secondary: Simple(None, "common.abilities.throw.training_dummy"),
         abilities: [],
     ),
     Tool(Debug): (
