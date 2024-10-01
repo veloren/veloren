@@ -496,7 +496,14 @@ impl ServerEvent for DestroyEvent {
                                 });
                             }
                         },
-                        DeathEffect::Transform { entity_spec } => {
+                        DeathEffect::Transform {
+                            entity_spec,
+                            allow_players,
+                        } => {
+                            if data.clients.contains(ev.entity) && !allow_players {
+                                continue;
+                            }
+
                             let Some(killed_uid) = killed_uid.copied() else {
                                 warn!(
                                     "Could not handle transform death effect for entity without \
@@ -535,7 +542,7 @@ impl ServerEvent for DestroyEvent {
                                         None,
                                     )
                                 },
-                                allow_players: true,
+                                allow_players: *allow_players,
                                 delete_on_failure: true,
                             });
 

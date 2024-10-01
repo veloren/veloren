@@ -748,7 +748,10 @@ mod tests {
                     strength: _,
                     duration: _,
                 } => {},
-                DeathEffect::Transform { entity_spec } => {
+                DeathEffect::Transform {
+                    entity_spec,
+                    allow_players: _,
+                } => {
                     if let Err(error) = EntityConfig::load(&entity_spec) {
                         panic!(
                             "Error while loading transform entity spec ({entity_spec}) for entity \

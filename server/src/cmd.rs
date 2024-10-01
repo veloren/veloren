@@ -3842,6 +3842,7 @@ fn handle_death_effect(
 
             combat::DeathEffect::Transform {
                 entity_spec: entity_config,
+                allow_players: true,
             }
         },
         unknown_effect => {

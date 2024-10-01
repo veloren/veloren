@@ -1109,7 +1109,12 @@ pub enum DeathEffect {
         duration: Option<Secs>,
     },
     /// Transform into another entity when killed, regaining full health
-    Transform { entity_spec: String },
+    Transform {
+        entity_spec: String,
+        /// Whether this death effect applies to players or not
+        #[serde(default)]
+        allow_players: bool,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq)]
