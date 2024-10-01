@@ -1380,16 +1380,6 @@ VampireKeyhole: [(
      ],
     wind_sway: 0.0,
 )],
-BloodmoonKeyhole: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.bloodmoon_keyhole",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
 HaniwaKeyDoor: [(
      variations: [
          (

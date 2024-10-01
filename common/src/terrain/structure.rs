@@ -51,7 +51,6 @@ make_case_elim!(
         TerracottaKeyhole(consumes: String) = 31,
         SahaginKeyhole(consumes: String) = 32,
         VampireKeyhole(consumes: String) = 33,
-        BloodmoonKeyhole(consumes: String) = 34,
         MapleLeaves = 35,
         CherryLeaves = 36,
         AutumnLeaves = 37,

@@ -314,7 +314,6 @@ sprites! {
         SahaginKeyDoor = 0x0E,
         VampireKeyDoor = 0x0F,
         VampireKeyhole = 0x10,
-        BloodmoonKeyhole = 0x11,
 
         // Windows
         Window1      = 0x12,
@@ -525,7 +524,6 @@ impl SpriteKind {
             | SpriteKind::SahaginKeyhole
             | SpriteKind::SahaginKeyDoor
             | SpriteKind::VampireKeyhole
-            | SpriteKind::BloodmoonKeyhole
             | SpriteKind::VampireKeyDoor
             | SpriteKind::HaniwaTrap
             | SpriteKind::HaniwaTrapTriggered
@@ -717,7 +715,6 @@ impl SpriteKind {
             | SpriteKind::BoneKeyhole
             | SpriteKind::HaniwaKeyhole
             | SpriteKind::VampireKeyhole
-            | SpriteKind::BloodmoonKeyhole
             | SpriteKind::GlassKeyhole
             | SpriteKind::KeyholeBars
             | SpriteKind::SahaginKeyhole
@@ -827,9 +824,6 @@ impl SpriteKind {
                 SpriteKind::VampireKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
                     String::from("common.items.keys.vampire_key"),
                 )),
-                SpriteKind::BloodmoonKeyhole => UnlockKind::Consumes(
-                    ItemDefinitionIdOwned::Simple(String::from("common.items.keys.bloodmoon_key")),
-                ),
                 SpriteKind::GlassKeyhole => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
                     String::from("common.items.keys.glass_key"),
                 )),

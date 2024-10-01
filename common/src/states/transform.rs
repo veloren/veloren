@@ -4,7 +4,6 @@ use common_assets::AssetExt;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use tracing::error;
-use vek::Vec3;
 
 use crate::{
     comp::{item::Reagent, CharacterState, StateUpdate},
@@ -74,7 +73,7 @@ impl CharacterBehavior for Data {
                         return update;
                     };
 
-                    let entity_info = EntityInfo::at(Vec3::zero()).with_entity_config(
+                    let entity_info = EntityInfo::at(data.pos.0).with_entity_config(
                         entity_config.read().clone(),
                         Some(&self.static_data.target),
                         &mut thread_rng(),
@@ -113,6 +112,7 @@ impl CharacterBehavior for Data {
                         target_entity: *data.uid,
                         entity_info,
                         allow_players: self.static_data.allow_players,
+                        delete_on_failure: false,
                     });
                     update.character = CharacterState::Transform(Data {
                         static_data: self.static_data.clone(),

@@ -14,7 +14,7 @@ use common::{
     event::{
         CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         CreateShipEvent, CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent,
-        InitializeSpectatorEvent, ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
+        InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent, UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -102,50 +102,64 @@ pub fn handle_loaded_character_data(server: &mut Server, ev: UpdateCharacterData
     server.notify_client(ev.entity, result_msg);
 }
 
-pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEntity {
+pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
+    // Destruct the builder to ensure all fields are exhaustive
+    let NpcBuilder {
+        stats,
+        skill_set,
+        health,
+        poise,
+        inventory,
+        body,
+        mut agent,
+        alignment,
+        scale,
+        anchor,
+        loot,
+        pets,
+        rtsim_entity,
+        projectile,
+        heads,
+        death_effects,
+    } = ev.npc;
     let entity = server
         .state
         .create_npc(
-            ev.pos,
-            ev.ori,
-            ev.npc.stats,
-            ev.npc.skill_set,
-            ev.npc.health,
-            ev.npc.poise,
-            ev.npc.inventory,
-            ev.npc.body,
+            ev.pos, ev.ori, stats, skill_set, health, poise, inventory, body,
         )
-        .with(ev.npc.scale);
+        .with(scale)
+        .maybe_with(heads)
+        .maybe_with(death_effects);
 
-    if let Some(agent) = &mut ev.npc.agent {
-        if let Alignment::Owned(_) = &ev.npc.alignment {
+    if let Some(agent) = &mut agent {
+        if let Alignment::Owned(_) = &alignment {
             agent.behavior.allow(BehaviorCapability::TRADE);
             agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
         }
     }
 
-    let entity = entity.with(ev.npc.alignment);
+    let entity = entity.with(alignment);
 
-    let entity = if let Some(agent) = ev.npc.agent {
+    let entity = if let Some(agent) = agent {
         entity.with(agent)
     } else {
         entity
     };
 
-    let entity = if let Some(drop_items) = ev.npc.loot.to_items() {
+    let entity = if let Some(drop_items) = loot.to_items() {
         entity.with(ItemDrops(drop_items))
     } else {
         entity
     };
 
-    let entity = if let Some(home_chunk) = ev.npc.anchor {
+    let entity = if let Some(home_chunk) = anchor {
         entity.with(home_chunk)
     } else {
         entity
     };
 
     // Rtsim entity added to IdMaps below.
-    let entity = if let Some(rtsim_entity) = ev.npc.rtsim_entity {
+    let entity = if let Some(rtsim_entity) = rtsim_entity {
         entity.with(rtsim_entity).with(RepositionOnChunkLoad {
             needs_ground: false,
         })
@@ -153,7 +167,7 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
         entity
     };
 
-    let entity = if let Some(projectile) = ev.npc.projectile {
+    let entity = if let Some(projectile) = projectile {
         entity.with(projectile)
     } else {
         entity
@@ -161,7 +175,7 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
 
     let new_entity = entity.build();
 
-    if let Some(rtsim_entity) = ev.npc.rtsim_entity {
+    if let Some(rtsim_entity) = rtsim_entity {
         server
             .state()
             .ecs()
@@ -170,7 +184,7 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
     }
 
     // Add to group system if a pet
-    if let comp::Alignment::Owned(owner_uid) = ev.npc.alignment {
+    if let comp::Alignment::Owned(owner_uid) = alignment {
         let state = server.state();
         let uids = state.ecs().read_storage::<Uid>();
         let clients = state.ecs().read_storage::<Client>();
@@ -201,7 +215,7 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
                 },
             );
         }
-    } else if let Some(group) = ev.npc.alignment.group() {
+    } else if let Some(group) = alignment.group() {
         let _ = server.state.ecs().write_storage().insert(new_entity, group);
     }
 
@@ -224,7 +238,7 @@ pub fn handle_create_npc(server: &mut Server, mut ev: CreateNpcEvent) -> EcsEnti
             .expect("We just created these entities");
     }
 
-    for (pet, offset) in ev.npc.pets {
+    for (pet, offset) in pets {
         let pet_entity = handle_create_npc(server, CreateNpcEvent {
             pos: comp::Pos(ev.pos.0 + offset),
             ori: Ori::from_unnormalized_vec(offset).unwrap_or_default(),

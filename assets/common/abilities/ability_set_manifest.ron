@@ -1179,7 +1179,6 @@
         primary: Simple(None, "common.abilities.vampire.bloodmoon_bat.shockwave_1"),
         secondary: Simple(None, "common.abilities.vampire.bloodmoon_bat.shockwave_2"),
         abilities: [
-            Simple(None, "common.abilities.vampire.bloodmoon_bat.shapeshift"),
             Simple(None, "common.abilities.vampire.bloodmoon_bat.teleport"),
             Simple(None, "common.abilities.vampire.bloodmoon_bat.heal"),
             Simple(None, "common.abilities.vampire.bloodmoon_bat.singlestrike"),

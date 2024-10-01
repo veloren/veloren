@@ -418,7 +418,7 @@ impl ServerEvent for InventoryManipEvent {
                                 Some(SpriteKind::TerracottaKeyhole) => {
                                     Some(SpriteKind::TerracottaKeyDoor)
                                 },
-                                Some(SpriteKind::VampireKeyhole | SpriteKind::BloodmoonKeyhole) => {
+                                Some(SpriteKind::VampireKeyhole) => {
                                     Some(SpriteKind::VampireKeyDoor)
                                 },
                                 _ => None,

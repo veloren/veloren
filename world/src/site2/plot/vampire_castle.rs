@@ -2058,54 +2058,10 @@ impl Structure for VampireCastle {
                     .with_z(side_bldg_base_raw + (2 * castle_height) - 1),
             })
             .fill(wood.clone());
-        // main room exit to side_bldg
-        let exit_side = if side_bldg_var < 1 {
-            castle_width + 3
-        } else {
-            -(castle_width + 4)
-        };
-        painter
-            .horizontal_cylinder(
-                Aabb {
-                    min: Vec2::new(center.x - 4, center.y + exit_side)
-                        .with_z(side_bldg_base_raw + (2 * castle_height) - 2),
-                    max: Vec2::new(center.x + 5, center.y + exit_side + 1)
-                        .with_z(side_bldg_base_raw + (2 * castle_height) + 7),
-                },
-                Dir::NegY,
-            )
-            .fill(key_door);
-        painter
-            .aabb(Aabb {
-                min: Vec2::new(center.x, center.y + exit_side)
-                    .with_z(side_bldg_base_raw + (2 * castle_height) - 3),
-                max: Vec2::new(center.x + 1, center.y + exit_side + 1)
-                    .with_z(side_bldg_base_raw + (2 * castle_height) - 2),
-            })
-            .fill(Fill::Block(Block::air(SpriteKind::BloodmoonKeyhole)));
-        // side_bldg bottom carve
-        painter
-            .aabb(Aabb {
-                min: (side_bldg_pos_2 - side_bldg_width - 1).with_z(side_bldg_base_raw - 16),
-                max: (side_bldg_pos_2 + side_bldg_width + 1).with_z(side_bldg_base_raw),
-            })
-            .fill(wood.clone());
-        painter
-            .aabb(Aabb {
-                min: (side_bldg_pos_2 - side_bldg_width).with_z(side_bldg_base_raw - 15),
-                max: (side_bldg_pos_2 + side_bldg_width).with_z(side_bldg_base_raw),
-            })
-            .clear();
         painter.sprite(
             side_bldg_pos_2.with_z(side_bldg_base_raw - 15),
             SpriteKind::DungeonChest4,
         );
-        let boss_2_pos = (side_bldg_pos_2 + 2).with_z(side_bldg_base_raw - 15);
-        painter.spawn(EntityInfo::at(boss_2_pos.as_()).with_asset_expect(
-            "common.entity.dungeon.vampire.bloodmoon_heiress",
-            &mut thread_rng,
-            None,
-        ));
         // main room bossfight
         painter
             .aabb(Aabb {
@@ -2220,8 +2176,8 @@ impl Structure for VampireCastle {
                 .fill(wood.clone());
         }
         // boss
-        let boss_1_pos = center.with_z(castle_base + (castle_height / 2) + 2);
-        painter.spawn(EntityInfo::at(boss_1_pos.as_()).with_asset_expect(
+        let boss_pos = center.with_z(castle_base + (castle_height / 2) + 2);
+        painter.spawn(EntityInfo::at(boss_pos.as_()).with_asset_expect(
             "common.entity.dungeon.vampire.bloodmoon_bat",
             &mut thread_rng,
             None,
