@@ -2388,7 +2388,13 @@ pub fn handle_transform(
     };
 
     if let Err(error) = transform_entity(server, entity, entity_info, allow_players) {
-        if delete_on_failure {
+        if delete_on_failure
+            && !server
+                .state()
+                .ecs()
+                .read_storage::<Client>()
+                .contains(entity)
+        {
             _ = server.state.delete_entity_recorded(entity);
         }
 

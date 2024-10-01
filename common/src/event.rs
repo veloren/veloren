@@ -292,7 +292,8 @@ pub struct TransformEvent {
     /// If set to false, players wont be transformed unless with a Possessor
     /// presence kind
     pub allow_players: bool,
-    /// Whether the entity shoud be deleted if transforming fails
+    /// Whether the entity should be deleted if transforming fails (only applies
+    /// to non-players)
     pub delete_on_failure: bool,
 }
 
