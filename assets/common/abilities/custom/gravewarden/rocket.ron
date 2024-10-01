@@ -1,6 +1,6 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 1.2,
+    buildup_duration: 1.4,
     recover_duration: 1.0,
     projectile: (
         kind: Explosive(

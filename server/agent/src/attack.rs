@@ -5856,7 +5856,7 @@ impl<'a> AgentData<'a> {
         }
         if tgt_data.pos.0.z - self.pos.0.z > 5.0 {
             controller.push_action(ControlAction::StartInput {
-                input: InputKind::Ability(5),
+                input: InputKind::Ability(4),
                 target_entity: agent
                     .target
                     .as_ref()
@@ -5874,7 +5874,7 @@ impl<'a> AgentData<'a> {
         {
             agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] = 0.0;
             agent.combat_state.timers[ActionStateTimers::SelectSummon as usize] =
-                rng.gen_range(0..=4) as f32;
+                rng.gen_range(0..=3) as f32;
         } else {
             agent.combat_state.timers[ActionStateTimers::TimerSummon as usize] += read_data.dt.0;
         }
@@ -5884,11 +5884,10 @@ impl<'a> AgentData<'a> {
                 0 => controller.push_basic_input(InputKind::Ability(0)),
                 1 => controller.push_basic_input(InputKind::Ability(1)),
                 2 => controller.push_basic_input(InputKind::Ability(2)),
-                3 => controller.push_basic_input(InputKind::Ability(3)),
-                _ => controller.push_basic_input(InputKind::Ability(4)),
+                _ => controller.push_basic_input(InputKind::Ability(3)),
             }
         } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 6.0 {
-            controller.push_basic_input(InputKind::Ability(6));
+            controller.push_basic_input(InputKind::Ability(5));
         } else if agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] < 9.0 {
             controller.push_basic_input(InputKind::Primary);
         } else {

@@ -8,7 +8,7 @@ Shockwave(
     knockback: (strength: 20.0, direction: TowardsUp),
     shockwave_angle: 360.0,
     shockwave_vertical_angle: 90.0,
-    shockwave_speed: 25.0,
+    shockwave_speed: 15.0,
     shockwave_duration: 2.0,
     dodgeable: Jump,
     move_efficiency: 0.0,

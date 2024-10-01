@@ -1,6 +1,6 @@
 Shockwave(
     energy_cost: 0,
-    buildup_duration: 0.3,
+    buildup_duration: 0.8,
     swing_duration: 0.3,
     recover_duration: 2.0,
     damage: 20.0,

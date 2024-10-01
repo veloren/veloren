@@ -5,10 +5,10 @@ BasicRanged(
     projectile: (
         kind: Hazard(
             is_sticky: true,
-            duration: 10,
+            duration: 20,
         ),
         attack: Some((
-            damage: 25,
+            damage: 15,
             energy: 0,
         )),
     ),

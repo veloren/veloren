@@ -13,12 +13,12 @@ RepeaterRanged(
             terrain: Some((2, Black))
         ),
         attack: Some((
-            damage: 31,
+            damage: 27,
             energy: 20,
             buff: Some((
                 kind: Burning,
                 dur_secs: 4,
-                strength: DamageFraction(1.0),
+                strength: DamageFraction(0.7),
                 chance: 1.0,
             )),
         )),

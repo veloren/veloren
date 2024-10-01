@@ -3,7 +3,7 @@ Shockwave(
     buildup_duration: 1.2,
     swing_duration: 0.4,
     recover_duration: 1.2,
-    damage: 20.0,
+    damage: 35.0,
     poise_damage: 10,
     knockback: (strength: 30.0, direction: Away),
     shockwave_angle: 360.0,

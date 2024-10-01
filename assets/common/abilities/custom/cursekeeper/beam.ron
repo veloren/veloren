@@ -2,7 +2,7 @@ BasicBeam(
     buildup_duration: 0.3,
     recover_duration: 1.5,
     beam_duration: 2.0,
-    damage: 20.0,
+    damage: 10.0,
     tick_rate: 3.0,
     range: 22.0,
     max_angle: 22.5,
@@ -14,6 +14,6 @@ BasicBeam(
     ))),
     energy_regen: 2,
     energy_drain: 0,
-    ori_rate: 0.5,
+    ori_rate: 0.42,
     specifier: Poison,
 )

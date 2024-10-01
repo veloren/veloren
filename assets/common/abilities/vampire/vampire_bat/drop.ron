@@ -10,12 +10,12 @@ BasicRanged(
             terrain: None
         ),
         attack: Some((
-            damage: 25,
+            damage: 15,
             energy: 0,
             buff: Some((
                 kind: Burning,
                 dur_secs: 2,
-                strength: DamageFraction(1.0),
+                strength: DamageFraction(0.5),
                 chance: 0.6,
             )),
         )),

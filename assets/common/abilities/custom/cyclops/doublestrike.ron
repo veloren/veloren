@@ -28,7 +28,7 @@ ComboMelee2(
                     knockback: 10,
                     energy_regen: 0,
                 ),
-                range: 8.0,
+                range: 7.0,
                 angle: 45.0,
                 damage_effect: Some(Buff((
                     kind: Crippled,

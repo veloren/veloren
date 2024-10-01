@@ -1131,7 +1131,6 @@
         primary: Simple(None, "common.abilities.custom.cursekeeper.beam"),
         secondary: Simple(None, "common.abilities.custom.cursekeeper.trap"),
         abilities: [
-            Simple(None, "common.abilities.custom.cursekeeper.summonmogwai"),
             Simple(None, "common.abilities.custom.cursekeeper.summonbesieger"),
             Simple(None, "common.abilities.custom.cursekeeper.summonpursuer"),
             Simple(None, "common.abilities.custom.cursekeeper.summonshamanicspirit"),

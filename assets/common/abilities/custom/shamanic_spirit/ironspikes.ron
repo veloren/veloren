@@ -1,5 +1,5 @@
 SpriteSummon(
-    buildup_duration: 0.5,
+    buildup_duration: 1.8,
     cast_duration: 0.1,
     recover_duration: 2.0,
     sprite: IronSpike,

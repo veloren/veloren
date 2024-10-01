@@ -13,7 +13,7 @@ ChargedMelee(
                 damage: 12,
                 poise: 5,
                 knockback: 0,
-                energy_regen: 20,
+                energy_regen: 25,
             ))),
         range: 4.5,
         angle: 10.0,
