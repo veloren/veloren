@@ -5,7 +5,7 @@ BasicRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 4.5,
+            damage: 8.5,
             knockback: Some(5),
             energy: 4,
             buff: Some((
