@@ -4053,7 +4053,7 @@ dependencies = [
 [[package]]
 name = "naga"
 version = "0.14.2"
-source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v1#df527ef82e2eba827eda9278caa583506a06aa87"
+source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v2#b35d2bbb407eef00beb41f04688f1741f23d3f05"
 dependencies = [
  "bit-set",
  "bitflags 2.6.0",
@@ -8483,7 +8483,7 @@ dependencies = [
 [[package]]
 name = "wgpu"
 version = "0.18.0"
-source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v1#df527ef82e2eba827eda9278caa583506a06aa87"
+source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v2#b35d2bbb407eef00beb41f04688f1741f23d3f05"
 dependencies = [
  "arrayvec",
  "cfg-if 1.0.0",
@@ -8508,7 +8508,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core"
 version = "0.18.1"
-source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v1#df527ef82e2eba827eda9278caa583506a06aa87"
+source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v2#b35d2bbb407eef00beb41f04688f1741f23d3f05"
 dependencies = [
  "arrayvec",
  "bit-vec",
@@ -8532,7 +8532,7 @@ dependencies = [
 [[package]]
 name = "wgpu-hal"
 version = "0.18.1"
-source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v1#df527ef82e2eba827eda9278caa583506a06aa87"
+source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v2#b35d2bbb407eef00beb41f04688f1741f23d3f05"
 dependencies = [
  "android_system_properties",
  "arrayvec",
@@ -8540,6 +8540,7 @@ dependencies = [
  "bit-set",
  "bitflags 2.6.0",
  "block",
+ "bytemuck",
  "core-graphics-types",
  "d3d12",
  "glow",
@@ -8551,7 +8552,7 @@ dependencies = [
  "js-sys",
  "khronos-egl",
  "libc",
- "libloading 0.8.5",
+ "libloading 0.7.4",
  "log",
  "metal",
  "naga",
@@ -8584,7 +8585,7 @@ dependencies = [
 [[package]]
 name = "wgpu-types"
 version = "0.18.0"
-source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v1#df527ef82e2eba827eda9278caa583506a06aa87"
+source = "git+https://github.com/Imberflur/wgpu.git?tag=0.18-with-fixes-for-veloren-v2#b35d2bbb407eef00beb41f04688f1741f23d3f05"
 dependencies = [
  "bitflags 2.6.0",
  "js-sys",
