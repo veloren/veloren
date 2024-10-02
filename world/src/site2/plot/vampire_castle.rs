@@ -647,13 +647,13 @@ impl Structure for VampireCastle {
                     // clear windows
                     painter
                         .line(
-                            Vec2::new(tower_center.x - tower_width + 6, tower_center.y).with_z(
+                            Vec2::new(tower_center.x - tower_width + 5, tower_center.y).with_z(
                                 tower_base
                                     + (tower_height / 4)
                                     + (4 * h)
                                     + ((tower_height / 4) * n),
                             ),
-                            Vec2::new(tower_center.x + 1 + tower_width - 6, tower_center.y).with_z(
+                            Vec2::new(tower_center.x + 1 + tower_width - 5, tower_center.y).with_z(
                                 tower_base
                                     + (tower_height / 4)
                                     + (4 * h)
@@ -664,13 +664,13 @@ impl Structure for VampireCastle {
                         .clear();
                     painter
                         .line(
-                            Vec2::new(tower_center.x, tower_center.y - tower_width + 6).with_z(
+                            Vec2::new(tower_center.x, tower_center.y - tower_width + 5).with_z(
                                 tower_base
                                     + (tower_height / 4)
                                     + (4 * h)
                                     + ((tower_height / 4) * n),
                             ),
-                            Vec2::new(tower_center.x, tower_center.y + 1 + tower_width - 6).with_z(
+                            Vec2::new(tower_center.x, tower_center.y + 1 + tower_width - 5).with_z(
                                 tower_base
                                     + (tower_height / 4)
                                     + (4 * h)
@@ -916,14 +916,14 @@ impl Structure for VampireCastle {
             for p in 0..4 {
                 painter
                     .cylinder(Aabb {
-                        min: (tower_center - (tower_width / 4) - 4)
+                        min: (tower_center - (tower_width / 4) - 3)
                             .with_z(tower_base + (p * (tower_height / 3))),
-                        max: (tower_center - (tower_width / 4) + 2)
+                        max: (tower_center - (tower_width / 4) + 3)
                             .with_z(tower_base + (p * (tower_height / 3)) + 1),
                     })
                     .fill(roof_color.clone());
                 painter.sprite(
-                    (tower_center - (tower_width / 4))
+                    (tower_center - (tower_width / 4) + 1)
                         .with_z(tower_base + 1 + (p * (tower_height / 3))),
                     SpriteKind::Candle,
                 );
@@ -2059,7 +2059,7 @@ impl Structure for VampireCastle {
             })
             .fill(wood.clone());
         painter.sprite(
-            side_bldg_pos_2.with_z(side_bldg_base_raw - 15),
+            side_bldg_pos_2.with_z(side_bldg_base_raw),
             SpriteKind::DungeonChest4,
         );
         // main room bossfight

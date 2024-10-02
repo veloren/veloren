@@ -1205,6 +1205,7 @@
             Simple(None, "common.abilities.vampire.bloodmoon_heiress.teleport"),
             Simple(None, "common.abilities.vampire.bloodmoon_heiress.shockwave_2"),
             Simple(None, "common.abilities.vampire.bloodmoon_heiress.summon"),
+            Simple(None, "common.abilities.vampire.bloodmoon_heiress.shockwave_1"),            
         ],
     ),
     Custom("Harlequin"): (

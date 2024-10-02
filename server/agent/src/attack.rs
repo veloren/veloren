@@ -316,12 +316,15 @@ impl<'a> AgentData<'a> {
                     [ActionStateFCounters::FCounterHealthThreshold as usize] -= SUMMON_THRESHOLD;
             }
         }
-        // teleport to target when it's further away, above or far beneath
-        else if (line_of_sight_with_target()
-            && (tgt_data.pos.0 - self.pos.0).magnitude_squared() > (25.0_f32).powi(2))
-            || ((tgt_data.pos.0 - self.pos.0).xy().magnitude_squared() < (3.0_f32).powi(2)
-                && (tgt_data.pos.0.z > self.pos.0.z + 3.0))
-            || (self.pos.0.z > tgt_data.pos.0.z + 20.0)
+        // teleport to target when it can't be pathed to
+        else if !self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Separate,
+            None,
+        ) || !(-3.0..3.0).contains(&(tgt_data.pos.0.z - self.pos.0.z))
         {
             controller.push_action(ControlAction::StartInput {
                 input: InputKind::Ability(0),
@@ -339,7 +342,10 @@ impl<'a> AgentData<'a> {
             if agent.combat_state.timers[DASH_TIMER] > 2.0 {
                 agent.combat_state.timers[DASH_TIMER] = 0.0;
             }
-            controller.push_basic_input(InputKind::Primary);
+            match rng.gen_range(0..2) {
+                0 => controller.push_basic_input(InputKind::Primary),
+                _ => controller.push_basic_input(InputKind::Ability(3)),
+            };
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
             && self.path_toward_target(
                 agent,
