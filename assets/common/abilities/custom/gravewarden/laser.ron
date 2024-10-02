@@ -2,7 +2,7 @@ BasicBeam(
     buildup_duration: 0.75,
     recover_duration: 0.8,
     beam_duration: 0.25,
-    damage: 10.5,
+    damage: 11.5,
     tick_rate: 2.0,
     range: 40.0,
     max_angle: 1.0,
@@ -14,6 +14,6 @@ BasicBeam(
     ))),
     energy_regen: 0,
     energy_drain: 0,
-    ori_rate: 0.07,
+    ori_rate: 0.5,
     specifier: Gravewarden,
 )

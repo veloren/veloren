@@ -6,7 +6,7 @@ BasicMelee(
     recover_duration: 1.2,
     melee_constructor: (
         kind: Bash(
-            damage: 7.5,
+            damage: 12.5,
             poise: 0.0,
             knockback: 50.0,
             energy_regen: 0.0,

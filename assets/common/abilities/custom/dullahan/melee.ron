@@ -18,7 +18,7 @@ ComboMelee2(
                 ))),
             ),
             buildup_duration: 0.7,
-            swing_duration: 0.2,
+            swing_duration: 0.3,
             hit_timing: 0.4,
             recover_duration: 0.3,
             movement: (

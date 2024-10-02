@@ -16,7 +16,7 @@ ComboMelee2(
             hit_timing: 0.5,
             recover_duration: 0.6,
             movement: (
-                swing: Some(Forward(2.0)),
+                swing: Some(Forward(0.5)),
             ),
             ori_modifier: 0.7,
         ),
@@ -36,7 +36,7 @@ ComboMelee2(
             hit_timing: 0.5,
             recover_duration: 0.6,
             movement: (
-                swing: Some(Forward(2.0)),
+                swing: Some(Forward(0.5)),
             ),
             ori_modifier: 0.7,
         ),
@@ -56,7 +56,7 @@ ComboMelee2(
             hit_timing: 0.5,
             recover_duration: 0.6,
             movement: (
-                swing: Some(Forward(1.5)),
+                swing: Some(Forward(0.5)),
             ),
             ori_modifier: 0.7,
         ),

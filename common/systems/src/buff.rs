@@ -299,7 +299,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Bleeding,
-                            BuffData::new(8.0, Some(Secs(4.0))),
+                            BuffData::new(1.0, Some(Secs(4.0))),
                             Vec::new(),
                             BuffSource::World,
                             *read_data.time,

@@ -2,7 +2,7 @@ BasicBeam(
     buildup_duration: 2.5,
     recover_duration: 0.01,
     beam_duration: 0.3,
-    damage: 6.0,
+    damage: 3.0,
     tick_rate: 3.0,
     range: 20.0,
     max_angle: 20.0,

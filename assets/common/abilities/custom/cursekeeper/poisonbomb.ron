@@ -1,6 +1,6 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 0.3,
+    buildup_duration: 1.3,
     recover_duration: 0.3,
     projectile: (
         kind: Explosive(
@@ -10,7 +10,7 @@ BasicRanged(
             terrain: Some((5, Black)),
         ),
         attack: Some((
-            damage: 32,
+            damage: 29,
             knockback: Some(10),
             energy: 0,
             buff: Some((
@@ -23,7 +23,7 @@ BasicRanged(
     ),
     projectile_body: Object(SpitPoison),
     projectile_light: None,
-    projectile_speed: 25.0,
+    projectile_speed: 10.0,
     num_projectiles: Value(2),
     projectile_spread: 0.1,
     move_efficiency: 0.3,
