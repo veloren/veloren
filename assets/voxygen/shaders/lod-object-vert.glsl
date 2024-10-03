@@ -43,10 +43,9 @@ void main() {
     float sign = float(rot_bits >> 1) * 2.0 - 1.0;
     float d_y = float(rot_bits & 1);
     float d_x = 1.0 - d_y;
-    mat2 rot = mat2(d_x, -d_y, d_y, d_x);
-    vec2 local_pos2 = sign * (rot * v_pos.xy);
+    mat2 rot = sign * mat2(d_x, -d_y, d_y, d_x);
 
-    vec3 local_pos = vec3(local_pos2, v_pos.z);
+    vec3 local_pos = vec3(rot * v_pos.xy, v_pos.z);
     f_pos = obj_pos + local_pos;
     model_pos = v_pos;
 
@@ -61,7 +60,7 @@ void main() {
         f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
     #endif
 
-    f_norm = vec3(sign * (rot * v_norm.xy), v_norm.z);
+    f_norm = vec3(rot * v_norm.xy, v_norm.z);
 
     if ((v_flags & FLAG_INST_COLOR) > 0u) {
         f_col = vec4(inst_col, 1.0);
