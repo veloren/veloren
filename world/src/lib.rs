@@ -683,7 +683,9 @@ impl World {
                                 lod::InstFlags::SNOW_COVERED
                             } else {
                                 lod::InstFlags::empty()
-                            },
+                            }
+                            // Apply random rotation
+                            | lod::InstFlags::from_bits(((tree.seed % 4) as u8) << 2).expect("This shouldn't set unknown bits"),
                         color: {
                             let field = crate::util::RandomField::new(tree.seed);
                             let lerp = field.get_f32(Vec3::from(tree.pos)) * 0.8 + 0.1;

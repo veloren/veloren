@@ -28,6 +28,8 @@ layout(location = 6) in uint inst_flags;
 const uint FLAG_INST_COLOR = 1;
 const uint FLAG_INST_GLOW = 2;
 
+const uint FLAG_INST_ROTATION = 4 | 8;
+
 layout(location = 0) out vec3 f_pos;
 layout(location = 1) out vec3 f_norm;
 layout(location = 2) out vec4 f_col;
@@ -36,7 +38,15 @@ layout(location = 4) flat out uint f_flags;
 
 void main() {
     vec3 obj_pos = inst_pos - focus_off.xyz;
-    f_pos = obj_pos + v_pos;
+    uint rot_bits = (inst_flags & FLAG_INST_ROTATION) >> 2;
+
+    float sign = float(rot_bits >> 1) * 2.0 - 1.0;
+    float d_y = float(rot_bits & 1);
+    float d_x = 1.0 - d_y;
+    mat2 rot = sign * mat2(d_x, -d_y, d_y, d_x);
+
+    vec3 local_pos = vec3(rot * v_pos.xy, v_pos.z);
+    f_pos = obj_pos + local_pos;
     model_pos = v_pos;
 
     float pull_down = 1.0 / pow(distance(focus_pos.xy, obj_pos.xy) / (view_distance.x * 0.95), 150.0);
@@ -50,7 +60,7 @@ void main() {
         f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
     #endif
 
-    f_norm = v_norm;
+    f_norm = vec3(rot * v_norm.xy, v_norm.z);
 
     if ((v_flags & FLAG_INST_COLOR) > 0u) {
         f_col = vec4(inst_col, 1.0);

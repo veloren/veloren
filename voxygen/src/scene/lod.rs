@@ -26,9 +26,9 @@ const MAX_OBJECT_RADIUS: i32 = 64;
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy)]
     pub struct VertexFlags: u8 {
-        // Use instance not vertex colour
+        /// Use instance not vertex colour
         const INST_COLOR    = 0b00000001;
-        // Glow!
+        /// Glow!
         const GLOW          = 0b00000010;
     }
 }
