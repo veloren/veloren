@@ -11,6 +11,10 @@ bitflags::bitflags! {
     pub struct InstFlags: u8 {
         const SNOW_COVERED  = 0b00000001;
         const GLOW          = 0b00000010;
+        /// Rotate half pi radians (90 degrees)
+        const ROTATE_HALF_PI = 0b00000100;
+        /// Rotate pi radians (180 degrees)
+        const ROTATE_PI      = 0b00001000;
     }
 }
 
