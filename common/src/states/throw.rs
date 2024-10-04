@@ -2,7 +2,7 @@ use crate::{
     combat::{self, CombatEffect},
     comp::{
         CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
-        character_state::OutputEvents, slot::EquipSlot,
+        character_state::OutputEvents, item::ToolKind, slot::EquipSlot,
     },
     event::ThrowEvent,
     states::{
@@ -52,6 +52,12 @@ pub struct StaticData {
     pub equip_slot: EquipSlot,
     /// Item hash, used to verify that slot still has the correct item
     pub item_hash: u64,
+    /// Type of tool thrown, stored here since it cannot be recalculated once
+    /// the thrown item is removed from the entity's inventory
+    pub tool_kind: ToolKind,
+    /// Hand info for the thrown tool, stored here since it cannot be
+    /// recalculated once the thrown item is removed from the entity's inventory
+    pub hand_info: HandInfo,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

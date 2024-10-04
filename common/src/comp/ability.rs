@@ -7,7 +7,7 @@ use crate::{
         inventory::{
             Inventory,
             item::{
-                ItemKind,
+                ItemKind, Tool,
                 tool::{
                     AbilityContext, AbilityItem, AbilityKind, ContextualIndex, Stats, ToolKind,
                 },
@@ -2368,6 +2368,7 @@ fn default_true() -> bool { true }
 pub enum CharacterStateCreationError {
     MissingHandInfo,
     MissingItem,
+    InvalidItemKind,
 }
 
 impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
@@ -2765,19 +2766,27 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 move_speed,
                 meta: _,
             } => {
-                let equip_slot = if let Some(hand_info) = ability_info.hand {
-                    hand_info.to_equip_slot()
+                let hand_info = if let Some(hand_info) = ability_info.hand {
+                    hand_info
                 } else {
                     return Err(CharacterStateCreationError::MissingHandInfo);
                 };
-                let item_hash = if let Some(item_hash) = data
-                    .inventory
-                    .and_then(|inv| inv.equipped(equip_slot))
-                    .map(|item| item.item_hash())
-                {
-                    item_hash
+
+                let equip_slot = hand_info.to_equip_slot();
+
+                let equipped_item =
+                    if let Some(item) = data.inventory.and_then(|inv| inv.equipped(equip_slot)) {
+                        item
+                    } else {
+                        return Err(CharacterStateCreationError::MissingItem);
+                    };
+
+                let item_hash = equipped_item.item_hash();
+
+                let tool_kind = if let ItemKind::Tool(Tool { kind, .. }) = *equipped_item.kind() {
+                    kind
                 } else {
-                    return Err(CharacterStateCreationError::MissingItem);
+                    return Err(CharacterStateCreationError::InvalidItemKind);
                 };
 
                 CharacterState::Throw(throw::Data {
@@ -2797,6 +2806,8 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                         damage_effect: *damage_effect,
                         equip_slot,
                         item_hash,
+                        hand_info,
+                        tool_kind,
                     },
                     timer: Duration::default(),
                     stage_section: StageSection::Buildup,

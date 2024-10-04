@@ -1628,6 +1628,41 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
+                        CharacterState::Throw(s) => {
+                            let timer = character.timer();
+                            let stage_section = character.stage_section();
+                            let durations = character.durations();
+                            let progress = if let Some(((timer, stage_section), durations)) =
+                                timer.zip(stage_section).zip(durations)
+                            {
+                                let base_dur = match stage_section {
+                                    StageSection::Buildup => durations.buildup,
+                                    StageSection::Charge => durations.charge,
+                                    StageSection::Movement => None,
+                                    StageSection::Action => durations.action,
+                                    StageSection::Recover => durations.recover,
+                                };
+                                if let Some(base_dur) = base_dur {
+                                    timer.as_secs_f32() / base_dur.as_secs_f32()
+                                } else {
+                                    timer.as_secs_f32()
+                                }
+                            } else {
+                                0.0
+                            };
+
+                            anim::character::ThrowAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    stage_section,
+                                    s.static_data.tool_kind,
+                                    s.static_data.hand_info,
+                                ),
+                                progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                     CharacterState::BasicMelee(_)
                     | CharacterState::FinisherMelee(_)
                     | CharacterState::DiveMelee(_)

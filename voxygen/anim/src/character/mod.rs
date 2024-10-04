@@ -28,6 +28,7 @@ pub mod stunned;
 pub mod swim;
 pub mod swimwield;
 pub mod talk;
+pub mod throw;
 pub mod wallrun;
 pub mod wield;
 
@@ -63,6 +64,7 @@ pub use self::{
     swim::SwimAnimation,
     swimwield::SwimWieldAnimation,
     talk::TalkAnimation,
+    throw::ThrowAnimation,
     wallrun::WallrunAnimation,
     wield::WieldAnimation,
 };
