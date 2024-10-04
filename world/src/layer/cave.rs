@@ -1492,12 +1492,6 @@ fn write_column<R: Rng>(
                     } else if rand.chance(wpos2d.with_z(5), 0.0025) {
                         [
                             (Some(SpriteKind::VeloriteFrag), 0.3),
-                            (Some(SpriteKind::AmethystSmall), 0.3),
-                            (Some(SpriteKind::TopazSmall), 0.3),
-                            (Some(SpriteKind::DiamondSmall), 0.04),
-                            (Some(SpriteKind::RubySmall), 0.1),
-                            (Some(SpriteKind::EmeraldSmall), 0.08),
-                            (Some(SpriteKind::SapphireSmall), 0.08),
                             (Some(SpriteKind::Velorite), 0.15),
                             (Some(SpriteKind::Amethyst), 0.15),
                             (Some(SpriteKind::Topaz), 0.15),

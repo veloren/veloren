@@ -274,27 +274,21 @@ sprites! {
     },
     MineableResource = 5 has Damage {
         Amethyst      = 0x00,
-        AmethystSmall = 0x01,
-        Ruby          = 0x02,
-        RubySmall     = 0x03,
-        Sapphire      = 0x04,
-        SapphireSmall = 0x05,
-        Emerald       = 0x06,
-        EmeraldSmall  = 0x07,
-        Topaz         = 0x08,
-        TopazSmall    = 0x09,
-        Diamond       = 0x0A,
-        DiamondSmall  = 0x0B,
-        Bloodstone    = 0x0C,
-        Coal          = 0x0D,
-        Cobalt        = 0x0E,
-        Copper        = 0x0F,
-        Iron          = 0x10,
-        Tin           = 0x11,
-        Silver        = 0x12,
-        Gold          = 0x13,
-        Velorite      = 0x14,
-        VeloriteFrag  = 0x15,
+        Ruby          = 0x01,
+        Sapphire      = 0x02,
+        Emerald       = 0x03,
+        Topaz         = 0x04,
+        Diamond       = 0x05,
+        Bloodstone    = 0x06,
+        Coal          = 0x07,
+        Cobalt        = 0x08,
+        Copper        = 0x09,
+        Iron          = 0x0A,
+        Tin           = 0x0B,
+        Silver        = 0x0C,
+        Gold          = 0x0D,
+        Velorite      = 0x0E,
+        VeloriteFrag  = 0x0F,
     },
     // Structural elements including doors and building parts
     Structural = 6 has Ori {
@@ -669,12 +663,6 @@ impl SpriteKind {
             SpriteKind::Sapphire => item("common.items.mineral.gem.sapphire"),
             SpriteKind::Topaz => item("common.items.mineral.gem.topaz"),
             SpriteKind::Emerald => item("common.items.mineral.gem.emerald"),
-            SpriteKind::AmethystSmall => item("common.items.mineral.gem.amethyst"),
-            SpriteKind::TopazSmall => item("common.items.mineral.gem.topaz"),
-            SpriteKind::DiamondSmall => item("common.items.mineral.gem.diamond"),
-            SpriteKind::RubySmall => item("common.items.mineral.gem.ruby"),
-            SpriteKind::EmeraldSmall => item("common.items.mineral.gem.emerald"),
-            SpriteKind::SapphireSmall => item("common.items.mineral.gem.sapphire"),
             SpriteKind::Bloodstone => item("common.items.mineral.ore.bloodstone"),
             SpriteKind::Coal => item("common.items.mineral.ore.coal"),
             SpriteKind::Cobalt => item("common.items.mineral.ore.cobalt"),
@@ -788,11 +776,6 @@ impl SpriteKind {
             | SpriteKind::Sapphire
             | SpriteKind::Emerald
             | SpriteKind::Topaz
-            | SpriteKind::AmethystSmall
-            | SpriteKind::TopazSmall
-            | SpriteKind::DiamondSmall
-            | SpriteKind::RubySmall
-            | SpriteKind::EmeraldSmall
             | SpriteKind::Bloodstone
             | SpriteKind::Coal
             | SpriteKind::Cobalt
@@ -800,8 +783,7 @@ impl SpriteKind {
             | SpriteKind::Iron
             | SpriteKind::Tin
             | SpriteKind::Silver
-            | SpriteKind::Gold
-            | SpriteKind::SapphireSmall => Some(ToolKind::Pick),
+            | SpriteKind::Gold => Some(ToolKind::Pick),
             SpriteKind::Grave | SpriteKind::Mud => Some(ToolKind::Shovel),
             _ => None,
         }
@@ -817,20 +799,14 @@ impl SpriteKind {
             SpriteKind::Iron => 6,
             SpriteKind::Copper => 3,
             SpriteKind::Tin => 3,
-            SpriteKind::Amethyst => 2,
-            SpriteKind::AmethystSmall => 1,
-            SpriteKind::Ruby => 3,
-            SpriteKind::RubySmall => 2,
-            SpriteKind::Sapphire => 2,
-            SpriteKind::SapphireSmall => 2,
-            SpriteKind::Emerald => 2,
-            SpriteKind::EmeraldSmall => 2,
-            SpriteKind::Topaz => 2,
-            SpriteKind::TopazSmall => 1,
+            SpriteKind::Amethyst => 3,
+            SpriteKind::Ruby => 6,
+            SpriteKind::Sapphire => 3,
+            SpriteKind::Emerald => 3,
+            SpriteKind::Topaz => 3,
             SpriteKind::Diamond => 6,
-            SpriteKind::DiamondSmall => 5,
-            SpriteKind::Velorite => 2,
-            SpriteKind::VeloriteFrag => 1,
+            SpriteKind::Velorite => 3,
+            SpriteKind::VeloriteFrag => 2,
             _ => return None,
         })
     }
@@ -847,6 +823,14 @@ impl SpriteKind {
             SpriteKind::Iron => 2,
             SpriteKind::Copper => 1,
             SpriteKind::Tin => 1,
+            SpriteKind::Emerald => 1,
+            SpriteKind::Sapphire => 1,
+            SpriteKind::Amethyst => 1,
+            SpriteKind::Topaz => 1,
+            SpriteKind::Diamond => 2,
+            SpriteKind::Ruby => 2,
+            SpriteKind::Velorite => 1,
+            SpriteKind::VeloriteFrag => 1,
             _ => 1,
         }
     }

@@ -1092,26 +1092,65 @@ Liana: [(
     wind_sway: 0.5,
 )],
 // Velorite
-Velorite: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite_ore",
-            offset: (-5.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-VeloriteFrag: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.velorite.velorite",
-            offset: (-4.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
+Velorite: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_1",
+                offset: (-5.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 1)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_2",
+                offset: (-5.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 1, end: 2)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_3",
+                offset: (-5.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 2, end: 3)),
+    ),
+],
+VeloriteFrag: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_frag_1",
+                offset: (-4.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 1)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_frag_2",
+                offset: (-4.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 1, end: 2)),
+    ),
+],
 // Chests
 Chest: [(
     variations: [
@@ -3788,137 +3827,221 @@ Mud: [(
     wind_sway: 0.0,
 )],
 // Amethyst Ore
-Amethyst: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.amethyst-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
+Amethyst: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.amethyst_1",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 1)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.amethyst_2",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 1, end: 2)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.amethyst_3",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 2, end: 3)),
+    ),
+],
 // Ruby Ore
-Ruby: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.ruby-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
+Ruby: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.ruby_1",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 2)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.ruby_2",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 2, end: 4)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.ruby_3",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 4, end: 6)),
+    ),
+],
 // Diamond Ore
-Diamond: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.diamond-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
+Diamond: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.diamond_1",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 2)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.diamond_2",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 2, end: 4)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.diamond_3",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 4, end: 6)),
+    ),
+],
 // Sapphire Ore
-Sapphire: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.sapphire-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
+Sapphire: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.sapphire_1",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 1)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.sapphire_2",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 1, end: 2)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.sapphire_3",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 2, end: 3)),
+    ),
+],
 // Emerald Ore
-Emerald: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.emerald-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
+Emerald: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.emerald_1",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 1)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.emerald_2",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 1, end: 2)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.emerald_3",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 2, end: 3)),
+    ),
+],
 // Topaz Ore
-Topaz: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.topaz-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Small Amethyst Ore
-AmethystSmall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.amethyst_S-0",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Small Topaz Ore
-TopazSmall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.topaz_S-0",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Small Ruby Ore
-RubySmall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.ruby_S-0",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Small Emerald Ore
-EmeraldSmall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.emerald_S-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Small Diamond Ore
-DiamondSmall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.diamond_S-0",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Small Sapphire Ore
-SapphireSmall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.mineral.gem.sapphire_S-0",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
+Topaz: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.topaz_1",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 1)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.topaz_2",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 1, end: 2)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.topaz_3",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 2, end: 3)),
+    ),
+],
 Bloodstone: [
     (
         variations: [
@@ -3929,7 +4052,7 @@ Bloodstone: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 0, end: 2)),
+        filter: (damage: (start: 0, end: 2)),
     ),
     (
         variations: [
@@ -3940,7 +4063,7 @@ Bloodstone: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 2, end: 4)),
+        filter: (damage: (start: 2, end: 4)),
     ),
     (
         variations: [
@@ -3951,7 +4074,7 @@ Bloodstone: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 4, end: 6)),
+        filter: (damage: (start: 4, end: 6)),
     ),
 ],
 Coal: [
@@ -3964,7 +4087,7 @@ Coal: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 0, end: 2)),
+        filter: (damage: (start: 0, end: 2)),
     ),
     (
         variations: [
@@ -3975,7 +4098,7 @@ Coal: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 2, end: 4)),
+        filter: (damage: (start: 2, end: 4)),
     ),
     (
         variations: [
@@ -3986,7 +4109,7 @@ Coal: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 4, end: 6)),
+        filter: (damage: (start: 4, end: 6)),
     ),
 ],
 Cobalt: [
@@ -3999,7 +4122,7 @@ Cobalt: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 0, end: 2)),
+        filter: (damage: (start: 0, end: 2)),
     ),
     (
         variations: [
@@ -4010,7 +4133,7 @@ Cobalt: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 2, end: 4)),
+        filter: (damage: (start: 2, end: 4)),
     ),
     (
         variations: [
@@ -4021,7 +4144,7 @@ Cobalt: [
             ),
         ],
         wind_sway: 0.0,
-        filters: (damage: (start: 4, end: 6)),
+        filter: (damage: (start: 4, end: 6)),
     ),
 ],
 Copper: [

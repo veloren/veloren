@@ -300,12 +300,6 @@ impl Block {
                 | SpriteKind::Emerald
                 | SpriteKind::Topaz
                 | SpriteKind::Diamond
-                | SpriteKind::AmethystSmall
-                | SpriteKind::TopazSmall
-                | SpriteKind::DiamondSmall
-                | SpriteKind::RubySmall
-                | SpriteKind::EmeraldSmall
-                | SpriteKind::SapphireSmall
                 | SpriteKind::CrystalHigh
                 | SpriteKind::CrystalLow => Some(rtsim::ChunkResource::Gem),
             SpriteKind::Bloodstone
@@ -423,13 +417,7 @@ impl Block {
                 | SpriteKind::Sapphire
                 | SpriteKind::Diamond
                 | SpriteKind::Emerald
-                | SpriteKind::Topaz
-                | SpriteKind::AmethystSmall
-                | SpriteKind::TopazSmall
-                | SpriteKind::DiamondSmall
-                | SpriteKind::RubySmall
-                | SpriteKind::EmeraldSmall
-                | SpriteKind::SapphireSmall => 3,
+                | SpriteKind::Topaz => 3,
                 SpriteKind::Lantern => 24,
                 SpriteKind::TerracottaStatue => 8,
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => 16,
