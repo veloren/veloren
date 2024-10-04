@@ -3,16 +3,16 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
-        PhysicsState, PickupItem, Player, Pos, Projectile, Stats, ThrownItem, Vel,
+        PhysicsState, PickupItem, Player, Poise, Pos, Projectile, Stats, ThrownItem, Vel,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         object, projectile,
     },
     effect,
     event::{
-        BonkEvent, BuffEvent, ComboChangeEvent, CreateItemDropEvent, CreateObjectEvent,
-        DeleteEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus,
-        ExplosionEvent, HealthChangeEvent, KnockbackEvent, ParryHookEvent, PoiseChangeEvent,
+        BonkEvent, BuffEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, DeleteEvent,
+        EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus, ExplosionEvent,
+        HealthChangeEvent, KnockbackEvent, NpcBuilder, ParryHookEvent, PoiseChangeEvent,
         PossessEvent, ShootEvent, SoundEvent,
     },
     event_emitters,
@@ -47,7 +47,7 @@ event_emitters! {
         entity_attack_hook: EntityAttackedHookEvent,
         shoot: ShootEvent,
         create_item_drop: CreateItemDropEvent,
-        create_object: CreateObjectEvent,
+        create_npc: CreateNpcEvent,
         combo_change: ComboChangeEvent,
         buff: BuffEvent,
         bonk: BonkEvent,
@@ -281,18 +281,21 @@ impl<'a> System<'a> for Sys {
                         projectile::Effect::SurpriseEgg => {
                             outcomes_emitter.emit(Outcome::SurpriseEgg { pos: pos.0 });
                         },
-                        projectile::Effect::TrainingDummy => emitters.emit(CreateObjectEvent {
-                            pos: *pos,
-                            vel: Vel::zero(),
-                            body: object::Body::TrainingDummy,
-                            object: None,
-                            light_emitter: None,
-                            stats: Some(Stats::new(
-                                String::from("Training Dummy"),
-                                Body::Object(object::Body::TrainingDummy),
-                            )),
-                            item: None,
-                        }),
+                        projectile::Effect::TrainingDummy => {
+                            let body = Body::Object(object::Body::TrainingDummy);
+                            emitters.emit(CreateNpcEvent {
+                                pos: *pos,
+                                ori: Ori::default(),
+                                npc: NpcBuilder::new(
+                                    Stats::new(String::from("Training Dummy"), body),
+                                    body,
+                                    Alignment::Npc,
+                                )
+                                .with_health(Health::new(body))
+                                .with_poise(Poise::new(body)),
+                                rider: None,
+                            });
+                        },
                         _ => {},
                     }
                 }
@@ -690,17 +693,18 @@ fn dispatch_hit(
             let Pos(pos) = *projectile_info.pos;
             outcomes_emitter.emit(Outcome::SurpriseEgg { pos });
         },
-        projectile::Effect::TrainingDummy => emitters.emit(CreateObjectEvent {
+        projectile::Effect::TrainingDummy => emitters.emit(CreateNpcEvent {
             pos: *projectile_info.pos,
-            vel: Vel::zero(),
-            body: object::Body::TrainingDummy,
-            object: None,
-            light_emitter: None,
-            stats: Some(Stats::new(
-                String::from("Training Dummy"),
+            ori: Ori::default(),
+            npc: NpcBuilder::new(
+                Stats::new(
+                    String::from("Training Dummy"),
+                    Body::Object(object::Body::TrainingDummy),
+                ),
                 Body::Object(object::Body::TrainingDummy),
-            )),
-            item: None,
+                Alignment::Npc,
+            ),
+            rider: None,
         }),
     }
 }
