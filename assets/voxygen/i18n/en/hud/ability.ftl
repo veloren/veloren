@@ -334,7 +334,9 @@ common-abilities-axe-maelstrom = Maelstrom
 common-abilities-axe-rake = Rake
     .desc = Drag your axe across your foe, inducing bleeding.
 common-abilities-axe-bloodfeast = Bloodfeast
-    .desc = Your axe thirsts for the blood of your enemies, replenishing you with each strike against a bleeding enemy.
+    .desc = 
+        Your axe thirsts for the blood of your enemies, replenishing you with each strike against a bleeding enemy.
+        Requires 10 combo to use.
 common-abilities-axe-fierce_raze = Fierce Raze
     .desc = A rapid flurry of strikes on your foe.
 common-abilities-axe-dual_fierce_raze = Fierce Raze
