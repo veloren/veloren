@@ -316,7 +316,7 @@ impl Animation for MusicAnimation {
                             * Quaternion::rotation_z(PI / 1.5);
 
                         next.hand_r.position = Vec3::new(
-                            -6.0 + s_a.hand.0 - shortealt * 1.5,
+                            -6.0 + s_a.hand.0 - shortealt * 3.0,
                             7.0 + s_a.hand.1 - shortealt * 1.5,
                             5.0 + s_a.hand.2 + shortealt * 0.75,
                         );
