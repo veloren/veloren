@@ -985,6 +985,7 @@ pub enum CharacterAbility {
     ChargedRanged {
         energy_cost: f32,
         energy_drain: f32,
+        idle_drain: f32,
         projectile: ProjectileConstructor,
         buildup_duration: f32,
         charge_duration: f32,
@@ -1742,6 +1743,7 @@ impl CharacterAbility {
             ChargedRanged {
                 ref mut energy_cost,
                 ref mut energy_drain,
+                ref mut idle_drain,
                 ref mut projectile,
                 ref mut buildup_duration,
                 ref mut charge_duration,
@@ -1762,6 +1764,7 @@ impl CharacterAbility {
                 *scaled_projectile_speed *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain *= stats.speed / stats.energy_efficiency;
+                *idle_drain /= stats.energy_efficiency;
             },
             Throw {
                 ref mut energy_cost,
@@ -2838,6 +2841,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
             CharacterAbility::ChargedRanged {
                 energy_cost: _,
                 energy_drain,
+                idle_drain,
                 projectile,
                 buildup_duration,
                 charge_duration,
@@ -2855,6 +2859,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     energy_drain: *energy_drain,
+                    idle_drain: *idle_drain,
                     projectile: *projectile,
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,

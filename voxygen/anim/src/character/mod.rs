@@ -525,7 +525,7 @@ pub fn hammer_start(next: &mut CharacterSkeleton, s_a: &SkeletonAttr) {
         * Quaternion::rotation_z(s_a.hc.5);
 }
 
-pub fn bow_start(next: &mut CharacterSkeleton, s_a: &SkeletonAttr, look_dir: Vec3<f32>) {
+pub fn bow_start(next: &mut CharacterSkeleton, s_a: &SkeletonAttr) {
     next.main.position = Vec3::new(0.0, 0.0, 0.0);
     next.main.orientation = Quaternion::rotation_x(0.0);
     next.hand_l.position = Vec3::new(s_a.bhl.0 - 1.0, s_a.bhl.1, s_a.bhl.2);
@@ -536,19 +536,26 @@ pub fn bow_start(next: &mut CharacterSkeleton, s_a: &SkeletonAttr, look_dir: Vec
     next.hold.orientation = Quaternion::rotation_x(-PI / 2.0);
     next.hold.scale = Vec3::one();
 
-    next.control.position = Vec3::new(
-        s_a.bc.0 + 7.0,
-        s_a.bc.1 + 2.0 + (look_dir.z * -5.0).min(-2.0),
-        s_a.bc.2 + 8.0 + (look_dir.z * 15.0).max(-8.0),
-    );
-    next.control.orientation = Quaternion::rotation_x(look_dir.z)
-        * Quaternion::rotation_y(-look_dir.z + s_a.bc.4 - 1.25)
-        * Quaternion::rotation_z(s_a.bc.5 - 0.2);
+    next.control.position = Vec3::new(s_a.bc.0, s_a.bc.1, s_a.bc.2);
+    next.control.orientation = Quaternion::rotation_y(s_a.bc.4) * Quaternion::rotation_z(s_a.bc.5);
 
     next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+}
 
-    next.head.orientation = Quaternion::rotation_x(look_dir.z * 0.7);
-    next.chest.orientation = Quaternion::rotation_z(0.8);
+pub fn bow_draw(next: &mut CharacterSkeleton, move1: f32, look_dir_z: f32) {
+    next.control.position += Vec3::new(
+        7.0 + look_dir_z.abs() * -4.0,
+        2.0 + look_dir_z.abs() * -5.0,
+        8.0 + look_dir_z * 15.0,
+    ) * move1;
+    next.control.orientation.rotate_y(move1 * -1.25);
+    next.control
+        .orientation
+        .rotate_z((-0.2 + look_dir_z.abs() * 0.8) * move1);
+    next.control.orientation.rotate_x(look_dir_z * 1.6 * move1);
+
+    next.head.orientation = Quaternion::rotation_x(look_dir_z * 0.7 * move1);
+    next.chest.orientation = Quaternion::rotation_z(0.8 * move1);
 }
 
 pub fn twist_back(next: &mut CharacterSkeleton, move1: f32, c: f32, h: f32, b: f32, s: f32) {

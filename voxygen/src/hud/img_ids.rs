@@ -327,6 +327,7 @@ image_ids! {
         hammer_judgement: "voxygen.element.skills.hammer.judgement",
         // Bow
         bow_arrow_shot: "voxygen.element.skills.bow.arrow_shot",
+        bow_broadhead: "voxygen.element.skills.bow.broadhead",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

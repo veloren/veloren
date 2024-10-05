@@ -24,6 +24,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// How much energy is drained per second when charging
     pub energy_drain: f32,
+    /// Energy per second drain after ful charge is reached
+    pub idle_drain: f32,
     /// Projectile information
     pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
@@ -147,7 +149,7 @@ impl CharacterBehavior for Data {
                     // Consumes energy if there's enough left and RMB is held down
                     update
                         .energy
-                        .change_by(-self.static_data.energy_drain * data.dt.0 / 5.0);
+                        .change_by(-self.static_data.idle_drain * data.dt.0);
                 }
             },
             StageSection::Recover => {

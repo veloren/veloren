@@ -456,3 +456,6 @@ common-abilities-hammer-judgement = Judgement
 common-abilities-bow-arrow_shot = Arrow Shot
     .desc =
         Nock an arrow and release.
+common-abilities-bow-broadhead = Broadhead
+    .desc =
+        Nock a heavier arrow, and release.

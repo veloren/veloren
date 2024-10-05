@@ -1,10 +1,11 @@
 ChargedRanged(
     energy_cost: 0,
     energy_drain: 0,
+    idle_drain: 0,
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 4,
+            damage: 2,
             energy: 0,
             buff: Some((
                 kind: Bleeding,
@@ -14,9 +15,9 @@ ChargedRanged(
             )),
         )),
         scaled: Some((
-            damage: 16,
+            damage: 8,
             knockback: Some(10),
-            energy: 30,
+            energy: 20,
         )),
     ),
     buildup_duration: 0.1,
