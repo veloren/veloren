@@ -180,6 +180,7 @@ fn get_tool_kind(kind: &ToolKind) -> String {
         ToolKind::Pick => "Pick".to_string(),
         ToolKind::Shovel => "Shovel".to_string(),
         ToolKind::Instrument => "Instrument".to_string(),
+        ToolKind::Throwable => "Throwable".to_string(),
         ToolKind::Natural => "Natural".to_string(),
         ToolKind::Empty => "Empty".to_string(),
     }
