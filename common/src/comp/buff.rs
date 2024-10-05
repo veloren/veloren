@@ -326,8 +326,8 @@ impl BuffKind {
         // Normalized nonlinear scaling
         // TODO: Do we want to make denominator term parameterized. Come back to if we
         // add nn_scaling3.
-        let nn_scaling = |a| a / (a + 0.5);
-        let nn_scaling2 = |a| a / (a + 1.0);
+        let nn_scaling = |a: f32| a.abs() / (a.abs() + 0.5) * a.signum();
+        let nn_scaling2 = |a: f32| a.abs() / (a.abs() + 1.0) * a.signum();
         let instance = rand::random();
         match self {
             BuffKind::Bleeding => vec![BuffEffect::HealthChangeOverTime {
