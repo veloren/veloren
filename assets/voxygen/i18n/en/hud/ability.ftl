@@ -451,3 +451,8 @@ common-abilities-hammer-judgement = Judgement
         Bring your hammer down on your foe with all your weight.
         Greatly increases the damage if your target is stunned.
         Requires { $min_combo } combo to use.
+
+# Bow Abilities
+common-abilities-bow-arrow_shot = Arrow Shot
+    .desc =
+        Nock an arrow and release.

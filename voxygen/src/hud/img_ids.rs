@@ -325,6 +325,8 @@ image_ids! {
         hammer_seismic_shock: "voxygen.element.skills.hammer.seismic_shock",
         hammer_earthshaker: "voxygen.element.skills.hammer.earthshaker",
         hammer_judgement: "voxygen.element.skills.hammer.judgement",
+        // Bow
+        bow_arrow_shot: "voxygen.element.skills.bow.arrow_shot",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

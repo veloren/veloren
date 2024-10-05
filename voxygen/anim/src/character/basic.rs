@@ -1,6 +1,7 @@
 use super::{
     super::{Animation, vek::*},
-    CharacterSkeleton, SkeletonAttr, dual_wield_start, hammer_start, twist_back, twist_forward,
+    CharacterSkeleton, SkeletonAttr, bow_start, dual_wield_start, hammer_start, twist_back,
+    twist_forward,
 };
 use common::{
     comp::item::Hands,
@@ -1595,6 +1596,15 @@ impl Animation for BasicAction {
             // ==================================
             //                BOW
             // ==================================
+            Some("common.abilities.bow.arrow_shot") => {
+                bow_start(&mut next, s_a, *d.look_dir);
+
+                let charge = chargebase.min(1.0);
+                let tension = (chargebase * 15.0).sin();
+
+                next.hand_l.position +=
+                    Vec3::new(0.0, charge * -3.0, 0.0) + Vec3::one() * tension * 0.05;
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================
