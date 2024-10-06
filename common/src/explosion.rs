@@ -9,6 +9,7 @@ pub struct Explosion {
     pub radius: f32,
     pub reagent: Option<Reagent>,
     pub min_falloff: f32,
+    pub friendly_fire: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

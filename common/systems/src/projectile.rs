@@ -397,6 +397,7 @@ impl<'a> System<'a> for Sys {
                                     radius: 12.0,
                                     reagent: Some(reagent),
                                     min_falloff: 0.0,
+                                    friendly_fire: false,
                                 },
                                 owner: projectile.owner,
                             });

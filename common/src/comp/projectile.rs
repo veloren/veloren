@@ -83,6 +83,7 @@ pub enum ProjectileConstructorKind {
         min_falloff: f32,
         reagent: Option<Reagent>,
         terrain: Option<(f32, ColorPreset)>,
+        friendly_fire: Option<bool>,
     },
     Possess,
     Hazard {
@@ -247,6 +248,7 @@ impl ProjectileConstructor {
                 min_falloff,
                 reagent,
                 terrain,
+                friendly_fire,
             } => {
                 let terrain =
                     terrain.map(|(pow, col)| RadiusEffect::TerrainDestruction(pow, col.to_rgb()));
@@ -266,6 +268,7 @@ impl ProjectileConstructor {
                     radius,
                     reagent,
                     min_falloff,
+                    friendly_fire: friendly_fire.unwrap_or(false),
                 };
 
                 Projectile {
@@ -305,6 +308,7 @@ impl ProjectileConstructor {
                     radius,
                     reagent,
                     min_falloff,
+                    friendly_fire: false,
                 };
 
                 Projectile {
