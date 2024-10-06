@@ -21,7 +21,6 @@ pub enum Effect {
     Stick,
     Possess,
     Bonk, // Knock/dislodge/change objects on hit
-    DropItem,
     Firework(Reagent),
     SurpriseEgg,
     TrainingDummy,
@@ -98,7 +97,6 @@ pub enum ProjectileConstructorKind {
         is_sticky: bool,
         duration: Secs,
     },
-    ThrownWeapon,
     Firework(Reagent),
     SurpriseEgg,
     TrainingDummy,
@@ -144,9 +142,7 @@ impl ProjectileConstructor {
             let buff = a.buff.map(CombatEffect::Buff);
 
             let (damage_source, damage_kind) = match self.kind {
-                ProjectileConstructorKind::Pointed
-                | ProjectileConstructorKind::Hazard { .. }
-                | ProjectileConstructorKind::ThrownWeapon => {
+                ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Hazard { .. } => {
                     (DamageSource::Projectile, DamageKind::Piercing)
                 },
                 ProjectileConstructorKind::Blunt => {
@@ -332,25 +328,6 @@ impl ProjectileConstructor {
                 is_sticky: true,
                 is_point: true,
             },
-            ProjectileConstructorKind::ThrownWeapon => {
-                let effects = vec![Effect::DropItem, Effect::Vanish];
-
-                let mut hit_entity = effects.clone();
-                if let Some(attack) = attack {
-                    hit_entity.push(Effect::Attack(attack));
-                }
-
-                Projectile {
-                    hit_solid: effects.clone(),
-                    hit_entity,
-                    timeout: effects,
-                    time_left: Duration::from_secs(10),
-                    owner,
-                    ignore_group: true,
-                    is_sticky: true,
-                    is_point: true,
-                }
-            },
             ProjectileConstructorKind::Firework(reagent) => Projectile {
                 hit_solid: Vec::new(),
                 hit_entity: Vec::new(),
@@ -435,7 +412,6 @@ impl ProjectileConstructor {
             | ProjectileConstructorKind::Blunt
             | ProjectileConstructorKind::Possess
             | ProjectileConstructorKind::Hazard { .. }
-            | ProjectileConstructorKind::ThrownWeapon
             | ProjectileConstructorKind::Firework(_)
             | ProjectileConstructorKind::SurpriseEgg
             | ProjectileConstructorKind::TrainingDummy => {},
@@ -481,7 +457,6 @@ impl ProjectileConstructor {
             | ProjectileConstructorKind::Blunt
             | ProjectileConstructorKind::Possess
             | ProjectileConstructorKind::Hazard { .. }
-            | ProjectileConstructorKind::ThrownWeapon
             | ProjectileConstructorKind::Firework(_)
             | ProjectileConstructorKind::SurpriseEgg
             | ProjectileConstructorKind::TrainingDummy => false,

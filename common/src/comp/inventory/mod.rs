@@ -1106,10 +1106,7 @@ impl Inventory {
             return false;
         }
 
-        if self
-            .get(inv_slot_id)
-            .is_some_and(|item| item.amount() > 1)
-        {
+        if self.get(inv_slot_id).is_some_and(|item| item.amount() > 1) {
             trace!("can_swap = false, equip slot can't hold more than one item");
             return false;
         }

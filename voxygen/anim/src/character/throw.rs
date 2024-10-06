@@ -6,9 +6,9 @@ use common::{
 };
 
 use crate::{
-    character::{twist_back, twist_forward, CharacterSkeleton, SkeletonAttr},
-    vek::*,
     Animation,
+    character::{CharacterSkeleton, SkeletonAttr, twist_back, twist_forward},
+    vek::*,
 };
 
 pub struct ThrowAnimation;
