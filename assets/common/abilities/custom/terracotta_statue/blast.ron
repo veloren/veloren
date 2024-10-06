@@ -10,10 +10,8 @@ BasicRanged(
             terrain: Some((9, Black)),
         ),
         attack: Some((
-            damage: 60,
-            poise: 0,
+            damage: 50,
             knockback: Some(35),
-            energy: 0,
         )),
     ),
     projectile_body: Object(LaserBeamSmall),

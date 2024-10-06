@@ -6,9 +6,8 @@ BasicRanged(
         kind: Pointed,
         attack: Some((
             damage: 34,
-            poise: 0,
             knockback: Some(5),
-            energy: 20,
+            energy: Some(20),
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,

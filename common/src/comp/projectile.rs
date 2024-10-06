@@ -59,16 +59,17 @@ pub struct ProjectileConstructor {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Scaled {
     damage: f32,
+    poise: Option<f32>,
     knockback: Option<f32>,
-    energy: f32,
+    energy: Option<f32>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProjectileAttack {
     pub damage: f32,
-    pub poise: f32,
+    pub poise: Option<f32>,
     pub knockback: Option<f32>,
-    pub energy: f32,
+    pub energy: Option<f32>,
     pub buff: Option<CombatBuff>,
 }
 
@@ -118,6 +119,11 @@ impl ProjectileConstructor {
 
         let instance = rand::random();
         let attack = self.attack.map(|a| {
+            let poise = a.poise.map(|poise| {
+                AttackEffect::new(Some(GroupTarget::OutOfGroup), CombatEffect::Poise(poise))
+                    .with_requirement(CombatRequirement::AnyDamage)
+            });
+
             let knockback = a.knockback.map(|kb| {
                 AttackEffect::new(
                     Some(GroupTarget::OutOfGroup),
@@ -129,8 +135,10 @@ impl ProjectileConstructor {
                 .with_requirement(CombatRequirement::AnyDamage)
             });
 
-            let energy = AttackEffect::new(None, CombatEffect::EnergyReward(a.energy))
-                .with_requirement(CombatRequirement::AnyDamage);
+            let energy = a.energy.map(|energy| {
+                AttackEffect::new(None, CombatEffect::EnergyReward(energy))
+                    .with_requirement(CombatRequirement::AnyDamage)
+            });
 
             let buff = a.buff.map(CombatEffect::Buff);
 
@@ -177,11 +185,18 @@ impl ProjectileConstructor {
             let mut attack = Attack::default()
                 .with_damage(damage)
                 .with_precision(precision_mult)
-                .with_effect(energy)
                 .with_combo_increment();
+
+            if let Some(poise) = poise {
+                attack = attack.with_effect(poise);
+            }
 
             if let Some(knockback) = knockback {
                 attack = attack.with_effect(knockback);
+            }
+
+            if let Some(energy) = energy {
+                attack = attack.with_effect(energy);
             }
 
             attack
@@ -371,9 +386,14 @@ impl ProjectileConstructor {
         if let Some(scaled) = self.scaled {
             if let Some(ref mut attack) = self.attack {
                 attack.damage = scale_values(attack.damage, scaled.damage);
-                attack.energy = scale_values(attack.energy, scaled.energy);
+                if let Some(s_poise) = scaled.poise {
+                    attack.poise = Some(scale_values(attack.poise.unwrap_or(0.0), s_poise));
+                }
                 if let Some(s_kb) = scaled.knockback {
                     attack.knockback = Some(scale_values(attack.knockback.unwrap_or(0.0), s_kb));
+                }
+                if let Some(s_energy) = scaled.energy {
+                    attack.energy = Some(scale_values(attack.energy.unwrap_or(0.0), s_energy));
                 }
             } else {
                 dev_panic!("Attempted to scale on a projectile that has no attack to scale.")
@@ -390,6 +410,7 @@ impl ProjectileConstructor {
     pub fn adjusted_by_stats(mut self, stats: tool::Stats) -> Self {
         self.attack = self.attack.map(|mut a| {
             a.damage *= stats.power;
+            a.poise = a.poise.map(|poise| poise * stats.effect_power);
             a.knockback = a.knockback.map(|kb| kb * stats.effect_power);
             a.buff = a.buff.map(|mut b| {
                 b.strength *= stats.buff_strength;
@@ -400,6 +421,7 @@ impl ProjectileConstructor {
 
         self.scaled = self.scaled.map(|mut s| {
             s.damage *= stats.power;
+            s.poise = s.poise.map(|poise| poise * stats.effect_power);
             s.knockback = s.knockback.map(|kb| kb * stats.effect_power);
             s
         });
@@ -434,13 +456,13 @@ impl ProjectileConstructor {
         self.attack = self.attack.map(|mut a| {
             a.damage *= power;
             a.knockback = a.knockback.map(|k| k * kb);
-            a.energy *= regen;
+            a.energy = a.energy.map(|e| e * regen);
             a
         });
         self.scaled = self.scaled.map(|mut s| {
             s.damage *= power;
             s.knockback = s.knockback.map(|k| k * kb);
-            s.energy *= regen;
+            s.energy = s.energy.map(|e| e * regen);
             s
         });
         if let ProjectileConstructorKind::Explosive { ref mut radius, .. } = self.kind {

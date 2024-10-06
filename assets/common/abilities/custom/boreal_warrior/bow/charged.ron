@@ -5,8 +5,7 @@ ChargedRanged(
         kind: Pointed,
         attack: Some((
             damage: 2,
-            poise: 0,
-            energy: 2,
+            energy: Some(2),
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,
@@ -17,7 +16,7 @@ ChargedRanged(
         scaled: Some((
             damage: 12,
             knockback: Some(12),
-            energy: 14,
+            energy: Some(14),
         )),
     ),
     buildup_duration: 0.25,

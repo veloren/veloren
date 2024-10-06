@@ -1850,9 +1850,9 @@ impl ServerEvent for BonkEvent {
                                             },
                                             attack: Some(ProjectileAttack {
                                                 damage: 40.0,
-                                                poise: 100.0,
+                                                poise: Some(100.0),
                                                 knockback: None,
-                                                energy: 0.0,
+                                                energy: None,
                                                 buff: None,
                                             }),
                                             scaled: None,

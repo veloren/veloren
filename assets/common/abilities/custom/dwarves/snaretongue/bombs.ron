@@ -11,9 +11,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 25,
-            poise: 0,
             knockback: Some(15),
-            energy: 0,
             buff: Some((
                 kind: Poisoned,
                 dur_secs: 5,

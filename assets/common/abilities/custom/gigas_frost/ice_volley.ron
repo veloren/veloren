@@ -11,9 +11,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 30,
-            poise: 0,
             knockback: Some(12),
-            energy: 0,
             buff: Some((
                 kind: Frozen,
                 dur_secs: 5,

@@ -14,8 +14,7 @@ Throw(
         ),
         attack: Some((
             damage: 40,
-            poise: 100,
-            energy: 0,
+            poise: Some(100),
         )),
     ),
     projectile_light: None,

@@ -11,9 +11,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 25,
-            poise: 0,
             knockback: Some(20),
-            energy: 0,
         )),
     ),
     projectile_body: Object(Mine),

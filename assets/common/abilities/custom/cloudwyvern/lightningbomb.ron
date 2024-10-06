@@ -11,9 +11,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 20,
-            poise: 0,
             knockback: Some(5),
-            energy: 0,
         )),
     ),
     projectile_body: Object(LightningBolt),

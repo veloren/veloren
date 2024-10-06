@@ -11,9 +11,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 75,
-            poise: 0,
             knockback: Some(18),
-            energy: 0,
         )),
     ),
     projectile_body: Object(ClayRocket),

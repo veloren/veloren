@@ -6,9 +6,7 @@ BasicRanged(
         kind: Blunt,
         attack: Some((
             damage: 6,
-            poise: 0,
             knockback: Some(2),
-            energy: 0,
         )),
     ),
     projectile_body: Object(Pebble),

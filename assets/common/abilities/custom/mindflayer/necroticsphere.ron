@@ -10,8 +10,7 @@ BasicRanged(
         ),
         attack: Some((
             damage: 50,
-            poise: 0,
-            energy: 40,
+            energy: Some(40),
         )),
     ),
     projectile_body: Object(FireworkPurple),
