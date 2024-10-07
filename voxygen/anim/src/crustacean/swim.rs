@@ -42,7 +42,7 @@ impl Animation for SwimAnimation {
         let wave2 = (mixed_vel - PI / 2.0).sin();
         let wave3 = (mixed_vel + PI / 2.0).sin();
         let wave4 = (mixed_vel + PI).sin();
-
+        let slow_wave = (mixed_vel / 10.0).sin();
         let foot1 = wave1.abs().powf(ratio) * wave1.signum();
         let foot2 = wave2.abs().powf(ratio) * wave2.signum();
         let foot3 = wave3.abs().powf(ratio) * wave3.signum();
@@ -57,18 +57,24 @@ impl Animation for SwimAnimation {
         let swim = -0.3 * foot2;
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + x_tilt);
-        next.chest.orientation = Quaternion::rotation_x((mixed_vel).sin().max(0.0) * 0.06 + x_tilt)
-            * Quaternion::rotation_z(turnaround + ((mixed_vel + PI / 2.0).sin() * 0.06));
+        if s_a.move_sideways {
+            next.chest.orientation =
+                Quaternion::rotation_x((mixed_vel).sin().max(0.0) * 0.06 + x_tilt)
+                    * Quaternion::rotation_z(turnaround + ((mixed_vel + PI / 2.0).sin() * 0.06));
 
-        next.arm_l.orientation = Quaternion::rotation_x(0.1 * foot3)
-            * Quaternion::rotation_y(foot4.max(sideabs * -1.0) * up_rot)
-            * Quaternion::rotation_z((PI / -5.0) + 0.3 - foot2 * 0.1 * direction);
-        next.arm_r.orientation = Quaternion::rotation_x(0.1 * foot3)
-            * Quaternion::rotation_y(-foot1.max(sideabs * -1.0) * up_rot)
-            * Quaternion::rotation_z((PI / 5.0) + -0.2 - foot3 * 0.1 * direction);
+            next.arm_l.orientation = Quaternion::rotation_x(0.1 * foot3)
+                * Quaternion::rotation_y(foot4.max(sideabs * -1.0) * up_rot)
+                * Quaternion::rotation_z((PI / -5.0) + 0.3 - foot2 * 0.1 * direction);
+            next.arm_r.orientation = Quaternion::rotation_x(0.1 * foot3)
+                * Quaternion::rotation_y(-foot1.max(sideabs * -1.0) * up_rot)
+                * Quaternion::rotation_z((PI / 5.0) + -0.2 - foot3 * 0.1 * direction);
+            next.arm_l.position = Vec3::new(0.0, -1.0, 0.0);
+            next.arm_r.position = Vec3::new(0.0, -1.0, 0.0);
+        } else {
+            next.arm_l.orientation = Quaternion::rotation_z(0.7 * -slow_wave);
+            next.arm_r.orientation = Quaternion::rotation_z(0.7 * slow_wave);
+        }
 
-        next.arm_l.position = Vec3::new(0.0, -1.0, 0.0);
-        next.arm_r.position = Vec3::new(0.0, -1.0, 0.0);
         next.leg_fl.position = Vec3::new(-s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2 + 1.0);
         next.leg_fr.position = Vec3::new(s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2 + 1.0);
         next.leg_fl.orientation = Quaternion::rotation_y(foot4.max(sideabs * -0.5) * up_rot)

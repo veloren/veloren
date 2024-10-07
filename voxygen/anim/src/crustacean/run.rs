@@ -57,18 +57,35 @@ impl Animation for RunAnimation {
         let sideways = (PI / 2.0) * turn;
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + x_tilt);
-        next.chest.orientation = Quaternion::rotation_x((mixed_vel).sin().max(0.0) * 0.06 + x_tilt)
-            * Quaternion::rotation_z(sideways + ((mixed_vel + PI / 2.0).sin() * 0.06));
 
-        next.arm_l.orientation = Quaternion::rotation_x(1.0)
-            * Quaternion::rotation_y(foot4.max(sideabs * -0.5) * up_rot)
-            * Quaternion::rotation_z(0.3 - foot2 * 0.1 * direction);
-        next.arm_r.orientation = Quaternion::rotation_x(1.0)
-            * Quaternion::rotation_y(-foot1.max(sideabs * -0.5) * up_rot)
-            * Quaternion::rotation_z(-0.2 - foot3 * 0.1 * direction);
+        if s_a.move_sideways {
+            next.chest.orientation =
+                Quaternion::rotation_x((mixed_vel).sin().max(0.0) * 0.06 + x_tilt)
+                    * Quaternion::rotation_z(sideways + ((mixed_vel + PI / 2.0).sin() * 0.06));
 
-        next.arm_l.position = Vec3::new(0.0, 5.0, 0.0);
-        next.arm_r.position = Vec3::new(0.0, 5.0, 0.0);
+            next.arm_l.orientation = Quaternion::rotation_x(1.0)
+                * Quaternion::rotation_y(foot4.max(sideabs * -0.5) * up_rot)
+                * Quaternion::rotation_z(0.3 - foot2 * 0.1 * direction);
+            next.arm_r.orientation = Quaternion::rotation_x(1.0)
+                * Quaternion::rotation_y(-foot1.max(sideabs * -0.5) * up_rot)
+                * Quaternion::rotation_z(-0.2 - foot3 * 0.1 * direction);
+        } else {
+            next.chest.orientation =
+                Quaternion::rotation_x((mixed_vel).sin().max(0.0) * 0.06 + x_tilt);
+            next.arm_l.orientation = Quaternion::rotation_z(0.3 - foot2 * 0.2 * direction);
+            next.arm_r.orientation = Quaternion::rotation_z(-0.2 + foot3 * 0.2 * direction);
+
+            next.pincer_l0.orientation = Quaternion::rotation_x((mixed_vel).sin().max(0.0) * 0.2);
+            next.pincer_l1.position = Vec3::new(0.0, -4.0, 1.0);
+            next.pincer_l1.orientation = Quaternion::rotation_x((mixed_vel).sin().max(0.0) * -0.4);
+
+            next.pincer_r0.orientation = Quaternion::rotation_x((mixed_vel).sin().max(0.0) * 0.2);
+            next.pincer_r1.position = Vec3::new(0.0, -4.0, 3.0);
+            next.pincer_r1.orientation = Quaternion::rotation_x((mixed_vel).sin().max(0.0) * -0.4);
+        }
+
+        next.arm_l.position = Vec3::new(0.0, s_a.arm.1, 0.0);
+        next.arm_r.position = Vec3::new(0.0, s_a.arm.1, 0.0);
 
         next.leg_fl.position = Vec3::new(-s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
         next.leg_fr.position = Vec3::new(s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);

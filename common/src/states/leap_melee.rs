@@ -72,12 +72,21 @@ impl CharacterBehavior for Data {
                         stage_section: StageSection::Movement,
                         ..*self
                     });
-                    if let Some(FrontendSpecifier::ElderLeap) = self.static_data.specifier {
-                        // Send local event used for frontend shenanigans
-                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Whoosh {
-                            pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
-                        }));
-                    }
+
+                    // Send local event used for frontend shenanigans
+                    match self.static_data.specifier {
+                        Some(FrontendSpecifier::LeapWhoosh) => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Whoosh {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            }));
+                        },
+                        Some(FrontendSpecifier::LeapSwoosh) => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Swoosh {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            }));
+                        },
+                        _ => {},
+                    };
                 }
             },
             StageSection::Movement => {
@@ -177,5 +186,6 @@ impl CharacterBehavior for Data {
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
-    ElderLeap,
+    LeapWhoosh,
+    LeapSwoosh,
 }

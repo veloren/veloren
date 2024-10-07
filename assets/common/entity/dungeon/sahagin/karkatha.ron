@@ -1,0 +1,13 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("karkatha"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.sahagin.karkatha"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
+    ],
+)

@@ -85,6 +85,49 @@ impl Animation for ComboAnimation {
                     next.pincer_l1.position =
                         Vec3::new(0.0, -3.0 * movement1abs + 4.0 * movement2abs, 0.0);
                 },
+                Some("common.abilities.custom.karkatha.triplestrike") => {
+                    let (movement1base, movement2base, movement3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.sqrt(), 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powi(4), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = multi_strike_pullback;
+                    let subtract = global_time - timer;
+                    let check = subtract - subtract.trunc();
+                    let mirror = (check - 0.5).signum();
+                    let twitch3 = (mirror * movement3 * 9.0).sin();
+                    let _movement1 = mirror * movement1base * pullback;
+                    let _movement2 = mirror * movement2base * pullback;
+                    let movement1abs = movement1base * pullback;
+                    let movement2abs = movement2base * pullback;
+                    if velocity.xy().magnitude() > 0.1 {
+                        next.chest.orientation = Quaternion::rotation_z(0.0);
+                    }
+
+                    next.chest.orientation = Quaternion::rotation_x(
+                        movement1abs * 0.3 + movement2abs * -0.2 + (twitch3 / 5.0),
+                    );
+                    if mirror < 0.0 {
+                        next.arm_r.orientation =
+                            Quaternion::rotation_z(movement1abs * 0.6 + movement2abs * -1.8);
+
+                        next.pincer_r1.position =
+                            Vec3::new(0.0, -3.0 * movement1abs + 4.0 * movement2abs, 4.0);
+                        next.pincer_r1.orientation =
+                            Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * 0.3);
+                    } else {
+                        next.arm_l.orientation =
+                            Quaternion::rotation_z(movement1abs * -0.6 + movement2abs * 1.6);
+                        next.pincer_l1.position =
+                            Vec3::new(0.0, -3.0 * movement1abs + 4.0 * movement2abs, 4.0);
+                        next.pincer_l1.orientation =
+                            Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * 0.3);
+                        next.pincer_l0.position = Vec3::new(0.0, -4.0, 0.0);
+                        next.pincer_l0.orientation =
+                            Quaternion::rotation_x(movement1abs * 0.4 + movement2abs * -0.6);
+                    }
+                },
                 _ => {},
             }
         }

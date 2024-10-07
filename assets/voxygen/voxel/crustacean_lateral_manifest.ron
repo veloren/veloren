@@ -123,6 +123,253 @@
             lateral: ("npc.crab.crab", false),
             model_index: 2,
         ),
-
     ),
+    (SoldierCrab, Male): (
+        arm_l: (
+            offset: (-6.0, 2.5, 1.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 1,
+        ),
+        pincer_l0: (
+            offset: (-9.0, 4.5, 1.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 5,
+        ),
+        pincer_l1: (
+            offset: (-5.0, 6.5, 2.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 6,
+        ),
+        arm_r: (
+            offset: (3.0, 2.5, 1.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 1,
+        ),
+        pincer_r0: (
+            offset: (2.0, 4.5, 1.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 5,
+        ),
+        pincer_r1: (
+            offset: (2.0, 6.5, 2.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 6,
+        ),
+        leg_fl: (
+            offset: (-8.5, -2.5, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 4,
+        ),
+        leg_cl: (
+            offset: (-8.5, -2.5, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 3,
+        ),
+        leg_bl: (
+            offset: (-7.5, -3.0, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 2,
+        ),
+        leg_fr: (
+            offset: (3.5, -2.5, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 4,
+        ),
+        leg_cr: (
+            offset: (3.5, -2.5, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 3,
+        ),
+        leg_br: (
+            offset: (2.5, -3.0, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 2,
+        ),
+    ),
+    (SoldierCrab, Female): (
+        arm_l: (
+            offset: (-6.0, 2.5, 1.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 1,
+        ),
+        pincer_l0: (
+            offset: (-9.0, 4.5, 1.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 5,
+        ),
+        pincer_l1: (
+            offset: (-5.0, 6.5, 2.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 6,
+        ),
+        arm_r: (
+            offset: (3.0, 2.5, 1.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 1,
+        ),
+        pincer_r0: (
+            offset: (2.0, 4.5, 1.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 5,
+        ),
+        pincer_r1: (
+            offset: (2.0, 6.5, 2.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 6,
+        ),
+        leg_fl: (
+            offset: (-8.5, -2.5, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 4,
+        ),
+        leg_cl: (
+            offset: (-8.5, -2.5, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 3,
+        ),
+        leg_bl: (
+            offset: (-7.5, -3.0, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", true),
+            model_index: 2,
+        ),
+        leg_fr: (
+            offset: (3.5, -2.5, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 4,
+        ),
+        leg_cr: (
+            offset: (3.5, -2.5, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 3,
+        ),
+        leg_br: (
+            offset: (2.5, -3.0, 0.0),
+            lateral: ("npc.soldier_crab.soldier_crab", false),
+            model_index: 2,
+        ),
+    ),    
+    (Karkatha, Male): (
+        arm_l: (
+            offset: (6.0, -10.0, 12.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 1,
+        ),
+        pincer_l0: (
+            offset: (14.0, -2.0, 11.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 2,
+        ),
+        pincer_l1: (
+            offset: (16.0, 3.0, 7.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 3,
+        ),
+        arm_r: (
+            offset: (-20.0, -10.0, 12.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 1,
+        ),
+        pincer_r0: (
+            offset: (-21.0, -2.0, 10.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 4,
+        ),
+        pincer_r1: (
+            offset: (-19.0, 4.0, 6.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 5,
+        ),
+        leg_fl: (
+            offset: (2.0, 2.5, 0.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 6,
+        ),
+        leg_cl: (
+            offset: (3.0, -4.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 7,
+        ),
+        leg_bl: (
+            offset: (-2.0, -14.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 8,
+        ),
+        leg_fr: (
+            offset: (-12.0, 1.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 6,
+        ),
+        leg_cr: (
+            offset: (-15.0, -4.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 7,
+        ),
+        leg_br: (
+            offset: (-8.0, -14.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 8,
+        ),
+    ),
+    (Karkatha, Female): (
+        arm_l: (
+            offset: (6.0, -10.0, 12.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 1,
+        ),
+        pincer_l0: (
+            offset: (14.0, -2.0, 11.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 2,
+        ),
+        pincer_l1: (
+            offset: (16.0, 3.0, 7.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 3,
+        ),
+        arm_r: (
+            offset: (-20.0, -10.0, 12.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 1,
+        ),
+        pincer_r0: (
+            offset: (-21.0, -2.0, 10.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 4,
+        ),
+        pincer_r1: (
+            offset: (-19.0, 4.0, 6.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 5,
+        ),
+        leg_fl: (
+            offset: (2.0, 2.5, 0.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 6,
+        ),
+        leg_cl: (
+            offset: (3.0, -4.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 7,
+        ),
+        leg_bl: (
+            offset: (-2.0, -14.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", true),
+            model_index: 8,
+        ),
+        leg_fr: (
+            offset: (-12.0, 1.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 6,
+        ),
+        leg_cr: (
+            offset: (-15.0, -4.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 7,
+        ),
+        leg_br: (
+            offset: (-8.0, -14.0, 0.0),
+            lateral: ("npc.karkatha.karkatha", false),
+            model_index: 8,
+        ),
+    ),        
 })

@@ -1523,6 +1523,14 @@
                 keyword: "crab",
                 generic: "Crab",
             ),
+            soldier_crab: (
+                keyword: "soldier_crab",
+                generic: "Soldier Crab",
+            ),            
+            karkatha: (
+                keyword: "karkatha",
+                generic: "Karkatha",
+            ),
         ),
     ),
     plugin: (

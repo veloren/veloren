@@ -1326,7 +1326,7 @@
                     "voxygen.audio.sfx.abilities.klonk",
             ],
             threshold: 0.4,
-        ),
+        ),        
         SmashKlonk: (
             files: [
                     "voxygen.audio.sfx.abilities.smashklonk",
@@ -1341,6 +1341,12 @@
             subtitle: "subtitle-attack-strigoi_head",
 
         ),
+        Hiss: (
+            files: [
+                    "voxygen.audio.sfx.abilities.hiss",
+            ],
+            threshold: 0.2,
+        ),        
         BloodmoonHeiressSummon: (
             files: [
                     "voxygen.audio.sfx.abilities.bloodmoon_heiress_summon",

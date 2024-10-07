@@ -592,6 +592,9 @@
             "common.items.npc_armor.biped_small.harlequin.pants.harlequin",
         ): "common-items-npc_armor-biped_small-harlequin-pants-harlequin",
         Simple(
+            "common.items.npc_armor.crustacean.karkatha",
+        ): "common-items-npc_armor-crustacean-karkatha",        
+        Simple(
             "common.items.npc_armor.chest.leather_blue",
         ): "armor-leather_blue-pants",
         Simple(
@@ -2574,6 +2577,9 @@
         Simple(
             "common.items.npc_weapons.unique.crab_pincer",
         ): "common-items-npc_weapons-unique-crab_pincer",
+        Simple(
+            "common.items.npc_weapons.unique.karkatha_pincer",
+        ): "common-items-npc_weapons-unique-karkatha_pincer",        
         Simple(
             "common.items.npc_weapons.unique.dagon",
         ): "common-items-npc_weapons-unique-dagon",

@@ -5949,6 +5949,69 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    pub fn handle_karkatha_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        _rng: &mut impl Rng,
+    ) {
+        enum ActionStateTimers {
+            RiposteTimer,
+            SummonTimer,
+        }
+
+        agent.combat_state.timers[ActionStateTimers::RiposteTimer as usize] += read_data.dt.0;
+        agent.combat_state.timers[ActionStateTimers::SummonTimer as usize] += read_data.dt.0;
+        if matches!(self.char_state, CharacterState::RiposteMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // Reset timer
+            agent.combat_state.timers[ActionStateTimers::RiposteTimer as usize] = 0.0;
+        }
+        if matches!(self.char_state, CharacterState::BasicSummon(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // Reset timer
+            agent.combat_state.timers[ActionStateTimers::SummonTimer as usize] = 0.0;
+        }
+        // chase, move away from exiit if target is cheesing from below
+        let home = agent.patrol_origin.unwrap_or(self.pos.0);
+        let dest = if tgt_data.pos.0.z < self.pos.0.z {
+            home
+        } else {
+            tgt_data.pos.0
+        };
+        if attack_data.in_min_range() {
+            if agent.combat_state.timers[ActionStateTimers::RiposteTimer as usize] > 3.0 {
+                controller.push_basic_input(InputKind::Ability(2));
+            } else {
+                controller.push_basic_input(InputKind::Primary);
+            };
+        } else if attack_data.dist_sqrd < 20.0_f32.powi(2) {
+            if agent.combat_state.timers[ActionStateTimers::SummonTimer as usize] > 20.0 {
+                controller.push_basic_input(InputKind::Ability(1));
+            } else {
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        } else if attack_data.dist_sqrd < 30.0_f32.powi(2) {
+            if agent.combat_state.timers[ActionStateTimers::SummonTimer as usize] < 10.0 {
+                self.path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Full,
+                    None,
+                );
+            } else {
+                controller.push_basic_input(InputKind::Ability(0));
+            }
+        } else {
+            self.path_toward_target(agent, controller, dest, read_data, Path::Full, None);
+        }
+    }
+
     pub fn handle_dagon_attack(
         &self,
         agent: &mut Agent,

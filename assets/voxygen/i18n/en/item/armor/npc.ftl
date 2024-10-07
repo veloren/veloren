@@ -579,6 +579,9 @@ common-items-npc_armor-biped_small-harlequin-hand-harlequin = Harlequin
 
 common-items-npc_armor-biped_small-harlequin-foot-harlequin = Harlequin
     .desc = Ceremonial attire used by members.
+    
+common-items-npc_armor-crustacean-karkatha = Karkatha's Armor
+    .desc = Rigid enough to withstand the pressure of the deep ocean.    
 
 common-items-npc_armor-chest-plate_red = Iron Chestplate
     .desc = A chestplate forged from iron.

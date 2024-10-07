@@ -11,4 +11,28 @@
             central: ("npc.crab.crab"),
         ),
     ),
+    (SoldierCrab, Male): (
+        chest: (
+            offset: (-6.0, -4.5, 1.0),
+            central: ("npc.soldier_crab.soldier_crab"),
+        ),
+    ),
+    (SoldierCrab, Female): (
+        chest: (
+            offset: (-6.0, -4.5, 1.0),
+            central: ("npc.soldier_crab.soldier_crab"),
+        ),
+    ),    
+    (Karkatha, Male): (
+        chest: (
+            offset: (-9.0, -11.5, 7.0),
+            central: ("npc.karkatha.karkatha"),
+        ),
+    ),
+    (Karkatha, Female): (
+        chest: (
+            offset: (-9.0, -11.5, 7.0),
+            central: ("npc.karkatha.karkatha"),
+        ),
+    ),
 })

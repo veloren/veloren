@@ -2,7 +2,7 @@ use crate::{
     assets::{self, AssetExt},
     calendar::{Calendar, CalendarEvent},
     comp::{
-        arthropod, biped_large, biped_small, bird_large, bird_medium, golem,
+        arthropod, biped_large, biped_small, bird_large, bird_medium, crustacean, golem,
         inventory::{
             loadout::Loadout,
             slot::{ArmorSlot, EquipSlot},
@@ -1003,10 +1003,14 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.birdmediumbasic",
             )),
         },
-        Body::Crustacean(_) => Some(Item::new_from_asset_expect(
-            "common.items.npc_weapons.unique.crab_pincer",
-        )),
-
+        Body::Crustacean(crustacean) => match crustacean.species {
+            crustacean::Species::Crab | crustacean::Species::SoldierCrab => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.crab_pincer"),
+            ),
+            crustacean::Species::Karkatha => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.karkatha_pincer",
+            )),
+        },
         _ => None,
     };
 
@@ -1236,6 +1240,10 @@ impl LoadoutBuilder {
                 | quadruped_small::Species::Holladon
                 | quadruped_small::Species::TreantSapling
                 | quadruped_small::Species::MossySnail => Some("common.items.npc_armor.generic"),
+                _ => None,
+            },
+            Body::Crustacean(body) => match body.species {
+                crustacean::Species::Karkatha => Some("common.items.npc_armor.crustacean.karkatha"),
                 _ => None,
             },
             _ => None,

@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("soldier_crab"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.crustacean.crab"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)
