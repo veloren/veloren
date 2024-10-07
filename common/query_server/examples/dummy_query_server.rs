@@ -1,5 +1,5 @@
 use std::{
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::{IpAddr, Ipv6Addr, SocketAddr},
     sync::{Arc, Mutex},
     time::Instant,
 };
@@ -23,7 +23,7 @@ const DEFAULT_SERVER_INFO: ServerInfo = ServerInfo {
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 14006);
+    let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 14006);
     let (_sender, receiver) = watch::channel(DEFAULT_SERVER_INFO);
     let mut server = QueryServer::new(addr, receiver, 10002);
     let metrics = Arc::new(Mutex::new(Metrics::default()));
