@@ -1,6 +1,6 @@
 use std::{
     io,
-    net::{Ipv4Addr, SocketAddr, SocketAddrV4},
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
     time::{Duration, Instant},
 };
 
@@ -58,7 +58,12 @@ impl QueryClient {
         &mut self,
         request: QueryServerRequest,
     ) -> Result<(QueryServerResponse, Duration), QueryClientError> {
-        let socket = UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0)).await?;
+        let socket = UdpSocket::bind(if self.addr.is_ipv4() {
+            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0))
+        } else {
+            SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, 0, 0, 0))
+        })
+        .await?;
 
         for _ in 0..MAX_REQUEST_RETRIES {
             let request = if let Some(init) = &self.init {

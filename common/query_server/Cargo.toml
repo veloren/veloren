@@ -2,7 +2,7 @@
 name = "veloren-query-server"
 description = "Query Server crate for veloren (client and server)"
 license = "GPL-3.0-or-later"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["crabman <vlrncrabman+veloren@gmail.com>", "XVar <atomyc@gmail.com>"]
 edition = "2021"
 
