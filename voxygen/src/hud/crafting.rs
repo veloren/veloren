@@ -5,11 +5,14 @@ use super::{
     slots::{CraftSlot, CraftSlotInfo, SlotManager},
     util, HudInfo, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
-use crate::ui::{
-    fonts::Fonts,
-    slot::{ContentSize, SlotMaker},
-    ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
-    Tooltipable,
+use crate::{
+    settings::Settings,
+    ui::{
+        fonts::Fonts,
+        slot::{ContentSize, SlotMaker},
+        ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
+        Tooltipable,
+    },
 };
 use client::{self, Client};
 use common::{
@@ -37,6 +40,7 @@ use conrod_core::{
 };
 use hashbrown::HashMap;
 use i18n::Localization;
+use itertools::Either;
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 use strum::{EnumIter, IntoEnumIterator};
 use tracing::{error, warn};
@@ -164,6 +168,7 @@ pub struct Crafting<'a> {
     common: widget::CommonBuilder,
     tooltip_manager: &'a mut TooltipManager,
     show: &'a mut Show,
+    settings: &'a Settings,
 }
 
 impl<'a> Crafting<'a> {
@@ -185,6 +190,7 @@ impl<'a> Crafting<'a> {
         msm: &'a MaterialStatManifest,
         tooltip_manager: &'a mut TooltipManager,
         show: &'a mut Show,
+        settings: &'a Settings,
     ) -> Self {
         Self {
             client,
@@ -204,6 +210,7 @@ impl<'a> Crafting<'a> {
             msm,
             show,
             common: widget::CommonBuilder::default(),
+            settings,
         }
     }
 }
@@ -671,9 +678,12 @@ impl<'a> Widget for Crafting<'a> {
                     || content_contains(&name_key, substring)
             })
         };
-        let mut ordered_recipes: Vec<_> = self
-            .inventory
-            .available_recipes_iter(self.rbm)
+        let recipe_source = if self.settings.gameplay.show_all_recipes {
+            Either::Left(self.rbm.iter())
+        } else {
+            Either::Right(self.inventory.available_recipes_iter(self.rbm))
+        };
+        let mut ordered_recipes: Vec<_> = recipe_source
             .filter(|(_, recipe)| match search_filter {
                 SearchFilter::None => {
                     search(&recipe.output.0)
@@ -750,7 +760,11 @@ impl<'a> Widget for Crafting<'a> {
         });
 
         // Recipe list
-        let recipe_list_length = self.inventory.recipe_book_len() + pseudo_entries.len();
+        let recipe_list_length = if self.settings.gameplay.show_all_recipes {
+            self.rbm.iter().count()
+        } else {
+            self.inventory.recipe_book_len()
+        } + pseudo_entries.len();
         if state.ids.recipe_list_btns.len() < recipe_list_length {
             state.update(|state| {
                 state

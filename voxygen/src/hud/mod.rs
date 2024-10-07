@@ -3444,6 +3444,7 @@ impl Hud {
                     &msm,
                     tooltip_manager,
                     &mut self.show,
+                    &global_state.settings,
                 )
                 .set(self.ids.crafting_window, ui_widgets)
                 {
