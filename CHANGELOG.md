@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transform death effect used by the Vampire castle boss
 - Balanced Terracotta, Dwarven mines, Haniwa and Vampire castle dungeons and other balance changes
 - Craftable kora instrument
+- Added "recipes" to /kit command.
 
 ### Changed
 
