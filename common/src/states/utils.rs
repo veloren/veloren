@@ -6,7 +6,7 @@ use crate::{
         buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource, DestInfo},
         character_state::OutputEvents,
         controller::InventoryManip,
-        golem,
+        crustacean, golem,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
         item::{
             armor::Friction,
@@ -186,7 +186,10 @@ impl Body {
                 arthropod::Species::Dagonite => 70.0,
                 arthropod::Species::Emberfly => 75.0,
             },
-            Body::Crustacean(_) => 80.0,
+            Body::Crustacean(body) => match body.species {
+                crustacean::Species::Crab | crustacean::Species::SoldierCrab => 80.0,
+                crustacean::Species::Karkatha => 120.0,
+            },
             Body::Plugin(body) => body.base_accel(),
         }
     }

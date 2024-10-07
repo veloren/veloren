@@ -526,7 +526,10 @@ impl Body {
             Body::Ship(ship) => ship.mass().0,
             Body::Arthropod(_) => 200.0,
             // TODO: mass
-            Body::Crustacean(_) => 50.0,
+            Body::Crustacean(body) => match body.species {
+                crustacean::Species::Crab | crustacean::Species::SoldierCrab => 50.0,
+                crustacean::Species::Karkatha => 1200.0,
+            },
             Body::Plugin(body) => body.mass().0,
         };
         Mass(m)
@@ -723,7 +726,11 @@ impl Body {
                 bird_medium::Species::BloodmoonBat => Vec3::new(3.5, 3.5, 2.5),
                 bird_medium::Species::VampireBat => Vec3::new(2.0, 1.8, 1.3),
             },
-            Body::Crustacean(_) => Vec3::new(1.2, 1.2, 0.7),
+            Body::Crustacean(body) => match body.species {
+                crustacean::Species::Crab => Vec3::new(1.2, 1.2, 0.7),
+                crustacean::Species::SoldierCrab => Vec3::new(1.2, 1.2, 1.0),
+                crustacean::Species::Karkatha => Vec3::new(10.0, 10.0, 7.5),
+            },
             Body::Plugin(body) => body.dimensions(),
         }
     }
@@ -1117,7 +1124,13 @@ impl Body {
                 arthropod::Species::Blackwidow => 370,
             },
             Body::Ship(_) => 1000,
-            Body::Crustacean(_) => 40,
+            Body::Crustacean(crustacean) => match crustacean.species {
+                // T0
+                crustacean::Species::Crab => 40,
+                // T2
+                crustacean::Species::SoldierCrab => 50,
+                crustacean::Species::Karkatha => 2000,
+            },
             Body::Plugin(body) => body.base_health(),
         }
     }
@@ -1298,9 +1311,8 @@ impl Body {
                 fish_small::Species::Clownfish | fish_small::Species::Piranha => 0.6,
                 _ => 1.0,
             },
-            #[allow(unreachable_patterns)] // TODO: Remove when more crustacean species are added
             Body::Crustacean(b) => match b.species {
-                crustacean::Species::Crab => 0.6,
+                crustacean::Species::Crab | crustacean::Species::SoldierCrab => 0.6,
                 _ => 1.0,
             },
             _ => 1.0,

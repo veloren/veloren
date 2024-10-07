@@ -658,6 +658,15 @@
         secondary: Simple(None, "common.abilities.custom.crab.triplestrike"),
         abilities: [],
     ),
+    Custom("Karkatha"): (
+        primary: Simple(None, "common.abilities.custom.karkatha.triplestrike"),
+        secondary: Simple(None, "common.abilities.custom.karkatha.leap"),
+        abilities: [
+            Simple(None, "common.abilities.custom.karkatha.spinleap"),
+            Simple(None, "common.abilities.custom.karkatha.summoncrabs"),            
+            Simple(None, "common.abilities.custom.karkatha.riposte"),                        
+        ],
+    ),    
     /// TODO: Organize the rest into further catagories and give purple tier droppers+ custom skillsets
     Custom("Turret"): (
         primary: Simple(None, "common.abilities.custom.turret.arrows"),

@@ -86,7 +86,7 @@ use client::Client;
 use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam, biped_large, biped_small, bird_large, bird_medium, golem, humanoid,
+        beam, biped_large, biped_small, bird_large, bird_medium, crustacean, humanoid,
         item::{item_key::ItemKey, AbilitySpec, ItemDefinitionId, ItemDesc, ItemKind, ToolKind},
         object,
         poise::PoiseState,
@@ -172,6 +172,7 @@ pub enum SfxEvent {
     FuseCharge,
     Music(ToolKind, AbilitySpec),
     Yeet,
+    Hiss,
     Klonk,
     SmashKlonk,
     FireShockwave,
@@ -535,9 +536,9 @@ impl SfxMgr {
                         },
                         _ => {},
                     },
-                    Body::Golem(body) => match body.species {
-                        golem::Species::Mogwai => {
-                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);
+                    Body::Crustacean(body) => match body.species {
+                        crustacean::Species::SoldierCrab => {
+                            let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Hiss);
                             audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), underwater);
                         },
                         _ => {},

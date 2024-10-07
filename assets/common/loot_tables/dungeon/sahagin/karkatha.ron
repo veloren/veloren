@@ -1,0 +1,6 @@
+[
+    // Weapons
+    (4.0, LootTable("common.loot_tables.weapons.tier-3")),
+    // Special
+    (0.5, Item("common.items.glider.moonrise")),
+]

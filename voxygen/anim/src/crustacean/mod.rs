@@ -2,14 +2,18 @@ mod alpha;
 mod combomelee;
 mod idle;
 mod jump;
+mod leapmelee;
+mod ripostemelee;
 mod run;
 mod stunned;
+mod summon;
 mod swim;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, combomelee::ComboAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    run::RunAnimation, stunned::StunnedAnimation, swim::SwimAnimation,
+    leapmelee::LeapMeleeAnimation, ripostemelee::RiposteMeleeAnimation, run::RunAnimation,
+    stunned::StunnedAnimation, summon::SummonAnimation, swim::SwimAnimation,
 };
 
 use common::comp::{self};
@@ -114,22 +118,59 @@ impl Skeleton for CrustaceanSkeleton {
 
 pub struct SkeletonAttr {
     chest: (f32, f32),
+    arm: (f32, f32, f32),
     leg_f: (f32, f32, f32),
     leg_c: (f32, f32, f32),
     leg_b: (f32, f32, f32),
     leg_ori: (f32, f32, f32),
+    move_sideways: bool,
     scaler: f32,
 }
 
-impl From<&Body> for SkeletonAttr {
-    fn from(_value: &Body) -> Self {
+impl<'a> From<&'a Body> for SkeletonAttr {
+    fn from(body: &'a Body) -> Self {
+        use comp::crustacean::Species::*;
         Self {
-            chest: (0.0, 0.0),
-            leg_f: (0.0, 0.0, 0.0),
-            leg_c: (0.0, 0.0, 0.0),
-            leg_b: (0.0, 0.0, 0.0),
-            leg_ori: (-0.4, 0.0, 0.4),
-            scaler: 0.62,
+            chest: match (body.species, body.body_type) {
+                (Crab, _) => (0.0, 0.0),
+                (SoldierCrab, _) => (0.0, 0.0),
+                (Karkatha, _) => (0.0, 0.0),
+            },
+            arm: match (body.species, body.body_type) {
+                (Crab, _) => (0.0, 5.0, 0.0),
+                (SoldierCrab, _) => (0.0, 5.0, 0.0),
+                (Karkatha, _) => (0.0, 0.0, 0.0),
+            },
+            leg_f: match (body.species, body.body_type) {
+                (Crab, _) => (0.0, 0.0, 0.0),
+                (SoldierCrab, _) => (0.0, 0.0, 0.0),
+                (Karkatha, _) => (3.0, 0.0, 0.0),
+            },
+            leg_c: match (body.species, body.body_type) {
+                (Crab, _) => (0.0, 0.0, 0.0),
+                (SoldierCrab, _) => (0.0, 0.0, 0.0),
+                (Karkatha, _) => (0.0, 0.0, 0.0),
+            },
+            leg_b: match (body.species, body.body_type) {
+                (Crab, _) => (0.0, 0.0, 0.0),
+                (SoldierCrab, _) => (0.0, 0.0, 0.0),
+                (Karkatha, _) => (0.0, 0.0, 0.0),
+            },
+            leg_ori: match (body.species, body.body_type) {
+                (Crab, _) => (-0.4, 0.0, 0.4),
+                (SoldierCrab, _) => (-0.4, 0.0, 0.4),
+                (Karkatha, _) => (-0.4, 0.0, 0.4),
+            },
+            move_sideways: match (body.species, body.body_type) {
+                (Crab, _) => true,
+                (SoldierCrab, _) => true,
+                (Karkatha, _) => false,
+            },
+            scaler: match (body.species, body.body_type) {
+                (Crab, _) => 0.62,
+                (SoldierCrab, _) => 0.62,
+                (Karkatha, _) => 1.2,
+            },
         }
     }
 }

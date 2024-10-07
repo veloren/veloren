@@ -23,5 +23,5 @@ LeapMelee(
     ),
     forward_leap_strength: 30.0,
     vertical_leap_strength: 15.0,
-    specifier: Some(ElderLeap),
+    specifier: Some(LeapWhoosh),
 )

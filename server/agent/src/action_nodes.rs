@@ -1151,6 +1151,7 @@ impl<'a> AgentData<'a> {
                             "Dullahan" => Tactic::Dullahan,
                             "Grave Warden" => Tactic::GraveWarden,
                             "Tidal Warrior" => Tactic::TidalWarrior,
+                            "Karkatha" => Tactic::Karkatha,
                             "Tidal Totem"
                             | "Tornado"
                             | "Gnarling Totem Red"
@@ -1624,6 +1625,14 @@ impl<'a> AgentData<'a> {
                 &attack_data,
                 tgt_data,
                 read_data,
+            ),
+            Tactic::Karkatha => self.handle_karkatha_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
             ),
             Tactic::RadialTurret => self.handle_radial_turret_attack(controller),
             Tactic::FieryTornado => self.handle_fiery_tornado_attack(agent, controller),

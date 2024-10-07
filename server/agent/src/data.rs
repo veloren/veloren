@@ -238,6 +238,7 @@ pub enum Tactic {
     Minotaur,
     GraveWarden,
     TidalWarrior,
+    Karkatha,
     Yeti,
     Harvester,
     StoneGolem,

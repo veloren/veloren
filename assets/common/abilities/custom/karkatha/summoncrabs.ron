@@ -1,0 +1,22 @@
+BasicSummon(
+    buildup_duration: 0.5,
+    cast_duration: 0.5,
+    recover_duration: 0.5,
+    summon_amount: 20,
+    summon_distance: (10, 20),
+    summon_info: (
+        body: Crustacean((
+            species: SoldierCrab,
+            body_type: Male,
+        )),
+        scale: None,
+        use_npc_name: true,
+        has_health: true,
+        loadout_config: None,
+        skillset_config: Some(Rank3),
+    ),
+    duration: Some((
+        secs: 16,
+        nanos: 0,
+    )),
+)
