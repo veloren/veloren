@@ -54,6 +54,7 @@ pub mod rtsim;
 pub mod skillset_builder;
 pub mod slowjob;
 pub mod spiral;
+pub mod spot;
 pub mod states;
 pub mod store;
 pub mod terrain;

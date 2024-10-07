@@ -406,6 +406,7 @@ pub enum ServerChatCommand {
     SkillPoint,
     SkillPreset,
     Spawn,
+    Spot,
     Sudo,
     Tell,
     Tether,
@@ -880,6 +881,19 @@ impl ServerChatCommand {
                 Content::localized("command-spawn-desc"),
                 Some(Admin),
             ),
+            ServerChatCommand::Spot => cmd(
+                vec![Enum(
+                    "Spot kind to find",
+                    crate::spot::RON_SPOT_PROPERTIES
+                        .0
+                        .iter()
+                        .map(|s| s.base_structures.clone())
+                        .collect(),
+                    Required,
+                )],
+                Content::localized("command-spot-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::Sudo => cmd(
                 vec![EntityTarget(Required), SubCommand],
                 Content::localized("command-sudo-desc"),
@@ -1109,6 +1123,7 @@ impl ServerChatCommand {
             ServerChatCommand::SkillPoint => "skill_point",
             ServerChatCommand::SkillPreset => "skill_preset",
             ServerChatCommand::Spawn => "spawn",
+            ServerChatCommand::Spot => "spot",
             ServerChatCommand::Sudo => "sudo",
             ServerChatCommand::Tell => "tell",
             ServerChatCommand::Time => "time",
