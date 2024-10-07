@@ -84,6 +84,7 @@ command-site-desc = Teleport to a site
 command-skill_point-desc = Give yourself skill points for a particular skill tree
 command-skill_preset-desc = Gives your character desired skills.
 command-spawn-desc = Spawn a test entity
+command-spot-desc = Find and teleport to the closest spot of a certain kind.
 command-sudo-desc = Run command as if you were another entity
 command-tell-desc = Send a message to another player
 command-tether-desc = Tether another entity to yourself
@@ -255,6 +256,8 @@ command-outcome-expected_integer = Expected integer
 command-outcome-expected_sprite_kind = Expected SpriteKind
 command-outcome-invalid_outcome = { $outcome } is not a valid outcome
 command-death_effect-unknown = Unknown death effect { $effect }.
+command-spot-spot_not_found = Didn't find any spots of that kind in this world.
+command-spot-world_feature = The `worldgen` feature has to be enabled to run this command.
 
 # Unreachable/untestable but added for consistency
 

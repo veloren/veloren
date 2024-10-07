@@ -4,12 +4,11 @@ use crate::{
     Canvas,
 };
 use common::{
-    assets::{Asset, AssetCombined, AssetHandle, Concatenate, RonLoader},
     generation::EntityInfo,
+    spot::{SpotCondition, SpotProperties, RON_SPOT_PROPERTIES},
     terrain::{BiomeKind, Structure, TerrainChunkSize},
     vol::RectVolSize,
 };
-use lazy_static::lazy_static;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use std::ops::Range;
@@ -70,12 +69,12 @@ impl Spot {
         use BiomeKind::*;
         // Trees/spawn: false => *No* trees around the spot
         // Themed Spots -> Act as an introduction to themes of sites
-        for s in RON_PROPERTIES.0.iter() {
+        for s in RON_SPOT_PROPERTIES.0.iter() {
             Self::generate_spots(
                 Spot::RonFile(s),
                 world,
                 s.freq,
-                |g, c| s.condition.is_valid(g, c),
+                |g, c| is_valid(&s.condition, g, c),
                 s.spawn,
             );
         }
@@ -624,74 +623,23 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
     }
 }
 
-#[derive(serde::Deserialize, Clone, Debug)]
-enum SpotCondition {
-    MaxGradient(f32),
-    Biome(Vec<BiomeKind>),
-    NearCliffs,
-    NearRiver,
-    IsWay,
-    IsUnderwater,
-
-    /// no cliffs, no river, no way
-    Typical,
-    /// implies IsUnderwater
-    MinWaterDepth(f32),
-
-    Not(Box<SpotCondition>),
-    All(Vec<SpotCondition>),
-    Any(Vec<SpotCondition>),
-}
-
-impl SpotCondition {
-    fn is_valid(&self, g: f32, c: &SimChunk) -> bool {
-        c.sites.is_empty()
-            && match self {
-                SpotCondition::MaxGradient(value) => g < *value,
-                SpotCondition::Biome(biomes) => biomes.contains(&c.get_biome()),
-                SpotCondition::NearCliffs => c.near_cliffs(),
-                SpotCondition::NearRiver => c.river.near_water(),
-                SpotCondition::IsWay => c.path.0.is_way(),
-                SpotCondition::IsUnderwater => c.is_underwater(),
-                SpotCondition::Typical => {
-                    !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way()
-                },
-                SpotCondition::MinWaterDepth(depth) => {
-                    SpotCondition::IsUnderwater.is_valid(g, c) && c.water_alt > c.alt + depth
-                },
-                SpotCondition::Not(condition) => !condition.is_valid(g, c),
-                SpotCondition::All(conditions) => conditions.iter().all(|cond| cond.is_valid(g, c)),
-                SpotCondition::Any(conditions) => conditions.iter().any(|cond| cond.is_valid(g, c)),
-            }
-    }
-}
-
-#[derive(serde::Deserialize, Clone, Debug)]
-pub struct SpotProperties {
-    base_structures: String,
-    freq: f32,
-    condition: SpotCondition,
-    spawn: bool,
-}
-
-#[derive(serde::Deserialize, Clone, Debug)]
-#[serde(transparent)]
-struct RonSpots(Vec<SpotProperties>);
-
-impl Asset for RonSpots {
-    type Loader = RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
-impl Concatenate for RonSpots {
-    fn concatenate(self, b: Self) -> Self { Self(self.0.concatenate(b.0)) }
-}
-
-lazy_static! {
-    static ref RON_PROPERTIES: RonSpots = {
-        let spots: AssetHandle<RonSpots> =
-            RonSpots::load_expect_combined_static("world.manifests.spots");
-        RonSpots(spots.read().0.to_vec())
-    };
+pub fn is_valid(condition: &SpotCondition, g: f32, c: &SimChunk) -> bool {
+    c.sites.is_empty()
+        && match condition {
+            SpotCondition::MaxGradient(value) => g < *value,
+            SpotCondition::Biome(biomes) => biomes.contains(&c.get_biome()),
+            SpotCondition::NearCliffs => c.near_cliffs(),
+            SpotCondition::NearRiver => c.river.near_water(),
+            SpotCondition::IsWay => c.path.0.is_way(),
+            SpotCondition::IsUnderwater => c.is_underwater(),
+            SpotCondition::Typical => {
+                !c.near_cliffs() && !c.river.near_water() && !c.path.0.is_way()
+            },
+            SpotCondition::MinWaterDepth(depth) => {
+                is_valid(&SpotCondition::IsUnderwater, g, c) && c.water_alt > c.alt + depth
+            },
+            SpotCondition::Not(condition) => !is_valid(condition, g, c),
+            SpotCondition::All(conditions) => conditions.iter().all(|cond| is_valid(cond, g, c)),
+            SpotCondition::Any(conditions) => conditions.iter().any(|cond| is_valid(cond, g, c)),
+        }
 }
