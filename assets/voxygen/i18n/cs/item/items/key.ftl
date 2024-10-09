@@ -8,3 +8,7 @@ object-key-bone = Kostěný klíč
     .desc = Otevírá kostěné zámky. Po použití se zlomí.
 object-key-miner = Hornický klíč
     .desc = Používá se k otevírání dveří. Po použití se zlomí.
+object-key-forge = Kovárenský klíč
+    .desc = Používá se k otevírání dveří. Po použití se zlomí.
+object-key-haniwa = Klíč kmene Haniwa
+    .desc = Používá se k otevírání dveří. Po použití se zlomí.
