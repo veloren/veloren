@@ -108,3 +108,5 @@ main-server-rules-seen-before = De här reglerna har ändrats sen du sist accept
 main-singleplayer-delete = Radera
 main-server-rules = Den här servern har regler som måste accepteras.
 main-singleplayer-seed = Frö
+main-singleplayer-map_shape-circle = Cirkel
+main-singleplayer-map_shape-square = Kvadrat

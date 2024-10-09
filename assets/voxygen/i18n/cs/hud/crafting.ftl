@@ -21,3 +21,34 @@ hud-crafting-tabs-utility = Užitečnosti
 hud-crafting-tabs-weapon = Zbraně
 hud-crafting-tabs-bag = Tašky
 hud-crafting-tabs-processed_material = Materiály
+hud-crafting-mod_comp_wood_prim_slot_desc = Sem polož nějaké dřevo, jen určité typy jsou vhodné pro výrobu zbraní.
+hud-crafting-repair_equipped = Nasazeno
+hud-crafting-repair_all = Vše
+hud-crafting-tool_cata = Nástroje:
+hud-crafting-req_crafting_station = Stanice:
+hud-crafting-craft_all = Vyrobit vše
+hud-crafting-repair-selection = Výběr
+hud-crafting-salvaging_station = Recyklační stanice
+hud-crafting-repair_bench = Pultík na opravu
+hud-crafting-repair_slot_desc = Sem dej předmět, abys viděl cenu opravy z aktuálního stavu.
+hud-crafting-campfire = Táborák
+hud-crafting-dismantle_title = Rozebrání
+hud-crafting-dismantle_explanation =
+    Najeď na předměty ve vaku, ať vidíš,
+    co můžeš zrecyklovat.
+
+    Dvojklikem začni rozebírat.
+hud-crafting-modular_desc = Přetáhni sem součástky a vyrob zbraň
+hud-crafting-repair_desc = Přetáhni sem poškozené předměty a oprav je
+hud-crafting-mod_weap_prim_slot_title = Primární součástka zbraně
+hud-crafting-mod_weap_prim_slot_desc = Sem umísti primární součástku zbraně (např. čepel meče, hlavu sekery, nebo lučiště).
+hud-crafting-mod_weap_sec_slot_title = Druhotná součástka zbraně
+hud-crafting-mod_weap_sec_slot_desc = Sem umísti druhotnou součástku zbraně (např. záštitu, držadlo nebo jádro hole).
+hud-crafting-mod_comp_metal_prim_slot_title = Kovový ingot
+hud-crafting-mod_comp_metal_prim_slot_desc = Sem dej kovový ingot, jen některé materiály jsou vhodné pro výrobu zbraní.
+hud-crafting-mod_comp_wood_prim_slot_title = Dřevo
+hud-crafting-mod_comp_sec_slot_title = Zvířecí materiál
+hud-crafting-recipe-unlearned = Nejdřív se musíš naučit, jak takovou věc vyrobit.
+hud-crafting-mod_comp_sec_slot_desc = Sem můžeš vložit část zvířete k výrobě, jen některé části zvířat mohou změnit vlastnosti zbraní.
+hud-crafting-repair_slot_title = Poškozený předmět
+hud-crafting-recipe-uncraftable = Recept nemůže být vyroben

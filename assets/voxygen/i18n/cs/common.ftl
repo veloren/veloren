@@ -36,8 +36,8 @@ common-language_settings = Jazyk
 common-chat_settings = Chat
 common-connection_lost =
     Spojení ztraceno!
-             Restartoval se server?
-             Je klient aktuální?
+    Restartoval se server?
+    Je klient aktuální?
 common-species-orc = Ork
 common-species-human = Člověk
 common-species-dwarf = Trpaslík
@@ -84,3 +84,29 @@ common-material-wood = Dřevo
 common-material-stone = Kámen
 common-material-cloth = Látka
 common-material-hide = Kůže
+common-tool-shovel = Lopata
+common-tool-instrument = Nástroj
+common-kind-modular_component_partial = Součást
+common-delete_server = Smazat Server
+common-confirm = Potvrdit
+common-networking_settings = Nastavení Sítě
+common-sprite-chest = Truhla
+common-networking = Síťování
+common-sprite-crate = Bedna
+common-kind-recipegroup = Recepty
+common-stats-effect-power = Síla Efektu
+common-stats-range = Dosah
+common-stats-energy_efficiency = Efektivita Energie
+common-stats-buff_strength = Síla Buffu/Debuffu
+common-stats-durability = Odolnost
+common-accessibility = Přístupnost
+common-accessibility_settings = Nastavení Přístupnosti
+common-weapons-dagger = Dýka
+common-sprite-chair = Židle
+common-sprite-mud = Bahno
+common-sprite-grave = Hrob
+common-sprite-street_lamp = Pouliční Lampa
+common-sprite-lantern = Lucerna
+common-sprite-seashell_lantern = Lucerna z Mušle
+common-sprite-signboard = Vývěska
+common-sprite-firebowl_ground = Ohniště

@@ -16,7 +16,7 @@ hud-map-castle = Hrad
 hud-map-dungeon = Kobka
 hud-map-difficulty_dungeon =
     Kobka
-    
+
     Obtížnost: { $difficulty }
 hud-map-drag = Táhnout
 hud-map-zoom = Přiblížit
@@ -29,3 +29,15 @@ hud-map-toggle_minimap_voxel = Voxelová minimapa
 hud-map-zoom_minimap_explanation =
     Přibliž si minimapu
     pro lepší detail oblasti kolem
+hud-map-biomes = Biomy
+hud-map-bridge = Most
+hud-map-df_mine = Důl
+hud-map-gnarling = Opevnění Gnarlingů
+hud-map-adlet = Bašta Adletů
+hud-map-haniwa = Katakomby Haniwa
+hud-map-chapel_site = Mořská Kaple
+hud-map-terracotta = Terakotové Ruiny
+hud-map-cultist = Kobka Kultistů
+hud-map-sahagin = Ostrov Sahaginů
+hud-map-placed_by = Umístěno { $name }
+hud-map-vampire_castle = Upíří Hrad

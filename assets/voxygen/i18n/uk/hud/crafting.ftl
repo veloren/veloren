@@ -50,3 +50,4 @@ hud-crafting-repair_equipped = Екіпіровані
 hud-crafting-repair_all = Всі
 hud-crafting-repair-selection = Обраний
 hud-crafting-tool_cata = Інструменти:
+hud-crafting-recipe-unlearned = Спочатку потрібно цей рецепт вивчити.

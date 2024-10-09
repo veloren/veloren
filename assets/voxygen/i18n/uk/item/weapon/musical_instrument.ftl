@@ -28,3 +28,5 @@ weapon-tool-steeltonguedrum = Стальний Глюкофон
     .desc = Стальний Глюкофон.
 weapon-tool-shamisen = Сямісен
     .desc = Сямісен.
+weapon-tool-kora = Кора
+    .desc = Кора.

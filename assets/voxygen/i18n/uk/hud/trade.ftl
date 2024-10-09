@@ -36,3 +36,6 @@ hud-trade-your_offer = Ваша пропозиція
 hud-trade-their_offer = Його пропозиція
 hud-trade-amount_input = Виберіть предмет
 hud-confirm-trade-for-nothing = Ви насправді хочете віддати ці предмети задарма?
+hud-trade-invite-accepted = { $target } приймає вашу пропозицію обміну.
+hud-trade-invite-declined = { $target } відхиляє вашу пропозицію обміну.
+hud-trade-invite-timed_out = Час очікування запиту на обмін до { $target } минув.

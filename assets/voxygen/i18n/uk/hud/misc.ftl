@@ -80,3 +80,5 @@ hud-init-stage-client-starting-client = { "[" }{ -client }]: Підготовк�
 hud-init-stage-render-pipeline = Створення render pipeline ({ $done }/{ $total })
 hud-deactivate = Деактивувати
 hud-pet = Пестити
+hud-hardcore_char_deleted = Цього хардкор персонажа було видалено.
+hud-press_key_to_return_to_char_menu = Натисніть { $key } щоб повернутись до меню персонажів.

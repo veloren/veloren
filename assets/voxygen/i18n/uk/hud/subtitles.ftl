@@ -144,3 +144,7 @@ subtitle-instrument_shamisen = Гра на шямісені
 subtitle-attack-fuse_charge = Шипіння запобіжника
 subtitle-lavapool = Лавовий басейн
 subtitle-surprise_egg = Божественний Звук
+subtitle-instrument_kora = Гра на Корі
+subtitle-attack-bloodmoon_heiress_summon = Звук страшного птаха
+subtitle-utterance-vampire-bat-angry = Кажан кричить
+subtitle-utterance-vampire-bat-hurt = Кажану боляче

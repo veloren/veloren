@@ -73,3 +73,4 @@ gameinput-mutesfx = Вимкнути звуки спецефектів
 gameinput-muteambience = Вимкнути довколишню музику
 gameinput-togglewalk = Перемкнути режим ходьби
 gameinput-controls = Керування
+gameinput-diary = Щоденник
