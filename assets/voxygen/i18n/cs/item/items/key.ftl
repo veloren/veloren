@@ -6,3 +6,5 @@ object-key-glass = Skleněný klíč
     .desc = Otevírá skleněné bariéry. Po použití se rozbije.
 object-key-bone = Kostěný klíč
     .desc = Otevírá kostěné zámky. Po použití se zlomí.
+object-key-miner = Hornický klíč
+    .desc = Používá se k otevírání dveří. Po použití se zlomí.
