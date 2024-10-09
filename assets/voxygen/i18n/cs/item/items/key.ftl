@@ -12,3 +12,5 @@ object-key-forge = Kovárenský klíč
     .desc = Používá se k otevírání dveří. Po použití se zlomí.
 object-key-haniwa = Klíč kmene Haniwa
     .desc = Používá se k otevírání dveří. Po použití se zlomí.
+object-key-terracotta_chest = Klíč k terakotové truhle
+    .desc = Používá se k otevírání beden. Po použití se zlomí.
