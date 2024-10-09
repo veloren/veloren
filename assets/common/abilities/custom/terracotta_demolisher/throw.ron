@@ -4,7 +4,7 @@ BasicRanged(
     recover_duration: 1.5,
     projectile: (
         kind: Explosive(
-            radius: 10,
+            radius: 5,
             min_falloff: 0.5,
             reagent: Some(Yellow),
             terrain: Some((2, Black))

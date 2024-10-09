@@ -169,7 +169,11 @@
             color: None
         ),
         "common.items.armor.mail.orichalcum.foot": (
-            vox_spec: ("armor.mail.orichalcum", (-2.5, -4.5, -1.0), 3),
+            vox_spec: ("armor.mail.orichalcum", (-2.5, -4.5, -2.0), 3),
+            color: None
+        ),
+        "common.items.armor.golemite.foot": (
+            vox_spec: ("armor.golemite.golemite", (-2.5, -4.5, -2.0), 3),
             color: None
         ),
         "common.items.armor.cardinal.foot": (

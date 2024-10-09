@@ -2,7 +2,6 @@
   (1, All([
         MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 3),
         MultiDrop(Item("common.items.crafting_ing.animal_misc.icy_fang"), 2, 4),
-        MultiDrop(LootTable("common.loot_tables.cave_large"), 2, 3),
       ],
    )),
 ]

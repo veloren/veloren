@@ -81,7 +81,7 @@
             color: None
         ),
         "common.items.armor.hide.carapace.back": (
-            vox_spec: ("armor.hide.carapace.back", (-5.0, -1.5, -10.5)),
+            vox_spec: ("armor.hide.carapace.back", (-5.0, -1.5, -10.0)),
             color: None
         ),
         "common.items.armor.hide.primal.back": (
@@ -117,11 +117,11 @@
             color: None
         ),
         "common.items.armor.cloth.moonweave.back": (
-            vox_spec: ("armor.cloth.moonweave.back", (-4.0, -1.5, -12.5)),
+            vox_spec: ("armor.cloth.moonweave.back", (-4.0, -1.5, -12.0)),
             color: None
         ),
         "common.items.armor.cloth.sunsilk.back": (
-            vox_spec: ("armor.cloth.sunsilk.back", (-5.0, -1.5, -12.5)),
+            vox_spec: ("armor.cloth.sunsilk.back", (-5.0, -1.5, -13.0)),
             color: None
         ),
         "common.items.armor.mail.bronze.back": (
@@ -141,11 +141,15 @@
             color: None
         ),
         "common.items.armor.mail.bloodsteel.back": (
-            vox_spec: ("armor.mail.bloodsteel.back", (-3.5, -2.5, -12.0)),
+            vox_spec: ("armor.mail.bloodsteel.back", (-4.0, -2.5, -12.0)),
             color: None
         ),
         "common.items.armor.mail.orichalcum.back": (
-            vox_spec: ("armor.mail.orichalcum", (-5.0, -4.5, -12.5), 0),
+            vox_spec: ("armor.mail.orichalcum", (-5.0, -4.5, -13.0), 0),
+            color: None
+        ),
+        "common.items.armor.golemite.back": (
+            vox_spec: ("armor.golemite.golemite", (-4.0, -1.5, -12.0), 2),
             color: None
         ),
         "common.items.armor.merchant.back": (

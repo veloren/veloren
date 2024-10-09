@@ -401,6 +401,16 @@
         (Item("common.items.armor.brinestone.back"),1),
         (Item("common.items.armor.brinestone.crown"),1),
     ],
+    "golemite": [
+        (Item("common.items.armor.golemite.chest"),1),
+        (Item("common.items.armor.golemite.pants"),1),
+        (Item("common.items.armor.golemite.hand"),1),
+        (Item("common.items.armor.golemite.foot"),1),
+        (Item("common.items.armor.golemite.shoulder"),1),
+        (Item("common.items.armor.golemite.belt"),1),
+        (Item("common.items.armor.golemite.back"),1),
+        (Item("common.items.armor.golemite.helmet"),1),
+    ],
     "instruments": [
         (Item("common.items.tool.instruments.double_bass"),1),
         (Item("common.items.tool.instruments.flute"),1),
@@ -437,6 +447,7 @@
         (Item("common.items.recipes.armor.steel"),1),
         (Item("common.items.recipes.armor.sunsilk"),1),
         (Item("common.items.recipes.armor.woolen"),1),
+        (Item("common.items.recipes.armor.golemite"),1),
         // Equipment
         (Item("common.items.recipes.equipment.advanced"),1),
         (Item("common.items.recipes.equipment.basic"),1),

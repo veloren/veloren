@@ -325,6 +325,12 @@
             energy_max: Some(100.0),
             energy_reward: Some(0.4),
             precision_power: Some(0.5),
+        ),
+        "Golemite": (
+            protection: Some(Normal(138.0)),
+            poise_resilience: Some(Normal(41.0)),
+            energy_max: Some(60.0),
+            energy_reward: Some(-0.6),
         )
     },
 )

@@ -1303,6 +1303,55 @@
             vox_spec: ("armor.misc.head.boreal_warhelm", (-3.0, -7.0, -4.0)),
             color: None
         ),
+            // Golemite Helmet
+        (Human, Male, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-4.0, -6.0, -2.0), 0),
+            color: None
+        ),
+        (Human, Female, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-4.0, -6.0, -2.0), 0),
+            color: None
+        ),
+        (Elf, Male, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-3.0, -6.0, -2.0), 0),
+            color: None
+        ),
+        (Elf, Female, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-3.0, -6.0, -2.0), 0),
+            color: None
+        ),
+        (Dwarf, Male, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-5.0, -5.0, -2.0), 0),
+            color: None
+        ),
+        (Dwarf, Female, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-5.0, -5.0, -2.0), 0),
+            color: None
+        ),
+        (Danari, Male, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-2.0, -6.0, 0.0), 0),
+            color: None
+        ),
+        (Danari, Female, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-2.0, -6.0, 0.0), 0),
+            color: None
+        ),
+        (Draugr, Male, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-6.0, -6.0, -0.5), 0),
+            color: None
+        ),
+        (Draugr, Female, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-6.0, -6.0, -1.0), 0),
+            color: None
+        ),
+        (Orc, Male, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-3.0, -4.0, 0.0), 0),
+            color: None
+        ),
+        (Orc, Female, "common.items.armor.golemite.helmet"): (
+            vox_spec: ("armor.golemite.golemite", (-3.0, -7.0, -2.0), 0),
+            color: None
+        ),
         // Brinestone Crown
         (Human, Male, "common.items.armor.brinestone.crown"): (
             vox_spec: ("armor.brinestone.crown", (-4.0, -4.0, -1.0)),

@@ -40,6 +40,10 @@
             vox_spec: ("armor.boreal.pants", (-5.0, -3.5, 0.0)),
             color: None
         ),
+         "common.items.armor.golemite.pants": (
+            vox_spec: ("armor.golemite.golemite", (-6.0, -3.5, 0.0), 7),
+            color: None
+        ),
          "common.items.armor.brinestone.pants": (
             vox_spec: ("armor.brinestone.pants", (-7.0, -3.5, -1.0)),
             color: None
@@ -201,7 +205,7 @@
             color: None
         ),
         "common.items.armor.mail.cobalt.pants": (
-            vox_spec: ("armor.mail.cobalt.pants", (-6.0, -5.5, 1.0)),
+            vox_spec: ("armor.mail.cobalt.pants", (-6.0, -4.5, 1.0)),
             color: None
         ),
         "common.items.armor.mail.bloodsteel.pants": (

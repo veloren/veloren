@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Golem Core",
+    legacy_description: "test",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Epic,
+    tags: [],
+)

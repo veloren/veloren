@@ -3,12 +3,10 @@
             Item("common.items.keys.terracotta_key_door"),
 
             Lottery([
-                // Weapons
-                (3.0, LootTable("common.loot_tables.weapons.tier-5")),
-                // Armor
-                (3.0, LootTable("common.loot_tables.armor.tier-5")),
                 // Misc
-                (0.25, Item("common.items.tool.instruments.steeltonguedrum")),
+                (0.85, MultiDrop(Item("common.items.mineral.ore.ancient_gold"), 1, 2)),
+                (0.10, Item("common.items.tool.instruments.steeltonguedrum")),
+                (0.75, MultiDrop(Item("common.items.crafting_ing.cursed_bead"), 1, 2)),
             ]),
         ],
     )),
