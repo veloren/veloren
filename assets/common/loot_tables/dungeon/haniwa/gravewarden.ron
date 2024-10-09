@@ -6,4 +6,5 @@
     // Misc
     (2.0, Item("common.items.armor.misc.neck.haniwa_talisman")),
     (0.2, Item("common.items.tool.instruments.shamisen")),
+    (2.2, Item("common.items.crafting_ing.golem_core")),
 ]

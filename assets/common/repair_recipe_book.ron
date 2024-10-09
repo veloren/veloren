@@ -1124,6 +1124,63 @@ recipes: {
             (Item("common.items.mineral.ore.velorite"), 2),
         ],
     ),
+    // ARMOR/GOLEMITE
+    ItemDefId("common.items.armor.golemite.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.golemite_slab"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+        ItemDefId("common.items.armor.golemite.head"): (
+        inputs: [
+            (Item("common.items.crafting_ing.golemite_slab"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.golemite.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.golemite_slab"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.golemite.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.golemite_slab"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 12),
+            (Item("common.items.mineral.ore.velorite"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.golemite.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.golemite_slab"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.golemite.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.golemite_slab"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.golemite.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.golemite_slab"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.golemite.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.golemite_slab"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 8),
+            (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
     // ARMOR/CULTIST
     ItemDefId("common.items.armor.cultist.back"): (
         inputs: [

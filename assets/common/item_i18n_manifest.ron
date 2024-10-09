@@ -1651,6 +1651,30 @@
             "common.items.armor.mail.orichalcum.head",
         ): "armor-mail-orichalcum-7",
         Simple(
+            "common.items.armor.golemite.back",
+        ): "armor-golemite-back",
+        Simple(
+            "common.items.armor.golemite.belt",
+        ): "armor-golemite-belt",
+        Simple(
+            "common.items.armor.golemite.chest",
+        ): "armor-golemite-chest",
+        Simple(
+            "common.items.armor.golemite.foot",
+        ): "armor-golemite-foot",
+        Simple(
+            "common.items.armor.golemite.hand",
+        ): "armor-golemite-hand",
+        Simple(
+            "common.items.armor.golemite.pants",
+        ): "armor-golemite-pants",
+        Simple(
+            "common.items.armor.golemite.shoulder",
+        ): "armor-golemite-shoulder",
+        Simple(
+            "common.items.armor.golemite.helmet",
+        ): "armor-golemite-helmet",
+        Simple(
             "common.items.armor.mail.steel.back",
         ): "armor-mail-steel-back",
         Simple(
@@ -3105,6 +3129,18 @@
         Simple(
             "common.items.crafting_ing.pearl",
         ): "sprite-crafting_ing-pearl",
+        Simple(
+            "common.items.crafting_ing.cursed_bead",
+        ): "sprite-crafting_ing-cursed_bead",
+        Simple(
+            "common.items.crafting_ing.golem_core",
+        ): "sprite-crafting_ing-golem_core",
+        Simple(
+            "common.items.crafting_ing.golemite_slab",
+        ): "sprite-crafting_ing-golemite_slab",
+        Simple(
+            "common.items.crafting_ing.earthern_shard",
+        ): "sprite-crafting_ing-earthern_shard",
         Simple(
             "common.items.crafting_ing.resin",
         ): "sprite-crafting_ing-resin",
@@ -7177,6 +7213,7 @@
         Simple("common.items.recipes.armor.steel"): "recipe-armor-steel",
         Simple("common.items.recipes.armor.sunsilk"): "recipe-armor-sunsilk",
         Simple("common.items.recipes.armor.woolen"): "recipe-armor-woolen",
+        Simple("common.items.recipes.armor.golemite"): "recipe-armor-golemite",
         Simple("common.items.recipes.equipment.basic"): "recipe-equipment-basic",
         Simple("common.items.recipes.equipment.moderate"): "recipe-equipment-moderate",
         Simple("common.items.recipes.equipment.advanced"): "recipe-equipment-advanced",

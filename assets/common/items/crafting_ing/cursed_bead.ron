@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Cursed Bead",
+    legacy_description: "test",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Legendary,
+    tags: [],
+)

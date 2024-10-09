@@ -1,0 +1,19 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "golemite_slab",
+            "golemite_back",
+            "golemite_belt",
+            "golemite_chest",
+            "golemite_feet",
+            "golemite_hands",
+            "golemite_pants",
+            "golemite_shoulder",
+            "golemite_head",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

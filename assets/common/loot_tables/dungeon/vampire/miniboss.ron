@@ -1,8 +1,8 @@
 [
     (1.0, All([
         MultiDrop(Item("common.items.utility.coins"), 200, 500),
-        MultiDrop(Item("common.items.mineral.ingot.iron"), 5, 10),
-        MultiDrop(Item("common.items.consumable.potion_minor"), 4, 8),
+        MultiDrop(Item("common.items.consumable.potion_minor"), 2, 4),
+        MultiDrop(Item("common.items.mineral.ingot.bloodsteel"), 0, 2),
 
         // Special drop
         Lottery([
@@ -10,8 +10,7 @@
             (0.15, Item("common.items.lantern.blue_0")),
             // Hat drop
             (0.3, Item("common.items.armor.misc.head.mitre")),
-            // Allow for Eldwood to drop until entity droppers are implemented
-            (0.5, Item("common.items.log.eldwood")),
+            //  Nothing
             (1.05, Nothing),
         ]),
     ]))

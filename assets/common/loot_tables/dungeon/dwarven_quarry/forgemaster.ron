@@ -1,7 +1,7 @@
 [
   (1, All([
         Item("common.items.keys.quarry_keys.miner_key"),
-        MultiDrop(Item("common.items.mineral.ore.ancient_gold"), 1, 3),
+        MultiDrop(Item("common.items.mineral.ore.ancient_gold"), 2, 4),
         MultiDrop(Item("common.items.crafting_ing.alkahest"), 1, 2),        
         MultiDrop(Item("common.items.crafting_ing.dwarven_battery"), 1, 1),                
 //        Item("common.items.keys.quarry_keys.rusty_tower_key"),

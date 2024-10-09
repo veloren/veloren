@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Golemite Chestplate",
+    legacy_description: "Equipment constructed from Golemite, providing toughness not unlike that of a golem.",
+    kind: Armor((
+        kind: Chest,
+        stats: FromSet("Golemite"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

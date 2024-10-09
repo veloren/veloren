@@ -1,8 +1,10 @@
 [
     // Consumables
-    (1.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
+    (0.9, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
+    // Earthern Shard
+    (3.3, MultiDrop(Item("common.items.crafting_ing.earthern_shard"), 1, 3)),
     // Food
-    (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 4)),
+    (0.9, MultiDrop(LootTable("common.loot_tables.food.prepared"), 2, 4)),
     // Nothing
     (2.0, Nothing),
 ]

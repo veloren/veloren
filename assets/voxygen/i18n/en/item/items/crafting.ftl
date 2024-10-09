@@ -46,6 +46,18 @@ sprite-crafting_ing-oil = Oil
 sprite-crafting_ing-pearl = Pearl
     .desc = Would make a nice lamp.
 
+sprite-crafting_ing-cursed_bead = Cursed Bead
+    .desc = What sinister magics could be harboured by this old mystic bead?
+
+sprite-crafting_ing-golem_core = Golem Core
+    .desc = A mysterious magical core, which was able to power an ancient guardian construct.
+
+sprite-crafting_ing-golemite_slab = Golemite Slab
+    .desc = After being brought back to its former glory, this earthern material became sturdy and suitable for armor production.
+
+sprite-crafting_ing-earthern_shard = Earthern Shard
+    .desc = A hardened shard that was once part of an animated ceramic being.
+
 sprite-crafting_ing-resin = Resin
     .desc = Used for woodworking.
 

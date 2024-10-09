@@ -184,6 +184,10 @@
             vox_spec: ("armor.mail.orichalcum", (-4.0, -3.5, 1.0), 1),
             color: None
         ),
+        "common.items.armor.golemite.belt":(
+            vox_spec: ("armor.golemite.golemite", (-4.0, -3.5, 1.0), 6),
+            color: None
+        ),
         "common.items.armor.cardinal.belt": (
             vox_spec: ("armor.cardinal.belt", (-4.0, -3.5, 2.0)),
             color: None

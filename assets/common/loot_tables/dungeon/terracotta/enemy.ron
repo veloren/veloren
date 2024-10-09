@@ -1,6 +1,8 @@
 [
     // Consumables
     (1.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
+    // Recipe
+    (0.3, Item("common.items.recipes.armor.golemite")),
     // Nothing
     (2.0, Nothing),
 ]

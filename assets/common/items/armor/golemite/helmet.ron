@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "Golemite Helmet",
+    legacy_description: "Equipment constructed from Golemite, providing toughness not unlike that of a golem.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(14.0)),
+            poise_resilience: Some(Normal(5.6)),
+            energy_max: Some(10.0),
+            energy_reward: Some(-0.08),
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+)

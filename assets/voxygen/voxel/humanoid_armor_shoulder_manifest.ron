@@ -481,6 +481,16 @@
                 color: None
             )
         ),
+        "common.items.armor.golemite.shoulder": (
+            left: (
+                vox_spec: ("armor.golemite.golemite", (-5.5, -3.5, -1.0), 5),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.golemite.golemite", (-1.5, -3.5, -1.0), 5),
+                color: None
+            )
+        ),
         "common.items.armor.cardinal.shoulder": (
             left: (
                 vox_spec: ("armor.cardinal.shoulder", (-5.0, -2.5, -1.0)),

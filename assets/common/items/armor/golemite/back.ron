@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Golemite Cloak",
+    legacy_description: "Equipment constructed from Golemite, providing toughness not unlike that of a golem.",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Golemite"),
+    )),
+    quality: Legendary,
+    tags: [],
+)
