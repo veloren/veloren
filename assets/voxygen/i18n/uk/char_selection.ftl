@@ -21,3 +21,5 @@ char_selection-starting_site_kind = Вид: { $kind }
 char_selection-create_info_name = Персонажу потрібно дати ім'я!
 char_selection-version_mismatch = УВАГА! Цей сервер використовує іншу, можливо несумісну версію гри. Будь ласка, оновіть свою гру.
 char_selection-rules = Правила
+char_selection-hardcore = Хардкор
+char_selection-hardcore_tooltip = Хардкорні персонажі будуть видалені після смерті, ніяких інших змін у складності

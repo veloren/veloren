@@ -1,6 +1,6 @@
 hud-group = Skupina
-hud-group-invite_to_join = [{ $name }] tě pozval do skupiny!
-hud-group-invite_to_trade = [{ $name }] by s tebou chtěl obchodovat.
+hud-group-invite_to_join = { "[" }{ $name }] tě pozval do skupiny!
+hud-group-invite_to_trade = { "[" }{ $name }] by s tebou chtěl obchodovat.
 hud-group-invite = Pozvat
 hud-group-kick = Vyhodit
 hud-group-assign_leader = Nastavit Vůdcem
@@ -11,3 +11,6 @@ hud-group-add_friend = Přidat Přítele
 hud-group-link_group = Propojit Skupiny
 hud-group-in_menu = V Menu
 hud-group-members = Členové Skupiny
+hug-group-invite-accepted = { $target } přijal tvou pozvánku do skupiny.
+hud-group-invite-declined = { $target } odmítl tvou pozvánku do skupiny.
+hud-group-invite-timed_out = Pozvánka do skupiny pro { $target } vypršela.

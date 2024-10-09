@@ -50,3 +50,5 @@ hud-crafting-repair_all = Alla
 hud-crafting-tool_cata = Verktyg:
 hud-crafting-repair_equipped = Utrustade
 hud-crafting-repair-selection = Vald
+hud-crafting-req_crafting_station = Station:
+hud-crafting-repair_desc = Dra skadade saker hit för att reparera dem

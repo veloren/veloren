@@ -109,3 +109,5 @@ loading-tips =
 main-singleplayer-day_length = Тривалість дня
 main-server-rules = Цей сервер має правила, які необхідно прийняти.
 main-server-rules-seen-before = Ці правила змінилися з часу, коли ви востаннє приймали їх.
+main-singleplayer-map_shape-square = Квадратна
+main-singleplayer-map_shape-circle = Кругла

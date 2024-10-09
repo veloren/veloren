@@ -206,3 +206,5 @@ buff-rooted = Rotad
 # Staggered
 buff-staggered = Vacklan
     .desc = Du är i obalans och mer mottaglig till tunga attacker.
+buff-resilience = Resilians
+    .desc = Efter att just ha tagit en försvagande attack blit du mer resilient mot framtida försvagande effekter.

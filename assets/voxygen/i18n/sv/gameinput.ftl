@@ -72,3 +72,5 @@ gameinput-mutesfx = Stäng av SFX-volym
 gameinput-muteambience = Stäng av bakgrundsvolym
 gameinput-stayfollow = Stanna/Följ
 gameinput-togglewalk = Växla Promenerande
+gameinput-controls = Kontroller
+gameinput-diary = Dagbok

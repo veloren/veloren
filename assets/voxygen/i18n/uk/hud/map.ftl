@@ -39,3 +39,5 @@ hud-map-placed_by = Поставлено { $name }
 hud-map-haniwa = Катакомби Ханів
 hud-map-terracotta = Теракотові Руїни
 hud-map-cultist = Підземелля Культистів
+hud-map-sahagin = Острів Сахаґінів
+hud-map-vampire_castle = Замок Вампірів

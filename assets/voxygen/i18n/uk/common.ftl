@@ -109,3 +109,4 @@ common-sprite-street_lamp = Вулична Лампа
 common-sprite-lantern = Ліхтар
 common-sprite-seashell_lantern = Ліхтар з Морської Мушлі
 common-kind-recipegroup = Рецепти
+common-sprite-firebowl_ground = Чаша Вогню
