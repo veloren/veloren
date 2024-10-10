@@ -2449,10 +2449,10 @@ impl ParticleMgr {
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::PositionsAndDirs(&boi.waterfall),
-                range: 1,
-                rate: 5.0,
+                range: 2,
+                rate: 4.0,
                 lifetime: 5.0,
-                mode: ParticleMode::Fog,
+                mode: ParticleMode::WaterFoam,
                 cond: |_| true,
             },
         ];

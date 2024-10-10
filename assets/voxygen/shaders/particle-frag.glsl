@@ -80,8 +80,10 @@ void main() {
     // CPU) we need to some how find an approximation of how much the sun is blocked. We do this by fading out the sun
     // as the particle moves underground. This isn't perfect, but it does at least mean that particles don't look like
     // they're exposed to the sun when in dungeons
-    const float SUN_FADEOUT_DIST = 20.0;
-    sun_info.block *= clamp((f_pos.z - f_alt) / SUN_FADEOUT_DIST + 1, 0, 1);
+    const float LIGHT_FADEOUT_OFFSET = 50.0;
+    const float LIGHT_FADEOUT_DIST = 20.0;
+    sun_info.block *= clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1);
+    moon_info.block *= clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1);
 
     // To account for prior saturation.
     float max_light = 0.0;
@@ -114,9 +116,9 @@ void main() {
 
     uint material = MAT_BLOCK;
 
-    const int FOG = 64;
+    const int WATER_FOAM = 64;
 
-    if (f_mode == FOG) {
+    if (f_mode == WATER_FOAM) {
         material = MAT_FLUID;
     }
     

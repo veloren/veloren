@@ -101,7 +101,7 @@ const int SPORE = 60;
 const int SURPRISE_EGG = 61;
 const int FLAME_TORNADO = 62;
 const int POISON = 63;
-const int FOG = 64;
+const int WATER_FOAM = 64;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1060,10 +1060,10 @@ void main() {
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
-        case FOG:
+        case WATER_FOAM:
             f_reflect = 0.1;
             attr = Attr(
-                inst_dir * pow(percent(), 0.5) * 0.5 + pow(slow_start(0.5) * 2, 2) * vec3(0, 0, -10),
+                inst_dir * pow(percent(), 0.5) * 0.5 + pow(slow_start(0.5) * 2, 2) * vec3(0, 0, -20),
                 vec3((1.5 * (1 - slow_start(0.2)))),
                 vec4(1.0, 1.0, 1.0, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)

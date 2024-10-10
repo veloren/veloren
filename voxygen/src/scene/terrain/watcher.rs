@@ -127,11 +127,10 @@ impl BlocksOfInterest {
                     }
                 },
                 BlockKind::Water => {
-                    let waterfall_strength = if chunk
+                    let is_waterfall = chunk
                         .get(pos + vek::Vec3::unit_z())
                         .is_ok_and(|b| b.is_air())
-                    {
-                        [
+                        && [
                             vek::Vec2::new(0, 1),
                             vek::Vec2::new(1, 0),
                             vek::Vec2::new(0, -1),
@@ -139,25 +138,21 @@ impl BlocksOfInterest {
                         ]
                         .iter()
                         .map(|p| {
-                            (1..=32)
+                            (1..=2)
                                 .take_while(|i| {
                                     chunk.get(pos + p.with_z(*i)).is_ok_and(|b| b.is_liquid())
                                 })
                                 .count()
                         })
-                        .filter(|s| *s > 1)
-                        .max()
-                    } else {
-                        None
-                    };
+                        .any(|s| s >= 2);
 
-                    if let Some(waterfall_strength) = waterfall_strength {
-                        waterfall.push((pos, waterfall_strength as f32 * river_velocity));
+                    if is_waterfall {
+                        waterfall.push((pos, river_velocity));
                     }
 
                     let river_speed_sq = river_velocity.magnitude_squared();
                     // Assign a river speed to water blocks depending on river velocity
-                    if river_speed_sq > 0.9_f32.powi(2) || waterfall_strength.is_some() {
+                    if is_waterfall || river_speed_sq > 0.9_f32.powi(2) {
                         fast_river.push(pos)
                     } else if river_speed_sq > 0.3_f32.powi(2) {
                         slow_river.push(pos)
