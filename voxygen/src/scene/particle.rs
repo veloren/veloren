@@ -2447,6 +2447,14 @@ impl ParticleMgr {
                 mode: ParticleMode::Spore,
                 cond: |_| true,
             },
+            BlockParticles {
+                blocks: |boi| BlockParticleSlice::PositionsAndDirs(&boi.waterfall),
+                range: 1,
+                rate: 5.0,
+                lifetime: 5.0,
+                mode: ParticleMode::Fog,
+                cond: |_| true,
+            },
         ];
 
         let ecs = scene_data.state.ecs();

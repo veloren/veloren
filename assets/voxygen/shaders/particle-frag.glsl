@@ -24,6 +24,7 @@ layout(location = 0) in vec3 f_pos;
 layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) in vec4 f_col;
 layout(location = 3) in float f_reflect;
+layout(location = 4) flat in int f_mode;
 
 layout(location = 0) out vec4 tgt_color;
 layout(location = 1) out uvec4 tgt_mat;
@@ -110,5 +111,14 @@ void main() {
 
     // Temporarily disable particle transparency to avoid artifacts
     tgt_color = vec4(surf_color, 1.0 /*f_col.a*/);
-    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_BLOCK);
+
+    uint material = MAT_BLOCK;
+
+    const int FOG = 64;
+
+    if (f_mode == FOG) {
+        material = MAT_FLUID;
+    }
+    
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), material);
 }

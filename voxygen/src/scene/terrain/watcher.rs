@@ -40,6 +40,7 @@ pub struct BlocksOfInterest {
     pub grass: Vec<Vec3<i32>>,
     pub slow_river: Vec<Vec3<i32>>,
     pub fast_river: Vec<Vec3<i32>>,
+    pub waterfall: Vec<(Vec3<i32>, Vec3<f32>)>,
     pub lavapool: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
     pub smokers: Vec<SmokerProperties>,
@@ -68,7 +69,7 @@ pub struct BlocksOfInterest {
 impl BlocksOfInterest {
     pub fn from_blocks(
         blocks: impl Iterator<Item = (Vec3<i32>, Block)>,
-        river_speed_sq: f32,
+        river_velocity: Vec3<f32>,
         temperature: f32,
         humidity: f32,
         chunk: &impl ReadVol<Vox = Block>,
@@ -79,6 +80,7 @@ impl BlocksOfInterest {
         let mut grass = Vec::new();
         let mut slow_river = Vec::new();
         let mut fast_river = Vec::new();
+        let mut waterfall = Vec::new();
         let mut lavapool = Vec::new();
         let mut fires = Vec::new();
         let mut smokers = Vec::new();
@@ -124,9 +126,43 @@ impl BlocksOfInterest {
                         _ => {},
                     }
                 },
-                // Assign a river speed to water blocks depending on river velocity
-                BlockKind::Water if river_speed_sq > 0.9_f32.powi(2) => fast_river.push(pos),
-                BlockKind::Water if river_speed_sq > 0.3_f32.powi(2) => slow_river.push(pos),
+                BlockKind::Water => {
+                    let waterfall_strength = if chunk
+                        .get(pos + vek::Vec3::unit_z())
+                        .is_ok_and(|b| b.is_air())
+                    {
+                        [
+                            vek::Vec2::new(0, 1),
+                            vek::Vec2::new(1, 0),
+                            vek::Vec2::new(0, -1),
+                            vek::Vec2::new(-1, 0),
+                        ]
+                        .iter()
+                        .map(|p| {
+                            (1..=32)
+                                .take_while(|i| {
+                                    chunk.get(pos + p.with_z(*i)).is_ok_and(|b| b.is_liquid())
+                                })
+                                .count()
+                        })
+                        .filter(|s| *s > 1)
+                        .max()
+                    } else {
+                        None
+                    };
+
+                    if let Some(waterfall_strength) = waterfall_strength {
+                        waterfall.push((pos, waterfall_strength as f32 * river_velocity));
+                    }
+
+                    let river_speed_sq = river_velocity.magnitude_squared();
+                    // Assign a river speed to water blocks depending on river velocity
+                    if river_speed_sq > 0.9_f32.powi(2) || waterfall_strength.is_some() {
+                        fast_river.push(pos)
+                    } else if river_speed_sq > 0.3_f32.powi(2) {
+                        slow_river.push(pos)
+                    }
+                },
                 BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
                 BlockKind::Lava
                     if chunk
@@ -267,6 +303,7 @@ impl BlocksOfInterest {
             grass,
             slow_river,
             fast_river,
+            waterfall,
             lavapool,
             fires,
             smokers,
