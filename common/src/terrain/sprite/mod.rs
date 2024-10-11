@@ -233,6 +233,13 @@ sprites! {
         CeilingLanternPlant     = 0x75,
         CeilingLanternFlower    = 0x76,
         CeilingJungleLeafyPlant = 0x77,
+        // Snow plants and pebbles
+        SnowRose         = 0x80,
+        SnowCrocus       = 0x81,
+        SnowForsythia    = 0x82,
+        SnowBush         = 0x83,
+        SnowPebbles      = 0x84,
+        GrassSnow2       = 0x85,
     },
     // Solid resources
     // TODO: Remove small variants, make deposit size be an attribute
@@ -768,6 +775,7 @@ impl SpriteKind {
             | SpriteKind::MinotaurKeyhole => {
                 return Some(None);
             },
+            SpriteKind::SnowPebbles => item("common.items.crafting_ing.stones"),
             _ => return None,
         }))
     }

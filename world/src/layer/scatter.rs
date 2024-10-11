@@ -147,6 +147,79 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             },
         },
         ScatterConfig {
+            kind: SnowRose,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow),
+            f: |_, col| {
+                (
+                    close(col.temp, CONFIG.snow_temp, 0.7).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.5,
+                    )) * col.tree_density
+                        * MUSH_FACT
+                        * 350.0,
+                    Some((0.0, 100.0, 0.1)),
+                )
+            },
+        },
+        ScatterConfig {
+            kind: SnowCrocus,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow),
+            f: |_, col| {
+                (
+                    close(col.temp, CONFIG.snow_temp, 0.7).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.5,
+                    )) * col.tree_density
+                        * MUSH_FACT
+                        * 350.0,
+                    Some((0.0, 100.0, 0.1)),
+                )
+            },
+        },
+        ScatterConfig {
+            kind: SnowForsythia,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow),
+            f: |_, col| {
+                (
+                    close(col.temp, CONFIG.snow_temp, 0.7).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.5,
+                    )) * col.tree_density
+                        * MUSH_FACT
+                        * 350.0,
+                    Some((0.0, 100.0, 0.1)),
+                )
+            },
+        },
+        ScatterConfig {
+            kind: SnowBush,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow),
+            f: |_, col| {
+                (
+                    close(col.temp, CONFIG.snow_temp, 0.95).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.3,
+                    )) * MUSH_FACT
+                        * 7.5,
+                    None,
+                )
+            },
+        },
+        ScatterConfig {
+            kind: SnowPebbles,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow | BlockKind::Ice),
+            f: |chunk, _| ((chunk.rockiness - 0.5).max(0.025) * 1.0e-3, None),
+        },
+        ScatterConfig {
             kind: Cotton,
             water_mode: Ground,
             permit: |b| matches!(b, BlockKind::Earth | BlockKind::Grass),
@@ -500,6 +573,22 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
                         0.5,
                     )) * GRASS_FACT
                         * 100.0,
+                    Some((0.0, 48.0, 0.2)),
+                )
+            },
+        },
+        ScatterConfig {
+            kind: GrassSnow2,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow),
+            f: |_, col| {
+                (
+                    close(col.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.5,
+                    )) * GRASS_FACT
+                        * 50.0,
                     Some((0.0, 48.0, 0.2)),
                 )
             },
