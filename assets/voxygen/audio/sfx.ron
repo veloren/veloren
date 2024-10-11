@@ -1383,6 +1383,27 @@
             threshold: 0.2,
             subtitle: "subtitle-break_block",
         ),
+        PickaxeDamage: (
+            files: [
+                "voxygen.audio.sfx.abilities.pickaxe_damage",
+            ],
+            threshold: 0.2,
+            subtitle: "subtitle-damage_block",
+        ),
+        PickaxeDamageStrong: (
+            files: [
+                "voxygen.audio.sfx.abilities.pickaxe_damage_stronk",
+            ],
+            threshold: 0.2,
+            subtitle: "subtitle-damage_strong_block",
+        ),
+        PickaxeBreakBlock: (
+            files: [
+                "voxygen.audio.sfx.abilities.pickaxe_damage_broken",
+            ],
+            threshold: 0.2,
+            subtitle: "subtitle-damage_strong_broken",
+        ),
         Damage: (
             files: [
                 "voxygen.audio.sfx.character.hit_1",

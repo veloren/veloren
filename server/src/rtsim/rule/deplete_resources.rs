@@ -1,5 +1,5 @@
 use crate::rtsim::{event::OnBlockChange, ChunkStates};
-use common::terrain::CoordinateConversions;
+use common::terrain::{sprite, Block, CoordinateConversions};
 use rtsim::{RtState, Rule, RuleError};
 
 pub struct DepleteResources;
@@ -13,13 +13,25 @@ impl Rule for DepleteResources {
                 let key = change.wpos.xy().wpos_to_cpos();
                 if let Some(Some(chunk_state)) = chunk_states.0.get(key) {
                     let mut chunk_res = data.nature.get_chunk_resources(key);
+                    let get_resource_damage = |block: Block| {
+                        block
+                            .get_attr::<sprite::Damage>()
+                            .ok()
+                            .and_then(|damage| {
+                                Some((damage.0, block.get_sprite()?.required_mine_damage()?))
+                            })
+                            .map_or(1.0, |(damage, required)| {
+                                1.0 - (damage as f32 / required.max(1) as f32)
+                            })
+                    };
+
                     // Remove resources
                     if let Some(res) = change.old.get_rtsim_resource() {
                         if chunk_state.max_res[res] > 0 {
                             chunk_res[res] = (chunk_res[res] * chunk_state.max_res[res] as f32
-                                - 1.0)
-                                .round()
-                                .max(0.0)
+                                - get_resource_damage(change.old))
+                            .round()
+                            .max(0.0)
                                 / chunk_state.max_res[res] as f32;
                         }
                     }
@@ -27,9 +39,9 @@ impl Rule for DepleteResources {
                     if let Some(res) = change.new.get_rtsim_resource() {
                         if chunk_state.max_res[res] > 0 {
                             chunk_res[res] = (chunk_res[res] * chunk_state.max_res[res] as f32
-                                + 1.0)
-                                .round()
-                                .max(0.0)
+                                + get_resource_damage(change.new))
+                            .round()
+                            .max(0.0)
                                 / chunk_state.max_res[res] as f32;
                         }
                     }

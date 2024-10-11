@@ -1,15 +1,11 @@
+// Unused
 [
     (40, Velorite),
     (40, VeloriteFrag),
     (30, CaveMushroom),
     (30, Mushroom),
-    (30, AmethystSmall),
-    (30, TopazSmall),
-    (16, SapphireSmall),
     (100, CrystalLow),
-    (12, EmeraldSmall),
     (15, Cobalt),
     (40, Coal),
     (70, Iron),
-    (10, RubySmall),
 ]

@@ -3009,6 +3009,7 @@ fn handle_outcome(
         "BreakBlock" => Outcome::BreakBlock {
             pos: pos_arg!(),
             color: Some(Rgb::from(vec_arg!())),
+            tool: None,
         },
         "SummonedCreature" => Outcome::SummonedCreature {
             pos: pos_arg!(),

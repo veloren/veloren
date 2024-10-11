@@ -11,6 +11,7 @@ use vek::*;
 
 #[derive(Deserialize, Debug)]
 /// Configuration data for an individual sprite model.
+#[serde(deny_unknown_fields)]
 pub(super) struct SpriteModelConfig {
     /// Data for the .vox model associated with this sprite.
     pub model: String,
@@ -27,7 +28,7 @@ macro_rules! impl_sprite_attribute_filter {
     ) => {
         // TODO: depending on what types of filters we end up with an enum may end up being more suitable.
         #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq, Hash)]
-        #[serde(default)]
+        #[serde(default, deny_unknown_fields)]
         pub struct SpriteAttributeFilters {
             $(
                 pub $field_name: Option<$filter_ty>,
@@ -63,11 +64,13 @@ macro_rules! impl_sprite_attribute_filter {
 impl_sprite_attribute_filter!(
     Growth growth_stage = |filter: Range<u8>, growth| { filter.contains(&growth.0) },
     LightEnabled light_enabled = |filter: bool, light_enabled| { *filter == light_enabled.0 },
+    Damage damage = |filter: Range<u8>, damage| { filter.contains(&damage.0) }
 );
 
 /// Configuration data for a group of sprites (currently associated with a
 /// particular SpriteKind).
 #[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
 struct SpriteConfig {
     /// Filter for selecting what config to use based on sprite attributes.
     #[serde(default)]
