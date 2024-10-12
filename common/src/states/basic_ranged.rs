@@ -119,10 +119,11 @@ impl CharacterBehavior for Data {
                 if !self.exhausted {
                     // Fire
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-                    let projectile = self
-                        .static_data
-                        .projectile
-                        .create_projectile(Some(*data.uid), precision_mult);
+                    let projectile = self.static_data.projectile.create_projectile(
+                        Some(*data.uid),
+                        precision_mult,
+                        data.stats,
+                    );
                     // Shoots all projectiles simultaneously
                     let num_projectiles = self
                         .static_data

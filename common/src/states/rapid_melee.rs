@@ -90,9 +90,11 @@ impl CharacterBehavior for Data {
 
                     data.updater.insert(
                         data.entity,
-                        self.static_data
-                            .melee_constructor
-                            .create_melee(precision_mult, tool_stats),
+                        self.static_data.melee_constructor.create_melee(
+                            precision_mult,
+                            tool_stats,
+                            data.stats,
+                        ),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

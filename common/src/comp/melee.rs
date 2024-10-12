@@ -5,6 +5,7 @@ use crate::{
         KnockbackDir,
     },
     comp::{
+        self,
         buff::BuffKind,
         tool::{Stats, ToolKind},
     },
@@ -102,7 +103,12 @@ pub struct CustomCombo {
 }
 
 impl MeleeConstructor {
-    pub fn create_melee(self, precision_mult: f32, tool_stats: Stats) -> Melee {
+    pub fn create_melee(
+        self,
+        precision_mult: f32,
+        tool_stats: Stats,
+        entity_stats: &comp::Stats,
+    ) -> Melee {
         if self.scaled.is_some() {
             dev_panic!(
                 "Attempted to create a melee attack that had a provided scaled value without \
@@ -155,6 +161,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(energy)
                     .with_effect(poise)
@@ -203,6 +210,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(energy)
                     .with_effect(poise)
@@ -243,6 +251,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(energy)
                     .with_effect(poise)
@@ -288,6 +297,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(poise)
                     .with_effect(knockback)
@@ -327,6 +337,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(energy)
                     .with_effect(knockback)
@@ -363,6 +374,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(poise)
                     .with_effect(knockback)

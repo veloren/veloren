@@ -4,6 +4,7 @@ use crate::{
         DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
+        self,
         ability::Dodgeable,
         item::{Reagent, tool},
     },
@@ -127,7 +128,12 @@ pub enum ProjectileConstructorKind {
 }
 
 impl ProjectileConstructor {
-    pub fn create_projectile(self, owner: Option<Uid>, precision_mult: f32) -> Projectile {
+    pub fn create_projectile(
+        self,
+        owner: Option<Uid>,
+        precision_mult: f32,
+        entity_stats: &comp::Stats,
+    ) -> Projectile {
         if self.scaled.is_some() {
             dev_panic!(
                 "Attempted to create a projectile that had a provided scaled value without \
@@ -205,6 +211,7 @@ impl ProjectileConstructor {
             }
 
             let mut attack = Attack::default()
+                .with_stat_adjustments(entity_stats)
                 .with_damage(damage)
                 .with_precision(precision_mult)
                 .with_blockable(a.blockable)

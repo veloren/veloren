@@ -103,7 +103,7 @@ impl CharacterBehavior for Data {
                         data.entity,
                         self.static_data
                             .melee_constructor
-                            .create_melee(precision_mult, tool_stats)
+                            .create_melee(precision_mult, tool_stats, data.stats)
                             .with_block_breaking(
                                 data.inputs
                                     .break_block_pos

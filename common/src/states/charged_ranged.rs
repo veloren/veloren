@@ -101,7 +101,7 @@ impl CharacterBehavior for Data {
                         .static_data
                         .projectile
                         .handle_scaling(charge_frac)
-                        .create_projectile(Some(*data.uid), precision_mult);
+                        .create_projectile(Some(*data.uid), precision_mult, data.stats);
                     output_events.emit_server(ShootEvent {
                         entity: Some(data.entity),
                         pos,

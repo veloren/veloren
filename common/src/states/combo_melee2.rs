@@ -189,7 +189,7 @@ impl CharacterBehavior for Data {
                         strike_data
                             .melee_constructor
                             .custom_combo(strike_data.custom_combo)
-                            .create_melee(precision_mult, tool_stats),
+                            .create_melee(precision_mult, tool_stats, data.stats),
                     );
                 } else if self.timer < strike_data.swing_duration {
                     // Swings
@@ -206,7 +206,9 @@ impl CharacterBehavior for Data {
                             Some(GroupTarget::OutOfGroup),
                             rand::random(),
                         );
-                        let attack = Attack::default().with_damage(damage);
+                        let attack = Attack::default()
+                            .with_stat_adjustments(data.stats)
+                            .with_damage(damage);
                         let explosion = Explosion {
                             effects: vec![RadiusEffect::Attack {
                                 attack,

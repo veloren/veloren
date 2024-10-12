@@ -171,6 +171,14 @@ impl Attack {
     #[must_use]
     pub fn with_combo_increment(self) -> Self { self.with_combo(1) }
 
+    #[must_use]
+    pub fn with_stat_adjustments(mut self, stats: &Stats) -> Self {
+        for effect in stats.effects_on_attack.iter() {
+            self = self.with_effect(effect.clone())
+        }
+        self
+    }
+
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
     pub fn compute_block_damage_decrement(
@@ -656,12 +664,6 @@ impl Attack {
         for effect in self
             .effects
             .iter()
-            .chain(
-                attacker
-                    .and_then(|attacker| attacker.stats)
-                    .iter()
-                    .flat_map(|stats| stats.effects_on_attack.iter()),
-            )
             .filter(|e| {
                 allow_friendly_fire
                     || e.target

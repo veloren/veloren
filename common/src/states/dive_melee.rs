@@ -105,7 +105,7 @@ impl CharacterBehavior for Data {
                         self.static_data
                             .melee_constructor
                             .handle_scaling(scaling)
-                            .create_melee(precision_mult, tool_stats),
+                            .create_melee(precision_mult, tool_stats, data.stats),
                     );
 
                     if let CharacterState::DiveMelee(c) = &mut update.character {

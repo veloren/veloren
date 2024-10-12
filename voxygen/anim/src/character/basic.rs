@@ -1642,6 +1642,14 @@ impl Animation for BasicAction {
 
                 bow_draw(&mut next, move2, d.look_dir.z);
             },
+            Some("common.abilities.bow.snare_shot") => {
+                bow_start(&mut next, s_a);
+
+                let move1 = move1base / 0.5 + move2base / 0.5;
+
+                next.hand_l.position += Vec3::new(2.0, -2.0, -1.0) * move1;
+                next.hand_l.orientation.rotate_z(move1 * 0.4);
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================

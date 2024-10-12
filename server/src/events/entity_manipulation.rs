@@ -2020,7 +2020,11 @@ impl ServerEvent for BonkEvent {
                                         }),
                                         scaled: None,
                                     }
-                                    .create_projectile(None, 1.0),
+                                    .create_projectile(
+                                        None,
+                                        1.0,
+                                        &comp::Stats::empty(Body::Object(comp::object::Body::Bomb)),
+                                    ),
                                     speed: vel.0.magnitude(),
                                     object: None,
                                 });

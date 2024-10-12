@@ -10,14 +10,14 @@ use common::{
         Object, Ori, Pos, ThrownItem, TradingBehavior, Vel, WaypointArea,
         aura::{Aura, AuraKind, AuraTarget},
         body,
-        buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        buff::{BuffCategory, BuffChange, BuffData, BuffKind, BuffSource},
         item::MaterialStatManifest,
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
         tool::AbilityMap,
     },
     consts::MAX_CAMPFIRE_RANGE,
     event::{
-        CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateNpcGroupEvent,
+        BuffEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateNpcGroupEvent,
         CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent, EventBus,
         InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent,
         SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
@@ -434,6 +434,20 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
             body: ev.body,
             vel,
         });
+
+    if let Some(entity) = ev.entity {
+        state
+            .ecs()
+            .read_resource::<EventBus<BuffEvent>>()
+            .emit_now(BuffEvent {
+                entity,
+                buff_change: BuffChange::RemoveByCategory {
+                    all_required: vec![BuffCategory::RemoveOnAttack],
+                    any_required: vec![],
+                    none_required: vec![],
+                },
+            });
+    }
 
     state
         .create_projectile(Pos(pos), Vel(vel), ev.body, ev.projectile)

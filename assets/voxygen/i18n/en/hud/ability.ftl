@@ -462,3 +462,6 @@ common-abilities-bow-broadhead = Broadhead
 common-abilities-bow-foothold = Foothold
     .desc =
         Kick off of a foe to jump backwards while shooting an arrow at them.
+common-abilities-bow-snare_shot = Snare Shot
+    .desc =
+        Your next arrow will pin the target where they are.

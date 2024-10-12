@@ -205,6 +205,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::ScornfulTaunt => "buff-scornfultaunt",
         BuffKind::Tenacity => "buff-tenacity",
         BuffKind::Resilience => "buff-resilience",
+        BuffKind::Snaring => "buff-snaring",
         // Debuffs
         BuffKind::Bleeding => "buff-bleed",
         BuffKind::Cursed => "buff-cursed",
@@ -360,7 +361,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Amnesia
                         | BuffKind::OffBalance
                         | BuffKind::Tenacity
-                        | BuffKind::Resilience => Cow::Borrowed(""),
+                        | BuffKind::Resilience
+                        | BuffKind::Snaring => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -630,6 +632,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.arrow_shot" => imgs.bow_arrow_shot,
         "common.abilities.bow.broadhead" => imgs.bow_broadhead,
         "common.abilities.bow.foothold" => imgs.bow_foothold,
+        "common.abilities.bow.snare_shot" => imgs.bow_snare_shot,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

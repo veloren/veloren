@@ -448,7 +448,6 @@ impl CharacterSkeleton {
             * ((acc_vel * lab * 1.6).sin());
 
         self.lantern.scale = Vec3::one() * 0.65;
-        self.hold.scale = Vec3::one() * 0.0;
 
         if self.holding_lantern {
             let pitch =

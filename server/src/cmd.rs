@@ -5902,7 +5902,8 @@ fn build_buff(
             | BuffKind::Amnesia
             | BuffKind::OffBalance
             | BuffKind::Tenacity
-            | BuffKind::Resilience => {
+            | BuffKind::Resilience
+            | BuffKind::Snaring => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

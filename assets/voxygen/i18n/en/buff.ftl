@@ -179,6 +179,9 @@ buff-tenacity = Tenacity
 ## Resilience
 buff-resilience = Resilience
     .desc = After having just taken a debilitating attack, you become more resilient to future incapaciting effects.
+## Snaring
+buff-snaring = Snaring
+    .desc = Your next attack will snare the target, rooting them in place.
 ## Util
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove

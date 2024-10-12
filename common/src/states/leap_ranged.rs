@@ -68,7 +68,7 @@ impl CharacterBehavior for Data {
                         if let Some(melee) = self.static_data.melee {
                             data.updater.insert(
                                 data.entity,
-                                melee.create_melee(precision_mult, tool_stats),
+                                melee.create_melee(precision_mult, tool_stats, data.stats),
                             );
                         }
 
@@ -112,10 +112,11 @@ impl CharacterBehavior for Data {
                         let precision_mult =
                             combat::compute_precision_mult(data.inventory, data.msm);
 
-                        let projectile = self
-                            .static_data
-                            .projectile
-                            .create_projectile(Some(*data.uid), precision_mult);
+                        let projectile = self.static_data.projectile.create_projectile(
+                            Some(*data.uid),
+                            precision_mult,
+                            data.stats,
+                        );
 
                         let body_offsets = data.body.projectile_offsets(
                             update.ori.look_vec(),

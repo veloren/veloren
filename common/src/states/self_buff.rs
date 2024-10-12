@@ -33,6 +33,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// What buffs are applied
     pub buffs: Vec<BuffDesc>,
+    pub buff_cat: Option<BuffCategory>,
     /// This is the minimum amount of combo required to enter this character
     /// state
     pub combo_cost: u32,
@@ -93,16 +94,21 @@ impl CharacterBehavior for Data {
                         )
                     });
 
-                    let mut buff_cat_ids = if self
+                    let mut buff_cat_ids = self
+                        .static_data
+                        .buff_cat
+                        .clone()
+                        .into_iter()
+                        .collect::<Vec<_>>();
+
+                    if self
                         .static_data
                         .ability_info
                         .ability
                         .is_some_and(|a| a.ability.is_from_wielded())
                     {
-                        vec![BuffCategory::RemoveOnLoadoutChange]
-                    } else {
-                        Vec::new()
-                    };
+                        buff_cat_ids.push(BuffCategory::RemoveOnLoadoutChange);
+                    }
 
                     // Remove previous selfbuffs if we should
                     if self.static_data.enforced_limit {

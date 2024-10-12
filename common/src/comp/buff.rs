@@ -146,6 +146,9 @@ pub enum BuffKind {
     /// Strength linearly decreases the duration of newly applied, affected
     /// debuffs, 0.5 is a 50% reduction.
     Resilience,
+    /// Your attacks cause the rooted debuff.
+    /// Strength increases the strength of the rooted debuff
+    Snaring,
     // =================
     //      DEBUFFS
     // =================
@@ -272,7 +275,8 @@ impl BuffKind {
             | BuffKind::Berserk
             | BuffKind::ScornfulTaunt
             | BuffKind::Tenacity
-            | BuffKind::Resilience => BuffDescriptor::SimplePositive,
+            | BuffKind::Resilience
+            | BuffKind::Snaring => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -554,6 +558,15 @@ impl BuffKind {
                 BuffEffect::DamagedEffect(DamagedEffect::Energy(data.strength * 10.0)),
             ],
             BuffKind::Resilience => vec![BuffEffect::CrowdControlResistance(data.strength)],
+            BuffKind::Snaring => vec![BuffEffect::AttackEffect(AttackEffect::new(
+                None,
+                CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Rooted,
+                    dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
+                    strength: CombatBuffStrength::Value(data.strength),
+                    chance: 1.0,
+                }),
+            ))],
         }
     }
 
@@ -581,10 +594,12 @@ impl BuffKind {
         #[expect(clippy::single_match)]
         match self {
             BuffKind::Rooted => {
-                let source_mass = source_mass.map_or(50.0, |m| m.0 as f64);
-                let dest_mass = dest_info.mass.map_or(50.0, |m| m.0 as f64);
-                let ratio = (source_mass / dest_mass).min(1.0);
-                data.duration = data.duration.map(|dur| Secs(dur.0 * ratio));
+                let source_mass = source_mass.map_or(50.0, |m| m.0);
+                let dest_mass = dest_info.mass.map_or(50.0, |m| m.0);
+                let low_clamp = (0.25 + data.strength * 0.25).clamp(0.0, 1.0);
+                let high_clamp = (1.0 + data.strength * 0.5).max(1.0);
+                let ratio = (source_mass / dest_mass).clamp(low_clamp, high_clamp);
+                data.duration = data.duration.map(|dur| Secs(dur.0 * ratio as f64));
             },
             _ => {},
         }
@@ -605,6 +620,7 @@ impl BuffKind {
             BuffKind::Amnesia => 0.3,
             BuffKind::Frozen => data.strength,
             BuffKind::Winded => data.strength / 3.0,
+            BuffKind::Rooted => data.duration.map_or(0.1, |dur| dur.0 as f32 / 10.0),
         )
     }
 

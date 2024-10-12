@@ -329,6 +329,7 @@ image_ids! {
         bow_arrow_shot: "voxygen.element.skills.bow.arrow_shot",
         bow_broadhead: "voxygen.element.skills.bow.broadhead",
         bow_foothold: "voxygen.element.skills.bow.foothold",
+        bow_snare_shot: "voxygen.element.skills.bow.snare_shot",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
@@ -836,6 +837,7 @@ image_ids! {
         buff_scornfultaunt: "voxygen.element.de_buffs.buff_scornfultaunt",
         buff_tenacity: "voxygen.element.de_buffs.buff_tenacity",
         buff_resilience: "voxygen.element.de_buffs.buff_resilience",
+        buff_snaring: "voxygen.element.de_buffs.buff_snaring",
 
         // Debuffs
         debuff_cursed_0: "voxygen.element.de_buffs.debuff_cursed_0",

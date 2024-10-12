@@ -141,9 +141,11 @@ impl CharacterBehavior for Data {
 
                     data.updater.insert(
                         data.entity,
-                        self.static_data
-                            .melee_constructor
-                            .create_melee(precision_mult, tool_stats),
+                        self.static_data.melee_constructor.create_melee(
+                            precision_mult,
+                            tool_stats,
+                            data.stats,
+                        ),
                     );
 
                     update.character = CharacterState::LeapMelee(Data {

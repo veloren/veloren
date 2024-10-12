@@ -95,8 +95,10 @@ impl CharacterBehavior for Data {
                         let precision_mult =
                             combat::compute_precision_mult(data.inventory, data.msm);
                         let tool_stats = get_tool_stats(data, self.static_data.ability_info);
-                        data.updater
-                            .insert(data.entity, strike.create_melee(precision_mult, tool_stats));
+                        data.updater.insert(
+                            data.entity,
+                            strike.create_melee(precision_mult, tool_stats, data.stats),
+                        );
 
                         if let CharacterState::ChargedMelee(c) = &mut update.character {
                             c.stage_section = StageSection::Charge;
@@ -186,7 +188,7 @@ impl CharacterBehavior for Data {
                             .melee_constructor
                             .custom_combo(custom_combo)
                             .handle_scaling(self.charge_amount)
-                            .create_melee(precision_mult, tool_stats),
+                            .create_melee(precision_mult, tool_stats, data.stats),
                     );
 
                     if let Some(FrontendSpecifier::GroundCleave) = self.static_data.specifier {

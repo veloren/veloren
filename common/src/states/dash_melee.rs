@@ -60,7 +60,7 @@ impl CharacterBehavior for Data {
             self.static_data
                 .melee_constructor
                 .handle_scaling(charge_frac)
-                .create_melee(precision_mult, tool_stats)
+                .create_melee(precision_mult, tool_stats, data.stats)
         };
 
         match self.stage_section {

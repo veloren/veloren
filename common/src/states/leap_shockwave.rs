@@ -165,6 +165,7 @@ impl CharacterBehavior for Data {
                     }
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let attack = Attack::default()
+                        .with_stat_adjustments(data.stats)
                         .with_damage(damage)
                         .with_precision(precision_mult)
                         .with_effect(poise)
@@ -197,15 +198,16 @@ impl CharacterBehavior for Data {
                                 Some(GroupTarget::OutOfGroup),
                                 rand::random(),
                             );
-                            let attack = Attack::default().with_damage(damage).with_effect(
-                                AttackEffect::new(
+                            let attack = Attack::default()
+                                .with_stat_adjustments(data.stats)
+                                .with_damage(damage)
+                                .with_effect(AttackEffect::new(
                                     Some(GroupTarget::OutOfGroup),
                                     CombatEffect::Knockback(Knockback {
                                         direction: KnockbackDir::Away,
                                         strength: 10.,
                                     }),
-                                ),
-                            );
+                                ));
                             let explosion = Explosion {
                                 effects: vec![RadiusEffect::Attack {
                                     attack,
