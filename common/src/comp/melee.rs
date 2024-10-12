@@ -548,6 +548,9 @@ impl MeleeConstructor {
             scaled.range *= stats.range;
         }
         self.damage_effect = self.damage_effect.map(|de| de.adjusted_by_stats(stats));
+        self.attack_effect = self
+            .attack_effect
+            .map(|(e, r)| (e.adjusted_by_stats(stats), r));
         self
     }
 

@@ -137,11 +137,7 @@ impl CharacterBehavior for Data {
                     } else {
                         self.static_data.projectile
                     };
-                    let projectile = projectile.create_projectile(
-                        Some(*data.uid),
-                        precision_mult,
-                        self.static_data.damage_effect,
-                    );
+                    let projectile = projectile.create_projectile(Some(*data.uid), precision_mult);
 
                     // Removes the thrown item from the entity's inventory and creates a
                     // projectile

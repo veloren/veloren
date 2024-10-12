@@ -93,6 +93,8 @@ pub struct ProjectileAttack {
     pub friendly_fire: bool,
     #[serde(default = "default_true")]
     pub blockable: bool,
+    pub damage_effect: Option<CombatEffect>,
+    pub attack_effect: Option<(CombatEffect, CombatRequirement)>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -125,12 +127,7 @@ pub enum ProjectileConstructorKind {
 }
 
 impl ProjectileConstructor {
-    pub fn create_projectile(
-        self,
-        owner: Option<Uid>,
-        precision_mult: f32,
-        damage_effect: Option<CombatEffect>,
-    ) -> Projectile {
+    pub fn create_projectile(self, owner: Option<Uid>, precision_mult: f32) -> Projectile {
         if self.scaled.is_some() {
             dev_panic!(
                 "Attempted to create a projectile that had a provided scaled value without \
@@ -203,7 +200,7 @@ impl ProjectileConstructor {
                 damage = damage.with_effect(buff);
             }
 
-            if let Some(damage_effect) = damage_effect {
+            if let Some(damage_effect) = a.damage_effect {
                 damage = damage.with_effect(damage_effect);
             }
 
@@ -223,6 +220,12 @@ impl ProjectileConstructor {
 
             if let Some(energy) = energy {
                 attack = attack.with_effect(energy);
+            }
+
+            if let Some((effect, requirement)) = a.attack_effect {
+                let effect = AttackEffect::new(Some(GroupTarget::OutOfGroup), effect)
+                    .with_requirement(requirement);
+                attack = attack.with_effect(effect);
             }
 
             attack
@@ -429,6 +432,10 @@ impl ProjectileConstructor {
                 b.strength *= stats.buff_strength;
                 b
             });
+            a.damage_effect = a.damage_effect.map(|de| de.adjusted_by_stats(stats));
+            a.attack_effect = a
+                .attack_effect
+                .map(|(e, r)| (e.adjusted_by_stats(stats), r));
             a
         });
 

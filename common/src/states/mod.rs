@@ -24,6 +24,7 @@ pub mod idle;
 pub mod interact;
 pub mod leap_explosion_shockwave;
 pub mod leap_melee;
+pub mod leap_ranged;
 pub mod leap_shockwave;
 pub mod music;
 pub mod rapid_melee;

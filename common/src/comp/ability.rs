@@ -736,7 +736,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::StaticAura(_)
             | CharacterState::Throw(_)
             | CharacterState::LeapExplosionShockwave(_)
-            | CharacterState::Explosion(_) => Self::Other,
+            | CharacterState::Explosion(_)
+            | CharacterState::LeapRanged(_) => Self::Other,
         }
     }
 }
@@ -800,7 +801,6 @@ pub enum CharacterAbility {
         projectile_speed: f32,
         num_projectiles: Amount,
         projectile_spread: f32,
-        damage_effect: Option<CombatEffect>,
         #[serde(default)]
         movement_modifier: MovementModifier,
         #[serde(default)]
@@ -819,7 +819,6 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
-        damage_effect: Option<CombatEffect>,
         properties_of_aoe: Option<repeater_ranged::ProjectileOffset>,
         specifier: Option<repeater_ranged::FrontendSpecifier>,
         #[serde(default)]
@@ -934,7 +933,6 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
-        damage_effect: Option<CombatEffect>,
         specifier: Option<leap_melee::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
@@ -972,7 +970,6 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         specifier: Option<charged_melee::FrontendSpecifier>,
-        damage_effect: Option<CombatEffect>,
         #[serde(default)]
         custom_combo: CustomCombo,
         #[serde(default)]
@@ -994,7 +991,6 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
-        damage_effect: Option<CombatEffect>,
         move_speed: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1248,6 +1244,25 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    LeapRanged {
+        energy_cost: f32,
+        buildup_duration: f32,
+        buildup_melee_timing: f32,
+        movement_duration: f32,
+        movement_ranged_timing: f32,
+        land_timeout: f32,
+        recover_duration: f32,
+        melee: Option<MeleeConstructor>,
+        melee_required: bool,
+        projectile: ProjectileConstructor,
+        projectile_body: Body,
+        projectile_light: Option<LightEmitter>,
+        projectile_speed: f32,
+        horiz_leap_strength: f32,
+        vert_leap_strength: f32,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -1334,7 +1349,8 @@ impl CharacterAbility {
                 },
                 CharacterAbility::LeapExplosionShockwave { energy_cost, .. }
                 | CharacterAbility::LeapMelee { energy_cost, .. }
-                | CharacterAbility::LeapShockwave { energy_cost, .. } => {
+                | CharacterAbility::LeapShockwave { energy_cost, .. }
+                | CharacterAbility::LeapRanged { energy_cost, .. } => {
                     update.vel.0.z >= 0.0 && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 CharacterAbility::BasicAura {
@@ -1472,7 +1488,6 @@ impl CharacterAbility {
                 ref mut projectile_speed,
                 num_projectiles: _,
                 projectile_spread: _,
-                damage_effect: _,
                 movement_modifier: _,
                 ori_modifier: _,
                 meta: _,
@@ -1494,7 +1509,6 @@ impl CharacterAbility {
                 projectile_body: _,
                 projectile_light: _,
                 ref mut projectile_speed,
-                damage_effect: _,
                 properties_of_aoe: _,
                 specifier: _,
                 meta: _,
@@ -1648,7 +1662,6 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 forward_leap_strength: _,
                 vertical_leap_strength: _,
-                ref mut damage_effect,
                 specifier: _,
                 meta: _,
             } => {
@@ -1656,16 +1669,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats)
             },
             LeapShockwave {
                 ref mut energy_cost,
@@ -1716,7 +1720,6 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ref mut melee_constructor,
                 specifier: _,
-                ref mut damage_effect,
                 meta: _,
                 custom_combo: _,
                 movement_modifier: _,
@@ -1730,15 +1733,6 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain *= stats.speed / stats.energy_efficiency;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
             },
             ChargedRanged {
                 ref mut energy_cost,
@@ -1752,7 +1746,6 @@ impl CharacterAbility {
                 projectile_light: _,
                 ref mut initial_projectile_speed,
                 ref mut scaled_projectile_speed,
-                damage_effect: _,
                 move_speed: _,
                 meta: _,
             } => {
@@ -2111,6 +2104,31 @@ impl CharacterAbility {
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
             },
+            LeapRanged {
+                ref mut energy_cost,
+                ref mut buildup_duration,
+                buildup_melee_timing: _,
+                movement_duration: _,
+                movement_ranged_timing: _,
+                land_timeout: _,
+                ref mut recover_duration,
+                ref mut melee,
+                melee_required: _,
+                ref mut projectile,
+                projectile_body: _,
+                projectile_light: _,
+                ref mut projectile_speed,
+                horiz_leap_strength: _,
+                vert_leap_strength: _,
+                meta: _,
+            } => {
+                *energy_cost /= stats.energy_efficiency;
+                *buildup_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                *melee = melee.map(|m| m.adjusted_by_stats(stats));
+                *projectile = projectile.adjusted_by_stats(stats);
+                *projectile_speed *= stats.range;
+            },
         }
         self
     }
@@ -2143,7 +2161,8 @@ impl CharacterAbility {
             | RiposteMelee { energy_cost, .. }
             | RapidMelee { energy_cost, .. }
             | StaticAura { energy_cost, .. }
-            | RegrowHead { energy_cost, .. } => *energy_cost,
+            | RegrowHead { energy_cost, .. }
+            | LeapRanged { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -2214,7 +2233,8 @@ impl CharacterAbility {
             | SpriteSummon { .. }
             | Transform { .. }
             | StaticAura { .. }
-            | RegrowHead { .. } => 0,
+            | RegrowHead { .. }
+            | LeapRanged { .. } => 0,
         }
     }
 
@@ -2252,7 +2272,8 @@ impl CharacterAbility {
             | RapidMelee { meta, .. }
             | Transform { meta, .. }
             | StaticAura { meta, .. }
-            | RegrowHead { meta, .. } => *meta,
+            | RegrowHead { meta, .. }
+            | LeapRanged { meta, .. } => *meta,
         }
     }
 
@@ -2499,7 +2520,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 energy_cost: _,
                 num_projectiles,
                 projectile_spread,
-                damage_effect,
                 movement_modifier,
                 ori_modifier,
                 meta: _,
@@ -2514,7 +2534,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     num_projectiles: *num_projectiles,
                     projectile_spread: *projectile_spread,
                     ability_info,
-                    damage_effect: *damage_effect,
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
                 },
@@ -2727,7 +2746,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 melee_constructor,
                 forward_leap_strength,
                 vertical_leap_strength,
-                damage_effect,
                 specifier,
                 meta: _,
             } => CharacterState::LeapMelee(leap_melee::Data {
@@ -2740,7 +2758,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     forward_leap_strength: *forward_leap_strength,
                     vertical_leap_strength: *vertical_leap_strength,
                     ability_info,
-                    damage_effect: *damage_effect,
                     specifier: *specifier,
                 },
                 timer: Duration::default(),
@@ -2804,7 +2821,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 recover_duration,
                 melee_constructor,
                 specifier,
-                damage_effect,
                 custom_combo,
                 meta: _,
                 movement_modifier,
@@ -2822,7 +2838,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     melee_constructor: *melee_constructor,
                     ability_info,
                     specifier: *specifier,
-                    damage_effect: *damage_effect,
                     custom_combo: *custom_combo,
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
@@ -2850,7 +2865,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 projectile_light,
                 initial_projectile_speed,
                 scaled_projectile_speed,
-                damage_effect,
                 move_speed,
                 meta: _,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
@@ -2867,7 +2881,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     scaled_projectile_speed: *scaled_projectile_speed,
                     move_speed: *move_speed,
                     ability_info,
-                    damage_effect: *damage_effect,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -2884,7 +2897,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 projectile_body,
                 projectile_light,
                 projectile_speed,
-                damage_effect,
                 properties_of_aoe,
                 specifier,
                 meta: _,
@@ -2902,7 +2914,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     projectile_light: *projectile_light,
                     projectile_speed: *projectile_speed,
                     ability_info,
-                    damage_effect: *damage_effect,
                     properties_of_aoe: *properties_of_aoe,
                     specifier: *specifier,
                 },
@@ -3425,6 +3436,46 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
+            }),
+            CharacterAbility::LeapRanged {
+                energy_cost: _,
+                buildup_duration,
+                buildup_melee_timing,
+                movement_duration,
+                movement_ranged_timing,
+                land_timeout,
+                recover_duration,
+                melee,
+                melee_required,
+                projectile,
+                projectile_body,
+                projectile_light,
+                projectile_speed,
+                horiz_leap_strength,
+                vert_leap_strength,
+                meta: _,
+            } => CharacterState::LeapRanged(leap_ranged::Data {
+                static_data: leap_ranged::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    buildup_melee_timing: *buildup_melee_timing,
+                    movement_duration: Duration::from_secs_f32(*movement_duration),
+                    movement_ranged_timing: *movement_ranged_timing,
+                    land_timeout: Duration::from_secs_f32(*land_timeout),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    melee: *melee,
+                    melee_required: *melee_required,
+                    projectile: *projectile,
+                    projectile_body: *projectile_body,
+                    projectile_light: *projectile_light,
+                    projectile_speed: *projectile_speed,
+                    horiz_leap_strength: *horiz_leap_strength,
+                    vert_leap_strength: *vert_leap_strength,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                melee_done: false,
+                ranged_done: false,
             }),
         })
     }

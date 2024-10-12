@@ -621,12 +621,6 @@ pub fn handle_forced_movement(
                 // look downward at target
                 * (1.0 - data.inputs.look_dir.z.abs());
         },
-        ForcedMovement::Hover { move_input } => {
-            update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0)
-                + move_input
-                    * data.scale.map_or(1.0, |s| s.0.sqrt())
-                    * data.inputs.move_dir.try_normalized().unwrap_or_default();
-        },
     }
 }
 
@@ -1722,9 +1716,6 @@ pub enum ForcedMovement {
         progress: f32,
         direction: MovementDirection,
     },
-    Hover {
-        move_input: f32,
-    },
 }
 
 impl Mul<f32> for ForcedMovement {
@@ -1749,7 +1740,6 @@ impl Mul<f32> for ForcedMovement {
                 progress,
                 direction,
             },
-            Hover { move_input } => Hover { move_input },
         }
     }
 }
@@ -1757,6 +1747,7 @@ impl Mul<f32> for ForcedMovement {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MovementDirection {
     Look,
+    AntiLook,
     Move,
 }
 
@@ -1765,6 +1756,12 @@ impl MovementDirection {
         use MovementDirection::*;
         match self {
             Look => data
+                .inputs
+                .look_dir
+                .to_horizontal()
+                .unwrap_or_default()
+                .xy(),
+            AntiLook => -data
                 .inputs
                 .look_dir
                 .to_horizontal()

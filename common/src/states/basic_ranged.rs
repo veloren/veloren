@@ -1,5 +1,5 @@
 use crate::{
-    combat::{self, CombatEffect},
+    combat,
     comp::{
         Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
         ability::Amount,
@@ -36,7 +36,6 @@ pub struct StaticData {
     pub num_projectiles: Amount,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    pub damage_effect: Option<CombatEffect>,
     /// Adjusts move speed during the attack per stage
     pub movement_modifier: MovementModifier,
     /// Adjusts turning rate during the attack per stage
@@ -120,11 +119,10 @@ impl CharacterBehavior for Data {
                 if !self.exhausted {
                     // Fire
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-                    let projectile = self.static_data.projectile.create_projectile(
-                        Some(*data.uid),
-                        precision_mult,
-                        self.static_data.damage_effect,
-                    );
+                    let projectile = self
+                        .static_data
+                        .projectile
+                        .create_projectile(Some(*data.uid), precision_mult);
                     // Shoots all projectiles simultaneously
                     let num_projectiles = self
                         .static_data

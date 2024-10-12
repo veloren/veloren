@@ -2015,10 +2015,12 @@ impl ServerEvent for BonkEvent {
                                             buff: None,
                                             friendly_fire: true,
                                             blockable: true,
+                                            attack_effect: None,
+                                            damage_effect: None,
                                         }),
                                         scaled: None,
                                     }
-                                    .create_projectile(None, 1.0, None),
+                                    .create_projectile(None, 1.0),
                                     speed: vel.0.magnitude(),
                                     object: None,
                                 });

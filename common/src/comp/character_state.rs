@@ -190,6 +190,9 @@ pub enum CharacterState {
     Transform(transform::Data),
     /// Regrow a missing head
     RegrowHead(regrow_head::Data),
+    /// A leap followed by a ranged attack, optionally with a melee attack prior
+    /// to the leap
+    LeapRanged(leap_ranged::Data),
 }
 
 impl CharacterState {
@@ -225,7 +228,8 @@ impl CharacterState {
             | CharacterState::DiveMelee(_)
             | CharacterState::RiposteMelee(_)
             | CharacterState::RapidMelee(_)
-            | CharacterState::StaticAura(_) => true,
+            | CharacterState::StaticAura(_)
+            | CharacterState::LeapRanged(_) => true,
             CharacterState::Idle(_)
             | CharacterState::Crawl
             | CharacterState::Sit
@@ -300,7 +304,8 @@ impl CharacterState {
             | CharacterState::RiposteMelee(_)
             | CharacterState::RapidMelee(_)
             | CharacterState::Transform(_)
-            | CharacterState::RegrowHead(_) => false,
+            | CharacterState::RegrowHead(_)
+            | CharacterState::LeapRanged(_) => false,
         }
     }
 
@@ -350,7 +355,8 @@ impl CharacterState {
             | CharacterState::RiposteMelee(_)
             | CharacterState::RapidMelee(_)
             | CharacterState::Transform(_)
-            | CharacterState::RegrowHead(_) => false,
+            | CharacterState::RegrowHead(_)
+            | CharacterState::LeapRanged(_) => false,
         }
     }
 
@@ -409,6 +415,7 @@ impl CharacterState {
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
                 | CharacterState::StaticAura(_)
+                | CharacterState::LeapRanged(_)
         )
     }
 
@@ -453,6 +460,18 @@ impl CharacterState {
                 Some(data.static_data.melee_constructor.blockable)
             },
             CharacterState::RapidMelee(data) => Some(data.static_data.melee_constructor.blockable),
+            CharacterState::LeapRanged(data) => Some(
+                if let Some(melee) = data.static_data.melee
+                    && data.stage_section == StageSection::Buildup
+                {
+                    melee.blockable
+                } else {
+                    data.static_data
+                        .projectile
+                        .attack
+                        .is_some_and(|a| a.blockable)
+                },
+            ),
             CharacterState::Idle(_)
             | CharacterState::Crawl
             | CharacterState::Climb(_)
@@ -511,6 +530,7 @@ impl CharacterState {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
+                | CharacterState::LeapRanged(_)
         )
     }
 
@@ -766,6 +786,7 @@ impl CharacterState {
             CharacterState::Transform(data) => data.behavior(j, output_events),
             CharacterState::RegrowHead(data) => data.behavior(j, output_events),
             CharacterState::StaticAura(data) => data.behavior(j, output_events),
+            CharacterState::LeapRanged(data) => data.behavior(j, output_events),
         }
     }
 
@@ -829,6 +850,7 @@ impl CharacterState {
             CharacterState::Transform(data) => data.handle_event(j, output_events, action),
             CharacterState::RegrowHead(data) => data.handle_event(j, output_events, action),
             CharacterState::StaticAura(data) => data.handle_event(j, output_events, action),
+            CharacterState::LeapRanged(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -887,6 +909,7 @@ impl CharacterState {
             CharacterState::Transform(data) => Some(data.static_data.ability_info),
             CharacterState::RegrowHead(data) => Some(data.static_data.ability_info),
             CharacterState::StaticAura(data) => Some(data.static_data.ability_info),
+            CharacterState::LeapRanged(data) => Some(data.static_data.ability_info),
         }
     }
 
@@ -937,6 +960,7 @@ impl CharacterState {
             CharacterState::Transform(data) => Some(data.stage_section),
             CharacterState::RegrowHead(data) => Some(data.stage_section),
             CharacterState::StaticAura(data) => Some(data.stage_section),
+            CharacterState::LeapRanged(data) => Some(data.stage_section),
         }
     }
 
@@ -1157,6 +1181,12 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
+            CharacterState::LeapRanged(data) => Some(DurationsInfo {
+                buildup: Some(data.static_data.buildup_duration),
+                movement: Some(data.static_data.movement_duration),
+                recover: Some(data.static_data.recover_duration),
+                ..Default::default()
+            }),
         }
     }
 
@@ -1207,6 +1237,7 @@ impl CharacterState {
             CharacterState::Transform(data) => Some(data.timer),
             CharacterState::RegrowHead(data) => Some(data.timer),
             CharacterState::StaticAura(data) => Some(data.timer),
+            CharacterState::LeapRanged(data) => Some(data.timer),
         }
     }
 
@@ -1277,6 +1308,15 @@ impl CharacterState {
             CharacterState::Transform(_) => &[],
             CharacterState::RegrowHead(_) => &[],
             CharacterState::StaticAura(_) => &[],
+            CharacterState::LeapRanged(data) => {
+                if data.static_data.melee.is_some()
+                    && matches!(data.stage_section, StageSection::Buildup)
+                {
+                    &[AttackSource::Melee]
+                } else {
+                    &[AttackSource::Projectile]
+                }
+            },
         }
     }
 }

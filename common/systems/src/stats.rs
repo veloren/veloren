@@ -158,7 +158,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
                 | CharacterState::StaticAura(_)
-                | CharacterState::Roll(_) => {
+                | CharacterState::Roll(_)
+                | CharacterState::LeapRanged(_) => {
                     if energy.needs_regen_rate_reset() {
                         energy.reset_regen_rate();
                     }

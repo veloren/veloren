@@ -1,5 +1,5 @@
 use crate::{
-    combat::{self, CombatEffect},
+    combat,
     comp::{
         Body, CharacterState, LightEmitter, Pos, StateUpdate, character_state::OutputEvents,
         projectile::ProjectileConstructor,
@@ -36,8 +36,6 @@ pub struct StaticData {
     pub move_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    /// Adds an effect onto the main damage of the attack
-    pub damage_effect: Option<CombatEffect>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -103,11 +101,7 @@ impl CharacterBehavior for Data {
                         .static_data
                         .projectile
                         .handle_scaling(charge_frac)
-                        .create_projectile(
-                            Some(*data.uid),
-                            precision_mult,
-                            self.static_data.damage_effect,
-                        );
+                        .create_projectile(Some(*data.uid), precision_mult);
                     output_events.emit_server(ShootEvent {
                         entity: Some(data.entity),
                         pos,

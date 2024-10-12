@@ -1,5 +1,5 @@
 use crate::{
-    combat::{self, CombatEffect},
+    combat,
     comp::{CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents},
     event::LocalEvent,
     outcome::Outcome,
@@ -32,7 +32,6 @@ pub struct StaticData {
     pub vertical_leap_strength: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    pub damage_effect: Option<CombatEffect>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

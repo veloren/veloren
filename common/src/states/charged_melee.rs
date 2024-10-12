@@ -1,5 +1,5 @@
 use crate::{
-    combat::{self, CombatEffect},
+    combat,
     comp::{
         CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents,
         melee::CustomCombo,
@@ -38,8 +38,6 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
     /// Used to specify the melee attack to the frontend
     pub specifier: Option<FrontendSpecifier>,
-    /// Adds an effect onto the main damage of the attack
-    pub damage_effect: Option<CombatEffect>,
     /// The actual additional combo is modified by duration of charge
     pub custom_combo: CustomCombo,
     /// Adjusts move speed during the attack per stage
