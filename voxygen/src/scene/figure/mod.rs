@@ -1722,7 +1722,8 @@ impl FigureMgr {
                     | CharacterState::StaticAura(_)
                     | CharacterState::BasicBeam(_)
                     | CharacterState::BasicBlock(_)
-                    | CharacterState::RiposteMelee(_) => {
+                    | CharacterState::RiposteMelee(_)
+                    | CharacterState::LeapRanged(_) => {
                         let timer = character.timer();
                         let stage_section = character.stage_section();
                         let durations = character.durations();

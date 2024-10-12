@@ -459,3 +459,6 @@ common-abilities-bow-arrow_shot = Arrow Shot
 common-abilities-bow-broadhead = Broadhead
     .desc =
         Nock a heavier arrow, and release.
+common-abilities-bow-foothold = Foothold
+    .desc =
+        Kick off of a foe to jump backwards while shooting an arrow at them.

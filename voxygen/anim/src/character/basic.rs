@@ -1619,6 +1619,29 @@ impl Animation for BasicAction {
                 next.hand_l.position +=
                     Vec3::new(0.0, charge * -5.0, 0.0) + Vec3::one() * tension * 0.05;
             },
+            Some("common.abilities.bow.foothold") => {
+                bow_start(&mut next, s_a);
+
+                let move1a = (move1base * 1.5).min(1.0);
+                let move1b = (move1base * 3.0 - 2.0).max(0.0).powi(4);
+                let move1a_reta = move1a - move1b;
+                let move2 = movementbase.min(1.0);
+                let move1a_retb = move1a - move2;
+                let move1b_ret = move1b - move2;
+
+                twist_back(&mut next, move1a_reta, 1.1, 0.7, 0.5, 0.8);
+                next.foot_l.orientation.rotate_z(move1a_retb * 1.4);
+                next.foot_l.position += Vec3::new(-2.0, -3.0, 0.0) * move1a_retb;
+                next.control.orientation.rotate_z(move1a_reta * -0.9);
+                next.control.position += Vec3::new(8.0, 3.0, 0.0) * move1a_reta;
+
+                twist_forward(&mut next, move1b_ret, 1.8, 1.1, 0.6, 1.0);
+                next.foot_l.orientation.rotate_z(move1b_ret * -2.4);
+                next.foot_l.orientation.rotate_x(move1b_ret * 1.2);
+                next.foot_l.position += Vec3::new(11.0, 10.0, 6.0) * move1b_ret;
+
+                bow_draw(&mut next, move2, d.look_dir.z);
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================
