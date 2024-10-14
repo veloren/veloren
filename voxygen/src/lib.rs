@@ -23,6 +23,7 @@
 #[macro_use]
 pub mod ui;
 pub mod audio;
+pub mod cli;
 pub mod cmd;
 pub mod controller;
 mod credits;
@@ -87,6 +88,8 @@ pub struct GlobalState {
     pub clipboard: iced_winit::Clipboard,
     // Used to clear the shadow textures when entering a PlayState that doesn't utilise shadows
     pub clear_shadows_next_frame: bool,
+    /// CLI arguments passed to voxygen
+    pub args: crate::cli::Args,
     /// A channel that sends Discord activity updates to a background task
     #[cfg(feature = "discord")]
     pub discord: crate::discord::Discord,

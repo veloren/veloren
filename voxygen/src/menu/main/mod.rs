@@ -18,6 +18,7 @@ use client::{
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::comp;
 use common_base::span;
+use common_net::msg::ClientType;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
 use i18n::LocalizationHandle;
@@ -69,9 +70,9 @@ pub struct MainMenuState {
 
 impl MainMenuState {
     /// Create a new `MainMenuState`.
-    pub fn new(global_state: &mut GlobalState, server: Option<String>) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
         Self {
-            main_menu_ui: MainMenuUi::new(global_state, server),
+            main_menu_ui: MainMenuUi::new(global_state),
             init: InitState::None,
             scene: Scene::new(global_state.window.renderer_mut()),
         }
@@ -134,6 +135,7 @@ impl PlayState for MainMenuState {
                             ),
                             &global_state.i18n,
                             &global_state.config_dir,
+                            global_state.args.client_type.0,
                         );
                     },
                     Ok(Err(e)) => {
@@ -421,6 +423,7 @@ impl PlayState for MainMenuState {
                             .then_some(global_state.settings.language.selected_language.clone()),
                         &global_state.i18n,
                         &global_state.config_dir,
+                        global_state.args.client_type.0,
                     );
                 },
                 MainMenuEvent::CancelLoginAttempt => {
@@ -663,6 +666,7 @@ fn attempt_login(
     locale: Option<String>,
     localized_strings: &LocalizationHandle,
     config_dir: &Path,
+    client_type: ClientType,
 ) {
     let localization = localized_strings.read();
     if let Err(err) = comp::Player::alias_validate(&username) {
@@ -696,6 +700,7 @@ fn attempt_login(
             Arc::clone(runtime),
             locale,
             config_dir,
+            client_type,
         ));
     }
 }

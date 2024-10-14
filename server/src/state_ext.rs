@@ -611,14 +611,21 @@ impl StateExt for State {
                 return Err(err);
             }
 
-            // Notify clients of a player list update
-            self.notify_players(ServerGeneral::PlayerListUpdate(
-                PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
-                    name: String::from(&stats.name),
-                    // NOTE: hack, read docs on body::Gender for more
-                    gender: stats.original_body.humanoid_gender(),
-                }),
-            ));
+            if self
+                .ecs()
+                .read_component::<Client>()
+                .get(entity)
+                .is_some_and(|client| client.client_type.emit_login_events())
+            {
+                // Notify clients of a player list update
+                self.notify_players(ServerGeneral::PlayerListUpdate(
+                    PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
+                        name: String::from(&stats.name),
+                        // NOTE: hack, read docs on body::Gender for more
+                        gender: stats.original_body.humanoid_gender(),
+                    }),
+                ));
+            }
 
             // NOTE: By fetching the player_uid, we validated that the entity exists,
             // and we call nothing that can delete it in any of the subsequent

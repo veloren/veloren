@@ -3,6 +3,7 @@ use client::{
     error::{Error as ClientError, NetworkConnectError, NetworkError},
     Client, ClientInitStage, ServerInfo,
 };
+use common_net::msg::ClientType;
 use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::{
     path::Path,
@@ -52,6 +53,7 @@ impl ClientInit {
         runtime: Arc<runtime::Runtime>,
         locale: Option<String>,
         config_dir: &Path,
+        client_type: ClientType,
     ) -> Self {
         let (tx, rx) = unbounded();
         let (trust_tx, trust_rx) = unbounded();
@@ -93,6 +95,7 @@ impl ClientInit {
                     },
                     crate::ecs::sys::add_local_systems,
                     config_dir.clone(),
+                    client_type,
                 )
                 .await
                 {

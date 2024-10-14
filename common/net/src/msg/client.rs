@@ -1,6 +1,9 @@
 use super::{world_msg::SiteId, PingMsg};
 use common::{
-    character::CharacterId, comp, comp::Skill, event::PluginHash, terrain::block::Block,
+    character::CharacterId,
+    comp::{self, AdminRole, Skill},
+    event::PluginHash,
+    terrain::block::Block,
     ViewDistances,
 };
 use serde::{Deserialize, Serialize};
@@ -31,9 +34,32 @@ pub enum ClientType {
     Game,
     /// A Chat-only client, which doesn't want to connect via its character
     ChatOnly,
+    /// A client that is only allowed to use spectator, does not emit
+    /// login/logout and player list events, and cannot use chat.
+    ///
+    /// Can only be used by moderators.
+    SilentSpectator,
     /// A unprivileged bot, e.g. to request world information
     /// Or a privileged bot, e.g. to run admin commands used by server-cli
     Bot { privileged: bool },
+}
+
+impl ClientType {
+    pub fn is_valid_for_role(&self, role: Option<AdminRole>) -> bool {
+        match self {
+            Self::SilentSpectator => role.is_some(),
+            Self::Bot { privileged } => !privileged || role.is_some(),
+            _ => true,
+        }
+    }
+
+    pub fn emit_login_events(&self) -> bool { !matches!(self, Self::SilentSpectator) }
+
+    pub fn can_spectate(&self) -> bool { matches!(self, Self::Game | Self::SilentSpectator) }
+
+    pub fn can_enter_character(&self) -> bool { *self == Self::Game }
+
+    pub fn can_send_message(&self) -> bool { !matches!(self, Self::SilentSpectator) }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -122,8 +148,11 @@ impl ClientMsg {
                         | ClientGeneral::DeleteCharacter(_) => {
                             c_type != ClientType::ChatOnly && presence.is_none()
                         },
-                        ClientGeneral::Character(_, _) | ClientGeneral::Spectate(_) => {
+                        ClientGeneral::Character(_, _) => {
                             c_type == ClientType::Game && presence.is_none()
+                        },
+                        ClientGeneral::Spectate(_) => {
+                            c_type.can_spectate() && presence.is_none()
                         },
                         //Only in game
                         ClientGeneral::ControllerInputs(_)
@@ -139,13 +168,17 @@ impl ClientMsg {
                         | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::RequestPlayerPhysics { .. }
                         | ClientGeneral::RequestLossyTerrainCompression { .. }
-                        | ClientGeneral::UpdateMapMarker(_)
-                        | ClientGeneral::SpectatePosition(_) => {
+                        | ClientGeneral::UpdateMapMarker(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
+                        ClientGeneral::SpectatePosition(_) => {
+                            c_type.can_spectate() && presence.is_some()
+                        },
+                        ClientGeneral::ChatMsg(_) => {
+                            c_type.can_send_message()
+                        },
                         //Always possible
-                        ClientGeneral::ChatMsg(_)
-                        | ClientGeneral::Command(_, _)
+                        ClientGeneral::Command(_, _)
                         | ClientGeneral::Terminate
                         // LodZoneRequest is required by the char select screen
                         | ClientGeneral::LodZoneRequest { .. } => true,

@@ -13,6 +13,7 @@ pub enum DisconnectReason {
     NetworkError,
     Timeout,
     ClientRequested,
+    InvalidClientType,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

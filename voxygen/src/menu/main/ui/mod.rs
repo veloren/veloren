@@ -682,7 +682,7 @@ pub struct MainMenuUi {
 }
 
 impl MainMenuUi {
-    pub fn new(global_state: &mut GlobalState, server: Option<String>) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
         // Load language
         let i18n = &global_state.i18n.read();
         // TODO: don't add default font twice
@@ -706,7 +706,7 @@ impl MainMenuUi {
             ui.add_graphic(Graphic::Image(bg_img, None)),
             global_state.i18n,
             &global_state.settings,
-            server,
+            global_state.args.server.clone(),
         );
 
         Self {

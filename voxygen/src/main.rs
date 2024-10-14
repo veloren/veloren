@@ -1,8 +1,6 @@
 #![deny(unsafe_code)]
 #![recursion_limit = "2048"]
 
-mod cli;
-
 #[cfg(all(
     target_os = "windows",
     not(feature = "tracy-memory"),
@@ -23,7 +21,7 @@ use i18n::{self, LocalizationHandle};
 use veloren_voxygen::singleplayer::SingleplayerState;
 use veloren_voxygen::{
     audio::AudioFrontend,
-    panic_handler,
+    cli, panic_handler,
     profile::Profile,
     run,
     scene::terrain::SpriteRenderContext,
@@ -249,7 +247,8 @@ fn main() {
         clear_shadows_next_frame: false,
         #[cfg(feature = "discord")]
         discord,
+        args: args.clone(),
     };
 
-    run::run(global_state, event_loop, args.server);
+    run::run(global_state, event_loop);
 }
