@@ -804,6 +804,15 @@ impl<'a> PhysicsData<'a> {
 
         drop(guard);
 
+        prof_span!(guard, "Collect in_fluid delta");
+
+        let in_fluid_delta = (&write.physics_states)
+            .join()
+            .map(|s| s.in_fluid)
+            .collect::<Vec<_>>();
+
+        drop(guard);
+
         prof_span!(guard, "insert PosVelOriDefer");
         // NOTE: keep in sync with join below
         (
@@ -954,6 +963,34 @@ impl<'a> PhysicsData<'a> {
             // it did not work (investigate root cause?)
             previous_phys_cache.pos = Some(*pos);
             previous_phys_cache.ori = ori.to_quat();
+        }
+        drop(guard);
+
+        prof_span!(guard, "emit splash events");
+        let mut outcomes = write.outcomes.emitter();
+        for ((physics_state, vel, pos, mass), in_fluid_delta) in (
+            &write.physics_states,
+            &write.velocities,
+            &write.positions,
+            &read.masses,
+        )
+            .join()
+            .zip(in_fluid_delta)
+        {
+            match (physics_state.in_fluid, in_fluid_delta) {
+                // No splash when going between liquids.
+                (Some(Fluid::Liquid { .. }), Some(Fluid::Liquid { .. }) | None) => {},
+                // Splash!
+                (Some(Fluid::Liquid { kind, .. }), _) => {
+                    outcomes.emit(Outcome::Splash {
+                        pos: pos.0,
+                        vel: vel.0,
+                        mass: mass.0,
+                        kind,
+                    });
+                },
+                _ => {},
+            }
         }
         drop(guard);
     }

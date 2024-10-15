@@ -186,6 +186,12 @@ pub enum Outcome {
         uid: Uid,
         head: usize,
     },
+    Splash {
+        vel: Vec3<f32>,
+        pos: Vec3<f32>,
+        mass: f32,
+        kind: comp::fluid_dynamics::LiquidKind,
+    },
 }
 
 impl Outcome {
@@ -225,7 +231,8 @@ impl Outcome {
             | Outcome::TeleportedByPortal { pos}
             | Outcome::FromTheAshes { pos }
             | Outcome::ClayGolemDash { pos }
-            | Outcome::Glider { pos, .. } => Some(*pos),
+            | Outcome::Glider { pos, .. }
+            | Outcome::Splash { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
             | Outcome::DamagedBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }

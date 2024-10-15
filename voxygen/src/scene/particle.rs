@@ -506,6 +506,57 @@ impl ParticleMgr {
                     }
                 };
             },
+            Outcome::Splash {
+                vel,
+                pos,
+                mass,
+                kind,
+            } => {
+                let mode = match kind {
+                    comp::fluid_dynamics::LiquidKind::Water => ParticleMode::WaterFoam,
+                    comp::fluid_dynamics::LiquidKind::Lava => ParticleMode::CampfireFire,
+                };
+                let magnitude = vel.magnitude();
+                let energy = mass * magnitude;
+                if energy > 0.0 {
+                    let axis = vel / magnitude;
+                    let count = (2.0 * energy.sqrt()).ceil() as usize;
+                    dbg!(count);
+                    let mut i = 0;
+                    let r = 0.5 / count as f32;
+                    let plane = if axis == Vec3::unit_z() {
+                        Vec3::unit_x()
+                    } else {
+                        axis.cross(Vec3::unit_z())
+                    };
+                    dbg!(plane);
+                    self.particles
+                        .resize_with(self.particles.len() + count, || {
+                            let t = i as f32 / count as f32 + rng.gen_range(-r..=r);
+                            i += 1;
+                            let angle = t * TAU;
+                            let s = (angle * 0.5).sin();
+                            let c = (angle * 0.5).cos();
+                            let q = Quaternion::<f32>::from((axis * s).with_w(c)).normalized();
+
+                            let plane = (plane * q).normalized();
+
+                            let pos = *pos + plane * rng.gen_range(0.0..0.5);
+
+                            let energy = energy.sqrt() * 0.5;
+
+                            let dir = plane * (1.0 + energy) - axis * energy;
+
+                            Particle::new_directed(
+                                Duration::from_millis(4000),
+                                time,
+                                mode,
+                                pos,
+                                pos + dir,
+                            )
+                        });
+                }
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }

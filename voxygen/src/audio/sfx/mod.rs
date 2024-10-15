@@ -897,6 +897,16 @@ impl SfxMgr {
                     error!("Couldn't get position of entity that lost head");
                 }
             },
+            Outcome::Splash { vel, pos, mass, .. } => {
+                // TODO: Splash sound
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Swim);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    *pos,
+                    Some((mass * vel.magnitude()).sqrt() / 10.0),
+                    underwater,
+                );
+            },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},
         }
     }
