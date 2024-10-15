@@ -3,8 +3,8 @@ use crate::TerrainPersistence;
 use crate::{client::Client, Settings};
 use common::{
     comp::{
-        Admin, AdminRole, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player,
-        Pos, Presence, PresenceKind, SkillSet, Vel,
+        Admin, AdminRole, Body, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori,
+        Player, Pos, Presence, PresenceKind, Scale, SkillSet, Vel,
     },
     event::{self, EmitExt},
     event_emitters,
@@ -288,6 +288,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Is<VolumeRider>>,
         WriteStorage<'a, SkillSet>,
         ReadStorage<'a, Health>,
+        ReadStorage<'a, Body>,
+        ReadStorage<'a, Scale>,
         Write<'a, BlockChange>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -321,6 +323,8 @@ impl<'a> System<'a> for Sys {
             is_volume_rider,
             mut skill_sets,
             healths,
+            bodies,
+            scales,
             mut block_changes,
             mut positions,
             mut velocities,
@@ -425,6 +429,7 @@ impl<'a> System<'a> for Sys {
                         enum Rejection {
                             TooFar { old: Vec3<f32>, new: Vec3<f32> },
                             TooFast { vel: Vec3<f32> },
+                            InsideTerrain,
                         }
 
                         let rejection = if maybe_admin.is_some() {
@@ -468,6 +473,25 @@ impl<'a> System<'a> for Sys {
                                     break 'rejection Some(Rejection::TooFar { old: old_pos.0, new: new_pos.0 });
                                 }
 
+                                // Checks that are only relevant if the position changed
+                                if new_pos.0 != old_pos.0 {
+                                    // Reject updates that would move the entity into terrain
+                                    let scale = scales.get(entity).map_or(1.0, |s| s.0);
+                                    let min_z = new_pos.0.z as i32;
+                                    let height = bodies.get(entity).map_or(0.0, |b| b.height()) * scale;
+                                    let head_pos_z = (new_pos.0.z + height) as i32;
+
+                                    if !(min_z..=head_pos_z).any(|z| {
+                                        let pos = new_pos.0.as_().with_z(z);
+
+                                        terrain
+                                            .get(pos)
+                                            .is_ok_and(|block| block.is_fluid())
+                                    }) {
+                                        break 'rejection Some(Rejection::InsideTerrain);
+                                    }
+                                }
+
                                 None
                             }
                         };
@@ -478,6 +502,7 @@ impl<'a> System<'a> for Sys {
                             match rejection {
                                 Rejection::TooFar { old, new } => warn!("Rejected physics for player {alias:?} (new position {new:?} is too far from old position {old:?})"),
                                 Rejection::TooFast { vel } => warn!("Rejected physics for player {alias:?} (new velocity {vel:?} is too fast)"),
+                                Rejection::InsideTerrain => warn!("Rejected physics for player {alias:?}: Inside terrain."),
                             }
 
                             /*
