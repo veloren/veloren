@@ -160,7 +160,7 @@ specs = { version = "0.20", features = ["nightly"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 rayon = { version = "1.5" }
 
-clap = { version = "4.2", features = ["derive"] }
+clap = { version = "4.2", features = ["derive", "env"] }
 async-trait = "0.1.42"
 sha2 = "0.10"
 hex = "0.4.3"

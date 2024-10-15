@@ -34,7 +34,12 @@ impl Sys {
     ) -> Result<(), crate::error::Error> {
         match msg {
             ClientGeneral::ChatMsg(message) => {
-                if player.is_some() {
+                if !client.client_type.can_send_message() {
+                    client.send_fallible(ServerGeneral::ChatMsg(
+                        ChatType::CommandError
+                            .into_msg(Content::localized("command-cannot-send-message-hidden")),
+                    ));
+                } else if player.is_some() {
                     if let Some(from) = uids.get(entity) {
                         const CHAT_MODE_DEFAULT: &ChatMode = &ChatMode::default();
                         let mode = chat_modes.get(entity).unwrap_or(CHAT_MODE_DEFAULT);

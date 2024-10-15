@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};
 use tokio::runtime::Runtime;
 use tracing::{info, trace, warn};
-use veloren_client::{addr::ConnectionArgs, Client};
+use veloren_client::{addr::ConnectionArgs, Client, ClientType};
 
 mod settings;
 mod tui;
@@ -76,6 +76,7 @@ pub fn make_client(
             &|_| {},
             |_| {},
             Default::default(),
+            ClientType::Game,
         ))
         .ok()
 }

@@ -79,6 +79,12 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         // Tell client its request was successful
         client.send_fallible(ServerGeneral::ExitInGameSuccess);
 
+        if client.client_type.emit_login_events() {
+            state.notify_players(ServerGeneral::PlayerListUpdate(
+                PlayerListUpdate::ExitCharacter(uid),
+            ));
+        }
+
         let new_entity = state
             .ecs_mut()
             .create_entity()
@@ -115,6 +121,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
                 );
             }
         }
+
         // delete_entity_recorded` is not used so we don't need to worry aobut
         // group restructuring when deleting this entity.
     } else {
@@ -156,6 +163,7 @@ fn get_reason_str(reason: &comp::DisconnectReason) -> &str {
         comp::DisconnectReason::NewerLogin => "newer_login",
         comp::DisconnectReason::Kicked => "kicked",
         comp::DisconnectReason::ClientRequested => "client_requested",
+        comp::DisconnectReason::InvalidClientType => "invalid_client_type",
     }
 }
 
@@ -166,6 +174,7 @@ pub fn handle_client_disconnect(
     skip_persistence: bool,
 ) -> Event {
     span!(_guard, "handle_client_disconnect");
+    let mut emit_logoff_event = true;
     if let Some(client) = server
         .state()
         .ecs()
@@ -212,6 +221,8 @@ pub fn handle_client_disconnect(
                 )),
             );
         }
+
+        emit_logoff_event = client.client_type.emit_login_events();
     }
 
     let state = server.state_mut();
@@ -221,7 +232,8 @@ pub fn handle_client_disconnect(
     if let (Some(uid), Some(_)) = (
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
-    ) {
+    ) && emit_logoff_event
+    {
         state.notify_players(ServerGeneral::server_msg(
             comp::ChatType::Offline(*uid),
             Content::Plain("".to_string()),
@@ -469,6 +481,7 @@ pub fn handle_possess(
             .remove(possessor)
             .expect("Checked client component was present above!");
         client.send_fallible(ServerGeneral::SetPlayerEntity(possessee_uid));
+        let emit_player_list_events = client.client_type.emit_login_events();
         // Note: we check that the `possessor` and `possessee` entities exist above, so
         // this should never panic.
         clients
@@ -527,7 +540,9 @@ pub fn handle_possess(
         // old player.
         // Fetches from possessee entity here since we have transferred over the
         // `Player` component.
-        if let Some(player) = players.get(possessee) {
+        if let Some(player) = players.get(possessee)
+            && emit_player_list_events
+        {
             use common_net::msg;
 
             let add_player_msg = ServerGeneral::PlayerListUpdate(PlayerListUpdate::Add(

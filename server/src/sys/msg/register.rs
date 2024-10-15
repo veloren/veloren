@@ -86,12 +86,16 @@ impl<'a> System<'a> for Sys {
         let (player_list, old_players_by_uuid): (HashMap<_, _>, HashMap<_, _>) = (
             &read_data.entities,
             &read_data.uids,
+            clients.maybe(),
             &players,
             read_data.stats.maybe(),
             read_data.trackers.admin.maybe(),
         )
             .join()
-            .map(|(entity, uid, player, stats, admin)| {
+            .filter(|(_, _, client, _, _, _)| {
+                client.map_or(true, |client| client.client_type.emit_login_events())
+            })
+            .map(|(entity, uid, _, player, stats, admin)| {
                 (
                     (*uid, PlayerInfo {
                         is_online: true,
@@ -175,7 +179,7 @@ impl<'a> System<'a> for Sys {
                                 PendingLogin::new_success(username.clone(), uuid);
                             let player = Player::new(username, battle_mode, uuid, None);
                             let admin = read_data.editable_settings.admins.get(&uuid);
-                            let msg = player
+                            let player_list_update_msg = player
                                 .is_valid()
                                 .then_some(PlayerInfo {
                                     player_alias: player.alias.clone(),
@@ -215,13 +219,13 @@ impl<'a> System<'a> for Sys {
                             // stuff if login returns an error.
                             (
                                 old_player_count + guard.0.len() >= max_players,
-                                (guard, (pending_login, player, admin, msg, old_player)),
+                                (guard, (pending_login, player, admin, player_list_update_msg, old_player)),
                             )
                         };
                         // Destructure new_players_guard last so it gets dropped before the other
                         // three.
                         let (
-                            (pending_login, player, admin, msg, old_player),
+                            (pending_login, player, admin, player_list_update_msg, old_player),
                             mut new_players_guard,
                         ) = match LoginProvider::login(
                             pending,
@@ -251,6 +255,15 @@ impl<'a> System<'a> for Sys {
                                 }
                             },
                         };
+
+                        if !client.client_type.is_valid_for_role(admin.map(|admin| admin.role.into())) {
+                            drop(new_players_guard);
+                            client_disconnect_emitter.emit(ClientDisconnectEvent(
+                                entity,
+                                common::comp::DisconnectReason::InvalidClientType,
+                            ));
+                            return Ok(());
+                        }
 
                         let (new_players_by_uuid, retries, finished_pending) = &mut *new_players_guard;
                         finished_pending.push(entity);
@@ -311,7 +324,7 @@ impl<'a> System<'a> for Sys {
                             Either::Right(v) => v,
                         };
 
-                        let Some(msg) = msg else {
+                        let Some(player_login_msg) = player_list_update_msg else {
                             drop(new_players_guard);
                             // Invalid player
                             client.send(Err(RegisterError::InvalidCharacter))?;
@@ -323,7 +336,7 @@ impl<'a> System<'a> for Sys {
                         // adding a new player.
 
                         // Add to list to notify all clients of the new player
-                        vacant_player.insert((entity, player, admin, msg));
+                        vacant_player.insert((entity, player, admin, client.client_type.emit_login_events().then_some(player_login_msg)));
                         drop(new_players_guard);
                         read_data.player_metrics.players_connected.inc();
 
@@ -349,6 +362,7 @@ impl<'a> System<'a> for Sys {
                             entity_package: read_data
                                 .trackers
                                 .create_entity_package_with_uid(entity, *uid, None, None, None),
+                            role: admin.map(|admin| admin.role.into()),
                             time_of_day: *read_data.time_of_day,
                             max_group_size: read_data.settings.max_player_group_size,
                             client_timeout: read_data.settings.client_timeout,
@@ -391,7 +405,7 @@ impl<'a> System<'a> for Sys {
         // Handle new players.
         let msgs = new_players
             .into_values()
-            .map(|(entity, player, admin, msg)| {
+            .filter_map(|(entity, player, admin, msg)| {
                 let username = &player.alias;
                 let uuid = player.uuid();
                 info!(?username, "New User");

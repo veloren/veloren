@@ -258,6 +258,7 @@ command-outcome-invalid_outcome = { $outcome } is not a valid outcome
 command-death_effect-unknown = Unknown death effect { $effect }.
 command-spot-spot_not_found = Didn't find any spots of that kind in this world.
 command-spot-world_feature = The `worldgen` feature has to be enabled to run this command.
+command-cannot-send-message-hidden = Cannot send messages as a hidden spectator.
 
 # Unreachable/untestable but added for consistency
 

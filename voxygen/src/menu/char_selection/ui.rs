@@ -828,7 +828,7 @@ impl Controls {
                     .into(),
                 ];
 
-                if client.is_moderator() {
+                if client.is_moderator() && client.client_type().can_spectate() {
                     bottom_content.push(
                         Container::new(neat_button(
                             spectate_button,
@@ -844,19 +844,21 @@ impl Controls {
                     );
                 }
 
-                bottom_content.push(
-                    Container::new(neat_button(
-                        enter_world_button,
-                        i18n.get_msg("char_selection-enter_world").into_owned(),
-                        FILL_FRAC_TWO,
-                        button_style,
-                        selected.map(|_| Message::EnterWorld),
-                    ))
-                    .width(Length::Fill)
-                    .height(Length::Units(52))
-                    .center_x()
-                    .into(),
-                );
+                if client.client_type().can_enter_character() {
+                    bottom_content.push(
+                        Container::new(neat_button(
+                            enter_world_button,
+                            i18n.get_msg("char_selection-enter_world").into_owned(),
+                            FILL_FRAC_TWO,
+                            button_style,
+                            selected.map(|_| Message::EnterWorld),
+                        ))
+                        .width(Length::Fill)
+                        .height(Length::Units(52))
+                        .center_x()
+                        .into(),
+                    );
+                }
 
                 bottom_content.push(Space::new(Length::Fill, Length::Shrink).into());
 

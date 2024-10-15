@@ -6,6 +6,7 @@ use super::{char_selection::CharSelectionState, dummy_scene::Scene, server_info:
 use crate::singleplayer::SingleplayerState;
 use crate::{
     render::{Drawer, GlobalsBindGroup},
+    session::SessionState,
     settings::Settings,
     window::Event,
     Direction, GlobalState, PlayState, PlayStateResult,
@@ -16,16 +17,17 @@ use client::{
     Client, ClientInitStage, ServerInfo,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
-use common::comp;
+use common::{comp, event::UpdateCharacterMetadata};
 use common_base::span;
+use common_net::msg::ClientType;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
 use i18n::LocalizationHandle;
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
-#[cfg(feature = "singleplayer")]
+#[cfg(any(feature = "singleplayer", feature = "plugins"))]
 use specs::WorldExt;
-use std::{path::Path, sync::Arc};
+use std::{cell::RefCell, path::Path, rc::Rc, sync::Arc};
 use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
@@ -69,9 +71,9 @@ pub struct MainMenuState {
 
 impl MainMenuState {
     /// Create a new `MainMenuState`.
-    pub fn new(global_state: &mut GlobalState, server: Option<String>) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
         Self {
-            main_menu_ui: MainMenuUi::new(global_state, server),
+            main_menu_ui: MainMenuUi::new(global_state),
             init: InitState::None,
             scene: Scene::new(global_state.window.renderer_mut()),
         }
@@ -134,6 +136,7 @@ impl PlayState for MainMenuState {
                             ),
                             &global_state.i18n,
                             &global_state.config_dir,
+                            global_state.args.client_type.0,
                         );
                     },
                     Ok(Err(e)) => {
@@ -334,18 +337,30 @@ impl PlayState for MainMenuState {
             // If complete go to char select screen
             } else {
                 // Always succeeds since we check above
-                if let InitState::Pipeline(client) =
+                if let InitState::Pipeline(mut client) =
                     core::mem::replace(&mut self.init, InitState::None)
                 {
                     self.main_menu_ui.connected();
 
+                    // If the client cannot enter the game but spectate, skip from the character
+                    // menu directly to spectating.
+                    if client.client_type().can_spectate()
+                        && !client.client_type().can_enter_character()
+                    {
+                        client.request_spectate(global_state.settings.graphics.view_distances());
+
+                        return PlayStateResult::Push(Box::new(SessionState::new(
+                            global_state,
+                            UpdateCharacterMetadata::default(),
+                            Rc::new(RefCell::new(*client)),
+                        )));
+                    }
+
                     let server_info = client.server_info().clone();
                     let server_description = client.server_description().clone();
 
-                    let char_select = CharSelectionState::new(
-                        global_state,
-                        std::rc::Rc::new(std::cell::RefCell::new(*client)),
-                    );
+                    let char_select =
+                        CharSelectionState::new(global_state, Rc::new(RefCell::new(*client)));
 
                     let new_state = ServerInfoState::try_from_server_info(
                         global_state,
@@ -421,6 +436,7 @@ impl PlayState for MainMenuState {
                             .then_some(global_state.settings.language.selected_language.clone()),
                         &global_state.i18n,
                         &global_state.config_dir,
+                        global_state.args.client_type.0,
                     );
                 },
                 MainMenuEvent::CancelLoginAttempt => {
@@ -663,6 +679,7 @@ fn attempt_login(
     locale: Option<String>,
     localized_strings: &LocalizationHandle,
     config_dir: &Path,
+    client_type: ClientType,
 ) {
     let localization = localized_strings.read();
     if let Err(err) = comp::Player::alias_validate(&username) {
@@ -696,6 +713,7 @@ fn attempt_login(
             Arc::clone(runtime),
             locale,
             config_dir,
+            client_type,
         ));
     }
 }

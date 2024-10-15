@@ -9,10 +9,9 @@ use common_base::{prof_span, span};
 use std::{mem, time::Duration};
 use tracing::debug;
 
-pub fn run(mut global_state: GlobalState, event_loop: EventLoop, server: Option<String>) {
+pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
     // Set up the initial play state.
-    let mut states: Vec<Box<dyn PlayState>> =
-        vec![Box::new(MainMenuState::new(&mut global_state, server))];
+    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states.last_mut().map(|current_state| {
         current_state.enter(&mut global_state, Direction::Forwards);
         let current_state = current_state.name();

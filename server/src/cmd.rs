@@ -326,6 +326,20 @@ fn no_sudo(client: EcsEntity, target: EcsEntity) -> CmdResult<()> {
     }
 }
 
+fn can_send_message(target: EcsEntity, server: &mut Server) -> CmdResult<()> {
+    if server
+        .state
+        .ecs()
+        .read_storage::<Client>()
+        .get(target)
+        .map_or(true, |client| !client.client_type.can_send_message())
+    {
+        Err(Content::localized("command-cannot-send-message-hidden"))
+    } else {
+        Ok(())
+    }
+}
+
 /// Ensure that client role is above target role, for the purpose of performing
 /// some (often permanent) administrative action on the target.  Note that this
 /// function is *not* a replacement for actually verifying that the client
@@ -368,11 +382,19 @@ fn verify_above_role(
     }
 }
 
-fn find_alias(ecs: &specs::World, alias: &str) -> CmdResult<(EcsEntity, Uuid)> {
-    (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+fn find_alias(ecs: &specs::World, alias: &str, find_hidden: bool) -> CmdResult<(EcsEntity, Uuid)> {
+    (
+        &ecs.entities(),
+        &ecs.read_storage::<comp::Player>(),
+        &ecs.read_storage::<Client>(),
+    )
         .join()
-        .find(|(_, player)| player.alias == alias)
-        .map(|(entity, player)| (entity, player.uuid()))
+        .find(|(_, player, client)| {
+            // If `find_hidden` is set to false, disallow discovering this player using ie.
+            // /tell or /group_invite
+            player.alias == alias && (client.client_type.emit_login_events() || find_hidden)
+        })
+        .map(|(entity, player, _)| (entity, player.uuid()))
         .ok_or_else(|| {
             Content::localized_with_args("command-player-not-found", [("player", alias)])
         })
@@ -1359,11 +1381,13 @@ fn handle_alias(
 
         // Update name on client player lists
         let ecs = server.state.ecs();
-        if let (Some(uid), Some(player), Some(old_alias)) = (
+        if let (Some(uid), Some(player), Some(client), Some(old_alias)) = (
             ecs.read_storage::<Uid>().get(target),
             ecs.read_storage::<comp::Player>().get(target),
+            ecs.read_storage::<Client>().get(target),
             old_alias_optional,
-        ) {
+        ) && client.client_type.emit_login_events()
+        {
             let msg = ServerGeneral::PlayerListUpdate(PlayerListUpdate::Alias(
                 *uid,
                 player.alias.clone(),
@@ -3382,7 +3406,7 @@ fn handle_adminify(
         } else {
             None
         };
-        let (player, player_uuid) = find_alias(server.state.ecs(), &alias)?;
+        let (player, player_uuid) = find_alias(server.state.ecs(), &alias, true)?;
         let client_uuid = uuid(server, client, "client")?;
         let uid = uid(server, player, "player")?;
 
@@ -3465,13 +3489,26 @@ fn handle_adminify(
                 );
             },
         };
-        // Update player list so the player shows up as moderator in client chat.
-        //
-        // NOTE: We deliberately choose not to differentiate between moderators and
-        // administrators in the player list.
-        let is_moderator = desired_role.is_some();
-        let msg = ServerGeneral::PlayerListUpdate(PlayerListUpdate::Moderator(uid, is_moderator));
-        server.state.notify_players(msg);
+
+        // Notify the client that its role has been updated
+        server.notify_client(player, ServerGeneral::SetPlayerRole(desired_role));
+
+        if server
+            .state
+            .ecs()
+            .read_storage::<Client>()
+            .get(player)
+            .is_some_and(|client| client.client_type.emit_login_events())
+        {
+            // Update player list so the player shows up as moderator in client chat.
+            //
+            // NOTE: We deliberately choose not to differentiate between moderators and
+            // administrators in the player list.
+            let is_moderator = desired_role.is_some();
+            let msg =
+                ServerGeneral::PlayerListUpdate(PlayerListUpdate::Moderator(uid, is_moderator));
+            server.state.notify_players(msg);
+        }
         Ok(())
     } else {
         Err(action.help_content())
@@ -3486,10 +3523,11 @@ fn handle_tell(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
+    can_send_message(target, server)?;
 
     if let (Some(alias), message_opt) = parse_cmd_args!(args, String, ..Vec<String>) {
         let ecs = server.state.ecs();
-        let player = find_alias(ecs, &alias)?.0;
+        let player = find_alias(ecs, &alias, false)?.0;
 
         if player == target {
             return Err(Content::localized("command-tell-to-yourself"));
@@ -3525,6 +3563,7 @@ fn handle_faction(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
+    can_send_message(target, server)?;
 
     let factions = server.state.ecs().read_storage();
     if let Some(comp::Faction(faction)) = factions.get(target) {
@@ -3554,6 +3593,7 @@ fn handle_group(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
+    can_send_message(target, server)?;
 
     let groups = server.state.ecs().read_storage::<comp::Group>();
     if let Some(group) = groups.get(target).copied() {
@@ -3582,8 +3622,12 @@ fn handle_group_invite(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
+    // Very hypothetical case: Prevent an admin from running /group_invite using
+    // /sudo on a moderator who is currently in silent spectator.
+    can_send_message(target, server)?;
+
     if let Some(target_alias) = parse_cmd_args!(args, String) {
-        let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
+        let target_player = find_alias(server.state.ecs(), &target_alias, false)?.0;
         let uid = uid(server, target_player, "player")?;
 
         server
@@ -3628,7 +3672,7 @@ fn handle_group_kick(
 ) -> CmdResult<()> {
     // Checking if leader is already done in group_manip
     if let Some(target_alias) = parse_cmd_args!(args, String) {
-        let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
+        let target_player = find_alias(server.state.ecs(), &target_alias, false)?.0;
         let uid = uid(server, target_player, "player")?;
 
         server
@@ -3662,7 +3706,7 @@ fn handle_group_promote(
 ) -> CmdResult<()> {
     // Checking if leader is already done in group_manip
     if let Some(target_alias) = parse_cmd_args!(args, String) {
-        let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
+        let target_player = find_alias(server.state.ecs(), &target_alias, false)?.0;
         let uid = uid(server, target_player, "player")?;
 
         server
@@ -3703,6 +3747,7 @@ fn handle_region(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
+    can_send_message(target, server)?;
 
     let mode = comp::ChatMode::Region;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
@@ -3726,6 +3771,7 @@ fn handle_say(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
+    can_send_message(target, server)?;
 
     let mode = comp::ChatMode::Say;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
@@ -3749,6 +3795,7 @@ fn handle_world(
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
     no_sudo(client, target)?;
+    can_send_message(target, server)?;
 
     let mode = comp::ChatMode::World;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
@@ -3766,11 +3813,19 @@ fn handle_world(
 
 fn handle_join_faction(
     server: &mut Server,
-    _client: EcsEntity,
+    client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
+    no_sudo(client, target)?;
+    let emit_join_message = server
+        .state
+        .ecs()
+        .read_storage::<Client>()
+        .get(target)
+        .is_some_and(|client| client.client_type.emit_login_events());
+
     let players = server.state.ecs().read_storage::<comp::Player>();
     if let Some(alias) = players.get(target).map(|player| player.alias.clone()) {
         drop(players);
@@ -3785,11 +3840,14 @@ fn handle_join_faction(
                 .ok()
                 .flatten()
                 .map(|f| f.0);
-            server.state.send_chat(
-                // TODO: Localise
-                ChatType::FactionMeta(faction.clone())
-                    .into_plain_msg(format!("[{}] joined faction ({})", alias, faction)),
-            );
+
+            if emit_join_message {
+                server.state.send_chat(
+                    // TODO: Localise
+                    ChatType::FactionMeta(faction.clone())
+                        .into_plain_msg(format!("[{}] joined faction ({})", alias, faction)),
+                );
+            }
             (faction_join, mode)
         } else {
             let mode = comp::ChatMode::default();
@@ -3802,7 +3860,9 @@ fn handle_join_faction(
                 .map(|comp::Faction(f)| f);
             (faction_leave, mode)
         };
-        if let Some(faction) = faction_leave {
+        if let Some(faction) = faction_leave
+            && emit_join_message
+        {
             server.state.send_chat(
                 // TODO: Localise
                 ChatType::FactionMeta(faction.clone())
@@ -4213,7 +4273,7 @@ fn handle_remove_lights(
 
 fn get_entity_target(entity_target: EntityTarget, server: &Server) -> CmdResult<EcsEntity> {
     match entity_target {
-        EntityTarget::Player(alias) => Ok(find_alias(server.state.ecs(), &alias)?.0),
+        EntityTarget::Player(alias) => Ok(find_alias(server.state.ecs(), &alias, true)?.0),
         EntityTarget::RtsimNpc(id) => {
             let (npc_id, _) = server
                 .state
@@ -4428,7 +4488,7 @@ fn handle_kick(
         let client_uuid = uuid(server, client, "client")?;
         let reason = reason_opt.unwrap_or_default();
         let ecs = server.state.ecs();
-        let target_player = find_alias(ecs, &target_alias)?;
+        let target_player = find_alias(ecs, &target_alias, true)?;
 
         kick_player(server, (client, client_uuid), target_player, &reason)?;
         server.notify_client(

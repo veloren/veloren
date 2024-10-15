@@ -6,7 +6,9 @@ use crate::sync;
 use common::{
     calendar::Calendar,
     character::{self, CharacterItem},
-    comp::{self, body::Gender, invite::InviteKind, item::MaterialStatManifest, Content},
+    comp::{
+        self, body::Gender, invite::InviteKind, item::MaterialStatManifest, AdminRole, Content,
+    },
     event::{PluginHash, UpdateCharacterMetadata},
     lod,
     outcome::Outcome,
@@ -64,6 +66,7 @@ pub struct ServerDescription {
 pub enum ServerInit {
     GameSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,
+        role: Option<AdminRole>,
         time_of_day: TimeOfDay,
         max_group_size: u32,
         client_timeout: Duration,
@@ -225,6 +228,7 @@ pub enum ServerGeneral {
     /// Update the list of available recipes. Usually called after a new recipe
     /// is acquired
     UpdateRecipes,
+    SetPlayerRole(Option<AdminRole>),
 }
 
 impl ServerGeneral {
@@ -240,12 +244,15 @@ end of 2nd level Enums
 */
 
 /// Inform the client of updates to the player list.
+///
+/// Note: Before emiting any of these, check if the current
+/// [`Client::client_type`] wants to emit login events.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PlayerListUpdate {
     Init(HashMap<Uid, PlayerInfo>),
     Add(Uid, PlayerInfo),
     SelectedCharacter(Uid, CharacterInfo),
-    LevelChange(Uid, u32),
+    ExitCharacter(Uid),
     Moderator(Uid, bool),
     Remove(Uid),
     Alias(Uid, String),
@@ -364,6 +371,7 @@ impl ServerMsg {
                         | ServerGeneral::DeleteEntity(_)
                         | ServerGeneral::Disconnect(_)
                         | ServerGeneral::Notification(_)
+                        | ServerGeneral::SetPlayerRole(_)
                         | ServerGeneral::LodZoneUpdate { .. } => true,
                         ServerGeneral::PluginData(_) => true,
                     }

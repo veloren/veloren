@@ -9,7 +9,7 @@ use std::sync::atomic::AtomicBool;
 /// Client DOES NOT handle network information that is only relevant to some
 /// "things" connecting to the server (there is currently no such case). First a
 /// Client connects to the game, when it registers, it gets the `Player`
-/// component, when he enters the game he gets the `InGame` component.
+/// component, when it enters the game it gets the `InGame` component.
 pub struct Client {
     pub client_type: ClientType,
     pub participant: Option<Participant>,
@@ -215,6 +215,7 @@ impl Client {
                     | ServerGeneral::DeleteEntity(_)
                     | ServerGeneral::Disconnect(_)
                     | ServerGeneral::Notification(_)
+                    | ServerGeneral::SetPlayerRole(_)
                     | ServerGeneral::PluginData(_) => {
                         PreparedMsg::new(3, &g, &self.general_stream_params)
                     },
