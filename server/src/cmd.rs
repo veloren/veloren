@@ -382,11 +382,19 @@ fn verify_above_role(
     }
 }
 
-fn find_alias(ecs: &specs::World, alias: &str) -> CmdResult<(EcsEntity, Uuid)> {
-    (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+fn find_alias(ecs: &specs::World, alias: &str, find_hidden: bool) -> CmdResult<(EcsEntity, Uuid)> {
+    (
+        &ecs.entities(),
+        &ecs.read_storage::<comp::Player>(),
+        &ecs.read_storage::<Client>(),
+    )
         .join()
-        .find(|(_, player)| player.alias == alias)
-        .map(|(entity, player)| (entity, player.uuid()))
+        .find(|(_, player, client)| {
+            // If `find_hidden` is set to false, disallow discovering this player using ie.
+            // /tell or /group_invite
+            player.alias == alias && (client.client_type.emit_login_events() || find_hidden)
+        })
+        .map(|(entity, player, _)| (entity, player.uuid()))
         .ok_or_else(|| {
             Content::localized_with_args("command-player-not-found", [("player", alias)])
         })
@@ -3398,7 +3406,7 @@ fn handle_adminify(
         } else {
             None
         };
-        let (player, player_uuid) = find_alias(server.state.ecs(), &alias)?;
+        let (player, player_uuid) = find_alias(server.state.ecs(), &alias, true)?;
         let client_uuid = uuid(server, client, "client")?;
         let uid = uid(server, player, "player")?;
 
@@ -3519,7 +3527,7 @@ fn handle_tell(
 
     if let (Some(alias), message_opt) = parse_cmd_args!(args, String, ..Vec<String>) {
         let ecs = server.state.ecs();
-        let player = find_alias(ecs, &alias)?.0;
+        let player = find_alias(ecs, &alias, false)?.0;
 
         if player == target {
             return Err(Content::localized("command-tell-to-yourself"));
@@ -3619,7 +3627,7 @@ fn handle_group_invite(
     can_send_message(target, server)?;
 
     if let Some(target_alias) = parse_cmd_args!(args, String) {
-        let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
+        let target_player = find_alias(server.state.ecs(), &target_alias, false)?.0;
         let uid = uid(server, target_player, "player")?;
 
         server
@@ -3664,7 +3672,7 @@ fn handle_group_kick(
 ) -> CmdResult<()> {
     // Checking if leader is already done in group_manip
     if let Some(target_alias) = parse_cmd_args!(args, String) {
-        let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
+        let target_player = find_alias(server.state.ecs(), &target_alias, false)?.0;
         let uid = uid(server, target_player, "player")?;
 
         server
@@ -3698,7 +3706,7 @@ fn handle_group_promote(
 ) -> CmdResult<()> {
     // Checking if leader is already done in group_manip
     if let Some(target_alias) = parse_cmd_args!(args, String) {
-        let target_player = find_alias(server.state.ecs(), &target_alias)?.0;
+        let target_player = find_alias(server.state.ecs(), &target_alias, false)?.0;
         let uid = uid(server, target_player, "player")?;
 
         server
@@ -4265,7 +4273,7 @@ fn handle_remove_lights(
 
 fn get_entity_target(entity_target: EntityTarget, server: &Server) -> CmdResult<EcsEntity> {
     match entity_target {
-        EntityTarget::Player(alias) => Ok(find_alias(server.state.ecs(), &alias)?.0),
+        EntityTarget::Player(alias) => Ok(find_alias(server.state.ecs(), &alias, true)?.0),
         EntityTarget::RtsimNpc(id) => {
             let (npc_id, _) = server
                 .state
@@ -4480,7 +4488,7 @@ fn handle_kick(
         let client_uuid = uuid(server, client, "client")?;
         let reason = reason_opt.unwrap_or_default();
         let ecs = server.state.ecs();
-        let target_player = find_alias(ecs, &target_alias)?;
+        let target_player = find_alias(ecs, &target_alias, true)?;
 
         kick_player(server, (client, client_uuid), target_player, &reason)?;
         server.notify_client(

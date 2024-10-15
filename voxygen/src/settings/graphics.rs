@@ -1,4 +1,5 @@
 use crate::{render::RenderMode, window::FullScreenSettings};
+use common::ViewDistances;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -209,6 +210,13 @@ impl GraphicsSettings {
                 ..self.render_mode
             },
             ..self
+        }
+    }
+
+    pub fn view_distances(&self) -> ViewDistances {
+        ViewDistances {
+            terrain: self.terrain_view_distance,
+            entity: self.entity_view_distance,
         }
     }
 }

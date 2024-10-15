@@ -538,9 +538,13 @@ impl PlayState for SessionState {
         span!(_guard, "tick", "<Session as PlayState>::tick");
         // TODO: let mut client = self.client.borrow_mut();
         // TODO: can this be a method on the session or are there borrowcheck issues?
-        let (client_presence, client_registered) = {
+        let (client_presence, client_type, client_registered) = {
             let client = self.client.borrow();
-            (client.presence(), client.registered())
+            (
+                client.presence(),
+                *client.client_type(),
+                client.registered(),
+            )
         };
 
         if let Some(presence) = client_presence {
@@ -2219,10 +2223,17 @@ impl PlayState for SessionState {
 
             PlayStateResult::Continue
         } else if client_registered && client_presence.is_none() {
-            PlayStateResult::Switch(Box::new(CharSelectionState::new(
-                global_state,
-                Rc::clone(&self.client),
-            )))
+            // If the client cannot enter the game but spectate, pop the play state instead
+            // of going back to character selection.
+            if client_type.can_spectate() && !client_type.can_enter_character() {
+                // Go back to the main menu state
+                return PlayStateResult::Pop;
+            } else {
+                PlayStateResult::Switch(Box::new(CharSelectionState::new(
+                    global_state,
+                    Rc::clone(&self.client),
+                )))
+            }
         } else {
             error!("Client not in the expected state, exiting session play state");
             PlayStateResult::Pop

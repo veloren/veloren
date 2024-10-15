@@ -156,11 +156,7 @@ impl PlayState for CharSelectionState {
                     ui::Event::Spectate => {
                         {
                             let mut c = self.client.borrow_mut();
-                            let graphics = &global_state.settings.graphics;
-                            c.request_spectate(common::ViewDistances {
-                                terrain: graphics.terrain_view_distance,
-                                entity: graphics.entity_view_distance,
-                            });
+                            c.request_spectate(global_state.settings.graphics.view_distances());
                         }
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
