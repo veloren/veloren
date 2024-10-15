@@ -479,7 +479,7 @@ impl Structure for AdletStronghold {
                 0..=8 => Block::air(SpriteKind::Bones),
                 9..=19 => Block::air(SpriteKind::GlowIceCrystal),
                 20..=28 => Block::air(SpriteKind::IceCrystal),
-                29..=30 => Block::air(SpriteKind::DungeonChest3),
+                29..=30 => Block::air(SpriteKind::DungeonChest1),
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
