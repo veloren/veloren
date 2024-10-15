@@ -11,7 +11,7 @@ use std::{
 };
 use tokio::runtime::Runtime;
 use tracing::{error, info};
-use veloren_client::{addr::ConnectionArgs, Client, Event};
+use veloren_client::{addr::ConnectionArgs, Client, ClientType, Event};
 use voxygen_i18n_helpers::localize_chat_message;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
@@ -68,6 +68,7 @@ fn main() {
             &|_| {},
             |_| {},
             Default::default(),
+            ClientType::ChatOnly,
         ))
         .expect("Failed to create client instance");
 

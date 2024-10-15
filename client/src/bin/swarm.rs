@@ -15,7 +15,7 @@ use std::{
 };
 use tokio::runtime::Runtime;
 use vek::*;
-use veloren_client::{addr::ConnectionArgs, Client};
+use veloren_client::{addr::ConnectionArgs, Client, ClientType};
 
 const CHUNK_SIZE: f32 = TerrainChunkSize::RECT_SIZE.x as f32;
 
@@ -124,6 +124,7 @@ fn run_client(
             "",
             |_| false,
             |_| {},
+            ClientType::Game,
         )) {
             Err(e) => tracing::warn!(?e, "Client {} disconnected", index),
             Ok(client) => break client,

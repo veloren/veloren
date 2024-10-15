@@ -57,12 +57,14 @@ use common_net::{
     msg::{
         server::ServerDescription,
         world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
-        ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, ClientType, DisconnectReason,
-        InviteAnswer, Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError,
-        ServerGeneral, ServerInit, ServerRegisterAnswer,
+        ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, DisconnectReason, InviteAnswer,
+        Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
+        ServerInit, ServerRegisterAnswer,
     },
     sync::WorldSyncExt,
 };
+
+pub use common_net::msg::ClientType;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
 use common_state::State;
