@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added "recipes" to /kit command.
 - Added Golemite armor
 - Silent spectator mode for moderators.
+- Glider courses
 
 ### Changed
 

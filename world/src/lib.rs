@@ -217,6 +217,7 @@ impl World {
                                 civ::SiteKind::Terracotta => world_msg::SiteKind::Terracotta,
                                 civ::SiteKind::Citadel => world_msg::SiteKind::Castle,
                                 civ::SiteKind::Bridge(_, _) => world_msg::SiteKind::Bridge,
+                                civ::SiteKind::GliderCourse => world_msg::SiteKind::GliderCourse,
                                 civ::SiteKind::Cultist => world_msg::SiteKind::Cultist,
                                 civ::SiteKind::Sahagin => world_msg::SiteKind::Sahagin,
                                 civ::SiteKind::Adlet => world_msg::SiteKind::Adlet,

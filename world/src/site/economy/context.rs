@@ -127,23 +127,24 @@ impl Environment {
                     | SiteKind::DesertCity(_) => towns += site.economy.pop,
                     SiteKind::Dungeon(_) => dungeons += site.economy.pop,
                     SiteKind::Castle(_) => castles += site.economy.pop,
-                    SiteKind::Tree(_) => (),
-                    SiteKind::GiantTree(_) => (),
-                    SiteKind::Gnarling(_) => {},
-                    SiteKind::Adlet(_) => {},
-                    SiteKind::Cultist(_) => {},
-                    SiteKind::Sahagin(_) => {},
-                    SiteKind::Haniwa(_) => {},
-                    SiteKind::JungleRuin(_) => {},
-                    SiteKind::ChapelSite(_) => {},
-                    SiteKind::DwarvenMine(_) => {},
-                    SiteKind::Terracotta(_) => {},
-                    SiteKind::Bridge(_) => {},
-                    SiteKind::PirateHideout(_) => {},
-                    SiteKind::RockCircle(_) => {},
-                    SiteKind::TrollCave(_) => {},
-                    SiteKind::Camp(_) => {},
-                    SiteKind::VampireCastle(_) => {},
+                    SiteKind::Tree(_)
+                    | SiteKind::GiantTree(_)
+                    | SiteKind::Gnarling(_)
+                    | SiteKind::Adlet(_)
+                    | SiteKind::Cultist(_)
+                    | SiteKind::Sahagin(_)
+                    | SiteKind::Haniwa(_)
+                    | SiteKind::JungleRuin(_)
+                    | SiteKind::ChapelSite(_)
+                    | SiteKind::DwarvenMine(_)
+                    | SiteKind::Terracotta(_)
+                    | SiteKind::Bridge(_)
+                    | SiteKind::PirateHideout(_)
+                    | SiteKind::RockCircle(_)
+                    | SiteKind::TrollCave(_)
+                    | SiteKind::VampireCastle(_)
+                    | SiteKind::GliderCourse(_)
+                    | SiteKind::Camp(_) => {},
                 }
             }
             if towns.valid() {

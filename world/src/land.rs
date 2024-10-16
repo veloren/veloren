@@ -21,6 +21,13 @@ impl<'a> Land<'a> {
             .unwrap_or(0.0)
     }
 
+    pub fn get_downhill(&self, wpos: Vec2<i32>) -> Vec2<i32> {
+        self.sim
+            .and_then(|sim| sim.get_wpos(wpos))
+            .and_then(|c| c.downhill)
+            .unwrap_or(Vec2::zero())
+    }
+
     pub fn get_gradient_approx(&self, wpos: Vec2<i32>) -> f32 {
         self.sim
             .and_then(|sim| sim.get_gradient_approx(self.wpos_chunk_pos(wpos)))

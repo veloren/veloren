@@ -48,6 +48,7 @@ impl Site {
             | SiteKind::Castle(_)
             | SiteKind::Tree(_)
             | SiteKind::GiantTree(_)
+            | SiteKind::GliderCourse(_)
             | SiteKind::Bridge(_) => None,
         };
 
