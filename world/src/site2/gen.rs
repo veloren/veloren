@@ -206,6 +206,21 @@ impl Primitive {
         Self::RotateAbout(a.into(), rot, point.as_())
     }
 
+    /// Rotates a primitive 90 degrees CCW about the Z axis `n` times
+    pub fn rotate_z_90_about(
+        a: impl Into<Id<Primitive>>,
+        n: i32,
+        point: Vec3<impl AsPrimitive<f32>>,
+    ) -> Self {
+        let rot = match n % 4 {
+            1 => Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1),
+            2 => Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1),
+            3 => Mat3::new(0, 1, 0, -1, 0, 0, 0, 0, 1),
+            _ => Mat3::new(1, 0, 0, 0, 1, 0, 0, 0, 1),
+        };
+        Self::RotateAbout(a.into(), rot, point.as_())
+    }
+
     pub fn repeat(a: impl Into<Id<Primitive>>, offset: Vec3<i32>, count: u32) -> Self {
         Self::Repeat(a.into(), offset, count)
     }
@@ -1252,6 +1267,79 @@ impl Painter {
         prim
     }
 
+    /// A simple numeral 0-9
+    pub fn numeral(&self, origin: Vec3<i32>, numeral: usize) -> PrimitiveRef {
+        let bottom_bar = self.aabb(Aabb {
+            min: Vec2::new(origin.x, origin.y).with_z(origin.z),
+            max: Vec2::new(origin.x + 1, origin.y + 4).with_z(origin.z + 1),
+        });
+        let mid_bar = self.aabb(Aabb {
+            min: Vec2::new(origin.x, origin.y).with_z(origin.z + 2),
+            max: Vec2::new(origin.x + 1, origin.y + 4).with_z(origin.z + 3),
+        });
+        let top_bar = self.aabb(Aabb {
+            min: Vec2::new(origin.x, origin.y).with_z(origin.z + 4),
+            max: Vec2::new(origin.x + 1, origin.y + 4).with_z(origin.z + 5),
+        });
+        let left_top = self.aabb(Aabb {
+            min: Vec2::new(origin.x, origin.y).with_z(origin.z + 2),
+            max: Vec2::new(origin.x + 1, origin.y + 1).with_z(origin.z + 5),
+        });
+        let left_bottom = self.aabb(Aabb {
+            min: Vec2::new(origin.x, origin.y).with_z(origin.z),
+            max: Vec2::new(origin.x + 1, origin.y + 1).with_z(origin.z + 3),
+        });
+        let right_top = self.aabb(Aabb {
+            min: Vec2::new(origin.x, origin.y + 3).with_z(origin.z + 2),
+            max: Vec2::new(origin.x + 1, origin.y + 4).with_z(origin.z + 5),
+        });
+        let right_bottom = self.aabb(Aabb {
+            min: Vec2::new(origin.x, origin.y + 3).with_z(origin.z),
+            max: Vec2::new(origin.x + 1, origin.y + 4).with_z(origin.z + 3),
+        });
+        let number_strokes = match numeral {
+            0 => &[
+                top_bar,
+                bottom_bar,
+                right_top,
+                right_bottom,
+                left_top,
+                left_bottom,
+            ] as &[_],
+            1 => &[right_top, right_bottom],
+            2 => &[top_bar, right_top, mid_bar, left_bottom, bottom_bar],
+            3 => &[top_bar, bottom_bar, mid_bar, right_top, right_bottom],
+            4 => &[left_top, mid_bar, right_top, right_bottom],
+            5 => &[top_bar, left_top, mid_bar, right_bottom, bottom_bar],
+            6 => &[
+                top_bar,
+                left_top,
+                left_bottom,
+                bottom_bar,
+                right_bottom,
+                mid_bar,
+            ],
+            7 => &[top_bar, right_top, right_bottom],
+            8 => &[
+                top_bar,
+                left_top,
+                left_bottom,
+                mid_bar,
+                right_top,
+                right_bottom,
+                bottom_bar,
+            ],
+            _ => &[top_bar, left_top, mid_bar, right_top, right_bottom],
+        };
+
+        let mut prim = self.empty();
+        for stroke in number_strokes {
+            prim = prim.union(*stroke)
+        }
+
+        prim
+    }
+
     pub fn column(&self, point: Vec2<i32>, range: impl RangeBounds<i32>) -> PrimitiveRef {
         self.aabb(Aabb {
             min: point.with_z(match range.start_bound() {
@@ -1352,10 +1440,14 @@ pub trait PrimitiveTransform {
     /// Translates the primitive along the vector `trans`.
     #[must_use]
     fn translate(self, trans: Vec3<i32>) -> Self;
-    /// Rotates the primitive about the given point of the primitive by
-    /// multiplying each block position by the provided rotation matrix.
+    /// Rotates the primitive about the given point by multiplying each block
+    /// position by the provided rotation matrix.
     #[must_use]
     fn rotate_about(self, rot: Mat3<i32>, point: Vec3<impl AsPrimitive<f32>>) -> Self;
+    /// Rotates the primitive 90 degrees counterclockwise about the given point
+    /// along the Z axis n times.
+    #[must_use]
+    fn rotate_z_90_about(self, n: i32, point: Vec3<impl AsPrimitive<f32>>) -> Self;
     /// Scales the primitive along each axis by the x, y, and z components of
     /// the `scale` vector respectively.
     #[must_use]
@@ -1374,6 +1466,11 @@ impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
 
     fn rotate_about(self, rot: Mat3<i32>, point: Vec3<impl AsPrimitive<f32>>) -> Self {
         self.painter.prim(Primitive::rotate_about(self, rot, point))
+    }
+
+    fn rotate_z_90_about(self, n: i32, point: Vec3<impl AsPrimitive<f32>>) -> Self {
+        self.painter
+            .prim(Primitive::rotate_z_90_about(self, n, point))
     }
 
     fn scale(self, scale: Vec3<impl AsPrimitive<f32>>) -> Self {
@@ -1396,6 +1493,13 @@ impl<'a, const N: usize> PrimitiveTransform for [PrimitiveRef<'a>; N] {
     fn rotate_about(mut self, rot: Mat3<i32>, point: Vec3<impl AsPrimitive<f32>>) -> Self {
         for prim in &mut self {
             *prim = prim.rotate_about(rot, point);
+        }
+        self
+    }
+
+    fn rotate_z_90_about(mut self, n: i32, point: Vec3<impl AsPrimitive<f32>>) -> Self {
+        for prim in &mut self {
+            *prim = prim.rotate_z_90_about(n, point);
         }
         self
     }

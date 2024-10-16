@@ -45,10 +45,10 @@ pub fn close_fast(x: f32, tgt: f32, falloff: f32, falloff_strength: i32) -> f32 
 }
 
 pub const CARDINALS: [Vec2<i32>; 4] = [
-    Vec2::new(0, 1),
     Vec2::new(1, 0),
-    Vec2::new(0, -1),
+    Vec2::new(0, 1),
     Vec2::new(-1, 0),
+    Vec2::new(0, -1),
 ];
 
 pub const DIRS: [Vec2<i32>; 8] = [

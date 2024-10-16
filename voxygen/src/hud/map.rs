@@ -87,6 +87,9 @@ widget_ids! {
         show_biomes_img,
         show_biomes_box,
         show_biomes_text,
+        show_glider_courses_img,
+        show_glider_courses_box,
+        show_glider_courses_text,
         show_voxel_map_img,
         show_voxel_map_box,
         show_voxel_map_text,
@@ -245,6 +248,7 @@ impl<'a> Widget for Map<'a> {
         let show_trees = self.global_state.settings.interface.map_show_trees;
         let show_peaks = self.global_state.settings.interface.map_show_peaks;
         let show_biomes = self.global_state.settings.interface.map_show_biomes;
+        let show_glider_courses = self.global_state.settings.interface.map_show_glider_courses;
         let show_voxel_map = self.global_state.settings.interface.map_show_voxel_map;
         let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let location_marker_binding = self
@@ -620,7 +624,7 @@ impl<'a> Widget for Map<'a> {
         {
             events.push(Event::SettingsChange(MapShowBridges(!show_bridges)));
         }
-        Text::new(&i18n.get_msg("hud-map-bridge"))
+        Text::new(&i18n.get_msg("hud-map-bridges"))
             .right_from(state.ids.show_bridges_box, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -797,6 +801,42 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.show_peaks_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_peaks_text, ui);
+        // Glider Courses
+        Image::new(self.imgs.mmap_site_glider_course)
+            .down_from(state.ids.show_peaks_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_glider_courses_img, ui);
+        if Button::image(if show_glider_courses {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if show_glider_courses {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if show_glider_courses {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_glider_courses_img, 10.0)
+        .set(state.ids.show_glider_courses_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::SettingsChange(MapShowGliderCourses(
+                !show_glider_courses,
+            )));
+        }
+        Text::new(&i18n.get_msg("hud-map-glider_courses"))
+            .right_from(state.ids.show_glider_courses_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_glider_courses_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_glider_courses_text, ui);
 
         const EXPOSE_VOXEL_MAP_TOGGLE_IN_UI: bool = false;
         if EXPOSE_VOXEL_MAP_TOGGLE_IN_UI {
@@ -926,6 +966,7 @@ impl<'a> Widget for Map<'a> {
                         SiteKind::ChapelSite => i18n.get_msg("hud-map-chapel_site"),
                         SiteKind::Terracotta => i18n.get_msg("hud-map-terracotta"),
                         SiteKind::Bridge => i18n.get_msg("hud-map-bridge"),
+                        SiteKind::GliderCourse => i18n.get_msg("hud-map-glider_course"),
                         SiteKind::Adlet => i18n.get_msg("hud-map-adlet"),
                         SiteKind::Haniwa => i18n.get_msg("hud-map-haniwa"),
                         SiteKind::Cultist => i18n.get_msg("hud-map-cultist"),
@@ -959,6 +1000,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Terracotta => (Some(5), i18n.get_msg("hud-map-terracotta")),
                 SiteKind::ChapelSite => (Some(4), i18n.get_msg("hud-map-chapel_site")),
                 SiteKind::Bridge => (None, i18n.get_msg("hud-map-bridge")),
+                SiteKind::GliderCourse => (None, i18n.get_msg("hud-map-glider_course")),
                 SiteKind::Adlet => (Some(1), i18n.get_msg("hud-map-adlet")),
                 SiteKind::Haniwa => (Some(3), i18n.get_msg("hud-map-haniwa")),
                 SiteKind::Cultist => (Some(5), i18n.get_msg("hud-map-cultist")),
@@ -988,6 +1030,7 @@ impl<'a> Widget for Map<'a> {
                     _ => self.imgs.mmap_site_dungeon,
                 },
                 SiteKind::Bridge => self.imgs.mmap_site_bridge,
+                SiteKind::GliderCourse => self.imgs.mmap_site_glider_course,
             })
             .x_y_position_relative_to(
                 state.ids.map_layers[0],
@@ -1015,6 +1058,7 @@ impl<'a> Widget for Map<'a> {
                     _ => self.imgs.mmap_site_dungeon_hover,
                 },
                 SiteKind::Bridge => self.imgs.mmap_site_bridge_hover,
+                SiteKind::GliderCourse => self.imgs.mmap_site_glider_course_hover,
             })
             .image_color(UI_HIGHLIGHT_0.alpha(fade))
             .with_tooltip(
@@ -1069,6 +1113,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cave => show_caves,
                 SiteKind::Tree => show_trees,
                 SiteKind::Bridge => show_bridges,
+                SiteKind::GliderCourse => show_glider_courses,
             };
             if show_site {
                 let tooltip_visible = site_btn.set_ext(state.ids.mmap_site_icons[i], ui).1;
@@ -1156,6 +1201,11 @@ impl<'a> Widget for Map<'a> {
                     },
                     SiteKind::Bridge => {
                         if show_bridges {
+                            dif_img.set(state.ids.site_difs[i], ui)
+                        }
+                    },
+                    SiteKind::GliderCourse => {
+                        if show_glider_courses {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },

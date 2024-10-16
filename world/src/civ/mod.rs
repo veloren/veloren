@@ -278,7 +278,7 @@ impl Civs {
         let world_dims = ctx.sim.get_aabr();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (loc, kind) = match ctx.rng.gen_range(0..105) {
+                let (loc, kind) = match ctx.rng.gen_range(0..112) {
                     0..=4 => {
                         if index.features().site2_giant_trees {
                             (
@@ -444,6 +444,14 @@ impl Civs {
                         )?,
                         SiteKind::VampireCastle,
                     ),
+                    102..107 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new().finalize(&world_dims),
+                            &SiteKind::GliderCourse,
+                        )?,
+                        SiteKind::GliderCourse,
+                    ),
                     /*100..=105 => (
                         find_site_loc(
                             &mut ctx,
@@ -513,6 +521,7 @@ impl Civs {
                 SiteKind::Cultist => (24i32, 10.0),
                 SiteKind::Sahagin => (8i32, 3.0),
                 SiteKind::VampireCastle => (10i32, 16.0),
+                SiteKind::GliderCourse => (0, 0.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -601,6 +610,14 @@ impl Civs {
                             wpos,
                             size,
                             calendar,
+                        ))
+                    },
+                    SiteKind::GliderCourse => {
+                        WorldSite::glider_course(site2::Site::generate_glider_course(
+                            &Land::from_sim(ctx.sim),
+                            index_ref,
+                            &mut rng,
+                            wpos,
                         ))
                     },
                     SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
@@ -1819,6 +1836,9 @@ fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 }
 
 /// Attempt to search for a location that's suitable for site construction
+// FIXME when a `close_to_one_of` requirement is passed in, we should start with
+// just the chunks around those locations instead of random sampling the entire
+// map
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
     proximity_reqs: &ProximityRequirements,
@@ -2039,6 +2059,7 @@ pub enum SiteKind {
     Cultist,
     Sahagin,
     VampireCastle,
+    GliderCourse,
 }
 
 impl SiteKind {
@@ -2106,6 +2127,9 @@ impl SiteKind {
                         && chunk.cliff_height > 40.0
                         && chunk.rockiness > 1.2
                         && suitable_for_town()
+                },
+                SiteKind::GliderCourse => {
+                    chunk.alt > 1400.0
                 },
                 SiteKind::SavannahPit => {
                     matches!(chunk.get_biome(), BiomeKind::Savannah)

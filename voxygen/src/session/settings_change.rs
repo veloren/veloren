@@ -147,6 +147,7 @@ pub enum Interface {
     MapShowDungeons(bool),
     MapShowCastles(bool),
     MapShowBridges(bool),
+    MapShowGliderCourses(bool),
     MapShowCaves(bool),
     MapShowTrees(bool),
     MapShowPeaks(bool),
@@ -662,6 +663,9 @@ impl SettingsChange {
                     },
                     Interface::MapShowBridges(map_show_bridges) => {
                         settings.interface.map_show_bridges = map_show_bridges;
+                    },
+                    Interface::MapShowGliderCourses(map_show_glider_courses) => {
+                        settings.interface.map_show_glider_courses = map_show_glider_courses;
                     },
                     Interface::MapShowCaves(map_show_caves) => {
                         settings.interface.map_show_caves = map_show_caves;

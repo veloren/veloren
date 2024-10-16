@@ -87,6 +87,7 @@ pub enum SiteKind {
     Cultist(site2::Site),
     Sahagin(site2::Site),
     VampireCastle(site2::Site),
+    GliderCourse(site2::Site),
 }
 
 impl Site {
@@ -265,6 +266,13 @@ impl Site {
         }
     }
 
+    pub fn glider_course(g: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::GliderCourse(g),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn radius(&self) -> f32 {
         match &self.kind {
             SiteKind::Settlement(s) => s.radius(),
@@ -292,6 +300,7 @@ impl Site {
             SiteKind::Cultist(cl) => cl.radius(),
             SiteKind::Sahagin(sg) => sg.radius(),
             SiteKind::VampireCastle(vc) => vc.radius(),
+            SiteKind::GliderCourse(gc) => gc.radius(),
         }
     }
 
@@ -322,6 +331,7 @@ impl Site {
             SiteKind::Cultist(cl) => cl.origin,
             SiteKind::Sahagin(sg) => sg.origin,
             SiteKind::VampireCastle(vc) => vc.origin,
+            SiteKind::GliderCourse(gc) => gc.origin,
         }
     }
 
@@ -352,6 +362,7 @@ impl Site {
             SiteKind::Cultist(cl) => cl.spawn_rules(wpos),
             SiteKind::Sahagin(sg) => sg.spawn_rules(wpos),
             SiteKind::VampireCastle(vc) => vc.spawn_rules(wpos),
+            SiteKind::GliderCourse(gc) => gc.spawn_rules(wpos),
         }
     }
 
@@ -382,6 +393,7 @@ impl Site {
             SiteKind::Cultist(cl) => cl.name(),
             SiteKind::Sahagin(sg) => sg.name(),
             SiteKind::VampireCastle(vc) => vc.name(),
+            SiteKind::GliderCourse(gc) => gc.name(),
         }
     }
 
@@ -432,6 +444,7 @@ impl Site {
             SiteKind::Cultist(cl) => cl.render(canvas, dynamic_rng),
             SiteKind::Sahagin(sg) => sg.render(canvas, dynamic_rng),
             SiteKind::VampireCastle(vc) => vc.render(canvas, dynamic_rng),
+            SiteKind::GliderCourse(gc) => gc.render(canvas, dynamic_rng),
         }
     }
 
@@ -454,20 +467,21 @@ impl Site {
             },
             SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
-            SiteKind::Refactor(_) => {},
-            SiteKind::CliffTown(_) => {},
-            SiteKind::SavannahPit(_) => {},
-            SiteKind::CoastalTown(_) => {},
-            SiteKind::PirateHideout(_) => {},
-            SiteKind::JungleRuin(_) => {},
-            SiteKind::RockCircle(_) => {},
-            SiteKind::TrollCave(_) => {},
-            SiteKind::Camp(_) => {},
-            SiteKind::DesertCity(_) => {},
+            SiteKind::Refactor(_)
+            | SiteKind::CliffTown(_)
+            | SiteKind::SavannahPit(_)
+            | SiteKind::CoastalTown(_)
+            | SiteKind::PirateHideout(_)
+            | SiteKind::JungleRuin(_)
+            | SiteKind::RockCircle(_)
+            | SiteKind::TrollCave(_)
+            | SiteKind::Camp(_)
+            | SiteKind::DesertCity(_)
+            | SiteKind::GliderCourse(_)
+            | SiteKind::Tree(_) => {},
             SiteKind::ChapelSite(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Terracotta(tr) => tr.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::DwarvenMine(dm) => dm.apply_supplement(dynamic_rng, wpos2d, supplement),
-            SiteKind::Tree(_) => {},
             SiteKind::GiantTree(gt) => gt.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Bridge(b) => b.apply_supplement(dynamic_rng, wpos2d, supplement),
@@ -520,6 +534,7 @@ impl Site {
             SiteKind::Cultist(site2) => Some(site2),
             SiteKind::Sahagin(site2) => Some(site2),
             SiteKind::VampireCastle(site2) => Some(site2),
+            SiteKind::GliderCourse(site2) => Some(site2),
         }
     }
 }

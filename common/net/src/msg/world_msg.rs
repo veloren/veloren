@@ -148,6 +148,7 @@ pub enum SiteKind {
     Cave,
     Tree,
     Gnarling,
+    GliderCourse,
     ChapelSite,
     Terracotta,
     Bridge,

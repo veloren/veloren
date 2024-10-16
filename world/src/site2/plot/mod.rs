@@ -14,6 +14,9 @@ mod desert_city_temple;
 pub mod dungeon;
 mod dwarven_mine;
 mod giant_tree;
+mod glider_finish;
+mod glider_platform;
+mod glider_ring;
 mod gnarling;
 mod haniwa;
 mod house;
@@ -39,6 +42,7 @@ pub use self::{
     coastal_workshop::CoastalWorkshop, cultist::Cultist, desert_city_arena::DesertCityArena,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
     dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
+    glider_finish::GliderFinish, glider_platform::GliderPlatform, glider_ring::GliderRing,
     gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
     pirate_hideout::PirateHideout, rock_circle::RockCircle, sahagin::Sahagin,
     savannah_hut::SavannahHut, savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop,
@@ -87,6 +91,9 @@ impl Plot {
 pub enum PlotKind {
     House(House),
     AirshipDock(AirshipDock),
+    GliderRing(GliderRing),
+    GliderPlatform(GliderPlatform),
+    GliderFinish(GliderFinish),
     Tavern(Tavern),
     CoastalHouse(CoastalHouse),
     CoastalWorkshop(CoastalWorkshop),

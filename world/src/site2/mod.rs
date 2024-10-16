@@ -1107,6 +1107,235 @@ impl Site {
         site
     }
 
+    pub fn generate_glider_course(
+        land: &Land,
+        _index: IndexRef,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+    ) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            ..Site::default()
+        };
+
+        // TODO use the nearest peak name. Unfortunately this requires `Civs` but we
+        // only have access to `WorldSim`
+        site.name = NameGen::location(&mut rng).generate_town() + " Glider Course";
+        // Pick the starting downhill direction based on the average drop over
+        // two chunks in the four cardinal directions
+        let origin_alt = land.get_alt_approx(origin);
+        let alt_drops: Vec<f32> = CARDINALS
+            .iter()
+            .map(|c| {
+                origin_alt
+                    - 0.5
+                        * (land.get_alt_approx(origin + *c * TerrainChunkSize::RECT_SIZE.x as i32)
+                            + land.get_alt_approx(
+                                origin + 2 * *c * TerrainChunkSize::RECT_SIZE.x as i32,
+                            ))
+            })
+            .collect();
+        let mut cardinal = 0;
+        let mut max_drop = 0.0;
+        for (i, drop) in alt_drops.iter().enumerate() {
+            if *drop > max_drop {
+                max_drop = *drop;
+                cardinal = i;
+            }
+        }
+        let dir = match cardinal {
+            0 => Dir::X,
+            1 => Dir::Y,
+            2 => Dir::NegX,
+            3 => Dir::NegY,
+            _ => Dir::X,
+        };
+        let size = 2.0;
+
+        let mut valid_course = true;
+        let mut positions = Vec::new();
+
+        // Platform
+        let pos = origin;
+        let tile_pos: Vec2<i32> = Vec2::zero();
+        positions.push((pos, tile_pos));
+
+        // This defines the distance between rings
+        // An offset of 5 results in courses that are about 1 minute long
+        // An offset of 6+ results in not all plots being in range of the site
+        const CHUNK_OFFSET: usize = 5;
+        // WARNING: This assumes x and y lengths of a chunk are the same!!!
+        let offset = CHUNK_OFFSET as i32 * TerrainChunkSize::RECT_SIZE.x as i32;
+        // Always convert to tiles then back to wpos to remove any integer division
+        // artifacts
+        let tile_offset = offset / TILE_SIZE as i32;
+        let pos_offset = tile_offset * TILE_SIZE as i32;
+
+        // Loop 1 is always straight forward from the launch platform
+        let pos = origin + pos_offset * dir.to_vec2();
+        let tile_pos = tile_offset * dir.to_vec2();
+        positions.push((pos, tile_pos));
+
+        // Loops 2-9 follow the downhill path of terrain chunks
+        // In the future it may be desirable to follow ridges and the like but that
+        // would be a future MR
+        let mut last_pos = pos;
+        let mut last_tile_pos = tile_pos;
+        for j in 1..(CHUNK_OFFSET * 9 + 1) {
+            let c_downhill = land.get_chunk_wpos(last_pos).and_then(|c| c.downhill);
+            if let Some(downhill) = c_downhill {
+                let downhill_chunk =
+                    downhill.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32));
+                let downhill_chunk_pos = TerrainChunkSize::center_wpos(downhill_chunk);
+                let downhill_vec = downhill_chunk_pos - last_pos;
+                // Convert to tiles first, then back to wpos to ensure coordinates align, as
+                // chunks are not tile aligned
+                let tile_offset = downhill_vec / (TILE_SIZE as i32);
+                let pos_offset = tile_offset * TILE_SIZE as i32;
+                let pos = last_pos + pos_offset;
+                let tile_pos = last_tile_pos + tile_offset;
+                last_pos = pos;
+                last_tile_pos = tile_pos;
+                // Only want to save positions with large enough chunk offsets, not every chunk
+                // position
+                if j % CHUNK_OFFSET == 0 {
+                    positions.push((pos, tile_pos));
+                }
+            } else {
+                valid_course = false;
+            }
+        }
+        // Currently there is no check to ensure the delta z between rings is
+        // sufficient to successfully fly through the course. This should cause
+        // no glider course site to be created. Right now it just doesn't spawn
+        // one in the world (similar to towns when placed near/on bodies of water).
+        // In the future maybe the generate functions should return an `Option`
+        // instead of a `Site`
+        if valid_course && positions.len() > 1 {
+            for (i, window) in positions.windows(2).enumerate() {
+                if !window.is_empty() {
+                    let [(pos, tile_pos), (next_pos, next_tile_pos)] = window else {
+                        panic!(
+                            "previous condition required positions Vec to have at least two \
+                             elements"
+                        );
+                    };
+                    if i == 0 {
+                        // Launch platform
+                        let aabr = Aabr {
+                            min: Vec2::broadcast(-size as i32),
+                            max: Vec2::broadcast(size as i32),
+                        };
+                        let glider_platform = plot::GliderPlatform::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            *pos,
+                            dir,
+                        );
+                        let alt = glider_platform.alt - 5;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::GliderPlatform(glider_platform),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(alt),
+                        });
+                    } else if i < 9 {
+                        // Point each ring after 1 towards the next ring
+                        // This provides a subtle guide through the course
+                        let dir = if i > 1 {
+                            Dir::from_vec2(next_pos - pos)
+                        } else {
+                            dir
+                        };
+                        let aabr = Aabr {
+                            min: Vec2::broadcast(-size as i32) + tile_pos,
+                            max: Vec2::broadcast(size as i32) + tile_pos,
+                        };
+                        let glider_ring = plot::GliderRing::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            pos,
+                            i,
+                            dir,
+                        );
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::GliderRing(glider_ring),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: None,
+                        });
+                    } else if i == 9 {
+                        // last ring (ring 9) and finish platform
+                        // Separate condition due to window iterator to ensure
+                        // the finish platform is generated
+                        let dir = Dir::from_vec2(next_pos - pos);
+                        let aabr = Aabr {
+                            min: Vec2::broadcast(-size as i32) + tile_pos,
+                            max: Vec2::broadcast(size as i32) + tile_pos,
+                        };
+                        let glider_ring = plot::GliderRing::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            pos,
+                            i,
+                            dir,
+                        );
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::GliderRing(glider_ring),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: None,
+                        });
+                        // Finish
+                        let size = 10.0;
+                        let aabr = Aabr {
+                            min: Vec2::broadcast(-size as i32) + next_tile_pos,
+                            max: Vec2::broadcast(size as i32) + next_tile_pos,
+                        };
+                        let glider_finish = plot::GliderFinish::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            *next_pos,
+                        );
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::GliderFinish(glider_finish),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: None,
+                        });
+                    }
+                }
+            }
+        }
+
+        site
+    }
+
     pub fn generate_cliff_town(
         land: &Land,
         index: IndexRef,
@@ -2181,6 +2410,11 @@ impl Site {
             let (prim_tree, fills, mut entities) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self, canvas),
                 PlotKind::AirshipDock(airship_dock) => airship_dock.render_collect(self, canvas),
+                PlotKind::GliderRing(glider_ring) => glider_ring.render_collect(self, canvas),
+                PlotKind::GliderPlatform(glider_platform) => {
+                    glider_platform.render_collect(self, canvas)
+                },
+                PlotKind::GliderFinish(glider_finish) => glider_finish.render_collect(self, canvas),
                 PlotKind::Tavern(tavern) => tavern.render_collect(self, canvas),
                 PlotKind::CoastalHouse(coastal_house) => coastal_house.render_collect(self, canvas),
                 PlotKind::CoastalWorkshop(coastal_workshop) => {
