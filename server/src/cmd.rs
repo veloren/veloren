@@ -545,7 +545,9 @@ fn handle_give_item(
 ) -> CmdResult<()> {
     if let (Some(item_name), give_amount_opt) = parse_cmd_args!(args, String, u32) {
         let give_amount = give_amount_opt.unwrap_or(1);
-        if let Ok(item) = Item::new_from_asset(&item_name.replace(['/', '\\'], ".")) {
+        if let Ok(item) = Item::new_from_asset(&item_name.replace(['/', '\\'], "."))
+            .inspect_err(|error| error!(?error, "Failed to parse item asset!"))
+        {
             let mut item: Item = item;
             let mut res = Ok(());
 

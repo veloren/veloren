@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Vampire glasses",
+    legacy_description: "Perfect for pulling pranks on your fellow adventurers by pretending to be a devilish creature of the night! We are not liable for any resulting damage, injuries, or angry mobs.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            precision_power: Some(0.08),
+            energy_max: Some(-2.0),
+            energy_reward: Some(-0.04),
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)

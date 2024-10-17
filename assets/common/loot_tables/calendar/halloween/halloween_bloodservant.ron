@@ -1,0 +1,5 @@
+[
+    (7.0, Item("common.items.food.honeycorn")),
+    (2.5, Item("common.items.food.pumpkin_spice_brew")),
+    (0.5, Item("common.items.armor.misc.head.scarlet_spectacles")),
+]
