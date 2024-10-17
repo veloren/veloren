@@ -734,6 +734,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Sahagin => Some(2),
                     SiteKind::Haniwa => Some(3),
                     SiteKind::Cultist => Some(5),
+                    SiteKind::Myrmidon => Some(4),
                     SiteKind::DwarvenMine => Some(5),
                     SiteKind::VampireCastle => Some(2),
                 };
@@ -753,6 +754,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Haniwa => self.imgs.mmap_site_haniwa_bg,
                     SiteKind::Cultist => self.imgs.mmap_site_cultist_bg,
                     SiteKind::Sahagin => self.imgs.mmap_site_sahagin_bg,
+                    SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon_bg,
                     SiteKind::DwarvenMine => self.imgs.mmap_site_mine_bg,
                     SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle_bg,
                 })
@@ -787,6 +789,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Haniwa => self.imgs.mmap_site_haniwa,
                     SiteKind::Cultist => self.imgs.mmap_site_cultist,
                     SiteKind::Sahagin => self.imgs.mmap_site_sahagin,
+                    SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon,
                     SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
                     SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
                 })

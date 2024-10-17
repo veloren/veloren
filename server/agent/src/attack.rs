@@ -4431,9 +4431,43 @@ impl<'a> AgentData<'a> {
             ConditionJustCrippledOrCleaved = 0,
         }
 
+        enum Conditions {
+            AttackToggle,
+        }
+
+        enum Timers {
+            CheeseTimer = 0,
+            CanSeeTarget = 1,
+        }
+
         let minotaur_attack_distance =
             self.body.map_or(0.0, |b| b.max_radius()) + MINOTAUR_ATTACK_RANGE;
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());
+        let home = agent.patrol_origin.unwrap_or(self.pos.0);
+        let cheesed_from_above = tgt_data.pos.0.z > self.pos.0.z + 4.0;
+        let pillar_cheesed = tgt_data.pos.0.z > home.z
+            && agent.combat_state.timers[Timers::CheeseTimer as usize] > 4.0;
+        agent.combat_state.timers[Timers::CheeseTimer as usize] += read_data.dt.0;
+        agent.combat_state.timers[Timers::CanSeeTarget as usize] += read_data.dt.0;
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
+        };
+        if !line_of_sight_with_target() {
+            agent.combat_state.timers[Timers::CanSeeTarget as usize] = 0.0;
+        };
+        let remote_spikes_action = || ControlAction::StartInput {
+            input: InputKind::Ability(3),
+            target_entity: None,
+            select_pos: Some(tgt_data.pos.0),
+        };
         // Sets action counter at start of combat
         if agent.combat_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize]
             < MINOTAUR_FRENZY_THRESHOLD
@@ -4442,7 +4476,25 @@ impl<'a> AgentData<'a> {
             agent.combat_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize] =
                 MINOTAUR_FRENZY_THRESHOLD;
         }
-        if health_fraction
+        if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+        {
+            agent.combat_state.conditions[Conditions::AttackToggle as usize] = true;
+        }
+        if matches!(self.char_state, CharacterState::BasicRanged(c) if matches!(c.stage_section, StageSection::Recover))
+        {
+            agent.combat_state.conditions[Conditions::AttackToggle as usize] = false;
+            if agent.combat_state.timers[Timers::CheeseTimer as usize] > 10.0 {
+                agent.combat_state.timers[Timers::CheeseTimer as usize] = 0.0;
+            }
+        }
+        // when cheesed, throw axes and summon sprites.
+        if cheesed_from_above || pillar_cheesed {
+            if agent.combat_state.conditions[Conditions::AttackToggle as usize] {
+                controller.push_basic_input(InputKind::Ability(2));
+            } else {
+                controller.push_action(remote_spikes_action());
+            }
+        } else if health_fraction
             < agent.combat_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize]
         {
             // Makes minotaur buff itself with frenzy
@@ -4481,15 +4533,20 @@ impl<'a> AgentData<'a> {
                     [ActionStateConditions::ConditionJustCrippledOrCleaved as usize] = true;
             }
         }
-        // Make minotaur move towards target
-        self.path_toward_target(
-            agent,
-            controller,
-            tgt_data.pos.0,
-            read_data,
-            Path::Separate,
-            None,
-        );
+        // Make minotaur move towards target, when target is above, seek shelter in
+        // chamber
+        if cheesed_from_above {
+            self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+        } else if agent.combat_state.timers[Timers::CanSeeTarget as usize] > 2.0 {
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
+        }
     }
 
     pub fn handle_cyclops_attack(
@@ -7828,7 +7885,7 @@ impl<'a> AgentData<'a> {
         attack_data: &AttackData,
     ) {
         enum Conditions {
-            AttackToggle = 0,
+            AttackToggle,
         }
         // always begin with sprite summon
         if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {

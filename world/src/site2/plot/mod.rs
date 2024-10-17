@@ -21,6 +21,8 @@ mod gnarling;
 mod haniwa;
 mod house;
 mod jungle_ruin;
+mod myrmidon_arena;
+mod myrmidon_house;
 mod pirate_hideout;
 mod rock_circle;
 mod sahagin;
@@ -44,11 +46,12 @@ pub use self::{
     dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
     glider_finish::GliderFinish, glider_platform::GliderPlatform, glider_ring::GliderRing,
     gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
-    pirate_hideout::PirateHideout, rock_circle::RockCircle, sahagin::Sahagin,
-    savannah_hut::SavannahHut, savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop,
-    sea_chapel::SeaChapel, tavern::Tavern, terracotta_house::TerracottaHouse,
-    terracotta_palace::TerracottaPalace, terracotta_yard::TerracottaYard, troll_cave::TrollCave,
-    vampire_castle::VampireCastle, workshop::Workshop,
+    myrmidon_arena::MyrmidonArena, myrmidon_house::MyrmidonHouse, pirate_hideout::PirateHideout,
+    rock_circle::RockCircle, sahagin::Sahagin, savannah_hut::SavannahHut,
+    savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
+    tavern::Tavern, terracotta_house::TerracottaHouse, terracotta_palace::TerracottaPalace,
+    terracotta_yard::TerracottaYard, troll_cave::TrollCave, vampire_castle::VampireCastle,
+    workshop::Workshop,
 };
 
 use super::*;
@@ -128,4 +131,6 @@ pub enum PlotKind {
     TerracottaHouse(TerracottaHouse),
     TerracottaYard(TerracottaYard),
     VampireCastle(VampireCastle),
+    MyrmidonArena(MyrmidonArena),
+    MyrmidonHouse(MyrmidonHouse),
 }

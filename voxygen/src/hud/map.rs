@@ -971,6 +971,7 @@ impl<'a> Widget for Map<'a> {
                         SiteKind::Haniwa => i18n.get_msg("hud-map-haniwa"),
                         SiteKind::Cultist => i18n.get_msg("hud-map-cultist"),
                         SiteKind::Sahagin => i18n.get_msg("hud-map-sahagin"),
+                        SiteKind::Myrmidon => i18n.get_msg("hud-map-myrmidon"),
                         SiteKind::DwarvenMine => i18n.get_msg("hud-map-df_mine"),
                         SiteKind::VampireCastle => i18n.get_msg("hud-map-vampire_castle"),
                     });
@@ -1005,6 +1006,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Haniwa => (Some(3), i18n.get_msg("hud-map-haniwa")),
                 SiteKind::Cultist => (Some(5), i18n.get_msg("hud-map-cultist")),
                 SiteKind::Sahagin => (Some(2), i18n.get_msg("hud-map-sahagin")),
+                SiteKind::Myrmidon => (Some(4), i18n.get_msg("hud-map-myrmidon")),
                 SiteKind::DwarvenMine => (Some(5), i18n.get_msg("hud-map-df_mine")),
                 SiteKind::VampireCastle => (Some(3), i18n.get_msg("hud-map-vampire_castle")),
             };
@@ -1021,6 +1023,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Haniwa => self.imgs.mmap_site_haniwa,
                 SiteKind::Cultist => self.imgs.mmap_site_cultist,
                 SiteKind::Sahagin => self.imgs.mmap_site_sahagin,
+                SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon,
                 SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
                 SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
 
@@ -1050,6 +1053,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Haniwa => self.imgs.mmap_site_haniwa_hover,
                 SiteKind::Cultist => self.imgs.mmap_site_cultist_hover,
                 SiteKind::Sahagin => self.imgs.mmap_site_sahagin_hover,
+                SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon_hover,
                 SiteKind::DwarvenMine => self.imgs.mmap_site_mine_hover,
                 SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle_hover,
                 SiteKind::Dungeon { difficulty } => match difficulty {
@@ -1076,6 +1080,7 @@ impl<'a> Widget for Map<'a> {
                     | SiteKind::Haniwa
                     | SiteKind::Cultist
                     | SiteKind::Sahagin
+                    | SiteKind::Myrmidon
                     | SiteKind::DwarvenMine => match difficulty {
                         Some(0) => QUALITY_LOW,
                         Some(1) => QUALITY_COMMON,
@@ -1106,6 +1111,7 @@ impl<'a> Widget for Map<'a> {
                 | SiteKind::Haniwa
                 | SiteKind::Cultist
                 | SiteKind::Sahagin
+                | SiteKind::Myrmidon
                 | SiteKind::Terracotta
                 | SiteKind::Adlet
                 | SiteKind::VampireCastle => show_dungeons,
@@ -1172,6 +1178,7 @@ impl<'a> Widget for Map<'a> {
                     | SiteKind::Haniwa
                     | SiteKind::Cultist
                     | SiteKind::Sahagin
+                    | SiteKind::Myrmidon
                     | SiteKind::Terracotta
                     | SiteKind::Adlet
                     | SiteKind::VampireCastle => {

@@ -31,5 +31,8 @@ object-key-sahagin = Sahagin Key
 object-key-vampire = Vampire Key
     .desc = Used to open doors. Will break after use.
 
-object-key-bloodmoon = Bloodmoon Key
+object-key-myrmidon = Myrmidon Key
+    .desc = Used to open doors. Will break after use.
+
+object-key-minotaur = Minotaur Key
     .desc = Used to open doors. Will break after use.

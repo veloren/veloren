@@ -1,12 +1,16 @@
 use super::*;
 use crate::{
-    site2::{plot::dungeon::spiral_staircase, util::gradient::WrapMode},
+    site2::{
+        gen::{place_circular, place_circular_as_vec},
+        plot::dungeon::spiral_staircase,
+        util::gradient::WrapMode,
+    },
     util::{sampler::Sampler, RandomField},
     Land,
 };
 use common::generation::EntityInfo;
 use rand::prelude::*;
-use std::{f32::consts::TAU, sync::Arc};
+use std::sync::Arc;
 use vek::*;
 
 pub struct Sahagin {
@@ -127,7 +131,7 @@ impl Structure for Sahagin {
         let ground_floor = base - (room_size * 2);
         let outer_room_radius = (room_size * 2) + (room_size / 3);
         let tunnel_radius = (room_size * 3) + 6;
-        let tunnel_points = place_circular(center, tunnel_radius as f32, 25);
+        let tunnel_points = place_circular_as_vec(center, tunnel_radius as f32, 25);
         let scaler = -10;
         let height_handle = -room_size;
         let shell_radius = 3 * (room_size / 2) + scaler;
@@ -225,20 +229,20 @@ impl Structure for Sahagin {
         let bldg_base = base + room_size;
         let bldgs = var_towers / 3;
         let beam_th = 2.5;
-        let bldg_positions = place_circular(center, (5 * (room_size / 2)) as f32, bldgs);
+        let bldg_positions = place_circular_as_vec(center, (5 * (room_size / 2)) as f32, bldgs);
         // buildings
         for bldg_center in &bldg_positions {
             let bldg_size = ((room_size / 4) + 1)
                 + RandomField::new(0).get(bldg_center.with_z(bldg_base)) as i32 % 3;
             let points = 21;
-            let ring_0 = place_circular(*bldg_center, (4 * (bldg_size / 2)) as f32, points);
-            let ring_1 = place_circular(*bldg_center, (9 * (bldg_size / 2)) as f32, points);
-            let ring_2 = place_circular(*bldg_center, (4 * (bldg_size / 2)) as f32, points);
-            let ring_3 = place_circular(*bldg_center, (2 * (bldg_size / 2)) as f32, points);
+            let ring_0 = place_circular_as_vec(*bldg_center, (4 * (bldg_size / 2)) as f32, points);
+            let ring_1 = place_circular_as_vec(*bldg_center, (9 * (bldg_size / 2)) as f32, points);
+            let ring_2 = place_circular_as_vec(*bldg_center, (4 * (bldg_size / 2)) as f32, points);
+            let ring_3 = place_circular_as_vec(*bldg_center, (2 * (bldg_size / 2)) as f32, points);
 
-            let ring_4 = place_circular(*bldg_center, (6 * (bldg_size / 2)) as f32, points);
-            let ring_5 = place_circular(*bldg_center, (4 * (bldg_size / 2)) as f32, points);
-            let ring_6 = place_circular(*bldg_center, (2 * (bldg_size / 2)) as f32, points);
+            let ring_4 = place_circular_as_vec(*bldg_center, (6 * (bldg_size / 2)) as f32, points);
+            let ring_5 = place_circular_as_vec(*bldg_center, (4 * (bldg_size / 2)) as f32, points);
+            let ring_6 = place_circular_as_vec(*bldg_center, (2 * (bldg_size / 2)) as f32, points);
 
             for b in 0..=(ring_0.len() - 1) {
                 painter
@@ -369,8 +373,8 @@ impl Structure for Sahagin {
                     max: (room_center + room_size).with_z(base - 2),
                 })
                 .clear();
-            let cells = place_circular(*room_center, room_size as f32, room_size / 2);
-            let spawns = place_circular(*room_center, (room_size + 2) as f32, room_size / 2);
+            let cells = place_circular_as_vec(*room_center, room_size as f32, room_size / 2);
+            let spawns = place_circular_as_vec(*room_center, (room_size + 2) as f32, room_size / 2);
             let cell_floors = (room_size / 6) - 1;
             for f in 0..cell_floors {
                 let cell_floor = ground_floor + (room_size / 2) + ((cell_size_raw * 2) * f);
@@ -462,7 +466,7 @@ impl Structure for Sahagin {
                 let rooms_center =
                     place_circular(center, (outer_room_radius - 15) as f32, room_size / 2);
                 let room_base = base - (room_size / 2) + (room_size / 2);
-                for room_center in &rooms_center {
+                for room_center in rooms_center {
                     let room_var =
                         RandomField::new(0).get(room_center.with_z(room_base)) as i32 % 10;
                     let room_var_size = room_size - room_var;
@@ -772,17 +776,4 @@ impl Structure for Sahagin {
             painter.spawn(EntityInfo::at(pos.as_()).with_asset_expect(npc, &mut thread_rng, None));
         }
     }
-}
-
-fn place_circular(center: Vec2<i32>, radius: f32, amount: i32) -> Vec<Vec2<i32>> {
-    let phi = TAU / amount as f32;
-    let mut positions = vec![];
-    for n in 1..=amount {
-        let pos = Vec2::new(
-            center.x + (radius * ((n as f32 * phi).cos())) as i32,
-            center.y + (radius * ((n as f32 * phi).sin())) as i32,
-        );
-        positions.push(pos);
-    }
-    positions
 }

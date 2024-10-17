@@ -411,6 +411,29 @@ pub fn block_from_structure(
                 }),
             ));
         },
+
+        StructureBlock::MyrmidonKeyhole(consumes) => {
+            return Some((
+                Block::air(SpriteKind::MyrmidonKeyhole),
+                Some(SpriteCfg {
+                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                        consumes.clone(),
+                    ))),
+                    ..SpriteCfg::default()
+                }),
+            ));
+        },
+        StructureBlock::MinotaurKeyhole(consumes) => {
+            return Some((
+                Block::air(SpriteKind::MinotaurKeyhole),
+                Some(SpriteCfg {
+                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                        consumes.clone(),
+                    ))),
+                    ..SpriteCfg::default()
+                }),
+            ));
+        },
         StructureBlock::RedwoodWood => {
             let wpos = pos + structure_pos;
             if (wpos.x / 2 + wpos.y) % 5 > 1 && ((wpos.x + 1) / 2 + wpos.y + 2) % 5 > 1 {

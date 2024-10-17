@@ -41,6 +41,7 @@ hud-map-adlet = Adlet Stronghold
 hud-map-haniwa = Haniwa Catacomb
 hud-map-cultist = Cultist Dungeon
 hud-map-sahagin = Sahagin Island
+hud-map-myrmidon = Myrmidon Dungeon
 hud-map-terracotta = Terracotta Ruins
 hud-map-vampire_castle = Vampire Castle
 hud-map-placed_by = Placed by { $name }

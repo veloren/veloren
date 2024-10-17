@@ -310,14 +310,17 @@ sprites! {
         SahaginKeyDoor = 0x0E,
         VampireKeyDoor = 0x0F,
         VampireKeyhole = 0x10,
+        MyrmidonKeyDoor = 0x11,
+        MyrmidonKeyhole = 0x12,
+        MinotaurKeyhole = 0x13,
 
         // Windows
-        Window1      = 0x12,
-        Window2      = 0x13,
-        Window3      = 0x14,
-        Window4      = 0x15,
-        WitchWindow  = 0x16,
-        WindowArabic = 0x17,
+        Window1      = 0x14,
+        Window2      = 0x15,
+        Window3      = 0x16,
+        Window4      = 0x17,
+        WitchWindow  = 0x18,
+        WindowArabic = 0x19,
         // Walls
         GlassBarrier    = 0x20,
         SeaDecorBlock   = 0x21,
@@ -529,6 +532,9 @@ impl SpriteKind {
             | SpriteKind::HaniwaTrapTriggered
             | SpriteKind::TerracottaKeyDoor
             | SpriteKind::TerracottaKeyhole
+            | SpriteKind::MyrmidonKeyDoor
+            | SpriteKind::MyrmidonKeyhole
+            | SpriteKind::MinotaurKeyhole
             | SpriteKind::Bomb
             | SpriteKind::OneWayWall
             | SpriteKind::DoorBars
@@ -712,7 +718,9 @@ impl SpriteKind {
             | SpriteKind::GlassKeyhole
             | SpriteKind::KeyholeBars
             | SpriteKind::SahaginKeyhole
-            | SpriteKind::TerracottaKeyhole => {
+            | SpriteKind::TerracottaKeyhole
+            | SpriteKind::MyrmidonKeyhole
+            | SpriteKind::MinotaurKeyhole => {
                 return Some(None);
             },
             _ => return None,
@@ -872,6 +880,14 @@ impl SpriteKind {
                         "common.items.keys.terracotta_key_door",
                     ))
                     .to_owned(),
+                ),
+                SpriteKind::MyrmidonKeyhole => UnlockKind::Consumes(
+                    ItemDefinitionIdOwned::Simple(String::from("common.items.keys.myrmidon_key"))
+                        .to_owned(),
+                ),
+                SpriteKind::MinotaurKeyhole => UnlockKind::Consumes(
+                    ItemDefinitionIdOwned::Simple(String::from("common.items.keys.minotaur_key"))
+                        .to_owned(),
                 ),
                 _ => UnlockKind::Free,
             })

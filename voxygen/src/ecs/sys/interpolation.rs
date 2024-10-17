@@ -97,7 +97,8 @@ fn base_ori_interp(body: &Body) -> f32 {
             | object::Body::Flamethrower
             | object::Body::Lavathrower
             | object::Body::HaniwaSentry
-            | object::Body::TerracottaStatue,
+            | object::Body::TerracottaStatue
+            | object::Body::MinotaurAxe,
         ) => 100.0,
         _ => 10.0,
     }

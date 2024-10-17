@@ -34,6 +34,7 @@ impl Site {
             | SiteKind::Gnarling(_)
             | SiteKind::Cultist(_)
             | SiteKind::Sahagin(_)
+            | SiteKind::Myrmidon(_)
             | SiteKind::PirateHideout(_)
             | SiteKind::JungleRuin(_)
             | SiteKind::RockCircle(_)

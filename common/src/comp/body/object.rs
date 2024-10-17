@@ -130,6 +130,7 @@ make_case_elim!(
         StrigoiHead = 115,
         HarlequinDagger = 116,
         BloodBomb = 117,
+        MinotaurAxe = 118,
     }
 );
 
@@ -140,7 +141,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 118] = [
+pub const ALL_OBJECTS: [Body; 119] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -259,6 +260,7 @@ pub const ALL_OBJECTS: [Body; 118] = [
     Body::StrigoiHead,
     Body::HarlequinDagger,
     Body::BloodBomb,
+    Body::MinotaurAxe,
 ];
 
 impl From<Body> for super::Body {
@@ -386,6 +388,7 @@ impl Body {
             Body::StrigoiHead => "strigoi_head",
             Body::HarlequinDagger => "harlequin_dagger",
             Body::BloodBomb => "blood_bomb",
+            Body::MinotaurAxe => "minotaur_axe",
         }
     }
 
@@ -524,6 +527,7 @@ impl Body {
             Body::ClayRocket | Body::GrenadeClay => 50.0,
             Body::HaniwaSentry => 300.0,
             Body::SeaLantern => 1000.0,
+            Body::MinotaurAxe => 100000.0,
             Body::Snowball => 7360.0, // 2.5 m diamter
             Body::FishMeat => 10.0,
             Body::BirdMeat => 10.0,
@@ -581,6 +585,7 @@ impl Body {
             Body::LightningBolt | Body::SpearIcicle => Vec3::new(1.0, 1.0, 1.0),
             Body::FireRainDrop => Vec3::new(0.01, 0.01, 0.02),
             Body::Pebble => Vec3::new(0.4, 0.4, 0.4),
+            Body::MinotaurAxe => Vec3::new(5.0, 5.0, 5.0),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

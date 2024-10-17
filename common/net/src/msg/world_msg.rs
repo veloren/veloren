@@ -158,6 +158,7 @@ pub enum SiteKind {
     Cultist,
     Sahagin,
     VampireCastle,
+    Myrmidon,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

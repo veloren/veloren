@@ -20,6 +20,7 @@ pub enum DungeonKindMeta {
     Terracotta,
     Cultist,
     Sahagin,
+    Myrmidon,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]

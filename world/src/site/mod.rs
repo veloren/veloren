@@ -88,6 +88,7 @@ pub enum SiteKind {
     Sahagin(site2::Site),
     VampireCastle(site2::Site),
     GliderCourse(site2::Site),
+    Myrmidon(site2::Site),
 }
 
 impl Site {
@@ -231,6 +232,13 @@ impl Site {
         }
     }
 
+    pub fn myrmidon(my: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::Myrmidon(my),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn dwarven_mine(dm: site2::Site) -> Self {
         Self {
             kind: SiteKind::DwarvenMine(dm),
@@ -301,6 +309,7 @@ impl Site {
             SiteKind::Sahagin(sg) => sg.radius(),
             SiteKind::VampireCastle(vc) => vc.radius(),
             SiteKind::GliderCourse(gc) => gc.radius(),
+            SiteKind::Myrmidon(my) => my.radius(),
         }
     }
 
@@ -332,6 +341,7 @@ impl Site {
             SiteKind::Sahagin(sg) => sg.origin,
             SiteKind::VampireCastle(vc) => vc.origin,
             SiteKind::GliderCourse(gc) => gc.origin,
+            SiteKind::Myrmidon(my) => my.origin,
         }
     }
 
@@ -363,6 +373,7 @@ impl Site {
             SiteKind::Sahagin(sg) => sg.spawn_rules(wpos),
             SiteKind::VampireCastle(vc) => vc.spawn_rules(wpos),
             SiteKind::GliderCourse(gc) => gc.spawn_rules(wpos),
+            SiteKind::Myrmidon(my) => my.spawn_rules(wpos),
         }
     }
 
@@ -394,6 +405,7 @@ impl Site {
             SiteKind::Sahagin(sg) => sg.name(),
             SiteKind::VampireCastle(vc) => vc.name(),
             SiteKind::GliderCourse(gc) => gc.name(),
+            SiteKind::Myrmidon(my) => my.name(),
         }
     }
 
@@ -445,6 +457,7 @@ impl Site {
             SiteKind::Sahagin(sg) => sg.render(canvas, dynamic_rng),
             SiteKind::VampireCastle(vc) => vc.render(canvas, dynamic_rng),
             SiteKind::GliderCourse(gc) => gc.render(canvas, dynamic_rng),
+            SiteKind::Myrmidon(my) => my.render(canvas, dynamic_rng),
         }
     }
 
@@ -490,6 +503,7 @@ impl Site {
             SiteKind::Cultist(cl) => cl.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Sahagin(sg) => sg.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::VampireCastle(vc) => vc.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::Myrmidon(my) => my.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 
@@ -535,6 +549,7 @@ impl Site {
             SiteKind::Sahagin(site2) => Some(site2),
             SiteKind::VampireCastle(site2) => Some(site2),
             SiteKind::GliderCourse(site2) => Some(site2),
+            SiteKind::Myrmidon(site2) => Some(site2),
         }
     }
 }

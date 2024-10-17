@@ -619,7 +619,11 @@ impl SfxMgr {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FireShot);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },
-                    Body::Object(object::Body::IronPikeBomb | object::Body::BubbleBomb) => {
+                    Body::Object(
+                        object::Body::IronPikeBomb
+                        | object::Body::BubbleBomb
+                        | object::Body::MinotaurAxe,
+                    ) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Whoosh);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
                     },

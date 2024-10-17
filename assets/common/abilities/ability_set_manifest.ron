@@ -740,6 +740,8 @@
         abilities: [
             Simple(None, "common.abilities.custom.minotaur.charge"),
             Simple(None, "common.abilities.custom.minotaur.frenzy"),
+            Simple(None, "common.abilities.custom.minotaur.axethrow"),
+            Simple(None, "common.abilities.custom.minotaur.ironspike_targeted"),
         ],
     ),
      Custom("Dullahan"): (

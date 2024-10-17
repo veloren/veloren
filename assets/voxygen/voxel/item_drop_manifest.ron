@@ -1027,7 +1027,8 @@
     Simple("common.items.keys.terracotta_key_chest"): "voxel.object.key_terracotta_chest",
     Simple("common.items.keys.terracotta_key_door"): "voxel.object.key_terracotta_door",
     Simple("common.items.keys.vampire_key"): "voxel.object.key_vampire",
-    Simple("common.items.keys.bloodmoon_key"): "voxel.object.key_bloodmoon",
+    Simple("common.items.keys.myrmidon_key"): "voxel.object.key_myrmidon",
+    Simple("common.items.keys.minotaur_key"): "voxel.object.key_myrmidon",
     // Gliders
     Simple("common.items.glider.cloverleaf"): "voxel.glider.cloverleaf",
     Simple("common.items.glider.basic_white"): "voxel.glider.basic_white",
