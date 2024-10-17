@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    site2::plot::dungeon::inscribed_polystar,
+    site2::{gen::place_circular, plot::dungeon::inscribed_polystar},
     util::{sampler::Sampler, RandomField, DIAGONALS},
     Land,
 };
@@ -11,7 +11,7 @@ use common::{
     terrain::SpriteKind,
 };
 use rand::prelude::*;
-use std::{f32::consts::TAU, sync::Arc};
+use std::sync::Arc;
 use vek::*;
 
 pub struct Room {
@@ -813,17 +813,4 @@ impl Structure for Cultist {
             })
             .fill(rock.clone());
     }
-}
-
-fn place_circular(center: Vec2<i32>, radius: f32, amount: i32) -> Vec<Vec2<i32>> {
-    let phi = TAU / amount as f32;
-    let mut positions = vec![];
-    for n in 1..=amount {
-        let pos = Vec2::new(
-            center.x + (radius * ((n as f32 * phi).cos())) as i32,
-            center.y + (radius * ((n as f32 * phi).sin())) as i32,
-        );
-        positions.push(pos);
-    }
-    positions
 }

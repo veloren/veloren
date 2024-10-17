@@ -691,6 +691,12 @@
             "common.items.keys.vampire_key",
         ): "object-key-vampire",
         Simple(
+            "common.items.keys.myrmidon_key",
+        ): "object-key-myrmidon",        
+        Simple(
+            "common.items.keys.minotaur_key",
+        ): "object-key-minotaur",
+        Simple(
             "common.items.weapons.shield.shield_1",
         ): "weapon-shield-wood-0",
         Simple(

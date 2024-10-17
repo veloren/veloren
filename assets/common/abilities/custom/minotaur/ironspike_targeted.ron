@@ -1,0 +1,12 @@
+SpriteSummon(
+    buildup_duration: 0.4,
+    cast_duration: 0.1,
+    recover_duration: 1.1,
+    sprite: IronSpike,
+    del_timeout: Some((5, 15)),
+    summon_distance: (0, 1),
+    sparseness: 0.0,
+    angle: 360,
+    move_efficiency: 1.0,
+    anchor: Target,
+)

@@ -19,7 +19,7 @@ use common::{
     vol::ReadVol,
 };
 use num::cast::AsPrimitive;
-use std::{cell::RefCell, ops::RangeBounds, sync::Arc};
+use std::{cell::RefCell, f32::consts::TAU, ops::RangeBounds, sync::Arc};
 use vek::*;
 
 #[allow(dead_code)]
@@ -1610,4 +1610,31 @@ pub fn aabb_corners<F: FnMut(Primitive) -> Id<Primitive>>(
     ret = f(prim, ret, Vec3::new(0, 1, 0));
     ret = f(prim, ret, Vec3::new(0, 0, 1));
     ret
+}
+
+pub fn place_circular(
+    center: Vec2<i32>,
+    radius: f32,
+    amount: i32,
+) -> impl Iterator<Item = Vec2<i32>> {
+    let phi = TAU / amount as f32;
+    (1..=amount).map(move |n| {
+        Vec2::new(
+            center.x + (radius * ((n as f32 * phi).cos())) as i32,
+            center.y + (radius * ((n as f32 * phi).sin())) as i32,
+        )
+    })
+}
+
+pub fn place_circular_as_vec(center: Vec2<i32>, radius: f32, amount: i32) -> Vec<Vec2<i32>> {
+    let phi = TAU / amount as f32;
+    let mut positions = vec![];
+    for n in 1..=amount {
+        let pos = Vec2::new(
+            center.x + (radius * ((n as f32 * phi).cos())) as i32,
+            center.y + (radius * ((n as f32 * phi).sin())) as i32,
+        );
+        positions.push(pos);
+    }
+    positions
 }

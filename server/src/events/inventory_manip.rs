@@ -421,6 +421,9 @@ impl ServerEvent for InventoryManipEvent {
                                 Some(SpriteKind::VampireKeyhole) => {
                                     Some(SpriteKind::VampireKeyDoor)
                                 },
+                                Some(SpriteKind::MyrmidonKeyhole | SpriteKind::MinotaurKeyhole) => {
+                                    Some(SpriteKind::MyrmidonKeyDoor)
+                                },
                                 _ => None,
                             } {
                                 let dirs = [

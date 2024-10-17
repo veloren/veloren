@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     assets::AssetHandle,
-    site2::gen::PrimitiveTransform,
+    site2::gen::{place_circular, place_circular_as_vec, PrimitiveTransform},
     util::{sampler::Sampler, RandomField, DIAGONALS, LOCALITY, NEIGHBORS},
     Land,
 };
@@ -11,10 +11,7 @@ use common::{
 };
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use std::{
-    f32::consts::{PI, TAU},
-    sync::Arc,
-};
+use std::{f32::consts::PI, sync::Arc};
 use vek::*;
 
 pub struct Haniwa {
@@ -232,7 +229,7 @@ impl Structure for Haniwa {
         }
 
         // decor cones
-        for position in &cone_positions {
+        for position in cone_positions {
             for dir in LOCALITY {
                 let cone_pos = position + (dir * 2);
                 let cone_var = 10 + RandomField::new(0).get(cone_pos.with_z(base)) as i32 % 10;
@@ -290,8 +287,8 @@ impl Structure for Haniwa {
         let beams = cones + 8;
         let beam_start_radius = cone_radius + 6_f32;
         let beam_end_radius = cone_radius + 20_f32;
-        let beam_start = place_circular(center, beam_start_radius, beams);
-        let beam_end = place_circular(center, beam_end_radius, beams);
+        let beam_start = place_circular_as_vec(center, beam_start_radius, beams);
+        let beam_end = place_circular_as_vec(center, beam_end_radius, beams);
         let room_size = self.room_size;
 
         for b in 0..beams {
@@ -895,17 +892,4 @@ impl Structure for Haniwa {
             ))
         }
     }
-}
-
-fn place_circular(center: Vec2<i32>, radius: f32, amount: i32) -> Vec<Vec2<i32>> {
-    let phi = TAU / amount as f32;
-    let mut positions = vec![];
-    for n in 1..=amount {
-        let pos = Vec2::new(
-            center.x + (radius * ((n as f32 * phi).cos())) as i32,
-            center.y + (radius * ((n as f32 * phi).sin())) as i32,
-        );
-        positions.push(pos);
-    }
-    positions
 }

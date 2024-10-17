@@ -135,6 +135,7 @@ impl Environment {
                     | SiteKind::Sahagin(_)
                     | SiteKind::Haniwa(_)
                     | SiteKind::JungleRuin(_)
+                    | SiteKind::Myrmidon(_)
                     | SiteKind::ChapelSite(_)
                     | SiteKind::DwarvenMine(_)
                     | SiteKind::Terracotta(_)

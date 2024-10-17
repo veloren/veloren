@@ -3,6 +3,7 @@
             // coins are temporary placeholder for unique drops
             MultiDrop(Item("common.items.utility.coins"), 200, 500),
             MultiDrop(Item("common.items.log.eldwood"), 2, 6),
+            Item("common.items.keys.myrmidon_key"),
       ],
    )),
   (0.1, Item("common.items.weapons.axe.parashu")),

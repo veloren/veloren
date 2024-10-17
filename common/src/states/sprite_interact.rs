@@ -210,7 +210,9 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::VampireKeyhole
             | SpriteKind::GlassKeyhole
             | SpriteKind::KeyholeBars
-            | SpriteKind::TerracottaKeyhole => Some(SpriteInteractKind::Unlock),
+            | SpriteKind::TerracottaKeyhole
+            | SpriteKind::MyrmidonKeyhole
+            | SpriteKind::MinotaurKeyhole => Some(SpriteInteractKind::Unlock),
             // Collectible checked in addition to container for case that sprite requires a tool to
             // collect and cannot be collected by hand, yet still meets the container check
             _ if sprite_kind.is_container() && sprite_kind.is_collectible() => {

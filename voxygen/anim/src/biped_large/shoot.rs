@@ -486,6 +486,44 @@ impl Animation for ShootAnimation {
                 next.torso.position = Vec3::new(move1, 0.0, 0.0);
             },
             Some(ToolKind::Natural) => match ability_id {
+                Some("common.abilities.custom.minotaur.axethrow") => {
+                    let (move1base, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1abs = move1base * pullback;
+                    let move2abs = move2base * pullback;
+                    next.second.scale = Vec3::one() * 1.0;
+                    next.main.position = Vec3::new(-12.0, -4.0, -20.0);
+                    next.second.position = Vec3::new(12.0, -4.0, -20.0);
+                    next.main.orientation =
+                        Quaternion::rotation_x(move1abs * -1.5 + move2abs * -3.5);
+
+                    next.second.orientation =
+                        Quaternion::rotation_x(move1abs * -1.5 + move2abs * -3.5);
+
+                    if matches!(stage_section, Some(StageSection::Recover)) {
+                        next.main.position += Vec3::new(0.0, 10000000.0, 0.0);
+                        next.second.position += Vec3::new(0.0, 10000000.0, 0.0);
+                    }
+
+                    next.hand_l.position =
+                        Vec3::new(-s_a.hand.0, s_a.hand.1 - 2.0, s_a.hand.2 + 0.0);
+                    next.hand_r.position =
+                        Vec3::new(s_a.hand.0, s_a.hand.1 - 2.0, s_a.hand.2 + 0.0);
+                    next.control.orientation =
+                        Quaternion::rotation_x(move1abs * 3.0 + move2abs * -3.0);
+
+                    next.shoulder_l.orientation =
+                        Quaternion::rotation_x(move1abs * 3.0 + move2abs * -3.0);
+                    next.shoulder_r.orientation =
+                        Quaternion::rotation_x(move1abs * 3.0 + move2abs * -3.0);
+                    next.head.orientation =
+                        Quaternion::rotation_x(move1abs * 0.4 + move2abs * -0.2);
+                },
                 Some("common.abilities.custom.wendigomagic.frostbomb") => {
                     let (move1base, _move2base, move3) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),

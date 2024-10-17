@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("cyclops"),
+    alignment: Alignment(Enemy),
+    loot: Item("common.items.keys.minotaur_key"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    agent: (
+        idle_wander_factor: 0.0,
+    ),
+    meta: [],
+)

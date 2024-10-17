@@ -522,6 +522,9 @@ impl Block {
                 | SpriteKind::HaniwaKeyhole
                 | SpriteKind::VampireKeyDoor
                 | SpriteKind::VampireKeyhole
+                | SpriteKind::MyrmidonKeyDoor
+                | SpriteKind::MyrmidonKeyhole
+                | SpriteKind::MinotaurKeyhole
                 | SpriteKind::HaniwaTrap
                 | SpriteKind::HaniwaTrapTriggered
                 | SpriteKind::ChestBuried

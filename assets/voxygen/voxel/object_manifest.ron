@@ -309,6 +309,16 @@
             central: ("armor.empty"),
         )
     ),
+    MinotaurAxe: (
+        bone0: (
+            offset: (-9.0, -10.0, 0.0),
+            central: ("weapon.axe.2haxe_minotaur"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     LanternGround: (
         bone0: (
             offset: (-3.5, -3.5, 0.0),

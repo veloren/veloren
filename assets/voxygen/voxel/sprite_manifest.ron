@@ -1593,6 +1593,36 @@ TerracottaBlock: [(
     ],
     wind_sway: 0.0,
 )],
+MyrmidonKeyDoor: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.myrmidon_door_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+MyrmidonKeyhole: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.myrmidon_keyhole_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+MinotaurKeyhole: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.myrmidon_keyhole_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
 // Welwitch
 Welwitch: [(
     variations: [

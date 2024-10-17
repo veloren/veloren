@@ -51,10 +51,12 @@ make_case_elim!(
         TerracottaKeyhole(consumes: String) = 31,
         SahaginKeyhole(consumes: String) = 32,
         VampireKeyhole(consumes: String) = 33,
-        MapleLeaves = 35,
-        CherryLeaves = 36,
-        AutumnLeaves = 37,
-        RedwoodWood = 38,
+        MyrmidonKeyhole(consumes: String) = 34,
+        MinotaurKeyhole(consumes: String) = 35,
+        MapleLeaves = 36,
+        CherryLeaves = 37,
+        AutumnLeaves = 38,
+        RedwoodWood = 39,
     }
 );
 
