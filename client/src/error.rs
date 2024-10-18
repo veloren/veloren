@@ -1,4 +1,5 @@
 use authc::AuthClientError;
+use common_net::msg::server::BanInfo;
 pub use network::{InitProtocolError, NetworkConnectError, NetworkError};
 use network::{ParticipantError, StreamError};
 use specs::error::Error as SpecsError;
@@ -18,7 +19,7 @@ pub enum Error {
     AuthServerUrlInvalid(String),
     AuthServerNotTrusted,
     HostnameLookupFailed(std::io::Error),
-    Banned(String),
+    Banned(BanInfo),
     /// Persisted character data is invalid or missing
     InvalidCharacter,
     //TODO: InvalidAlias,

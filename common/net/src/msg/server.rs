@@ -292,18 +292,26 @@ pub enum Notification {
     WaypointSaved,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct BanInfo {
+    pub reason: String,
+    /// Unix timestamp at which the ban will expire
+    pub until: Option<i64>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DisconnectReason {
     /// Server shut down
     Shutdown,
     /// Client was kicked
     Kicked(String),
+    Banned(BanInfo),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RegisterError {
     AuthError(String),
-    Banned(String),
+    Banned(BanInfo),
     Kicked(String),
     InvalidCharacter,
     NotOnWhitelist,

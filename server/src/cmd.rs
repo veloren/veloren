@@ -4455,7 +4455,7 @@ fn kick_player(
     server: &mut Server,
     (client, client_uuid): (EcsEntity, Uuid),
     (target_player, target_player_uuid): (EcsEntity, Uuid),
-    reason: &str,
+    reason: DisconnectReason,
 ) -> CmdResult<()> {
     verify_above_role(
         server,
@@ -4463,10 +4463,7 @@ fn kick_player(
         (target_player, target_player_uuid),
         Content::localized("command-kick-higher-role"),
     )?;
-    server.notify_client(
-        target_player,
-        ServerGeneral::Disconnect(DisconnectReason::Kicked(reason.to_string())),
-    );
+    server.notify_client(target_player, ServerGeneral::Disconnect(reason));
     server
         .state
         .mut_resource::<EventBus<ClientDisconnectEvent>>()
@@ -4490,7 +4487,12 @@ fn handle_kick(
         let ecs = server.state.ecs();
         let target_player = find_alias(ecs, &target_alias, true)?;
 
-        kick_player(server, (client, client_uuid), target_player, &reason)?;
+        kick_player(
+            server,
+            (client, client_uuid),
+            target_player,
+            DisconnectReason::Kicked(reason.clone()),
+        )?;
         server.notify_client(
             client,
             ServerGeneral::server_msg(
@@ -4545,6 +4547,7 @@ fn handle_ban(
             info: Some(ban_info),
             end_date,
         };
+        let ban_info = ban.info();
 
         let edit = server
             .editable_settings_mut()
@@ -4579,7 +4582,7 @@ fn handle_ban(
                 server,
                 (client, client_uuid),
                 (target_player, player_uuid),
-                &reason,
+                DisconnectReason::Banned(ban_info),
             );
         }
         Ok(())

@@ -1,5 +1,6 @@
 use super::{char_selection::CharSelectionState, dummy_scene::Scene};
 use crate::{
+    menu::main::get_client_msg_error,
     render::{Drawer, GlobalsBindGroup},
     settings::Settings,
     ui::{
@@ -185,10 +186,9 @@ impl PlayState for ServerInfoState {
                 .borrow_mut()
                 .tick(comp::ControllerInputs::default(), global_state.clock.dt())
             {
-                let i18n = &global_state.i18n.read();
-                global_state.info_message =
-                    Some(i18n.get_msg("common-connection_lost").into_owned());
                 error!(?err, "[server_info] Failed to tick the client");
+                global_state.info_message =
+                    Some(get_client_msg_error(err, None, &global_state.i18n.read()));
                 return PlayStateResult::Pop;
             }
         }
