@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Balanced Terracotta, Dwarven mines, Haniwa and Vampire castle dungeons and other balance changes
 - Craftable kora instrument
 - Added "recipes" to /kit command.
+- Karkatha boss and Soldier Crab mob for Sahagin Island dungeons
 - Added Golemite armor
 - Silent spectator mode for moderators.
 - Glider courses
