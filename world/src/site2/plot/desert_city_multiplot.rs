@@ -1249,20 +1249,35 @@ impl Structure for DesertCityMultiPlot {
                                         },
                                         1 => {
                                             // living room
-                                            // canapes
-                                            for d in 0..2 {
-                                                let a_pos = Vec2::new(
-                                                    subplot_center.x - 4 + (d * 7),
-                                                    subplot_center.y - room_length
-                                                        + 5
-                                                        + (d * ((2 * room_length) - 9)),
-                                                );
-                                                painter.rotated_sprite(
-                                                    a_pos.with_z(floor_level),
-                                                    SpriteKind::CanapeArabic,
-                                                    (4 * d) as u8,
-                                                );
+                                            // canape
+                                            let canape_pos = Vec2::new(
+                                                subplot_center.x - 4 + 7,
+                                                subplot_center.y - room_length
+                                                    + 5
+                                                    + ((2 * room_length) - 9),
+                                            );
 
+                                            painter.rotated_sprite(
+                                                canape_pos.with_z(floor_level),
+                                                SpriteKind::CanapeArabic,
+                                                4_u8,
+                                            );
+
+                                            // bed
+                                            let bed_pos = Vec2::new(
+                                                subplot_center.x - 4,
+                                                subplot_center.y - room_length + 5,
+                                            );
+
+                                            painter.rotated_sprite(
+                                                bed_pos.with_z(floor_level),
+                                                // TODO: create bed sprite specific for desert
+                                                // houses
+                                                SpriteKind::Bed,
+                                                4_u8,
+                                            );
+
+                                            for d in 0..2 {
                                                 // other sprites
                                                 let b_pos = Vec2::new(
                                                     subplot_center.x + 3 - (d * 7),

@@ -335,7 +335,6 @@ impl Structure for CoastalHouse {
                 SpriteKind::ChairSingle,
                 SpriteKind::ChairDouble,
                 SpriteKind::CoatRack,
-                SpriteKind::Bed,
                 SpriteKind::WardrobeDouble,
                 SpriteKind::WardrobeSingle,
                 SpriteKind::TableSide,
@@ -368,6 +367,7 @@ impl Structure for CoastalHouse {
                     painter.sprite(position.with_z(base - 2 + (s * height)), sprite);
                 }
             }
+
             // clear floor center if stairs
             if storeys > 1 {
                 painter
@@ -377,6 +377,17 @@ impl Structure for CoastalHouse {
                     })
                     .clear();
             };
+
+            // draws a random index based of base and currently storey
+            let random_index = (RandomField::new(0).get(center.with_z(base + s)) % 4) as usize;
+            // add beds at random corners
+            for (d, dir) in DIAGONALS.iter().enumerate() {
+                let bed_pos = center + dir * ((length / 2) - 2);
+                if d == random_index {
+                    painter.sprite(bed_pos.with_z(base - 2 + (s * height)), SpriteKind::Bed);
+                }
+            }
+
             // wall lamps
             for d in 0..2 {
                 let door_lamp_pos = Vec2::new(
