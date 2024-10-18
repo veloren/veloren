@@ -223,7 +223,6 @@ impl Structure for SavannahHut {
             SpriteKind::DrawerSmall,
             SpriteKind::ChairSingle,
             SpriteKind::CoatRack,
-            SpriteKind::Bed,
             SpriteKind::WardrobeSingle,
             SpriteKind::CushionArabic,
             SpriteKind::TableArabicSmall,
@@ -234,6 +233,7 @@ impl Structure for SavannahHut {
             SpriteKind::JugAndBowlArabic,
             SpriteKind::SepareArabic,
         ];
+
         let rows = if length > 12 { 2 } else { 1 };
         'outer: for d in 0..rows {
             for dir in DIAGONALS {
@@ -247,6 +247,13 @@ impl Structure for SavannahHut {
                 painter.sprite(position.with_z(base - 2), sprite);
             }
         }
+
+        // draws a random index
+        let random_index = (RandomField::new(0).get(center.with_z(base)) % 4) as usize;
+        // add bed at random diagonal
+        let random_diag = DIAGONALS.get(random_index).unwrap();
+        let bed_pos = center + random_diag * (length - 9);
+        painter.sprite(bed_pos.with_z(base - 2), SpriteKind::Bed);
 
         // reed roof lines
         for n in 1..=reed_parts as i32 {
