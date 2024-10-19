@@ -1215,7 +1215,7 @@ impl<'a> AgentData<'a> {
         // 'min_attack_dist' uses DEFAULT_ATTACK_RANGE, while 'body_dist' does not
         let self_radius = self.body.map_or(0.5, |b| b.max_radius()) * self.scale;
         let self_attack_range =
-            (self.body.map_or(0.5, |b| b.max_radius()) + DEFAULT_ATTACK_RANGE) * self.scale;
+            (self.body.map_or(0.5, |b| b.front_radius()) + DEFAULT_ATTACK_RANGE) * self.scale;
         let tgt_radius =
             tgt_data.body.map_or(0.5, |b| b.max_radius()) * tgt_data.scale.map_or(1.0, |s| s.0);
         let min_attack_dist = self_attack_range + tgt_radius;

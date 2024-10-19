@@ -304,38 +304,44 @@ impl ServerEvent for MineBlockEvent {
                                 });
                             }
 
-                            let do_drop_ore = |rng: &mut rand::rngs::ThreadRng| {
-                                is_broken || {
-                                    let chance_mod =
-                                        f64::from(SKILL_MODIFIERS.mining_tree.ore_gain);
-                                    let skill_level = skillset
-                                        .skill_level(Skill::Pick(MiningSkill::OreGain))
-                                        .unwrap_or(0);
+                            let stage_ore_chance = || {
+                                let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.ore_gain);
+                                let skill_level = skillset
+                                    .skill_level(Skill::Pick(MiningSkill::OreGain))
+                                    .unwrap_or(0);
 
-                                    rng.gen_bool(
-                                        (0.5 + chance_mod * f64::from(skill_level)).min(1.0),
-                                    )
-                                }
+                                chance_mod * f64::from(skill_level)
                             };
-                            let do_drop_gem = |rng: &mut rand::rngs::ThreadRng| {
-                                is_broken || {
-                                    let chance_mod =
-                                        f64::from(SKILL_MODIFIERS.mining_tree.gem_gain);
-                                    let skill_level = skillset
-                                        .skill_level(Skill::Pick(MiningSkill::GemGain))
-                                        .unwrap_or(0);
+                            let stage_gem_chance = || {
+                                let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.gem_gain);
+                                let skill_level = skillset
+                                    .skill_level(Skill::Pick(MiningSkill::GemGain))
+                                    .unwrap_or(0);
 
-                                    rng.gen_bool(
-                                        (0.5 + chance_mod * f64::from(skill_level)).min(1.0),
-                                    )
-                                }
+                                chance_mod * f64::from(skill_level)
                             };
-                            items.retain(|item| {
-                                item.item_definition_id().itemdef_id().is_some_and(|id| {
-                                    (id.contains("mineral.ore.") && do_drop_ore(&mut rng))
-                                        || (id.contains("mineral.gem.") && do_drop_gem(&mut rng))
-                                })
-                            });
+
+                            // If the resource hasn't been fully broken, only drop certain resources
+                            // with a chance
+                            if !is_broken {
+                                items.retain(|item| {
+                                    rng.gen_bool(
+                                        0.5 + item
+                                            .item_definition_id()
+                                            .itemdef_id()
+                                            .map(|id| {
+                                                if id.contains("mineral.ore.") {
+                                                    stage_ore_chance()
+                                                } else if id.contains("mineral.gem.") {
+                                                    stage_gem_chance()
+                                                } else {
+                                                    0.0
+                                                }
+                                            })
+                                            .unwrap_or(0.0),
+                                    )
+                                });
+                            }
                         }
                         for item in items {
                             let loot_owner = maybe_uid

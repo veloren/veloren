@@ -2757,10 +2757,15 @@ impl<'a> AgentData<'a> {
         if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
             && attack_data.angle < 90.0
         {
-            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
-                .xy()
-                .try_normalized()
-                .unwrap_or_else(Vec2::unit_y);
+            controller.inputs.move_dir = if !attack_data.in_min_range() {
+                (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::unit_y)
+            } else {
+                Vec2::zero()
+            };
+
             controller.push_basic_input(InputKind::Primary);
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -3083,7 +3088,7 @@ impl<'a> AgentData<'a> {
 
         if attack_data.angle < HOOF_ATTACK_ANGLE
             && attack_data.dist_sqrd
-                < (HOOF_ATTACK_RANGE + self.body.map_or(0.0, |b| b.max_radius())).powi(2)
+                < (HOOF_ATTACK_RANGE + self.body.map_or(0.0, |b| b.front_radius())).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
             controller.push_basic_input(InputKind::Primary);
@@ -4544,7 +4549,9 @@ impl<'a> AgentData<'a> {
                 tgt_data.pos.0,
                 read_data,
                 Path::Partial,
-                None,
+                (attack_data.dist_sqrd
+                    < (attack_data.min_attack_dist + MINOTAUR_ATTACK_RANGE / 3.0).powi(2))
+                .then_some(0.1),
             );
         }
     }
@@ -4605,7 +4612,7 @@ impl<'a> AgentData<'a> {
         } else if attack_data.dist_sqrd > CYCLOPS_CHARGE_RANGE.powi(2) {
             // Shoot after target if they attempt to "flee"
             controller.push_basic_input(InputKind::Secondary);
-        } else if attack_data.dist_sqrd < CYCLOPS_MELEE_RANGE {
+        } else if attack_data.dist_sqrd < CYCLOPS_MELEE_RANGE.powi(2) {
             if attack_data.angle < 60.0 {
                 // Melee target if close enough and within angle
                 controller.push_basic_input(InputKind::Primary);
@@ -4615,14 +4622,16 @@ impl<'a> AgentData<'a> {
             }
         }
 
-        // Always attempt to path towards target
+        // Always path towards target
         self.path_toward_target(
             agent,
             controller,
             tgt_data.pos.0,
             read_data,
             Path::Partial,
-            None,
+            (attack_data.dist_sqrd
+                < (attack_data.min_attack_dist + CYCLOPS_MELEE_RANGE / 2.0).powi(2))
+            .then_some(0.1),
         );
     }
 
@@ -4681,7 +4690,7 @@ impl<'a> AgentData<'a> {
         } else if attack_data.dist_sqrd > MID_RANGE.powi(2) {
             // InputKind after target if they attempt to "flee" (MID-LONG)
             controller.push_basic_input(InputKind::Secondary);
-        } else if attack_data.dist_sqrd < MELEE_RANGE {
+        } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
             if attack_data.angle < 60.0 {
                 // InputKind target if close enough and within angle (<MELEE)
                 controller.push_basic_input(InputKind::Primary);
@@ -4691,14 +4700,15 @@ impl<'a> AgentData<'a> {
             }
         }
 
-        // Always attempt to path towards target
+        // Path to target if too far away
         self.path_toward_target(
             agent,
             controller,
             tgt_data.pos.0,
             read_data,
             Path::Full,
-            None,
+            (attack_data.dist_sqrd < (attack_data.min_attack_dist + MELEE_RANGE / 2.0).powi(2))
+                .then_some(0.1),
         );
     }
 
@@ -4783,6 +4793,7 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Ability(0));
             }
         }
+
         // Make grave warden move towards target
         self.path_toward_target(
             agent,
@@ -4790,7 +4801,9 @@ impl<'a> AgentData<'a> {
             tgt_data.pos.0,
             read_data,
             Path::Separate,
-            None,
+            (attack_data.dist_sqrd
+                < (attack_data.min_attack_dist + GOLEM_MELEE_RANGE / 1.5).powi(2))
+            .then_some(0.1),
         );
     }
 
@@ -4944,7 +4957,7 @@ impl<'a> AgentData<'a> {
             tgt_data.pos.0,
             read_data,
             Path::Partial,
-            None,
+            attack_data.in_min_range().then_some(0.1),
         );
     }
 
@@ -5547,7 +5560,7 @@ impl<'a> AgentData<'a> {
             tgt_data.pos.0,
             read_data,
             Path::Partial,
-            None,
+            attack_data.in_min_range().then_some(0.1),
         );
     }
 

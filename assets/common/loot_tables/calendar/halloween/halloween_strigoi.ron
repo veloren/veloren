@@ -1,0 +1,5 @@
+[
+    (4.0, MultiDrop(Item("common.items.food.pumpkin_spice_brew"), 1, 2)),
+    (5.0, MultiDrop(Item("common.items.food.honeycorn"), 1, 2)),
+    (1.0, Item("common.items.armor.misc.head.facegourd")),
+]

@@ -812,6 +812,7 @@
     Simple("common.items.armor.miner.helmet"): "voxel.armor.miner.helmet",
     Simple("common.items.armor.misc.head.hare_hat"): "voxel.armor.misc.head.hare_hat",
     Simple("common.items.armor.misc.head.cat_capuche"): "voxel.armor.misc.head.cat_capuche",
+    Simple("common.items.armor.misc.head.scarlet_spectacles"): "voxel.armor.misc.head.scarlet_spectacles.scarlet_spectacles",
     // Rings
     Simple("common.items.armor.misc.ring.scratched"): "voxel.armor.misc.ring.scratched",
     Simple("common.items.armor.misc.ring.gold"): "voxel.armor.misc.ring.gold",

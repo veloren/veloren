@@ -1204,6 +1204,9 @@
             "common.items.armor.misc.head.cat_capuche",
         ): "armor-misc-head-cat_capuche",
         Simple(
+            "common.items.armor.misc.head.scarlet_spectacles",
+        ): "armor-misc-head-scarlet_spectacles",
+        Simple(
             "common.items.armor.misc.pants.hunting",
         ): "armor-misc-pants-grayscale",
         Simple(

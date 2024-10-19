@@ -1,0 +1,18 @@
+#![enable(implicit_some)]
+(
+    name: Name("Bloodservant"),
+    body: RandomWith("bloodservant"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.calendar.halloween.halloween_bloodservant"),
+    inventory: (
+        loadout: Inline((
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.vampire.bloodservant_axe"), None)),
+            inherit: Asset("common.loadout.dungeon.vampire.bloodservant"),
+
+        )),    ),
+        agent: (
+        idle_wander_factor: 0.0,
+        aggro_range_multiplier: 2.0,
+    ),
+    meta: [],
+)

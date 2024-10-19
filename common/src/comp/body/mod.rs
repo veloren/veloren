@@ -745,6 +745,8 @@ impl Body {
         x.max(y) / 2.0
     }
 
+    pub fn front_radius(&self) -> f32 { self.dimensions().y / 2.0 }
+
     pub fn min_radius(&self) -> f32 {
         let (_p0, _p1, radius) = self.sausage();
 
