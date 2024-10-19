@@ -118,8 +118,8 @@ impl LoginProvider {
                             >= Into::<AdminRole>::into(ban.performed_by_role())
                     };
                     if !ban.is_expired(now) && !admin.map_or(false, exceeds_ban_role) {
-                        // Pull reason string out of ban record and send a copy of it
-                        return Some(Err(RegisterError::Banned(ban.reason.clone())));
+                        // Get ban info and send a copy of it
+                        return Some(Err(RegisterError::Banned(ban.info())));
                     }
                 }
 

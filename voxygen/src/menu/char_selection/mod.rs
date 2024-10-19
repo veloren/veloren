@@ -1,7 +1,10 @@
 mod ui;
 
 use crate::{
-    menu::{main::rand_bg_image_spec, server_info::ServerInfoState},
+    menu::{
+        main::{get_client_msg_error, rand_bg_image_spec},
+        server_info::ServerInfoState,
+    },
     render::{Drawer, GlobalsBindGroup},
     scene::simple::{self as scene, Scene},
     session::SessionState,
@@ -303,12 +306,9 @@ impl PlayState for CharSelectionState {
                     }
                 },
                 Err(err) => {
-                    global_state.info_message = Some(
-                        localized_strings
-                            .get_msg("common-connection_lost")
-                            .into_owned(),
-                    );
                     error!(?err, "[char_selection] Failed to tick the client");
+                    global_state.info_message =
+                        Some(get_client_msg_error(err, None, &global_state.i18n.read()));
                     return PlayStateResult::Pop;
                 },
             }

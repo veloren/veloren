@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Beam collision.
 - Complete Taiwanese(zh-Hant) translation
 - Require multiple hits to mine ores
+- Ban expiration dates are now shown on the ban screen.
 
 ### Removed
 

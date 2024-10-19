@@ -1,4 +1,4 @@
-mod client_init;
+pub(crate) mod client_init;
 mod ui;
 
 use super::{char_selection::CharSelectionState, dummy_scene::Scene, server_info::ServerInfoState};
@@ -11,6 +11,7 @@ use crate::{
     window::Event,
     Direction, GlobalState, PlayState, PlayStateResult,
 };
+use chrono::{DateTime, Local, Utc};
 use client::{
     addr::ConnectionArgs,
     error::{InitProtocolError, NetworkConnectError, NetworkError},
@@ -22,7 +23,7 @@ use common_base::span;
 use common_net::msg::ClientType;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
-use i18n::LocalizationHandle;
+use i18n::{fluent_args, LocalizationGuard, LocalizationHandle};
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
 #[cfg(any(feature = "singleplayer", feature = "plugins"))]
@@ -243,7 +244,7 @@ impl PlayState for MainMenuState {
             Some(InitMsg::Done(Err(e))) => {
                 self.init = InitState::None;
                 error!(?e, "Client Init failed raw error");
-                let e = get_client_msg_error(e, &global_state.i18n);
+                let e = get_client_init_msg_error(e, &global_state.i18n);
                 // Log error for possible additional use later or in case that the error
                 // displayed is cut of.
                 error!(?e, "Client Init failed");
@@ -316,12 +317,9 @@ impl PlayState for MainMenuState {
                     }
                 },
                 Err(err) => {
-                    global_state.info_message = Some(
-                        localized_strings
-                            .get_msg("common-connection_lost")
-                            .into_owned(),
-                    );
                     error!(?err, "[main menu] Failed to tick the client");
+                    global_state.info_message =
+                        Some(get_client_msg_error(err, None, &global_state.i18n.read()));
                     self.init = InitState::None;
                 },
             }
@@ -546,12 +544,11 @@ impl PlayState for MainMenuState {
     fn egui_enabled(&self) -> bool { false }
 }
 
-fn get_client_msg_error(
-    error: client_init::Error,
-    localized_strings: &LocalizationHandle,
+pub(crate) fn get_client_msg_error(
+    error: client::Error,
+    mismatched_server_info: Option<ServerInfo>,
+    localization: &LocalizationGuard,
 ) -> String {
-    let localization = localized_strings.read();
-
     // When a network error is received and there is a mismatch between the client
     // and server version it is almost definitely due to this mismatch rather than
     // a true networking error.
@@ -580,90 +577,117 @@ fn get_client_msg_error(
 
     use client::Error;
     match error {
+        Error::SpecsErr(e) => {
+            format!(
+                "{}: {}",
+                localization.get_msg("main-login-internal_error"),
+                e
+            )
+        },
+        Error::AuthErr(e) => format!(
+            "{}: {}",
+            localization.get_msg("main-login-authentication_error"),
+            e
+        ),
+        Error::Kicked(reason) => localization
+            .get_msg_ctx("main-login-kicked", &fluent_args! {
+                "reason" => reason,
+            })
+            .into(),
+        Error::TooManyPlayers => localization.get_msg("main-login-server_full").into(),
+        Error::AuthServerNotTrusted => localization
+            .get_msg("main-login-untrusted_auth_server")
+            .into(),
+        Error::ServerTimeout => localization.get_msg("main-login-timeout").into(),
+        Error::ServerShutdown => localization.get_msg("main-login-server_shut_down").into(),
+        Error::NotOnWhitelist => localization.get_msg("main-login-not_on_whitelist").into(),
+        Error::Banned(ban_info) => if let Some(end_time) = ban_info
+            .until
+            .and_then(|timestamp| DateTime::<Utc>::from_timestamp(timestamp, 0))
+        {
+            let end_date = end_time.with_timezone(&Local);
+            let end_date_str = end_date.format("%Y-%m-%d %H:%M").to_string();
+
+            localization.get_msg_ctx("main-login-banned_until", &fluent_args! {
+                "reason" => ban_info.reason,
+                "end_date" => end_date_str,
+            })
+        } else {
+            localization.get_msg_ctx("main-login-banned", &fluent_args! {
+                "reason" => ban_info.reason
+            })
+        }
+        .into(),
+        Error::InvalidCharacter => localization.get_msg("main-login-invalid_character").into(),
+        Error::NetworkErr(NetworkError::ConnectFailed(NetworkConnectError::Handshake(
+            InitProtocolError::WrongVersion(_),
+        ))) => net_error(
+            localization
+                .get_msg("main-login-network_wrong_version")
+                .into_owned(),
+            mismatched_server_info,
+        ),
+        Error::NetworkErr(e) => net_error(e.to_string(), mismatched_server_info),
+        Error::ParticipantErr(e) => net_error(e.to_string(), mismatched_server_info),
+        Error::StreamErr(e) => net_error(e.to_string(), mismatched_server_info),
+        Error::HostnameLookupFailed(e) => {
+            format!(
+                "{}: {}",
+                localization.get_msg("main-login-server_not_found"),
+                e
+            )
+        },
+        Error::Other(e) => {
+            format!("{}: {}", localization.get_msg("common-error"), e)
+        },
+        Error::AuthClientError(e) => match e {
+            // TODO: remove parentheses
+            client::AuthClientError::RequestError(e) => format!(
+                "{}: {}",
+                localization.get_msg("main-login-failed_sending_request"),
+                e
+            ),
+            client::AuthClientError::ResponseError(e) => format!(
+                "{}: {}",
+                localization.get_msg("main-login-failed_sending_request"),
+                e
+            ),
+            client::AuthClientError::CertificateLoad(e) => format!(
+                "{}: {}",
+                localization.get_msg("main-login-failed_sending_request"),
+                e
+            ),
+            client::AuthClientError::JsonError(e) => format!(
+                "{}: {}",
+                localization.get_msg("main-login-failed_sending_request"),
+                e
+            ),
+            client::AuthClientError::InsecureSchema => localization
+                .get_msg("main-login-insecure_auth_scheme")
+                .into(),
+            client::AuthClientError::ServerError(_, e) => String::from_utf8_lossy(&e).into(),
+        },
+        Error::AuthServerUrlInvalid(e) => {
+            format!(
+                "{}: https://{}",
+                localization.get_msg("main-login-failed_auth_server_url_invalid"),
+                e
+            )
+        },
+    }
+}
+
+fn get_client_init_msg_error(
+    error: client_init::Error,
+    localized_strings: &LocalizationHandle,
+) -> String {
+    let localization = localized_strings.read();
+
+    match error {
         InitError::ClientError {
             error,
             mismatched_server_info,
-        } => match error {
-            Error::SpecsErr(e) => {
-                format!(
-                    "{}: {}",
-                    localization.get_msg("main-login-internal_error"),
-                    e
-                )
-            },
-            Error::AuthErr(e) => format!(
-                "{}: {}",
-                localization.get_msg("main-login-authentication_error"),
-                e
-            ),
-            Error::Kicked(e) => e,
-            Error::TooManyPlayers => localization.get_msg("main-login-server_full").into(),
-            Error::AuthServerNotTrusted => localization
-                .get_msg("main-login-untrusted_auth_server")
-                .into(),
-            Error::ServerTimeout => localization.get_msg("main-login-timeout").into(),
-            Error::ServerShutdown => localization.get_msg("main-login-server_shut_down").into(),
-            Error::NotOnWhitelist => localization.get_msg("main-login-not_on_whitelist").into(),
-            Error::Banned(reason) => {
-                format!("{}: {}", localization.get_msg("main-login-banned"), reason)
-            },
-            Error::InvalidCharacter => localization.get_msg("main-login-invalid_character").into(),
-            Error::NetworkErr(NetworkError::ConnectFailed(NetworkConnectError::Handshake(
-                InitProtocolError::WrongVersion(_),
-            ))) => net_error(
-                localization
-                    .get_msg("main-login-network_wrong_version")
-                    .into_owned(),
-                mismatched_server_info,
-            ),
-            Error::NetworkErr(e) => net_error(e.to_string(), mismatched_server_info),
-            Error::ParticipantErr(e) => net_error(e.to_string(), mismatched_server_info),
-            Error::StreamErr(e) => net_error(e.to_string(), mismatched_server_info),
-            Error::HostnameLookupFailed(e) => {
-                format!(
-                    "{}: {}",
-                    localization.get_msg("main-login-server_not_found"),
-                    e
-                )
-            },
-            Error::Other(e) => {
-                format!("{}: {}", localization.get_msg("common-error"), e)
-            },
-            Error::AuthClientError(e) => match e {
-                // TODO: remove parentheses
-                client::AuthClientError::RequestError(e) => format!(
-                    "{}: {}",
-                    localization.get_msg("main-login-failed_sending_request"),
-                    e
-                ),
-                client::AuthClientError::ResponseError(e) => format!(
-                    "{}: {}",
-                    localization.get_msg("main-login-failed_sending_request"),
-                    e
-                ),
-                client::AuthClientError::CertificateLoad(e) => format!(
-                    "{}: {}",
-                    localization.get_msg("main-login-failed_sending_request"),
-                    e
-                ),
-                client::AuthClientError::JsonError(e) => format!(
-                    "{}: {}",
-                    localization.get_msg("main-login-failed_sending_request"),
-                    e
-                ),
-                client::AuthClientError::InsecureSchema => localization
-                    .get_msg("main-login-insecure_auth_scheme")
-                    .into(),
-                client::AuthClientError::ServerError(_, e) => String::from_utf8_lossy(&e).into(),
-            },
-            Error::AuthServerUrlInvalid(e) => {
-                format!(
-                    "{}: https://{}",
-                    localization.get_msg("main-login-failed_auth_server_url_invalid"),
-                    e
-                )
-            },
-        },
+        } => get_client_msg_error(error, mismatched_server_info, &localization),
         InitError::ClientCrashed => localization.get_msg("main-login-client_crashed").into(),
         InitError::ServerNotFound => localization.get_msg("main-login-server_not_found").into(),
     }

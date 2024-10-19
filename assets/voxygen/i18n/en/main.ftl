@@ -63,8 +63,11 @@ main-login-failed_sending_request = Request to authentication server failed.
 main-login-invalid_character = The selected character is invalid.
 main-login-client_crashed = Client crashed.
 main-login-not_on_whitelist = You are not a member in the whitelist of the server you have attempted to join.
-main-login-banned = You have been banned with the following reason:
-main-login-kicked = You have been kicked with the following reason:
+main-login-banned = You have been permanently banned with the following reason: { $reason }
+main-login-banned_until =
+   You have been temporarily banned with the following reason: { $reason }
+   Until: { $end_date }
+main-login-kicked = You have been kicked with the following reason: { $reason }
 main-login-select_language = Select a language
 main-login-client_version = Client version
 main-login-server_version = Server version

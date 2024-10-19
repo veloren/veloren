@@ -48,7 +48,7 @@ use crate::{
         LootMessage, PromptDialogSettings,
     },
     key_state::KeyState,
-    menu::char_selection::CharSelectionState,
+    menu::{char_selection::CharSelectionState, main::get_client_msg_error},
     render::{Drawer, GlobalsBindGroup},
     scene::{camera, CameraMode, DebugShapeId, Scene, SceneData},
     session::target::ray_entities,
@@ -410,14 +410,6 @@ impl SessionState {
                                 "time", time,
                             )]),
                         }));
-                },
-                client::Event::Kicked(reason) => {
-                    global_state.info_message = Some(format!(
-                        "{}: {}",
-                        global_state.i18n.read().get_msg("main-login-kicked"),
-                        reason
-                    ));
-                    return Ok(TickAction::Disconnect);
                 },
                 client::Event::Notification(n) => {
                     self.hud.new_notification(n);
@@ -1561,6 +1553,13 @@ impl PlayState for SessionState {
                 ) {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
+                    Err(Error::ClientError(error)) => {
+                        error!("[session] Failed to tick the scene: {:?}", error);
+                        global_state.info_message =
+                            Some(get_client_msg_error(error, None, &global_state.i18n.read()));
+
+                        return PlayStateResult::Pop;
+                    },
                     Err(err) => {
                         global_state.info_message = Some(
                             global_state

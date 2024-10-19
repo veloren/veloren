@@ -271,6 +271,13 @@ mod v1 {
                 // at the time.
                 .unwrap_or(Role::Admin)
         }
+
+        pub fn info(&self) -> common_net::msg::server::BanInfo {
+            common_net::msg::server::BanInfo {
+                reason: self.reason.clone(),
+                until: self.end_date.map(|date| date.timestamp()),
+            }
+        }
     }
 
     type Unban = BanInfo;

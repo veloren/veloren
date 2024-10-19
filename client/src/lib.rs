@@ -113,7 +113,6 @@ pub enum Event {
     Disconnect,
     DisconnectionNotification(u64),
     InventoryUpdated(Vec<InventoryUpdateEvent>),
-    Kicked(String),
     Notification(Notification),
     SetViewDistance(u32),
     Outcome(Outcome),
@@ -1138,7 +1137,7 @@ impl Client {
             Err(RegisterError::InvalidCharacter) => Err(Error::InvalidCharacter),
             Err(RegisterError::NotOnWhitelist) => Err(Error::NotOnWhitelist),
             Err(RegisterError::Kicked(err)) => Err(Error::Kicked(err)),
-            Err(RegisterError::Banned(reason)) => Err(Error::Banned(reason)),
+            Err(RegisterError::Banned(info)) => Err(Error::Banned(info)),
             Err(RegisterError::TooManyPlayers) => Err(Error::TooManyPlayers),
             Ok(()) => {
                 debug!("Client registered successfully.");
@@ -2477,11 +2476,8 @@ impl Client {
         match msg {
             ServerGeneral::Disconnect(reason) => match reason {
                 DisconnectReason::Shutdown => return Err(Error::ServerShutdown),
-                DisconnectReason::Kicked(reason) => {
-                    debug!("sending ClientMsg::Terminate because we got kicked");
-                    frontend_events.push(Event::Kicked(reason));
-                    self.send_msg_err(ClientGeneral::Terminate)?;
-                },
+                DisconnectReason::Kicked(reason) => return Err(Error::Kicked(reason)),
+                DisconnectReason::Banned(info) => return Err(Error::Banned(info)),
             },
             ServerGeneral::PlayerListUpdate(PlayerListUpdate::Init(list)) => {
                 self.player_list = list
