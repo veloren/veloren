@@ -778,6 +778,14 @@ impl Structure for Haniwa {
             }
         }
 
+        // stair case
+        painter
+            .aabb(Aabb {
+                min: Vec2::new(center.x + 3, center.y - 6).with_z(base - (diameter / 4) - 5),
+                max: Vec2::new(center.x + 14, center.y + 6).with_z(base - (diameter / 4) + 15),
+            })
+            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
+            .fill(rock_broken.clone());
         // tunnel stairs
         for s in 0..((diameter / 4) - 3) {
             painter

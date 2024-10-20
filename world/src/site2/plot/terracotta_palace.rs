@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     assets::AssetHandle,
-    site2::gen::PrimitiveTransform,
+    site2::gen::{place_circular, PrimitiveTransform},
     util::{RandomField, Sampler, DIAGONALS, NEIGHBORS},
     Land,
 };
@@ -533,14 +533,35 @@ impl Structure for TerracottaPalace {
             .fill(Fill::Block(Block::air(SpriteKind::IronSpike)));
         painter
             .cylinder(Aabb {
+                min: (center - (room_size / 4) - 1).with_z(base + (2 * (room_size / 10)) + 3),
+                max: (center + (room_size / 4) + 1).with_z(base + (2 * (room_size / 10)) + 4),
+            })
+            .fill(Fill::Block(Block::air(SpriteKind::IronSpike)));
+
+        for chain_pos in place_circular(center, ((room_size / 4) + 1) as f32, 20) {
+            painter
+                .aabb(Aabb {
+                    min: (chain_pos - 1).with_z(base + (2 * (room_size / 10)) + 3),
+                    max: chain_pos.with_z(base + (3 * (room_size / 10)) - 1),
+                })
+                .fill(Fill::Block(Block::air(SpriteKind::MetalChain)));
+            painter
+                .cylinder(Aabb {
+                    min: (chain_pos - 3).with_z(base + (2 * (room_size / 10)) + 2),
+                    max: (chain_pos + 1).with_z(base + (2 * (room_size / 10)) + 3),
+                })
+                .fill(roof_color.clone());
+        }
+        painter
+            .cylinder(Aabb {
                 min: (center - (room_size / 8) - 5).with_z(base - 1),
                 max: (center + (room_size / 8) + 5).with_z(base),
             })
             .fill(clay_unbroken.clone());
         painter
             .cylinder(Aabb {
-                min: (center - (room_size / 8) - 4).with_z(base),
-                max: (center + (room_size / 8) + 4).with_z(base + 1),
+                min: (center - (room_size / 8) - 5).with_z(base),
+                max: (center + (room_size / 8) + 5).with_z(base + 1),
             })
             .fill(Fill::Block(Block::air(SpriteKind::IronSpike)));
         painter

@@ -1601,7 +1601,7 @@ impl<'a> AgentData<'a> {
                 read_data,
             ),
             Tactic::TerracottaStatue => {
-                self.handle_terracotta_statue_attack(agent, controller, &attack_data)
+                self.handle_terracotta_statue_attack(agent, controller, &attack_data, read_data)
             },
             Tactic::Minotaur => {
                 self.handle_minotaur_attack(agent, controller, &attack_data, tgt_data, read_data)
