@@ -2580,7 +2580,7 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         attack_data: &AttackData,
-        _tgt_data: &TargetData,
+        tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
         enum ActionStateTimers {
@@ -2597,7 +2597,13 @@ impl<'a> AgentData<'a> {
             } else {
                 2
             };
-        if attack_data.in_min_range() {
+        // stay centered
+        if (home - self.pos.0).xy().magnitude_squared() > (3.0_f32).powi(2) {
+            self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+        // shoot at targets above
+        } else if tgt_data.pos.0.z > home.z + 5.0 {
+            controller.push_basic_input(InputKind::Ability(0))
+        } else if attack_data.in_min_range() {
             controller.inputs.move_dir = Vec2::zero();
             controller.push_basic_input(InputKind::Primary);
         } else {
@@ -2620,7 +2626,6 @@ impl<'a> AgentData<'a> {
         if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] > 7.5 {
             agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] = 0.0;
         };
-        self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -7500,8 +7505,8 @@ impl<'a> AgentData<'a> {
         enum ActionStateTimers {
             BlastTimer,
         }
-        const MAX_ATTACK_RANGE: f32 = 20.0;
 
+        let home = agent.patrol_origin.unwrap_or(self.pos.0);
         let line_of_sight_with_target = || {
             entities_have_line_of_sight(
                 self.pos,
@@ -7513,44 +7518,31 @@ impl<'a> AgentData<'a> {
                 read_data,
             )
         };
+        agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] += read_data.dt.0;
 
-        if agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] > 2.0 {
-            // blast
-            controller.push_basic_input(InputKind::Secondary);
-            // Reset timer
-            if matches!(self.char_state, CharacterState::BasicRanged(c) if matches!(c.stage_section, StageSection::Recover))
-            {
-                agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] = 0.0;
-            }
-        } else if line_of_sight_with_target()
-            && attack_data.angle < 60.0
-            && attack_data.dist_sqrd < MAX_ATTACK_RANGE.powi(2)
-        {
-            controller.inputs.move_dir = Vec2::zero();
+        if agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] > 6.0 {
+            agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] = 0.0;
+        }
+        if line_of_sight_with_target() {
             if attack_data.in_min_range() {
+                controller.push_basic_input(InputKind::Secondary);
+            } else if agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] < 2.0 {
                 controller.push_basic_input(InputKind::Primary);
-                agent.combat_state.timers[ActionStateTimers::BlastTimer as usize] += read_data.dt.0;
             } else {
-                controller.push_basic_input(InputKind::Primary);
+                self.path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Separate,
+                    None,
+                );
             }
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            );
         } else {
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Partial,
-                None,
-            );
+            // if target is hiding, don't follow, guard the room
+            if (home - self.pos.0).xy().magnitude_squared() > (3.0_f32).powi(2) {
+                self.path_toward_target(agent, controller, home, read_data, Path::Separate, None);
+            }
         }
     }
 
@@ -7564,7 +7556,30 @@ impl<'a> AgentData<'a> {
     ) {
         const MIN_DASH_RANGE: f32 = 15.0;
 
-        if attack_data.angle < 60.0 {
+        enum ActionStateTimers {
+            AttackTimer,
+        }
+
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
+        };
+        let spawn = agent.patrol_origin.unwrap_or(self.pos.0);
+        let home = Vec3::new(spawn.x - 32.0, spawn.y - 12.0, spawn.z);
+        let is_home = (home - self.pos.0).xy().magnitude_squared() < (3.0_f32).powi(2);
+        agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
+        if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] > 8.0 {
+            // Reset timer
+            agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] = 0.0;
+        }
+        if line_of_sight_with_target() {
             controller.inputs.move_dir = Vec2::zero();
             if attack_data.in_min_range() {
                 controller.push_basic_input(InputKind::Primary);
@@ -7579,6 +7594,13 @@ impl<'a> AgentData<'a> {
                     Path::Partial,
                     None,
                 );
+            }
+        } else if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 4.0 {
+            if !is_home {
+                // if target is wall cheesing, reposition
+                self.path_toward_target(agent, controller, home, read_data, Path::Separate, None);
+            } else {
+                self.path_toward_target(agent, controller, spawn, read_data, Path::Separate, None);
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             self.path_toward_target(
@@ -7901,12 +7923,17 @@ impl<'a> AgentData<'a> {
         agent: &mut Agent,
         controller: &mut Controller,
         attack_data: &AttackData,
+        read_data: &ReadData,
     ) {
         enum Conditions {
             AttackToggle,
         }
-        // always begin with sprite summon
-        if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {
+        let home = agent.patrol_origin.unwrap_or(self.pos.0.round());
+        // stay centered
+        if (home - self.pos.0).xy().magnitude_squared() > (2.0_f32).powi(2) {
+            self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+        } else if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {
+            // always begin with sprite summon
             controller.push_basic_input(InputKind::Primary);
         } else {
             controller.inputs.move_dir = Vec2::zero();
