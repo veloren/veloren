@@ -295,18 +295,14 @@ impl Attack {
         // "attack" has negative effects.
         //
         // so if target dodges this "attack" or we don't want to harm target,
-        // it should avoid such "damage" or effect, unless friendly fire is enabled
+        // it should avoid such "damage" or effect
         let avoid_damage = |attack_damage: &AttackDamage| {
             target_dodging
-                || !permit_pvp
-                || (matches!(attack_damage.target, Some(GroupTarget::OutOfGroup))
-                    && !allow_friendly_fire)
+                || (!permit_pvp && matches!(attack_damage.target, Some(GroupTarget::OutOfGroup)))
         };
         let avoid_effect = |attack_effect: &AttackEffect| {
             target_dodging
-                || !permit_pvp
-                || (matches!(attack_effect.target, Some(GroupTarget::OutOfGroup))
-                    && !allow_friendly_fire)
+                || (!permit_pvp && matches!(attack_effect.target, Some(GroupTarget::OutOfGroup)))
         };
 
         let from_precision_mult = attacker
