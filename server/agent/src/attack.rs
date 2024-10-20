@@ -4252,7 +4252,9 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                 .xy()
                 .try_normalized()
-                .unwrap_or_else(Vec2::unit_y);
+                .unwrap_or_else(Vec2::unit_y)
+                // Slow down if very close to the target
+                * if attack_data.in_min_range() { 0.3 } else { 1.0 };
             controller.push_basic_input(InputKind::Primary);
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -7274,7 +7276,10 @@ impl<'a> AgentData<'a> {
                     tgt_data.pos.0,
                     read_data,
                     Path::Separate,
-                    None,
+                    // Slow down if close to the target
+                    (attack_data.dist_sqrd
+                        < (2.5 + self.body.map_or(0.0, |b| b.front_radius())).powi(2))
+                    .then_some(0.3),
                 );
             } else {
                 self.flee(agent, controller, read_data, tgt_data.pos);
