@@ -4545,11 +4545,14 @@ impl<'a> AgentData<'a> {
                     [ActionStateConditions::ConditionJustCrippledOrCleaved as usize] = true;
             }
         }
-        // Make minotaur move towards target, when target is above, seek shelter in
-        // chamber
+        // Chase target, when target is above, retreat to chamber
         if cheesed_from_above {
             self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
-        } else if agent.combat_state.timers[Timers::CanSeeTarget as usize] > 2.0 {
+        // delay chasing to counter wall cheese
+        } else if agent.combat_state.timers[Timers::CanSeeTarget as usize] > 2.0
+        // always chase when in hallway to boss chamber
+        || (3.0..18.0).contains(&(self.pos.0.y - home.y))
+        {
             self.path_toward_target(
                 agent,
                 controller,

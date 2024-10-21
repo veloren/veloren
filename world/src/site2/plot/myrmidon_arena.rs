@@ -534,11 +534,19 @@ impl Structure for MyrmidonArena {
         }
 
         let boss_pos = self.arena_data.boss_pos;
+        let npc_pos = Vec2::new(boss_pos.x - 50, boss_pos.y).with_z(base - 20);
+        // boss chamber
+        painter
+            .aabb(Aabb {
+                min: (npc_pos - 12).with_z(base - 21),
+                max: (npc_pos + 12).with_z(base - 12),
+            })
+            .fill(sandstone_unbroken.clone());
         painter
             .vault(
                 Aabb {
-                    min: Vec2::new(boss_pos.x - 4, boss_pos.y - 10).with_z(base - 20),
-                    max: Vec2::new(boss_pos.x + 4, boss_pos.y + 20).with_z(base - 12),
+                    min: Vec2::new(boss_pos.x - 4, boss_pos.y - 10).with_z(base - 22),
+                    max: Vec2::new(boss_pos.x + 4, boss_pos.y + 18).with_z(base - 12),
                 },
                 Dir::Y,
             )
@@ -546,7 +554,7 @@ impl Structure for MyrmidonArena {
         painter
             .vault(
                 Aabb {
-                    min: Vec2::new(boss_pos.x - 30, boss_pos.y - 4).with_z(base - 20),
+                    min: Vec2::new(boss_pos.x - 52, boss_pos.y - 4).with_z(base - 22),
                     max: Vec2::new(boss_pos.x, boss_pos.y + 4).with_z(base - 12),
                 },
                 Dir::X,
@@ -555,7 +563,7 @@ impl Structure for MyrmidonArena {
         painter
             .vault(
                 Aabb {
-                    min: Vec2::new(boss_pos.x - 4, boss_pos.y + 17).with_z(base - 20),
+                    min: Vec2::new(boss_pos.x - 4, boss_pos.y + 16).with_z(base - 20),
                     max: Vec2::new(boss_pos.x + 4, boss_pos.y + 18).with_z(base - 12),
                 },
                 Dir::Y,
@@ -571,7 +579,7 @@ impl Structure for MyrmidonArena {
             )
             .fill(Fill::Block(Block::air(SpriteKind::MinotaurKeyhole)));
 
-        let npc_pos = Vec2::new(boss_pos.x - 28, boss_pos.y).with_z(base - 20);
+        let npc_pos = Vec2::new(boss_pos.x - 50, boss_pos.y).with_z(base - 20);
 
         painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
             "common.entity.dungeon.myrmidon.minotaur",
