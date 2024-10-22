@@ -100,5 +100,8 @@
         "common.items.npc_armor.biped_small.harlequin.head.harlequin": (
             vox_spec: ("npc.harlequin.head", (-10.0, -4.5, -5.5)),
         ),
+        "common.items.npc_armor.biped_small.goblin_thug.head.goblin_thug": (
+            vox_spec: ("npc.goblin_thug.head", (-10.5, -7.0, -1.5)),
+        ),
     },
 ))

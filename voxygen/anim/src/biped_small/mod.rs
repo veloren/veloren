@@ -172,6 +172,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (BloodmoonHeiress, _) => (0.0, 3.5),
                 (Bloodservant, _) => (-1.0, 6.5),
                 (Harlequin, _) => (0.0, 8.0),
+                (GoblinThug, _) => (-0.5, 3.5),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -197,6 +198,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (BloodmoonHeiress, _) => (0.0, 21.0),
                 (Bloodservant, _) => (0.0, 14.0),
                 (Harlequin, _) => (0.0, 13.5),
+                (GoblinThug, _) => (0.0, 8.5),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -222,6 +224,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (BloodmoonHeiress, _) => (0.0, -8.0),
                 (Bloodservant, _) => (0.0, -6.0),
                 (Harlequin, _) => (0.0, -5.5),
+                (GoblinThug, _) => (0.0, -4.5),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -247,6 +250,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (BloodmoonHeiress, _) => (0.0, 0.0),
                 (Bloodservant, _) => (0.0, 0.0),
                 (Harlequin, _) => (0.0, 0.0),
+                (GoblinThug, _) => (0.0, 0.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -272,6 +276,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (BloodmoonHeiress, _) => (2.5, 2.5, 7.0),
                 (Bloodservant, _) => (5.0, -1.0, 2.0),
                 (Harlequin, _) => (5.0, 0.0, 2.5),
+                (GoblinThug, _) => (4.5, 0.0, 2.0),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -297,6 +302,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (BloodmoonHeiress, _) => (8.0, 0.5, 32.5),
                 (Bloodservant, _) => (2.5, 1.0, 7.0),
                 (Harlequin, _) => (2.5, 2.0, 10.0),
+                (GoblinThug, _) => (3.0, 0.5, 5.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -322,6 +328,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (BloodmoonHeiress, _) => (0.0, 0.0, 8.0),
                 (Bloodservant, _) => (0.0, 0.0, 8.0),
                 (Harlequin, _) => (0.0, 0.0, 8.0),
+                (GoblinThug, _) => (0.0, 0.0, 8.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 0.8,
@@ -347,6 +354,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (BloodmoonHeiress, _) => 1.5,
                 (Bloodservant, _) => 1.0,
                 (Harlequin, _) => 1.0,
+                (GoblinThug, _) => 1.0,
             },
             wing_for_foot: matches!((body.species, body.body_type), (BloodmoonHeiress, _)),
         }

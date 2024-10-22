@@ -105,5 +105,8 @@
         "common.items.npc_armor.biped_small.harlequin.pants.harlequin": (
             vox_spec: ("npc.harlequin.pants", (-6.0, -4.5, -2.0)),
         ),
+        "common.items.npc_armor.biped_small.goblin_thug.pants.goblin_thug": (
+            vox_spec: ("npc.goblin_thug.pants", (-3.5, -3.5, -2.5)),
+        ),
     },
 ))

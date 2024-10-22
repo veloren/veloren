@@ -280,5 +280,13 @@
                  vox_spec: ("npc.harlequin.hand_r", (0.0, -2.5, -10.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.goblin_thug.hand.goblin_thug": (
+            left: (
+                vox_spec: ("npc.goblin_thug.hand_r", (-3.0, -1.5, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.goblin_thug.hand_r", (0.0, -1.5, -9.0)),
+            )
+        ),
     }
 ))

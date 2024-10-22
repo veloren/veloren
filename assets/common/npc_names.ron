@@ -1265,6 +1265,10 @@
                 keyword: "harlequin",
                 generic: "Harlequin"
             ),
+            goblin_thug: (
+                keyword: "goblin_thug",
+                generic: "Goblin Thug",
+            ),            
         )
     ),
     fish_small: (

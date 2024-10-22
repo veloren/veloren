@@ -580,6 +580,21 @@ common-items-npc_armor-biped_small-harlequin-hand-harlequin = Harlequin
 common-items-npc_armor-biped_small-harlequin-foot-harlequin = Harlequin
     .desc = Ceremonial attire used by members.
     
+common-items-npc_armor-biped_small-goblin_thug-head-goblin_thug = Goblin Thug
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_thug-chest-goblin_thug = Goblin Thug
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_thug-pants-goblin_thug = Goblin Thug
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_thug-hand-goblin_thug = Goblin Thug
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_thug-foot-goblin_thug = Goblin Thug
+    .desc = Ceremonial attire used by members.    
+    
 common-items-npc_armor-crustacean-karkatha = Karkatha's Armor
     .desc = Rigid enough to withstand the pressure of the deep ocean.    
 

@@ -1233,4 +1233,9 @@
         secondary: Simple(None, "common.abilities.vampire.executioner.doublestrike"),
         abilities: [],
     ),
+    Custom("Goblin Thug"): (
+        primary: Simple(None, "common.abilities.custom.goblin_thug.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.goblin_thug.doublestrike"),
+        abilities: [],
+    ),
 })

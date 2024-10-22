@@ -78,6 +78,7 @@ impl Animation for ComboAnimation {
                 },
                 Some(
                     "common.abilities.axesimple.doublestrike"
+                    | "common.abilities.custom.goblin_thug.doublestrike"
                     | "common.abilities.vampire.bloodservant.doublestrike"
                     | "common.abilities.custom.boreal_warrior.hammer.singlestrike",
                 ) => {

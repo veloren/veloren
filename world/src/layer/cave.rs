@@ -1597,6 +1597,12 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
         if let Some(entity_asset) = [
             // Mushroom biome
             (
+                Some("common.entity.wild.aggressive.goblin_thug"),
+                biome.mushroom + 0.02,
+                0.35,
+                0.5,
+            ),
+            (
                 Some("common.entity.wild.peaceful.truffler"),
                 biome.mushroom + 0.02,
                 0.35,
@@ -1615,6 +1621,12 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.5,
             ),
             // Leafy biome
+            (
+                Some("common.entity.wild.aggressive.goblin_thug"),
+                biome.leafy.max(biome.dusty) + 0.05,
+                0.25,
+                0.5,
+            ),
             (
                 Some("common.entity.wild.peaceful.holladon"),
                 biome.leafy.max(biome.dusty) + 0.05,

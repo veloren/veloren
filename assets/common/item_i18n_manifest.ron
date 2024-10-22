@@ -592,6 +592,21 @@
             "common.items.npc_armor.biped_small.harlequin.pants.harlequin",
         ): "common-items-npc_armor-biped_small-harlequin-pants-harlequin",
         Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.chest.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-chest-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.foot.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-foot-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.hand.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-hand-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.head.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-head-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.pants.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-pants-goblin_thug",        
+        Simple(
             "common.items.npc_armor.crustacean.karkatha",
         ): "common-items-npc_armor-crustacean-karkatha",        
         Simple(
@@ -2508,6 +2523,9 @@
         Simple(
             "common.items.npc_weapons.biped_small.vampire.bloodmoon_heiress_sword",
         ): "common-items-npc_weapons-biped_small-vampire-bloodmoon_heiress_sword",
+        Simple(
+            "common.items.npc_weapons.unique.goblin_thug_club",
+        ): "common-items-npc_weapons-unique-goblin_thug_club",        
         Simple(
             "common.items.npc_weapons.bow.bipedlarge-velorite",
         ): "common-items-npc_weapons-bow-bipedlarge-velorite",

@@ -75,6 +75,9 @@ common-items-npc_weapons-biped_small-vampire-bloodservant_axe = Bloodservant Axe
 
 common-items-npc_weapons-biped_small-vampire-bloodmoon_heiress_sword = Bloodmoon Heiress Sword
     .desc = {""}
+    
+common-items-npc_weapons-custom-goblin_thug_club = Goblin Thug Club
+    .desc = {""}    
 
 common-items-npc_weapons-bow-bipedlarge-velorite = Giant Velorite Bow
     .desc = Infused with Velorite power.
