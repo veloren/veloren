@@ -312,3 +312,5 @@ armor-twigsflowers-shoulder = Épaules fleuries
     .desc = Des fleurs rejoignent les brindilles nouées pour offrir protection et paix à celui qui les porte.
 armor-leather_plate-belt = Ceinture en cuir avec acier
     .desc = Cuir orné d'acier pour une meilleure protection.
+armor-misc-chest-shirt_white = Chemise de travail blanche
+    .desc = Était utilisé par un agriculteur, jusqu'à récemment.

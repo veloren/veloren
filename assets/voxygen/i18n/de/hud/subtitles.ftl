@@ -1,4 +1,4 @@
-subtitle-campfire = Lagerfeuer-Knistern
+subtitle-campfire = Lagerfeuer knistert
 subtitle-bird_call = Vogelgesang
 subtitle-bees = Bienen summen
 subtitle-owl = Eule schreit

@@ -132,3 +132,5 @@ armor-hide-primal-chest = Primitiv Kyrass
     .desc = Smidd av skinn tuffare än stål.
 armor-hide-primal-foot = Primitiva Skor
     .desc = Smidd av skinn tuffare än stål.
+armor-twigs-chest = Kvisttröja
+    .desc = Små pinnar magiskt genomsyrade för att hålla samman i formen av en tröja.

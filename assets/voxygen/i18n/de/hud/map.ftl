@@ -1,7 +1,7 @@
 hud-map-map_title = Karte
 hud-map-qlog_title = Aufgaben
 hud-map-topo_map = Topographie
-hud-map-difficulty = Schwierigkeitsgrad
+hud-map-difficulty = Schwierigkeit
 hud-map-towns = Städte
 hud-map-castles = Burgen
 hud-map-dungeons = Katakomben
@@ -40,3 +40,4 @@ hud-map-terracotta = Terrakottaruinen
 hud-map-df_mine = Bergwerk
 hud-map-cultist = Kultist-Kerker
 hud-map-sahagin = Sahagin-Insel
+hud-map-vampire_castle = Vampirschloss

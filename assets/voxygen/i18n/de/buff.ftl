@@ -1,8 +1,8 @@
 ## Health
 
 buff-heal = Heilung
-    .desc = Erhalte mit der Zeit Lebenspunkte.
-    .stat = Stellt { $str_total } Lebenspunkte wieder her
+    .desc = Heilt über die Zeit hinweg.
+    .stat = Stellt { $str_total } Lebenspunkte wieder her.
 
 ## Potion
 

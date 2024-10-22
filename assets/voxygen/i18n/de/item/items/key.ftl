@@ -24,3 +24,7 @@ object-key-sahagin = Sahagin-Schlüssel
     .desc = Wird zum Öffnen von Türen verwendet. Zerbricht nach Gebrauch.
 object-key-forge = Schlüssel zur Schmiede
     .desc = Wird zum Öffnen von Türen verwendet. Zerbricht nach Gebrauch.
+object-key-vampire = Vampirschlüsel
+    .desc = Wird zum Öffnen von Türen verwendet. Zerbricht nach Gebrauch.
+object-key-bloodmoon = Blutmond-Schlüssel
+    .desc = Wird zum Öffnen von Türen verwendet. Zerbricht nach Gebrauch.

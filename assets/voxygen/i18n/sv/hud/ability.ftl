@@ -419,7 +419,9 @@ common-abilities-hammer-spine_cracker = Ryggradsknäckare
     .desc = När din fiende vänder sin rygg mot dig, slå till dem hårt i baken och rikta in på den svaga delen av deras ryggrad.
 # Axe abilities
 common-abilities-axe-bloodfeast = Blodfest
-    .desc = Din yxa törstar efter dina fienders blod, och återfyller dig med varje slag mot en blödande fiende.
+    .desc =
+        Din yxa törstar efter dina fienders blod, och återfyller dig med varje slag mot en blödande fiende.
+        Kräver 10 kombo för användning.
 # Axe abilities
 common-abilities-axe-defiance = Trotsning
     .desc = Stirra döden i ögat längre medan du gör dig sjäv resistent mot både vacklanden och döden.

@@ -21,3 +21,5 @@ char_selection-starting_site_kind = Sort: { $kind }
 char_selection-create_info_name = Din karaktär behöver ett namn!
 char_selection-version_mismatch = VARNING! Den här servern kör en annorlunda, möjligen inkompatibel spelversion. Uppdatera gärna ditt spel.
 char_selection-rules = Regler
+char_selection-hardcore = Hardcore
+char_selection-hardcore_tooltip = Hardcore-karaktärer kommer raderas vid död, inga andra ändringar i svårighet

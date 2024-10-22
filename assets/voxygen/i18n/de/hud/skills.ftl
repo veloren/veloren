@@ -130,7 +130,7 @@ hud-skill-pick_strike_gemgain_title = Ausbeute von Edelsteinen
 hud-skill-pick_strike_gemgain = Erhöht die Chance auf mehr Edelsteine beim Abbauen ({ $boost }% pro Level).{ $SP }
 hud-skill-set_as_exp_bar = Fortschritt mit Erfahrungsleiste verfolgen
 # Skill tree UI
-hud-skill_tree-general = Allgemeiner Kampf
+hud-skill_tree-general = Kampf allgemein
 # Skill tree error dialog
 hud-skill-persistence-skills_unlock_failed = Deine Fähigkeiten konnte man nicht in der Reihenfolge erhalten, in der du sie erlangt hast. Voraussetzungen oder Kosten könnten sich geändert haben.
 # Skill tree error dialog

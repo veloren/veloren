@@ -466,3 +466,5 @@ weapon-axe-jagged-steel-2h = Taggig Stålyxa
     .desc = { "" }
 weapon-axe-jagged-bronze-2h = Taggig Bronsyxa
     .desc = { "" }
+weapon-sword-katana-iron-1h = Järnkvickblad
+    .desc = { "" }

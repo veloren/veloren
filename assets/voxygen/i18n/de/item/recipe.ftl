@@ -1,4 +1,4 @@
 recipe-armor-bloodsteel = Blutstahlrüstungs-Rezepte
-    .desc = Blutstahlrüstungs-Rezepte
+    .desc = { "" }
 recipe-armor-brinestone = Stolesteinrüstungs-Rezepte
-    .desc = Stolesteinrüstungs-Rezepte
+    .desc = { "" }

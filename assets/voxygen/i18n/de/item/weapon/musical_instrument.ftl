@@ -30,3 +30,5 @@ weapon-tool-steeltonguedrum = Stahlzungentrommel
     .desc = Stahlzungentrommel.
 weapon-tool-shamisen = Shamisen
     .desc = Dreisaitige Shamisen.
+weapon-tool-kora = Kora
+    .desc = Eine Stegharfe.

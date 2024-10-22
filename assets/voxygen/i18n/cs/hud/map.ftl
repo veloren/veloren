@@ -41,3 +41,7 @@ hud-map-cultist = Kobka Kultistů
 hud-map-sahagin = Ostrov Sahaginů
 hud-map-placed_by = Umístěno { $name }
 hud-map-vampire_castle = Upíří Hrad
+hud-map-bridges = Mosty
+hud-map-glider_course = Kluzáková dráha
+hud-map-glider_courses = Kluzákové dráhy
+hud-map-myrmidon = Myrmidonská kobka
