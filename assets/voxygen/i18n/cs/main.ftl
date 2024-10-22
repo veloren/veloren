@@ -43,8 +43,8 @@ main-login-failed_sending_request = Dotaz na ověřovací server se nezdařil.
 main-login-invalid_character = Vybraná postava je neplatná.
 main-login-client_crashed = Klient spadl.
 main-login-not_on_whitelist = Nejsi na seznamu členů serveru, na který se snažíš připojit.
-main-login-banned = Byl/a si zabanován/á z tohoto důvodu:
-main-login-kicked = Byl/a si vyhozen/á z tohoto důvodu:
+main-login-banned = Byl/a si zablokován/a z tohoto důvodu: { $reason }
+main-login-kicked = Byl/a si vyhozen/á z tohoto důvodu: { $reason }
 main-login-select_language = Vyber si svůj Jazyk
 main-login-client_version = Verze klienta
 main-login-server_version = Verze serveru
@@ -110,3 +110,6 @@ main-servers-other_error = Obecná chyba serveru: { $raw_error }
 main-credits = Titulky
 main-credits-music = Hudba
 main-credits-contributors = Přispěvatelé
+main-login-banned_until =
+    Byl jsi dočasně zablokován pro následující důvod: { $reason }
+    Vyprší: { $end_date }

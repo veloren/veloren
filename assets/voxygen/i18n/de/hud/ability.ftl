@@ -15,7 +15,7 @@ common-abilities-sword-agile_dual_perforate = Durchlöchern
 common-abilities-sword-agile_perforate = Durchlöchern
     .desc = Ein schneller Wirbelwind kleiner Angriffe
 common-abilities-sword-heavy_double_slash = Schwerer Doppelschlag
-    .desc = Eine langsame Doppelschlag-Combo, die ins Taumeln bringen kann
+    .desc = Eine langsame Doppelschlag-Combo, die ins Taumeln bringen kann.
 common-abilities-sword-cleaving_dual_spiral_slash = Rundumschlag
     .desc = Schwing deine beiden Klingen um dich, um jeden in der Nähe zu treffen
 common-abilities-sword-cleaving_spiral_slash = Rundumschlag
@@ -46,3 +46,23 @@ common-abilities-sword-heavy_crescent_slash = Schwerer Bogenschlag
     .desc = Ein diagonaler Schlag nach oben, der ins Taumeln bringen kann
 common-abilities-sword-agile_double_slash = Agiler Doppelschlag
     .desc = Eine schnelle Doppelschlag-Combo mit leichten Schlägen
+veloren-core-pseudo_abilities-sword-heavy_stance = Schwere Stellung
+    .desc = Angriffe in dieser Stellung können Gegner ins Taumeln bringen und ihnen mehr Schaden zufügen, sind aber langsamer.
+veloren-core-pseudo_abilities-sword-agile_stance = Agiler Stellung
+    .desc = Angriffe in dieser Stellung sind schneller aber schwächer.
+veloren-core-pseudo_abilities-sword-crippling_stance = Verkrüppelnde Stellung
+    .desc = Angriffe in dieser Stelle erzeugen oder verschlimmern bleibende Verletzungen.
+veloren-core-pseudo_abilities-sword-defensive_stance = Defensive Stellung
+    .desc = Angriffe in dieser Stellung können entweder als schwache Abwehr oder Parade dienen.
+common-abilities-sword-cleaving_blade_fever = Klingenfieber
+    .desc =
+        Greife rücksichtsloser an, was die Stärke der Angriffe erhöht, aber feindliche Treffer zulässt
+        Erfordert spaltende Stellung
+common-abilities-sword-cleaving_sky_splitter = Himmelspalter
+    .desc =
+        Ein starker Schlag, der angeblich sogar den Himmel teilen kann und Gegner zerteilt.
+        Erfordert spaltende Stellung.
+veloren-core-pseudo_abilities-sword-cleaving_stance = Spaltende Stellung
+    .desc = Angriffe in dieser Stellung können mehrere Gegner treffen.
+veloren-core-pseudo_abilities-sword-double_slash = Doppelschlag
+    .desc = Eine Kombination mit doppeltem Schlag.

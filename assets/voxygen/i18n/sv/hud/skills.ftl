@@ -168,3 +168,4 @@ hud-skill_tree-bow = Pilbåge
 hud-skill_tree-staff = Eldstav
 # Skill tree UI
 hud-skill_tree-sceptre = Spira
+hud-skill_tree-mining = Grävning

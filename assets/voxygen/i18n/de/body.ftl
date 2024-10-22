@@ -13,7 +13,7 @@ body-npc-speech-biped_large-mountain_troll = ein Bergtroll
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-wendigo = ein Wendigo
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-ogre-male = ein Ogre
+body-npc-speech-biped_large-ogre-male = ein Oger
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-cyclops = ein Zyklop
 # Monster descriptions, used ONLY in npc-speech-tell_monster
@@ -64,3 +64,5 @@ body-npc-speech-biped_large-gigas_frost = ein Gigafrost
 body-npc-speech-biped_large-adlet_elder = ein Adlet-Älterer
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-cursekeeper = ein Terrakotta-Verfolger
+body-npc-speech-biped_large-strigoi = ein Strigoi
+body-npc-speech-biped_large-executioner = ein Henker

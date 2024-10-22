@@ -44,8 +44,8 @@ main-login-failed_sending_request = Förfrågan till inloggningsservern misslyck
 main-login-invalid_character = Den valda karaktären är ogiltig.
 main-login-client_crashed = Klient kraschade.
 main-login-not_on_whitelist = Du är inte medlem i vitlistan på servern du försökte gå med i.
-main-login-banned = Du har blockerats med följande motivering:
-main-login-kicked = Du har sparkats ut med följande motivering:
+main-login-banned = Du har blivit permanent blockerad med följande anledning: { $reason }
+main-login-kicked = Du har sparkats ut med följande anledning: { $reason }
 main-login-select_language = Välj ett språk
 main-login-client_version = Klientversion
 main-login-server_version = Serverversion
@@ -110,3 +110,6 @@ main-server-rules = Den här servern har regler som måste accepteras.
 main-singleplayer-seed = Frö
 main-singleplayer-map_shape-circle = Cirkel
 main-singleplayer-map_shape-square = Kvadrat
+main-login-banned_until =
+    Du har blivit temporärt blockerad med följande anledning: { $reason }
+    Fram till: { $end_date }

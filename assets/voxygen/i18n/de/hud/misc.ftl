@@ -16,7 +16,7 @@ hud-press_key_to_toggle_debug_info_fmt = Drücke { $key }, um die Debug-Info umz
 hud-press_key_to_respawn = Drücke { $key }, um am letzten Lagerfeuer wieder einzusteigen.
 hud-tutorial_btn = Einführung
 hud-tutorial_click_here = Drücke [ { $key } ], um den Mauszeiger frei zu bewegen und klicke auf diese Schaltfläche!
-hud-tutorial_elements = Crafting
+hud-tutorial_elements = Herstellung
 hud-temp_quest_headline = Sei gegrüßt, Reisender!
 hud-temp_quest_text =
     Um deine Reise zu beginnen, könntest du im Dorf nach nützlichen Gegenständen suchen. 

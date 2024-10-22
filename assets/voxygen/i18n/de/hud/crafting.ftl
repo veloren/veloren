@@ -1,4 +1,4 @@
-hud-crafting = Herstellen
+hud-crafting = Herstellung
 hud-crafting-recipes = Rezepte
 hud-crafting-ingredients = Zutaten:
 hud-crafting-craft = Herstellen

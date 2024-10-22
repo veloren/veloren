@@ -28,3 +28,5 @@ weapon-tool-wildskin_drum = Vildskinnstrumma
     .desc = Ett, två, du vet vad du ska göra!
 weapon-tool-wooden_lyre = Lyra
     .desc = Trälyra.
+weapon-tool-kora = Kora
+    .desc = Kora.

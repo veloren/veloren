@@ -64,3 +64,5 @@ body-npc-speech-biped_large-adlet_elder = en adlet äldre
 body-npc-speech-biped_large-terracotta_pursuer = en terrakottaförföljare
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-cursekeeper = terrakottaförföljare
+body-npc-speech-biped_large-strigoi = En strigoi
+body-npc-speech-biped_large-executioner = en bödel

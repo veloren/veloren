@@ -1,0 +1,16 @@
+weapon-projectile-fireworks_green = Zelená rachejtle
+    .desc = Pozor na stromy.
+weapon-projectile-fireworks_purple = Fialová rachejtle
+    .desc = Oblíbená v kultu.
+weapon-projectile-fireworks_blue = Modrá rachejtle
+    .desc = Doporučený odstup: 42 metráčků.
+weapon-projectile-fireworks_yellow = Žlutá rachejtle
+    .desc = Velký doktor zemřel po tom, co to zkoušel doma.
+object-surprise_egg = Vajíčko s překvapením
+    .desc = Výbušný velikonoční speciál.
+weapon-projectile-fireworks_red = Červená rachejtle
+    .desc = Lidé v nouzi ji občas používají jako světlici.
+object-bomb = Bomba
+    .desc = Vysoce výbušné zařízení. Střelmistři je vyzdvihují!
+weapon-projectile-fireworks_white = Bílá rachejtle
+    .desc = Svítí jako hvězdička.

@@ -1,5 +1,5 @@
 object-bomb = Bombe
-    .desc = Ein hochexplosives Gerät, Kaputtmacher mögen sie!
+    .desc = Ein hochexplosives Gerät, Zerstörer mögen solche!
 weapon-projectile-fireworks_green = Grünes Feuerwerk
     .desc = Achte auf Bäume.
 weapon-projectile-fireworks_purple = Lila Feuerwerk
