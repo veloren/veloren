@@ -82,7 +82,7 @@ common-items-npc_weapons-unique-goblin_thug_club = Goblin Thug Club
 common-items-npc_weapons-unique-goblin_chucker = Goblin Chucker
     .desc = {""}
     
-common-items-npc_weapons-unique-goblin_ruffian = Goblin Ruffian
+common-items-npc_weapons-unique-goblin_ruffian_knife = Goblin Ruffian Knife
     .desc = {""}
 
 common-items-npc_weapons-unique-green_legoom_rake = Green Legoom Rake
