@@ -586,6 +586,7 @@ impl Structure for MyrmidonArena {
             &mut thread_rng,
             None,
         ));
+
         // catacomb
         painter
             .cylinder(Aabb {
