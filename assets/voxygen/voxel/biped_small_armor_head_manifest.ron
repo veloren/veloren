@@ -103,5 +103,11 @@
         "common.items.npc_armor.biped_small.goblin_thug.head.goblin_thug": (
             vox_spec: ("npc.goblin_thug.head", (-10.5, -7.0, -1.5)),
         ),
+        "common.items.npc_armor.biped_small.goblin_chucker.head.goblin_chucker": (
+            vox_spec: ("npc.goblin_chucker.head", (-10.5, -6.5, -1.5)),
+        ),
+        "common.items.npc_armor.biped_small.goblin_ruffian.head.goblin_ruffian": (
+            vox_spec: ("npc.goblin_ruffian.head", (-10.5, -5.0, -2.5)),
+        ),
     },
 ))

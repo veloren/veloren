@@ -190,6 +190,31 @@ impl Animation for ShootAnimation {
                     next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0 * move1abs)
                         * Quaternion::rotation_y(-0.7 * move1abs + move2abs * 0.1);
                 },
+                Some("common.abilities.custom.goblin_chucker.throw") => {
+                    let (move1base, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1abs = move1base * pullback;
+                    let move2abs = move2base * pullback;
+
+                    next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2 - 2.0);
+                    next.hand_r.position = Vec3::new(
+                        s_a.hand.0,
+                        s_a.hand.1 + move2abs * 1.5,
+                        s_a.hand.2 - 2.5 + move1abs * 2.5,
+                    );
+
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(move1abs * 4.0 + move2abs * -0.7)
+                            * Quaternion::rotation_y(0.0 + move1abs * -0.7);
+
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0 * move1abs)
+                        * Quaternion::rotation_y(-0.7 * move1abs + move2abs * 0.1);
+                },
                 _ => {
                     let (move1base, move2base, move3) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),

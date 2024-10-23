@@ -588,6 +588,8 @@ impl Body {
                 biped_small::Species::Bloodservant => Vec3::new(1.3, 1.8, 2.5),
                 biped_small::Species::Harlequin => Vec3::new(1.3, 2.0, 2.5),
                 biped_small::Species::GoblinThug => Vec3::new(1.3, 1.0, 1.6),
+                biped_small::Species::GoblinChucker => Vec3::new(1.3, 1.0, 1.6),
+                biped_small::Species::GoblinRuffian => Vec3::new(1.3, 1.0, 1.6),
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
             Body::BirdLarge(body) => match body.species {
@@ -1019,7 +1021,9 @@ impl Body {
                 _ => 120,
             },
             Body::BipedSmall(biped_small) => match biped_small.species {
-                biped_small::Species::GoblinThug => 30,
+                biped_small::Species::GoblinThug
+                | biped_small::Species::GoblinChucker
+                | biped_small::Species::GoblinRuffian => 30,
                 biped_small::Species::Gnarling => 50,
                 biped_small::Species::GnarlingChieftain => 150,
                 biped_small::Species::Mandragora => 65,

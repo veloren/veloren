@@ -1603,6 +1603,18 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
                 0.5,
             ),
             (
+                Some("common.entity.wild.aggressive.goblin_chucker"),
+                biome.mushroom + 0.02,
+                0.35,
+                0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.goblin_ruffian"),
+                biome.mushroom + 0.02,
+                0.35,
+                0.5,
+            ),
+            (
                 Some("common.entity.wild.peaceful.truffler"),
                 biome.mushroom + 0.02,
                 0.35,
@@ -1623,6 +1635,18 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
             // Leafy biome
             (
                 Some("common.entity.wild.aggressive.goblin_thug"),
+                biome.leafy.max(biome.dusty) + 0.05,
+                0.25,
+                0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.goblin_chucker"),
+                biome.leafy.max(biome.dusty) + 0.05,
+                0.25,
+                0.5,
+            ),
+            (
+                Some("common.entity.wild.aggressive.goblin_ruffian"),
                 biome.leafy.max(biome.dusty) + 0.05,
                 0.25,
                 0.5,

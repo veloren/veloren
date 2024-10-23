@@ -605,7 +605,37 @@
         ): "common-items-npc_armor-biped_small-goblin_thug-head-goblin_thug",
         Simple(
             "common.items.npc_armor.biped_small.goblin_thug.pants.goblin_thug",
-        ): "common-items-npc_armor-biped_small-goblin_thug-pants-goblin_thug",        
+        ): "common-items-npc_armor-biped_small-goblin_thug-pants-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.chest.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-chest-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.foot.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-foot-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.hand.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-hand-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.head.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-head-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.pants.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-pants-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.chest.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-chest-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.foot.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-foot-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.hand.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-hand-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.head.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-head-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.pants.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-pants-goblin_ruffian",
         Simple(
             "common.items.npc_armor.crustacean.karkatha",
         ): "common-items-npc_armor-crustacean-karkatha",        
@@ -2525,7 +2555,13 @@
         ): "common-items-npc_weapons-biped_small-vampire-bloodmoon_heiress_sword",
         Simple(
             "common.items.npc_weapons.unique.goblin_thug_club",
-        ): "common-items-npc_weapons-unique-goblin_thug_club",        
+        ): "common-items-npc_weapons-unique-goblin_thug_club",
+        Simple(
+            "common.items.npc_weapons.unique.goblin_chucker",
+        ): "common-items-npc_weapons-unique-goblin_chucker",
+        Simple(
+            "common.items.npc_weapons.unique.goblin_ruffian_knife",
+        ): "common-items-npc_weapons-unique-goblin_ruffian_knife",
         Simple(
             "common.items.npc_weapons.bow.bipedlarge-velorite",
         ): "common-items-npc_weapons-bow-bipedlarge-velorite",

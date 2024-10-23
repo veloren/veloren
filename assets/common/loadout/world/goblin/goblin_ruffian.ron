@@ -1,0 +1,9 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.goblin_ruffian.head.goblin_ruffian"),
+    chest: Item("common.items.npc_armor.biped_small.goblin_ruffian.chest.goblin_ruffian"),
+    gloves: Item("common.items.npc_armor.biped_small.goblin_ruffian.hand.goblin_ruffian"),
+    legs: Item("common.items.npc_armor.biped_small.goblin_ruffian.pants.goblin_ruffian"),
+    feet: Item("common.items.npc_armor.biped_small.goblin_ruffian.foot.goblin_ruffian"),
+    active_hands: InHands((Item("common.items.npc_weapons.unique.goblin_ruffian_knife"), None)),
+)

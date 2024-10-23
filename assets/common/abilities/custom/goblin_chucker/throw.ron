@@ -1,0 +1,18 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 0.75,
+    recover_duration: 0.75,
+    projectile: (
+        kind: Blunt,
+        attack: Some((
+            damage: 4,
+            energy: 0,
+        )),
+    ),
+    projectile_body: Object(Pebble),
+    projectile_light: None,
+    projectile_speed: 18.0,
+    num_projectiles: Value(2),
+    projectile_spread: 0.2,
+    move_efficiency: 0.3,
+)

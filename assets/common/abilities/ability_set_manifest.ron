@@ -1238,4 +1238,14 @@
         secondary: Simple(None, "common.abilities.custom.goblin_thug.doublestrike"),
         abilities: [],
     ),
+    Custom("Goblin Chucker"): (
+        primary: Simple(None, "common.abilities.custom.goblin_chucker.throw"),
+        secondary: Simple(None, "common.abilities.custom.goblin_chucker.throw"),
+        abilities: [],
+    ),
+    Custom("Goblin Ruffian"): (
+        primary: Simple(None, "common.abilities.custom.goblin_ruffian.stab"),
+        secondary: Simple(None, "common.abilities.custom.goblin_ruffian.stab"),
+        abilities: [],
+    ),
 })

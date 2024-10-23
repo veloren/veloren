@@ -956,7 +956,13 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.biped_small.vampire.harlequin_dagger",
             )),
             (biped_small::Species::GoblinThug, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.goblin_thug",
+                "common.items.npc_weapons.unique.goblin_thug_club",
+            )),
+            (biped_small::Species::GoblinChucker, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.goblin_chucker",
+            )),
+            (biped_small::Species::GoblinRuffian, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.goblin_ruffian_knife",
             )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.biped_small.adlet.hunter",

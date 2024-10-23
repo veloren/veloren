@@ -1884,4 +1884,12 @@
             vox_spec: ("weapon.biped_small.misc.goblin_thug_club", (-1.5, -2.5, 1.0)),
             color: None
     ),
+    Tool("common.items.npc_weapons.unique.goblin_chucker"): (
+            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
+            color: None
+    ),
+    Tool("common.items.npc_weapons.unique.goblin_ruffian_knife"): (
+            vox_spec: ("weapon.biped_small.misc.goblin_ruffian_knife", (-0.5, -2.5, -0.5)),
+            color: None
+    ),
 })

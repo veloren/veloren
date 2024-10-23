@@ -288,5 +288,21 @@
                  vox_spec: ("npc.goblin_thug.hand_r", (0.0, -1.5, -9.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.goblin_chucker.hand.goblin_chucker": (
+            left: (
+                vox_spec: ("npc.goblin_chucker.hand_r", (-3.0, -1.5, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.goblin_chucker.hand_r", (0.0, -1.5, -9.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.goblin_ruffian.hand.goblin_ruffian": (
+            left: (
+                vox_spec: ("npc.goblin_ruffian.hand_r", (-3.0, -1.5, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.goblin_ruffian.hand_r", (0.0, -1.5, -9.0)),
+            )
+        ),
     }
 ))

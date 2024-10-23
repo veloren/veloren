@@ -288,5 +288,21 @@
                  vox_spec: ("npc.goblin_thug.foot_r", (-1.5, -2.0, -5.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.goblin_chucker.foot.goblin_chucker": (
+            left: (
+                vox_spec: ("npc.goblin_chucker.foot_r", (-1.5, -2.0, -5.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.goblin_chucker.foot_r", (-1.5, -2.0, -5.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.goblin_ruffian.foot.goblin_ruffian": (
+            left: (
+                vox_spec: ("npc.goblin_ruffian.foot_r", (-1.5, -2.0, -5.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.goblin_ruffian.foot_r", (-1.5, -2.0, -5.0)),
+            )
+        ),
     },
 ))

@@ -593,8 +593,38 @@ common-items-npc_armor-biped_small-goblin_thug-hand-goblin_thug = Goblin Thug
     .desc = Ceremonial attire used by members.
 
 common-items-npc_armor-biped_small-goblin_thug-foot-goblin_thug = Goblin Thug
-    .desc = Ceremonial attire used by members.    
+    .desc = Ceremonial attire used by members.
     
+common-items-npc_armor-biped_small-goblin_chucker-head-goblin_chucker = Goblin Chucker
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_chucker-chest-goblin_chucker = Goblin Chucker
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_chucker-pants-goblin_chucker = Goblin Chucker
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_chucker-hand-goblin_chucker = Goblin Chucker
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_chucker-foot-goblin_chucker = Goblin Chucker
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_ruffian-head-goblin_ruffian = Goblin Ruffian
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_ruffian-chest-goblin_ruffian = Goblin Ruffian
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_ruffian-pants-goblin_ruffian = Goblin Ruffian
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_ruffian-hand-goblin_ruffian = Goblin Ruffian
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-goblin_ruffian-foot-goblin_ruffian = Goblin Ruffian
+    .desc = Ceremonial attire used by members.
+
 common-items-npc_armor-crustacean-karkatha = Karkatha's Armor
     .desc = Rigid enough to withstand the pressure of the deep ocean.    
 

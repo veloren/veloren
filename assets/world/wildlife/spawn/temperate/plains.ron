@@ -4,7 +4,9 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (3, (1, 1, "common.entity.wild.aggressive.goblin_thug")),            
+                (3, (1, 1, "common.entity.wild.aggressive.goblin_thug")),
+                (3, (1, 1, "common.entity.wild.aggressive.goblin_chucker")),
+                (3, (1, 1, "common.entity.wild.aggressive.goblin_ruffian")),                
                 (3, (1, 1, "common.entity.wild.aggressive.weevil")),
                 (1, (1, 7, "common.entity.wild.peaceful.horse")),
                 (1, (5, 10, "common.entity.wild.peaceful.cattle")),

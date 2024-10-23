@@ -108,5 +108,11 @@
         "common.items.npc_armor.biped_small.goblin_thug.pants.goblin_thug": (
             vox_spec: ("npc.goblin_thug.pants", (-3.5, -3.5, -2.5)),
         ),
+        "common.items.npc_armor.biped_small.goblin_chucker.pants.goblin_chucker": (
+            vox_spec: ("npc.goblin_chucker.pants", (-3.5, -3.5, -2.5)),
+        ),
+        "common.items.npc_armor.biped_small.goblin_ruffian.pants.goblin_ruffian": (
+            vox_spec: ("npc.goblin_ruffian.pants", (-3.5, -3.5, -2.5)),
+        ),
     },
 ))

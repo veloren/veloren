@@ -77,7 +77,13 @@ common-items-npc_weapons-biped_small-vampire-bloodmoon_heiress_sword = Bloodmoon
     .desc = {""}
     
 common-items-npc_weapons-custom-goblin_thug_club = Goblin Thug Club
-    .desc = {""}    
+    .desc = {""}
+    
+common-items-npc_weapons-custom-goblin_chucker = Goblin Chucker
+    .desc = {""}
+    
+common-items-npc_weapons-custom-goblin_ruffian = Goblin Ruffian
+    .desc = {""}     
 
 common-items-npc_weapons-bow-bipedlarge-velorite = Giant Velorite Bow
     .desc = Infused with Velorite power.

@@ -111,5 +111,11 @@
         "common.items.npc_armor.biped_small.goblin_thug.chest.goblin_thug": (
             vox_spec: ("npc.goblin_thug.chest", (-4.5, -3.5, -3.0)),
         ),
+        "common.items.npc_armor.biped_small.goblin_chucker.chest.goblin_chucker": (
+            vox_spec: ("npc.goblin_chucker.chest", (-4.5, -9.0, -5.0)),
+        ),
+        "common.items.npc_armor.biped_small.goblin_ruffian.chest.goblin_ruffian": (
+            vox_spec: ("npc.goblin_ruffian.chest", (-4.5, -3.5, -3.0)),
+        ),
     },
 ))

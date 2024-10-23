@@ -1,0 +1,18 @@
+BasicMelee(
+    energy_cost: 0,
+    buildup_duration: 0.2,
+    swing_duration: 0.05,
+    hit_timing: 0.4,
+    recover_duration: 0.375,
+    melee_constructor: (
+        kind: Stab(
+            damage: 5,
+            poise: 2,
+            knockback: 0,
+            energy_regen: 0,
+        ),
+        range: 3,
+        angle: 15,
+    ),
+    ori_modifier: 1.0,
+)
