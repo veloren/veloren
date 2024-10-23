@@ -60,6 +60,10 @@ make_case_elim!(
         GoblinThug = 23,
         GoblinChucker = 24,
         GoblinRuffian = 25,
+        GreenLegoom = 26,
+        OchreLegoom = 27,
+        PurpleLegoom = 28,
+        RedLegoom = 29,
     }
 );
 
@@ -94,6 +98,10 @@ pub struct AllSpecies<SpeciesMeta> {
     pub goblin_thug: SpeciesMeta,
     pub goblin_chucker: SpeciesMeta,
     pub goblin_ruffian: SpeciesMeta,
+    pub green_legoom: SpeciesMeta,
+    pub ochre_legoom: SpeciesMeta,
+    pub purple_legoom: SpeciesMeta,
+    pub red_legoom: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -128,11 +136,15 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::GoblinThug => &self.goblin_thug,
             Species::GoblinChucker => &self.goblin_chucker,
             Species::GoblinRuffian => &self.goblin_ruffian,
+            Species::GreenLegoom => &self.green_legoom,
+            Species::OchreLegoom => &self.ochre_legoom,
+            Species::PurpleLegoom => &self.purple_legoom,
+            Species::RedLegoom => &self.red_legoom,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 26] = [
+pub const ALL_SPECIES: [Species; 30] = [
     Species::Gnome,
     Species::Sahagin,
     Species::Adlet,
@@ -159,6 +171,10 @@ pub const ALL_SPECIES: [Species; 26] = [
     Species::GoblinThug,
     Species::GoblinChucker,
     Species::GoblinRuffian,
+    Species::GreenLegoom,
+    Species::OchreLegoom,
+    Species::PurpleLegoom,
+    Species::RedLegoom,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

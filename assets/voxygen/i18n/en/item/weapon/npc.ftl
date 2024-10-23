@@ -83,7 +83,19 @@ common-items-npc_weapons-custom-goblin_chucker = Goblin Chucker
     .desc = {""}
     
 common-items-npc_weapons-custom-goblin_ruffian = Goblin Ruffian
-    .desc = {""}     
+    .desc = {""}
+
+common-items-npc_weapons-custom-green_legoom_rake = Green Legoom Rake
+    .desc = {""}
+    
+common-items-npc_weapons-custom-ochre_legoom_spade = Ochre Legoom Spade
+    .desc = {""} 
+
+common-items-npc_weapons-custom-purple_legoom_pitchfork = Purple Legoom Pitchfork
+    .desc = {""} 
+    
+common-items-npc_weapons-custom-red_legoom_hoe = Red Legoom Hoe
+    .desc = {""}                      
 
 common-items-npc_weapons-bow-bipedlarge-velorite = Giant Velorite Bow
     .desc = Infused with Velorite power.

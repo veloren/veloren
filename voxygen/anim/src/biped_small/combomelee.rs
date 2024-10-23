@@ -79,6 +79,8 @@ impl Animation for ComboAnimation {
                 Some(
                     "common.abilities.axesimple.doublestrike"
                     | "common.abilities.custom.goblin_thug.doublestrike"
+                    | "common.abilities.custom.green_legoom.doublestrike"
+                    | "common.abilities.custom.red_legoom.doublestrike"
                     | "common.abilities.vampire.bloodservant.doublestrike"
                     | "common.abilities.custom.boreal_warrior.hammer.singlestrike",
                 ) => {
@@ -114,7 +116,10 @@ impl Animation for ComboAnimation {
                     init_biped_small_alpha(&mut next, s_a);
                     biped_small_alpha_dagger(&mut next, s_a, move1abs, move2abs);
                 },
-                Some("common.abilities.spear.doublestrike") => {
+                Some(
+                    "common.abilities.spear.doublestrike"
+                    | "common.abilities.custom.purple_legoom.doublestrike",
+                ) => {
                     let anim_time = anim_time.min(1.0);
                     let speed = Vec2::<f32>::from(velocity).magnitude();
                     let speednorm = speed / 9.4;

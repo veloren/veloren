@@ -304,5 +304,37 @@
                  vox_spec: ("npc.goblin_ruffian.hand_r", (0.0, -1.5, -9.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.green_legoom.hand.green_legoom": (
+            left: (
+                vox_spec: ("npc.green_legoom.hand_r", (-3.0, -2.0, -6.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.green_legoom.hand_r", (0.0, -2.0, -6.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.ochre_legoom.hand.ochre_legoom": (
+            left: (
+                vox_spec: ("npc.ochre_legoom.hand_r", (-3.0, -2.0, -6.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.ochre_legoom.hand_r", (0.0, -2.0, -6.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.purple_legoom.hand.purple_legoom": (
+            left: (
+                vox_spec: ("npc.purple_legoom.hand_r", (-3.0, -2.0, -7.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.purple_legoom.hand_r", (0.0, -2.0, -7.0)),
+            )
+        ),
+        "common.items.npc_armor.biped_small.red_legoom.hand.red_legoom": (
+            left: (
+                vox_spec: ("npc.red_legoom.hand_r", (-3.0, -2.0, -6.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.red_legoom.hand_r", (0.0, -2.0, -6.0)),
+            )
+        ),                                
     }
 ))

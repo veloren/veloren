@@ -1892,4 +1892,20 @@
             vox_spec: ("weapon.biped_small.misc.goblin_ruffian_knife", (-0.5, -2.5, -0.5)),
             color: None
     ),
+    Tool("common.items.npc_weapons.unique.green_legoom_rake"): (
+            vox_spec: ("weapon.biped_small.misc.green_legoom_rake", (-2.0, -5.0, 1.0)),
+            color: None
+    ),
+    Tool("common.items.npc_weapons.unique.ochre_legoom_spade"): (
+            vox_spec: ("weapon.biped_small.misc.ochre_legoom_spade", (1.0, -5.0, -1.0)),
+            color: None
+    ), 
+    Tool("common.items.npc_weapons.unique.purple_legoom_pitchfork"): (
+            vox_spec: ("weapon.biped_small.misc.purple_legoom_pitchfork", (-0.5, -3.5, -5.0)),
+            color: None
+    ), 
+    Tool("common.items.npc_weapons.unique.red_legoom_hoe"): (
+            vox_spec: ("weapon.biped_small.misc.red_legoom_hoe", (0.0, -5.0, 1.0)),
+            color: None
+    ),                 
 })

@@ -115,7 +115,19 @@
             vox_spec: ("npc.goblin_chucker.chest", (-4.5, -9.0, -5.0)),
         ),
         "common.items.npc_armor.biped_small.goblin_ruffian.chest.goblin_ruffian": (
-            vox_spec: ("npc.goblin_ruffian.chest", (-4.5, -3.5, -3.0)),
+            vox_spec: ("npc.goblin_ruffian.chest", (-4.5, -3.5, -3.0)),        ),
+        
+        "common.items.npc_armor.biped_small.green_legoom.chest.green_legoom": (
+            vox_spec: ("npc.green_legoom.chest", (-3.0, -4.0, -2.5)),
         ),
+        "common.items.npc_armor.biped_small.ochre_legoom.chest.ochre_legoom": (
+            vox_spec: ("npc.ochre_legoom.chest", (-3.0, -4.0, -2.5)),
+        ),
+        "common.items.npc_armor.biped_small.purple_legoom.chest.purple_legoom": (
+            vox_spec: ("npc.purple_legoom.chest", (-4.0, -4.5, -3.0)),
+        ),
+        "common.items.npc_armor.biped_small.red_legoom.chest.red_legoom": (
+            vox_spec: ("npc.red_legoom.chest", (-3.0, -4.0, -2.5)),
+        ),                                
     },
 ))

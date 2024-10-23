@@ -1276,7 +1276,23 @@
             goblin_ruffian: (
                 keyword: "goblin_ruffian",
                 generic: "Goblin Ruffian",
-            ),             
+            ),
+            green_legoom: (
+                keyword: "green_legoom",
+                generic: "Green Legoom",
+            ),
+            ochre_legoom: (
+                keyword: "ochre_legoom",
+                generic: "Ochre Legoom",
+            ),
+            purple_legoom: (
+                keyword: "purple_legoom",
+                generic: "Purple Legoom",
+            ),
+            red_legoom: (
+                keyword: "red_legoom",
+                generic: "Red Legoom",
+            ),                                                             
         )
     ),
     fish_small: (

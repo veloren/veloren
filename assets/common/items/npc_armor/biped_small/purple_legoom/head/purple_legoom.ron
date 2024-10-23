@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "PurpleLegoom",
+    legacy_description: "Purple Legoom",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(1.0)),
+            poise_resilience: Some(Normal(4.0)),
+            energy_max: Some(3.4),
+            energy_reward: Some(0.81),
+            precision_power: Some(0.075),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

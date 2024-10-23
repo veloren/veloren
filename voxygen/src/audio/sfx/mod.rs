@@ -622,7 +622,8 @@ impl SfxMgr {
                     Body::Object(
                         object::Body::IronPikeBomb
                         | object::Body::BubbleBomb
-                        | object::Body::MinotaurAxe,
+                        | object::Body::MinotaurAxe
+                        | object::Body::Pebble,
                     ) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Whoosh);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, underwater);
@@ -664,7 +665,8 @@ impl SfxMgr {
                     | object::Body::BoltBesieger
                     | object::Body::HarlequinDagger
                     | object::Body::SpectralSwordSmall
-                    | object::Body::SpectralSwordLarge,
+                    | object::Body::SpectralSwordLarge
+                    | object::Body::Pebble,
                 ) => {
                     if target.is_none() {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::ArrowMiss);
@@ -683,10 +685,7 @@ impl SfxMgr {
                     }
                 },
                 Body::Object(
-                    object::Body::AdletTrap
-                    | object::Body::Mine
-                    | object::Body::Pebble
-                    | object::Body::StrigoiHead,
+                    object::Body::AdletTrap | object::Body::Mine | object::Body::StrigoiHead,
                 ) => {
                     if target.is_none() {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);

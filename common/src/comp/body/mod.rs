@@ -590,6 +590,10 @@ impl Body {
                 biped_small::Species::GoblinThug => Vec3::new(1.3, 1.0, 1.6),
                 biped_small::Species::GoblinChucker => Vec3::new(1.3, 1.0, 1.6),
                 biped_small::Species::GoblinRuffian => Vec3::new(1.3, 1.0, 1.6),
+                biped_small::Species::GreenLegoom => Vec3::new(1.4, 1.2, 1.8),
+                biped_small::Species::OchreLegoom => Vec3::new(1.4, 1.2, 1.8),
+                biped_small::Species::PurpleLegoom => Vec3::new(1.4, 1.2, 1.8),
+                biped_small::Species::RedLegoom => Vec3::new(1.4, 1.2, 1.8),
                 _ => Vec3::new(1.0, 0.75, 1.4),
             },
             Body::BirdLarge(body) => match body.species {
@@ -1024,6 +1028,10 @@ impl Body {
                 biped_small::Species::GoblinThug
                 | biped_small::Species::GoblinChucker
                 | biped_small::Species::GoblinRuffian => 30,
+                biped_small::Species::GreenLegoom
+                | biped_small::Species::OchreLegoom
+                | biped_small::Species::PurpleLegoom
+                | biped_small::Species::RedLegoom => 40,
                 biped_small::Species::Gnarling => 50,
                 biped_small::Species::GnarlingChieftain => 150,
                 biped_small::Species::Mandragora => 65,

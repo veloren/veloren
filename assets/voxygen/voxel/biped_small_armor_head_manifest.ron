@@ -109,5 +109,17 @@
         "common.items.npc_armor.biped_small.goblin_ruffian.head.goblin_ruffian": (
             vox_spec: ("npc.goblin_ruffian.head", (-10.5, -5.0, -2.5)),
         ),
+        "common.items.npc_armor.biped_small.green_legoom.head.green_legoom": (
+            vox_spec: ("npc.green_legoom.head", (-5.0, -5.0, -2.0)),
+        ),
+        "common.items.npc_armor.biped_small.ochre_legoom.head.ochre_legoom": (
+            vox_spec: ("npc.ochre_legoom.head", (-5.0, -5.0, -2.0)),
+        ),
+        "common.items.npc_armor.biped_small.purple_legoom.head.purple_legoom": (
+            vox_spec: ("npc.purple_legoom.head", (-5.0, -5.0, -1.5)),
+        ),
+        "common.items.npc_armor.biped_small.red_legoom.head.red_legoom": (
+            vox_spec: ("npc.red_legoom.head", (-7.0, -5.0, -2.0)),
+        ),                                
     },
 ))

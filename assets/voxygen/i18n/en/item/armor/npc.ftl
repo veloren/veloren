@@ -624,6 +624,66 @@ common-items-npc_armor-biped_small-goblin_ruffian-hand-goblin_ruffian = Goblin R
 
 common-items-npc_armor-biped_small-goblin_ruffian-foot-goblin_ruffian = Goblin Ruffian
     .desc = Ceremonial attire used by members.
+    
+common-items-npc_armor-biped_small-green_legoom-head-green_legoom = Green Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-green_legoom-chest-green_legoom = Green Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-green_legoom-pants-green_legoom = Green Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-green_legoom-hand-green_legoom = Green Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-green_legoom-foot-green_legoom = Green Legoom
+    .desc = Ceremonial attire used by members.
+    
+common-items-npc_armor-biped_small-ochre_legoom-head-ochre_legoom = Ochre Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-ochre_legoom-chest-ochre_legoom = Ochre Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-ochre_legoom-pants-ochre_legoom = Ochre Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-ochre_legoom-hand-ochre_legoom = Ochre Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-ochre_legoom-foot-ochre_legoom = Ochre Legoom
+    .desc = Ceremonial attire used by members.
+    
+common-items-npc_armor-biped_small-purple_legoom-head-purple_legoom = Purple Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-purple_legoom-chest-purple_legoom = Purple Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-purple_legoom-pants-purple_legoom = Purple Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-purple_legoom-hand-purple_legoom = Purple Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-purple_legoom-foot-purple_legoom = Purple Legoom
+    .desc = Ceremonial attire used by members.
+    
+common-items-npc_armor-biped_small-red_legoom-head-red_legoom = Red Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-red_legoom-chest-red_legoom = Red Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-red_legoom-pants-red_legoom = Red Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-red_legoom-hand-red_legoom = Red Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-red_legoom-foot-red_legoom = Red Legoom
+    .desc = Ceremonial attire used by members.                
 
 common-items-npc_armor-crustacean-karkatha = Karkatha's Armor
     .desc = Rigid enough to withstand the pressure of the deep ocean.    
