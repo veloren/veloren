@@ -1,0 +1,8 @@
+[
+    (2.0, MultiDrop(Item("common.items.flowers.plant_fiber"), 1, 2)),
+    (2.0, MultiDrop(Item("common.items.flowers.wild_flax"), 1, 2)),    
+    (2.0, MultiDrop(Item("common.items.crafting_ing.twigs"), 1, 2)),        
+    (1.0, Item("common.items.food.carrot")),
+    (1.0, Item("common.items.food.lettuce")),
+    (1.0, Item("common.items.food.tomato")),
+]

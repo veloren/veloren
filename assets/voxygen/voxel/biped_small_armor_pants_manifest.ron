@@ -105,5 +105,26 @@
         "common.items.npc_armor.biped_small.harlequin.pants.harlequin": (
             vox_spec: ("npc.harlequin.pants", (-6.0, -4.5, -2.0)),
         ),
+        "common.items.npc_armor.biped_small.goblin_thug.pants.goblin_thug": (
+            vox_spec: ("npc.goblin_thug.pants", (-3.5, -3.5, -2.5)),
+        ),
+        "common.items.npc_armor.biped_small.goblin_chucker.pants.goblin_chucker": (
+            vox_spec: ("npc.goblin_chucker.pants", (-3.5, -3.5, -2.5)),
+        ),
+        "common.items.npc_armor.biped_small.goblin_ruffian.pants.goblin_ruffian": (
+            vox_spec: ("npc.goblin_ruffian.pants", (-3.5, -3.5, -2.5)),
+        ),
+        "common.items.npc_armor.biped_small.green_legoom.pants.green_legoom": (
+            vox_spec: ("npc.green_legoom.pants", (-3.0, -3.0, -1.0)),
+        ),
+        "common.items.npc_armor.biped_small.ochre_legoom.pants.ochre_legoom": (
+            vox_spec: ("npc.ochre_legoom.pants", (-3.0, -3.0, -1.0)),
+        ),
+        "common.items.npc_armor.biped_small.purple_legoom.pants.purple_legoom": (
+            vox_spec: ("npc.purple_legoom.pants", (-4.0, -3.5, -1.0)),
+        ),
+        "common.items.npc_armor.biped_small.red_legoom.pants.red_legoom": (
+            vox_spec: ("npc.red_legoom.pants", (-3.0, -3.0, -1.0)),
+        ),                                
     },
 ))

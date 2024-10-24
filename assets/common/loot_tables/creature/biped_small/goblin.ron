@@ -1,0 +1,5 @@
+[
+    (2.0, MultiDrop(Item("common.items.crafting_ing.stones"), 1, 2)),
+    (1.0, Item("common.items.food.meat.beast_small_raw")),
+    (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
+]

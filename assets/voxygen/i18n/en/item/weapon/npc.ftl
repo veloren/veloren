@@ -75,6 +75,27 @@ common-items-npc_weapons-biped_small-vampire-bloodservant_axe = Bloodservant Axe
 
 common-items-npc_weapons-biped_small-vampire-bloodmoon_heiress_sword = Bloodmoon Heiress Sword
     .desc = {""}
+    
+common-items-npc_weapons-unique-goblin_thug_club = Goblin Thug Club
+    .desc = {""}
+    
+common-items-npc_weapons-unique-goblin_chucker = Goblin Chucker
+    .desc = {""}
+    
+common-items-npc_weapons-unique-goblin_ruffian_knife = Goblin Ruffian Knife
+    .desc = {""}
+
+common-items-npc_weapons-unique-green_legoom_rake = Green Legoom Rake
+    .desc = {""}
+    
+common-items-npc_weapons-unique-ochre_legoom_spade = Ochre Legoom Spade
+    .desc = {""} 
+
+common-items-npc_weapons-unique-purple_legoom_pitchfork = Purple Legoom Pitchfork
+    .desc = {""} 
+    
+common-items-npc_weapons-unique-red_legoom_hoe = Red Legoom Hoe
+    .desc = {""}                      
 
 common-items-npc_weapons-bow-bipedlarge-velorite = Giant Velorite Bow
     .desc = Infused with Velorite power.

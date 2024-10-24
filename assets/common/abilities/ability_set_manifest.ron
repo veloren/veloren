@@ -1233,4 +1233,39 @@
         secondary: Simple(None, "common.abilities.vampire.executioner.doublestrike"),
         abilities: [],
     ),
+    Custom("Goblin Thug"): (
+        primary: Simple(None, "common.abilities.custom.goblin_thug.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.goblin_thug.doublestrike"),
+        abilities: [],
+    ),
+    Custom("Goblin Chucker"): (
+        primary: Simple(None, "common.abilities.custom.goblin_chucker.throw"),
+        secondary: Simple(None, "common.abilities.custom.goblin_chucker.throw"),
+        abilities: [],
+    ),
+    Custom("Goblin Ruffian"): (
+        primary: Simple(None, "common.abilities.custom.goblin_ruffian.stab"),
+        secondary: Simple(None, "common.abilities.custom.goblin_ruffian.stab"),
+        abilities: [],
+    ),
+    Custom("Green Legoom"): (
+        primary: Simple(None, "common.abilities.custom.green_legoom.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.green_legoom.doublestrike"),
+        abilities: [],
+    ),
+    Custom("Ochre Legoom"): (
+        primary: Simple(None, "common.abilities.custom.ochre_legoom.dash"),
+        secondary: Simple(None, "common.abilities.custom.ochre_legoom.dash"),
+        abilities: [],
+    ),
+    Custom("Purple Legoom"): (
+        primary: Simple(None, "common.abilities.custom.purple_legoom.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.purple_legoom.doublestrike"),
+        abilities: [],
+    ),
+    Custom("Red Legoom"): (
+        primary: Simple(None, "common.abilities.custom.red_legoom.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.red_legoom.doublestrike"),
+        abilities: [],
+    ),
 })

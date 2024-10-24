@@ -955,6 +955,27 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_small::Species::Harlequin, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.biped_small.vampire.harlequin_dagger",
             )),
+            (biped_small::Species::GoblinThug, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.goblin_thug_club",
+            )),
+            (biped_small::Species::GoblinChucker, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.goblin_chucker",
+            )),
+            (biped_small::Species::GoblinRuffian, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.goblin_ruffian_knife",
+            )),
+            (biped_small::Species::GreenLegoom, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.green_legoom_rake",
+            )),
+            (biped_small::Species::OchreLegoom, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.ochre_legoom_spade",
+            )),
+            (biped_small::Species::PurpleLegoom, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.purple_legoom_pitchfork",
+            )),
+            (biped_small::Species::RedLegoom, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.red_legoom_hoe",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.biped_small.adlet.hunter",
             )),

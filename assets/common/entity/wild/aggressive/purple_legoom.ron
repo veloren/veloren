@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    name: Name("Purple Legoom"),
+    body: RandomWith("purple_legoom"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.biped_small.legoom"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.world.legoom.purple_legoom"),
+        )),    ),
+    meta: [],
+)

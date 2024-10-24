@@ -6,6 +6,10 @@ SpawnEntry (
             groups: [
                 // Aggressive
                 (6, (1, 1, "common.entity.wild.aggressive.weevil")),
+                (7, (1, 1, "common.entity.wild.aggressive.green_legoom")),
+                (7, (1, 1, "common.entity.wild.aggressive.ochre_legoom")),
+                (7, (1, 1, "common.entity.wild.aggressive.purple_legoom")),
+                (7, (1, 1, "common.entity.wild.aggressive.red_legoom")),                
                 // Peaceful
                 (8, (1, 1, "common.entity.wild.peaceful.skunk")),
                 (10, (1, 4, "common.entity.wild.peaceful.crow")),

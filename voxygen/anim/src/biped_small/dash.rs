@@ -94,6 +94,30 @@ impl Animation for DashAnimation {
                     Quaternion::rotation_x(PI / 1.5 + s_a.grip.0 * 0.2 + move1abs * -0.7)
                         * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
             },
+            Some("common.abilities.custom.ochre_legoom.dash") => {
+                next.main.position = Vec3::new(0.0, 3.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+
+                next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
+                next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
+
+                next.hand_l.orientation = Quaternion::rotation_x(0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0);
+
+                next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 2.0, -2.0);
+                next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 2.0, 2.0);
+                next.control.position = Vec3::new(
+                    -3.0,
+                    s_a.grip.2 + move1abs * -5.0,
+                    -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + move1abs * 4.0,
+                );
+                next.control_l.orientation =
+                    Quaternion::rotation_x(PI / 1.5 + move1abs * -0.7 + move3 * 0.7)
+                        * Quaternion::rotation_y(-0.3);
+                next.control_r.orientation = Quaternion::rotation_x(
+                    PI / 1.5 + s_a.grip.0 * 0.2 + move1abs * -0.7 + move3 * 0.7,
+                ) * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
+            },
             _ => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);

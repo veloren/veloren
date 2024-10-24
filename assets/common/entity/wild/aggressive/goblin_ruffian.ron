@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    name: Name("Goblin Ruffian"),
+    body: RandomWith("goblin_ruffian"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.biped_small.goblin"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.world.goblin.goblin_ruffian"),
+        )),    ),
+    meta: [],
+)

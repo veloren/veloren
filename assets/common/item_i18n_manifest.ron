@@ -592,6 +592,111 @@
             "common.items.npc_armor.biped_small.harlequin.pants.harlequin",
         ): "common-items-npc_armor-biped_small-harlequin-pants-harlequin",
         Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.chest.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-chest-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.foot.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-foot-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.hand.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-hand-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.head.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-head-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_thug.pants.goblin_thug",
+        ): "common-items-npc_armor-biped_small-goblin_thug-pants-goblin_thug",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.chest.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-chest-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.foot.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-foot-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.hand.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-hand-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.head.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-head-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_chucker.pants.goblin_chucker",
+        ): "common-items-npc_armor-biped_small-goblin_chucker-pants-goblin_chucker",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.chest.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-chest-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.foot.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-foot-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.hand.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-hand-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.head.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-head-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.goblin_ruffian.pants.goblin_ruffian",
+        ): "common-items-npc_armor-biped_small-goblin_ruffian-pants-goblin_ruffian",
+        Simple(
+            "common.items.npc_armor.biped_small.green_legoom.chest.green_legoom",
+        ): "common-items-npc_armor-biped_small-green_legoom-chest-green_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.green_legoom.foot.green_legoom",
+        ): "common-items-npc_armor-biped_small-green_legoom-foot-green_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.green_legoom.hand.green_legoom",
+        ): "common-items-npc_armor-biped_small-green_legoom-hand-green_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.green_legoom.head.green_legoom",
+        ): "common-items-npc_armor-biped_small-green_legoom-head-green_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.green_legoom.pants.green_legoom",
+        ): "common-items-npc_armor-biped_small-green_legoom-pants-green_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.ochre_legoom.chest.ochre_legoom",
+        ): "common-items-npc_armor-biped_small-ochre_legoom-chest-ochre_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.ochre_legoom.foot.ochre_legoom",
+        ): "common-items-npc_armor-biped_small-ochre_legoom-foot-ochre_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.ochre_legoom.hand.ochre_legoom",
+        ): "common-items-npc_armor-biped_small-ochre_legoom-hand-ochre_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.ochre_legoom.head.ochre_legoom",
+        ): "common-items-npc_armor-biped_small-ochre_legoom-head-ochre_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.ochre_legoom.pants.ochre_legoom",
+        ): "common-items-npc_armor-biped_small-ochre_legoom-pants-ochre_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.purple_legoom.chest.purple_legoom",
+        ): "common-items-npc_armor-biped_small-purple_legoom-chest-purple_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.purple_legoom.foot.purple_legoom",
+        ): "common-items-npc_armor-biped_small-purple_legoom-foot-purple_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.purple_legoom.hand.purple_legoom",
+        ): "common-items-npc_armor-biped_small-purple_legoom-hand-purple_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.purple_legoom.head.purple_legoom",
+        ): "common-items-npc_armor-biped_small-purple_legoom-head-purple_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.purple_legoom.pants.purple_legoom",
+        ): "common-items-npc_armor-biped_small-purple_legoom-pants-purple_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.red_legoom.chest.red_legoom",
+        ): "common-items-npc_armor-biped_small-red_legoom-chest-red_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.red_legoom.foot.red_legoom",
+        ): "common-items-npc_armor-biped_small-red_legoom-foot-red_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.red_legoom.hand.red_legoom",
+        ): "common-items-npc_armor-biped_small-red_legoom-hand-red_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.red_legoom.head.red_legoom",
+        ): "common-items-npc_armor-biped_small-red_legoom-head-red_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.red_legoom.pants.red_legoom",
+        ): "common-items-npc_armor-biped_small-red_legoom-pants-red_legoom",
+        Simple(
             "common.items.npc_armor.crustacean.karkatha",
         ): "common-items-npc_armor-crustacean-karkatha",        
         Simple(
@@ -2508,6 +2613,27 @@
         Simple(
             "common.items.npc_weapons.biped_small.vampire.bloodmoon_heiress_sword",
         ): "common-items-npc_weapons-biped_small-vampire-bloodmoon_heiress_sword",
+        Simple(
+            "common.items.npc_weapons.unique.goblin_thug_club",
+        ): "common-items-npc_weapons-unique-goblin_thug_club",
+        Simple(
+            "common.items.npc_weapons.unique.goblin_chucker",
+        ): "common-items-npc_weapons-unique-goblin_chucker",
+        Simple(
+            "common.items.npc_weapons.unique.goblin_ruffian_knife",
+        ): "common-items-npc_weapons-unique-goblin_ruffian_knife",
+        Simple(
+            "common.items.npc_weapons.unique.green_legoom_rake",
+        ): "common-items-npc_weapons-unique-green_legoom_rake",
+        Simple(
+            "common.items.npc_weapons.unique.ochre_legoom_spade",
+        ): "common-items-npc_weapons-unique-ochre_legoom_spade",
+        Simple(
+            "common.items.npc_weapons.unique.purple_legoom_pitchfork",
+        ): "common-items-npc_weapons-unique-purple_legoom_pitchfork",
+        Simple(
+            "common.items.npc_weapons.unique.red_legoom_hoe",
+        ): "common-items-npc_weapons-unique-red_legoom_hoe",
         Simple(
             "common.items.npc_weapons.bow.bipedlarge-velorite",
         ): "common-items-npc_weapons-bow-bipedlarge-velorite",
