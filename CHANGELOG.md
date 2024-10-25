@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Silent spectator mode for moderators.
 - Glider courses
 - Reworked Myrmidon dungeon
+- Wild Legoom and Goblin mobs
+- Bloodservants, Strigoi, and Scarlet Spectacles added to Halloween event
 
 ### Changed
 
