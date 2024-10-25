@@ -317,7 +317,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
             close(c.temp, CONFIG.temperate_temp, 0.8)
                 * close(c.tree_density, 0.0, 0.1)
                 * BASE_DENSITY
-                * 4.0
+                * 5.0
         }),
         // River wildlife
         ("world.wildlife.spawn.temperate.river", |c, col| {
@@ -333,14 +333,14 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         }),
         // Forest animals
         ("world.wildlife.spawn.temperate.wood", |c, col| {
-            close(c.temp, CONFIG.temperate_temp + 0.1, 0.5) * col.tree_density * BASE_DENSITY * 3.0
+            close(c.temp, CONFIG.temperate_temp + 0.1, 0.5) * col.tree_density * BASE_DENSITY * 5.0
         }),
         // Rainforest animals
         ("world.wildlife.spawn.temperate.rainforest", |c, _col| {
             close(c.temp, CONFIG.temperate_temp + 0.1, 0.6)
                 * close(c.humidity, CONFIG.forest_hum, 0.6)
                 * BASE_DENSITY
-                * 4.0
+                * 5.0
         }),
         // Temperate Rainforest animals event
         (
