@@ -816,8 +816,8 @@ fn hunt_animals<S: State>() -> impl Action<S> {
 fn find_forest(ctx: &mut NpcCtx) -> Option<Vec2<f32>> {
     let chunk_pos = ctx.npc.wpos.xy().as_().wpos_to_cpos();
     Spiral2d::new()
-        .skip(ctx.rng.gen_range(1..=8))
-        .take(49)
+        .skip(ctx.rng.gen_range(1..=64))
+        .take(24)
         .map(|rpos| chunk_pos + rpos)
         .find(|cpos| {
             ctx.world
@@ -826,6 +826,22 @@ fn find_forest(ctx: &mut NpcCtx) -> Option<Vec2<f32>> {
                 .map_or(false, |c| c.tree_density > 0.75 && c.surface_veg > 0.5)
         })
         .map(|chunk| TerrainChunkSize::center_wpos(chunk).as_())
+}
+
+fn find_farm(ctx: &mut NpcCtx, site: SiteId) -> Option<Vec2<f32>> {
+    ctx.state
+        .data()
+        .sites
+        .get(site)
+        .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
+        .and_then(|site2| {
+            let farm = site2
+                .plots()
+                .filter(|p| matches!(p.kind(), PlotKind::FarmField(_)))
+                .choose(&mut ctx.rng)?;
+
+            Some(site2.tile_center_wpos(farm.root_tile()).as_())
+        })
 }
 
 fn choose_plaza(ctx: &mut NpcCtx, site: SiteId) -> Option<Vec2<f32>> {
@@ -1077,6 +1093,19 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                         .debug(|| "walk to forest")
                         .then({
                             let wait_time = ctx.rng.gen_range(10.0..30.0);
+                            gather_ingredients().repeat().stop_if(timeout(wait_time))
+                        })
+                        .map(|_, _| ()),
+                );
+            }
+        } else if matches!(ctx.npc.profession(), Some(Profession::Farmer)) && ctx.rng.gen_bool(0.8)
+        {
+            if let Some(farm_wpos) = find_farm(ctx, visiting_site) {
+                return casual(
+                    travel_to_point(farm_wpos, 0.5)
+                        .debug(|| "walk to farm")
+                        .then({
+                            let wait_time = ctx.rng.gen_range(30.0..120.0);
                             gather_ingredients().repeat().stop_if(timeout(wait_time))
                         })
                         .map(|_, _| ()),

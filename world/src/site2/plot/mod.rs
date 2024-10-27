@@ -13,6 +13,7 @@ mod desert_city_multiplot;
 mod desert_city_temple;
 pub mod dungeon;
 mod dwarven_mine;
+mod farm_field;
 mod giant_tree;
 mod glider_finish;
 mod glider_platform;
@@ -43,7 +44,7 @@ pub use self::{
     citadel::Citadel, cliff_tower::CliffTower, coastal_house::CoastalHouse,
     coastal_workshop::CoastalWorkshop, cultist::Cultist, desert_city_arena::DesertCityArena,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
-    dungeon::Dungeon, dwarven_mine::DwarvenMine, giant_tree::GiantTree,
+    dungeon::Dungeon, dwarven_mine::DwarvenMine, farm_field::FarmField, giant_tree::GiantTree,
     glider_finish::GliderFinish, glider_platform::GliderPlatform, glider_ring::GliderRing,
     gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
     myrmidon_arena::MyrmidonArena, myrmidon_house::MyrmidonHouse, pirate_hideout::PirateHideout,
@@ -130,7 +131,60 @@ pub enum PlotKind {
     TerracottaPalace(TerracottaPalace),
     TerracottaHouse(TerracottaHouse),
     TerracottaYard(TerracottaYard),
+    FarmField(FarmField),
     VampireCastle(VampireCastle),
     MyrmidonArena(MyrmidonArena),
     MyrmidonHouse(MyrmidonHouse),
 }
+
+#[macro_export]
+macro_rules! foreach_plot {
+    ($p:expr, $x:ident => $y:expr, $z:expr) => {
+        match $p {
+            PlotKind::House($x) => $y,
+            PlotKind::AirshipDock($x) => $y,
+            PlotKind::CoastalHouse($x) => $y,
+            PlotKind::CoastalWorkshop($x) => $y,
+            PlotKind::Workshop($x) => $y,
+            PlotKind::DesertCityMultiPlot($x) => $y,
+            PlotKind::DesertCityTemple($x) => $y,
+            PlotKind::DesertCityArena($x) => $y,
+            PlotKind::SeaChapel($x) => $y,
+            PlotKind::JungleRuin($x) => $y,
+            PlotKind::Plaza => $z,
+            PlotKind::Castle($x) => $y,
+            PlotKind::Road(_) => $z,
+            PlotKind::Dungeon($x) => $y,
+            PlotKind::Gnarling($x) => $y,
+            PlotKind::Adlet($x) => $y,
+            PlotKind::GiantTree($x) => $y,
+            PlotKind::CliffTower($x) => $y,
+            PlotKind::Citadel($x) => $y,
+            PlotKind::SavannahPit($x) => $y,
+            PlotKind::SavannahHut($x) => $y,
+            PlotKind::SavannahWorkshop($x) => $y,
+            PlotKind::Bridge($x) => $y,
+            PlotKind::PirateHideout($x) => $y,
+            PlotKind::Tavern($x) => $y,
+            PlotKind::Cultist($x) => $y,
+            PlotKind::Haniwa($x) => $y,
+            PlotKind::Sahagin($x) => $y,
+            PlotKind::RockCircle($x) => $y,
+            PlotKind::TrollCave($x) => $y,
+            PlotKind::Camp($x) => $y,
+            PlotKind::DwarvenMine($x) => $y,
+            PlotKind::TerracottaPalace($x) => $y,
+            PlotKind::TerracottaHouse($x) => $y,
+            PlotKind::TerracottaYard($x) => $y,
+            PlotKind::FarmField($x) => $y,
+            PlotKind::VampireCastle($x) => $y,
+            PlotKind::GliderRing($x) => $y,
+            PlotKind::GliderPlatform($x) => $y,
+            PlotKind::GliderFinish($x) => $y,
+            PlotKind::MyrmidonArena($x) => $y,
+            PlotKind::MyrmidonHouse($x) => $y,
+        }
+    };
+}
+
+pub use foreach_plot;

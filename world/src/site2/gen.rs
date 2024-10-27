@@ -7,7 +7,7 @@ use crate::{
     column::ColInfo,
     site2::util::Dir,
     util::{RandomField, Sampler},
-    CanvasInfo,
+    CanvasInfo, ColumnSample,
 };
 use common::{
     generation::EntityInfo,
@@ -1523,7 +1523,7 @@ pub trait Structure {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8];
 
-    fn render_inner(&self, site: &Site, land: &Land, painter: &Painter);
+    fn render_inner(&self, _site: &Site, _land: &Land, _painter: &Painter) {}
 
     fn render(&self, site: &Site, land: &Land, painter: &Painter) {
         #[cfg(not(feature = "use-dyn-lib"))]
@@ -1583,7 +1583,19 @@ pub trait Structure {
             painter.entities.into_inner(),
         )
     }
+
+    fn terrain_surface_at<R: Rng>(
+        &self,
+        _wpos: Vec2<i32>,
+        _old: Block,
+        _rng: &mut R,
+        _col: &ColumnSample,
+        _z_off: i32,
+    ) -> Option<Block> {
+        None
+    }
 }
+
 /// Extend a 2d AABR to a 3d AABB
 pub fn aabr_with_z<T>(aabr: Aabr<T>, z: Range<T>) -> Aabb<T> {
     Aabb {

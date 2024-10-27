@@ -1593,6 +1593,57 @@ TerracottaBlock: [(
     ],
     wind_sway: 0.0,
 )],
+// Fences
+FenceI: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.farms.fence_0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+    ],
+    wind_sway: 0.0,
+)],
+FenceL: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.farms.fence_1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+    ],
+    wind_sway: 0.0,
+)],
+FenceT: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.farms.fence_2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+    ],
+    wind_sway: 0.0,
+)],
+FenceX: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.farms.fence_3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+    ],
+    wind_sway: 0.0,
+)],
+FenceEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.farms.fence_4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        )
+    ],
+    wind_sway: 0.0,
+)],
 MyrmidonKeyDoor: [(
      variations: [
          (

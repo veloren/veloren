@@ -6,7 +6,7 @@ pub mod util;
 use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TILE_SIZE};
 pub use self::{
     gen::{aabr_with_z, Fill, Painter, Primitive, PrimitiveRef, Structure},
-    plot::{Plot, PlotKind},
+    plot::{foreach_plot, Plot, PlotKind},
     tile::TileKind,
     util::Dir,
 };
@@ -263,6 +263,23 @@ impl Site {
         } else {
             unreachable!()
         };
+
+        self.find_aabr(search_pos, area_range, min_dims)
+    }
+
+    pub fn find_rural_aabr(
+        &mut self,
+        rng: &mut impl Rng,
+        area_range: Range<u32>,
+        min_dims: Extent2<u32>,
+    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>)> {
+        let dir = Vec2::<f32>::zero()
+            .map(|_| rng.gen_range(-1.0..1.0))
+            .normalized();
+
+        // go from the site origin (0,0) at a random angle, as far as possible (up to
+        // the site radius / 6 because sites have ridiculously big radii like 160-600)
+        let search_pos = dir.map(|e: f32| e.round() as i32) * ((self.radius() / 6.0) as i32);
 
         self.find_aabr(search_pos, area_range, min_dims)
     }
@@ -800,7 +817,7 @@ impl Site {
         let build_chance = Lottery::from(vec![
             (64.0, 1),
             (5.0, 2),
-            (8.0, 3),
+            (15.0, 3),
             (5.0, 4),
             (5.0, 5),
             (15.0, 6),
@@ -913,39 +930,9 @@ impl Site {
                     }
                 },
                 // Field
-                /*
                 3 => {
-                    attempt(10, || {
-                        let search_pos = attempt(16, || {
-                            let tile =
-                                (Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0))
-                                    .normalized()
-                                    * rng.gen_range(16.0..48.0))
-                                .map(|e| e as i32);
-
-                            Some(tile).filter(|_| {
-                                site.plazas.iter().all(|&p| {
-                                    site.plot(p).root_tile.distance_squared(tile) > 20i32.pow(2)
-                                }) && rng.gen_range(0..48) > tile.map(|e| e.abs()).reduce_max()
-                            })
-                        })
-                        .unwrap_or_else(Vec2::zero);
-
-                        site.tiles.find_near(search_pos, |center, _| {
-                            site.tiles.grow_organic(&mut rng, center, 12..64).ok()
-                        })
-                    })
-                    .map(|(tiles, _)| {
-                        for tile in tiles {
-                            site.tiles.set(tile, Tile {
-                                kind: TileKind::Field,
-                                plot: None,
-                                hard_alt: None,
-                            });
-                        }
-                    });
+                    Self::generate_farm(false, &mut rng, &mut site, land);
                 },
-                */
                 // Castle
                 4 if castles < 1 => {
                     if let Some((aabr, _entrance_tile, _door_dir)) = attempt(32, || {
@@ -1493,7 +1480,7 @@ impl Site {
             });
         }
 
-        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2)]);
+        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2), (15.0, 3)]);
 
         for _ in 0..45 {
             match *build_chance.choose_seeded(rng.gen()) {
@@ -1569,6 +1556,10 @@ impl Site {
                         site.make_plaza(land, &mut rng);
                     }
                 },
+                // Field
+                3 => {
+                    Self::generate_farm(false, &mut rng, &mut site, land);
+                },
                 _ => {},
             }
         }
@@ -1585,7 +1576,7 @@ impl Site {
         site.demarcate_obstacles(land);
 
         site.make_plaza(land, &mut rng);
-        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2)]);
+        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2), (15.0, 3)]);
 
         for _ in 0..45 {
             match *build_chance.choose_seeded(rng.gen()) {
@@ -1661,6 +1652,10 @@ impl Site {
                         site.make_plaza(land, &mut rng);
                     }
                 },
+                // Field
+                3 => {
+                    Self::generate_farm(false, &mut rng, &mut site, land);
+                },
                 _ => {},
             }
         }
@@ -1703,7 +1698,7 @@ impl Site {
             hard_alt: Some(desert_city_arena_alt),
         });
 
-        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2)]);
+        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (10.0, 3)]);
 
         let mut temples = 0;
         let mut campfires = 0;
@@ -1782,10 +1777,45 @@ impl Site {
                         temples += 1;
                     }
                 },
+                // cactus farm
+                3 => {
+                    Self::generate_farm(true, &mut rng, &mut site, land);
+                },
                 _ => {},
             }
         }
         site
+    }
+
+    pub fn generate_farm(is_desert: bool, mut rng: &mut impl Rng, site: &mut Site, land: &Land) {
+        let size = (3.0 + rng.gen::<f32>().powf(5.0) * 6.0).round() as u32;
+        if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+            site.find_rural_aabr(&mut rng, 6..(size + 1).pow(2), Extent2::broadcast(size))
+        }) {
+            let field = plot::FarmField::generate(
+                land,
+                &mut reseed(&mut rng),
+                site,
+                door_tile,
+                door_dir,
+                aabr,
+                is_desert,
+            );
+
+            let field_alt = field.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::FarmField(field),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Field,
+                plot: Some(plot),
+                hard_alt: Some(field_alt),
+            });
+        }
     }
 
     pub fn generate_haniwa(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
@@ -2435,6 +2465,15 @@ impl Site {
                 // },
                 _ => {},
             }
+
+            for z_off in (-2..4).rev() {
+                if let Some(plot) = tile.plot.map(|p| &self.plots[p]) {
+                    canvas.map_resource(
+                        Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z_off),
+                        |block| foreach_plot!(&plot.kind, plot => plot.terrain_surface_at(wpos2d, block, dynamic_rng, col, z_off).unwrap_or(block), block),
+                    )
+                }
+            }
         });
 
         let tile_aabr = Aabr {
@@ -2542,6 +2581,7 @@ impl Site {
                 PlotKind::RockCircle(rock_circle) => rock_circle.render_collect(self, canvas),
                 PlotKind::TrollCave(troll_cave) => troll_cave.render_collect(self, canvas),
                 PlotKind::Camp(camp) => camp.render_collect(self, canvas),
+                PlotKind::FarmField(farm_field) => farm_field.render_collect(self, canvas),
                 PlotKind::Plaza | PlotKind::Road(_) => continue,
                 // _ => continue, Avoid using a wildcard here!!
             };
