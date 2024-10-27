@@ -345,6 +345,13 @@ sprites! {
         TerracottaStatue = 0x46,
         TerracottaBlock = 0x47,
         MetalChain = 0x48,
+        // Fences
+        // TODO: remove different shapes, make part of the `Adjacency` attribute
+        FenceI = 0x50,
+        FenceL = 0x51,
+        FenceT = 0x52,
+        FenceX = 0x53,
+        FenceEnd = 0x54,
     },
     // Decorative items, both natural and artificial
     Decor = 7 has Ori {
@@ -450,6 +457,11 @@ impl SpriteKind {
             SpriteKind::TerracottaChest => 1.09,
             SpriteKind::TerracottaStatue => 5.29,
             SpriteKind::TerracottaBlock => 1.00,
+            SpriteKind::FenceI => 1.00,
+            SpriteKind::FenceL => 1.00,
+            SpriteKind::FenceT => 1.00,
+            SpriteKind::FenceX => 1.00,
+            SpriteKind::FenceEnd => 1.00,
             SpriteKind::SeaDecorChain => 1.09,
             SpriteKind::SeaDecorBlock => 1.00,
             SpriteKind::SeaDecorWindowHor => 0.55,
