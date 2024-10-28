@@ -5,7 +5,7 @@ ItemDef(
         kind: Head,
         stats: Direct((
             precision_power: Some(0.08),
-            energy_max: Some(-2.0),
+            energy_max: Some(4.0),
             energy_reward: Some(-0.04),
         )),
     )),

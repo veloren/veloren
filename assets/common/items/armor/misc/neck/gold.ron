@@ -5,7 +5,7 @@ ItemDef(
     kind: Armor((
         kind: Neck,
         stats: Direct((
-            protection: Some(Normal(1.5)),
+            protection: Some(Normal(2.0)),
         )),
     )),
     quality: Moderate,

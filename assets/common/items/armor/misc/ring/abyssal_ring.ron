@@ -4,8 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Ring,
         stats: Direct((
-            protection: Some(Normal(2.0)),
-            poise_resilience: Some(Normal(1.5)),
+            protection: Some(Normal(4.0)),
+            poise_resilience: Some(Normal(3.0)),
+            energy_max: Some(-3.0),
         )),
     )),
     quality: Legendary,

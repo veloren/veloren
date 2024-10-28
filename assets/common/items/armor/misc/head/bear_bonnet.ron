@@ -5,8 +5,8 @@ ItemDef(
         kind: Head,
         stats: Direct((
             protection: Some(Normal(12.0)),
-            precision_power: Some(0.0095),
-            stealth: Some(0.21),
+            precision_power: Some(0.02),
+            stealth: Some(0.15),
         )),
     )),
     quality: Epic,

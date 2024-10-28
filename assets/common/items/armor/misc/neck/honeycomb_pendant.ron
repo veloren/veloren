@@ -5,9 +5,9 @@ ItemDef(
         kind: Neck,
         stats: Direct((
             protection: Some(Normal(1.0)),
-            energy_max: Some(8.0),
-            energy_reward: Some(0.04),
-            precision_power: Some(-0.06),
+            energy_max: Some(5.0),
+            energy_reward: Some(0.025),
+            precision_power: Some(-0.03),
         )),
     )),
     quality: Moderate,
