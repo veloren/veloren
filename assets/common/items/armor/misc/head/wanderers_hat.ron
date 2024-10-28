@@ -4,7 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Head,
         stats: Direct((
-            precision_power: Some(0.016),
+            energy_reward: Some(0.06),
+            precision_power: Some(0.06),
             stealth: Some(0.1),
         )),
     )),

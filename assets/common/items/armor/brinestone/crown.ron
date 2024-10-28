@@ -4,10 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Head,
         stats: Direct((
-            protection: Some(Normal(8.0)),
-            poise_resilience: Some(Normal(4.0)),
-            energy_reward: Some(0.15),
-            precision_power: Some(-0.05),
+            protection: Some(Normal(9.0)),
+            poise_resilience: Some(Normal(3.0)),
+            energy_max: Some(7.0),
+            energy_reward: Some(0.07),
+            precision_power: Some(-0.02),
         )),
     )),
     quality: Legendary,

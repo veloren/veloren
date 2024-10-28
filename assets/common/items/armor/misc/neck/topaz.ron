@@ -4,9 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Neck,
         stats: Direct((
-            protection: Some(Normal(0.5)),
-            energy_max: Some(9.0),
-            energy_reward: Some(-0.09),
+            protection: Some(Normal(1.0)),
+            energy_max: Some(7.5),
+            energy_reward: Some(-0.0375),
         )),
     )),
     quality: Common,

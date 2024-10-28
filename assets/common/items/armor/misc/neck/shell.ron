@@ -4,8 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Neck,
         stats: Direct((
-            protection: Some(Normal(2.0)),
-            poise_resilience: Some(Normal(1.0)),
+            protection: Some(Normal(1.0)),
+            energy_max: Some(7.5),
+            precision_power: Some(-0.03),
         )),
     )),
     quality: Moderate,

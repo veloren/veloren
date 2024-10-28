@@ -5,8 +5,8 @@ ItemDef(
         kind: Neck,
         stats: Direct((
             protection: Some(Normal(1.0)),
-            energy_reward: Some(-0.0375),
-            precision_power: Some(0.075),
+            energy_reward: Some(-0.0563),
+            precision_power: Some(0.09),
         )),
     )),
     quality: Epic,

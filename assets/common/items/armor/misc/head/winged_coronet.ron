@@ -5,10 +5,9 @@ ItemDef(
         kind: Head,
         stats: Direct((
             protection: Some(Normal(2.0)),
-            energy_max: Some(4.5),
-            energy_reward: Some(0.04),
-            precision_power: Some(0.006),
-            stealth: Some(0.17),
+            energy_max: Some(10.0),
+            energy_reward: Some(0.09),
+            stealth: Some(0.1),
         )),
     )),
     quality: High,

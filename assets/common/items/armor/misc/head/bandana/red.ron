@@ -4,8 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Head,
         stats: Direct((
-            precision_power: Some(0.006),
-            stealth: Some(0.14),
+            precision_power: Some(0.05),
+            stealth: Some(0.12),
         )),
     )),
     quality: Common,

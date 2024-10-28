@@ -5,8 +5,8 @@ ItemDef(
         kind: Ring,
         stats: Direct((
             protection: Some(Normal(0.5)),
-            energy_max: Some(2.5),
-            energy_reward: Some(0.0125),
+            energy_max: Some(2.0),
+            energy_reward: Some(0.02),
             precision_power: Some(0.01),
         )),
     )),
