@@ -27,6 +27,7 @@ use common::{
 use rand::{prelude::SliceRandom, Rng};
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
+use world::util::CARDINALS;
 
 // ground-level max range from projectile speed and launch height
 fn projectile_flat_range(speed: f32, height: f32) -> f32 {
@@ -3344,221 +3345,94 @@ impl<'a> AgentData<'a> {
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
-        attack_data: &AttackData,
+        _attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        _rng: &mut impl Rng,
     ) {
-        enum ActionStateFCounters {
-            FCounterHealthThreshold = 0,
+        enum FCounters {
+            SummonThreshold = 0,
         }
-
-        enum ActionStateICounters {
-            ICounterNumFireballs = 0,
-        }
-
-        enum ActionStateConditions {
-            ConditionCounterInit = 0,
-        }
-
         enum Timers {
-            ExtraSummonTimer = 0,
+            PositionTimer,
+            AttackTimer1,
+            AttackTimer2,
         }
-
-        const MINDFLAYER_ATTACK_DIST: f32 = 16.0;
-        const MINION_SUMMON_THRESHOLD: f32 = 0.20;
-        const MIN_CURSEDFLAMES_ENERGY: f32 = 180.0;
-        const MAX_BLINK_DISTANCE: f32 = 150.0;
+        enum Conditions {
+            AttackToggle1,
+        }
+        const SUMMON_THRESHOLD: f32 = 0.20;
         let health_fraction = self.health.map_or(0.5, |h| h.fraction());
-        let home = agent.patrol_origin.unwrap_or(self.pos.0);
-
-        // Sets counter at start of combat, using `condition` to keep track of whether
-        // it was already initialized
-        if !agent.combat_state.conditions[ActionStateConditions::ConditionCounterInit as usize] {
-            agent.combat_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize] =
-                1.0 - MINION_SUMMON_THRESHOLD;
-            agent.combat_state.int_counters[ActionStateICounters::ICounterNumFireballs as usize] =
-                rand::random::<u8>() % 4;
-            agent.combat_state.conditions[ActionStateConditions::ConditionCounterInit as usize] =
-                true;
+        agent.combat_state.timers[Timers::PositionTimer as usize] += read_data.dt.0;
+        agent.combat_state.timers[Timers::AttackTimer1 as usize] += read_data.dt.0;
+        agent.combat_state.timers[Timers::AttackTimer2 as usize] += read_data.dt.0;
+        if agent.combat_state.timers[Timers::AttackTimer1 as usize] > 10.0 {
+            agent.combat_state.timers[Timers::AttackTimer1 as usize] = 0.0
         }
-        agent.combat_state.timers[Timers::ExtraSummonTimer as usize] += read_data.dt.0;
-        if (tgt_data.pos.0 - home).xy().magnitude_squared() < (25.0_f32).powi(2) {
-            agent.combat_state.timers[Timers::ExtraSummonTimer as usize] = 0.0;
-        }
-
-        if agent.combat_state.counters[ActionStateFCounters::FCounterHealthThreshold as usize]
-            > health_fraction
+        agent.combat_state.conditions[Conditions::AttackToggle1 as usize] =
+            agent.combat_state.timers[Timers::AttackTimer1 as usize] < 5.0;
+        if matches!(self.char_state, CharacterState::Blink(c) if matches!(c.stage_section, StageSection::Recover))
         {
-            // teleport to room center for summon, to avoid walls
-            if (5.0_f32.powi(2)..=MAX_BLINK_DISTANCE.powi(2))
-                .contains(&home.distance_squared(self.pos.0))
+            agent.combat_state.timers[Timers::AttackTimer2 as usize] = 0.0
+        }
+
+        let position_timer = agent.combat_state.timers[Timers::PositionTimer as usize];
+        if position_timer > 60.0 {
+            agent.combat_state.timers[Timers::PositionTimer as usize] = 0.0;
+        }
+        let home = agent.patrol_origin.unwrap_or(self.pos.0);
+        let p = match position_timer as i32 {
+            0_i32..=6_i32 => 0,
+            7_i32..=13_i32 => 2,
+            14_i32..=20_i32 => 3,
+            21_i32..=27_i32 => 1,
+            28_i32..=34_i32 => 4,
+            35_i32..=47_i32 => 5,
+            _ => 6,
+        };
+        let pos = if p > 5 {
+            tgt_data.pos.0
+        } else if p > 3 {
+            home
+        } else {
+            Vec3::new(
+                home.x + (CARDINALS[p].x * 15) as f32,
+                home.y + (CARDINALS[p].y * 15) as f32,
+                home.z,
+            )
+        };
+        if !agent.combat_state.initialized {
+            // Sets counter at start of combat, using `condition` to keep track of whether
+            // it was already initialized
+            agent.combat_state.counters[FCounters::SummonThreshold as usize] =
+                1.0 - SUMMON_THRESHOLD;
+            agent.combat_state.initialized = true;
+        }
+
+        if position_timer > 55.0
+            && health_fraction < agent.combat_state.counters[FCounters::SummonThreshold as usize]
+        {
+            // Summon Husks at particular thresholds of health
+            controller.push_basic_input(InputKind::Ability(2));
+
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
+                agent.combat_state.counters[FCounters::SummonThreshold as usize] -=
+                    SUMMON_THRESHOLD;
+            }
+        } else if p > 5 {
+            if pos.distance_squared(self.pos.0) > 20.0_f32.powi(2) {
+                // teleport chase attack mode
                 controller.push_action(ControlAction::StartInput {
                     input: InputKind::Ability(0),
                     target_entity: None,
-                    select_pos: Some(home),
+                    select_pos: Some(pos),
                 });
             } else {
-                // Summon minions at particular thresholds of health
-                controller.push_basic_input(InputKind::Ability(2));
+                controller.push_basic_input(InputKind::Ability(4))
             }
-
-            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
-            {
-                agent.combat_state.counters
-                    [ActionStateFCounters::FCounterHealthThreshold as usize] -=
-                    MINION_SUMMON_THRESHOLD;
-            }
-        } else if agent.combat_state.timers[Timers::ExtraSummonTimer as usize] > 12.0 {
-            // teleport to target for extra summons
-            if (3.0_f32.powi(2)..=MAX_BLINK_DISTANCE.powi(2))
-                .contains(&tgt_data.pos.0.distance_squared(self.pos.0))
-            {
-                controller.push_action(ControlAction::StartInput {
-                    input: InputKind::Ability(0),
-                    target_entity: agent
-                        .target
-                        .as_ref()
-                        .and_then(|t| read_data.uids.get(t.target))
-                        .copied(),
-                    select_pos: None,
-                });
-            } else {
-                controller.push_basic_input(InputKind::Ability(3));
-            }
-
-            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
-            {
-                agent.combat_state.timers[Timers::ExtraSummonTimer as usize] = 0.0;
-            }
-        } else if attack_data.dist_sqrd < MINDFLAYER_ATTACK_DIST.powi(2) {
-            if entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                self.scale,
-                tgt_data.pos,
-                tgt_data.body,
-                tgt_data.scale,
-                read_data,
-            ) {
-                // If close to target, use either primary or secondary ability
-                if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(5) && !matches!(c.stage_section, StageSection::Recover))
-                {
-                    // If already using primary, keep using primary until 5 consecutive seconds
-                    controller.push_basic_input(InputKind::Primary);
-                } else if matches!(self.char_state, CharacterState::RapidMelee(c) if c.current_strike < 50 && !matches!(c.stage_section, StageSection::Recover))
-                {
-                    // If already using secondary, keep using secondary until 10 consecutive
-                    // seconds
-                    controller.push_basic_input(InputKind::Secondary);
-                } else if self.energy.current() > MIN_CURSEDFLAMES_ENERGY
-                    && rng.gen_bool(health_fraction.into())
-                {
-                    // Else if at high health, use primary
-                    controller.push_basic_input(InputKind::Primary);
-                } else {
-                    // Else use secondary
-                    controller.push_basic_input(InputKind::Secondary);
-                }
-            } else {
-                // If close in with bad line of sight, take countermeasures against cheesing
-                // Fairly simple tactic: Punish with vortex forcing any nearby target that can
-                // be hit to retreat. If a vortex wouldn't hit the target, just blink, with a
-                // 50% chance to throw a single necrotic sphere, first.
-                if matches!(
-                    read_data
-                        .terrain
-                        .ray(
-                            self.pos.0 + Vec3::unit_z() * 0.5,
-                            tgt_data.pos.0 + Vec3::unit_z() * 0.5
-                        )
-                        .until(|b| b.is_filled())
-                        .cast()
-                        .1,
-                    Ok(None)
-                ) {
-                    // Punish with vortex attack, hopefully forcing attacker to retreat
-                    controller.push_basic_input(InputKind::Secondary);
-                } else {
-                    // Genuinely no LOS, handle it as if target is far away, but just throw 0-1
-                    // spheres and then teleport, since they're not likely to hit.
-                    let num_fireballs = &mut agent.combat_state.int_counters
-                        [ActionStateICounters::ICounterNumFireballs as usize];
-                    if *num_fireballs % 2 == 0 {
-                        controller.push_action(ControlAction::StartInput {
-                            input: InputKind::Ability(0),
-                            target_entity: agent
-                                .target
-                                .as_ref()
-                                .and_then(|t| read_data.uids.get(t.target))
-                                .copied(),
-                            select_pos: None,
-                        });
-                        if matches!(self.char_state, CharacterState::Blink(_)) {
-                            *num_fireballs = rand::random::<u8>() % 4;
-                        }
-                    } else if matches!(self.char_state, CharacterState::Wielding(_)) {
-                        *num_fireballs -= 1;
-                        controller.push_action(ControlAction::StartInput {
-                            input: InputKind::Ability(1),
-                            target_entity: agent
-                                .target
-                                .as_ref()
-                                .and_then(|t| read_data.uids.get(t.target))
-                                .copied(),
-                            select_pos: None,
-                        });
-                    }
-                    self.path_toward_target(
-                        agent,
-                        controller,
-                        tgt_data.pos.0,
-                        read_data,
-                        Path::Separate,
-                        None,
-                    );
-                }
-            }
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            // If too far from target, throw a random number of necrotic spheres at them and
-            // then blink to them.
-            let num_fireballs = &mut agent.combat_state.int_counters
-                [ActionStateICounters::ICounterNumFireballs as usize];
-            if *num_fireballs == 0 {
-                controller.push_action(ControlAction::StartInput {
-                    input: InputKind::Ability(0),
-                    target_entity: agent
-                        .target
-                        .as_ref()
-                        .and_then(|t| read_data.uids.get(t.target))
-                        .copied(),
-                    select_pos: None,
-                });
-                if matches!(self.char_state, CharacterState::Blink(_)) {
-                    *num_fireballs = rand::random::<u8>() % 4;
-                }
-            } else if matches!(self.char_state, CharacterState::Wielding(_)) {
-                *num_fireballs -= 1;
-                controller.push_action(ControlAction::StartInput {
-                    input: InputKind::Ability(1),
-                    target_entity: agent
-                        .target
-                        .as_ref()
-                        .and_then(|t| read_data.uids.get(t.target))
-                        .copied(),
-                    select_pos: None,
-                });
-            }
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            );
-        } else {
+        } else if p > 4 {
+            // chase attack mode
             self.path_toward_target(
                 agent,
                 controller,
@@ -3567,6 +3441,25 @@ impl<'a> AgentData<'a> {
                 Path::Partial,
                 None,
             );
+
+            if agent.combat_state.conditions[Conditions::AttackToggle1 as usize] {
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                controller.push_basic_input(InputKind::Ability(1))
+            }
+        } else {
+            // positioned attack mode
+            if pos.distance_squared(self.pos.0) > 5.0_f32.powi(2) {
+                controller.push_action(ControlAction::StartInput {
+                    input: InputKind::Ability(0),
+                    target_entity: None,
+                    select_pos: Some(pos),
+                });
+            } else if agent.combat_state.timers[Timers::AttackTimer2 as usize] < 4.0 {
+                controller.push_basic_input(InputKind::Secondary);
+            } else {
+                controller.push_basic_input(InputKind::Ability(3))
+            }
         }
     }
 
@@ -5934,7 +5827,7 @@ impl<'a> AgentData<'a> {
             TimerSummon,
             SelectSummon,
         }
-        if tgt_data.pos.0.z - self.pos.0.z > 5.0 {
+        if tgt_data.pos.0.z - self.pos.0.z > 3.5 {
             controller.push_action(ControlAction::StartInput {
                 input: InputKind::Ability(4),
                 target_entity: agent
@@ -5974,7 +5867,9 @@ impl<'a> AgentData<'a> {
             controller.push_basic_input(InputKind::Secondary);
         }
 
-        if attack_data.dist_sqrd > 10_f32.powi(2) {
+        if attack_data.dist_sqrd > 10_f32.powi(2)
+            || agent.combat_state.timers[ActionStateTimers::TimerBeam as usize] > 4.0
+        {
             self.path_toward_target(
                 agent,
                 controller,

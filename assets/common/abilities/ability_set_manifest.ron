@@ -695,7 +695,8 @@
             Simple(None, "common.abilities.custom.mindflayer.dimensionaldoor"),
             Simple(None, "common.abilities.custom.mindflayer.necroticsphere"),
             Simple(None, "common.abilities.custom.mindflayer.summonminions"),
-            Simple(None, "common.abilities.custom.mindflayer.summonextraminions"),
+            Simple(None, "common.abilities.custom.mindflayer.necroticsphere_blast"),
+            Simple(None, "common.abilities.custom.mindflayer.necroticsphere_multiblast"),            
         ],
     ),
     Custom("Flamekeeper"): (
