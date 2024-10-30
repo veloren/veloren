@@ -1,15 +1,15 @@
 RapidMelee(
-    buildup_duration: 1.0,
-    swing_duration: 0.45,
-    recover_duration: 1.0,
+    buildup_duration: 0.5,
+    swing_duration: 0.8,
+    recover_duration: 0.1,
     melee_constructor: (
         kind: NecroticVortex(
             damage: 20,
-            pull: 6.5,
-            lifesteal: 3.0,
+            pull: 12.0,
+            lifesteal: 8.0,
             energy_regen: 30,
         ),
-        range: 17.0,
+        range: 25.0,
         angle: 360.0,
         multi_target: Some(Normal),
     ),

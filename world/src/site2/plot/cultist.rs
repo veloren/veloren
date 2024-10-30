@@ -146,7 +146,8 @@ impl Structure for Cultist {
         let gold_chain = Fill::Block(Block::air(SpriteKind::SeaDecorChain));
 
         for room in room_data {
-            let (room_base, room_center) = (room.room_base, room.room_center);
+            let (room_base, room_center, mob_room) =
+                (room.room_base, room.room_center, room.mob_room);
             // rooms
             // encapsulation
             painter
@@ -155,13 +156,14 @@ impl Structure for Cultist {
                     max: (room_center + room_size + 23).with_z(room_base - 2),
                 })
                 .fill(rock.clone());
-            painter
-                .aabb(Aabb {
-                    min: (room_center - room_size - 2).with_z(room_base - room_size - 1),
-                    max: (room_center + room_size + 2).with_z(room_base - 2),
-                })
-                .fill(rock_broken.clone());
-
+            if mob_room {
+                painter
+                    .aabb(Aabb {
+                        min: (room_center - room_size - 2).with_z(room_base - room_size - 1),
+                        max: (room_center + room_size + 2).with_z(room_base - 2),
+                    })
+                    .fill(rock_broken.clone());
+            }
             // solid floor
             painter
                 .aabb(Aabb {
@@ -368,76 +370,79 @@ impl Structure for Cultist {
                         })
                         .fill(rock_broken.clone());
                 }
-            }
 
-            // carves
-            let spacing = 12;
-            let carve_length = room_size + 8;
-            let carve_width = 3;
-            for f in 0..3 {
-                for c in 0..5 {
-                    // candles & chest & npcs
-                    let sprite_pos_1 = Vec2::new(
-                        room_center.x - room_size + (spacing / 2) + (spacing * c) - carve_width + 2,
-                        room_center.y - carve_length + 2,
-                    )
-                    .with_z(room_base - room_size - 1 + ((room_size / 3) * f));
-                    sprite_positions.push(sprite_pos_1);
-
-                    let sprite_pos_2 = Vec2::new(
-                        room_center.x - room_size + (spacing / 2) + (spacing * c) + carve_width - 2,
-                        room_center.y + carve_length - 2,
-                    )
-                    .with_z(room_base - room_size - 1 + ((room_size / 3) * f));
-                    sprite_positions.push(sprite_pos_2);
-
-                    let sprite_pos_3 = Vec2::new(
-                        room_center.x - carve_length + 2,
-                        room_center.y - room_size + (spacing / 2) + (spacing * c) - carve_width + 2,
-                    )
-                    .with_z(room_base - room_size - 1 + ((room_size / 3) * f));
-                    sprite_positions.push(sprite_pos_3);
-
-                    let sprite_pos_4 = Vec2::new(
-                        room_center.x + carve_length - 2,
-                        room_center.y - room_size + (spacing / 2) + (spacing * c) + carve_width - 2,
-                    )
-                    .with_z(room_base - room_size - 1 + ((room_size / 3) * f));
-                    sprite_positions.push(sprite_pos_4);
-
-                    let candle_limiter = painter.aabb(Aabb {
-                        min: (room_center - room_size + 10)
-                            .with_z(room_base - room_size - 2 + ((room_size / 3) * f)),
-                        max: (room_center + room_size - 10)
-                            .with_z(room_base - room_size + ((room_size / 3) * f)),
-                    });
-                    painter
-                        .vault(
-                            Aabb {
-                                min: Vec2::new(
-                                    room_center.x - room_size + (spacing / 2) + (spacing * c)
-                                        - carve_width,
-                                    room_center.y - carve_length,
-                                )
-                                .with_z(room_base - room_size - 1 + ((room_size / 3) * f)),
-                                max: Vec2::new(
-                                    room_center.x - room_size
-                                        + (spacing / 2)
-                                        + (spacing * c)
-                                        + carve_width,
-                                    room_center.y + carve_length,
-                                )
-                                .with_z(
-                                    room_base - room_size - 3
-                                        + (room_size / 3)
-                                        + ((room_size / 3) * f),
-                                ),
-                            },
-                            Dir::Y,
+                // carves
+                let spacing = 12;
+                let carve_length = room_size + 8;
+                let carve_width = 3;
+                for f in 0..3 {
+                    for c in 0..5 {
+                        // candles & chest & npcs
+                        let sprite_pos_1 = Vec2::new(
+                            room_center.x - room_size + (spacing / 2) + (spacing * c) - carve_width
+                                + 2,
+                            room_center.y - carve_length + 2,
                         )
-                        .clear();
+                        .with_z(room_base - room_size - 1 + ((room_size / 3) * f));
+                        sprite_positions.push(sprite_pos_1);
 
-                    if mob_room {
+                        let sprite_pos_2 = Vec2::new(
+                            room_center.x - room_size + (spacing / 2) + (spacing * c) + carve_width
+                                - 2,
+                            room_center.y + carve_length - 2,
+                        )
+                        .with_z(room_base - room_size - 1 + ((room_size / 3) * f));
+                        sprite_positions.push(sprite_pos_2);
+
+                        let sprite_pos_3 = Vec2::new(
+                            room_center.x - carve_length + 2,
+                            room_center.y - room_size + (spacing / 2) + (spacing * c) - carve_width
+                                + 2,
+                        )
+                        .with_z(room_base - room_size - 1 + ((room_size / 3) * f));
+                        sprite_positions.push(sprite_pos_3);
+
+                        let sprite_pos_4 = Vec2::new(
+                            room_center.x + carve_length - 2,
+                            room_center.y - room_size + (spacing / 2) + (spacing * c) + carve_width
+                                - 2,
+                        )
+                        .with_z(room_base - room_size - 1 + ((room_size / 3) * f));
+                        sprite_positions.push(sprite_pos_4);
+
+                        let candle_limiter = painter.aabb(Aabb {
+                            min: (room_center - room_size + 10)
+                                .with_z(room_base - room_size - 2 + ((room_size / 3) * f)),
+                            max: (room_center + room_size - 10)
+                                .with_z(room_base - room_size + ((room_size / 3) * f)),
+                        });
+
+                        painter
+                            .vault(
+                                Aabb {
+                                    min: Vec2::new(
+                                        room_center.x - room_size + (spacing / 2) + (spacing * c)
+                                            - carve_width,
+                                        room_center.y - carve_length,
+                                    )
+                                    .with_z(room_base - room_size - 1 + ((room_size / 3) * f)),
+                                    max: Vec2::new(
+                                        room_center.x - room_size
+                                            + (spacing / 2)
+                                            + (spacing * c)
+                                            + carve_width,
+                                        room_center.y + carve_length,
+                                    )
+                                    .with_z(
+                                        room_base - room_size - 3
+                                            + (room_size / 3)
+                                            + ((room_size / 3) * f),
+                                    ),
+                                },
+                                Dir::Y,
+                            )
+                            .clear();
+
                         painter
                             .aabb(Aabb {
                                 min: Vec2::new(
@@ -476,34 +481,33 @@ impl Structure for Cultist {
                             })
                             .intersect(candle_limiter)
                             .fill(candles_lite.clone());
-                    }
 
-                    painter
-                        .vault(
-                            Aabb {
-                                min: Vec2::new(
-                                    room_center.x - carve_length,
-                                    room_center.y - room_size + (spacing / 2) + (spacing * c)
-                                        - carve_width,
-                                )
-                                .with_z(room_base - room_size - 1 + ((room_size / 3) * f)),
-                                max: Vec2::new(
-                                    room_center.x + carve_length,
-                                    room_center.y - room_size
-                                        + (spacing / 2)
-                                        + (spacing * c)
-                                        + carve_width,
-                                )
-                                .with_z(
-                                    room_base - room_size - 3
-                                        + (room_size / 3)
-                                        + ((room_size / 3) * f),
-                                ),
-                            },
-                            Dir::X,
-                        )
-                        .clear();
-                    if mob_room {
+                        painter
+                            .vault(
+                                Aabb {
+                                    min: Vec2::new(
+                                        room_center.x - carve_length,
+                                        room_center.y - room_size + (spacing / 2) + (spacing * c)
+                                            - carve_width,
+                                    )
+                                    .with_z(room_base - room_size - 1 + ((room_size / 3) * f)),
+                                    max: Vec2::new(
+                                        room_center.x + carve_length,
+                                        room_center.y - room_size
+                                            + (spacing / 2)
+                                            + (spacing * c)
+                                            + carve_width,
+                                    )
+                                    .with_z(
+                                        room_base - room_size - 3
+                                            + (room_size / 3)
+                                            + ((room_size / 3) * f),
+                                    ),
+                                },
+                                Dir::X,
+                            )
+                            .clear();
+
                         painter
                             .aabb(Aabb {
                                 min: Vec2::new(
@@ -543,8 +547,6 @@ impl Structure for Cultist {
                             .intersect(candle_limiter)
                             .fill(candles_lite.clone());
                     }
-                }
-                if mob_room {
                     // mob room npcs
                     for dir in CARDINALS {
                         for d in 1..=4 {

@@ -292,7 +292,7 @@ impl Animation for ShootAnimation {
                 },
                 _ => {},
             },
-            Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
+            Some(ToolKind::Sceptre) => {
                 let (move1base, move1shake, move2base, move3) = match stage_section {
                     Some(StageSection::Buildup) => {
                         (anim_time, (anim_time * 10.0 + PI).sin(), 0.0, 0.0)
@@ -342,6 +342,124 @@ impl Animation for ShootAnimation {
                 );
                 next.shoulder_r.orientation =
                     Quaternion::rotation_x(move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2));
+            },
+            Some(ToolKind::Staff) => match ability_id {
+                Some("common.abilities.custom.mindflayer.necroticsphere_multiblast") => {
+                    let (move1base, move1shake, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => {
+                            (anim_time, (anim_time * 10.0 + PI).sin(), 0.0, 0.0)
+                        },
+                        Some(StageSection::Action) => (1.0, 1.0, anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1 = move1base * pullback;
+                    let move2 = move2base * pullback;
+                    let rotate = move1 * 2.0 * PI + move2 * 2.0 * PI;
+                    let rise = move1 * 20.0 - move2 * 20.0;
+
+                    next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
+                    next.control_r.position = Vec3::new(1.0, 2.0, 2.0);
+
+                    next.control.position = Vec3::new(
+                        -3.0,
+                        3.0 + s_a.grip.0 / 1.2
+                            + move1 * 4.0
+                            + move2
+                            + move1shake * 2.0
+                            + move2 * -2.0,
+                        -11.0 + -s_a.grip.0 / 2.0 + move1 * 3.0,
+                    );
+                    next.head.orientation = Quaternion::rotation_x(move1 * -0.15)
+                        * Quaternion::rotation_y(move1 * 0.25)
+                        * Quaternion::rotation_z(move1 * 0.25);
+                    next.jaw.orientation = Quaternion::rotation_x(move1 * -0.5);
+
+                    next.upper_torso.orientation = Quaternion::rotation_z(rotate);
+                    next.upper_torso.position = Vec3::new(0.0, 0.0, s_a.upper_torso.1 + rise);
+
+                    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1 * 0.5)
+                        * Quaternion::rotation_y(move1 * -0.4);
+                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.5)
+                        * Quaternion::rotation_y(0.5)
+                        * Quaternion::rotation_z(0.0);
+
+                    next.control.orientation =
+                        Quaternion::rotation_x(-0.2 + move1 * -0.2 + move1shake * 0.1)
+                            * Quaternion::rotation_y(-0.1 + move1 * 0.8 + move2 * -0.3);
+                    next.shoulder_l.position = Vec3::new(
+                        -s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothorir * 1.0,
+                    );
+                    next.shoulder_l.orientation = Quaternion::rotation_x(
+                        move1 * 0.8 + 0.8 * speednorm + (footrotr * -0.2) * speednorm,
+                    );
+
+                    next.shoulder_r.position = Vec3::new(
+                        s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothoril * 1.0,
+                    );
+                    next.shoulder_r.orientation =
+                        Quaternion::rotation_x(move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2));
+                },
+                _ => {
+                    let (move1base, move1shake, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => {
+                            (anim_time, (anim_time * 10.0 + PI).sin(), 0.0, 0.0)
+                        },
+                        Some(StageSection::Action) => (1.0, 1.0, anim_time.powf(0.25), 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0, 0.0),
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1 = move1base * pullback;
+                    let move2 = move2base * pullback;
+                    next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
+                    next.control_r.position = Vec3::new(1.0, 2.0, 2.0);
+
+                    next.control.position = Vec3::new(
+                        -3.0,
+                        3.0 + s_a.grip.0 / 1.2
+                            + move1 * 4.0
+                            + move2
+                            + move1shake * 2.0
+                            + move2 * -2.0,
+                        -11.0 + -s_a.grip.0 / 2.0 + move1 * 3.0,
+                    );
+                    next.head.orientation = Quaternion::rotation_x(move1 * -0.15)
+                        * Quaternion::rotation_y(move1 * 0.25)
+                        * Quaternion::rotation_z(move1 * 0.25);
+                    next.jaw.orientation = Quaternion::rotation_x(move1 * -0.5);
+
+                    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move1 * 0.5)
+                        * Quaternion::rotation_y(move1 * -0.4);
+                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.5 + move1 * 0.5)
+                        * Quaternion::rotation_y(0.5)
+                        * Quaternion::rotation_z(0.0);
+
+                    next.control.orientation =
+                        Quaternion::rotation_x(-0.2 + move1 * -0.2 + move1shake * 0.1)
+                            * Quaternion::rotation_y(-0.1 + move1 * 0.8 + move2 * -0.3);
+                    next.shoulder_l.position = Vec3::new(
+                        -s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothorir * 1.0,
+                    );
+                    next.shoulder_l.orientation = Quaternion::rotation_x(
+                        move1 * 0.8 + 0.8 * speednorm + (footrotr * -0.2) * speednorm,
+                    );
+
+                    next.shoulder_r.position = Vec3::new(
+                        s_a.shoulder.0,
+                        s_a.shoulder.1,
+                        s_a.shoulder.2 - foothoril * 1.0,
+                    );
+                    next.shoulder_r.orientation =
+                        Quaternion::rotation_x(move1 * 0.8 + 0.6 * speednorm + (footrotl * -0.2));
+                },
             },
             Some(ToolKind::Bow) => match ability_id {
                 Some("common.abilities.custom.terracotta_besieger.multishot") => {

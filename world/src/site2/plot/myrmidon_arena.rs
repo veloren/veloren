@@ -563,7 +563,22 @@ impl Structure for MyrmidonArena {
         painter
             .vault(
                 Aabb {
-                    min: Vec2::new(boss_pos.x - 4, boss_pos.y + 16).with_z(base - 20),
+                    min: Vec2::new(boss_pos.x - 4, boss_pos.y - 4).with_z(base - 22),
+                    max: Vec2::new(boss_pos.x - 3, boss_pos.y + 4).with_z(base - 12),
+                },
+                Dir::X,
+            )
+            .fill(Fill::Block(Block::air(SpriteKind::MyrmidonKeyDoor)));
+        painter
+            .aabb(Aabb {
+                min: Vec2::new(boss_pos.x - 4, boss_pos.y + 4).with_z(base - 18),
+                max: Vec2::new(boss_pos.x - 3, boss_pos.y + 17).with_z(base - 17),
+            })
+            .fill(Fill::Block(Block::air(SpriteKind::MyrmidonKeyDoor)));
+        painter
+            .vault(
+                Aabb {
+                    min: Vec2::new(boss_pos.x - 4, boss_pos.y + 17).with_z(base - 20),
                     max: Vec2::new(boss_pos.x + 4, boss_pos.y + 18).with_z(base - 12),
                 },
                 Dir::Y,

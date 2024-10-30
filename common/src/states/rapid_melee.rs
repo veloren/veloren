@@ -1,14 +1,19 @@
 use crate::{
     combat,
-    comp::{character_state::OutputEvents, CharacterState, MeleeConstructor, StateUpdate},
-    event::ComboChangeEvent,
+    combat::{Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
+    comp::{
+        character_state::OutputEvents, item::Reagent, CharacterState, MeleeConstructor, StateUpdate,
+    },
+    event::{ComboChangeEvent, ExplosionEvent},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
+    Explosion, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use vek::Vec3;
 
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -102,6 +107,34 @@ impl CharacterBehavior for Data {
                     .try_change_by(-self.static_data.energy_cost)
                     .is_ok()
                 {
+                    if self.static_data.frontend_specifier == Some(FrontendSpecifier::CultistVortex)
+                    {
+                        let damage = AttackDamage::new(
+                            Damage {
+                                source: DamageSource::Explosion,
+                                kind: Crushing,
+                                value: 10.0,
+                            },
+                            Some(GroupTarget::OutOfGroup),
+                            rand::random(),
+                        );
+                        let attack = Attack::default().with_damage(damage);
+                        let explosion = Explosion {
+                            effects: vec![RadiusEffect::Attack(attack)],
+                            radius: data.body.max_radius() * 4.0,
+                            reagent: Some(Reagent::Purple),
+                            min_falloff: 0.5,
+                        };
+                        let pos =
+                            data.pos.0 + (*data.ori.look_dir() * (data.body.max_radius() * 3.0));
+                        let explosition =
+                            Vec3::new(pos.x, pos.y, pos.z + (data.body.height() / 4.0));
+                        output_events.emit_server(ExplosionEvent {
+                            pos: explosition,
+                            explosion,
+                            owner: Some(*data.uid),
+                        });
+                    }
                     if let CharacterState::RapidMelee(c) = &mut update.character {
                         c.timer = Duration::default();
                         c.current_strike += 1;
