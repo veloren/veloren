@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Require multiple hits to mine ores
 - Ban expiration dates are now shown on the ban screen.
 - Revamped armor stat scaling, akin to weapons.
+- Sprite deletion timeouts added for spider webs and Harvester vines
 
 ### Removed
 
