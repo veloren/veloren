@@ -495,14 +495,14 @@
         //
         Wield(Staff): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.weapon.weapon_out",
             ],
             threshold: 0.5,
             subtitle: "subtitle-wield_staff",
         ),
         Unwield(Staff): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_in",
+                "voxygen.audio.sfx.weapon.weapon_in",
             ],
             threshold: 0.5,
             subtitle: "subtitle-unwield_staff",
@@ -557,14 +557,14 @@
         //
         Wield(Sceptre): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.weapon.weapon_out",
             ],
             threshold: 0.5,
             subtitle: "subtitle-wield_sceptre",
         ),
         Unwield(Sceptre): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_in",
+                "voxygen.audio.sfx.weapon.weapon_in",
             ],
             threshold: 0.5,
             subtitle: "subtitle-unwield_sceptre",
