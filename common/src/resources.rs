@@ -93,13 +93,10 @@ pub struct PlayerPhysicsSetting {
     /// true if the client wants server-authoratative physics (e.g. to use
     /// airships properly)
     pub client_optin: bool,
-    /// true if the server is forcing server-authoratative physics (e.g. as
-    /// punishment for wallhacking)
-    pub server_force: bool,
 }
 
 impl PlayerPhysicsSetting {
-    pub fn server_authoritative(&self) -> bool { self.client_optin || self.server_force }
+    pub fn server_authoritative(&self) -> bool { self.client_optin }
 
     pub fn client_authoritative(&self) -> bool { !self.server_authoritative() }
 }

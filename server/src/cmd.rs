@@ -8,8 +8,9 @@ use crate::{
     location::Locations,
     login_provider::LoginProvider,
     settings::{
-        banlist::NormalizedIpAddr, server_description::ServerDescription, BanInfo, BanOperation,
-        BanOperationError, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
+        banlist::NormalizedIpAddr, server_description::ServerDescription,
+        server_physics::ServerPhysicsForceRecord, BanInfo, BanOperation, BanOperationError,
+        EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
     sys::terrain::SpawnEntityData,
     wiring::{self, OutputFormula},
@@ -52,7 +53,7 @@ use common::{
     npc::{self, get_npc_name},
     outcome::Outcome,
     parse_cmd_args,
-    resources::{BattleMode, PlayerPhysicsSettings, ProgramTime, Secs, Time, TimeOfDay, TimeScale},
+    resources::{BattleMode, ProgramTime, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     spiral::Spiral2d,
     terrain::{Block, BlockKind, CoordinateConversions, SpriteKind},
@@ -5132,14 +5133,39 @@ fn handle_server_physics(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let (Some(username), enabled_opt) = parse_cmd_args!(args, String, bool) {
+    if let (Some(username), enabled_opt, reason) = parse_cmd_args!(args, String, bool, String) {
         let uuid = find_username(server, &username)?;
         let server_force = enabled_opt.unwrap_or(true);
+        let data_dir = server.data_dir();
 
-        let mut player_physics_settings =
-            server.state.ecs().write_resource::<PlayerPhysicsSettings>();
-        let entry = player_physics_settings.settings.entry(uuid).or_default();
-        entry.server_force = server_force;
+        let result = server
+            .editable_settings_mut()
+            .server_physics_force_list
+            .edit(data_dir.as_ref(), |list| {
+                if server_force {
+                    let Some(by) = server
+                        .state()
+                        .ecs()
+                        .read_storage::<comp::Player>()
+                        .get(client)
+                        .map(|player| (player.uuid(), player.alias.clone()))
+                    else {
+                        return Some(Some(Content::localized("command-you-dont-exist")));
+                    };
+                    list.insert(uuid, ServerPhysicsForceRecord {
+                        by: Some(by),
+                        reason,
+                    });
+                    Some(None)
+                } else {
+                    list.remove(&uuid);
+                    Some(None)
+                }
+            });
+
+        if let Some((Some(error), _)) = result {
+            return Err(error);
+        }
 
         server.notify_client(
             client,
@@ -5147,7 +5173,7 @@ fn handle_server_physics(
                 ChatType::CommandInfo,
                 Content::Plain(format!(
                     "Updated physics settings for {} ({}): {:?}",
-                    username, uuid, entry
+                    username, uuid, server_force
                 )),
             ),
         );
