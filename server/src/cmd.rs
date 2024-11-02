@@ -4789,6 +4789,7 @@ fn handle_ban_ip(
         let ban_info = make_ban_info(server, client, client_uuid)?;
 
         let player_uuid = find_username(server, &username)?;
+        #[allow(clippy::map_identity)]
         let player_entity = find_uuid(server.state.ecs(), player_uuid).map_err(|err| {
             // TODO: Localize
             // Content::Plain(format!(
