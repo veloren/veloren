@@ -622,7 +622,7 @@ mod v2 {
     use core::{mem, ops::Deref};
     use hashbrown::{hash_map, HashMap};
     use serde::{Deserialize, Serialize};
-    use std::net::IpAddr;
+    use std::net::{IpAddr, Ipv6Addr};
     use tracing::warn;
     /* use super::v3 as next; */
 
@@ -1186,7 +1186,14 @@ mod v2 {
     impl Banlist {
         pub fn uuid_bans(&self) -> &HashMap<Uuid, BanEntry> { &self.uuid_bans }
 
-        pub fn ip_bans(&self) -> &HashMap<IpAddr, IpBanEntry> { &self.ip_bans }
+        /// Get an IP ban for an IP
+        ///
+        /// Access to the underlying IP ban map isn't exposed as the IP keys are
+        /// normalized (see [`normalize_ip`]), and the caller forgetting about
+        /// this would lead to issues.
+        pub fn get_ip_ban(&self, ip: IpAddr) -> Option<&IpBanEntry> {
+            self.ip_bans.get(&normalize_ip(ip))
+        }
 
         /// Attempt to perform the ban operation `operation` for the user with
         /// UUID `uuid` and username `username`, starting from time `now` (the
@@ -1274,6 +1281,7 @@ mod v2 {
                         end_date,
                         ip,
                     } => {
+                        let ip = normalize_ip(ip);
                         let ban = Ban {
                             reason,
                             info: Some(info),
@@ -1320,7 +1328,7 @@ mod v2 {
 
                         ip.and_then(|ip| {
                             let ip_ban_record = make_ip_record(action);
-                            banlist.apply_ip_ban_record(ip, ip_ban_record, overwrite, now)
+                            banlist.apply_ip_ban_record(normalize_ip(ip), ip_ban_record, overwrite, now)
                         })
                         // Only submit edit if one of these had an effect.
                         .or(ban_effect).map(|_| None)
@@ -1339,7 +1347,7 @@ mod v2 {
                             // Note: It is kind of redundant to include uuid here (since it's not
                             // going to change from the ban).
                             banlist.apply_ip_ban_record(
-                                ip,
+                                normalize_ip(ip),
                                 make_ip_record(BanAction::Unban(info)),
                                 overwrite,
                                 now,
@@ -1411,6 +1419,8 @@ mod v2 {
 
         /// Only meant to be called by `Self::ban_operation` within the `edit`
         /// closure.
+        ///
+        /// NOTE: The passed ip must be normalized ([`normalize_ip`]).
         ///
         /// Returns `None` to cancel early and abandon the edit.
         #[must_use]
@@ -1521,6 +1531,23 @@ mod v2 {
                 }
             }
             Ok(version)
+        }
+    }
+
+    /// To be called before getting or inserting any IP addresses into the IP
+    /// ban map.
+    ///
+    /// The last 64 bits of IPv6 addresess may vary a lot even when coming from
+    /// the same client, and taking the full IPv6 for IP bans is thus useless.
+    /// This function sets all the lastn 64 bits to zero to counter this.
+    pub fn normalize_ip(ip: IpAddr) -> IpAddr {
+        match ip {
+            // Take IPv4 adddresses as-is
+            IpAddr::V4(ip) => IpAddr::V4(ip),
+            // Ignore the last 64 bits for IPv6 addresses
+            IpAddr::V6(ip) => IpAddr::V6(Ipv6Addr::from_bits(
+                ip.to_bits() & 0xffff_ffff_ffff_ffff_0000_0000_0000_0000_u128,
+            )),
         }
     }
 

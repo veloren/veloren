@@ -8,12 +8,11 @@ use crate::{
     location::Locations,
     login_provider::LoginProvider,
     settings::{
-        server_description::ServerDescription, BanInfo, BanOperation, BanOperationError,
-        EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
+        banlist::normalize_ip, server_description::ServerDescription, BanInfo, BanOperation,
+        BanOperationError, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
     sys::terrain::SpawnEntityData,
-    wiring,
-    wiring::OutputFormula,
+    wiring::{self, OutputFormula},
     Server, Settings, StateExt,
 };
 
@@ -290,13 +289,15 @@ fn socket_addr(server: &Server, entity: EcsEntity, descriptor: &str) -> CmdResul
         .ecs()
         .read_storage::<Client>()
         .get(entity)
-        .ok_or_else(|| Content::Plain(format!("Cannot get player entity for {descriptor:?}")))?
+        .ok_or_else(|| {
+            Content::localized_with_args("command-entity-has-no-client", [("target", descriptor)])
+        })?
         .connected_from_addr()
         .socket_addr()
         .ok_or_else(|| {
-            Content::Plain(format!(
-                "Cannot get socker addr (connected via mpsc connection) for {descriptor:?}"
-            ))
+            Content::localized_with_args("command-client-has-no-socketaddr", [(
+                "target", descriptor,
+            )])
         })
 }
 
@@ -4590,7 +4591,12 @@ fn ban_end_date(
     let end_date = parse_duration
         .map(|duration| chrono::Duration::from_std(duration.into()))
         .transpose()
-        .map_err(|err| Content::Plain(format!("Error converting to duration: {}", err)))?
+        .map_err(|err| {
+            Content::localized_with_args(
+                "command-parse-duration-error",
+                [("error", format!("{err:?}"))]
+            )
+        })?
         // On overflow (someone adding some ridiculous time span), just make the ban infinite.
         // (end date of None is an infinite ban)
         .and_then(|duration| now.checked_add_signed(duration));
@@ -4640,12 +4646,17 @@ fn handle_ban(
             client,
             result,
             || {
-                Content::Plain(format!(
-                    "Added {} to the banlist with reason: {}",
-                    username, reason
-                ))
+                Content::localized_with_args("command-ban-added", [
+                    ("player", username.clone()),
+                    ("reason", reason),
+                ])
             },
-            || Content::Plain(format!("{} is already on the banlist", username)),
+            || {
+                Content::localized_with_args("command-ban-already-added", [(
+                    "player",
+                    username.clone(),
+                )])
+            },
         )?;
         // If the player is online kick them (this may fail if the player is a hardcoded
         // admin; we don't care about that case because hardcoded admins can log on even
@@ -4789,16 +4800,10 @@ fn handle_ban_ip(
         let ban_info = make_ban_info(server, client, client_uuid)?;
 
         let player_uuid = find_username(server, &username)?;
-        #[allow(clippy::map_identity)]
         let player_entity = find_uuid(server.state.ecs(), player_uuid).map_err(|err| {
-            // TODO: Localize
-            // Content::Plain(format!(
-            //     "{}. IP ban needs the target player to be online.",
-            //     err
-            // ))
-            err
+            Content::localized_with_args("command-ip-ban-require-online", [("error", err)])
         })?;
-        let player_socket_addr = socket_addr(server, player_entity, &username)?;
+        let player_ip_addr = normalize_ip(socket_addr(server, player_entity, &username)?.ip());
 
         let now = Utc::now();
         let end_date = ban_end_date(now, parse_duration)?;
@@ -4812,7 +4817,7 @@ fn handle_ban_ip(
                 reason: reason.clone(),
                 info: ban_info,
                 end_date,
-                ip: player_socket_addr.ip(),
+                ip: player_ip_addr,
             },
             overwrite,
         );
@@ -4826,12 +4831,17 @@ fn handle_ban_ip(
             client,
             result,
             || {
-                Content::Plain(format!(
-                    "Added {} to the regular banlist and IP banlist with reason: {}",
-                    username, reason
-                ))
+                Content::localized_with_args("command-ban-ip-added", [
+                    ("player", username.clone()),
+                    ("reason", reason),
+                ])
             },
-            || Content::Plain(format!("{} is already on the banlist", username)),
+            || {
+                Content::localized_with_args("command-ban-already-added", [(
+                    "player",
+                    username.clone(),
+                )])
+            },
         )?;
 
         // Kick all online players with this IP address them (this may fail if the
@@ -4848,7 +4858,7 @@ fn handle_ban_ip(
                 client
                     .current_ip_addrs
                     .iter()
-                    .any(|socket_addr| socket_addr.ip() == player_socket_addr.ip())
+                    .any(|socket_addr| normalize_ip(socket_addr.ip()) == player_ip_addr)
             })
             .map(|(entity, _, player)| (entity, player.uuid()))
             .collect::<Vec<_>>();
@@ -5045,8 +5055,18 @@ fn handle_unban(
             result.map(|_| ()),
             // TODO: it would be useful to indicate here whether an IP ban was also removed but we
             // don't have that info.
-            || Content::Plain(format!("{} was successfully unbanned", username)),
-            || Content::Plain(format!("{} was already unbanned", username)),
+            || {
+                Content::localized_with_args("command-unban-successful", [(
+                    "player",
+                    username.clone(),
+                )])
+            },
+            || {
+                Content::localized_with_args("command-unban-already-unbanned", [(
+                    "player",
+                    username.clone(),
+                )])
+            },
         )
     } else {
         Err(action.help_content())
@@ -5087,13 +5107,17 @@ fn handle_unban_ip(
             client,
             result.map(|_| ()),
             || {
-                Content::Plain(format!(
-                    "The IP banned via user \"{}\" was successfully unbanned (this user will \
-                     remain banned)",
-                    username
-                ))
+                Content::localized_with_args("command-unban-ip-successful", [(
+                    "player",
+                    username.clone(),
+                )])
             },
-            || Content::Plain(format!("{} was already unbanned", username)),
+            || {
+                Content::localized_with_args("command-unban-already-unbanned", [(
+                    "player",
+                    username.clone(),
+                )])
+            },
         )
     } else {
         Err(action.help_content())

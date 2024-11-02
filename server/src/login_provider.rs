@@ -136,8 +136,7 @@ impl LoginProvider {
                     .into_iter()
                     .chain(ip.and_then(|ip| {
                         banlist
-                            .ip_bans()
-                            .get(&ip)
+                            .get_ip_ban(ip)
                             .and_then(|ban_entry| ban_entry.current.action.ban())
                     }))
                     .find(|ban| ban_applies(ban, admin, now))

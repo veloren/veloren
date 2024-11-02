@@ -55,27 +55,25 @@ impl<'a> System<'a> for Sys {
 
                             let banned = editable_settings
                                 .banlist
-                                .ip_bans()
-                                .get(&addr.ip())
+                                .get_ip_ban(addr.ip())
                                 .and_then(|ban_entry| ban_entry.current.action.ban())
-                                .map_or(false, |ban| {
+                                .and_then(|ban| {
                                     // Hardcoded admins can always log in.
                                     let admin = players.get(entity).and_then(|player| {
                                         editable_settings.admins.get(&player.uuid())
                                     });
                                     crate::login_provider::ban_applies(ban, admin, now)
+                                        .then(|| ban.info())
                                 });
 
-                            if banned {
+                            if let Some(ban_info) = banned {
                                 // Kick client
                                 client_disconnect_emitter.emit(ClientDisconnectEvent(
                                     entity,
                                     common::comp::DisconnectReason::Kicked,
                                 ));
                                 let _ = client.send(ServerGeneral::Disconnect(
-                                    DisconnectReason::Kicked(String::from(
-                                        "Your IP address is banned.",
-                                    )),
+                                    DisconnectReason::Banned(ban_info),
                                 ));
                             }
                         }

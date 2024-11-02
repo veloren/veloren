@@ -227,6 +227,7 @@ command-adminify-role-upgraded = Role for player { $player } upgraded to { $role
 command-adminify-removed-role = Role removed from player { $player }: { $role }
 command-ban-added = Added { $player } to the banlist with reason: { $reason }
 command-ban-already-added = { $player } is already on the banlist
+command-ban-ip-added = Added { $username } to the regular banlist and IP banlist with reason: { $reason }
 command-faction-join = Please join a faction with /join_faction
 command-group-join = Please create a group first
 command-group_invite-invited-to-group = Invited { $player } to the group.
@@ -240,6 +241,7 @@ command-sudo-no-permission-for-non-players = You don't have permission to sudo n
 command-time_scale-current = The current time scale is { $scale }.
 command-time_scale-changed = Set time scale to { $scale }.
 command-unban-successful = { $player } was successfully unbanned.
+command-unban-ip-successful = The IP banned via user "{ $player }" was successfully unbanned (this user will remain banned)
 command-unban-already-unbanned = { $player } was already unbanned.
 command-version-current = Server is running { $hash }[{ $date }]
 command-whitelist-added = Added to whitelist: { $username }
@@ -259,6 +261,13 @@ command-death_effect-unknown = Unknown death effect { $effect }.
 command-spot-spot_not_found = Didn't find any spots of that kind in this world.
 command-spot-world_feature = The `worldgen` feature has to be enabled to run this command.
 command-cannot-send-message-hidden = Cannot send messages as a hidden spectator.
+command-destroyed-tethers = All tethers destroyed! You are now free
+command-destroyed-no-tethers = You're not connected to any tethers
+command-dismounted = Dismounted
+command-no-dismount = You're not riding or being ridden
+command-client-has-no-socketaddr = Cannot get socker addr (connected via mpsc connection) for { $target }
+command-parse-duration-error = Could not parse duration: { $error }
+command-ip-ban-require-online = { $error }. IP ban needs the target player to be online.
 
 # Unreachable/untestable but added for consistency
 
@@ -268,7 +277,4 @@ command-kit-inventory-unavailable = Could not get inventory
 command-inventory-cant-fit-item = Can't fit item to inventory
 # Emitted by /disconnect_all when you don't exist (?)
 command-you-dont-exist = You do not exist, so you cannot use this command
-command-destroyed-tethers = All tethers destroyed! You are now free
-command-destroyed-no-tethers = You're not connected to any tethers
-command-dismounted = Dismounted
-command-no-dismount = You're not riding or being ridden
+command-entity-has-no-client = Player has no client client component: { $target }
