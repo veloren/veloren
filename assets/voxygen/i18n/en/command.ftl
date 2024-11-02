@@ -16,6 +16,7 @@ command-body-desc = Change your body to different species
 command-buff-desc = Cast a buff on player
 command-build-desc = Toggles build mode on and off
 command-ban-desc = Ban a player with a given username, for a given duration (if provided). Pass true for overwrite to alter an existing ban.
+command-ban-ip-desc = Ban a player with a given username, for a given duration (if provided). Unlike the normal ban this also additionally bans the IP-address associated with this user. Pass true for overwrite to alter an existing ban.
 command-battlemode-desc = Set your battle mode to:
   + pvp (player vs player)
   + pve (player vs environment).
@@ -96,7 +97,8 @@ command-rtsim_info-desc = Display information about an rtsim NPC
 command-rtsim_npc-desc = List rtsim NPCs that fit a given query (e.g: simulated,merchant) in order of distance
 command-rtsim_purge-desc = Purge rtsim data on next startup
 command-rtsim_tp-desc = Teleport to an rtsim npc
-command-unban-desc = Remove the ban for the given username
+command-unban-desc = Remove the ban for the given username. If there is an linked IP ban it will be removed as well.
+command-unban-ip-desc = Remove just the IP ban for the given username.
 command-version-desc = Prints server version
 command-waypoint-desc = Set your waypoint to your current position
 command-weather_zone-desc = Create a weather zone

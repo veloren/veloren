@@ -1,4 +1,4 @@
-use crate::{client::Client, EditableSettings};
+use crate::{client::Client, settings::banlist::NormalizedIpAddr, EditableSettings};
 use common::{
     comp::Player,
     event::{ClientDisconnectEvent, EventBus},
@@ -55,7 +55,8 @@ impl<'a> System<'a> for Sys {
 
                             let banned = editable_settings
                                 .banlist
-                                .get_ip_ban(addr.ip())
+                                .ip_bans()
+                                .get(&NormalizedIpAddr::from(addr.ip()))
                                 .and_then(|ban_entry| ban_entry.current.action.ban())
                                 .and_then(|ban| {
                                     // Hardcoded admins can always log in.

@@ -1,5 +1,5 @@
 use crate::{
-    settings::{AdminRecord, Ban, Banlist, WhitelistRecord},
+    settings::{banlist::NormalizedIpAddr, AdminRecord, Ban, Banlist, WhitelistRecord},
     Client,
 };
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
@@ -126,7 +126,11 @@ impl LoginProvider {
                 let now = Utc::now();
                 // We ignore mpsc connections since those aren't to an external
                 // process.
-                let ip = client.connected_from_addr().socket_addr().map(|s| s.ip());
+                let ip = client
+                    .connected_from_addr()
+                    .socket_addr()
+                    .map(|s| s.ip())
+                    .map(NormalizedIpAddr::from);
                 // Hardcoded admins can always log in.
                 let admin = admins.get(&uuid);
                 if let Some(ban) = banlist
@@ -136,12 +140,13 @@ impl LoginProvider {
                     .into_iter()
                     .chain(ip.and_then(|ip| {
                         banlist
-                            .get_ip_ban(ip)
+                            .ip_bans()
+                            .get(&ip)
                             .and_then(|ban_entry| ban_entry.current.action.ban())
                     }))
                     .find(|ban| ban_applies(ban, admin, now))
                 {
-                    // Pull reason string out of ban record and send a copy of it
+                    // Get ban info and send a copy of it
                     return Some(Err(RegisterError::Banned(ban.info())));
                 }
 

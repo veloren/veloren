@@ -8,7 +8,7 @@ use crate::{
     location::Locations,
     login_provider::LoginProvider,
     settings::{
-        banlist::normalize_ip, server_description::ServerDescription, BanInfo, BanOperation,
+        banlist::NormalizedIpAddr, server_description::ServerDescription, BanInfo, BanOperation,
         BanOperationError, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
     },
     sys::terrain::SpawnEntityData,
@@ -4803,7 +4803,8 @@ fn handle_ban_ip(
         let player_entity = find_uuid(server.state.ecs(), player_uuid).map_err(|err| {
             Content::localized_with_args("command-ip-ban-require-online", [("error", err)])
         })?;
-        let player_ip_addr = normalize_ip(socket_addr(server, player_entity, &username)?.ip());
+        let player_ip_addr =
+            NormalizedIpAddr::from(socket_addr(server, player_entity, &username)?.ip());
 
         let now = Utc::now();
         let end_date = ban_end_date(now, parse_duration)?;
@@ -4858,7 +4859,7 @@ fn handle_ban_ip(
                 client
                     .current_ip_addrs
                     .iter()
-                    .any(|socket_addr| normalize_ip(socket_addr.ip()) == player_ip_addr)
+                    .any(|socket_addr| NormalizedIpAddr::from(socket_addr.ip()) == player_ip_addr)
             })
             .map(|(entity, _, player)| (entity, player.uuid()))
             .collect::<Vec<_>>();

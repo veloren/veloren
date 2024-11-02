@@ -136,7 +136,7 @@ pub enum BanOperation {
         /// NOTE: Should always be higher than the `now` date provided to
         /// [`BanList::ban_operation`] , if this is present!
         end_date: Option<chrono::DateTime<chrono::Utc>>,
-        ip: std::net::IpAddr,
+        ip: NormalizedIpAddr,
     },
     Unban {
         info: BanInfo,
@@ -1177,23 +1177,44 @@ mod v2 {
         }
     }
 
+    /// The last 64 bits of IPv6 addresess may vary a lot even when coming from
+    /// the same client, and taking the full IPv6 for IP bans is thus useless.
+    ///
+    /// This newtype ensures that all the last 64 bits of an IPv6 address are
+    /// set to zero to counter this.
+    #[derive(Clone, Copy, Debug, Deserialize, Serialize, Hash, PartialEq, Eq)]
+    #[serde(transparent)]
+    pub struct NormalizedIpAddr(IpAddr);
+
+    impl From<IpAddr> for NormalizedIpAddr {
+        fn from(ip: IpAddr) -> Self {
+            Self(match ip {
+                // Take IPv4 adddresses as-is
+                IpAddr::V4(ip) => IpAddr::V4(ip),
+                // Ignore the last 64 bits for IPv6 addresses
+                IpAddr::V6(ip) => IpAddr::V6(Ipv6Addr::from_bits(
+                    ip.to_bits() & 0xffff_ffff_ffff_ffff_0000_0000_0000_0000_u128,
+                )),
+            })
+        }
+    }
+
+    impl Deref for NormalizedIpAddr {
+        type Target = IpAddr;
+
+        fn deref(&self) -> &Self::Target { &self.0 }
+    }
+
     #[derive(Clone, Deserialize, Serialize, Default)]
     pub struct Banlist {
         pub(super) uuid_bans: HashMap<Uuid, BanEntry>,
-        pub(super) ip_bans: HashMap<IpAddr, IpBanEntry>,
+        pub(super) ip_bans: HashMap<NormalizedIpAddr, IpBanEntry>,
     }
 
     impl Banlist {
         pub fn uuid_bans(&self) -> &HashMap<Uuid, BanEntry> { &self.uuid_bans }
 
-        /// Get an IP ban for an IP
-        ///
-        /// Access to the underlying IP ban map isn't exposed as the IP keys are
-        /// normalized (see [`normalize_ip`]), and the caller forgetting about
-        /// this would lead to issues.
-        pub fn get_ip_ban(&self, ip: IpAddr) -> Option<&IpBanEntry> {
-            self.ip_bans.get(&normalize_ip(ip))
-        }
+        pub fn ip_bans(&self) -> &HashMap<NormalizedIpAddr, IpBanEntry> { &self.ip_bans }
 
         /// Attempt to perform the ban operation `operation` for the user with
         /// UUID `uuid` and username `username`, starting from time `now` (the
@@ -1281,7 +1302,6 @@ mod v2 {
                         end_date,
                         ip,
                     } => {
-                        let ip = normalize_ip(ip);
                         let ban = Ban {
                             reason,
                             info: Some(info),
@@ -1328,7 +1348,7 @@ mod v2 {
 
                         ip.and_then(|ip| {
                             let ip_ban_record = make_ip_record(action);
-                            banlist.apply_ip_ban_record(normalize_ip(ip), ip_ban_record, overwrite, now)
+                            banlist.apply_ip_ban_record(ip, ip_ban_record, overwrite, now)
                         })
                         // Only submit edit if one of these had an effect.
                         .or(ban_effect).map(|_| None)
@@ -1347,7 +1367,7 @@ mod v2 {
                             // Note: It is kind of redundant to include uuid here (since it's not
                             // going to change from the ban).
                             banlist.apply_ip_ban_record(
-                                normalize_ip(ip),
+                                ip,
                                 make_ip_record(BanAction::Unban(info)),
                                 overwrite,
                                 now,
@@ -1420,13 +1440,11 @@ mod v2 {
         /// Only meant to be called by `Self::ban_operation` within the `edit`
         /// closure.
         ///
-        /// NOTE: The passed ip must be normalized ([`normalize_ip`]).
-        ///
         /// Returns `None` to cancel early and abandon the edit.
         #[must_use]
         fn apply_ip_ban_record(
             &mut self,
-            ip: IpAddr,
+            ip: NormalizedIpAddr,
             record: IpBanRecord,
             overwrite: bool,
             now: DateTime<Utc>,
@@ -1510,8 +1528,9 @@ mod v2 {
                 // Validate that there are not multiple active IP bans
                 // linked to the same UUID. (since if timing happens to match
                 // the per entry validation won't catch this)
+                //
+                // collapsible_if: more clear not to have side effects in the if condition
                 #[allow(clippy::collapsible_if)]
-                // more clear not to have side effects in the if condition
                 if let Some(uuid) = value.current.uuid_when_performed
                     && !value.current.is_expired(now)
                 {
@@ -1531,23 +1550,6 @@ mod v2 {
                 }
             }
             Ok(version)
-        }
-    }
-
-    /// To be called before getting or inserting any IP addresses into the IP
-    /// ban map.
-    ///
-    /// The last 64 bits of IPv6 addresess may vary a lot even when coming from
-    /// the same client, and taking the full IPv6 for IP bans is thus useless.
-    /// This function sets all the lastn 64 bits to zero to counter this.
-    pub fn normalize_ip(ip: IpAddr) -> IpAddr {
-        match ip {
-            // Take IPv4 adddresses as-is
-            IpAddr::V4(ip) => IpAddr::V4(ip),
-            // Ignore the last 64 bits for IPv6 addresses
-            IpAddr::V6(ip) => IpAddr::V6(Ipv6Addr::from_bits(
-                ip.to_bits() & 0xffff_ffff_ffff_ffff_0000_0000_0000_0000_u128,
-            )),
         }
     }
 

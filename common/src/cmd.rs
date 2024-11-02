@@ -495,13 +495,7 @@ impl ServerChatCommand {
                     Any("ban duration", Optional),
                     Message(Optional),
                 ],
-                // TODO: Localize
-                Content::Plain(
-                    "Ban a player with a given username, for a given duration (if provided). \
-                     Unlike the normal ban this also additionally bans the IP-address associated \
-                     with this user. Pass true for overwrite to alter an existing ban.."
-                        .to_string(),
-                ),
+                Content::localized("command-ban-ip-desc"),
                 Some(Admin),
             ),
             #[rustfmt::skip]
@@ -974,18 +968,12 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::Unban => cmd(
                 vec![PlayerName(Required)],
-                // TODO: Localize
-                // Content::localized("command-unban-desc"),
-                Content::Plain(
-                    "Remove the ban for the given username. If there is an linked IP ban it will \
-                     be removed as well."
-                        .to_string(),
-                ),
+                Content::localized("command-unban-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::UnbanIp => cmd(
                 vec![PlayerName(Required)],
-                Content::Plain("Remove just the IP ban for the given username.".to_string()),
+                Content::localized("command-unban-ip-desc"),
                 Some(Moderator),
             ),
             ServerChatCommand::Version => {
