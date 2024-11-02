@@ -8,7 +8,6 @@ use std::{
 };
 use tracing::{error, info, warn};
 
-#[derive(Debug)]
 /// Errors that can occur during edits to a settings file.
 pub enum Error<S: EditableSetting> {
     /// An error occurred validating the settings file.
@@ -17,11 +16,35 @@ pub enum Error<S: EditableSetting> {
     Io(std::io::Error),
 }
 
-#[derive(Debug)]
+impl<S: EditableSetting> fmt::Debug for Error<S> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Error::Integrity(err) => fmt::Formatter::debug_tuple(f, "Integrity")
+                .field(err)
+                .finish(),
+            Error::Io(err) => fmt::Formatter::debug_tuple(f, "Io").field(err).finish(),
+        }
+    }
+}
+
 /// Same as Error, but carries the validated settings in the Io case.
 enum ErrorInternal<S: EditableSetting> {
     Integrity(S::Error),
     Io(std::io::Error, S),
+}
+
+impl<S: EditableSetting> fmt::Debug for ErrorInternal<S> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ErrorInternal::Integrity(err) => fmt::Formatter::debug_tuple(f, "Integrity")
+                .field(err)
+                .finish(),
+            ErrorInternal::Io(err, _setting) => fmt::Formatter::debug_tuple(f, "Io")
+                .field(err)
+                .field(&"EditableSetting not required to impl Debug")
+                .finish(),
+        }
+    }
 }
 
 pub enum Version {
@@ -160,7 +183,7 @@ pub trait EditableSetting: Clone + Default {
         }
     }
 
-    /// If the result of calling f is None,we return None (this constitutes an
+    /// If the result of calling f is None, we return None (this constitutes an
     /// early return and lets us abandon the in-progress edit).  For
     /// example, this can be used to avoid adding a new ban entry if someone
     /// is already banned and the user didn't explicitly specify that they

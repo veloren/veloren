@@ -42,11 +42,6 @@ impl<'a> System<'a> for Sys {
         (&entities, &mut clients).par_join().for_each_init(
             || client_disconnect.emitter(),
             |client_disconnect_emitter, (entity, client)| {
-                // ignore network events
-                while let Some(Ok(Some(_))) =
-                    client.participant.as_mut().map(|p| p.try_fetch_event())
-                {}
-
                 let res = super::try_recv_all(client, 4, Self::handle_ping_msg);
 
                 match res {

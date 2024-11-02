@@ -39,6 +39,20 @@ pub enum ConnectAddr {
     Mpsc(u64),
 }
 
+impl ConnectAddr {
+    /// Returns the `Some` if the protocol is TCP or QUIC and `None` if the
+    /// protocol is a local channel (mpsc).
+    pub fn socket_addr(&self) -> Option<SocketAddr> {
+        match self {
+            Self::Tcp(addr) => Some(*addr),
+            Self::Udp(addr) => Some(*addr),
+            Self::Mpsc(_) => None,
+            #[cfg(feature = "quic")]
+            Self::Quic(addr, _, _) => Some(*addr),
+        }
+    }
+}
+
 /// Represents a Tcp, Quic, Udp or Mpsc listen address
 #[derive(Clone, Debug)]
 pub enum ListenAddr {
@@ -49,8 +63,8 @@ pub enum ListenAddr {
     Mpsc(u64),
 }
 
-/// a Participant can throw different events, you are obligated to carefully
-/// empty the queue from time to time
+/// A Participant can throw different events, you are obligated to carefully
+/// empty the queue from time to time.
 #[derive(Clone, Debug)]
 pub enum ParticipantEvent {
     ChannelCreated(ConnectAddr),
@@ -412,7 +426,7 @@ impl Network {
         Ok(participant)
     }
 
-    /// returns a [`Participant`] created from a [`ListenAddr`] you
+    /// Returns a [`Participant`] created from a [`ListenAddr`] you
     /// called [`listen`] on before. This function will either return a
     /// working [`Participant`] ready to open [`Streams`] on OR has returned
     /// a [`NetworkError`] (e.g. Network got closed)

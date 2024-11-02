@@ -334,6 +334,7 @@ pub enum ServerChatCommand {
     AreaRemove,
     Aura,
     Ban,
+    BanIp,
     BattleMode,
     BattleModeForce,
     Body,
@@ -414,6 +415,7 @@ pub enum ServerChatCommand {
     TimeScale,
     Tp,
     Unban,
+    UnbanIp,
     Version,
     Waypoint,
     WeatherZone,
@@ -485,6 +487,16 @@ impl ServerChatCommand {
                 ],
                 Content::localized("command-ban-desc"),
                 Some(Moderator),
+            ),
+            ServerChatCommand::BanIp => cmd(
+                vec![
+                    PlayerName(Required),
+                    Boolean("overwrite", "true".to_string(), Optional),
+                    Any("ban duration", Optional),
+                    Message(Optional),
+                ],
+                Content::localized("command-ban-ip-desc"),
+                Some(Admin),
             ),
             #[rustfmt::skip]
             ServerChatCommand::BattleMode => cmd(
@@ -959,6 +971,11 @@ impl ServerChatCommand {
                 Content::localized("command-unban-desc"),
                 Some(Moderator),
             ),
+            ServerChatCommand::UnbanIp => cmd(
+                vec![PlayerName(Required)],
+                Content::localized("command-unban-ip-desc"),
+                Some(Moderator),
+            ),
             ServerChatCommand::Version => {
                 cmd(vec![], Content::localized("command-version-desc"), None)
             },
@@ -1066,6 +1083,7 @@ impl ServerChatCommand {
             ServerChatCommand::AreaRemove => "area_remove",
             ServerChatCommand::Aura => "aura",
             ServerChatCommand::Ban => "ban",
+            ServerChatCommand::BanIp => "ban_ip",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",
             ServerChatCommand::Body => "body",
@@ -1135,6 +1153,7 @@ impl ServerChatCommand {
             ServerChatCommand::RtsimPurge => "rtsim_purge",
             ServerChatCommand::RtsimChunk => "rtsim_chunk",
             ServerChatCommand::Unban => "unban",
+            ServerChatCommand::UnbanIp => "unban_ip",
             ServerChatCommand::Version => "version",
             ServerChatCommand::Waypoint => "waypoint",
             ServerChatCommand::Wiring => "wiring",

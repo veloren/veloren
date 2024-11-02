@@ -16,6 +16,7 @@ command-body-desc = Change your body to different species
 command-buff-desc = Cast a buff on player
 command-build-desc = Toggles build mode on and off
 command-ban-desc = Ban a player with a given username, for a given duration (if provided). Pass true for overwrite to alter an existing ban.
+command-ban-ip-desc = Ban a player with a given username, for a given duration (if provided). Unlike the normal ban this also additionally bans the IP-address associated with this user. Pass true for overwrite to alter an existing ban.
 command-battlemode-desc = Set your battle mode to:
   + pvp (player vs player)
   + pve (player vs environment).
@@ -96,7 +97,8 @@ command-rtsim_info-desc = Display information about an rtsim NPC
 command-rtsim_npc-desc = List rtsim NPCs that fit a given query (e.g: simulated,merchant) in order of distance
 command-rtsim_purge-desc = Purge rtsim data on next startup
 command-rtsim_tp-desc = Teleport to an rtsim npc
-command-unban-desc = Remove the ban for the given username
+command-unban-desc = Remove the ban for the given username. If there is an linked IP ban it will be removed as well.
+command-unban-ip-desc = Remove just the IP ban for the given username.
 command-version-desc = Prints server version
 command-waypoint-desc = Set your waypoint to your current position
 command-weather_zone-desc = Create a weather zone
@@ -227,6 +229,7 @@ command-adminify-role-upgraded = Role for player { $player } upgraded to { $role
 command-adminify-removed-role = Role removed from player { $player }: { $role }
 command-ban-added = Added { $player } to the banlist with reason: { $reason }
 command-ban-already-added = { $player } is already on the banlist
+command-ban-ip-added = Added { $username } to the regular banlist and IP banlist with reason: { $reason }
 command-faction-join = Please join a faction with /join_faction
 command-group-join = Please create a group first
 command-group_invite-invited-to-group = Invited { $player } to the group.
@@ -240,6 +243,7 @@ command-sudo-no-permission-for-non-players = You don't have permission to sudo n
 command-time_scale-current = The current time scale is { $scale }.
 command-time_scale-changed = Set time scale to { $scale }.
 command-unban-successful = { $player } was successfully unbanned.
+command-unban-ip-successful = The IP banned via user "{ $player }" was successfully unbanned (this user will remain banned)
 command-unban-already-unbanned = { $player } was already unbanned.
 command-version-current = Server is running { $hash }[{ $date }]
 command-whitelist-added = Added to whitelist: { $username }
@@ -259,6 +263,13 @@ command-death_effect-unknown = Unknown death effect { $effect }.
 command-spot-spot_not_found = Didn't find any spots of that kind in this world.
 command-spot-world_feature = The `worldgen` feature has to be enabled to run this command.
 command-cannot-send-message-hidden = Cannot send messages as a hidden spectator.
+command-destroyed-tethers = All tethers destroyed! You are now free
+command-destroyed-no-tethers = You're not connected to any tethers
+command-dismounted = Dismounted
+command-no-dismount = You're not riding or being ridden
+command-client-has-no-socketaddr = Cannot get socker addr (connected via mpsc connection) for { $target }
+command-parse-duration-error = Could not parse duration: { $error }
+command-ip-ban-require-online = { $error }. IP ban needs the target player to be online.
 
 # Unreachable/untestable but added for consistency
 
@@ -268,7 +279,4 @@ command-kit-inventory-unavailable = Could not get inventory
 command-inventory-cant-fit-item = Can't fit item to inventory
 # Emitted by /disconnect_all when you don't exist (?)
 command-you-dont-exist = You do not exist, so you cannot use this command
-command-destroyed-tethers = All tethers destroyed! You are now free
-command-destroyed-no-tethers = You're not connected to any tethers
-command-dismounted = Dismounted
-command-no-dismount = You're not riding or being ridden
+command-entity-has-no-client = Player has no client client component: { $target }

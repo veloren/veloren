@@ -1,6 +1,7 @@
 pub mod character_screen;
 pub mod general;
 pub mod in_game;
+pub mod network_events;
 pub mod ping;
 pub mod register;
 pub mod terrain;
@@ -24,6 +25,7 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<terrain::Sys>(dispatch_builder, &[]);
     dispatch::<pets::Sys>(dispatch_builder, &[]);
     dispatch::<loot::Sys>(dispatch_builder, &[]);
+    dispatch::<network_events::Sys>(dispatch_builder, &[]);
 }
 
 /// handles all send msg and calls a handle fn

@@ -229,6 +229,7 @@ impl<'a> System<'a> for Sys {
                             mut new_players_guard,
                         ) = match LoginProvider::login(
                             pending,
+                            client,
                             &read_data.editable_settings.admins,
                             &read_data.editable_settings.whitelist,
                             &read_data.editable_settings.banlist,
