@@ -33,14 +33,14 @@ ComboMelee2(
             buildup_duration: 0.15,
             swing_duration: 0.1,
             hit_timing: 0.5,
-            recover_duration: 0.1,
+            recover_duration: 0.35,
             ori_modifier: 0.6,
         ),
     ],
     energy_cost_per_strike: 2.5,
     auto_progress: true,
     meta: (
-        // The ability will parry melee attacks in the buildup & swing portion
-        capabilities: ("PARRIES_MELEE"),
+        // Blocks melee attacks at 50% strength during buildup_duration & swing_duration
+        capabilities: ("BLOCKS"),
     ),
 )
