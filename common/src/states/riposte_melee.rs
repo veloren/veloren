@@ -18,8 +18,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Modifer for recovery speed when the parry is missed
-    pub whiff_recovery_modifier: f32,
+    /// How long the state has until exiting if the ability missed
+    pub whiffed_recover_duration: Duration,
     /// Base value that incoming damage is reduced by and converted to poise
     /// damage
     pub block_strength: f32,
@@ -96,25 +96,23 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Recover => {
-                if self.timer < self.static_data.recover_duration {
-                    // Recovery
-                    if let CharacterState::RiposteMelee(c) = &mut update.character {
+                if let CharacterState::RiposteMelee(c) = &mut update.character {
+                    let recover_duration = if c.whiffed {
+                        self.static_data.whiffed_recover_duration
+                    } else {
+                        self.static_data.recover_duration
+                    };
+                    if self.timer < recover_duration {
+                        // Recovery
                         c.timer = tick_attack_or_default(
                             data,
                             self.timer,
-                            Some(
-                                data.stats.recovery_speed_modifier
-                                    * if c.whiffed {
-                                        self.static_data.whiff_recovery_modifier
-                                    } else {
-                                        1.0
-                                    },
-                            ),
+                            Some(data.stats.recovery_speed_modifier),
                         );
+                    } else {
+                        // Done
+                        end_melee_ability(data, &mut update);
                     }
-                } else {
-                    // Done
-                    end_melee_ability(data, &mut update);
                 }
             },
             _ => {
