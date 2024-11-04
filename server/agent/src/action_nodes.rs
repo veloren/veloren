@@ -1130,8 +1130,8 @@ impl<'a> AgentData<'a> {
                             "Flame Wyvern" | "Frost Wyvern" | "Cloud Wyvern" | "Sea Wyvern"
                             | "Weald Wyvern" => Tactic::Wyvern,
                             "Bird Medium Basic" => Tactic::BirdMediumBasic,
-                            "Bushly" | "Irrwurz" | "Driggle" | "Mossy Snail" | "Strigoi Claws"
-                            | "Harlequin" => Tactic::SimpleDouble,
+                            "Bushly" | "Cactid" | "Irrwurz" | "Driggle" | "Mossy Snail"
+                            | "Strigoi Claws" | "Harlequin" => Tactic::SimpleDouble,
                             "Clay Golem" => Tactic::ClayGolem,
                             "Ancient Effigy" => Tactic::AncientEffigy,
                             "TerracottaStatue" | "Mogwai" => Tactic::TerracottaStatue,

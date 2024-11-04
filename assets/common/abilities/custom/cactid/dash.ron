@@ -1,0 +1,28 @@
+DashMelee(
+    energy_cost: 0,
+    melee_constructor: (
+        kind: Slash(
+            damage: 12.0,
+            poise: 8.0,
+            knockback: 4.0,
+            energy_regen: 0.0,
+        ),
+        scaled: Some((
+            kind: Slash(
+                damage: 9.0,
+                poise: 20.0,
+                knockback: 6.0,
+                energy_regen: 0.0,
+            ))),
+        range: 4,
+        angle: 45.0,
+    ),
+    energy_drain: 0,
+    forward_speed: 8,
+    buildup_duration: 1.0,
+    charge_duration: 2.0,
+    swing_duration: 0.1,
+    recover_duration: 2.0,
+    ori_modifier: 0.1,
+    auto_charge: false,
+)

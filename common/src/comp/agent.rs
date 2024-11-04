@@ -388,6 +388,7 @@ impl<'a> From<&'a Body> for Psyche {
                     | biped_small::Species::ShamanicSpirit
                     | biped_small::Species::Jiangshi
                     | biped_small::Species::Bushly
+                    | biped_small::Species::Cactid
                     | biped_small::Species::BloodmoonHeiress
                     | biped_small::Species::Bloodservant
                     | biped_small::Species::Harlequin

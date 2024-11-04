@@ -928,6 +928,9 @@ fn default_main_tool(body: &Body) -> Item {
             (biped_small::Species::Bushly, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.bushly",
             )),
+            (biped_small::Species::Cactid, _) => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.cactid",
+            )),
             (biped_small::Species::Irrwurz, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.irrwurz",
             )),

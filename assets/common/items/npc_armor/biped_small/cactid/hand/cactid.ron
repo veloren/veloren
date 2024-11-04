@@ -1,6 +1,6 @@
 ItemDef(
-    legacy_name: "Bushly",
-    legacy_description: "Plant Creature",
+    legacy_name: "Cactid",
+    legacy_description: "Cactid Hand",
     kind: Armor((
         kind: Hand,
         stats: Direct((

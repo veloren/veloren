@@ -1,10 +1,10 @@
 ItemDef(
-    legacy_name: "Bushly",
-    legacy_description: "Plant Creature",
+    legacy_name: "Cactid",
+    legacy_description: "Cactid Pants",
     kind: Armor((
-        kind: Hand,
+        kind: Pants,
         stats: Direct((
-            protection: Some(Normal(1.0)),
+            protection: Some(Normal(2.0)),
             poise_resilience: Some(Normal(4.0)),
             energy_max: Some(3.4),
             energy_reward: Some(0.81),

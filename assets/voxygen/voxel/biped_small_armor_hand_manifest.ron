@@ -112,12 +112,12 @@
                 vox_spec: ("npc.kappa.male.hand_r", (0.0, -4.0, -12.0)),
             )
         ),
-        "Cactid": (
+        "common.items.npc_armor.biped_small.cactid.hand.cactid": (
             left: (
                 vox_spec: ("npc.cactid.male.hand_r", (-5.0, -1.5, -8.0)),
             ),
             right: (
-                vox_spec: ("npc.cactid.male.hand_r", (0.0, -1.5, -2.5)),
+                vox_spec: ("npc.cactid.male.hand_r", (0.0, -1.5, -8.0)),
             )
         ),
         "common.items.npc_armor.biped_small.gnoll.hand.rogue": (

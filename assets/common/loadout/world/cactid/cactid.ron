@@ -1,0 +1,9 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.cactid.head.cactid"),
+    chest: Item("common.items.npc_armor.biped_small.cactid.chest.cactid"),
+    gloves: Item("common.items.npc_armor.biped_small.cactid.hand.cactid"),
+    legs: Item("common.items.npc_armor.biped_small.cactid.pants.cactid"),
+    feet: Item("common.items.npc_armor.biped_small.cactid.foot.cactid"),
+    active_hands: InHands((Item("common.items.npc_weapons.unique.cactid"), None)),
+)

@@ -1,0 +1,10 @@
+[
+    (1, All([
+            MultiDrop(Item("common.items.crafting_ing.cactus"), 1, 2),
+            Lottery([
+                (2.0, MultiDrop(Item("common.items.flowers.plant_fiber"), 1, 2)),
+    		(1.0, Item("common.items.crafting_ing.sentient_seed")),
+            ]),
+        ],
+    )),
+]

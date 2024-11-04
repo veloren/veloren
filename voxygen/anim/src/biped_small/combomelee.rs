@@ -76,6 +76,36 @@ impl Animation for ComboAnimation {
                         _ => {},
                     }
                 },
+                Some("common.abilities.custom.cactid.singlestrike") => {
+                    let (move1, move2) = if strike == current_strike {
+                        match stage_section {
+                            StageSection::Buildup => {
+                                (((anim_time.max(0.4) - 0.4) * 1.5).powf(0.5), 0.0)
+                            },
+                            StageSection::Action => (1.0, (anim_time.min(0.4) * 2.5).powi(2)),
+                            StageSection::Recover => (1.0, 1.0),
+                            _ => (0.0, 0.0),
+                        }
+                    } else {
+                        (1.0, 1.0)
+                    };
+                    let move1 = move1 * multi_strike_pullback;
+                    let move2 = move2 * multi_strike_pullback;
+                    next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
+                    next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
+                    next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                    next.main.orientation = Quaternion::rotation_x(0.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(0.0);
+                    next.hand_r.orientation = Quaternion::rotation_x(0.0);
+                    next.head.orientation = Quaternion::rotation_z(move2 * 1.0);
+
+                    next.chest.orientation = Quaternion::rotation_x(move2 * -1.0)
+                        * Quaternion::rotation_z(move1 * -1.2 + move2 * 1.8);
+                    next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                    next.hand_l.orientation = Quaternion::rotation_x(1.2);
+                    next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                    next.hand_r.orientation = Quaternion::rotation_x(1.2);
+                },
                 Some(
                     "common.abilities.axesimple.doublestrike"
                     | "common.abilities.custom.goblin_thug.doublestrike"

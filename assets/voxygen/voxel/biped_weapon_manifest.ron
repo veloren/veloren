@@ -1610,6 +1610,10 @@
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None
     ),
+    Tool("common.items.npc_weapons.unique.cactid"): (
+            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
+            color: None
+    ),    
     Tool("common.items.npc_weapons.unique.irrwurz"): (
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
             color: None

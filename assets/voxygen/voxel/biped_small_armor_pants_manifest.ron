@@ -42,7 +42,7 @@
         "common.items.npc_armor.biped_small.kappa.pants.kappa": (
             vox_spec: ("npc.kappa.male.pants", (-3.5, -4.0, -1.5)),
         ),
-        "Cactid": (
+        "common.items.npc_armor.biped_small.cactid.pants.cactid": (
             vox_spec: ("npc.cactid.male.pants", (-3.0, -2.0, -1.0)),
         ),
         "common.items.npc_armor.biped_small.gnoll.pants.rogue": (

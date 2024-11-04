@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    name: Name("Cactid"),
+    body: RandomWith("cactid"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.biped_small.cactid"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.world.cactid.cactid"),
+        )),    ),
+    meta: [],
+)

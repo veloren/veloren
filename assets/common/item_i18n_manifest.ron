@@ -325,6 +325,21 @@
             "common.items.npc_armor.biped_small.bushly.hand.bushly",
         ): "common-items-npc_armor-biped_small-bushly-hand-bushly",
         Simple(
+            "common.items.npc_armor.biped_small.cactid.head.cactid",
+        ): "common-items-npc_armor-biped_small-cactid-head-cactid",         
+        Simple(
+            "common.items.npc_armor.biped_small.cactid.foot.cactid",
+        ): "common-items-npc_armor-biped_small-cactid-foot-cactid",
+        Simple(
+            "common.items.npc_armor.biped_small.cactid.pants.cactid",
+        ): "common-items-npc_armor-biped_small-cactid-pants-cactid",
+        Simple(
+            "common.items.npc_armor.biped_small.cactid.chest.cactid",
+        ): "common-items-npc_armor-biped_small-cactid-chest-cactid",
+        Simple(
+            "common.items.npc_armor.biped_small.cactid.hand.cactid",
+        ): "common-items-npc_armor-biped_small-cactid-hand-cactid",        
+        Simple(
             "common.items.npc_armor.biped_small.treasure_egg.chest.treasure_egg",
         ): "common-items-npc_armor-biped_small-treasure_egg-chest-treasure_egg",
         Simple(
@@ -2709,6 +2724,9 @@
         Simple(
             "common.items.npc_weapons.unique.bushly",
         ): "common-items-npc_weapons-unique-bushly",
+        Simple(
+            "common.items.npc_weapons.unique.cactid",
+        ): "common-items-npc_weapons-unique-cactid",        
         Simple(
             "common.items.npc_weapons.unique.cardinal",
         ): "common-items-npc_weapons-unique-cardinal",
