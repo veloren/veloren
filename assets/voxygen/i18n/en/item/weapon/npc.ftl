@@ -171,6 +171,9 @@ common-items-npc_weapons-unique-birdmediumbasic = Bird Medium Basic
 
 common-items-npc_weapons-unique-bushly = Starter Grace
     .desc = Fret not, newbies shant cry.
+    
+common-items-npc_weapons-unique-cactid = Cactid
+    .desc = Cactid.    
 
 common-items-npc_weapons-unique-cardinal = Caduceus
     .desc = The snakes seem to be alive

@@ -118,6 +118,21 @@ impl Animation for DashAnimation {
                     PI / 1.5 + s_a.grip.0 * 0.2 + move1abs * -0.7 + move3 * 0.7,
                 ) * Quaternion::rotation_y(0.5 + s_a.grip.0 * 0.2);
             },
+            Some("common.abilities.custom.cactid.dash") => {
+                next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
+                next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+                next.hand_l.orientation = Quaternion::rotation_x(0.0);
+                next.hand_r.orientation = Quaternion::rotation_x(0.0);
+                next.head.orientation = Quaternion::rotation_z(move3 * 1.0);
+                next.chest.orientation = Quaternion::rotation_x(move2abs * -1.0)
+                    * Quaternion::rotation_z(move1abs * -1.2 + move2abs * 2.4);
+                next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_l.orientation = Quaternion::rotation_x(1.2);
+                next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_r.orientation = Quaternion::rotation_x(1.2);
+            },
             _ => {
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);

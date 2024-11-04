@@ -277,6 +277,11 @@
         secondary: Simple(None, "common.abilities.custom.bushly.dash"),
         abilities: [],
     ),
+    Custom("Cactid"): (
+        primary: Simple(None, "common.abilities.custom.cactid.singlestrike"),
+        secondary: Simple(None, "common.abilities.custom.cactid.dash"),
+        abilities: [],
+    ),    
     Custom("Irrwurz"): (
         primary: Simple(None, "common.abilities.custom.irrwurz.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.irrwurz.magicball"),

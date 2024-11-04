@@ -310,8 +310,23 @@ common-items-npc_armor-biped_small-bushly-pants-bushly = Bushly
 common-items-npc_armor-biped_small-bushly-chest-bushly = Bushly
     .desc = Plant Creature.
 
-common-items-npc_armor-biped_small-bushly-hand-bushly = Mandragora
-    .desc = Ceremonial attire used by members.
+common-items-npc_armor-biped_small-bushly-hand-bushly = Bushly
+    .desc = Plant Creature.
+    
+common-items-npc_armor-biped_small-cactid-head-cactid = Cactid
+    .desc = Plant Creature.      
+    
+common-items-npc_armor-biped_small-cactid-foot-cactid = Cactid
+    .desc = Plant Creature.
+
+common-items-npc_armor-biped_small-cactid-pants-cactid = Cactid
+    .desc = Plant Creature.
+
+common-items-npc_armor-biped_small-cactid-chest-cactid = Cactid
+    .desc = Plant Creature.
+
+common-items-npc_armor-biped_small-cactid-hand-cactid = Cactid
+    .desc = Plant Creature.
 
 common-items-npc_armor-biped_small-treasure_egg-chest-treasure_egg = Treasure Egg Chest
     .desc = Treasure Egg Chest

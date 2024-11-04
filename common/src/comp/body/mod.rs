@@ -577,6 +577,7 @@ impl Body {
                 biped_small::Species::Husk => Vec3::new(1.7, 0.7, 2.7),
                 biped_small::Species::Boreal => Vec3::new(1.3, 2.0, 2.5),
                 biped_small::Species::Bushly => Vec3::new(1.2, 1.3, 1.6),
+                biped_small::Species::Cactid => Vec3::new(1.0, 0.75, 1.4),
                 biped_small::Species::Irrwurz => Vec3::new(1.5, 1.5, 2.0),
                 biped_small::Species::IronDwarf => Vec3::new(1.3, 2.0, 2.5),
                 biped_small::Species::ShamanicSpirit => Vec3::new(1.3, 2.0, 2.3),
@@ -1032,6 +1033,7 @@ impl Body {
                 | biped_small::Species::OchreLegoom
                 | biped_small::Species::PurpleLegoom
                 | biped_small::Species::RedLegoom => 40,
+                biped_small::Species::Cactid => 50,
                 biped_small::Species::Gnarling => 50,
                 biped_small::Species::GnarlingChieftain => 150,
                 biped_small::Species::Mandragora => 65,

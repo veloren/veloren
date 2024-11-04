@@ -42,7 +42,7 @@
         "common.items.npc_armor.biped_small.kappa.chest.kappa": (
             vox_spec: ("npc.kappa.male.chest", (-6.5, -8.0, -7.0)),
         ),
-        "Cactid": (
+        "common.items.npc_armor.biped_small.cactid.chest.cactid": (
             vox_spec: ("npc.cactid.male.chest", (-3.0, -3.0, -2.5)),
         ),
         "common.items.npc_armor.biped_small.gnoll.chest.shaman": (
