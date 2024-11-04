@@ -11,6 +11,7 @@ RapidMelee(
         ),
         range: 4.0,
         angle: 360.0,
+        multi_target: Some(Normal),
         simultaneous_hits: 2,
     ),
     energy_cost: 3,
