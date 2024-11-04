@@ -63,7 +63,7 @@ LargeCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.large_cactus",
-            offset: (-12.5, -4.5, 0.0),
+            offset: (-13.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
 		(
@@ -94,12 +94,12 @@ TallCactus: [(
     variations: [
 		(
             model: "voxygen.voxel.sprite.cacti.tall",
-            offset: (-6.0, -6.0, 0.0),
+            offset: (-7.5, -6.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.cacti.tall2",
-            offset: (-6.0, -6.0, 0.0),
+            offset: (-7.5, -7.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -119,7 +119,7 @@ ShortCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.cactus_short",
-            offset: (-10.5, -4.5, 0.0),
+            offset: (-14.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -129,7 +129,7 @@ MedFlatCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.flat_cactus_med",
-            offset: (-6.0, -2.0, 0.0),
+            offset: (-6.5, -2.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -139,7 +139,7 @@ ShortFlatCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.flat_cactus_short",
-            offset: (-6.0, -2.0, 0.0),
+            offset: (-5.5, -2.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -5011,7 +5011,7 @@ CookingPot: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cooking_pot.pot-0",
-            offset: (-9.0, -10.0, 0.0),
+            offset: (-7.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],
