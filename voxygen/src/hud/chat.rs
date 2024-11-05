@@ -5,7 +5,10 @@ use super::{
 use crate::{
     cmd::complete,
     settings::chat::MAX_CHAT_TABS,
-    ui::{fonts::Fonts, Scale},
+    ui::{
+        fonts::{Font, Fonts},
+        Scale,
+    },
     GlobalState,
 };
 use client::Client;
@@ -591,6 +594,25 @@ impl<'a> Widget for Chat<'a> {
 
         let mut badge_id = 0;
         while let Some(item) = items.next(ui) {
+            /// Calculate the width of the group text or faction name
+            fn group_width(chat_type: &ChatType<String>, ui: &Ui, font: &Font) -> Option<f64> {
+                // This is a temporary solution on a best effort basis
+                // This needs to be reworked in the long run
+                let text = match chat_type {
+                    ChatType::Group(_, desc) => desc.as_str(),
+                    ChatType::Faction(_, desc) => desc.as_str(),
+                    _ => return None,
+                };
+                let bracket_width = Text::new("() ")
+                    .font_size(font.scale(15))
+                    .font_id(font.conrod_id)
+                    .get_w(ui)?;
+                Text::new(text)
+                    .font_size(font.scale(15))
+                    .font_id(font.conrod_id)
+                    .get_w(ui)
+                    .map(|v| bracket_width + v)
+            }
             // This would be easier if conrod used the v-metrics from rusttype.
             if item.i < messages.len() {
                 let (is_moderator, chat_type, text) = &messages[item.i];
@@ -617,9 +639,11 @@ impl<'a> Widget for Chat<'a> {
 
                 // If the user is a moderator display a moderator icon with their alias.
                 if *is_moderator {
+                    let group_width =
+                        group_width(chat_type, ui, &self.fonts.opensans).unwrap_or(0.0);
                     Image::new(self.imgs.chat_moderator_badge)
                         .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
-                        .top_left_with_margins_on(item.widget_id, 2.0, 7.0)
+                        .top_left_with_margins_on(item.widget_id, 2.0, 7.0 + group_width)
                         .parent(state.ids.message_box_bg)
                         .set(state.ids.chat_badges[badge_id], ui);
 
