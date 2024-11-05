@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    site2::gen::PrimitiveTransform,
+    site2::gen::{spiral_staircase, PrimitiveTransform},
     util::{RandomField, Sampler},
     Land,
 };
@@ -366,7 +366,7 @@ impl Structure for AirshipDock {
         painter
             .prim(Primitive::sampling(
                 stairs_clear1,
-                dungeon::spiral_staircase(center.with_z(base + 3), 6.0, 0.5, 9.0),
+                spiral_staircase(center.with_z(base + 3), 6.0, 0.5, 9.0),
             ))
             .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
             .fill(wood.clone());

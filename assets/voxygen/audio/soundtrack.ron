@@ -779,7 +779,7 @@
             weather: None,
             biomes:[],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
                 Dungeon(Adlet),
             ],
             music_state: Activity(Explore),
@@ -793,7 +793,7 @@
             weather: None,
             biomes:[],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
             ],
             music_state: Activity(Explore),
             artist: ("Crow", None),
@@ -806,7 +806,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
                 Dungeon(Adlet),
             ],
             music_state: Activity(Explore),
@@ -820,7 +820,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
                 Dungeon(Adlet),
             ],
             music_state: Activity(Explore),
@@ -834,7 +834,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -847,7 +847,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -900,7 +900,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
             ],
             segments: [
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 61.818, Transition(Explore, Combat(High)), Some(Combat(High))),
@@ -915,7 +915,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
             ],
             segments: [
                 ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 61.666, Transition(Explore, Combat(High)), Some(Combat(High))),
@@ -930,7 +930,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Old),
+                Dungeon(Myrmidon),
             ],
             segments: [
                 ("voxygen.audio.soundtrack.combat.clash.clash-start", 121.5, Transition(Explore, Combat(High)), Some(Combat(High))),

@@ -231,7 +231,7 @@ impl Data {
                 Some(comp::body::bird_large::Species::Phoenix)
                     .filter(|_| matches!(site_kind, Some(SiteKind::DwarvenMine(_)))),
                 Some(comp::body::bird_large::Species::Cockatrice)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Dungeon(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Myrmidon(_)))),
                 Some(comp::body::bird_large::Species::Roc)
                     .filter(|_| matches!(site_kind, Some(SiteKind::Haniwa(_)))),
                 Some(comp::body::bird_large::Species::FlameWyvern)

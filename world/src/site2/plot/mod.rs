@@ -11,7 +11,6 @@ mod cultist;
 mod desert_city_arena;
 mod desert_city_multiplot;
 mod desert_city_temple;
-pub mod dungeon;
 mod dwarven_mine;
 mod farm_field;
 mod giant_tree;
@@ -44,7 +43,7 @@ pub use self::{
     citadel::Citadel, cliff_tower::CliffTower, coastal_house::CoastalHouse,
     coastal_workshop::CoastalWorkshop, cultist::Cultist, desert_city_arena::DesertCityArena,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
-    dungeon::Dungeon, dwarven_mine::DwarvenMine, farm_field::FarmField, giant_tree::GiantTree,
+    dwarven_mine::DwarvenMine, farm_field::FarmField, giant_tree::GiantTree,
     glider_finish::GliderFinish, glider_platform::GliderPlatform, glider_ring::GliderRing,
     gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
     myrmidon_arena::MyrmidonArena, myrmidon_house::MyrmidonHouse, pirate_hideout::PirateHideout,
@@ -111,7 +110,6 @@ pub enum PlotKind {
     Castle(Castle),
     Cultist(Cultist),
     Road(Path<Vec2<i32>>),
-    Dungeon(Dungeon),
     Gnarling(GnarlingFortification),
     Adlet(AdletStronghold),
     Haniwa(Haniwa),
@@ -154,7 +152,6 @@ macro_rules! foreach_plot {
             PlotKind::Plaza => $z,
             PlotKind::Castle($x) => $y,
             PlotKind::Road(_) => $z,
-            PlotKind::Dungeon($x) => $y,
             PlotKind::Gnarling($x) => $y,
             PlotKind::Adlet($x) => $y,
             PlotKind::GiantTree($x) => $y,

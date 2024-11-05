@@ -958,7 +958,6 @@ impl<'a> Widget for Map<'a> {
                     .map(Cow::Borrowed)
                     .unwrap_or_else(|| match &site.kind {
                         SiteKind::Town => i18n.get_msg("hud-map-town"),
-                        SiteKind::Dungeon { .. } => i18n.get_msg("hud-map-dungeon"),
                         SiteKind::Castle => i18n.get_msg("hud-map-castle"),
                         SiteKind::Cave => i18n.get_msg("hud-map-cave"),
                         SiteKind::Tree => i18n.get_msg("hud-map-tree"),
@@ -977,23 +976,6 @@ impl<'a> Widget for Map<'a> {
                     });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (None, i18n.get_msg("hud-map-town")),
-                SiteKind::Dungeon { difficulty } => {
-                    if *difficulty < 5 {
-                        (
-                            Some(*difficulty),
-                            i18n.get_msg_ctx("hud-map-difficulty_dungeon", &i18n::fluent_args! {
-                                "difficulty" => difficulty + 1
-                            }),
-                        )
-                    } else {
-                        (
-                            Some(*difficulty),
-                            i18n.get_msg_ctx("hud-map-difficulty_dungeon", &i18n::fluent_args! {
-                                "difficulty" => difficulty
-                            }),
-                        )
-                    }
-                },
                 SiteKind::Castle => (None, i18n.get_msg("hud-map-castle")),
                 SiteKind::Cave => (None, i18n.get_msg("hud-map-cave")),
                 SiteKind::Tree => (None, i18n.get_msg("hud-map-tree")),
@@ -1027,11 +1009,6 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
                 SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
 
-                SiteKind::Dungeon { difficulty } => match difficulty {
-                    4 => self.imgs.mmap_site_minotaur,
-                    5 => self.imgs.mmap_site_mindflayer,
-                    _ => self.imgs.mmap_site_dungeon,
-                },
                 SiteKind::Bridge => self.imgs.mmap_site_bridge,
                 SiteKind::GliderCourse => self.imgs.mmap_site_glider_course,
             })
@@ -1056,11 +1033,6 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon_hover,
                 SiteKind::DwarvenMine => self.imgs.mmap_site_mine_hover,
                 SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle_hover,
-                SiteKind::Dungeon { difficulty } => match difficulty {
-                    4 => self.imgs.mmap_site_minotaur_hover,
-                    5 => self.imgs.mmap_site_mindflayer_hover,
-                    _ => self.imgs.mmap_site_dungeon_hover,
-                },
                 SiteKind::Bridge => self.imgs.mmap_site_bridge_hover,
                 SiteKind::GliderCourse => self.imgs.mmap_site_glider_course_hover,
             })
@@ -1071,8 +1043,7 @@ impl<'a> Widget for Map<'a> {
                 &desc,
                 &site_tooltip,
                 match &site.kind {
-                    SiteKind::Dungeon { .. }
-                    | SiteKind::Gnarling
+                    SiteKind::Gnarling
                     | SiteKind::ChapelSite
                     | SiteKind::Terracotta
                     | SiteKind::Adlet
@@ -1104,8 +1075,7 @@ impl<'a> Widget for Map<'a> {
             // Only display sites that are toggled on
             let show_site = match &site.kind {
                 SiteKind::Town => show_towns,
-                SiteKind::Dungeon { .. }
-                | SiteKind::Gnarling
+                SiteKind::Gnarling
                 | SiteKind::ChapelSite
                 | SiteKind::DwarvenMine
                 | SiteKind::Haniwa
@@ -1172,8 +1142,7 @@ impl<'a> Widget for Map<'a> {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Dungeon { .. }
-                    | SiteKind::Gnarling
+                    SiteKind::Gnarling
                     | SiteKind::ChapelSite
                     | SiteKind::Haniwa
                     | SiteKind::Cultist

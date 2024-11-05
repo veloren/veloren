@@ -111,7 +111,19 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                             .filter(|(id, site)| {
                                 Some(*id) != npc.home
                                     && site.world_site.map_or(false, |s| {
-                                        matches!(ctx.index.sites.get(s).kind, SiteKind::Dungeon(_))
+                                        matches!(
+                                            ctx.index.sites.get(s).kind,
+                                            SiteKind::Terracotta(_)
+                                                | SiteKind::Haniwa(_)
+                                                | SiteKind::Myrmidon(_)
+                                                | SiteKind::Adlet(_)
+                                                | SiteKind::DwarvenMine(_)
+                                                | SiteKind::ChapelSite(_)
+                                                | SiteKind::Cultist(_)
+                                                | SiteKind::Gnarling(_)
+                                                | SiteKind::Sahagin(_)
+                                                | SiteKind::VampireCastle(_),
+                                        )
                                     })
                             })
                             .min_by_key(|(_, site)| site.population.len())

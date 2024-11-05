@@ -115,7 +115,7 @@ impl Environment {
         {
             let mut castles = EconStatistics::default();
             let mut towns = EconStatistics::default();
-            let mut dungeons = EconStatistics::default();
+            let dungeons = EconStatistics::default();
             for site in index.sites.ids() {
                 let site = &index.sites[site];
                 match site.kind {
@@ -125,7 +125,6 @@ impl Environment {
                     | SiteKind::SavannahPit(_)
                     | SiteKind::CoastalTown(_)
                     | SiteKind::DesertCity(_) => towns += site.economy.pop,
-                    SiteKind::Dungeon(_) => dungeons += site.economy.pop,
                     SiteKind::Castle(_) => castles += site.economy.pop,
                     SiteKind::Tree(_)
                     | SiteKind::GiantTree(_)
@@ -177,11 +176,21 @@ impl Environment {
 
     fn csv_tick(&mut self, index: &Index) {
         if let Some(f) = self.csv_file.as_mut() {
-            if let Some(site) = index
-                .sites
-                .values()
-                .find(|s| !matches!(s.kind, SiteKind::Dungeon(_)))
-            {
+            if let Some(site) = index.sites.values().find(|s| {
+                !matches!(
+                    s.kind,
+                    SiteKind::Terracotta(_)
+                        | SiteKind::Haniwa(_)
+                        | SiteKind::Myrmidon(_)
+                        | SiteKind::Adlet(_)
+                        | SiteKind::DwarvenMine(_)
+                        | SiteKind::ChapelSite(_)
+                        | SiteKind::Cultist(_)
+                        | SiteKind::Gnarling(_)
+                        | SiteKind::Sahagin(_)
+                        | SiteKind::VampireCastle(_),
+                )
+            }) {
                 Economy::csv_entry(f, site).unwrap_or_else(|_| {
                     self.csv_file.take();
                 });
@@ -277,10 +286,7 @@ mod tests {
     use crate::{sim, util::seed_expan};
     use common::{
         store::Id,
-        terrain::{
-            site::{DungeonKindMeta, SiteKindMeta},
-            BiomeKind,
-        },
+        terrain::{site::SiteKindMeta, BiomeKind},
         trade::Good,
     };
     use hashbrown::HashMap;
@@ -428,13 +434,6 @@ mod tests {
                         SiteKindMeta::Castle => crate::site::Site::castle(
                             crate::site::Castle::generate(wpos, None, &mut rng),
                         ),
-                        SiteKindMeta::Dungeon(DungeonKindMeta::Old) => {
-                            crate::site::Site::dungeon(crate::site2::Site::generate_dungeon(
-                                &crate::Land::empty(),
-                                &mut rng,
-                                wpos,
-                            ))
-                        },
                         // common::terrain::site::SitesKind::Settlement |
                         _ => crate::site::Site::settlement(crate::site::Settlement::generate(
                             wpos, None, &mut rng,

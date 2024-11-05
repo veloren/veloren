@@ -28,13 +28,12 @@ impl Site {
             | SiteKind::SavannahPit(_)
             | SiteKind::CoastalTown(_) => Some(true),
             // Evil
-            SiteKind::Dungeon(_)
+            SiteKind::Myrmidon(_)
             | SiteKind::ChapelSite(_)
             | SiteKind::Terracotta(_)
             | SiteKind::Gnarling(_)
             | SiteKind::Cultist(_)
             | SiteKind::Sahagin(_)
-            | SiteKind::Myrmidon(_)
             | SiteKind::PirateHideout(_)
             | SiteKind::JungleRuin(_)
             | SiteKind::RockCircle(_)

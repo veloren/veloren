@@ -202,12 +202,6 @@ impl World {
                                 | civ::SiteKind::RockCircle
                                 | civ::SiteKind::TrollCave
                                 | civ::SiteKind::Camp => world_msg::SiteKind::Town,
-                                civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
-                                    difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
-                                        Some(SiteKind::Dungeon(d)) => d.dungeon_difficulty().unwrap_or(0),
-                                        _ => 0,
-                                    },
-                                },
                                 civ::SiteKind::Castle => world_msg::SiteKind::Castle,
                                 civ::SiteKind::Tree | civ::SiteKind::GiantTree => world_msg::SiteKind::Tree,
                                 // TODO: Maybe change?

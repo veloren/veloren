@@ -143,7 +143,6 @@ pub struct SiteInfo {
 #[repr(u8)]
 pub enum SiteKind {
     Town,
-    Dungeon { difficulty: u32 },
     Castle,
     Cave,
     Tree,

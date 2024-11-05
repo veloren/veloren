@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     assets::AssetHandle,
-    site2::{gen::PrimitiveTransform, plot::dungeon::spiral_staircase},
+    site2::gen::{spiral_staircase, PrimitiveTransform},
     util::{RandomField, Sampler, DIAGONALS, NEIGHBORS},
     Land,
 };

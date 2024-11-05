@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    site2::{gen::place_circular, plot::dungeon::inscribed_polystar},
+    site2::gen::{inscribed_polystar, place_circular},
     util::{sampler::Sampler, RandomField, DIAGONALS},
     Land,
 };

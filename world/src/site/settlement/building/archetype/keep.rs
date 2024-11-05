@@ -121,7 +121,6 @@ impl Archetype for Keep {
         _len: i32,
         attr: &Self::Attr,
     ) -> BlockMask {
-        let dungeon_stone = index.colors.site.dungeon.stone;
         let colors = &index.colors.site.settlement.building.archetype.keep;
         let flag_color = self.flag_color.elim_case_pure(&colors.flag);
         let stone_color = self.stone_color.elim_case_pure(&colors.stone);
@@ -172,7 +171,7 @@ impl Archetype for Keep {
         let internal = BlockMask::new(AIR, internal_layer);
 
         let make_staircase = move |pos: Vec3<i32>, radius: f32, inner_radius: f32, stretch: f32| {
-            let stone = BlockMask::new(Block::new(BlockKind::Rock, dungeon_stone.into()), 5);
+            let stone = BlockMask::new(Block::new(BlockKind::Rock, Rgb::new(150, 150, 175)), 5);
 
             if (pos.xy().magnitude_squared() as f32) < inner_radius.powi(2) {
                 stone

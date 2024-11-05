@@ -4,7 +4,6 @@ mod econ;
 
 use crate::{
     config::CONFIG,
-    layer::cave,
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
@@ -496,7 +495,6 @@ impl Civs {
 
             let (radius, flatten_radius) = match &site.kind {
                 SiteKind::Settlement => (32i32, 10.0f32),
-                SiteKind::Dungeon => (8i32, 3.0),
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::CliffTown => (2i32, 1.0),
@@ -594,11 +592,6 @@ impl Civs {
                     SiteKind::Settlement => {
                         WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
                     },
-                    SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
                     SiteKind::Castle => {
                         WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                     },
@@ -792,7 +785,7 @@ impl Civs {
             let wpos = chpos.map(|e| e as i64) * TerrainChunkSize::RECT_SIZE.map(|e| e as i64);
             let closest_site = (*sites)
                 .iter_mut()
-                .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Dungeon(_)))
+                .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Myrmidon(_)))
                 .min_by_key(|(_id, s)| s.get_origin().map(|e| e as i64).distance_squared(wpos));
             if let Some((_id, s)) = closest_site {
                 let distance_squared = s.get_origin().map(|e| e as i64).distance_squared(wpos);
@@ -1645,13 +1638,6 @@ impl Civs {
         })
     }
 
-    fn dungeon_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
-    }
-
     fn tree_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().map(|s| s.center)
     }
@@ -2047,7 +2033,6 @@ impl fmt::Display for Site {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SiteKind {
     Settlement,
-    Dungeon,
     Castle,
     Refactor,
     CliffTown,
@@ -2227,28 +2212,6 @@ impl SiteKind {
                     }
                     true
                 },
-                SiteKind::Dungeon => {
-                    on_land() && {
-                        let land = Land::from_sim(sim);
-                        let loc = loc.cpos_to_wpos();
-                        let dungeon_aabr = Aabr {
-                            min: loc - Vec2::broadcast(200),
-                            max: loc + Vec2::broadcast(200),
-                        };
-
-                        // Make sure there are no shallow caves near the dungeon
-                        let collides_with_cave = cave::tunnels_at(loc, 1, &land)
-                            .chain(cave::tunnels_at(loc, 2, &land))
-                            .all(|tunnel| {
-                                !dungeon_aabr.collides_with_aabr(Aabr {
-                                    min: tunnel.nodes().0.wpos,
-                                    max: tunnel.nodes().1.wpos,
-                                })
-                            });
-
-                        collides_with_cave
-                    }
-                },
                 SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(),
                 SiteKind::Bridge(_, _) => true,
             }
@@ -2258,7 +2221,7 @@ impl SiteKind {
     pub fn exclusion_radius(&self) -> i32 {
         // FIXME: Provide specific values for each individual SiteKind
         match self {
-            SiteKind::Dungeon => 4,
+            SiteKind::Myrmidon => 7,
             _ => 8, // This is just an arbitrary value
         }
     }
@@ -2278,7 +2241,24 @@ impl SiteKind {
 }
 
 impl Site {
-    pub fn is_dungeon(&self) -> bool { matches!(self.kind, SiteKind::Dungeon) }
+    pub fn is_dungeon(&self) -> bool {
+        matches!(
+            self.kind,
+            SiteKind::Adlet
+                | SiteKind::Gnarling
+                | SiteKind::ChapelSite
+                | SiteKind::DesertCity
+                | SiteKind::SavannahPit
+                | SiteKind::CoastalTown
+                | SiteKind::Terracotta
+                | SiteKind::Haniwa
+                | SiteKind::Myrmidon
+                | SiteKind::DwarvenMine
+                | SiteKind::Cultist
+                | SiteKind::Sahagin
+                | SiteKind::VampireCastle
+        )
+    }
 
     pub fn is_settlement(&self) -> bool {
         matches!(

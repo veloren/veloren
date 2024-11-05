@@ -112,7 +112,6 @@ impl ActivityUpdate {
                 };
 
                 let location = match site {
-                    Dungeon(Old) => format!("Battling evil in {chunk_name}"),
                     Dungeon(Gnarling) => format!("Hunting Gnarlings in {chunk_name}"),
                     Dungeon(Adlet) => format!("Finding the Yeti in {chunk_name}"),
                     Dungeon(SeaChapel) => format!("Gathering sea treasures in {chunk_name}"),

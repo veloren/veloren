@@ -1,5 +1,6 @@
 use super::*;
 use crate::{
+    site2::gen::spiral_staircase,
     util::{RandomField, Sampler, CARDINALS, DIAGONALS, NEIGHBORS},
     Land,
 };
@@ -486,7 +487,7 @@ impl Structure for SavannahPit {
         painter
             .prim(Primitive::sampling(
                 stairs_clear0,
-                dungeon::spiral_staircase(
+                spiral_staircase(
                     center.with_z(base - length),
                     stair_radius0,
                     2.5,
@@ -502,7 +503,7 @@ impl Structure for SavannahPit {
         painter
             .prim(Primitive::sampling(
                 stairs_clear1,
-                dungeon::spiral_staircase(
+                spiral_staircase(
                     center.with_z(base - (2 * length)),
                     stair_radius1,
                     2.5,
@@ -518,7 +519,7 @@ impl Structure for SavannahPit {
         painter
             .prim(Primitive::sampling(
                 stairs_clear2,
-                dungeon::spiral_staircase(
+                spiral_staircase(
                     center.with_z(base - (3 * length)),
                     stair_radius2,
                     2.5,
@@ -572,7 +573,7 @@ impl Structure for SavannahPit {
         painter
             .prim(Primitive::sampling(
                 small_stairs_clear,
-                dungeon::spiral_staircase(
+                spiral_staircase(
                     small_stairs_pos.with_z(base),
                     small_stair_radius,
                     0.5,
@@ -776,7 +777,7 @@ impl Structure for SavannahPit {
             painter
                 .prim(Primitive::sampling(
                     small_stairs_clear,
-                    dungeon::spiral_staircase(
+                    spiral_staircase(
                         small_stairs_pos.with_z(base - (3 * length)),
                         small_stair_radius,
                         0.5,
@@ -1498,7 +1499,7 @@ impl Structure for SavannahPit {
             painter
                 .prim(Primitive::sampling(
                     small_stairs_clear,
-                    dungeon::spiral_staircase(
+                    spiral_staircase(
                         small_stairs_pos.with_z(base - (2 * length) - 2),
                         small_stair_radius,
                         0.5,
