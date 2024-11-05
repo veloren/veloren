@@ -1,8 +1,7 @@
 use super::*;
 use crate::{
     site2::{
-        gen::{place_circular, place_circular_as_vec},
-        plot::dungeon::spiral_staircase,
+        gen::{place_circular, place_circular_as_vec, spiral_staircase},
         util::gradient::WrapMode,
     },
     util::{sampler::Sampler, RandomField},

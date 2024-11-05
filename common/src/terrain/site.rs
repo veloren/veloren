@@ -12,7 +12,6 @@ pub enum SiteKindMeta {
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum DungeonKindMeta {
-    Old,
     Gnarling,
     Adlet,
     Haniwa,
@@ -21,6 +20,8 @@ pub enum DungeonKindMeta {
     Cultist,
     Sahagin,
     Myrmidon,
+    VampireCastle,
+    DwarvenMine,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]

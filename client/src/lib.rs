@@ -42,9 +42,8 @@ use common::{
     shared_server_config::ServerConstants,
     spiral::Spiral2d,
     terrain::{
-        block::Block, map::MapConfig, neighbors, site::DungeonKindMeta, BiomeKind,
-        CoordinateConversions, SiteKindMeta, SpriteKind, TerrainChunk, TerrainChunkSize,
-        TerrainGrid,
+        block::Block, map::MapConfig, neighbors, BiomeKind, CoordinateConversions, SiteKindMeta,
+        SpriteKind, TerrainChunk, TerrainChunkSize, TerrainGrid,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{IdMaps, Uid},
@@ -2078,9 +2077,6 @@ impl Client {
             } else {
                 SiteKindMeta::Cave
             }
-        } else if matches!(site, Some(SiteKindMeta::Dungeon(DungeonKindMeta::Old))) {
-            // If the player is in a dungeon chunk but aboveground, pass Void instead
-            SiteKindMeta::Void
         } else {
             site.unwrap_or_default()
         }

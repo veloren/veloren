@@ -1,7 +1,7 @@
 use std::{f32::consts::TAU, sync::Arc};
 
 use crate::{
-    site2::{Dir, Fill, Painter, Site, Structure},
+    site2::{gen::spiral_staircase, Dir, Fill, Painter, Site, Structure},
     util::{RandomField, Sampler, CARDINALS, DIAGONALS},
     Land,
 };
@@ -11,8 +11,6 @@ use common::{
 };
 use rand::Rng;
 use vek::*;
-
-use super::dungeon::spiral_staircase;
 
 pub struct DesertCityArena {
     /// Approximate altitude of the door tile

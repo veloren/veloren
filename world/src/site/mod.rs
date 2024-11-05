@@ -21,7 +21,6 @@ use vek::*;
 #[derive(Deserialize)]
 pub struct Colors {
     pub castle: castle::Colors,
-    pub dungeon: site2::plot::dungeon::Colors,
     pub settlement: settlement::Colors,
 }
 
@@ -63,7 +62,6 @@ pub struct Site {
 
 pub enum SiteKind {
     Settlement(Settlement),
-    Dungeon(site2::Site),
     Castle(Castle),
     Refactor(site2::Site),
     CliffTown(site2::Site),
@@ -95,13 +93,6 @@ impl Site {
     pub fn settlement(s: Settlement) -> Self {
         Self {
             kind: SiteKind::Settlement(s),
-            economy: Economy::default(),
-        }
-    }
-
-    pub fn dungeon(d: site2::Site) -> Self {
-        Self {
-            kind: SiteKind::Dungeon(d),
             economy: Economy::default(),
         }
     }
@@ -284,7 +275,6 @@ impl Site {
     pub fn radius(&self) -> f32 {
         match &self.kind {
             SiteKind::Settlement(s) => s.radius(),
-            SiteKind::Dungeon(d) => d.radius(),
             SiteKind::Castle(c) => c.radius(),
             SiteKind::Refactor(s) => s.radius(),
             SiteKind::CliffTown(ct) => ct.radius(),
@@ -316,7 +306,6 @@ impl Site {
     pub fn get_origin(&self) -> Vec2<i32> {
         match &self.kind {
             SiteKind::Settlement(s) => s.get_origin(),
-            SiteKind::Dungeon(d) => d.origin,
             SiteKind::Castle(c) => c.get_origin(),
             SiteKind::Refactor(s) => s.origin,
             SiteKind::CliffTown(ct) => ct.origin,
@@ -348,7 +337,6 @@ impl Site {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         match &self.kind {
             SiteKind::Settlement(s) => s.spawn_rules(wpos),
-            SiteKind::Dungeon(d) => d.spawn_rules(wpos),
             SiteKind::Castle(c) => c.spawn_rules(wpos),
             SiteKind::Refactor(s) => s.spawn_rules(wpos),
             SiteKind::CliffTown(ct) => ct.spawn_rules(wpos),
@@ -380,7 +368,6 @@ impl Site {
     pub fn name(&self) -> &str {
         match &self.kind {
             SiteKind::Settlement(s) => s.name(),
-            SiteKind::Dungeon(d) => d.name(),
             SiteKind::Castle(c) => c.name(),
             SiteKind::Refactor(s) => s.name(),
             SiteKind::CliffTown(ct) => ct.name(),
@@ -432,7 +419,6 @@ impl Site {
         let get_col = |wpos| info.col(wpos + info.wpos);
         match &self.kind {
             SiteKind::Settlement(s) => s.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
-            SiteKind::Dungeon(d) => d.render(canvas, dynamic_rng),
             SiteKind::Castle(c) => c.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
             SiteKind::Refactor(s) => s.render(canvas, dynamic_rng),
             SiteKind::CliffTown(ct) => ct.render(canvas, dynamic_rng),
@@ -478,7 +464,6 @@ impl Site {
                     .expect("Settlement has no economy");
                 s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement, economy, time)
             },
-            SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Refactor(_)
             | SiteKind::CliffTown(_)
@@ -524,7 +509,6 @@ impl Site {
     pub fn site2(&self) -> Option<&site2::Site> {
         match &self.kind {
             SiteKind::Settlement(_) => None,
-            SiteKind::Dungeon(site2) => Some(site2),
             SiteKind::Castle(_) => None,
             SiteKind::Refactor(site2) => Some(site2),
             SiteKind::CliffTown(site2) => Some(site2),
@@ -570,9 +554,19 @@ impl SiteKind {
             SiteKind::DesertCity(_) => {
                 Some(SiteKindMeta::Settlement(SettlementKindMeta::DesertCity))
             },
-            SiteKind::Dungeon(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Old)),
             SiteKind::Gnarling(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Gnarling)),
             SiteKind::Adlet(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Adlet)),
+            SiteKind::Terracotta(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Terracotta)),
+            SiteKind::Haniwa(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Haniwa)),
+            SiteKind::Myrmidon(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Myrmidon)),
+            SiteKind::DwarvenMine(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::DwarvenMine)),
+            SiteKind::ChapelSite(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::SeaChapel)),
+            SiteKind::Cultist(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Cultist)),
+            SiteKind::Sahagin(_) => Some(SiteKindMeta::Dungeon(DungeonKindMeta::Sahagin)),
+            SiteKind::VampireCastle(_) => {
+                Some(SiteKindMeta::Dungeon(DungeonKindMeta::VampireCastle))
+            },
+
             _ => None,
         }
     }

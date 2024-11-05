@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    site2::plot::dungeon::wall_staircase,
+    site2::gen::wall_staircase,
     util::{sampler::Sampler, RandomField, CARDINALS, DIAGONALS, NEIGHBORS},
     Land,
 };

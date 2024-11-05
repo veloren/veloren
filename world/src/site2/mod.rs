@@ -105,7 +105,6 @@ impl Site {
         self.plots
             .values()
             .filter_map(|plot| match &plot.kind {
-                PlotKind::Dungeon(d) => Some(d.spawn_rules(wpos)),
                 PlotKind::Gnarling(g) => Some(g.spawn_rules(wpos)),
                 PlotKind::Adlet(ad) => Some(ad.spawn_rules(wpos)),
                 PlotKind::SeaChapel(p) => Some(p.spawn_rules(wpos)),
@@ -397,53 +396,6 @@ impl Site {
     }
 
     pub fn name(&self) -> &str { &self.name }
-
-    pub fn dungeon_difficulty(&self) -> Option<u32> {
-        self.plots
-            .iter()
-            .filter_map(|(_, plot)| {
-                if let PlotKind::Dungeon(d) = &plot.kind {
-                    Some(d.difficulty())
-                } else {
-                    None
-                }
-            })
-            .max()
-    }
-
-    pub fn generate_dungeon(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
-        let mut rng = reseed(rng);
-
-        let mut site = Site {
-            origin,
-            ..Site::default()
-        };
-
-        site.demarcate_obstacles(land);
-        let dungeon = plot::Dungeon::generate(origin, land, &mut rng);
-        site.name = dungeon.name().to_string();
-        let size = (dungeon.radius() / TILE_SIZE as f32).ceil() as i32;
-
-        let aabr = Aabr {
-            min: Vec2::broadcast(-size),
-            max: Vec2::broadcast(size),
-        };
-
-        let plot = site.create_plot(Plot {
-            kind: PlotKind::Dungeon(dungeon),
-            root_tile: aabr.center(),
-            tiles: aabr_tiles(aabr).collect(),
-            seed: rng.gen(),
-        });
-
-        site.blit_aabr(aabr, Tile {
-            kind: TileKind::Empty,
-            plot: Some(plot),
-            hard_alt: None,
-        });
-
-        site
-    }
 
     pub fn generate_mine(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
@@ -2532,7 +2484,6 @@ impl Site {
                 PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
                 PlotKind::Castle(castle) => castle.render_collect(self, canvas),
                 PlotKind::SeaChapel(sea_chapel) => sea_chapel.render_collect(self, canvas),
-                PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
                 PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
                 PlotKind::Adlet(adlet) => adlet.render_collect(self, canvas),
                 PlotKind::Haniwa(haniwa) => haniwa.render_collect(self, canvas),
@@ -2674,7 +2625,6 @@ impl Site {
     ) {
         for (_, plot) in self.plots.iter() {
             match &plot.kind {
-                PlotKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
                 PlotKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
                 PlotKind::Adlet(a) => a.apply_supplement(dynamic_rng, wpos2d, supplement),
                 _ => {},

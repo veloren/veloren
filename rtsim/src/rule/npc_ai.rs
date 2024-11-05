@@ -1464,16 +1464,16 @@ fn bird_large() -> impl Action<DefaultState> {
                                     bird_large::Species::Phoenix => matches!(&ctx.index.sites.get(site).kind,
                                     SiteKind::Terracotta(_)
                                     | SiteKind::Haniwa(_)
-                                    | SiteKind::Dungeon(_)
+                                    | SiteKind::Myrmidon(_)
                                     | SiteKind::Adlet(_)
                                     | SiteKind::DwarvenMine(_)
                                     | SiteKind::ChapelSite(_)
                                     | SiteKind::Cultist(_)
                                     | SiteKind::Gnarling(_)
-                                    | SiteKind::Sahagin(_)),
+                                    | SiteKind::Sahagin(_)
+                                    | SiteKind::VampireCastle(_)),
                                     bird_large::Species::Cockatrice => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::Dungeon(_)
-                                    | SiteKind::GiantTree(_)),
+                                    SiteKind::GiantTree(_)),
                                     bird_large::Species::Roc => matches!(&ctx.index.sites.get(site).kind,
                                     SiteKind::Haniwa(_)
                                     | SiteKind::Cultist(_)),
@@ -1485,7 +1485,7 @@ fn bird_large() -> impl Action<DefaultState> {
                                     | SiteKind::Sahagin(_)),
                                     bird_large::Species::FrostWyvern => matches!(&ctx.index.sites.get(site).kind,
                                     SiteKind::Adlet(_)
-                                    | SiteKind::Dungeon(_)),
+                                    | SiteKind::Myrmidon(_)),
                                     bird_large::Species::SeaWyvern => matches!(&ctx.index.sites.get(site).kind,
                                     SiteKind::ChapelSite(_)
                                     | SiteKind::Sahagin(_)),

@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    site2::{gen::PrimitiveTransform, plot::dungeon::spiral_staircase},
+    site2::gen::{spiral_staircase, PrimitiveTransform},
     util::{sampler::Sampler, RandomField, DIAGONALS, NEIGHBORS},
     Land, CONFIG,
 };
