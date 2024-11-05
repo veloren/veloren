@@ -22,7 +22,6 @@ ComboMelee2(
     ],
     energy_cost_per_strike: 5,
     meta: (
-        // Blocks melee attacks at 50% strength during buildup_duration & swing_duration
         capabilities: ("BLOCKS"),
     ),
 )
