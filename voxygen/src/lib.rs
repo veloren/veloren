@@ -103,9 +103,9 @@ impl GlobalState {
         self.window.needs_refresh_resize();
     }
 
-    pub fn maintain(&mut self, dt: std::time::Duration) {
+    pub fn maintain(&mut self) {
         span!(_guard, "maintain", "GlobalState::maintain");
-        self.audio.maintain(dt);
+        self.audio.maintain();
         self.window.renderer().maintain()
     }
 

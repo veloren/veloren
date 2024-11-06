@@ -149,7 +149,7 @@ crossbeam-channel = { version = "0.5" }
 ordered-float = { version = "4.2", default-features = true }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
-vek = { version = "0.17.0", features = ["serde"] }
+vek = { version = "0.17.0", features = ["serde", "mint"] }
 itertools = { version = "0.13" }
 
 serde = { version = "1.0.118", features = ["derive"] }

@@ -158,7 +158,8 @@ fn main() {
             settings.audio.num_sfx_channels,
             settings.audio.num_ui_channels,
             settings.audio.subtitles,
-            settings.audio.combat_music_enabled,
+            // settings.audio.combat_music_enabled,
+            false, // We're disabling combat music for now
         ),
         //    AudioOutput::Device(ref dev) => Some(dev.clone()),
     };

@@ -21,7 +21,7 @@ pub use self::{
     trail::TrailMgr,
 };
 use crate::{
-    audio::{ambient, ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
+    audio::{ambience, ambience::AmbienceMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_skybox_mesh, CloudsLocals, Consts, CullingMode, Drawer, GlobalModel, Globals,
         GlobalsBindGroup, Light, Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals,
@@ -116,7 +116,7 @@ pub struct Scene {
     tether_mgr: TetherMgr,
     pub sfx_mgr: SfxMgr,
     pub music_mgr: MusicMgr,
-    ambient_mgr: AmbientMgr,
+    ambience_mgr: AmbienceMgr,
 
     integrated_rain_vel: f32,
     wind_vel: Vec2<f32>,
@@ -356,8 +356,8 @@ impl Scene {
             tether_mgr: TetherMgr::new(renderer),
             sfx_mgr: SfxMgr::default(),
             music_mgr: MusicMgr::new(&calendar),
-            ambient_mgr: AmbientMgr {
-                ambience: ambient::load_ambience_items(),
+            ambience_mgr: AmbienceMgr {
+                ambience: ambience::load_ambience_items(),
             },
             integrated_rain_vel: 0.0,
             wind_vel: Vec2::zero(),
@@ -466,19 +466,12 @@ impl Scene {
         outcome: &Outcome,
         scene_data: &SceneData,
         audio: &mut AudioFrontend,
-        state: &State,
-        cam_pos: Vec3<f32>,
     ) {
         span!(_guard, "handle_outcome", "Scene::handle_outcome");
-        let underwater = state
-            .terrain()
-            .get(cam_pos.map(|e| e.floor() as i32))
-            .map(|b| b.is_liquid())
-            .unwrap_or(false);
         self.particle_mgr
             .handle_outcome(outcome, scene_data, &self.figure_mgr);
         self.sfx_mgr
-            .handle_outcome(outcome, audio, scene_data.client, underwater);
+            .handle_outcome(outcome, audio, scene_data.client);
 
         match outcome {
             Outcome::Lightning { pos } => {
@@ -1355,7 +1348,7 @@ impl Scene {
             client,
         );
 
-        self.ambient_mgr
+        self.ambience_mgr
             .maintain(audio, scene_data.state, client, &self.camera);
 
         self.music_mgr.maintain(audio, scene_data.state, client);

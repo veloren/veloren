@@ -301,50 +301,50 @@
 
         // Combat Music
 
-        Segmented(
-            title: "Barred Paths",
-            timing: None,
-            weather: None,
-            biomes: [],
-            sites: [
-                Dungeon(Myrmidon),
-            ],
-            segments: [
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 61.818, Transition(Explore, Combat(High)), Some(Combat(High))),
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.545, Activity(Combat(High)), None),
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
-            ],
-            artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
-        ),
-        Segmented(
-            title: "Reversal",
-            timing: None,
-            weather: None,
-            biomes: [],
-            sites: [
-                Dungeon(Myrmidon),
-            ],
-            segments: [
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 61.666, Transition(Explore, Combat(High)), Some(Combat(High))),
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 60.0, Activity(Combat(High)), None),
-                ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 3.666, Transition(Combat(High), Explore), None),
-            ],
-            artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
-        ),
-        Segmented(
-            title: "Clash",
-            timing: None,
-            weather: None,
-            biomes: [],
-            sites: [
-                Dungeon(Myrmidon),
-            ],
-            segments: [
-                ("voxygen.audio.soundtrack.combat.clash.clash-start", 121.5, Transition(Explore, Combat(High)), Some(Combat(High))),
-                ("voxygen.audio.soundtrack.combat.clash.clash-loop", 81.0, Activity(Combat(High)), None),
-                ("voxygen.audio.soundtrack.combat.clash.clash-end", 1.5, Transition(Combat(High), Explore), None),
-            ],
-            artist: ("Alfredo Pompa D & Rodriogo Plata", None),
-        ),
+        // Segmented(
+        //     title: "Barred Paths",
+        //     timing: None,
+        //     weather: None,
+        //     biomes: [],
+        //     sites: [
+        //         Dungeon(Old),
+        //     ],
+        //     segments: [
+        //         ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 61.818, Transition(Explore, Combat(High)), Some(Combat(High))),
+        //         ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.545, Activity(Combat(High)), None),
+        //         ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
+        //     ],
+        //     artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
+        // ),
+        // Segmented(
+        //     title: "Reversal",
+        //     timing: None,
+        //     weather: None,
+        //     biomes: [],
+        //     sites: [
+        //         Dungeon(Old),
+        //     ],
+        //     segments: [
+        //         ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 61.666, Transition(Explore, Combat(High)), Some(Combat(High))),
+        //         ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 60.0, Activity(Combat(High)), None),
+        //         ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 3.666, Transition(Combat(High), Explore), None),
+        //     ],
+        //     artist: ("DaforLynx", "https://daforlynx.neocities.org/"),
+        // ),
+        // Segmented(
+        //     title: "Clash",
+        //     timing: None,
+        //     weather: None,
+        //     biomes: [],
+        //     sites: [
+        //         Dungeon(Old),
+        //     ],
+        //     segments: [
+        //         ("voxygen.audio.soundtrack.combat.clash.clash-start", 121.5, Transition(Explore, Combat(High)), Some(Combat(High))),
+        //         ("voxygen.audio.soundtrack.combat.clash.clash-loop", 81.0, Activity(Combat(High)), None),
+        //         ("voxygen.audio.soundtrack.combat.clash.clash-end", 1.5, Transition(Combat(High), Explore), None),
+        //     ],
+        //     artist: ("Alfredo Pompa D & Rodriogo Plata", None),
+        // ),
     ]
 )

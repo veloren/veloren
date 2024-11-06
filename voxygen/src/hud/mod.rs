@@ -288,6 +288,7 @@ widget_ids! {
         gpu_timings[],
         weather,
         song_info,
+        active_channels,
 
         // Game Version
         version,
@@ -667,6 +668,7 @@ pub struct DebugInfo {
     pub num_particles_visible: u32,
     pub current_track: String,
     pub current_artist: String,
+    pub active_channels: [usize; 4],
 }
 
 pub struct HudInfo {
@@ -2897,11 +2899,23 @@ impl Hud {
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.song_info, ui_widgets);
+            Text::new(&format!(
+                "Active channels: M{}, A{}, S{}, U{}",
+                debug_info.active_channels[0],
+                debug_info.active_channels[1],
+                debug_info.active_channels[2],
+                debug_info.active_channels[3],
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.song_info, V_PAD)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .set(self.ids.active_channels, ui_widgets);
 
             // Number of lights
             Text::new(&format!("Lights: {}", debug_info.num_lights,))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.song_info, V_PAD)
+                .down_from(self.ids.active_channels, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.num_lights, ui_widgets);
@@ -3481,7 +3495,8 @@ impl Hud {
             Subtitles::new(
                 client,
                 &global_state.settings,
-                &global_state.audio.get_listener().clone(),
+                global_state.audio.get_listener_pos(),
+                global_state.audio.get_listener_ori(),
                 &mut global_state.audio.subtitles,
                 &self.fonts,
                 i18n,

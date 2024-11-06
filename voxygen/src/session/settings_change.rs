@@ -298,21 +298,16 @@ impl SettingsChange {
                     Audio::ToggleCombatMusic(combat_music_enabled) => {
                         global_state.audio.combat_music_enabled = combat_music_enabled
                     },
-                    //Audio::ChangeAudioDevice(name) => {
-                    //    global_state.audio.set_device(name.clone());
-
-                    //    settings.audio.output = AudioOutput::Device(name);
-                    //},
                     Audio::ResetAudioSettings => {
                         settings.audio = AudioSettings::default();
 
                         let audio = &mut global_state.audio;
 
-                        // TODO: check if updating the master volume is necessary
-                        // (it wasn't done before)
                         audio.set_master_volume(settings.audio.master_volume.get_checked());
                         audio.set_music_volume(settings.audio.music_volume.get_checked());
+                        audio.set_ambience_volume(settings.audio.ambience_volume.get_checked());
                         audio.set_sfx_volume(settings.audio.sfx_volume.get_checked());
+                        audio.set_music_spacing(settings.audio.music_spacing);
                     },
                 }
             },
