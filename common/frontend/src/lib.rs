@@ -77,6 +77,9 @@ where
         "veloren_server::persistence::character=info",
         "veloren_server::settings=info",
         "veloren_query_server=info",
+        "symphonia_format_ogg::demuxer=off",
+        "symphonia_core::probe=off",
+        "wgpu_hal::dx12::device=off",
     ];
 
     for s in default_directives {

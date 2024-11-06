@@ -274,6 +274,6 @@ fn handle_main_events_cleared(
         common_base::tracy_client::frame_mark();
 
         // Maintain global state.
-        global_state.maintain(global_state.clock.dt());
+        global_state.maintain();
     }
 }

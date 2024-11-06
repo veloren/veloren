@@ -11,7 +11,6 @@ use client::Client;
 use common::{
     comp::{object, Body, Pos},
     terrain::TerrainChunk,
-    vol::ReadVol,
 };
 use common_state::State;
 use hashbrown::HashMap;
@@ -49,8 +48,9 @@ impl EventMapper for CampfireEventMapper {
         _client: &Client,
     ) {
         let ecs = state.ecs();
-        let focus_off = camera.get_focus_pos().map(f32::trunc);
-        let cam_pos = camera.dependents().cam_pos + focus_off;
+
+        let cam_pos = camera.get_pos_with_focus();
+
         for (entity, body, pos) in (
             &ecs.entities(),
             &ecs.read_storage::<Body>(),
@@ -66,14 +66,9 @@ impl EventMapper for CampfireEventMapper {
 
                 // Check for SFX config entry for this movement
                 if Self::should_emit(internal_state, triggers.get_key_value(&mapped_event)) {
-                    let underwater = state
-                        .terrain()
-                        .get(cam_pos.map(|e| e.floor() as i32))
-                        .map(|b| b.is_liquid())
-                        .unwrap_or(false);
                     let sfx_trigger_item = triggers.get_key_value(&mapped_event);
                     const CAMPFIRE_VOLUME: f32 = 0.8;
-                    audio.emit_sfx(sfx_trigger_item, pos.0, Some(CAMPFIRE_VOLUME), underwater);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, Some(CAMPFIRE_VOLUME));
                     internal_state.time = Instant::now();
                 }
 

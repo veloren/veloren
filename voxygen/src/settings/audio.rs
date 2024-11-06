@@ -59,15 +59,15 @@ impl Default for AudioSettings {
         Self {
             master_volume: AudioVolume::new(0.8, false),
             inactive_master_volume_perc: AudioVolume::new(0.5, false),
-            music_volume: AudioVolume::new(0.3, false),
-            sfx_volume: AudioVolume::new(0.6, false),
-            ambience_volume: AudioVolume::new(0.6, false),
-            num_sfx_channels: 60,
-            num_ui_channels: 10,
+            music_volume: AudioVolume::new(0.5, false),
+            sfx_volume: AudioVolume::new(0.8, false),
+            ambience_volume: AudioVolume::new(0.8, false),
+            num_sfx_channels: 64,
+            num_ui_channels: 16,
             music_spacing: 1.0,
             subtitles: false,
             output: AudioOutput::Automatic,
-            combat_music_enabled: true,
+            combat_music_enabled: false,
         }
     }
 }

@@ -123,6 +123,11 @@ dot_vox = "5.1"
 guillotiere = "0.6.2"
 hashbrown = { workspace = true }
 image = { workspace = true, features = ["ico"] }
+kira = { version = "0.9.5", default-features = false, features = [
+    "cpal",
+    "symphonia",
+    "ogg",
+] }
 lazy_static = { workspace = true }
 native-dialog = { version = "0.7.0", optional = true }
 num = { workspace = true }
@@ -130,7 +135,6 @@ ordered-float = { workspace = true }
 rand = { workspace = true }
 rand_chacha = { workspace = true }
 rayon = { workspace = true }
-rodio = { version = "0.18", default-features = false, features = ["vorbis"] }
 ron = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
 serde_with = { version = "3.9.0", features = ["hashbrown_0_14"] }

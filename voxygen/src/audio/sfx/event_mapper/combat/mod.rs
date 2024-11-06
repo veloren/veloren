@@ -15,7 +15,6 @@ use common::{
         Inventory, Pos,
     },
     terrain::TerrainChunk,
-    vol::ReadVol,
 };
 use common_state::State;
 use hashbrown::HashMap;
@@ -56,8 +55,7 @@ impl EventMapper for CombatEventMapper {
     ) {
         let ecs = state.ecs();
 
-        let focus_off = camera.get_focus_pos().map(f32::trunc);
-        let cam_pos = camera.dependents().cam_pos + focus_off;
+        let cam_pos = camera.get_pos_with_focus();
 
         for (entity, pos, inventory, character) in (
             &ecs.entities(),
@@ -77,14 +75,8 @@ impl EventMapper for CombatEventMapper {
 
                 // Check for SFX config entry for this movement
                 if Self::should_emit(sfx_state, triggers.get_key_value(&mapped_event)) {
-                    let underwater = state
-                        .terrain()
-                        .get(cam_pos.map(|e| e.floor() as i32))
-                        .map(|b| b.is_liquid())
-                        .unwrap_or(false);
-
                     let sfx_trigger_item = triggers.get_key_value(&mapped_event);
-                    audio.emit_sfx(sfx_trigger_item, pos.0, None, underwater);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, None);
                     sfx_state.time = Instant::now();
                 }
 

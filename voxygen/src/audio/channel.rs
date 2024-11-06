@@ -4,318 +4,438 @@
 //! sounds simultaneously. Each additional channel used decreases performance
 //! in-game, so the amount of channels utilized should be kept to a minimum.
 //!
-//! When constructing a new [`AudioFrontend`](../struct.AudioFrontend.html), two
-//! music channels are created internally (to achieve crossover fades) while the
+//! When constructing a new [`AudioFrontend`](../struct.AudioFrontend.html), the
 //! number of sfx channels are determined by the `num_sfx_channels` value
 //! defined in the client
 //! [`AudioSettings`](../../settings/struct.AudioSettings.html)
-//!
-//! When the AudioFrontend's
-//! [`emit_sfx`](../struct.AudioFrontend.html#method.emit_sfx)
-//! methods is called, it attempts to retrieve an SfxChannel for playback. If
-//! the channel capacity has been reached and all channels are occupied, a
-//! warning is logged, and no sound is played.
 
-use crate::audio::{
-    fader::{FadeDirection, Fader},
-    Listener,
+use kira::{
+    effect::filter::{FilterBuilder, FilterHandle},
+    manager::AudioManager,
+    sound::{static_sound::StaticSoundHandle, PlaybackState},
+    spatial::emitter::EmitterHandle,
+    track::{TrackBuilder, TrackHandle, TrackId, TrackRoutes},
+    tween::{Easing, Tween, Value},
+    StartTime, Volume,
 };
-use rodio::{cpal::FromSample, OutputStreamHandle, Sample, Sink, Source, SpatialSink};
 use serde::Deserialize;
-use std::time::Instant;
+use std::time::Duration;
 use strum::EnumIter;
 use tracing::warn;
 use vek::*;
-
-#[derive(PartialEq, Clone, Copy)]
-enum ChannelState {
-    Playing,
-    Fading,
-    Stopped,
-}
 
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
 /// should transition between two types of in-game music. For example, we
 /// transition between `TitleMusic` and `Exploration` when a player enters the
 /// world by crossfading over a slow duration. In the future, transitions in the
 /// world such as `Exploration` -> `BossBattle` would transition more rapidly.
-#[derive(PartialEq, Clone, Copy, Hash, Eq, Deserialize)]
+#[derive(PartialEq, Clone, Copy, Hash, Eq, Deserialize, Debug)]
 pub enum MusicChannelTag {
     TitleMusic,
     Exploration,
     Combat,
 }
 
-/// A MusicChannel uses a non-positional audio sink designed to play music which
+/// A MusicChannel is designed to play music which
 /// is always heard at the player's position.
-///
-/// See also: [`Rodio::Sink`](https://docs.rs/rodio/0.11.0/rodio/struct.Sink.html)
 pub struct MusicChannel {
     tag: MusicChannelTag,
-    sink: Sink,
-    state: ChannelState,
-    fader: Fader,
+    track: Option<TrackHandle>,
+    source: Option<StaticSoundHandle>,
+    length: f32,
+    loop_data: (bool, LoopPoint, LoopPoint), // Loops?, Start, End
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LoopPoint {
+    Start,
+    End,
+    Point(f64),
 }
 
 impl MusicChannel {
-    pub fn new(stream: &OutputStreamHandle) -> Self {
-        let new_sink = Sink::try_new(stream);
-        match new_sink {
-            Ok(sink) => Self {
-                sink,
+    pub fn new(manager: &mut AudioManager, parent_track: TrackId) -> Self {
+        let new_track = manager.add_sub_track(
+            TrackBuilder::new()
+                .volume(Volume::Amplitude(0.0))
+                .routes(TrackRoutes::parent(parent_track)),
+        );
+        match new_track {
+            Ok(track) => Self {
                 tag: MusicChannelTag::TitleMusic,
-                state: ChannelState::Stopped,
-                fader: Fader::default(),
+                track: Some(track),
+                source: None,
+                length: 0.0,
+                loop_data: (false, LoopPoint::Start, LoopPoint::End),
             },
             Err(_) => {
-                warn!("Failed to create a rodio sink. May not play sounds.");
+                warn!(?new_track, "Failed to create track. May not play music.");
                 Self {
-                    sink: Sink::new_idle().0,
                     tag: MusicChannelTag::TitleMusic,
-                    state: ChannelState::Stopped,
-                    fader: Fader::default(),
+                    track: None,
+                    source: None,
+                    length: 0.0,
+                    loop_data: (false, LoopPoint::Start, LoopPoint::End),
                 }
             },
         }
     }
 
-    /// Play a music track item on this channel. If the channel has an existing
-    /// track playing, the new sounds will be appended and played once they
-    /// complete. Otherwise it will begin playing immediately.
-    pub fn play<S>(&mut self, source: S, tag: MusicChannelTag)
-    where
-        S: Source + Send + 'static,
-        S::Item: Sample,
-        S::Item: Send,
-        <S as Iterator>::Item: std::fmt::Debug,
-        f32: FromSample<<S as Iterator>::Item>,
-    {
-        self.tag = tag;
-        self.sink.append(source);
+    pub fn set_tag(&mut self, tag: MusicChannelTag) { self.tag = tag; }
 
-        self.state = if !self.fader.is_finished() {
-            ChannelState::Fading
-        } else {
-            ChannelState::Playing
-        };
+    pub fn set_source(&mut self, source_handle: Option<StaticSoundHandle>) {
+        self.source = source_handle;
     }
 
-    /// Stop whatever is playing on a given music channel
-    pub fn stop(&mut self, tag: MusicChannelTag) {
-        self.tag = tag;
-        self.sink.stop();
-    }
+    pub fn set_length(&mut self, length: f32) { self.length = length; }
 
-    /// Set the volume of the current channel. If the channel is currently
-    /// fading, the volume of the fader is updated to this value.
-    pub fn set_volume(&mut self, volume: f32) {
-        if !self.fader.is_finished() {
-            self.fader.update_target_volume(volume);
-        } else {
-            self.sink.set_volume(volume);
-        }
-    }
+    // Gets the currently set loop data
+    pub fn get_loop_data(&self) -> (bool, LoopPoint, LoopPoint) { self.loop_data }
 
-    /// Set a fader for the channel. If a fader exists already, it is replaced.
-    /// If the channel has not begun playing, and the fader is set to fade in,
-    /// we set the volume of the channel to the initial volume of the fader so
-    /// that the volumes match when playing begins.
-    pub fn set_fader(&mut self, fader: Fader) {
-        self.fader = fader;
-        self.state = ChannelState::Fading;
-
-        if self.state == ChannelState::Stopped && fader.direction() == FadeDirection::In {
-            self.sink.set_volume(fader.get_volume());
-        }
-    }
-
-    /// Returns true if either the channels sink reports itself as empty (no
-    /// more sounds in the queue) or we have forcibly set the channels state to
-    /// the 'Stopped' state
-    pub fn is_done(&self) -> bool { self.sink.empty() || self.state == ChannelState::Stopped }
-
-    pub fn get_tag(&self) -> MusicChannelTag { self.tag }
-
-    /// Maintain the fader attached to this channel. If the channel is not
-    /// fading, no action is taken.
-    pub fn maintain(&mut self, dt: std::time::Duration) {
-        if self.state == ChannelState::Fading {
-            self.fader.update(dt);
-            self.sink.set_volume(self.fader.get_volume());
-
-            if self.fader.is_finished() {
-                match self.fader.direction() {
-                    FadeDirection::Out => {
-                        self.state = ChannelState::Stopped;
-                        self.sink.stop();
+    /// Sets whether the sound loops, and the start and end points of the loop
+    pub fn set_loop_data(&mut self, loops: bool, start: LoopPoint, end: LoopPoint) {
+        if let Some(source) = self.source.as_mut() {
+            self.loop_data = (loops, start, end);
+            if loops {
+                match (start, end) {
+                    (LoopPoint::Start, LoopPoint::End) => {
+                        source.set_loop_region(0.0..);
                     },
-                    FadeDirection::In => {
-                        self.state = ChannelState::Playing;
+                    (LoopPoint::Start, LoopPoint::Point(end)) => {
+                        source.set_loop_region(..end);
+                    },
+                    (LoopPoint::Point(start), LoopPoint::End) => {
+                        source.set_loop_region(start..);
+                    },
+                    (LoopPoint::Point(start), LoopPoint::Point(end)) => {
+                        source.set_loop_region(start..end);
+                    },
+                    _ => {
+                        warn!("Invalid loop points given")
                     },
                 }
+            } else {
+                source.set_loop_region(None);
             }
         }
     }
+
+    /// Stop whatever is playing on this channel with an optional fadeout and
+    /// delay
+    pub fn stop(&mut self, duration: Option<f32>, delay: Option<f32>) {
+        if let Some(source) = self.source.as_mut() {
+            let tween = Tween {
+                duration: Duration::from_secs_f32(duration.unwrap_or(0.1)),
+                start_time: StartTime::Delayed(Duration::from_secs_f32(delay.unwrap_or(0.0))),
+                ..Default::default()
+            };
+            source.stop(tween)
+        };
+    }
+
+    /// Set the volume of the current channel.
+    pub fn set_volume(&mut self, volume: f32) {
+        if let Some(track) = self.track.as_mut() {
+            track.set_volume(Volume::Amplitude(volume as f64), Tween::default());
+            // } else {
+            //     warn!("Music track not present; cannot set volume")
+        }
+    }
+
+    /// Fade to a given amplitude over a given duration, optionally after a
+    /// delay
+    pub fn fade_to(&mut self, volume: f32, duration: f32, delay: Option<f32>) {
+        let mut start_time = StartTime::Immediate;
+        if let Some(delay) = delay {
+            start_time = StartTime::Delayed(Duration::from_secs_f32(delay))
+        }
+        let tween = Tween {
+            start_time,
+            duration: Duration::from_secs_f32(duration),
+            easing: Easing::Linear,
+        };
+        if let Some(track) = self.track.as_mut() {
+            track.set_volume(Volume::Amplitude(volume as f64), tween);
+        }
+    }
+
+    /// Fade to silence over a given duration and stop, optionally after a delay
+    /// Use fade_to() if this fade is temporary
+    pub fn fade_out(&mut self, duration: f32, delay: Option<f32>) {
+        self.stop(Some(duration), delay);
+    }
+
+    /// Returns true if the sound has stopped playing (whether by fading out or
+    /// by finishing)
+    pub fn is_done(&self) -> bool {
+        self.source
+            .as_ref()
+            .map_or(true, |source| source.state() == PlaybackState::Stopped)
+    }
+
+    pub fn get_tag(&self) -> MusicChannelTag { self.tag }
+
+    /// Get an immutable reference to the channel's track for purposes of
+    /// setting the output destination of a sound
+    pub fn get_track(&self) -> Option<&TrackHandle> { self.track.as_ref() }
+
+    /// Get a mutable reference to the channel's track
+    pub fn get_track_mut(&mut self) -> Option<&mut TrackHandle> { self.track.as_mut() }
+
+    pub fn get_source(&mut self) -> Option<&mut StaticSoundHandle> { self.source.as_mut() }
+
+    pub fn get_length(&self) -> f32 { self.length }
 }
 
-/// AmbientChannelTags are used for non-positional sfx. Currently the only use
+/// AmbienceChannelTags are used for non-positional sfx. Currently the only use
 /// is for wind.
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, EnumIter)]
-pub enum AmbientChannelTag {
+pub enum AmbienceChannelTag {
     Wind,
     Rain,
-    Thunder,
+    ThunderRumbling,
     Leaves,
     Cave,
+    Thunder,
 }
 
-/// A AmbientChannel uses a non-positional audio sink designed to play sounds
+/// An AmbienceChannel uses a non-positional audio sink designed to play sounds
 /// which are always heard at the camera's position.
-pub struct AmbientChannel {
-    tag: AmbientChannelTag,
-    pub multiplier: f32,
-    sink: Sink,
-    pub began_playing: Instant,
-    pub next_track_change: f32,
+#[derive(Debug)]
+pub struct AmbienceChannel {
+    tag: AmbienceChannelTag,
+    target_volume: f32,
+    track: Option<TrackHandle>,
+    filter: Option<FilterHandle>,
+    source: Option<StaticSoundHandle>,
+    pub looping: bool,
 }
 
-impl AmbientChannel {
-    pub fn new(stream: &OutputStreamHandle, tag: AmbientChannelTag, multiplier: f32) -> Self {
-        let new_sink = Sink::try_new(stream);
-        match new_sink {
-            Ok(sink) => Self {
+impl AmbienceChannel {
+    pub fn new(
+        tag: AmbienceChannelTag,
+        init_volume: f32,
+        manager: &mut AudioManager,
+        parent_track: TrackId,
+        looping: bool,
+    ) -> Self {
+        let ambience_filter_builder = FilterBuilder::new().cutoff(Value::Fixed(20000.0));
+        let mut ambience_track_builder = TrackBuilder::new();
+        let filter = ambience_track_builder.add_effect(ambience_filter_builder);
+        let new_track = manager.add_sub_track(
+            ambience_track_builder
+                .volume(0.0)
+                .routes(TrackRoutes::parent(parent_track)),
+        );
+        match new_track {
+            Ok(track) => Self {
                 tag,
-                multiplier,
-                sink,
-                began_playing: Instant::now(),
-                next_track_change: 0.0,
+                target_volume: init_volume,
+                track: Some(track),
+                filter: Some(filter),
+                source: None,
+                looping,
             },
             Err(_) => {
-                warn!("Failed to create rodio sink. May not play ambient sounds.");
+                warn!(
+                    ?new_track,
+                    "Failed to create track. May not play ambient sounds."
+                );
                 Self {
                     tag,
-                    multiplier,
-                    sink: Sink::new_idle().0,
-                    began_playing: Instant::now(),
-                    next_track_change: 0.0,
+                    target_volume: init_volume,
+                    track: None,
+                    filter: None,
+                    source: None,
+                    looping,
                 }
             },
         }
     }
 
-    pub fn play<S>(&mut self, source: S)
-    where
-        S: Source + Send + 'static,
-        S::Item: Sample,
-        S::Item: Send,
-        <S as Iterator>::Item: std::fmt::Debug,
-        f32: FromSample<<S as Iterator>::Item>,
-    {
-        self.sink.append(source);
+    pub fn set_source(&mut self, source_handle: Option<StaticSoundHandle>) {
+        self.source = source_handle;
     }
 
-    pub fn stop(&mut self) { self.sink.stop(); }
+    /// Stop whatever is playing on this channel with an optional fadeout and
+    /// delay
+    pub fn stop(&mut self, duration: Option<f32>, delay: Option<f32>) {
+        if let Some(source) = self.source.as_mut() {
+            let tween = Tween {
+                duration: Duration::from_secs_f32(duration.unwrap_or(0.1)),
+                start_time: StartTime::Delayed(Duration::from_secs_f32(delay.unwrap_or(0.0))),
+                ..Default::default()
+            };
+            source.stop(tween)
+        }
+    }
 
-    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume * self.multiplier); }
+    /// Set the channel to a volume, fading over a given duration
+    pub fn fade_to(&mut self, volume: f32, duration: f32) {
+        if let Some(track) = self.track.as_mut() {
+            track.set_volume(Volume::Amplitude(volume as f64), Tween {
+                start_time: StartTime::Immediate,
+                duration: Duration::from_secs_f32(duration),
+                easing: Easing::Linear,
+            });
+            self.target_volume = volume;
+        }
+    }
 
-    // pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
+    /// Set the cutoff for the lowpass filter on this channel
+    pub fn set_filter(&mut self, frequency: u32) {
+        if let Some(filter) = self.filter.as_mut() {
+            filter.set_cutoff(Value::Fixed(frequency as f64), Tween::default());
+        }
+    }
 
-    pub fn get_tag(&self) -> AmbientChannelTag { self.tag }
+    /// Set whether this channel's sound loops or not
+    pub fn set_looping(&mut self, loops: bool) {
+        if let Some(source) = self.source.as_mut() {
+            if loops {
+                source.set_loop_region(0.0..);
+            } else {
+                source.set_loop_region(None);
+            }
+        }
+    }
 
-    // pub fn set_tag(&mut self, tag: AmbientChannelTag) { self.tag = tag }
+    pub fn get_source(&mut self) -> Option<&mut StaticSoundHandle> { self.source.as_mut() }
+
+    /// Get an immutable reference to the channel's track for purposes of
+    /// setting the output destination of a sound
+    pub fn get_track(&self) -> Option<&TrackHandle> { self.track.as_ref() }
+
+    /// Get a mutable reference to the channel's track
+    pub fn get_track_mut(&mut self) -> Option<&mut TrackHandle> { self.track.as_mut() }
+
+    /// Get the volume of this channel. The volume may be in the process of
+    /// being faded to.
+    pub fn get_target_volume(&self) -> f32 { self.target_volume }
+
+    pub fn get_tag(&self) -> AmbienceChannelTag { self.tag }
+
+    pub fn set_tag(&mut self, tag: AmbienceChannelTag) { self.tag = tag }
+
+    pub fn is_active(&self) -> bool { self.get_target_volume() == 0.0 }
+
+    pub fn is_stopped(&self) -> bool {
+        if let Some(source) = self.source.as_ref() {
+            source.state() == PlaybackState::Stopped
+        } else {
+            false
+        }
+    }
 }
 
 /// An SfxChannel uses a positional audio sink, and is designed for short-lived
 /// audio which can be spatially controlled, but does not need control over
 /// playback or fading/transitions
 ///
-/// See also: [`Rodio::SpatialSink`](https://docs.rs/rodio/0.11.0/rodio/struct.SpatialSink.html)
+/// Note: currently, emitters are static once spawned
+#[derive(Debug)]
 pub struct SfxChannel {
-    sink: SpatialSink,
+    source: Option<StaticSoundHandle>,
+    emitter: Option<EmitterHandle>,
     pub pos: Vec3<f32>,
 }
 
 impl SfxChannel {
-    pub fn new(stream: &OutputStreamHandle) -> Self {
+    pub fn new(emitter: Option<EmitterHandle>) -> Self {
         Self {
-            sink: SpatialSink::try_new(stream, [0.0; 3], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0])
-                .unwrap(),
+            source: None,
+            emitter,
             pos: Vec3::zero(),
         }
     }
 
-    pub fn play<S>(&mut self, source: S)
-    where
-        S: Source + Send + 'static,
-        S::Item: Sample,
-        S::Item: Send,
-        <S as Iterator>::Item: std::fmt::Debug,
-        f32: FromSample<<S as Iterator>::Item>,
-    {
-        self.sink.append(source);
+    pub fn set_source(&mut self, source_handle: Option<StaticSoundHandle>) {
+        self.source = source_handle;
     }
 
-    /// Same as SfxChannel::play but with the source passed through
-    /// a low pass filter at 300 Hz
-    pub fn play_with_low_pass_filter<S>(&mut self, source: S, freq: u32)
-    where
-        S: Sized + Send + 'static,
-        S: Source<Item = f32>,
-    {
-        let source = source.low_pass(freq);
-        self.sink.append(source);
+    pub fn stop(&mut self) {
+        if let Some(source) = self.source.as_mut() {
+            source.stop(Tween::default())
+        }
     }
 
-    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
+    pub fn set_volume(&mut self, volume: f32) {
+        if let Some(source) = self.source.as_mut() {
+            source.set_volume(Volume::Amplitude(volume as f64), Tween::default())
+        }
+    }
 
-    pub fn stop(&mut self) { self.sink.stop(); }
-
-    pub fn is_done(&self) -> bool { self.sink.empty() }
+    pub fn is_done(&self) -> bool {
+        self.source
+            .as_ref()
+            .map_or(true, |source| source.state() == PlaybackState::Stopped)
+    }
 
     pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
 
-    pub fn update(&mut self, listener: &Listener) {
-        const FALLOFF: f32 = 0.13;
+    pub fn update(&mut self, pos: Vec3<f32>) {
+        let tween = Tween {
+            duration: Duration::from_secs_f32(0.01),
+            ..Default::default()
+        };
 
-        self.sink
-            .set_emitter_position(((self.pos - listener.pos) * FALLOFF).into_array());
-        self.sink
-            .set_left_ear_position(listener.ear_left_rpos.into_array());
-        self.sink
-            .set_right_ear_position(listener.ear_right_rpos.into_array());
+        if let Some(emitter) = self.emitter.as_mut() {
+            emitter.set_position(pos, tween);
+        }
     }
 }
 
 /// An UiChannel uses a non-spatial audio sink, and is designed for short-lived
 /// audio which is not spatially controlled, but does not need control over
 /// playback or fading/transitions
-///
-/// See also: [`Rodio::Sink`](https://docs.rs/rodio/0.11.0/rodio/struct.Sink.html)
 pub struct UiChannel {
-    sink: Sink,
+    track: Option<TrackHandle>,
+    source: Option<StaticSoundHandle>,
 }
 
 impl UiChannel {
-    pub fn new(stream: &OutputStreamHandle) -> Self {
-        Self {
-            sink: Sink::try_new(stream).unwrap(),
+    pub fn new(manager: &mut AudioManager, parent_track: TrackId) -> Self {
+        let new_track = manager
+            .add_sub_track(TrackBuilder::default().routes(TrackRoutes::parent(parent_track)));
+        match new_track {
+            Ok(track) => Self {
+                track: Some(track),
+                source: None,
+            },
+            Err(_) => {
+                warn!(
+                    ?new_track,
+                    "Failed to create track. May not play UI sounds."
+                );
+                Self {
+                    track: None,
+                    source: None,
+                }
+            },
         }
     }
 
-    pub fn play<S>(&mut self, source: S)
-    where
-        S: Source + Send + 'static,
-        S::Item: Sample,
-        S::Item: Send,
-        <S as Iterator>::Item: std::fmt::Debug,
-        f32: FromSample<<S as Iterator>::Item>,
-    {
-        self.sink.append(source);
+    pub fn set_source(&mut self, source_handle: Option<StaticSoundHandle>) {
+        self.source = source_handle;
     }
 
-    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
+    pub fn stop(&mut self) {
+        if let Some(source) = self.source.as_mut() {
+            source.stop(Tween::default())
+        }
+    }
 
-    pub fn stop(&mut self) { self.sink.stop(); }
+    pub fn set_volume(&mut self, volume: f32) {
+        if let Some(track) = self.track.as_mut() {
+            track.set_volume(Volume::Amplitude(volume as f64), Tween::default())
+            // } else {
+            //     warn!("UI track not present; cannot set volume")
+        }
+    }
 
-    pub fn is_done(&self) -> bool { self.sink.empty() }
+    pub fn is_done(&self) -> bool {
+        self.source
+            .as_ref()
+            .map_or(true, |source| source.state() == PlaybackState::Stopped)
+    }
 }

@@ -773,4 +773,9 @@ impl Camera {
     /// Return a unit vector in the right direction on the XY plane for
     /// the current camera orientation
     pub fn right_xy(&self) -> Vec2<f32> { Vec2::new(f32::cos(self.ori.x), -f32::sin(self.ori.x)) }
+
+    pub fn get_pos_with_focus(&self) -> Vec3<f32> {
+        let focus_off = self.get_focus_pos().map(f32::trunc);
+        self.dependents().cam_pos + focus_off
+    }
 }

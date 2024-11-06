@@ -8,12 +8,7 @@ use crate::{
 
 use super::EventMapper;
 use client::Client;
-use common::{
-    comp::Pos,
-    spiral::Spiral2d,
-    terrain::TerrainChunk,
-    vol::{ReadVol, RectRasterableVol},
-};
+use common::{comp::Pos, spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 use common_state::State;
 use hashbrown::HashMap;
 use rand::{prelude::*, seq::SliceRandom, thread_rng, Rng};
@@ -53,9 +48,6 @@ impl EventMapper for BlockEventMapper {
         terrain: &Terrain<TerrainChunk>,
         client: &Client,
     ) {
-        let focus_off = camera.get_focus_pos().map(f32::trunc);
-        let cam_pos = camera.dependents().cam_pos + focus_off;
-
         let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
         // Get the player position and chunk
@@ -229,6 +221,9 @@ impl EventMapper for BlockEventMapper {
                             let block_pos: Vec3<i32> = absolute_pos + block;
                             let internal_state = self.history.entry(block_pos).or_default();
 
+                            let focus_off = camera.get_focus_pos().map(f32::trunc);
+                            let cam_pos = camera.dependents().cam_pos + focus_off;
+
                             let block_pos = block_pos.map(|x| x as f32);
 
                             if Self::should_emit(
@@ -238,29 +233,12 @@ impl EventMapper for BlockEventMapper {
                             ) {
                                 // If the camera is within SFX distance
                                 if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
-                                    let underwater = state
-                                        .terrain()
-                                        .get(cam_pos.map(|e| e.floor() as i32))
-                                        .map(|b| b.is_liquid())
-                                        .unwrap_or(false);
-
                                     let sfx_trigger_item = triggers.get_key_value(&sounds.sfx);
-                                    if sounds.sfx == SfxEvent::RunningWaterFast {
-                                        audio.emit_filtered_sfx(
-                                            sfx_trigger_item,
-                                            block_pos,
-                                            Some(sounds.volume),
-                                            Some(8000),
-                                            underwater,
-                                        );
-                                    } else {
-                                        audio.emit_sfx(
-                                            sfx_trigger_item,
-                                            block_pos,
-                                            Some(sounds.volume),
-                                            underwater,
-                                        );
-                                    }
+                                    audio.emit_sfx(
+                                        sfx_trigger_item,
+                                        block_pos,
+                                        Some(sounds.volume),
+                                    );
                                 }
                                 internal_state.time = Instant::now();
                                 internal_state.event = sounds.sfx.clone();

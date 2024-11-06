@@ -53,10 +53,10 @@ use common::{
 };
 use common_state::State;
 use hashbrown::HashMap;
-use rand::{prelude::SliceRandom, thread_rng, Rng};
+use kira::clock::ClockTime;
+use rand::{prelude::SliceRandom, rngs::ThreadRng, thread_rng, Rng};
 use serde::Deserialize;
-use std::time::Instant;
-use tracing::{debug, trace};
+use tracing::{debug, trace, warn};
 
 /// Collection of all the tracks
 #[derive(Debug, Deserialize)]
@@ -78,6 +78,7 @@ pub struct SoundtrackItem {
     path: String,
     /// Length of the track in seconds
     length: f32,
+    loop_points: Option<(f32, f32)>,
     /// Whether this track should play during day or night
     timing: Option<DayPeriod>,
     /// Whether this track should play during a certain weather
@@ -108,6 +109,7 @@ enum RawSoundtrackItem {
         biomes: Vec<(BiomeKind, u8)>,
         sites: Vec<SiteKindMeta>,
         segments: Vec<(String, f32, MusicState, Option<MusicActivity>)>,
+        loop_points: (f32, f32),
         artist: (String, Option<String>),
     },
 }
@@ -144,21 +146,26 @@ pub struct MusicMgr {
     /// Collection of all the tracks
     soundtrack: SoundtrackCollection<SoundtrackItem>,
     /// Instant at which the current track began playing
-    began_playing: Instant,
-    /// Time until the next track should be played
-    next_track_change: f32,
+    began_playing: Option<ClockTime>,
+    /// Instant at which the current track should stop
+    song_end: Option<ClockTime>,
+    /// Time until the next track should be played after a track ends
+    gap_length: f32,
+    /// Time remaining for gap
+    gap_time: f64,
     /// The title of the last track played. Used to prevent a track
     /// being played twice in a row
     last_track: String,
     last_combat_track: String,
     /// Time of the last interrupt (to avoid rapid switching)
-    last_interrupt: Instant,
+    last_interrupt_attempt: Option<ClockTime>,
     /// The previous track's activity kind, for transitions
     last_activity: MusicState,
     // For debug menu
     current_track: String,
     current_artist: String,
     track_length: f32,
+    loop_points: Option<(f32, f32)>,
 }
 
 #[derive(Deserialize)]
@@ -197,42 +204,35 @@ impl assets::Asset for MusicTransitionManifest {
     const EXTENSION: &'static str = "ron";
 }
 
+fn time_f64(clock_time: ClockTime) -> f64 { clock_time.ticks as f64 + clock_time.fraction }
+
 impl MusicMgr {
     pub fn new(calendar: &Calendar) -> Self {
         Self {
             soundtrack: Self::load_soundtrack_items(calendar),
-            began_playing: Instant::now(),
-            next_track_change: 0.0,
+            began_playing: None,
+            song_end: None,
+            gap_length: 0.0,
+            gap_time: -1.0,
             last_track: String::from("None"),
             last_combat_track: String::from("None"),
-            last_interrupt: Instant::now(),
+            last_interrupt_attempt: None,
             last_activity: MusicState::Activity(MusicActivity::Explore),
             current_track: String::from("None"),
             current_artist: String::from("None"),
             track_length: 0.0,
+            loop_points: None,
         }
     }
 
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        //if let Some(current_chunk) = client.current_chunk() {
-        //println!("biome: {:?}", current_chunk.meta().biome());
-        //println!("chaos: {}", current_chunk.meta().chaos());
-        //println!("alt: {}", current_chunk.meta().alt());
-        //println!("tree_density: {}",
-        // current_chunk.meta().tree_density());
-        // let current_site = client.current_site();
-        // println!("{:?}", current_site);
-        //if let Some(position) = client.current::<comp::Pos>() {
-        //    player_alt = position.0.z;
-        //}
-
         use common::comp::{group::ENEMY, Group, Health, Pos};
         use specs::{Join, WorldExt};
-        // Checks if the music volume is set to zero or audio is disabled
-        // This prevents us from running all the following code unnecessarily
-        if !audio.music_enabled() {
+
+        if !audio.music_enabled() || audio.get_clock().is_none() || audio.get_clock_time().is_none()
+        {
             return;
         }
 
@@ -245,6 +245,7 @@ impl MusicMgr {
         let healths = ecs.read_component::<Health>();
         let groups = ecs.read_component::<Group>();
         let mtm = audio.mtm.read();
+        let mut rng = thread_rng();
 
         if audio.combat_music_enabled {
             if let Some(player_pos) = positions.get(player) {
@@ -281,7 +282,7 @@ impl MusicMgr {
             }
         }
 
-        let music_state = match self.last_activity {
+        let mut music_state = match self.last_activity {
             MusicState::Activity(prev) => {
                 if prev != activity_state {
                     MusicState::Transition(prev, activity_state)
@@ -289,35 +290,127 @@ impl MusicMgr {
                     MusicState::Activity(activity_state)
                 }
             },
-            MusicState::Transition(_, next) => MusicState::Activity(next),
+            MusicState::Transition(_, next) => {
+                warn!("Transitioning: {:?}", self.last_activity);
+                MusicState::Activity(next)
+            },
         };
+
+        let now = audio.get_clock_time().unwrap();
+
+        let began_playing = *self.began_playing.get_or_insert(now);
+        let last_interrupt_attempt = *self.last_interrupt_attempt.get_or_insert(now);
+        let song_end = *self.song_end.get_or_insert(now);
+        let mut time_since_began_playing = time_f64(now) - time_f64(began_playing);
 
         // TODO: Instead of a constant tick, make this a timer that starts only when
         // combat might end, providing a proper "buffer".
         // interrupt_delay dictates the time between attempted interrupts
         let interrupt = matches!(music_state, MusicState::Transition(_, _))
-            && self.last_interrupt.elapsed().as_secs_f32() > mtm.interrupt_delay;
+            && time_f64(now) - time_f64(last_interrupt_attempt) > mtm.interrupt_delay as f64;
 
-        // When the current track ends, clear the debug values
-        if self.began_playing.elapsed().as_secs_f32() > self.track_length {
-            self.current_track = String::from("None");
-            self.current_artist = String::from("None");
+        // Hack to end combat music since there is currently nothing that detects
+        // transitions away
+        if matches!(
+            music_state,
+            MusicState::Transition(
+                MusicActivity::Combat(CombatIntensity::High),
+                MusicActivity::Explore
+            )
+        ) {
+            music_state = MusicState::Activity(MusicActivity::Explore)
         }
 
         if audio.music_enabled()
             && !self.soundtrack.tracks.is_empty()
-            && (self.began_playing.elapsed().as_secs_f32() > self.next_track_change || interrupt)
+            && (time_since_began_playing
+                > time_f64(song_end) - time_f64(began_playing) // Amount of time between when the song ends and when it began playing
+                || interrupt)
         {
+            time_since_began_playing = time_f64(now) - time_f64(began_playing);
+            if time_since_began_playing > self.track_length as f64
+                && self.last_activity
+                    != MusicState::Activity(MusicActivity::Combat(CombatIntensity::High))
+            {
+                self.current_track = String::from("None");
+                self.current_artist = String::from("None");
+            }
+
             if interrupt {
-                self.last_interrupt = Instant::now();
+                self.last_interrupt_attempt = Some(now);
+                if let Ok(next_activity) =
+                    self.play_random_track(audio, state, client, &music_state, &mut rng)
+                {
+                    trace!(
+                        "pre-play_random_track: {:?} {:?}",
+                        self.last_activity, music_state
+                    );
+                    self.last_activity = next_activity;
+                }
+            } else if music_state == MusicState::Activity(MusicActivity::Explore)
+                || music_state
+                    == MusicState::Transition(
+                        MusicActivity::Explore,
+                        MusicActivity::Combat(CombatIntensity::High),
+                    )
+            {
+                // If current state is Explore, insert a gap now.
+                if self.gap_time == 0.0 {
+                    self.gap_length = self.generate_silence_between_tracks(
+                        audio.music_spacing,
+                        client,
+                        &music_state,
+                        &mut rng,
+                    );
+                    self.gap_time = self.gap_length as f64;
+                    self.song_end = audio.get_clock_time();
+                } else if self.gap_time < 0.0 {
+                    // Gap time is up, play a track
+                    // Hack to make combat situations not cancel explore music
+                    if music_state
+                        == MusicState::Transition(
+                            MusicActivity::Explore,
+                            MusicActivity::Combat(CombatIntensity::High),
+                        )
+                    {
+                        music_state = MusicState::Activity(MusicActivity::Explore)
+                    }
+                    if let Ok(next_activity) =
+                        self.play_random_track(audio, state, client, &music_state, &mut rng)
+                    {
+                        self.last_activity = next_activity;
+                        self.gap_time = 0.0;
+                        self.gap_length = 0.0;
+                    }
+                }
+            } else if music_state
+                == MusicState::Activity(MusicActivity::Combat(CombatIntensity::High))
+            {
+                // Keep playing! The track should loop automatically.
+                self.began_playing = Some(now);
+                self.song_end = Some(ClockTime::from_ticks_f64(
+                    audio.get_clock().unwrap().id(),
+                    time_f64(now) + self.loop_points.unwrap_or((0.0, 0.0)).1 as f64
+                        - self.loop_points.unwrap_or((0.0, 0.0)).0 as f64,
+                ));
+            } else {
+                trace!(
+                    "pre-play_random_track: {:?} {:?}",
+                    self.last_activity, music_state
+                );
             }
-            trace!(
-                "pre-play_random_track: {:?} {:?}",
-                self.last_activity, music_state
-            );
-            if let Ok(next_activity) = self.play_random_track(audio, state, client, &music_state) {
-                self.last_activity = next_activity;
+        } else {
+            if self.began_playing.is_none() {
+                self.began_playing = Some(now)
             }
+            if self.soundtrack.tracks.is_empty() {
+                warn!("No tracks available to play")
+            }
+        }
+
+        if time_since_began_playing > self.track_length as f64 {
+            // Time remaining = Max time - (current time - time song ended)
+            self.gap_time = (self.gap_length as f64) - (time_f64(now) - time_f64(song_end));
         }
     }
 
@@ -327,41 +420,8 @@ impl MusicMgr {
         state: &State,
         client: &Client,
         music_state: &MusicState,
-    ) -> Result<MusicState, ()> {
-        let mut rng = thread_rng();
-
-        // Adds a bit of randomness between plays, depending on whether the player is in
-        // a town, or exploring.
-        // TODO: make this something that is decided when a song ends, instead of when
-        // it begins
-        let spacing_multiplier = audio.music_spacing;
-        let mut silence_between_tracks_seconds: f32 = 0.0;
-        if spacing_multiplier > f32::EPSILON {
-            silence_between_tracks_seconds =
-                if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                    && matches!(client.current_site(), SiteKindMeta::Settlement(_))
-                {
-                    rng.gen_range(120.0 * spacing_multiplier..180.0 * spacing_multiplier)
-                } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                    && matches!(client.current_site(), SiteKindMeta::Dungeon(_))
-                {
-                    rng.gen_range(10.0 * spacing_multiplier..20.0 * spacing_multiplier)
-                } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
-                    && matches!(client.current_site(), SiteKindMeta::Cave)
-                {
-                    rng.gen_range(20.0 * spacing_multiplier..40.0 * spacing_multiplier)
-                } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
-                    rng.gen_range(120.0 * spacing_multiplier..240.0 * spacing_multiplier)
-                } else if matches!(
-                    music_state,
-                    MusicState::Activity(MusicActivity::Combat(_)) | MusicState::Transition(_, _)
-                ) {
-                    0.0
-                } else {
-                    rng.gen_range(30.0 * spacing_multiplier..60.0 * spacing_multiplier)
-                };
-        }
-
+        rng: &mut ThreadRng,
+    ) -> Result<MusicState, String> {
         let is_dark = state.get_day_period().is_dark();
         let current_period_of_day = Self::get_current_day_period(is_dark);
         let current_weather = client.weather_at_player();
@@ -394,7 +454,15 @@ impl MusicMgr {
             .filter(|track| &track.music_state == music_state)
             .collect::<Vec<&SoundtrackItem>>();
         if maybe_tracks.is_empty() {
-            return Err(());
+            let error_string = format!(
+                "No tracks for {:?}, {:?}, {:?}, {:?}, {:?}",
+                &current_period_of_day,
+                &current_weather,
+                &current_site,
+                &current_biome,
+                &music_state
+            );
+            return Err(error_string);
         }
         // Second, prevent playing the last track (when not in combat, because then it
         // needs to loop)
@@ -428,7 +496,7 @@ impl MusicMgr {
 
         // Randomly selects a track from the remaining tracks weighted based
         // on the biome
-        let new_maybe_track = maybe_tracks.choose_weighted(&mut rng, |track| {
+        let new_maybe_track = maybe_tracks.choose_weighted(rng, |track| {
             // If no biome is listed, the song is still added to the
             // rotation to allow for site specific songs to play
             // in any biome
@@ -444,11 +512,16 @@ impl MusicMgr {
         );
 
         if let Ok(track) = new_maybe_track {
+            let now = audio.get_clock_time().unwrap();
             // println!("Now playing {:?}", track.title);
             self.last_track = String::from(&track.title);
-            self.began_playing = Instant::now();
+            self.began_playing = Some(now);
+            self.song_end = Some(ClockTime::from_ticks_f64(
+                audio.get_clock().unwrap().id(),
+                time_f64(now) + track.length as f64,
+            ));
             self.track_length = track.length;
-            self.next_track_change = track.length + silence_between_tracks_seconds;
+            self.gap_length = 0.0;
             if audio.music_enabled() {
                 self.current_track = String::from(&track.title);
                 self.current_artist = String::from(&track.artist.0);
@@ -463,7 +536,17 @@ impl MusicMgr {
                 self.last_combat_track = String::from(&track.title);
                 MusicChannelTag::Combat
             };
-            audio.play_music(&track.path, tag);
+            audio.play_music(&track.path, tag, track.length);
+            if tag == MusicChannelTag::Combat {
+                audio.set_loop_points(
+                    tag,
+                    track.loop_points.unwrap_or((0.0, 0.0)).0,
+                    track.loop_points.unwrap_or((0.0, 0.0)).1,
+                );
+                self.loop_points = track.loop_points
+            } else {
+                self.loop_points = None
+            };
 
             if let Some(state) = track.activity_override {
                 Ok(MusicState::Activity(state))
@@ -471,8 +554,69 @@ impl MusicMgr {
                 Ok(*music_state)
             }
         } else {
-            Err(())
+            Err(format!("{:?}", new_maybe_track))
         }
+    }
+
+    fn generate_silence_between_tracks(
+        &self,
+        spacing_multiplier: f32,
+        client: &Client,
+        music_state: &MusicState,
+        rng: &mut ThreadRng,
+    ) -> f32 {
+        let mut silence_between_tracks_seconds: f32 = 0.0;
+        if spacing_multiplier > f32::EPSILON {
+            silence_between_tracks_seconds =
+                if matches!(
+                    music_state,
+                    MusicState::Activity(MusicActivity::Explore)
+                        | MusicState::Transition(
+                            MusicActivity::Explore,
+                            MusicActivity::Combat(CombatIntensity::High)
+                        )
+                ) && matches!(client.current_site(), SiteKindMeta::Settlement(_))
+                {
+                    rng.gen_range(120.0 * spacing_multiplier..180.0 * spacing_multiplier)
+                } else if matches!(
+                    music_state,
+                    MusicState::Activity(MusicActivity::Explore)
+                        | MusicState::Transition(
+                            MusicActivity::Explore,
+                            MusicActivity::Combat(CombatIntensity::High)
+                        )
+                ) && matches!(client.current_site(), SiteKindMeta::Dungeon(_))
+                {
+                    rng.gen_range(10.0 * spacing_multiplier..20.0 * spacing_multiplier)
+                } else if matches!(
+                    music_state,
+                    MusicState::Activity(MusicActivity::Explore)
+                        | MusicState::Transition(
+                            MusicActivity::Explore,
+                            MusicActivity::Combat(CombatIntensity::High)
+                        )
+                ) && matches!(client.current_site(), SiteKindMeta::Cave)
+                {
+                    rng.gen_range(20.0 * spacing_multiplier..40.0 * spacing_multiplier)
+                } else if matches!(
+                    music_state,
+                    MusicState::Activity(MusicActivity::Explore)
+                        | MusicState::Transition(
+                            MusicActivity::Explore,
+                            MusicActivity::Combat(CombatIntensity::High)
+                        )
+                ) {
+                    rng.gen_range(120.0 * spacing_multiplier..240.0 * spacing_multiplier)
+                } else if matches!(
+                    music_state,
+                    MusicState::Activity(MusicActivity::Combat(_)) | MusicState::Transition(_, _)
+                ) {
+                    0.0
+                } else {
+                    rng.gen_range(30.0 * spacing_multiplier..60.0 * spacing_multiplier)
+                };
+        }
+        silence_between_tracks_seconds
     }
 
     fn get_current_day_period(is_dark: bool) -> DayPeriod {
@@ -488,8 +632,6 @@ impl MusicMgr {
     pub fn current_artist(&self) -> String { self.current_artist.clone() }
 
     pub fn reset_track(&mut self) {
-        self.began_playing = Instant::now();
-        self.next_track_change = 0.0;
         self.current_artist = String::from("None");
         self.current_track = String::from("None");
     }
@@ -581,6 +723,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                     biomes,
                     sites,
                     segments,
+                    loop_points,
                     artist,
                 } => {
                     for (path, length, music_state, activity_override) in segments.into_iter() {
@@ -588,6 +731,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                             title: title.clone(),
                             path,
                             length,
+                            loop_points: Some(loop_points),
                             timing: timing.clone(),
                             weather,
                             biomes: biomes.clone(),

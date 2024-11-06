@@ -68,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - (un)equipping sceptres and staffs changed to default sound
 - Sprite deletion timeouts added for spider webs and Harvester vines
 - RiposteMelee attacks have a recovery phase after missing
+- Switched from Rodio to Kira
+- Ambient noise now gets filtered when underwater.
 
 ### Removed
 
@@ -93,6 +95,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Naming of entries in controls settings.
 - Percentage values in descriptions of potion sickness and agility potion.
 - Potentially fixed graphical issues with the vulkan backend on AMD windows platforms.
+- Default audio settings button now works properly.
+- Positional audio is less glitchy.
+- Thunder sfx (corresponding with lightning) is now controlled by ambience volume.
 
 ## [0.16.0] - 2024-03-30
 

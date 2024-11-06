@@ -1,7 +1,7 @@
 //! Handles caching and retrieval of decoded `.ogg` sfx sound data, eliminating
 //! the need to decode files on each playback
 use common::assets::{self, AssetExt, Loader};
-use rodio::{source::Buffered, Decoder, Source};
+use kira::sound::static_sound::StaticSoundData;
 use std::{borrow::Cow, io};
 use tracing::warn;
 
@@ -10,11 +10,11 @@ use tracing::warn;
 
 struct SoundLoader;
 #[derive(Clone)]
-struct OggSound(Buffered<Decoder<io::Cursor<Vec<u8>>>>);
+struct OggSound(StaticSoundData);
 
 impl Loader<OggSound> for SoundLoader {
     fn load(content: Cow<[u8]>, _: &str) -> Result<OggSound, assets::BoxedError> {
-        let source = Decoder::new_vorbis(io::Cursor::new(content.into_owned()))?.buffered();
+        let source = StaticSoundData::from_cursor(io::Cursor::new(content.into_owned()))?;
         Ok(OggSound(source))
     }
 }
@@ -37,7 +37,7 @@ impl OggSound {
 }
 
 #[allow(clippy::implied_bounds_in_impls)]
-pub fn load_ogg(specifier: &str) -> impl Source + Iterator<Item = i16> {
+pub fn load_ogg(specifier: &str) -> StaticSoundData {
     OggSound::load_or_insert_with(specifier, |error| {
         warn!(?specifier, ?error, "Failed to load sound");
         OggSound::empty()

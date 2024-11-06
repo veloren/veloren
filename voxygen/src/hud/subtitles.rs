@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::VecDeque};
 
-use crate::{audio::Listener, settings::Settings, ui::fonts::Fonts};
+use crate::{settings::Settings, ui::fonts::Fonts};
 use client::Client;
 use conrod_core::{
     widget::{self, Id, Rectangle, Text},
@@ -22,7 +22,8 @@ widget_ids! {
 pub struct Subtitles<'a> {
     client: &'a Client,
     settings: &'a Settings,
-    listener: &'a Listener,
+    listener_pos: Vec3<f32>,
+    listener_ori: Vec3<f32>,
 
     fonts: &'a Fonts,
 
@@ -38,7 +39,8 @@ impl<'a> Subtitles<'a> {
     pub fn new(
         client: &'a Client,
         settings: &'a Settings,
-        listener: &'a Listener,
+        listener_pos: Vec3<f32>,
+        listener_ori: Vec3<f32>,
         new_subtitles: &'a mut VecDeque<Subtitle>,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
@@ -46,7 +48,8 @@ impl<'a> Subtitles<'a> {
         Self {
             client,
             settings,
-            listener,
+            listener_pos,
+            listener_ori,
             fonts,
             new_subtitles,
             common: widget::CommonBuilder::default(),
@@ -186,8 +189,8 @@ impl<'a> Widget for Subtitles<'a> {
 
         let widget::UpdateArgs { state, ui, .. } = args;
         let time = self.client.state().get_time();
-        let listener_pos = self.listener.pos;
-        let listener_forward = self.listener.ori;
+        let listener_pos = self.listener_pos;
+        let listener_forward = self.listener_ori;
 
         // Update subtitles and look for changes
         let mut subtitles = state.subtitles.clone();

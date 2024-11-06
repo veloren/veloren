@@ -434,28 +434,28 @@ impl<'a> Widget for Sound<'a> {
         .set(state.ids.music_spacing_number, ui);
 
         // Combat music toggle
-        let audio = &self.global_state.audio;
+        // let audio = &self.global_state.audio;
 
-        Text::new(&self.localized_strings.get_msg("hud-settings-combat_music"))
-            .font_size(self.fonts.cyri.scale(14))
-            .font_id(self.fonts.cyri.conrod_id)
-            .down_from(state.ids.music_spacing_slider, 10.0)
-            .x_align_to(state.ids.music_spacing_text, Align::Start)
-            .color(TEXT_COLOR)
-            .set(state.ids.combat_music_toggle_label, ui);
+        // Text::new(&self.localized_strings.get_msg("hud-settings-combat_music"))
+        //     .font_size(self.fonts.cyri.scale(14))
+        //     .font_id(self.fonts.cyri.conrod_id)
+        //     .down_from(state.ids.music_spacing_slider, 10.0)
+        //     .x_align_to(state.ids.music_spacing_text, Align::Start)
+        //     .color(TEXT_COLOR)
+        //     .set(state.ids.combat_music_toggle_label, ui);
 
-        let combat_music_enabled = ToggleButton::new(
-            audio.combat_music_enabled,
-            self.imgs.checkbox,
-            self.imgs.checkbox_checked,
-        )
-        .w_h(18.0, 18.0)
-        .right_from(state.ids.combat_music_toggle_label, 10.0)
-        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-        .set(state.ids.combat_music_toggle_button, ui);
+        // let combat_music_enabled = ToggleButton::new(
+        //     audio.combat_music_enabled,
+        //     self.imgs.checkbox,
+        //     self.imgs.checkbox_checked,
+        // )
+        // .w_h(18.0, 18.0)
+        // .right_from(state.ids.combat_music_toggle_label, 10.0)
+        // .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        // .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        // .set(state.ids.combat_music_toggle_button, ui);
 
-        events.push(ToggleCombatMusic(combat_music_enabled));
+        // events.push(ToggleCombatMusic(combat_music_enabled));
 
         // Audio Device Selector
         // --------------------------------------------
