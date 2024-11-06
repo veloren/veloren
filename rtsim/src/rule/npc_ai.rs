@@ -25,7 +25,7 @@ use common::{
     rtsim::{Actor, ChunkResource, NpcInput, PersonalityTrait, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
-    terrain::{CoordinateConversions, TerrainChunkSize},
+    terrain::{sprite, CoordinateConversions, TerrainChunkSize},
     time::DayPeriod,
     util::Dir,
 };
@@ -1294,9 +1294,15 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
     loop {
         match ctx.inbox.pop_front() {
             Some(NpcInput::Report(report_id)) if !ctx.known_reports.contains(&report_id) => {
-                #[allow(clippy::single_match)]
-                match ctx.state.data().reports.get(report_id).map(|r| r.kind) {
-                    Some(ReportKind::Death { killer, actor, .. })
+                let data = ctx.state.data();
+                let Some(report) = data.reports.get(report_id) else {
+                    continue;
+                };
+
+                const REPORT_RESPONSE_TIME: f64 = 60.0 * 5.0;
+
+                match report.kind {
+                    ReportKind::Death { killer, actor, .. }
                         if matches!(&ctx.npc.role, Role::Civilised(_)) =>
                     {
                         // TODO: Don't report self
@@ -1334,15 +1340,53 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                             "npc-speech-witness_death"
                         };
                         ctx.known_reports.insert(report_id);
-                        break Some(
-                            just(move |ctx, _| {
-                                ctx.controller.say(killer, Content::localized(phrase))
-                            })
-                            .l(),
-                        );
+
+                        if ctx.time_of_day.0 - report.at_tod.0 < REPORT_RESPONSE_TIME {
+                            break Some(
+                                just(move |ctx, _| {
+                                    ctx.controller.say(killer, Content::localized(phrase))
+                                })
+                                .l()
+                                .l(),
+                            );
+                        }
                     },
-                    Some(ReportKind::Death { .. }) => {}, // We don't care about death
-                    None => {},                           // Stale report, ignore
+                    ReportKind::Theft {
+                        theif,
+                        site,
+                        sprite,
+                    } => {
+                        // Check if this happened at home, where we know what belongs to who
+                        if let Some(site) = site
+                            && ctx.npc.home == Some(site)
+                        {
+                            // TODO: Don't hardcode sentiment change.
+                            ctx.sentiments
+                                .toward_mut(theif)
+                                .change_by(-0.2, Sentiment::VILLAIN);
+                            ctx.known_reports.insert(report_id);
+
+                            let phrase = if matches!(ctx.npc.profession(), Some(Profession::Farmer))
+                                && matches!(sprite.category(), sprite::Category::Plant)
+                            {
+                                "npc-speech-witness_theft_own"
+                            } else {
+                                "npc-speech-witness_theft"
+                            };
+
+                            if ctx.time_of_day.0 - report.at_tod.0 < REPORT_RESPONSE_TIME {
+                                break Some(
+                                    just(move |ctx, _| {
+                                        ctx.controller.say(theif, Content::localized(phrase))
+                                    })
+                                    .r()
+                                    .l(),
+                                );
+                            }
+                        }
+                    },
+                    // We don't care about deaths of non-civilians
+                    ReportKind::Death { .. } => {},
                 }
             },
             Some(NpcInput::Report(_)) => {}, // Reports we already know of are ignored

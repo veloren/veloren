@@ -1632,12 +1632,12 @@ impl Structure for House {
                         _ => Vec2::new(quarter_x, half_y),
                     };
                     painter.sprite(table_pos.with_z(base), SpriteKind::TableDouble);
-                    for (idx, dir) in CARDINALS.iter().enumerate() {
-                        let chair_pos = table_pos + dir * (1 + idx % 2) as i32;
+                    for dir in Dir::iter() {
+                        let chair_pos = table_pos + dir.select((2, 1)) * dir.to_vec2();
                         painter.rotated_sprite(
                             chair_pos.with_z(base),
                             SpriteKind::ChairSingle,
-                            (idx * 2 + ((idx % 2) * 4)) as u8,
+                            dir.opposite().sprite_ori(),
                         );
                     }
                 }

@@ -7,6 +7,7 @@ use common::{
     grid::Grid,
     mounting::VolumePos,
     rtsim::{Actor, ChunkResource, NpcId, RtSimEntity, WorldSettings},
+    terrain::{CoordinateConversions, SpriteKind},
 };
 use common_ecs::{dispatch, System};
 use common_state::BlockDiff;
@@ -14,7 +15,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use enum_map::EnumMap;
 use rtsim::{
     data::{npc::SimulationMode, Data, ReadError},
-    event::{OnDeath, OnMountVolume, OnSetup},
+    event::{OnDeath, OnMountVolume, OnSetup, OnTheft},
     RtState,
 };
 use specs::DispatcherBuilder;
@@ -155,6 +156,33 @@ impl RtSim {
         actor: Actor,
     ) {
         self.state.emit(OnMountVolume { actor, pos }, world, index)
+    }
+
+    pub fn hook_pickup_owned_sprite(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        sprite: SpriteKind,
+        wpos: Vec3<i32>,
+        actor: Actor,
+    ) {
+        let site = world.sim().get(wpos.xy().wpos_to_cpos()).and_then(|chunk| {
+            chunk
+                .sites
+                .iter()
+                .find_map(|site| self.state.data().sites.world_site_map.get(site).copied())
+        });
+
+        self.state.emit(
+            OnTheft {
+                actor,
+                wpos,
+                sprite,
+                site,
+            },
+            world,
+            index,
+        )
     }
 
     pub fn hook_load_chunk(&mut self, key: Vec2<i32>, max_res: EnumMap<ChunkResource, usize>) {
