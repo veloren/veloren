@@ -872,7 +872,11 @@ impl CharacterState {
             CharacterState::RiposteMelee(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
                 action: Some(data.static_data.swing_duration),
-                recover: Some(data.static_data.recover_duration),
+                recover: Some(if data.whiffed {
+                    data.static_data.whiffed_recover_duration
+                } else {
+                    data.static_data.recover_duration
+                }),
                 ..Default::default()
             }),
             CharacterState::RapidMelee(data) => Some(DurationsInfo {

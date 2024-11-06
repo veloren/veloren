@@ -18,6 +18,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
+    /// How long the state has until exiting if the ability missed
+    pub whiffed_recover_duration: Duration,
     /// Base value that incoming damage is reduced by and converted to poise
     /// damage
     pub block_strength: f32,
@@ -38,6 +40,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
+    /// Whether the riposte whiffed
+    pub whiffed: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -51,15 +55,16 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Buildup => {
-                if self.timer < self.static_data.buildup_duration {
-                    // Build up
-                    if let CharacterState::RiposteMelee(c) = &mut update.character {
+                if let CharacterState::RiposteMelee(c) = &mut update.character {
+                    if self.timer < self.static_data.buildup_duration {
+                        // Build up
                         c.timer = tick_attack_or_default(data, self.timer, None);
+                    } else {
+                        // If duration finishes with no parry occurring transition to recover
+                        // Transition to action happens in parry hook server event
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
                     }
-                } else {
-                    // If duration finishes with no pary occurring, end character state
-                    // Transition to action happens in parry hook server event
-                    end_ability(data, &mut update);
                 }
             },
             StageSection::Action => {
@@ -91,18 +96,23 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Recover => {
-                if self.timer < self.static_data.recover_duration {
-                    // Recovery
-                    if let CharacterState::RiposteMelee(c) = &mut update.character {
+                if let CharacterState::RiposteMelee(c) = &mut update.character {
+                    let recover_duration = if c.whiffed {
+                        self.static_data.whiffed_recover_duration
+                    } else {
+                        self.static_data.recover_duration
+                    };
+                    if self.timer < recover_duration {
+                        // Recovery
                         c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
                         );
+                    } else {
+                        // Done
+                        end_melee_ability(data, &mut update);
                     }
-                } else {
-                    // Done
-                    end_melee_ability(data, &mut update);
                 }
             },
             _ => {

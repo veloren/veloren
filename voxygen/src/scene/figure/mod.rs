@@ -3859,7 +3859,12 @@ impl FigureMgr {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                    let recover_duration = if s.whiffed {
+                                        s.static_data.whiffed_recover_duration.as_secs_f32()
+                                    } else {
+                                        s.static_data.recover_duration.as_secs_f32()
+                                    };
+                                    stage_time / recover_duration
                                 },
                                 _ => 0.0,
                             };
@@ -4557,7 +4562,12 @@ impl FigureMgr {
                                     stage_time / s.static_data.swing_duration.as_secs_f32()
                                 },
                                 StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
+                                    let recover_duration = if s.whiffed {
+                                        s.static_data.whiffed_recover_duration.as_secs_f32()
+                                    } else {
+                                        s.static_data.recover_duration.as_secs_f32()
+                                    };
+                                    stage_time / recover_duration
                                 },
                                 _ => 0.0,
                             };

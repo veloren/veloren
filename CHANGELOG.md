@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Revamped armor stat scaling, akin to weapons.
 - (un)equipping sceptres and staffs changed to default sound
 - Sprite deletion timeouts added for spider webs and Harvester vines
+- RiposteMelee attacks have a recovery phase after missing
 
 ### Removed
 

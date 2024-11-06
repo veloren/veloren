@@ -1102,6 +1102,7 @@ pub enum CharacterAbility {
         buildup_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
+        whiffed_recover_duration: f32,
         block_strength: f32,
         melee_constructor: MeleeConstructor,
         #[serde(default)]
@@ -1824,6 +1825,7 @@ impl CharacterAbility {
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
+                ref mut whiffed_recover_duration,
                 ref mut block_strength,
                 ref mut melee_constructor,
                 meta: _,
@@ -1831,6 +1833,7 @@ impl CharacterAbility {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
+                *whiffed_recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
                 *block_strength *= stats.power;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
@@ -2987,6 +2990,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buildup_duration,
                 swing_duration,
                 recover_duration,
+                whiffed_recover_duration,
                 block_strength,
                 melee_constructor,
                 meta: _,
@@ -2995,6 +2999,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
+                    whiffed_recover_duration: Duration::from_secs_f32(*whiffed_recover_duration),
                     block_strength: *block_strength,
                     melee_constructor: *melee_constructor,
                     ability_info,
@@ -3002,6 +3007,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
+                whiffed: true,
             }),
             CharacterAbility::RapidMelee {
                 buildup_duration,

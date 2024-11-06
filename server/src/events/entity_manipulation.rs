@@ -1935,6 +1935,7 @@ impl ServerEvent for ParryHookEvent {
                     CharacterState::RiposteMelee(c) => {
                         c.stage_section = StageSection::Action;
                         c.timer = Duration::default();
+                        c.whiffed = false;
                         false
                     },
                     CharacterState::BasicBlock(c) => {
