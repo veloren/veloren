@@ -1,6 +1,6 @@
 use super::*;
 use crate::{ColumnSample, Land};
-use common::terrain::{Block, BlockKind, SpriteKind};
+use common::terrain::{sprite::Owned, Block, BlockKind, SpriteKind};
 use rand::prelude::*;
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
@@ -253,7 +253,12 @@ impl Structure for FarmField {
                 .sprites()
                 .choose_weighted(rng, |(w, _)| *w)
                 .ok()
-                .and_then(|&(_, s)| Some(old.into_vacant().with_sprite(s?)))
+                .and_then(|&(_, s)| {
+                    let new = old.into_vacant().with_sprite(s?);
+                    let new = new.with_attr(Owned(true)).unwrap_or(new);
+
+                    Some(new)
+                })
         } else if z_off == 1 && rng.gen_bool(0.001) {
             Some(old.into_vacant().with_sprite(SpriteKind::Scarecrow))
         } else {

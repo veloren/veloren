@@ -114,23 +114,6 @@ sprites! {
         Loom             = 0x27,
         DismantlingBench = 0x28,
         RepairBench      = 0x29,
-        // Containers
-        Chest             = 0x30,
-        DungeonChest0     = 0x31,
-        DungeonChest1     = 0x32,
-        DungeonChest2     = 0x33,
-        DungeonChest3     = 0x34,
-        DungeonChest4     = 0x35,
-        DungeonChest5     = 0x36,
-        CoralChest        = 0x37,
-        HaniwaUrn         = 0x38,
-        TerracottaChest   = 0x39,
-        SahaginChest      = 0x3A,
-        CommonLockedChest = 0x3B,
-        ChestBuried       = 0x3C,
-        Crate             = 0x3D,
-        Barrel            = 0x3E,
-        CrateBlock        = 0x3F,
         // Wall
         HangingBasket     = 0x50,
         HangingSign       = 0x51,
@@ -155,7 +138,7 @@ sprites! {
         Hearth         = 0x72,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
-    Plant = 3 has Growth {
+    Plant = 3 has Growth, Owned {
         // Cacti
         BarrelCactus    = 0x00,
         RoundCactus     = 0x01,
@@ -251,7 +234,7 @@ sprites! {
     },
     // Solid resources
     // TODO: Remove small variants, make deposit size be an attribute
-    Resources = 4 {
+    Resources = 4 has Owned {
         // Gems and ores
         // Woods and twigs
         Twigs     = 0x00,
@@ -394,6 +377,24 @@ sprites! {
         FireBowlGround  = 4,
         MesaLantern     = 5,
     },
+    Container = 9 has Ori, Owned {
+        Chest             = 0x00,
+        DungeonChest0     = 0x01,
+        DungeonChest1     = 0x02,
+        DungeonChest2     = 0x03,
+        DungeonChest3     = 0x04,
+        DungeonChest4     = 0x05,
+        DungeonChest5     = 0x06,
+        CoralChest        = 0x07,
+        HaniwaUrn         = 0x08,
+        TerracottaChest   = 0x09,
+        SahaginChest      = 0x0A,
+        CommonLockedChest = 0x0B,
+        ChestBuried       = 0x0C,
+        Crate             = 0x0D,
+        Barrel            = 0x0E,
+        CrateBlock        = 0x0F,
+    },
 }
 
 attributes! {
@@ -401,6 +402,7 @@ attributes! {
     Growth { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Growth(x)| x as u16 },
     LightEnabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightEnabled(x)| x as u16 },
     Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
+    Owned { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |Owned(x)| x as u16 },
 }
 
 // The orientation of the sprite, 0..16
@@ -418,6 +420,9 @@ impl Default for Growth {
 // Whether a light has been toggled on or off.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct LightEnabled(pub bool);
+
+#[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Owned(pub bool);
 
 impl Default for LightEnabled {
     fn default() -> Self { Self(true) }

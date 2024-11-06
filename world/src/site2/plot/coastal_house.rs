@@ -364,7 +364,11 @@ impl Structure for CoastalHouse {
                     let sprite = sprites.swap_remove(
                         RandomField::new(0).get(position.with_z(base)) as usize % sprites.len(),
                     );
-                    painter.sprite(position.with_z(base - 2 + (s * height)), sprite);
+                    painter.owned_resource_sprite(
+                        position.with_z(base - 2 + (s * height)),
+                        sprite,
+                        0,
+                    );
                 }
             }
 

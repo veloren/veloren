@@ -233,10 +233,10 @@ impl Primitive {
 
 #[derive(Clone)]
 pub enum Fill {
-    Sprite(SpriteKind),
-    RotatedSprite(SpriteKind, u8),
-    RotatedSpriteWithCfg(SpriteKind, u8, SpriteCfg),
-    ResourceSprite(SpriteKind, u8),
+    Sprite(Block),
+    ResourceSprite(Block),
+    CfgSprite(Block, SpriteCfg),
+
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
     Gradient(util::gradient::Gradient, BlockKind),
@@ -248,6 +248,44 @@ pub enum Fill {
 }
 
 impl Fill {
+    pub fn sprite(kind: SpriteKind) -> Self { Fill::Block(Block::empty().with_sprite(kind)) }
+
+    pub fn sprite_ori(kind: SpriteKind, ori: u8) -> Self {
+        let block = Block::empty().with_sprite(kind);
+
+        let block = block.with_ori(ori).unwrap_or(block);
+        Fill::Sprite(block)
+    }
+
+    pub fn resource_sprite(kind: SpriteKind) -> Self {
+        Fill::ResourceSprite(Block::empty().with_sprite(kind))
+    }
+
+    pub fn resource_sprite_ori(kind: SpriteKind, ori: u8) -> Self {
+        let block = Block::empty().with_sprite(kind);
+
+        let block = block.with_ori(ori).unwrap_or(block);
+        Fill::ResourceSprite(block)
+    }
+
+    pub fn owned_resource_sprite_ori(kind: SpriteKind, ori: u8) -> Self {
+        let block = Block::empty().with_sprite(kind);
+
+        let block = block.with_ori(ori).unwrap_or(block);
+        let block = block
+            .with_attr(common::terrain::sprite::Owned(true))
+            .unwrap_or(block);
+
+        Fill::ResourceSprite(block)
+    }
+
+    pub fn sprite_ori_cfg(kind: SpriteKind, ori: u8, cfg: SpriteCfg) -> Self {
+        let block = Block::empty().with_sprite(kind);
+
+        let block = block.with_ori(ori).unwrap_or(block);
+        Fill::CfgSprite(block, cfg)
+    }
+
     fn contains_at(
         tree: &Store<Primitive>,
         prim: Id<Primitive>,
@@ -480,37 +518,22 @@ impl Fill {
     ) -> Option<Block> {
         if Self::contains_at(tree, prim, pos, col) {
             match self {
-                Fill::Block(block) => Some(*block),
-                Fill::Sprite(sprite) => Some(if old_block.is_filled() {
-                    Block::air(*sprite)
-                } else {
-                    old_block.with_sprite(*sprite)
-                }),
-                Fill::RotatedSprite(sprite, ori) | Fill::ResourceSprite(sprite, ori) => {
+                Fill::Sprite(sprite) | Fill::ResourceSprite(sprite) => {
                     Some(if old_block.is_filled() {
-                        Block::air(*sprite)
-                            .with_ori(*ori)
-                            .unwrap_or_else(|| Block::air(*sprite))
+                        *sprite
                     } else {
-                        old_block
-                            .with_sprite(*sprite)
-                            .with_ori(*ori)
-                            .unwrap_or_else(|| old_block.with_sprite(*sprite))
+                        old_block.with_data_of(*sprite)
                     })
                 },
-                Fill::RotatedSpriteWithCfg(sprite, ori, cfg) => Some({
+                Fill::CfgSprite(sprite, cfg) => {
                     *sprite_cfg = Some(cfg.clone());
-                    if old_block.is_filled() {
-                        Block::air(*sprite)
-                            .with_ori(*ori)
-                            .unwrap_or_else(|| Block::air(*sprite))
+                    Some(if old_block.is_filled() {
+                        *sprite
                     } else {
-                        old_block
-                            .with_sprite(*sprite)
-                            .with_ori(*ori)
-                            .unwrap_or_else(|| old_block.with_sprite(*sprite))
-                    }
-                }),
+                        old_block.with_data_of(*sprite)
+                    })
+                },
+                Fill::Block(block) => Some(*block),
                 Fill::Brick(bk, col, range) => Some(Block::new(
                     *bk,
                     *col + (RandomField::new(13)
@@ -1080,7 +1103,7 @@ impl Painter {
             min: pos,
             max: pos + 1,
         })
-        .fill(Fill::Sprite(sprite))
+        .fill(Fill::sprite(sprite))
     }
 
     /// Places a sprite at the provided location with the provided orientation.
@@ -1089,7 +1112,7 @@ impl Painter {
             min: pos,
             max: pos + 1,
         })
-        .fill(Fill::RotatedSprite(sprite, ori))
+        .fill(Fill::sprite_ori(sprite, ori))
     }
 
     /// Places a sprite at the provided location with the provided orientation
@@ -1105,7 +1128,7 @@ impl Painter {
             min: pos,
             max: pos + 1,
         })
-        .fill(Fill::RotatedSpriteWithCfg(sprite, ori, cfg))
+        .fill(Fill::sprite_ori_cfg(sprite, ori, cfg))
     }
 
     /// Places a sprite at the provided location with the provided orientation
@@ -1116,7 +1139,18 @@ impl Painter {
             min: pos,
             max: pos + 1,
         })
-        .fill(Fill::ResourceSprite(sprite, ori))
+        .fill(Fill::resource_sprite_ori(sprite, ori))
+    }
+
+    /// Places a sprite at the provided location with the provided orientation
+    /// which will be tracked by rtsim nature if the sprite has an associated
+    /// [`ChunkResource`].
+    pub fn owned_resource_sprite(&self, pos: Vec3<i32>, sprite: SpriteKind, ori: u8) {
+        self.aabb(Aabb {
+            min: pos,
+            max: pos + 1,
+        })
+        .fill(Fill::owned_resource_sprite_ori(sprite, ori))
     }
 
     /// Returns a `PrimitiveRef` of the largest pyramid with a slope of 1 that

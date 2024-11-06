@@ -2046,6 +2046,7 @@ impl Hud {
                     vec![(
                         Some(GameInput::Interact),
                         i18n.get_msg("hud-pick_up").to_string(),
+                        overitem::TEXT_COLOR,
                     )],
                 )
                 .set(overitem_id, ui_widgets);
@@ -2077,17 +2078,19 @@ impl Hud {
                 let pos = mat.mul_point(Vec3::broadcast(0.5));
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
-                let interaction_text = |collect_default| match interaction {
+                let interaction_text = |collect_default, color| match interaction {
                     BlockInteraction::Collect => {
                         vec![(
                             Some(GameInput::Interact),
                             i18n.get_msg(collect_default).to_string(),
+                            color,
                         )]
                     },
                     BlockInteraction::Craft(_) => {
                         vec![(
                             Some(GameInput::Interact),
                             i18n.get_msg("hud-use").to_string(),
+                            color,
                         )]
                     },
                     BlockInteraction::Unlock(kind) => {
@@ -2103,19 +2106,23 @@ impl Hud {
                                 .unwrap_or_else(|| "modular item".to_string())
                         };
 
-                        vec![(Some(GameInput::Interact), match kind {
-                            UnlockKind::Free => i18n.get_msg("hud-open").to_string(),
-                            UnlockKind::Requires(item_id) => i18n
-                                .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
-                                    "item" => item_name(item_id),
-                                })
-                                .to_string(),
-                            UnlockKind::Consumes(item_id) => i18n
-                                .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
-                                    "item" => item_name(item_id),
-                                })
-                                .to_string(),
-                        })]
+                        vec![(
+                            Some(GameInput::Interact),
+                            match kind {
+                                UnlockKind::Free => i18n.get_msg("hud-open").to_string(),
+                                UnlockKind::Requires(item_id) => i18n
+                                    .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
+                                        "item" => item_name(item_id),
+                                    })
+                                    .to_string(),
+                                UnlockKind::Consumes(item_id) => i18n
+                                    .get_msg_ctx("hud-unlock-requires", &i18n::fluent_args! {
+                                        "item" => item_name(item_id),
+                                    })
+                                    .to_string(),
+                            },
+                            color,
+                        )]
                     },
                     BlockInteraction::Mine(mine_tool) => {
                         match (mine_tool, &info.active_mine_tool) {
@@ -2123,24 +2130,35 @@ impl Hud {
                                 vec![(
                                     Some(GameInput::Primary),
                                     i18n.get_msg("hud-mine").to_string(),
+                                    color,
                                 )]
                             },
                             (ToolKind::Pick, _) => {
-                                vec![(None, i18n.get_msg("hud-mine-needs_pickaxe").to_string())]
+                                vec![(
+                                    None,
+                                    i18n.get_msg("hud-mine-needs_pickaxe").to_string(),
+                                    color,
+                                )]
                             },
                             (ToolKind::Shovel, Some(ToolKind::Shovel)) => {
                                 vec![(
                                     Some(GameInput::Primary),
                                     i18n.get_msg("hud-dig").to_string(),
+                                    color,
                                 )]
                             },
                             (ToolKind::Shovel, _) => {
-                                vec![(None, i18n.get_msg("hud-mine-needs_shovel").to_string())]
+                                vec![(
+                                    None,
+                                    i18n.get_msg("hud-mine-needs_shovel").to_string(),
+                                    color,
+                                )]
                             },
                             _ => {
                                 vec![(
                                     None,
                                     i18n.get_msg("hud-mine-needs_unhandled_case").to_string(),
+                                    color,
                                 )]
                             },
                         }
@@ -2156,11 +2174,12 @@ impl Hud {
                             ) => "hud-lay",
                             _ => "hud-sit",
                         };
-                        vec![(Some(GameInput::Mount), i18n.get_msg(key).to_string())]
+                        vec![(Some(GameInput::Mount), i18n.get_msg(key).to_string(), color)]
                     },
                     BlockInteraction::Read(_) => vec![(
                         Some(GameInput::Interact),
                         i18n.get_msg("hud-read").to_string(),
+                        color,
                     )],
                     // TODO: change to turn on/turn off?
                     BlockInteraction::LightToggle(enable) => vec![(
@@ -2171,6 +2190,7 @@ impl Hud {
                             "hud-deactivate"
                         })
                         .to_string(),
+                        color,
                     )],
                 };
 
@@ -2180,6 +2200,12 @@ impl Hud {
                     .filter(|s| s.is_container())
                     .and_then(|s| get_sprite_desc(s, i18n))
                 {
+                    let (text, color) = if block.is_owned() {
+                        ("hud-steal", overitem::NEGATIVE_TEXT_COLOR)
+                    } else {
+                        ("hud-open", overitem::TEXT_COLOR)
+                    };
+
                     overitem::Overitem::new(
                         desc,
                         overitem::TEXT_COLOR,
@@ -2190,7 +2216,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        interaction_text("hud-open"),
+                        interaction_text(text, color),
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -2204,6 +2230,11 @@ impl Hud {
                     .flatten()
                     .next()
                 {
+                    let (text, color) = if block.is_owned() {
+                        ("hud-steal", overitem::NEGATIVE_TEXT_COLOR)
+                    } else {
+                        ("hud-collect", overitem::TEXT_COLOR)
+                    };
                     item.set_amount(amount.clamp(1, item.max_amount()))
                         .expect("amount >= 1 and <= max_amount is always a valid amount");
                     make_overitem(
@@ -2212,11 +2243,16 @@ impl Hud {
                         pos.distance_squared(player_pos),
                         overitem_properties,
                         &self.fonts,
-                        interaction_text("hud-collect"),
+                        interaction_text(text, color),
                     )
                     .set(overitem_id, ui_widgets);
                 } else if let Some(desc) = block.get_sprite().and_then(|s| get_sprite_desc(s, i18n))
                 {
+                    let (text, color) = if block.is_owned() {
+                        ("hud-steal", overitem::NEGATIVE_TEXT_COLOR)
+                    } else {
+                        ("hud-collect", overitem::TEXT_COLOR)
+                    };
                     overitem::Overitem::new(
                         desc,
                         overitem::TEXT_COLOR,
@@ -2227,7 +2263,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        interaction_text("hud-collect"),
+                        interaction_text(text, color),
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -2285,6 +2321,7 @@ impl Hud {
                                 "hud-use"
                             })
                             .to_string(),
+                            overitem::TEXT_COLOR,
                         )],
                     )
                     .x_y(0.0, 100.0)

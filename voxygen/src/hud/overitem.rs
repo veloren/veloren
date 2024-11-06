@@ -15,6 +15,7 @@ use crate::hud::{CollectFailedData, HudCollectFailedReason, HudLootOwner};
 use keyboard_keynames::key_layout::KeyLayout;
 
 pub const TEXT_COLOR: Color = Color::Rgba(0.61, 0.61, 0.89, 1.0);
+pub const NEGATIVE_TEXT_COLOR: Color = Color::Rgba(0.91, 0.15, 0.17, 1.0);
 pub const PICKUP_FAILED_FADE_OUT_TIME: f32 = 1.5;
 
 widget_ids! {
@@ -24,7 +25,7 @@ widget_ids! {
         name,
         // Interaction hints
         btn_bg,
-        btn,
+        btns[],
         // Inventory full
         inv_full_bg,
         inv_full,
@@ -47,7 +48,7 @@ pub struct Overitem<'a> {
     pulse: f32,
     key_layout: &'a Option<KeyLayout>,
     // GameInput optional so we can just show stuff like "needs pickaxe"
-    interaction_options: Vec<(Option<GameInput>, String)>,
+    interaction_options: Vec<(Option<GameInput>, String, Color)>,
 }
 
 impl<'a> Overitem<'a> {
@@ -61,7 +62,7 @@ impl<'a> Overitem<'a> {
         properties: OveritemProperties,
         pulse: f32,
         key_layout: &'a Option<KeyLayout>,
-        interaction_options: Vec<(Option<GameInput>, String)>,
+        interaction_options: Vec<(Option<GameInput>, String, Color)>,
     ) -> Self {
         Self {
             name,
@@ -174,42 +175,56 @@ impl<'a> Widget for Overitem<'a> {
 
         // Interaction hints
         if !self.interaction_options.is_empty() && self.properties.active {
-            let text = self
+            let texts = self
                 .interaction_options
                 .iter()
-                .filter_map(|(input, action)| {
+                .filter_map(|(input, action, color)| {
                     let binding = if let Some(input) = input {
                         Some(self.controls.get_binding(*input)?)
                     } else {
                         None
                     };
-                    Some((binding, action))
+                    Some((binding, action, color))
                 })
-                .map(|(input, action)| {
+                .map(|(input, action, color)| {
                     if let Some(input) = input {
                         let input = input.display_string(self.key_layout);
-                        format!("{}  {action}", input.as_str())
+                        (format!("{}  {action}", input.as_str()), color)
                     } else {
-                        action.to_string()
+                        (action.to_string(), color)
                     }
                 })
-                .collect::<Vec<_>>()
-                .join("\n");
+                .collect::<Vec<_>>();
+            if state.ids.btns.len() < texts.len() {
+                state.update(|state| {
+                    state
+                        .ids
+                        .btns
+                        .resize(texts.len(), &mut ui.widget_id_generator());
+                })
+            }
 
-            let hints_text = Text::new(&text)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(btn_font_size as u32)
-                .color(TEXT_COLOR)
-                .x_y(0.0, btn_text_pos_y)
-                .depth(self.distance_from_player_sqr + 1.0)
-                .parent(id);
+            let mut max_w = btn_rect_size;
+            let mut max_h = 0.0;
 
-            let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+            for (idx, (text, color)) in texts.iter().enumerate() {
+                let hints_text = Text::new(text)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(btn_font_size as u32)
+                    .color(**color)
+                    .x_y(0.0, btn_text_pos_y + max_h)
+                    .depth(self.distance_from_player_sqr + 1.0)
+                    .parent(id);
+                let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+                max_w = max_w.max(w);
+                max_h += h;
+                hints_text.set(state.ids.btns[idx], ui);
+            }
 
-            hints_text.set(state.ids.btn, ui);
+            max_h = max_h.max(btn_rect_size);
 
             RoundedRectangle::fill_with(
-                [w + btn_radius * 2.0, h + btn_radius * 2.0],
+                [max_w + btn_radius * 2.0, max_h + btn_radius * 2.0],
                 btn_radius,
                 btn_color,
             )

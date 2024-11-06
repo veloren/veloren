@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     generation::{EntityInfo, SpecialEntity},
-    terrain::{BlockKind, SpriteKind},
+    terrain::{sprite::Owned, BlockKind, SpriteKind},
 };
 use rand::prelude::*;
 use std::sync::Arc;
@@ -43,11 +43,15 @@ impl Structure for SavannahPit {
         let center = self.bounds.center();
         let sprite_fill = Fill::Sampling(Arc::new(|wpos| {
             Some(match (RandomField::new(0).get(wpos)) % 50 {
-                0 => Block::air(SpriteKind::Bowl),
-                1 => Block::air(SpriteKind::VialEmpty),
+                0 => Block::air(SpriteKind::Bowl).with_attr(Owned(true)).unwrap(),
+                1 => Block::air(SpriteKind::VialEmpty)
+                    .with_attr(Owned(true))
+                    .unwrap(),
                 2 => Block::air(SpriteKind::Lantern),
                 3 => Block::air(SpriteKind::JugArabic),
-                4 => Block::air(SpriteKind::Crate),
+                4 => Block::air(SpriteKind::Crate)
+                    .with_attr(Owned(true))
+                    .unwrap(),
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
@@ -727,7 +731,11 @@ impl Structure for SavannahPit {
                                     RandomField::new(0).get(position.with_z(base)) as usize
                                         % sprites.len(),
                                 );
-                                painter.sprite(position.with_z(base - ((1 + f) * length)), sprite);
+                                painter.owned_resource_sprite(
+                                    position.with_z(base - ((1 + f) * length)),
+                                    sprite,
+                                    0,
+                                );
                             }
                         }
                     },

@@ -671,7 +671,7 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
                     1,
                     4,
                 )
-                .fill(Fill::Sprite(SpriteKind::FireBowlGround));
+                .fill(Fill::sprite(SpriteKind::FireBowlGround));
         },
         RoofKind::Hipped => {
             painter
@@ -829,7 +829,7 @@ fn render_hang(bridge: &Bridge, painter: &Painter) {
 
     edges
         .translate(Vec3::unit_z())
-        .fill(Fill::Sprite(SpriteKind::Rope));
+        .fill(Fill::sprite(SpriteKind::Rope));
 
     edges.translate(Vec3::unit_z() * 2).fill(wood);
 
