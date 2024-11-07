@@ -1063,7 +1063,7 @@ void main() {
         case WATER_FOAM:
             f_reflect = 0.1;
             attr = Attr(
-                inst_dir * pow(percent(), 0.5) * 0.5 + pow(slow_start(0.5) * 2, 2) * vec3(0, 0, -20),
+                inst_dir * pow(percent(), 0.5) * 0.5 + percent() * percent() * vec3(0, 0, -50),
                 vec3((1.5 * (1 - slow_start(0.2)))),
                 vec4(1.0, 1.0, 1.0, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)

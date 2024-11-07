@@ -516,30 +516,35 @@ impl ParticleMgr {
                     comp::fluid_dynamics::LiquidKind::Water => ParticleMode::WaterFoam,
                     comp::fluid_dynamics::LiquidKind::Lava => ParticleMode::CampfireFire,
                 };
-                let magnitude = vel.magnitude();
+                let magnitude = (-vel.z).max(0.0);
                 let energy = mass * magnitude;
                 if energy > 0.0 {
-                    let axis = vel / magnitude;
-                    let count = (2.0 * energy.sqrt()).ceil() as usize;
-                    dbg!(count);
+                    // let axis = vel / magnitude;
+                    let count = (0.6 * energy.sqrt()).ceil() as usize;
+                    // dbg!(count);
                     let mut i = 0;
                     let r = 0.5 / count as f32;
-                    let plane = if axis == Vec3::unit_z() {
-                        Vec3::unit_x()
-                    } else {
-                        axis.cross(Vec3::unit_z())
-                    };
-                    dbg!(plane);
+                    // let plane = if axis == Vec3::unit_z() {
+                    //     Vec3::unit_x()
+                    // } else {
+                    //     axis.cross(Vec3::unit_z())
+                    // };
+                    // dbg!(plane);
                     self.particles
                         .resize_with(self.particles.len() + count, || {
                             let t = i as f32 / count as f32 + rng.gen_range(-r..=r);
                             i += 1;
                             let angle = t * TAU;
-                            let s = (angle * 0.5).sin();
-                            let c = (angle * 0.5).cos();
-                            let q = Quaternion::<f32>::from((axis * s).with_w(c)).normalized();
+                            let s = angle.sin();
+                            let c = angle.cos();
+                            let energy = energy
+                                * f32::abs(rng.gen_range(0.0..1.0) + rng.gen_range(0.0..1.0) - 0.5);
+                            // let q = Quaternion::<f32>::from((axis * s).with_w(c)).normalized();
 
-                            let plane = (plane * q).normalized();
+                            // let plane = (plane * q).normalized();
+
+                            let axis = -Vec3::unit_z();
+                            let plane = Vec3::new(c, s, 0.0);
 
                             let pos = *pos + plane * rng.gen_range(0.0..0.5);
 
