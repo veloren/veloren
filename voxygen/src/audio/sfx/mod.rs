@@ -904,7 +904,6 @@ impl SfxMgr {
                     sfx_trigger_item,
                     *pos,
                     Some((mass * vel.magnitude()).sqrt() / 10.0),
-                    underwater,
                 );
             },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},
