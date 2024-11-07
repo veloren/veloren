@@ -234,7 +234,7 @@ sprites! {
     },
     // Solid resources
     // TODO: Remove small variants, make deposit size be an attribute
-    Resources = 4 has Owned {
+    Resource = 4 has Owned {
         // Gems and ores
         // Woods and twigs
         Twigs     = 0x00,
