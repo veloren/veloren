@@ -54,7 +54,7 @@ pub enum ReportKind {
         killer: Option<Actor>,
     },
     Theft {
-        theif: Actor,
+        thief: Actor,
         /// Where the theft happened.
         site: Option<SiteId>,
         /// What was stolen.

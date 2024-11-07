@@ -1352,7 +1352,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                         }
                     },
                     ReportKind::Theft {
-                        theif,
+                        thief,
                         site,
                         sprite,
                     } => {
@@ -1362,7 +1362,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                         {
                             // TODO: Don't hardcode sentiment change.
                             ctx.sentiments
-                                .toward_mut(theif)
+                                .toward_mut(thief)
                                 .change_by(-0.2, Sentiment::VILLAIN);
                             ctx.known_reports.insert(report_id);
 
@@ -1377,7 +1377,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                             if ctx.time_of_day.0 - report.at_tod.0 < REPORT_RESPONSE_TIME {
                                 break Some(
                                     just(move |ctx, _| {
-                                        ctx.controller.say(theif, Content::localized(phrase))
+                                        ctx.controller.say(thief, Content::localized(phrase))
                                     })
                                     .r()
                                     .l(),

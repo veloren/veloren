@@ -59,7 +59,7 @@ fn on_theft(ctx: EventCtx<ReportEvents, OnTheft>) {
     if !nearby.is_empty() {
         let report = data.reports.create(Report {
             kind: ReportKind::Theft {
-                theif: ctx.event.actor,
+                thief: ctx.event.actor,
                 site: ctx.event.site,
                 sprite: ctx.event.sprite,
             },
