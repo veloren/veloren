@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wild Legoom and Goblin mobs
 - Bloodservants, Strigoi, and Scarlet Spectacles added to Halloween event
 - IP Bans
+- Npcs can catch you stealing.
 
 ### Changed
 

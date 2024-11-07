@@ -110,7 +110,6 @@ pub struct InventoryManipData<'a> {
     pets: ReadStorage<'a, comp::Pet>,
     velocities: ReadStorage<'a, comp::Vel>,
     masses: ReadStorage<'a, comp::Mass>,
-    #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, comp::Presence>,
 }
 
