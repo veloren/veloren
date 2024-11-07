@@ -628,6 +628,14 @@ image_ids! {
         search_btn_hover: "voxygen.element.ui.generic.buttons.search_btn_hover",
         search_btn_press: "voxygen.element.ui.generic.buttons.search_btn_press",
 
+        // Eye-buttons
+        eye_open_btn: "voxygen.element.ui.generic.buttons.eye_open_btn",
+        eye_open_btn_hover: "voxygen.element.ui.generic.buttons.eye_open_btn_hover",
+        eye_open_btn_press: "voxygen.element.ui.generic.buttons.eye_open_btn_press",
+        eye_closed_btn: "voxygen.element.ui.generic.buttons.eye_closed_btn",
+        eye_closed_btn_hover: "voxygen.element.ui.generic.buttons.eye_closed_btn_hover",
+        eye_closed_btn_press: "voxygen.element.ui.generic.buttons.eye_closed_btn_press",
+
         // Edit-Button
         edit_btn: "voxygen.element.ui.char_select.icons.pen",
         edit_btn_hover: "voxygen.element.ui.char_select.icons.pen_hover",

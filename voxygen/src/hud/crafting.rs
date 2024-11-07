@@ -56,6 +56,7 @@ widget_ids! {
         title_rec,
         align_rec,
         scrollbar_rec,
+        btn_show_all_recipes,
         btn_open_search,
         btn_close_search,
         input_search,
@@ -119,6 +120,7 @@ pub enum Event {
     Close,
     Focus(widget::Id),
     SearchRecipe(Option<String>),
+    ShowAllRecipes(bool),
     ClearRecipeInputs,
     RepairItem {
         slot: Slot,
@@ -2305,8 +2307,35 @@ impl<'a> Widget for Crafting<'a> {
                 .top_left_with_margins_on(state.ids.window, 52.0, 26.0)
                 .graphics_for(state.ids.btn_open_search)
                 .set(state.ids.input_overlay_search, ui);
-            if Button::image(self.imgs.search_btn)
+            let (eye, eye_hover, eye_press) = if self.settings.gameplay.show_all_recipes {
+                (
+                    self.imgs.eye_open_btn,
+                    self.imgs.eye_open_btn_hover,
+                    self.imgs.eye_open_btn_press,
+                )
+            } else {
+                (
+                    self.imgs.eye_closed_btn,
+                    self.imgs.eye_closed_btn_hover,
+                    self.imgs.eye_closed_btn_press,
+                )
+            };
+
+            if Button::image(eye)
                 .top_left_with_margins_on(state.ids.align_rec, -21.0, 5.0)
+                .w_h(16.0, 16.0)
+                .hover_image(eye_hover)
+                .press_image(eye_press)
+                .parent(state.ids.window)
+                .set(state.ids.btn_show_all_recipes, ui)
+                .was_clicked()
+            {
+                events.push(Event::ShowAllRecipes(
+                    !self.settings.gameplay.show_all_recipes,
+                ));
+            }
+            if Button::image(self.imgs.search_btn)
+                .right_from(state.ids.btn_show_all_recipes, 5.0)
                 .w_h(16.0, 16.0)
                 .hover_image(self.imgs.search_btn_hover)
                 .press_image(self.imgs.search_btn_press)

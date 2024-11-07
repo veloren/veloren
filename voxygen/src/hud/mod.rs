@@ -3524,6 +3524,13 @@ impl Hud {
                                 });
                             }
                         },
+                        crafting::Event::ShowAllRecipes(show) => {
+                            events.push(Event::SettingsChange(SettingsChange::Gameplay(
+                                crate::session::settings_change::Gameplay::ChangeShowAllRecipes(
+                                    show,
+                                ),
+                            )));
+                        },
                     }
                 }
             }
