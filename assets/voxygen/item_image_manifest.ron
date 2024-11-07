@@ -43,6 +43,11 @@
         "voxel.sprite.repair_bench.repair_bench-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 0.9,
     ),
+    // Recipe Icon
+    Simple("Recipe"): VoxTrans(
+        "voxel.object.scroll",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
     // Weapons
     // Diary Example Images
     Simple("example_utility"): VoxTrans(

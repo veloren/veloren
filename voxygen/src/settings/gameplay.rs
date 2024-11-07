@@ -23,6 +23,7 @@ pub struct GameplaySettings {
     pub zoom_lock: bool,
     pub aim_offset_x: f32,
     pub aim_offset_y: f32,
+    pub show_all_recipes: bool,
 }
 
 impl Default for GameplaySettings {
@@ -46,6 +47,7 @@ impl Default for GameplaySettings {
             zoom_lock: false,
             aim_offset_x: 0.6,
             aim_offset_y: 0.0,
+            show_all_recipes: false,
         }
     }
 }

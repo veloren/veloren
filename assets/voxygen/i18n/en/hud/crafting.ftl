@@ -52,3 +52,5 @@ hud-crafting-repair_slot_title = Damaged Item
 hud-crafting-repair_slot_desc = Place an item here to see the cost of repairing it at its current durability level.
 hud-crafting-recipe-uncraftable = Recipe Cannot be Crafted
 hud-crafting-recipe-unlearned = You must first learn how to craft this recipe.
+hud-crafting-show_unknown_recipes = Show Unknown Recipes
+hud-crafting-hide_unknown_recipes = Hide Unknown Recipes

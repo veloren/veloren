@@ -75,6 +75,7 @@ pub enum Gameplay {
     ChangeAutoCamera(bool),
     ChangeBowZoom(bool),
     ChangeZoomLock(bool),
+    ChangeShowAllRecipes(bool),
 
     AdjustAimOffsetX(f32),
     AdjustAimOffsetY(f32),
@@ -441,6 +442,9 @@ impl SettingsChange {
                         window.zoom_inversion = settings.gameplay.zoom_inversion;
                         // Invert Mouse Y Axis
                         window.mouse_y_inversion = settings.gameplay.mouse_y_inversion;
+                    },
+                    Gameplay::ChangeShowAllRecipes(state) => {
+                        settings.gameplay.show_all_recipes = state;
                     },
                 }
             },

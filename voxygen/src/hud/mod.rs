@@ -3444,6 +3444,7 @@ impl Hud {
                     &msm,
                     tooltip_manager,
                     &mut self.show,
+                    &global_state.settings,
                 )
                 .set(self.ids.crafting_window, ui_widgets)
                 {
@@ -3522,6 +3523,13 @@ impl Hud {
                                     sprite_pos,
                                 });
                             }
+                        },
+                        crafting::Event::ShowAllRecipes(show) => {
+                            events.push(Event::SettingsChange(SettingsChange::Gameplay(
+                                crate::session::settings_change::Gameplay::ChangeShowAllRecipes(
+                                    show,
+                                ),
+                            )));
                         },
                     }
                 }

@@ -59,6 +59,8 @@ widget_ids! {
         bow_zoom_label,
         zoom_lock_button,
         zoom_lock_label,
+        crafting_all_recipes_button,
+        crafting_all_recipes_label,
         aim_offset_x_slider,
         aim_offset_x_label,
         aim_offset_x_value,
@@ -667,6 +669,36 @@ impl<'a> Widget for Gameplay<'a> {
             .graphics_for(state.ids.zoom_lock_button)
             .color(TEXT_COLOR)
             .set(state.ids.zoom_lock_label, ui);
+
+        // Crafting show all recipes toggle
+        let all_recipes_toggle = ToggleButton::new(
+            self.global_state.settings.gameplay.show_all_recipes,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.zoom_lock_button, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.crafting_all_recipes_button, ui);
+
+        if self.global_state.settings.gameplay.show_all_recipes != all_recipes_toggle {
+            events.push(ChangeShowAllRecipes(
+                !self.global_state.settings.gameplay.show_all_recipes,
+            ));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-show_all_recipes"),
+        )
+        .right_from(state.ids.crafting_all_recipes_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.crafting_all_recipes_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.crafting_all_recipes_label, ui);
 
         // Aim offset x
         let display_aim_offset_x = self.global_state.settings.gameplay.aim_offset_x;
