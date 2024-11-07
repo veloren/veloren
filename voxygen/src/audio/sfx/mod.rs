@@ -471,20 +471,17 @@ impl SfxMgr {
                 audio.emit_sfx(sfx_trigger_item, *pos, Some((power.abs() / 2.5).min(1.5)));
             },
             Outcome::Lightning { pos } => {
-                let power = (1.0 - pos.distance(audio.listener_pos) / 6_000.0)
-                    .max(0.0)
-                    .powi(7);
+                let distance = pos.distance(audio.listener_pos);
+                let power = (1.0 - distance / 6_000.0).max(0.0).powi(7);
                 if power > 0.0 {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Lightning);
                     let volume = (power * 3.0).min(2.9);
-                    // Delayed based on power (which in turn is based on distance) within a range of
-                    // 0.17 to 1.5 seconds
-                    // TODO: Make this more physically accurate
+                    // Delayed based on distance / speed of sound (approxmately 340 m/s)
                     audio.play_ambience_oneshot(
                         super::channel::AmbienceChannelTag::Thunder,
                         sfx_trigger_item,
                         Some(volume),
-                        Some((1.0 / volume * 2.0).max(1.5)),
+                        Some(distance / 340.0),
                     );
                 }
             },
