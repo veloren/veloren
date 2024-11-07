@@ -2336,19 +2336,22 @@ impl<'a> Widget for Crafting<'a> {
                 .top_left_with_margins_on(state.ids.window, 52.0, 26.0)
                 .graphics_for(state.ids.btn_open_search)
                 .set(state.ids.input_overlay_search, ui);
-            let (eye, eye_hover, eye_press) = if self.settings.gameplay.show_all_recipes {
-                (
-                    self.imgs.eye_open_btn,
-                    self.imgs.eye_open_btn_hover,
-                    self.imgs.eye_open_btn_press,
-                )
-            } else {
-                (
-                    self.imgs.eye_closed_btn,
-                    self.imgs.eye_closed_btn_hover,
-                    self.imgs.eye_closed_btn_press,
-                )
-            };
+            let (eye, eye_hover, eye_press, tooltip_key) =
+                if self.settings.gameplay.show_all_recipes {
+                    (
+                        self.imgs.eye_open_btn,
+                        self.imgs.eye_open_btn_hover,
+                        self.imgs.eye_open_btn_press,
+                        "hud-crafting-hide_unknown_recipes",
+                    )
+                } else {
+                    (
+                        self.imgs.eye_closed_btn,
+                        self.imgs.eye_closed_btn_hover,
+                        self.imgs.eye_closed_btn_press,
+                        "hud-crafting-show_unknown_recipes",
+                    )
+                };
 
             if Button::image(eye)
                 .top_left_with_margins_on(state.ids.align_rec, -21.0, 5.0)
@@ -2356,6 +2359,13 @@ impl<'a> Widget for Crafting<'a> {
                 .hover_image(eye_hover)
                 .press_image(eye_press)
                 .parent(state.ids.window)
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self.localized_strings.get_msg(tooltip_key),
+                    "",
+                    &tabs_tooltip,
+                    TEXT_COLOR,
+                )
                 .set(state.ids.btn_show_all_recipes, ui)
                 .was_clicked()
             {
