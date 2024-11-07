@@ -519,17 +519,9 @@ impl ParticleMgr {
                 let magnitude = (-vel.z).max(0.0);
                 let energy = mass * magnitude;
                 if energy > 0.0 {
-                    // let axis = vel / magnitude;
                     let count = (0.6 * energy.sqrt()).ceil() as usize;
-                    // dbg!(count);
                     let mut i = 0;
                     let r = 0.5 / count as f32;
-                    // let plane = if axis == Vec3::unit_z() {
-                    //     Vec3::unit_x()
-                    // } else {
-                    //     axis.cross(Vec3::unit_z())
-                    // };
-                    // dbg!(plane);
                     self.particles
                         .resize_with(self.particles.len() + count, || {
                             let t = i as f32 / count as f32 + rng.gen_range(-r..=r);
@@ -539,9 +531,6 @@ impl ParticleMgr {
                             let c = angle.cos();
                             let energy = energy
                                 * f32::abs(rng.gen_range(0.0..1.0) + rng.gen_range(0.0..1.0) - 0.5);
-                            // let q = Quaternion::<f32>::from((axis * s).with_w(c)).normalized();
-
-                            // let plane = (plane * q).normalized();
 
                             let axis = -Vec3::unit_z();
                             let plane = Vec3::new(c, s, 0.0);

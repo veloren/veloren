@@ -365,6 +365,7 @@ impl<'a> PhysicsData<'a> {
                 .write
                 .previous_phys_cache
                 .insert(entity, PreviousPhysCache {
+                    velocity: Vec3::zero(),
                     velocity_dt: Vec3::zero(),
                     center: Vec3::zero(),
                     collision_boundary: 0.0,
@@ -397,6 +398,7 @@ impl<'a> PhysicsData<'a> {
             let half_height = (z_max - z_min) / 2.0;
 
             phys_cache.velocity_dt = vel.0 * self.read.dt.0;
+            phys_cache.velocity = vel.0;
             let entity_center = position.0 + Vec3::new(0.0, 0.0, z_min + half_height);
             let flat_radius = collider.bounding_radius() * scale;
             let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
@@ -968,8 +970,9 @@ impl<'a> PhysicsData<'a> {
 
         prof_span!(guard, "emit splash events");
         let mut outcomes = write.outcomes.emitter();
-        for ((physics_state, vel, pos, mass), in_fluid_delta) in (
+        for ((physics_state, prev, vel, pos, mass), in_fluid_delta) in (
             &write.physics_states,
+            &write.previous_phys_cache,
             &write.velocities,
             &write.positions,
             &read.masses,
@@ -984,7 +987,11 @@ impl<'a> PhysicsData<'a> {
                 (Some(Fluid::Liquid { kind, .. }), _) => {
                     outcomes.emit(Outcome::Splash {
                         pos: pos.0,
-                        vel: vel.0,
+                        vel: if vel.0.magnitude_squared() > prev.velocity.magnitude_squared() {
+                            vel.0
+                        } else {
+                            prev.velocity
+                        },
                         mass: mass.0,
                         kind,
                     });
