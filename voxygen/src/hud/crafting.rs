@@ -38,7 +38,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use i18n::Localization;
 use itertools::Either;
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
@@ -680,13 +680,26 @@ impl<'a> Widget for Crafting<'a> {
                     || content_contains(&name_key, substring)
             })
         };
+        let known_recipes = self
+            .inventory
+            .available_recipes_iter(self.rbm)
+            .map(|r| r.0.as_str())
+            .collect::<HashSet<_>>();
         let recipe_source = if self.settings.gameplay.show_all_recipes {
-            Either::Left(self.rbm.iter())
+            Either::Left(
+                self.rbm
+                    .iter()
+                    .map(|r| (r, known_recipes.contains(r.0.as_str()))),
+            )
         } else {
-            Either::Right(self.inventory.available_recipes_iter(self.rbm))
+            Either::Right(
+                self.inventory
+                    .available_recipes_iter(self.rbm)
+                    .map(|r| (r, true)),
+            )
         };
         let mut ordered_recipes: Vec<_> = recipe_source
-            .filter(|(_, recipe)| match search_filter {
+            .filter(|((_, recipe), _)| match search_filter {
                 SearchFilter::None => {
                     search(&recipe.output.0)
                 },
@@ -707,7 +720,7 @@ impl<'a> Widget for Crafting<'a> {
                 }),
                 SearchFilter::Nonexistent => false,
             })
-            .map(|(name, recipe)| {
+            .map(|((name, recipe), known)| {
                 let has_materials = self.client.available_recipes().get(name.as_str()).is_some();
                 let is_craftable =
                     self.client
@@ -718,7 +731,7 @@ impl<'a> Widget for Crafting<'a> {
                                 Some(cs) == self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
                             })
                         });
-                (name, recipe, is_craftable, has_materials)
+                (name, recipe, is_craftable, has_materials, known)
             })
             .chain(
                 pseudo_entries
@@ -747,12 +760,14 @@ impl<'a> Widget for Crafting<'a> {
                             self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
                                 == recipe.craft_sprite,
                             true,
+                            true,
                         )
                     }),
             )
             .collect();
-        ordered_recipes.sort_by_key(|(_, recipe, is_craftable, has_materials)| {
+        ordered_recipes.sort_by_key(|(_, recipe, is_craftable, has_materials, known)| {
             (
+                !known,
                 !is_craftable,
                 !has_materials,
                 recipe.output.0.quality(),
@@ -799,9 +814,9 @@ impl<'a> Widget for Crafting<'a> {
                     .resize(recipe_list_length, &mut ui.widget_id_generator())
             });
         }
-        for (i, (name, recipe, is_craftable, has_materials)) in ordered_recipes
+        for (i, (name, recipe, is_craftable, has_materials, knows_recipe)) in ordered_recipes
             .into_iter()
-            .filter(|(_, recipe, _, _)| self.show.crafting_fields.crafting_tab.satisfies(recipe))
+            .filter(|(_, recipe, _, _, _)| self.show.crafting_fields.crafting_tab.satisfies(recipe))
             .enumerate()
         {
             let button = Button::image(if state.selected_recipe.as_ref() == Some(name) {
@@ -895,7 +910,21 @@ impl<'a> Widget for Crafting<'a> {
                 .set(state.ids.recipe_list_quality_indicators[i], ui);
 
             // Sidebar crafting tool icon
-            if has_materials && !is_craftable {
+            if !knows_recipe {
+                let recipe_img = "Recipe";
+
+                Button::image(animate_by_pulse(
+                    &self
+                        .item_imgs
+                        .img_ids_or_not_found_img(ItemKey::Simple(recipe_img.to_string())),
+                    self.pulse,
+                ))
+                .image_color(color::LIGHT_RED)
+                .w_h(button_height - 8.0, button_height - 8.0)
+                .top_left_with_margins_on(state.ids.recipe_list_btns[i], 4.0, 4.0)
+                .graphics_for(state.ids.recipe_list_btns[i])
+                .set(state.ids.recipe_list_materials_indicators[i], ui);
+            } else if has_materials && !is_craftable {
                 let station_img = match recipe.craft_sprite {
                     Some(SpriteKind::Anvil) => Some("Anvil"),
                     Some(SpriteKind::Cauldron) => Some("Cauldron"),
