@@ -130,6 +130,9 @@ pub enum SfxEvent {
     Lavapool,
     Idle,
     Swim,
+    SplashSmall,
+    SplashMedium,
+    SplashBig,
     Run(BlockKind),
     QuadRun(BlockKind),
     Roll,
@@ -898,13 +901,20 @@ impl SfxMgr {
                 }
             },
             Outcome::Splash { vel, pos, mass, .. } => {
-                // TODO: Splash sound
-                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Swim);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    *pos,
-                    Some((mass * vel.magnitude()).sqrt() / 10.0),
-                );
+                let magnitude = (-vel.z).max(0.0);
+                let energy = mass * magnitude;
+
+                if energy > 0.0 {
+                    let (sfx, volume) = if energy < 10.0 {
+                        (SfxEvent::SplashSmall, energy / 20.0)
+                    } else if energy < 100.0 {
+                        (SfxEvent::SplashMedium, (energy - 10.0) / 90.0 + 0.5)
+                    } else {
+                        (SfxEvent::SplashBig, (energy / 100.0).sqrt() + 0.5)
+                    };
+                    let sfx_trigger_item = triggers.get_key_value(&sfx);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(volume));
+                }
             },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},
         }

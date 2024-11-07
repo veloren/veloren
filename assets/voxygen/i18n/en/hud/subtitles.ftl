@@ -23,6 +23,7 @@ subtitle-swim = Swimming
 subtitle-climb = Climbing
 subtitle-damage = Damage
 subtitle-death = Death
+subtitle-splash = Splash
 
 subtitle-wield_bow = Bow equipped
 subtitle-unwield_bow = Bow unequipped
