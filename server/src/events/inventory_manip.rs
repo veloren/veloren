@@ -2,7 +2,7 @@ use hashbrown::HashSet;
 use rand::{seq::IteratorRandom, Rng};
 use specs::{
     join::Join, shred, DispatcherBuilder, Entities, Entity as EcsEntity, Read, ReadExpect,
-    ReadStorage, SystemData, Write, WriteStorage,
+    ReadStorage, SystemData, Write, WriteExpect, WriteStorage,
 };
 use tracing::{debug, error, warn};
 use vek::{Rgb, Vec3};
@@ -14,7 +14,7 @@ use common::{
         item::{self, flatten_counted_items, tool::AbilityMap, MaterialStatManifest},
         loot_owner::LootOwnerKind,
         slot::{self, Slot},
-        InventoryUpdate, LootOwner, PickupItem,
+        InventoryUpdate, LootOwner, PickupItem, PresenceKind,
     },
     consts::MAX_PICKUP_RANGE,
     event::{
@@ -77,9 +77,12 @@ pub struct InventoryManipData<'a> {
     events: Events<'a>,
     block_change: Write<'a, common_state::BlockChange>,
     trades: Write<'a, Trades>,
+    rtsim: WriteExpect<'a, crate::rtsim::RtSim>,
     terrain: ReadExpect<'a, common::terrain::TerrainGrid>,
     id_maps: Read<'a, IdMaps>,
     time: Read<'a, Time>,
+    world: ReadExpect<'a, std::sync::Arc<world::World>>,
+    index: ReadExpect<'a, world::IndexOwned>,
     program_time: ReadExpect<'a, ProgramTime>,
     ability_map: ReadExpect<'a, AbilityMap>,
     msm: ReadExpect<'a, MaterialStatManifest>,
@@ -107,6 +110,7 @@ pub struct InventoryManipData<'a> {
     pets: ReadStorage<'a, comp::Pet>,
     velocities: ReadStorage<'a, comp::Vel>,
     masses: ReadStorage<'a, comp::Mass>,
+    presences: ReadStorage<'a, comp::Presence>,
 }
 
 impl ServerEvent for InventoryManipEvent {
@@ -351,6 +355,20 @@ impl ServerEvent for InventoryManipEvent {
 
                     if let Some(block) = block {
                         if block.is_collectible() && data.block_change.can_set_block(sprite_pos) {
+                            if block.is_owned()
+                                && let Some(PresenceKind::Character(character)) =
+                                    data.presences.get(entity).map(|p| p.kind)
+                            {
+                                data.rtsim.hook_pickup_owned_sprite(
+                                    &data.world,
+                                    data.index.as_index_ref(),
+                                    block
+                                        .get_sprite()
+                                        .expect("If the block is owned, it is a sprite"),
+                                    sprite_pos,
+                                    common::rtsim::Actor::Character(character),
+                                );
+                            }
                             // If an item was required to collect the sprite, consume it now
                             if let Some((inv_slot, true)) = required_item {
                                 inventory.take(inv_slot, &data.ability_map, &data.msm);

@@ -489,7 +489,11 @@ impl Structure for DesertCityMultiPlot {
                         0 => {
                             for dir in NEIGHBORS {
                                 let pos = center + dir * 4;
-                                painter.sprite(pos.with_z(floor_level), SpriteKind::Crate);
+                                painter.owned_resource_sprite(
+                                    pos.with_z(floor_level),
+                                    SpriteKind::Crate,
+                                    0,
+                                );
                             }
                             for dir in NEIGHBORS {
                                 let pos = center + dir * 8;
@@ -1222,7 +1226,7 @@ impl Structure for DesertCityMultiPlot {
                                                     SpriteKind::WallTableArabic,
                                                     6 - (4 * d) as u8,
                                                 );
-                                                painter.rotated_sprite(
+                                                painter.owned_resource_sprite(
                                                     c_pos.with_z(floor_level + 1),
                                                     match (RandomField::new(0)
                                                         .get(c_pos.with_z(floor_level)))
@@ -1317,7 +1321,7 @@ impl Structure for DesertCityMultiPlot {
                                                     SpriteKind::WallTableArabic,
                                                     6 - (4 * d) as u8,
                                                 );
-                                                painter.rotated_sprite(
+                                                painter.owned_resource_sprite(
                                                     a_pos.with_z(floor_level + 1),
                                                     match (RandomField::new(0)
                                                         .get(a_pos.with_z(floor_level)))

@@ -46,6 +46,7 @@ hud-deactivate = Deactivate
 hud-collect = Collect
 hud-pick_up = Pick up
 hud-open = Open
+hud-steal = Steal
 hud-use = Use
 hud-read = Read
 hud-unlock-requires = Open with { $item }

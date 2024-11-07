@@ -1491,10 +1491,7 @@ impl Structure for Tavern {
                                     max: (wall_center + in_dir.rotated_cw().to_vec2())
                                         .with_z(wall.base_alt + 2),
                                 }))
-                                .fill(Fill::RotatedSprite(
-                                    SpriteKind::Window1,
-                                    in_dir.sprite_ori(),
-                                ));
+                                .fill(Fill::sprite_ori(SpriteKind::Window1, in_dir.sprite_ori()));
                         }
                     },
                 }

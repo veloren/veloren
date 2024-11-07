@@ -220,7 +220,7 @@ impl Structure for CliffTower {
                                     max: (sprite_pos + 1).with_z(floor_level + 2),
                                 })
                                 .clear();
-                            painter.sprite(
+                            painter.owned_resource_sprite(
                                 sprite_pos.with_z(floor_level + 1),
                                 match (RandomField::new(0).get(sprite_pos.with_z(floor_level + 1)))
                                     % 8
@@ -231,6 +231,7 @@ impl Structure for CliffTower {
                                     3 => SpriteKind::Pot,
                                     _ => SpriteKind::MesaLantern,
                                 },
+                                0,
                             );
                         }
                         // planters
@@ -504,7 +505,7 @@ impl Structure for CliffTower {
                                     // distribute small sprites
                                     for dir in LOCALITY {
                                         let pos = plot_center + dir * ((length / 3) - 1);
-                                        painter.sprite(
+                                        painter.owned_resource_sprite(
                                             pos.with_z(floor_level + 1),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
                                                 % 9
@@ -519,6 +520,7 @@ impl Structure for CliffTower {
                                                 7 => SpriteKind::Bowl,
                                                 _ => SpriteKind::MesaLantern,
                                             },
+                                            0,
                                         );
                                     }
                                     // beds & wardrobes
@@ -605,7 +607,7 @@ impl Structure for CliffTower {
                                             SpriteKind::WallTableMesa,
                                             (4 * d) as u8,
                                         );
-                                        painter.rotated_sprite(
+                                        painter.owned_resource_sprite(
                                             pos.with_z(floor_level + 4),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
                                                 % 3
@@ -620,7 +622,7 @@ impl Structure for CliffTower {
                                     // distribute small sprites
                                     for dir in LOCALITY {
                                         let pos = plot_center + dir * ((length / 3) + 1);
-                                        painter.sprite(
+                                        painter.owned_resource_sprite(
                                             pos.with_z(floor_level + 1),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
                                                 % 12
@@ -638,6 +640,7 @@ impl Structure for CliffTower {
                                                 10 => SpriteKind::MesaLantern,
                                                 _ => SpriteKind::FountainArabic,
                                             },
+                                            0,
                                         );
                                     }
                                 },
@@ -666,7 +669,7 @@ impl Structure for CliffTower {
                                             SpriteKind::WallTableMesa,
                                             (4 * d) as u8,
                                         );
-                                        painter.rotated_sprite(
+                                        painter.owned_resource_sprite(
                                             pos.with_z(floor_level + 3),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
                                                 % 4
@@ -682,7 +685,7 @@ impl Structure for CliffTower {
                                     // distribute small sprites
                                     for dir in LOCALITY {
                                         let pos = plot_center + dir * ((length / 3) + 1);
-                                        painter.sprite(
+                                        painter.owned_resource_sprite(
                                             pos.with_z(floor_level + 1),
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
                                                 % 11
@@ -700,6 +703,7 @@ impl Structure for CliffTower {
                                                 10 => SpriteKind::JugAndBowlArabic,
                                                 _ => SpriteKind::OvenArabic,
                                             },
+                                            0,
                                         );
                                     }
                                 },

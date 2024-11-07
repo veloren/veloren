@@ -593,6 +593,12 @@ impl Block {
         }
     }
 
+    #[inline]
+    pub fn is_owned(&self) -> bool {
+        self.get_attr::<sprite::Owned>()
+            .is_ok_and(|sprite::Owned(b)| b)
+    }
+
     /// The tool required to mine this block. For blocks that cannot be mined,
     /// `None` is returned.
     #[inline]
@@ -656,6 +662,16 @@ impl Block {
 
     #[inline]
     pub fn kind(&self) -> BlockKind { self.kind }
+
+    /// If possible, copy the sprite/color data of the other block.
+    #[inline]
+    #[must_use]
+    pub fn with_data_of(mut self, other: Block) -> Self {
+        if self.is_filled() == other.is_filled() {
+            self = self.with_data(other.data());
+        }
+        self
+    }
 
     /// If this block is a fluid, replace its sprite.
     #[inline]

@@ -1,4 +1,8 @@
-use common::{resources::TimeOfDay, rtsim::Actor};
+use common::{
+    resources::TimeOfDay,
+    rtsim::{Actor, SiteId},
+    terrain::SpriteKind,
+};
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
 use std::ops::Deref;
@@ -21,7 +25,7 @@ pub use common::rtsim::ReportId;
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Report {
     pub kind: ReportKind,
-    pub at: TimeOfDay,
+    pub at_tod: TimeOfDay,
 }
 
 impl Report {
@@ -37,13 +41,25 @@ impl Report {
                     DAYS * 5.0
                 }
             },
+            // TODO: Could consider what was stolen here
+            ReportKind::Theft { .. } => DAYS * 1.5,
         }
     }
 }
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum ReportKind {
-    Death { actor: Actor, killer: Option<Actor> },
+    Death {
+        actor: Actor,
+        killer: Option<Actor>,
+    },
+    Theft {
+        thief: Actor,
+        /// Where the theft happened.
+        site: Option<SiteId>,
+        /// What was stolen.
+        sprite: SpriteKind,
+    },
 }
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -56,8 +72,9 @@ impl Reports {
 
     pub fn cleanup(&mut self, current_time: TimeOfDay) {
         // Forget reports that are too old
-        self.reports
-            .retain(|_, report| (current_time.0 - report.at.0).max(0.0) < report.remember_for());
+        self.reports.retain(|_, report| {
+            (current_time.0 - report.at_tod.0).max(0.0) < report.remember_for()
+        });
         // TODO: Limit global number of reports
     }
 }

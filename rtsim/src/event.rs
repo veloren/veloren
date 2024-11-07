@@ -2,7 +2,8 @@ use crate::{RtState, Rule};
 use common::{
     mounting::VolumePos,
     resources::{Time, TimeOfDay},
-    rtsim::{Actor, NpcId},
+    rtsim::{Actor, NpcId, SiteId},
+    terrain::SpriteKind,
 };
 use vek::*;
 use world::{IndexRef, World};
@@ -37,6 +38,16 @@ pub struct OnDeath {
     pub killer: Option<Actor>,
 }
 impl Event for OnDeath {}
+
+#[derive(Clone)]
+pub struct OnTheft {
+    pub actor: Actor,
+    pub wpos: Vec3<i32>,
+    pub sprite: SpriteKind,
+    pub site: Option<SiteId>,
+}
+
+impl Event for OnTheft {}
 
 #[derive(Clone)]
 pub struct OnMountVolume {
