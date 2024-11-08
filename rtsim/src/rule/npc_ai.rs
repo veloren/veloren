@@ -763,7 +763,7 @@ fn adventure() -> impl Action<DefaultState> {
                     Some(
                         SiteKind::Refactor(_)
                             | SiteKind::CliffTown(_)
-                            | SiteKind::SavannahPit(_)
+                            | SiteKind::SavannahTown(_)
                             | SiteKind::CoastalTown(_)
                             | SiteKind::DesertCity(_)
                     ),
@@ -885,7 +885,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                     let site2 = match site.world_site.map(|ws| &ctx.index.sites.get(ws).kind) {
                         Some(SiteKind::Refactor(site2)
                             | SiteKind::CliffTown(site2)
-                            | SiteKind::SavannahPit(site2)
+                            | SiteKind::SavannahTown(site2)
                             | SiteKind::CoastalTown(site2)
                             | SiteKind::DesertCity(site2)) => site2,
                         _ => return None,
@@ -1228,7 +1228,12 @@ fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
             .filter_map(|(_, site)| ctx.index.sites.get(site.world_site?).site2())
             .flat_map(|site| {
                 site.plots()
-                    .filter(|plot| matches!(plot.kind(), PlotKind::AirshipDock(_)))
+                    .filter(|plot| {
+                        matches!(
+                            plot.kind(),
+                            PlotKind::AirshipDock(_) | PlotKind::SavannahAirshipDock(_)
+                        )
+                    })
                     .map(|plot| site.tile_center_wpos(plot.root_tile()))
             })
             .choose(&mut ctx.rng);

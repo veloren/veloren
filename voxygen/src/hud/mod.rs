@@ -5378,7 +5378,10 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::TerracottaChest => "common-sprite-chest",
         SpriteKind::Mud => "common-sprite-mud",
         SpriteKind::Grave => "common-sprite-grave",
-        SpriteKind::ChairSingle | SpriteKind::ChairDouble => "common-sprite-chair",
+        SpriteKind::ChairSingle
+        | SpriteKind::ChairDouble
+        | SpriteKind::Bench
+        | SpriteKind::BenchCoastal => "common-sprite-chair",
         SpriteKind::Crate => "common-sprite-crate",
         SpriteKind::HangingSign => "common-sprite-signboard",
         SpriteKind::StreetLamp => "common-sprite-street_lamp",

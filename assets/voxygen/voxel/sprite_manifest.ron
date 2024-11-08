@@ -4760,6 +4760,47 @@ ForgeTools: [(
     ],
     wind_sway: 0.0,
 )],
+// CoastalTown Sprites
+TableCoastalLarge: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.table_coastal_large",
+           offset: (-10.5, -16.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BenchCoastal: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_coastal-0",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_coastal-1",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_coastal-2",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+JugAndCupsCoastal: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.jug_and_cups_coastal",
+           offset: (-6.0, -7.0, 3.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
 // CliffTown Sprites
 CliffDecorBlock: [(
     variations: [

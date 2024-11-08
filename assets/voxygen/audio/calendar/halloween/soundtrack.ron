@@ -3,7 +3,7 @@
 // Biomes: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean, Jungle, Savannah, Taiga
 //          planned biomes: Swamp
 // Number after biome indicates weighting; higher numbers are less frequent
-// Sites: Settlement(Default, CliffTown, DesertCity, or SavannahPit), Cave, Dungeon(Old or Gnarling), or Void [none]
+// Sites: Settlement(Default, CliffTown, DesertCity, or SavannahTown), Cave, Dungeon, or Void [none]
 // Music states: Activity(Explore or Combat)
 // Combat music is looped. Needs three files: start, loop, and end. Start contains leadup to the loop.
 // Artist format is ("Artist", "https://website.com/"). If no website, use None.

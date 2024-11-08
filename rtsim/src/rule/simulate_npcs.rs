@@ -69,7 +69,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                                         ctx.index.sites.get(s).kind,
                                         SiteKind::Refactor(_)
                                             | SiteKind::CliffTown(_)
-                                            | SiteKind::SavannahPit(_)
+                                            | SiteKind::SavannahTown(_)
                                             | SiteKind::CoastalTown(_)
                                             | SiteKind::DesertCity(_)
                                     )

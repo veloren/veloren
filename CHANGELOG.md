@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Npcs can catch you stealing.
 - Button to show unknown recipes.
 - Water splashes and river particles.
+- Custom furniture for Coastal Houses
 
 ### Changed
 
@@ -73,6 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RiposteMelee attacks have a recovery phase after missing
 - Switched from Rodio to Kira
 - Ambient noise now gets filtered when underwater.
+- Renamed Site Savannah Pit to Savannah Town
+- Replaced building Savannah Pit with Savannah Town Airship Dock
 
 ### Removed
 

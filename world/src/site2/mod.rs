@@ -1397,7 +1397,7 @@ impl Site {
         site
     }
 
-    pub fn generate_savannah_pit(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_savannah_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
         let mut site = Site {
             origin,
@@ -1409,32 +1409,10 @@ impl Site {
 
         site.make_plaza(land, &mut rng);
 
-        let size = 11.0 as i32;
-        let aabr = Aabr {
-            min: Vec2::broadcast(-size),
-            max: Vec2::broadcast(size),
-        };
-        {
-            let savannah_pit =
-                plot::SavannahPit::generate(land, &mut reseed(&mut rng), &site, aabr);
-            let savannah_pit_alt = savannah_pit.alt;
-            let plot = site.create_plot(Plot {
-                kind: PlotKind::SavannahPit(savannah_pit),
-                root_tile: aabr.center(),
-                tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
-            });
+        let mut airship_dock = 0;
+        let build_chance = Lottery::from(vec![(25.0, 1), (7.0, 2), (3.0, 3), (15.0, 4)]);
 
-            site.blit_aabr(aabr, Tile {
-                kind: TileKind::Building,
-                plot: Some(plot),
-                hard_alt: Some(savannah_pit_alt),
-            });
-        }
-
-        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2), (15.0, 3)]);
-
-        for _ in 0..45 {
+        for _ in 0..50 {
             match *build_chance.choose_seeded(rng.gen()) {
                 1 => {
                     // SavannahHut
@@ -1508,8 +1486,45 @@ impl Site {
                         site.make_plaza(land, &mut rng);
                     }
                 },
+                3 if airship_dock < 1 => {
+                    // SavannahAirshipDock
+
+                    let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            4..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let savannah_airship_dock = plot::SavannahAirshipDock::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let savannah_airship_dock_alt = savannah_airship_dock.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::SavannahAirshipDock(savannah_airship_dock),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(savannah_airship_dock_alt),
+                        });
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                    airship_dock += 1;
+                },
                 // Field
-                3 => {
+                4 => {
                     Self::generate_farm(false, &mut rng, &mut site, land);
                 },
                 _ => {},
@@ -2490,7 +2505,9 @@ impl Site {
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
                 PlotKind::Sahagin(sahagin) => sahagin.render_collect(self, canvas),
-                PlotKind::SavannahPit(savannah_pit) => savannah_pit.render_collect(self, canvas),
+                PlotKind::SavannahAirshipDock(savannah_airship_dock) => {
+                    savannah_airship_dock.render_collect(self, canvas)
+                },
                 PlotKind::SavannahHut(savannah_hut) => savannah_hut.render_collect(self, canvas),
                 PlotKind::SavannahWorkshop(savannah_workshop) => {
                     savannah_workshop.render_collect(self, canvas)
