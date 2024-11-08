@@ -53,6 +53,7 @@ impl Component for PosVelOriDefer {
 pub struct PreviousPhysCache {
     pub velocity: Vec3<f32>,
     pub velocity_dt: Vec3<f32>,
+    pub in_fluid: Option<Fluid>,
     /// Center of bounding sphere that encompasses the entity along its path for
     /// this tick
     pub center: Vec3<f32>,

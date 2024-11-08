@@ -367,6 +367,7 @@ impl<'a> PhysicsData<'a> {
                 .insert(entity, PreviousPhysCache {
                     velocity: Vec3::zero(),
                     velocity_dt: Vec3::zero(),
+                    in_fluid: None,
                     center: Vec3::zero(),
                     collision_boundary: 0.0,
                     scale: 0.0,
@@ -379,11 +380,12 @@ impl<'a> PhysicsData<'a> {
         }
 
         // Update PreviousPhysCache
-        for (_, vel, position, ori, phys_cache, collider, scale, cs) in (
+        for (_, vel, position, ori, phys_state, phys_cache, collider, scale, cs) in (
             &self.read.entities,
             &self.write.velocities,
             &self.write.positions,
             &self.write.orientations,
+            &self.write.physics_states,
             &mut self.write.previous_phys_cache,
             &self.read.colliders,
             self.read.scales.maybe(),
@@ -399,6 +401,7 @@ impl<'a> PhysicsData<'a> {
 
             phys_cache.velocity_dt = vel.0 * self.read.dt.0;
             phys_cache.velocity = vel.0;
+            phys_cache.in_fluid = phys_state.in_fluid;
             let entity_center = position.0 + Vec3::new(0.0, 0.0, z_min + half_height);
             let flat_radius = collider.bounding_radius() * scale;
             let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
@@ -806,15 +809,6 @@ impl<'a> PhysicsData<'a> {
 
         drop(guard);
 
-        prof_span!(guard, "Collect in_fluid delta");
-
-        let in_fluid_delta = (&write.physics_states)
-            .join()
-            .map(|s| s.in_fluid)
-            .collect::<Vec<_>>();
-
-        drop(guard);
-
         prof_span!(guard, "insert PosVelOriDefer");
         // NOTE: keep in sync with join below
         (
@@ -970,7 +964,7 @@ impl<'a> PhysicsData<'a> {
 
         prof_span!(guard, "emit splash events");
         let mut outcomes = write.outcomes.emitter();
-        for ((physics_state, prev, vel, pos, mass), in_fluid_delta) in (
+        for (physics_state, prev, vel, pos, mass) in (
             &write.physics_states,
             &write.previous_phys_cache,
             &write.velocities,
@@ -978,25 +972,21 @@ impl<'a> PhysicsData<'a> {
             &read.masses,
         )
             .join()
-            .zip(in_fluid_delta)
         {
-            match (physics_state.in_fluid, in_fluid_delta) {
-                // No splash when going between liquids.
-                (Some(Fluid::Liquid { .. }), Some(Fluid::Liquid { .. }) | None) => {},
-                // Splash!
-                (Some(Fluid::Liquid { kind, .. }), _) => {
-                    outcomes.emit(Outcome::Splash {
-                        pos: pos.0,
-                        vel: if vel.0.magnitude_squared() > prev.velocity.magnitude_squared() {
-                            vel.0
-                        } else {
-                            prev.velocity
-                        },
-                        mass: mass.0,
-                        kind,
-                    });
-                },
-                _ => {},
+            // Only splash when going from air into a liquid
+            if let (Some(Fluid::Liquid { kind, .. }), Some(Fluid::Air { .. })) =
+                (physics_state.in_fluid, prev.in_fluid)
+            {
+                outcomes.emit(Outcome::Splash {
+                    pos: pos.0,
+                    vel: if vel.0.magnitude_squared() > prev.velocity.magnitude_squared() {
+                        vel.0
+                    } else {
+                        prev.velocity
+                    },
+                    mass: mass.0,
+                    kind,
+                });
             }
         }
         drop(guard);

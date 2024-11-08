@@ -913,7 +913,7 @@ impl SfxMgr {
                         (SfxEvent::SplashBig, (energy / 100.0).sqrt() + 0.5)
                     };
                     let sfx_trigger_item = triggers.get_key_value(&sfx);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(volume));
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(volume.max(10.0)));
                 }
             },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},

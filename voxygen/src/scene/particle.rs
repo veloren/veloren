@@ -519,7 +519,7 @@ impl ParticleMgr {
                 let magnitude = (-vel.z).max(0.0);
                 let energy = mass * magnitude;
                 if energy > 0.0 {
-                    let count = (0.6 * energy.sqrt()).ceil() as usize;
+                    let count = ((0.6 * energy.sqrt()).ceil() as usize).min(500);
                     let mut i = 0;
                     let r = 0.5 / count as f32;
                     self.particles

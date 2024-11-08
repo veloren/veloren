@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IP Bans
 - Npcs can catch you stealing.
 - Button to show unknown recipes.
-- Water splashes.
+- Water splashes and river particles.
 
 ### Changed
 
