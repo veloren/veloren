@@ -961,35 +961,6 @@ impl<'a> PhysicsData<'a> {
             previous_phys_cache.ori = ori.to_quat();
         }
         drop(guard);
-
-        prof_span!(guard, "emit splash events");
-        let mut outcomes = write.outcomes.emitter();
-        for (physics_state, prev, vel, pos, mass) in (
-            &write.physics_states,
-            &write.previous_phys_cache,
-            &write.velocities,
-            &write.positions,
-            &read.masses,
-        )
-            .join()
-        {
-            // Only splash when going from air into a liquid
-            if let (Some(Fluid::Liquid { kind, .. }), Some(Fluid::Air { .. })) =
-                (physics_state.in_fluid, prev.in_fluid)
-            {
-                outcomes.emit(Outcome::Splash {
-                    pos: pos.0,
-                    vel: if vel.0.magnitude_squared() > prev.velocity.magnitude_squared() {
-                        vel.0
-                    } else {
-                        prev.velocity
-                    },
-                    mass: mass.0,
-                    kind,
-                });
-            }
-        }
-        drop(guard);
     }
 
     fn resolve_et_collision(

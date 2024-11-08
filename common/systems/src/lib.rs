@@ -10,6 +10,7 @@ mod interpolation;
 pub mod melee;
 mod mount;
 pub mod phys;
+mod phys_events;
 pub mod projectile;
 mod shockwave;
 mod stats;
@@ -34,6 +35,7 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
         &mount::Sys::sys_name(),
         &stats::Sys::sys_name(),
     ]);
+    dispatch::<phys_events::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<projectile::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<shockwave::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<beam::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
