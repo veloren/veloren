@@ -65,7 +65,7 @@ pub enum SiteKind {
     Castle(Castle),
     Refactor(site2::Site),
     CliffTown(site2::Site),
-    SavannahPit(site2::Site),
+    SavannahTown(site2::Site),
     Tree(Tree),
     DesertCity(site2::Site),
     ChapelSite(site2::Site),
@@ -139,9 +139,9 @@ impl Site {
         }
     }
 
-    pub fn savannah_pit(sp: site2::Site) -> Self {
+    pub fn savannah_town(st: site2::Site) -> Self {
         Self {
-            kind: SiteKind::SavannahPit(sp),
+            kind: SiteKind::SavannahTown(st),
             economy: Economy::default(),
         }
     }
@@ -278,7 +278,7 @@ impl Site {
             SiteKind::Castle(c) => c.radius(),
             SiteKind::Refactor(s) => s.radius(),
             SiteKind::CliffTown(ct) => ct.radius(),
-            SiteKind::SavannahPit(sp) => sp.radius(),
+            SiteKind::SavannahTown(st) => st.radius(),
             SiteKind::CoastalTown(ct) => ct.radius(),
             SiteKind::PirateHideout(ph) => ph.radius(),
             SiteKind::JungleRuin(jr) => jr.radius(),
@@ -309,7 +309,7 @@ impl Site {
             SiteKind::Castle(c) => c.get_origin(),
             SiteKind::Refactor(s) => s.origin,
             SiteKind::CliffTown(ct) => ct.origin,
-            SiteKind::SavannahPit(sp) => sp.origin,
+            SiteKind::SavannahTown(st) => st.origin,
             SiteKind::CoastalTown(ct) => ct.origin,
             SiteKind::PirateHideout(ph) => ph.origin,
             SiteKind::JungleRuin(jr) => jr.origin,
@@ -340,7 +340,7 @@ impl Site {
             SiteKind::Castle(c) => c.spawn_rules(wpos),
             SiteKind::Refactor(s) => s.spawn_rules(wpos),
             SiteKind::CliffTown(ct) => ct.spawn_rules(wpos),
-            SiteKind::SavannahPit(sp) => sp.spawn_rules(wpos),
+            SiteKind::SavannahTown(st) => st.spawn_rules(wpos),
             SiteKind::CoastalTown(ct) => ct.spawn_rules(wpos),
             SiteKind::PirateHideout(ph) => ph.spawn_rules(wpos),
             SiteKind::JungleRuin(jr) => jr.spawn_rules(wpos),
@@ -371,7 +371,7 @@ impl Site {
             SiteKind::Castle(c) => c.name(),
             SiteKind::Refactor(s) => s.name(),
             SiteKind::CliffTown(ct) => ct.name(),
-            SiteKind::SavannahPit(sp) => sp.name(),
+            SiteKind::SavannahTown(st) => st.name(),
             SiteKind::CoastalTown(ct) => ct.name(),
             SiteKind::PirateHideout(ph) => ph.name(),
             SiteKind::JungleRuin(jr) => jr.name(),
@@ -404,7 +404,7 @@ impl Site {
             SiteKind::Settlement(_)
             | SiteKind::Refactor(_)
             | SiteKind::CliffTown(_)
-            | SiteKind::SavannahPit(_)
+            | SiteKind::SavannahTown(_)
             | SiteKind::CoastalTown(_)
             | SiteKind::DesertCity(_) => Some(common::trade::SiteInformation {
                 id: site_id,
@@ -422,7 +422,7 @@ impl Site {
             SiteKind::Castle(c) => c.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
             SiteKind::Refactor(s) => s.render(canvas, dynamic_rng),
             SiteKind::CliffTown(ct) => ct.render(canvas, dynamic_rng),
-            SiteKind::SavannahPit(sp) => sp.render(canvas, dynamic_rng),
+            SiteKind::SavannahTown(st) => st.render(canvas, dynamic_rng),
             SiteKind::CoastalTown(ct) => ct.render(canvas, dynamic_rng),
             SiteKind::PirateHideout(ph) => ph.render(canvas, dynamic_rng),
             SiteKind::JungleRuin(jr) => jr.render(canvas, dynamic_rng),
@@ -467,7 +467,7 @@ impl Site {
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Refactor(_)
             | SiteKind::CliffTown(_)
-            | SiteKind::SavannahPit(_)
+            | SiteKind::SavannahTown(_)
             | SiteKind::CoastalTown(_)
             | SiteKind::PirateHideout(_)
             | SiteKind::JungleRuin(_)
@@ -497,7 +497,7 @@ impl Site {
             self.kind,
             SiteKind::Refactor(_)
                 | SiteKind::CliffTown(_)
-                | SiteKind::SavannahPit(_)
+                | SiteKind::SavannahTown(_)
                 | SiteKind::CoastalTown(_)
                 | SiteKind::DesertCity(_)
                 | SiteKind::Settlement(_)
@@ -512,7 +512,7 @@ impl Site {
             SiteKind::Castle(_) => None,
             SiteKind::Refactor(site2) => Some(site2),
             SiteKind::CliffTown(site2) => Some(site2),
-            SiteKind::SavannahPit(site2) => Some(site2),
+            SiteKind::SavannahTown(site2) => Some(site2),
             SiteKind::CoastalTown(site2) => Some(site2),
             SiteKind::PirateHideout(site2) => Some(site2),
             SiteKind::JungleRuin(site2) => Some(site2),
@@ -545,8 +545,8 @@ impl SiteKind {
                 Some(SiteKindMeta::Settlement(SettlementKindMeta::Default))
             },
             SiteKind::CliffTown(_) => Some(SiteKindMeta::Settlement(SettlementKindMeta::CliffTown)),
-            SiteKind::SavannahPit(_) => {
-                Some(SiteKindMeta::Settlement(SettlementKindMeta::SavannahPit))
+            SiteKind::SavannahTown(_) => {
+                Some(SiteKindMeta::Settlement(SettlementKindMeta::SavannahTown))
             },
             SiteKind::CoastalTown(_) => {
                 Some(SiteKindMeta::Settlement(SettlementKindMeta::CoastalTown))

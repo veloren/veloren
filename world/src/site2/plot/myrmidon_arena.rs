@@ -139,7 +139,7 @@ impl Structure for MyrmidonArena {
         painter
             .cylinder(Aabb {
                 min: (center - radius + 5).with_z(base),
-                max: (center + radius - 5).with_z(base + 20),
+                max: (center + radius - 5).with_z(base + 30),
             })
             .clear();
 

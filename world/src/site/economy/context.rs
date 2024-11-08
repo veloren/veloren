@@ -122,7 +122,7 @@ impl Environment {
                     SiteKind::Settlement(_)
                     | SiteKind::Refactor(_)
                     | SiteKind::CliffTown(_)
-                    | SiteKind::SavannahPit(_)
+                    | SiteKind::SavannahTown(_)
                     | SiteKind::CoastalTown(_)
                     | SiteKind::DesertCity(_) => towns += site.economy.pop,
                     SiteKind::Castle(_) => castles += site.economy.pop,

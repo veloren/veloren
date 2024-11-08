@@ -194,7 +194,7 @@ impl World {
                                 civ::SiteKind::Settlement
                                 | civ::SiteKind::Refactor
                                 | civ::SiteKind::CliffTown
-                                | civ::SiteKind::SavannahPit
+                                | civ::SiteKind::SavannahTown
                                 | civ::SiteKind::CoastalTown
                                 | civ::SiteKind::DesertCity
                                 | civ::SiteKind::PirateHideout
@@ -739,10 +739,10 @@ impl World {
                                 Rgb::black(),
                                 lod::ObjectKind::SavannahHut,
                             )),
-                            site2::plot::PlotKind::SavannahPit(_) => Some((
+                            site2::plot::PlotKind::SavannahAirshipDock(_) => Some((
                                 site.tile_wpos(plot.root_tile),
                                 Rgb::black(),
-                                lod::ObjectKind::SavannahPit,
+                                lod::ObjectKind::SavannahAirshipDock,
                             )),
                             site2::plot::PlotKind::TerracottaPalace(_) => Some((
                                 site.tile_wpos(plot.root_tile),

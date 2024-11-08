@@ -79,7 +79,7 @@ impl Rule for Migrate {
                                     &ctx.index.sites.get(ws).kind,
                                     SiteKind::Refactor(_)
                                         | SiteKind::CliffTown(_)
-                                        | SiteKind::SavannahPit(_)
+                                        | SiteKind::SavannahTown(_)
                                         | SiteKind::CoastalTown(_)
                                         | SiteKind::DesertCity(_)
                                 )

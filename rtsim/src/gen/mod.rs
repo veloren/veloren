@@ -78,7 +78,7 @@ impl Data {
             .and_then(|ws| match &index.sites.get(ws).kind {
                 SiteKind::Refactor(site2)
                 | SiteKind::CliffTown(site2)
-                | SiteKind::SavannahPit(site2)
+                | SiteKind::SavannahTown(site2)
                 | SiteKind::CoastalTown(site2)
                 | SiteKind::DesertCity(site2) => Some(site2),
                 _ => None,
@@ -115,7 +115,7 @@ impl Data {
                         | PlotKind::AirshipDock(_)
                         | PlotKind::Tavern(_)
                         | PlotKind::Plaza
-                        | PlotKind::SavannahPit(_)
+                        | PlotKind::SavannahAirshipDock(_)
                         | PlotKind::SavannahHut(_)
                         | PlotKind::SavannahWorkshop(_)
                         | PlotKind::CliffTower(_)

@@ -37,7 +37,7 @@ pub enum ObjectKind {
     Palm,
     Arena,
     SavannahHut,
-    SavannahPit,
+    SavannahAirshipDock,
     TerracottaPalace,
     TerracottaHouse,
     TerracottaYard,

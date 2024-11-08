@@ -26,8 +26,8 @@ mod myrmidon_house;
 mod pirate_hideout;
 mod rock_circle;
 mod sahagin;
+mod savannah_airship_dock;
 mod savannah_hut;
-mod savannah_pit;
 mod savannah_workshop;
 mod sea_chapel;
 pub mod tavern;
@@ -47,8 +47,8 @@ pub use self::{
     glider_finish::GliderFinish, glider_platform::GliderPlatform, glider_ring::GliderRing,
     gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
     myrmidon_arena::MyrmidonArena, myrmidon_house::MyrmidonHouse, pirate_hideout::PirateHideout,
-    rock_circle::RockCircle, sahagin::Sahagin, savannah_hut::SavannahHut,
-    savannah_pit::SavannahPit, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
+    rock_circle::RockCircle, sahagin::Sahagin, savannah_airship_dock::SavannahAirshipDock,
+    savannah_hut::SavannahHut, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
     tavern::Tavern, terracotta_house::TerracottaHouse, terracotta_palace::TerracottaPalace,
     terracotta_yard::TerracottaYard, troll_cave::TrollCave, vampire_castle::VampireCastle,
     workshop::Workshop,
@@ -117,7 +117,7 @@ pub enum PlotKind {
     CliffTower(CliffTower),
     Sahagin(Sahagin),
     Citadel(Citadel),
-    SavannahPit(SavannahPit),
+    SavannahAirshipDock(SavannahAirshipDock),
     SavannahHut(SavannahHut),
     SavannahWorkshop(SavannahWorkshop),
     Bridge(Bridge),
@@ -157,7 +157,7 @@ macro_rules! foreach_plot {
             PlotKind::GiantTree($x) => $y,
             PlotKind::CliffTower($x) => $y,
             PlotKind::Citadel($x) => $y,
-            PlotKind::SavannahPit($x) => $y,
+            PlotKind::SavannahAirshipDock($x) => $y,
             PlotKind::SavannahHut($x) => $y,
             PlotKind::SavannahWorkshop($x) => $y,
             PlotKind::Bridge($x) => $y,

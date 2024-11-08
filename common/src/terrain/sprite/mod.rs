@@ -103,6 +103,8 @@ sprites! {
         WardrobeSingleMesa = 0x1B,
         WardrobeDoubleMesa = 0x1C,
         CupboardMesa       = 0x1D,
+        TableCoastalLarge  = 0x1E,
+        BenchCoastal       = 0x1F,
         // Crafting
         CraftingBench    = 0x20,
         Forge            = 0x21,
@@ -352,21 +354,22 @@ sprites! {
         DiamondLight   = 0x0A,
 
         // Artificial
-        Gravestone       = 0x10,
-        Melon            = 0x11,
-        ForgeTools       = 0x12,
-        JugAndBowlArabic = 0x13,
-        JugArabic        = 0x14,
-        DecorSetArabic   = 0x15,
-        SepareArabic     = 0x16,
-        Candle           = 0x17,
-        SmithingTable    = 0x18,
-        Forge0           = 0x19,
-        GearWheel0       = 0x1A,
-        Quench0          = 0x1B,
-        SeaDecorEmblem   = 0x1C,
-        SeaDecorPillar   = 0x1D,
-        MagicalSeal      = 0x1E,
+        Gravestone        = 0x10,
+        Melon             = 0x11,
+        ForgeTools        = 0x12,
+        JugAndBowlArabic  = 0x13,
+        JugArabic         = 0x14,
+        DecorSetArabic    = 0x15,
+        SepareArabic      = 0x16,
+        Candle            = 0x17,
+        SmithingTable     = 0x18,
+        Forge0            = 0x19,
+        GearWheel0        = 0x1A,
+        Quench0           = 0x1B,
+        SeaDecorEmblem    = 0x1C,
+        SeaDecorPillar    = 0x1D,
+        MagicalSeal       = 0x1E,
+        JugAndCupsCoastal = 0x1F,
     },
     Lamp = 8 has Ori, LightEnabled {
         // Standalone lights
@@ -582,10 +585,13 @@ impl SpriteKind {
             SpriteKind::JugArabic => 1.4,
             SpriteKind::TableArabicSmall => 0.9,
             SpriteKind::TableArabicLarge => 1.0,
+            SpriteKind::TableCoastalLarge => 1.0,
+            SpriteKind::BenchCoastal => 1.0,
             SpriteKind::CanapeArabic => 1.2,
             SpriteKind::CupboardArabic => 4.5,
             SpriteKind::WallTableArabic => 2.3,
             SpriteKind::JugAndBowlArabic => 1.4,
+            SpriteKind::JugAndCupsCoastal => 1.4,
             SpriteKind::Melon => 0.7,
             SpriteKind::OvenArabic => 3.2,
             SpriteKind::FountainArabic => 2.4,
@@ -761,9 +767,10 @@ impl SpriteKind {
     #[inline]
     pub fn mount_offset(&self) -> Option<(Vec3<f32>, Vec3<f32>)> {
         match self {
-            SpriteKind::ChairSingle | SpriteKind::ChairDouble | SpriteKind::Bench => {
-                Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y()))
-            },
+            SpriteKind::ChairSingle
+            | SpriteKind::ChairDouble
+            | SpriteKind::Bench
+            | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y())),
             SpriteKind::Helm => Some((Vec3::new(0.0, -1.0, 0.0), Vec3::unit_y())),
             SpriteKind::Bed => Some((Vec3::new(0.0, 0.0, 0.6), -Vec3::unit_y())),
             SpriteKind::BedMesa => Some((Vec3::new(0.0, 0.0, 0.6), -Vec3::unit_y())),

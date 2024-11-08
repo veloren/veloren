@@ -330,46 +330,30 @@ impl Structure for CoastalHouse {
             // furniture
             let mut sprites = vec![
                 SpriteKind::DrawerSmall,
-                SpriteKind::DrawerMedium,
-                SpriteKind::DrawerMedium,
-                SpriteKind::ChairSingle,
-                SpriteKind::ChairDouble,
                 SpriteKind::CoatRack,
-                SpriteKind::WardrobeDouble,
-                SpriteKind::WardrobeSingle,
-                SpriteKind::TableSide,
                 SpriteKind::Bowl,
                 SpriteKind::VialEmpty,
-                SpriteKind::SepareArabic,
                 SpriteKind::FountainArabic,
-                SpriteKind::JugAndBowlArabic,
                 SpriteKind::Crate,
                 SpriteKind::Pot,
                 SpriteKind::Lantern,
-                SpriteKind::TableArabicSmall,
-                SpriteKind::CushionArabic,
-                SpriteKind::JugArabic,
-                SpriteKind::DecorSetArabic,
             ];
-            'outer: for dir in DIAGONALS {
+            'outer: for dir in NEIGHBORS {
                 let furniture_pos = Vec2::new(
-                    center.x + dir.x * ((length / 2) - 2),
-                    center.y + dir.y * ((width / 2) - 2),
+                    center.x + dir.x * ((length / 2) + 1),
+                    center.y + dir.y * ((width / 2) + 1),
                 );
-                for dir in NEIGHBORS {
-                    if sprites.is_empty() {
-                        break 'outer;
-                    }
-                    let position = furniture_pos + dir * 3;
-                    let sprite = sprites.swap_remove(
-                        RandomField::new(0).get(position.with_z(base)) as usize % sprites.len(),
-                    );
-                    painter.owned_resource_sprite(
-                        position.with_z(base - 2 + (s * height)),
-                        sprite,
-                        0,
-                    );
+                if sprites.is_empty() {
+                    break 'outer;
                 }
+                let sprite = sprites.swap_remove(
+                    RandomField::new(0).get(furniture_pos.with_z(base)) as usize % sprites.len(),
+                );
+                painter.owned_resource_sprite(
+                    furniture_pos.with_z(base - 2 + (s * height)),
+                    sprite,
+                    0,
+                );
             }
 
             // clear floor center if stairs
@@ -383,12 +367,47 @@ impl Structure for CoastalHouse {
             };
 
             // draws a random index based of base and currently storey
-            let random_index = (RandomField::new(0).get(center.with_z(base + s)) % 4) as usize;
-            // add beds at random corners
+            let random_index_1 = (RandomField::new(0).get(center.with_z(base + s)) % 4) as usize;
+            let random_index_2 = 3 - random_index_1;
+            // add beds and tables at random corners
             for (d, dir) in DIAGONALS.iter().enumerate() {
                 let bed_pos = center + dir * ((length / 2) - 2);
-                if d == random_index {
+                let table_pos = Vec2::new(
+                    center.x + dir.x * ((length / 2) - 1),
+                    center.y + dir.y * ((width / 2) - 2),
+                );
+                if d == random_index_1 {
                     painter.sprite(bed_pos.with_z(base - 2 + (s * height)), SpriteKind::Bed);
+                } else if d == random_index_2 {
+                    painter.rotated_sprite(
+                        table_pos.with_z(base - 2 + (s * height)),
+                        SpriteKind::TableCoastalLarge,
+                        2,
+                    );
+                    painter.sprite(
+                        table_pos.with_z(base - 1 + (s * height)),
+                        SpriteKind::JugAndCupsCoastal,
+                    );
+
+                    for dir in CARDINALS {
+                        let bench_pos = Vec2::new(table_pos.x + dir.x * 2, table_pos.y + dir.y);
+                        let ori = match dir.y {
+                            0 => {
+                                if dir.x < 0 {
+                                    2
+                                } else {
+                                    6
+                                }
+                            },
+                            1 => 0,
+                            _ => 4,
+                        };
+                        painter.rotated_sprite(
+                            bench_pos.with_z(base - 2 + (s * height)),
+                            SpriteKind::BenchCoastal,
+                            ori as u8,
+                        );
+                    }
                 }
             }
 
@@ -450,31 +469,34 @@ impl Structure for CoastalHouse {
             )
             .intersect(top_limit)
             .fill(white.clone());
+        if storeys > 1 {
+            // stairway1 stairs
+            let stair_radius1 = 3.0;
+            let stairs_clear1 = painter.cylinder(Aabb {
+                min: (center - 1 - stair_radius1 as i32).with_z(base - 2),
+                max: (center + 2 + stair_radius1 as i32)
+                    .with_z(base + ((storeys - 1) * height) - 2),
+            });
+            let stairs_clear2 = painter.cylinder(Aabb {
+                min: (center - 2 - stair_radius1 as i32).with_z(base - 2),
+                max: (center + 3 + stair_radius1 as i32)
+                    .with_z(base + ((storeys - 1) * height) - 2),
+            });
+            stairs_clear1.clear();
+            painter
+                .cylinder(Aabb {
+                    min: (center - 1).with_z(base - 2),
+                    max: (center + 2).with_z(base + ((storeys - 1) * height) - 2),
+                })
+                .fill(white.clone());
 
-        // stairway1 stairs
-        let stair_radius1 = 3.0;
-        let stairs_clear1 = painter.cylinder(Aabb {
-            min: (center - 1 - stair_radius1 as i32).with_z(base - 2),
-            max: (center + 2 + stair_radius1 as i32).with_z(base + ((storeys - 1) * height) - 2),
-        });
-        let stairs_clear2 = painter.cylinder(Aabb {
-            min: (center - 2 - stair_radius1 as i32).with_z(base - 2),
-            max: (center + 3 + stair_radius1 as i32).with_z(base + ((storeys - 1) * height) - 2),
-        });
-        stairs_clear1.clear();
-        painter
-            .cylinder(Aabb {
-                min: (center - 1).with_z(base - 2),
-                max: (center + 2).with_z(base + ((storeys - 1) * height) - 2),
-            })
-            .fill(white.clone());
-
-        stairs_clear2
-            .sample(wall_staircase(
-                center.with_z(base + ((storeys - 1) * height) - 2),
-                stair_radius1,
-                (height / 2) as f32,
-            ))
-            .fill(white);
+            stairs_clear2
+                .sample(wall_staircase(
+                    center.with_z(base + ((storeys - 1) * height) - 2),
+                    stair_radius1,
+                    (height / 2) as f32,
+                ))
+                .fill(white);
+        }
     }
 }

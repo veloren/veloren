@@ -498,7 +498,7 @@ impl Civs {
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::CliffTown => (2i32, 1.0),
-                SiteKind::SavannahPit => (48i32, 25.0),
+                SiteKind::SavannahTown => (48i32, 25.0),
                 SiteKind::CoastalTown => (64i32, 35.0),
                 SiteKind::JungleRuin => (8i32, 3.0),
                 SiteKind::DesertCity => (64i32, 25.0),
@@ -620,8 +620,8 @@ impl Civs {
                         &mut rng,
                         wpos,
                     )),
-                    SiteKind::SavannahPit => {
-                        WorldSite::savannah_pit(site2::Site::generate_savannah_pit(
+                    SiteKind::SavannahTown => {
+                        WorldSite::savannah_town(site2::Site::generate_savannah_town(
                             &Land::from_sim(ctx.sim),
                             &mut rng,
                             wpos,
@@ -1014,7 +1014,7 @@ impl Civs {
         let kind = match ctx.rng.gen_range(0..64) {
             0..=8 => SiteKind::CliffTown,
             9..=17 => SiteKind::DesertCity,
-            18..=23 => SiteKind::SavannahPit,
+            18..=23 => SiteKind::SavannahTown,
             24..=33 => SiteKind::CoastalTown,
             _ => SiteKind::Refactor,
         };
@@ -1462,7 +1462,7 @@ impl Civs {
                     SiteKind::Refactor
                         | SiteKind::Settlement
                         | SiteKind::CliffTown
-                        | SiteKind::SavannahPit
+                        | SiteKind::SavannahTown
                         | SiteKind::CoastalTown
                         | SiteKind::DesertCity
                         | SiteKind::Castle
@@ -1476,7 +1476,7 @@ impl Civs {
         if let SiteKind::Refactor
         | SiteKind::Settlement
         | SiteKind::CliffTown
-        | SiteKind::SavannahPit
+        | SiteKind::SavannahTown
         | SiteKind::CoastalTown
         | SiteKind::DesertCity
         | SiteKind::Castle = self.sites[site].kind
@@ -2036,7 +2036,7 @@ pub enum SiteKind {
     Castle,
     Refactor,
     CliffTown,
-    SavannahPit,
+    SavannahTown,
     CoastalTown,
     DesertCity,
     ChapelSite,
@@ -2130,7 +2130,7 @@ impl SiteKind {
                 SiteKind::GliderCourse => {
                     chunk.alt > 1400.0
                 },
-                SiteKind::SavannahPit => {
+                SiteKind::SavannahTown => {
                     matches!(chunk.get_biome(), BiomeKind::Savannah)
                         && !chunk.near_cliffs()
                         && !chunk.river.near_water()
@@ -2247,9 +2247,6 @@ impl Site {
             SiteKind::Adlet
                 | SiteKind::Gnarling
                 | SiteKind::ChapelSite
-                | SiteKind::DesertCity
-                | SiteKind::SavannahPit
-                | SiteKind::CoastalTown
                 | SiteKind::Terracotta
                 | SiteKind::Haniwa
                 | SiteKind::Myrmidon
@@ -2267,7 +2264,7 @@ impl Site {
                 | SiteKind::Refactor
                 | SiteKind::CliffTown
                 | SiteKind::DesertCity
-                | SiteKind::SavannahPit
+                | SiteKind::SavannahTown
                 | SiteKind::CoastalTown
         )
     }

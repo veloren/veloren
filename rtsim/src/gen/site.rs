@@ -25,7 +25,7 @@ impl Site {
             SiteKind::Refactor(_)
             | SiteKind::CliffTown(_)
             | SiteKind::DesertCity(_)
-            | SiteKind::SavannahPit(_)
+            | SiteKind::SavannahTown(_)
             | SiteKind::CoastalTown(_) => Some(true),
             // Evil
             SiteKind::Myrmidon(_)

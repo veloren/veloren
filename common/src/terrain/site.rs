@@ -29,6 +29,6 @@ pub enum SettlementKindMeta {
     Default,
     CliffTown,
     DesertCity,
-    SavannahPit,
+    SavannahTown,
     CoastalTown,
 }

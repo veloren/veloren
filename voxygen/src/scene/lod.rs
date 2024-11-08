@@ -111,8 +111,8 @@ impl Lod {
                     make_lod_object("savannah_hut", renderer),
                 ),
                 (
-                    lod::ObjectKind::SavannahPit,
-                    make_lod_object("savannah_pit", renderer),
+                    lod::ObjectKind::SavannahAirshipDock,
+                    make_lod_object("savannah_airship_dock", renderer),
                 ),
                 (
                     lod::ObjectKind::TerracottaPalace,
