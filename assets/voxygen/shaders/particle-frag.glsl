@@ -24,6 +24,7 @@ layout(location = 0) in vec3 f_pos;
 layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) in vec4 f_col;
 layout(location = 3) in float f_reflect;
+layout(location = 4) flat in int f_mode;
 
 layout(location = 0) out vec4 tgt_color;
 layout(location = 1) out uvec4 tgt_mat;
@@ -79,8 +80,10 @@ void main() {
     // CPU) we need to some how find an approximation of how much the sun is blocked. We do this by fading out the sun
     // as the particle moves underground. This isn't perfect, but it does at least mean that particles don't look like
     // they're exposed to the sun when in dungeons
-    const float SUN_FADEOUT_DIST = 20.0;
-    sun_info.block *= clamp((f_pos.z - f_alt) / SUN_FADEOUT_DIST + 1, 0, 1);
+    const float LIGHT_FADEOUT_OFFSET = 50.0;
+    const float LIGHT_FADEOUT_DIST = 20.0;
+    sun_info.block *= clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1);
+    moon_info.block *= clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1);
 
     // To account for prior saturation.
     float max_light = 0.0;
@@ -110,5 +113,14 @@ void main() {
 
     // Temporarily disable particle transparency to avoid artifacts
     tgt_color = vec4(surf_color, 1.0 /*f_col.a*/);
-    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_BLOCK);
+
+    uint material = MAT_BLOCK;
+
+    const int WATER_FOAM = 64;
+
+    if (f_mode == WATER_FOAM) {
+        material = MAT_FLUID;
+    }
+    
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), material);
 }

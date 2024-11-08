@@ -365,7 +365,9 @@ impl<'a> PhysicsData<'a> {
                 .write
                 .previous_phys_cache
                 .insert(entity, PreviousPhysCache {
+                    velocity: Vec3::zero(),
                     velocity_dt: Vec3::zero(),
+                    in_fluid: None,
                     center: Vec3::zero(),
                     collision_boundary: 0.0,
                     scale: 0.0,
@@ -378,11 +380,12 @@ impl<'a> PhysicsData<'a> {
         }
 
         // Update PreviousPhysCache
-        for (_, vel, position, ori, phys_cache, collider, scale, cs) in (
+        for (_, vel, position, ori, phys_state, phys_cache, collider, scale, cs) in (
             &self.read.entities,
             &self.write.velocities,
             &self.write.positions,
             &self.write.orientations,
+            &self.write.physics_states,
             &mut self.write.previous_phys_cache,
             &self.read.colliders,
             self.read.scales.maybe(),
@@ -397,6 +400,8 @@ impl<'a> PhysicsData<'a> {
             let half_height = (z_max - z_min) / 2.0;
 
             phys_cache.velocity_dt = vel.0 * self.read.dt.0;
+            phys_cache.velocity = vel.0;
+            phys_cache.in_fluid = phys_state.in_fluid;
             let entity_center = position.0 + Vec3::new(0.0, 0.0, z_min + half_height);
             let flat_radius = collider.bounding_radius() * scale;
             let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();

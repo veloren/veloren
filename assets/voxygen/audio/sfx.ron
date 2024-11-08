@@ -141,6 +141,27 @@
             threshold: 7.0,
             subtitle: "subtitle-lavapool",
         ),
+        SplashSmall: (
+            files: [
+                "voxygen.audio.sfx.footsteps.splash_small",
+            ],
+            threshold: 0.0,
+            subtitle: "subtitle-splash"
+        ),
+        SplashMedium: (
+            files: [
+                "voxygen.audio.sfx.footsteps.splash_medium",
+            ],
+            threshold: 0.0,
+            subtitle: "subtitle-splash"
+        ),
+        SplashBig: (
+            files: [
+                "voxygen.audio.sfx.footsteps.splash_big",
+            ],
+            threshold: 0.0,
+            subtitle: "subtitle-splash"
+        ),
         //
         // Character States
         //

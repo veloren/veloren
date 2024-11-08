@@ -506,6 +506,51 @@ impl ParticleMgr {
                     }
                 };
             },
+            Outcome::Splash {
+                vel,
+                pos,
+                mass,
+                kind,
+            } => {
+                let mode = match kind {
+                    comp::fluid_dynamics::LiquidKind::Water => ParticleMode::WaterFoam,
+                    comp::fluid_dynamics::LiquidKind::Lava => ParticleMode::CampfireFire,
+                };
+                let magnitude = (-vel.z).max(0.0);
+                let energy = mass * magnitude;
+                if energy > 0.0 {
+                    let count = ((0.6 * energy.sqrt()).ceil() as usize).min(500);
+                    let mut i = 0;
+                    let r = 0.5 / count as f32;
+                    self.particles
+                        .resize_with(self.particles.len() + count, || {
+                            let t = i as f32 / count as f32 + rng.gen_range(-r..=r);
+                            i += 1;
+                            let angle = t * TAU;
+                            let s = angle.sin();
+                            let c = angle.cos();
+                            let energy = energy
+                                * f32::abs(rng.gen_range(0.0..1.0) + rng.gen_range(0.0..1.0) - 0.5);
+
+                            let axis = -Vec3::unit_z();
+                            let plane = Vec3::new(c, s, 0.0);
+
+                            let pos = *pos + plane * rng.gen_range(0.0..0.5);
+
+                            let energy = energy.sqrt() * 0.5;
+
+                            let dir = plane * (1.0 + energy) - axis * energy;
+
+                            Particle::new_directed(
+                                Duration::from_millis(4000),
+                                time,
+                                mode,
+                                pos,
+                                pos + dir,
+                            )
+                        });
+                }
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }
@@ -2445,6 +2490,14 @@ impl ParticleMgr {
                 rate: 0.055,
                 lifetime: 20.0,
                 mode: ParticleMode::Spore,
+                cond: |_| true,
+            },
+            BlockParticles {
+                blocks: |boi| BlockParticleSlice::PositionsAndDirs(&boi.waterfall),
+                range: 2,
+                rate: 4.0,
+                lifetime: 5.0,
+                mode: ParticleMode::WaterFoam,
                 cond: |_| true,
             },
         ];

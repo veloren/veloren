@@ -255,7 +255,7 @@ fn mesh_worker(
     span!(_guard, "mesh_worker");
     let blocks_of_interest = BlocksOfInterest::from_blocks(
         chunk.iter_changed().map(|(pos, block)| (pos, *block)),
-        chunk.meta().river_velocity().magnitude_squared(),
+        chunk.meta().river_velocity(),
         chunk.meta().temp(),
         chunk.meta().humidity(),
         &*chunk,

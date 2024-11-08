@@ -33,6 +33,7 @@ layout(location = 2) out vec4 f_col;
 //layout(location = x) out float f_ao;
 //layout(location = x) out float f_light;
 layout(location = 3) out float f_reflect;
+layout(location = 4) flat out int f_mode;
 
 const float SCALE = 1.0 / 11.0;
 
@@ -100,6 +101,7 @@ const int SPORE = 60;
 const int SURPRISE_EGG = 61;
 const int FLAME_TORNADO = 62;
 const int POISON = 63;
+const int WATER_FOAM = 64;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1058,6 +1060,15 @@ void main() {
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
+        case WATER_FOAM:
+            f_reflect = 0.1;
+            attr = Attr(
+                inst_dir * pow(percent(), 0.5) * 0.5 + percent() * percent() * vec3(0, 0, -50),
+                vec3((1.5 * (1 - slow_start(0.2)))),
+                vec4(1.0, 1.0, 1.0, 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
         default:
             attr = Attr(
                 linear_motion(
@@ -1096,6 +1107,8 @@ void main() {
 
     //vec3 col = vec3((uvec3(v_col) >> uvec3(0, 8, 16)) & uvec3(0xFFu)) / 255.0;
     f_col = vec4(attr.col.rgb, attr.col.a);
+
+    f_mode = inst_mode;
 
     gl_Position =
         all_mat *
