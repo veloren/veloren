@@ -1374,7 +1374,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                             let phrase = if matches!(ctx.npc.profession(), Some(Profession::Farmer))
                                 && matches!(sprite.category(), sprite::Category::Plant)
                             {
-                                "npc-speech-witness_theft_own"
+                                "npc-speech-witness_theft_owned"
                             } else {
                                 "npc-speech-witness_theft"
                             };
