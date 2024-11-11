@@ -24,7 +24,7 @@ use common::{
     uid::IdMaps,
     vol::{ReadVol, RectRasterableVol, SizedVol},
 };
-use common_base::span;
+use common_base::prof_span;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use specs::{Entity, Join, LendJoin, WorldExt};
@@ -64,7 +64,7 @@ impl ParticleMgr {
         scene_data: &SceneData,
         figure_mgr: &FigureMgr,
     ) {
-        span!(_guard, "handle_outcome", "ParticleMgr::handle_outcome");
+        prof_span!("ParticleMgr::handle_outcome");
         let time = scene_data.state.get_time();
         let mut rng = thread_rng();
 
@@ -538,7 +538,7 @@ impl ParticleMgr {
         figure_mgr: &FigureMgr,
         lights: &mut Vec<Light>,
     ) {
-        span!(_guard, "maintain", "ParticleMgr::maintain");
+        prof_span!("ParticleMgr::maintain");
         if scene_data.particles_enabled {
             // update timings
             self.scheduler.maintain(scene_data.state.get_time());
@@ -570,11 +570,7 @@ impl ParticleMgr {
     }
 
     fn maintain_body_particles(&mut self, scene_data: &SceneData) {
-        span!(
-            _guard,
-            "body_particles",
-            "ParticleMgr::maintain_body_particles"
-        );
+        prof_span!("ParticleMgr::maintain_body_particles");
         let ecs = scene_data.state.ecs();
         for (body, interpolated, vel) in (
             &ecs.read_storage::<Body>(),
@@ -695,11 +691,7 @@ impl ParticleMgr {
         pos: Vec3<f32>,
         vel: Option<&Vel>,
     ) {
-        span!(
-            _guard,
-            "campfirelit_particles",
-            "ParticleMgr::maintain_campfirelit_particles"
-        );
+        prof_span!("ParticleMgr::maintain_campfirelit_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
@@ -728,11 +720,7 @@ impl ParticleMgr {
         pos: Vec3<f32>,
         vel: Option<&Vel>,
     ) {
-        span!(
-            _guard,
-            "barrel_organ_particles",
-            "ParticleMgr::maintain_barrel_organ_particles"
-        );
+        prof_span!("ParticleMgr::maintain_barrel_organ_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
@@ -761,11 +749,7 @@ impl ParticleMgr {
         pos: Vec3<f32>,
         vel: Option<&Vel>,
     ) {
-        span!(
-            _guard,
-            "boltfire_particles",
-            "ParticleMgr::maintain_boltfire_particles"
-        );
+        prof_span!("ParticleMgr::maintain_boltfire_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
@@ -793,11 +777,7 @@ impl ParticleMgr {
         pos: Vec3<f32>,
         vel: Option<&Vel>,
     ) {
-        span!(
-            _guard,
-            "boltfirebig_particles",
-            "ParticleMgr::maintain_boltfirebig_particles"
-        );
+        prof_span!("ParticleMgr::maintain_boltfirebig_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
@@ -837,11 +817,7 @@ impl ParticleMgr {
         pos: Vec3<f32>,
         vel: Option<&Vel>,
     ) {
-        span!(
-            _guard,
-            "fireraindrop_particles",
-            "ParticleMgr::maintain_fireraindrop_particles"
-        );
+        prof_span!("ParticleMgr::maintain_fireraindrop_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
@@ -930,11 +906,7 @@ impl ParticleMgr {
         pos: Vec3<f32>,
         vel: Option<&Vel>,
     ) {
-        span!(
-            _guard,
-            "bomb_particles",
-            "ParticleMgr::maintain_bomb_particles"
-        );
+        prof_span!("ParticleMgr::maintain_bomb_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
         let mut rng = thread_rng();
@@ -959,11 +931,7 @@ impl ParticleMgr {
     }
 
     fn maintain_active_portal_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
-        span!(
-            _guard,
-            "active_portal_particles",
-            "ParticleMgr::maintain_active_portal_particles"
-        );
+        prof_span!("ParticleMgr::maintain_active_portal_particles");
 
         let time = scene_data.state.get_time();
         let mut rng = thread_rng();
@@ -983,11 +951,7 @@ impl ParticleMgr {
     }
 
     fn maintain_portal_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
-        span!(
-            _guard,
-            "portal_particles",
-            "ParticleMgr::maintain_portal_particles"
-        );
+        prof_span!("ParticleMgr::maintain_portal_particles");
 
         let time = scene_data.state.get_time();
         let mut rng = thread_rng();
@@ -1009,11 +973,7 @@ impl ParticleMgr {
     }
 
     fn maintain_mine_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
-        span!(
-            _guard,
-            "mine_particles",
-            "ParticleMgr::maintain_mine_particles"
-        );
+        prof_span!("ParticleMgr::maintain_mine_particles");
         let time = scene_data.state.get_time();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
@@ -1028,11 +988,7 @@ impl ParticleMgr {
     }
 
     fn maintain_char_state_particles(&mut self, scene_data: &SceneData, figure_mgr: &FigureMgr) {
-        span!(
-            _guard,
-            "char_state_particles",
-            "ParticleMgr::maintain_char_state_particles"
-        );
+        prof_span!("ParticleMgr::maintain_char_state_particles");
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
@@ -2321,11 +2277,7 @@ impl ParticleMgr {
         terrain: &Terrain<TerrainChunk>,
         figure_mgr: &FigureMgr,
     ) {
-        span!(
-            _guard,
-            "block_particles",
-            "ParticleMgr::maintain_block_particles"
-        );
+        prof_span!("ParticleMgr::maintain_block_particles");
         let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
         let time = scene_data.state.get_time();
         let player_pos = scene_data
@@ -3084,7 +3036,7 @@ impl ParticleMgr {
     }
 
     fn upload_particles(&mut self, renderer: &mut Renderer) {
-        span!(_guard, "upload_particles", "ParticleMgr::upload_particles");
+        prof_span!("ParticleMgr::upload_particles");
         let all_cpu_instances = self
             .particles
             .iter()
@@ -3098,7 +3050,7 @@ impl ParticleMgr {
     }
 
     pub fn render<'a>(&'a self, drawer: &mut ParticleDrawer<'_, 'a>, scene_data: &SceneData) {
-        span!(_guard, "render", "ParticleMgr::render");
+        prof_span!("ParticleMgr::render");
         if scene_data.particles_enabled {
             let model = &self
                 .model_cache
@@ -3180,7 +3132,7 @@ impl HeartbeatScheduler {
     /// updates the last elapsed times and elapsed counts
     /// this should be called once, and only once per tick.
     pub fn maintain(&mut self, now: f64) {
-        span!(_guard, "maintain", "HeartbeatScheduler::maintain");
+        prof_span!("HeartbeatScheduler::maintain");
         self.last_known_time = now;
 
         for (frequency, (last_update, heartbeats)) in self.timers.iter_mut() {
@@ -3212,7 +3164,7 @@ impl HeartbeatScheduler {
     ///   - if it's equal to the tick rate, it could be between 2 and 0, due to
     ///     delta time variance.
     pub fn heartbeats(&mut self, frequency: Duration) -> u8 {
-        span!(_guard, "HeartbeatScheduler::heartbeats");
+        prof_span!("HeartbeatScheduler::heartbeats");
         let last_known_time = self.last_known_time;
 
         self.timers
