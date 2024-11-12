@@ -54,27 +54,28 @@ impl AmbienceMgr {
             .map(|b| b.is_liquid())
             .unwrap_or(false)
         {
-            for channel in audio.ambience_channels.iter_mut() {
-                channel.set_filter(1000);
-            }
+            audio.set_ambience_master_filter(888);
         } else {
-            for channel in audio.ambience_channels.iter_mut() {
-                channel.set_filter(20000);
-            }
+            audio.set_ambience_master_filter(20000);
         }
 
+        // TODO: The init could be done when the audio context is first created?
         // Iterate through each tag
         for tag in AmbienceChannelTag::iter() {
             // Init: Spawn a channel for each tag
             // TODO: Find a good way to cull unneeded channels
-            if audio.get_ambience_channel(tag).is_none() {
-                audio.new_ambience_channel(tag);
+            if let Some(inner) = audio.inner.as_mut()
+                && inner.channels.get_ambience_channel(tag).is_none()
+            {
+                inner.new_ambience_channel(tag);
                 let track = ambience_sounds.tracks.iter().find(|track| track.tag == tag);
                 if let Some(track) = track {
                     audio.play_ambience_looping(tag, &track.path);
                 }
             }
-            if let Some(channel) = audio.get_ambience_channel(tag) {
+            if let Some(inner) = audio.inner.as_mut()
+                && let Some(channel) = inner.channels.get_ambience_channel(tag)
+            {
                 // Maintain: get the correct volume of whatever the tag of the current
                 // channel is
                 let target_volume = get_target_volume(tag, client, camera);

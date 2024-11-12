@@ -221,8 +221,7 @@ impl EventMapper for BlockEventMapper {
                             let block_pos: Vec3<i32> = absolute_pos + block;
                             let internal_state = self.history.entry(block_pos).or_default();
 
-                            let focus_off = camera.get_focus_pos().map(f32::trunc);
-                            let cam_pos = camera.dependents().cam_pos + focus_off;
+                            let cam_pos = camera.get_pos_with_focus();
 
                             let block_pos = block_pos.map(|x| x as f32);
 
