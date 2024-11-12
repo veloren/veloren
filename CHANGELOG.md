@@ -73,12 +73,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Revamped armor stat scaling, akin to weapons.
 - (un)equipping sceptres and staffs changed to default sound
 - Sprite deletion timeouts added for spider webs and Harvester vines
+<<<<<<< HEAD
 - RiposteMelee attacks have a recovery phase after missing
 - Switched from Rodio to Kira
 - Ambient noise now gets filtered when underwater.
 - Renamed Site Savannah Pit to Savannah Town
 - Replaced building Savannah Pit with Savannah Town Airship Dock
 - Server authoritative physics forces now persist across server restarts.
+=======
+- Defensive basics block instead of parry.
+>>>>>>> 4ab08255fe (adding to changelogs)
 
 ### Removed
 
