@@ -62,11 +62,9 @@ use subtitles::Subtitles;
 use trade::Trade;
 
 use crate::{
+    audio::ActiveChannels,
     cmd::get_player_uuid,
-    ecs::{
-        comp as vcomp,
-        comp::{HpFloater, HpFloaterList},
-    },
+    ecs::comp::{self as vcomp, HpFloater, HpFloaterList},
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     render::UiDrawer,
@@ -79,7 +77,10 @@ use crate::{
     },
     settings::chat::ChatFilter,
     ui::{
-        fonts::Fonts, img_ids::Rotations, slot, slot::SlotKey, Graphic, Ingameable, ScaleMode, Ui,
+        fonts::Fonts,
+        img_ids::Rotations,
+        slot::{self, SlotKey},
+        Graphic, Ingameable, ScaleMode, Ui,
     },
     window::Event as WinEvent,
     GlobalState,
@@ -668,7 +669,7 @@ pub struct DebugInfo {
     pub num_particles_visible: u32,
     pub current_track: String,
     pub current_artist: String,
-    pub active_channels: [usize; 4],
+    pub active_channels: ActiveChannels,
 }
 
 pub struct HudInfo {
@@ -2938,10 +2939,10 @@ impl Hud {
             .set(self.ids.song_info, ui_widgets);
             Text::new(&format!(
                 "Active channels: M{}, A{}, S{}, U{}",
-                debug_info.active_channels[0],
-                debug_info.active_channels[1],
-                debug_info.active_channels[2],
-                debug_info.active_channels[3],
+                debug_info.active_channels.music,
+                debug_info.active_channels.ambience,
+                debug_info.active_channels.sfx,
+                debug_info.active_channels.ui,
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.song_info, V_PAD)

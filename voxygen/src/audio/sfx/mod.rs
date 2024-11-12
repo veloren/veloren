@@ -465,7 +465,7 @@ impl SfxMgr {
         }
         let triggers = self.triggers.read();
         let uids = client.state().ecs().read_storage::<Uid>();
-        if audio.listener.is_none() {
+        if audio.get_listener().is_none() {
             return;
         }
         match outcome {
@@ -474,7 +474,7 @@ impl SfxMgr {
                 audio.emit_sfx(sfx_trigger_item, *pos, Some((power.abs() / 2.5).min(1.5)));
             },
             Outcome::Lightning { pos } => {
-                let distance = pos.distance(audio.listener_pos);
+                let distance = pos.distance(audio.get_listener_pos());
                 let power = (1.0 - distance / 6_000.0).max(0.0).powi(7);
                 if power > 0.0 {
                     let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Lightning);
@@ -860,7 +860,7 @@ impl SfxMgr {
                 match sprite {
                     SpriteKind::SeaUrchin => {
                         let pos = pos.map(|e| e as f32 + 0.5);
-                        let power = (0.6 - pos.distance(audio.listener_pos) / 5_000.0)
+                        let power = (0.6 - pos.distance(audio.get_listener_pos()) / 5_000.0)
                             .max(0.0)
                             .powi(7);
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Explosion);

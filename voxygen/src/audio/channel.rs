@@ -12,7 +12,7 @@
 use kira::{
     effect::filter::{FilterBuilder, FilterHandle},
     manager::AudioManager,
-    sound::{static_sound::StaticSoundHandle, PlaybackState},
+    sound::PlaybackState,
     spatial::emitter::EmitterHandle,
     track::{TrackBuilder, TrackHandle, TrackId, TrackRoutes},
     tween::{Easing, Tween, Value},
@@ -23,6 +23,8 @@ use std::time::Duration;
 use strum::EnumIter;
 use tracing::warn;
 use vek::*;
+
+use super::soundcache::AnySoundHandle;
 
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
 /// should transition between two types of in-game music. For example, we
@@ -41,7 +43,7 @@ pub enum MusicChannelTag {
 pub struct MusicChannel {
     tag: MusicChannelTag,
     track: Option<TrackHandle>,
-    source: Option<StaticSoundHandle>,
+    source: Option<AnySoundHandle>,
     length: f32,
     loop_data: (bool, LoopPoint, LoopPoint), // Loops?, Start, End
 }
@@ -83,7 +85,7 @@ impl MusicChannel {
 
     pub fn set_tag(&mut self, tag: MusicChannelTag) { self.tag = tag; }
 
-    pub fn set_source(&mut self, source_handle: Option<StaticSoundHandle>) {
+    pub fn set_source(&mut self, source_handle: Option<AnySoundHandle>) {
         self.source = source_handle;
     }
 
@@ -182,7 +184,7 @@ impl MusicChannel {
     /// Get a mutable reference to the channel's track
     pub fn get_track_mut(&mut self) -> Option<&mut TrackHandle> { self.track.as_mut() }
 
-    pub fn get_source(&mut self) -> Option<&mut StaticSoundHandle> { self.source.as_mut() }
+    pub fn get_source(&mut self) -> Option<&mut AnySoundHandle> { self.source.as_mut() }
 
     pub fn get_length(&self) -> f32 { self.length }
 }
@@ -205,9 +207,9 @@ pub enum AmbienceChannelTag {
 pub struct AmbienceChannel {
     tag: AmbienceChannelTag,
     target_volume: f32,
-    track: Option<TrackHandle>,
-    filter: Option<FilterHandle>,
-    source: Option<StaticSoundHandle>,
+    track: TrackHandle,
+    filter: FilterHandle,
+    source: Option<AnySoundHandle>,
     pub looping: bool,
 }
 
@@ -218,42 +220,27 @@ impl AmbienceChannel {
         manager: &mut AudioManager,
         parent_track: TrackId,
         looping: bool,
-    ) -> Self {
+    ) -> Result<Self, kira::ResourceLimitReached> {
         let ambience_filter_builder = FilterBuilder::new().cutoff(Value::Fixed(20000.0));
         let mut ambience_track_builder = TrackBuilder::new();
         let filter = ambience_track_builder.add_effect(ambience_filter_builder);
-        let new_track = manager.add_sub_track(
+        let track = manager.add_sub_track(
             ambience_track_builder
                 .volume(0.0)
                 .routes(TrackRoutes::parent(parent_track)),
-        );
-        match new_track {
-            Ok(track) => Self {
-                tag,
-                target_volume: init_volume,
-                track: Some(track),
-                filter: Some(filter),
-                source: None,
-                looping,
-            },
-            Err(_) => {
-                warn!(
-                    ?new_track,
-                    "Failed to create track. May not play ambient sounds."
-                );
-                Self {
-                    tag,
-                    target_volume: init_volume,
-                    track: None,
-                    filter: None,
-                    source: None,
-                    looping,
-                }
-            },
-        }
+        )?;
+
+        Ok(Self {
+            tag,
+            target_volume: init_volume,
+            track,
+            filter,
+            source: None,
+            looping,
+        })
     }
 
-    pub fn set_source(&mut self, source_handle: Option<StaticSoundHandle>) {
+    pub fn set_source(&mut self, source_handle: Option<AnySoundHandle>) {
         self.source = source_handle;
     }
 
@@ -272,21 +259,19 @@ impl AmbienceChannel {
 
     /// Set the channel to a volume, fading over a given duration
     pub fn fade_to(&mut self, volume: f32, duration: f32) {
-        if let Some(track) = self.track.as_mut() {
-            track.set_volume(Volume::Amplitude(volume as f64), Tween {
+        self.track
+            .set_volume(Volume::Amplitude(volume as f64), Tween {
                 start_time: StartTime::Immediate,
                 duration: Duration::from_secs_f32(duration),
                 easing: Easing::Linear,
             });
-            self.target_volume = volume;
-        }
+        self.target_volume = volume;
     }
 
     /// Set the cutoff for the lowpass filter on this channel
     pub fn set_filter(&mut self, frequency: u32) {
-        if let Some(filter) = self.filter.as_mut() {
-            filter.set_cutoff(Value::Fixed(frequency as f64), Tween::default());
-        }
+        self.filter
+            .set_cutoff(Value::Fixed(frequency as f64), Tween::default());
     }
 
     /// Set whether this channel's sound loops or not
@@ -300,14 +285,14 @@ impl AmbienceChannel {
         }
     }
 
-    pub fn get_source(&mut self) -> Option<&mut StaticSoundHandle> { self.source.as_mut() }
+    pub fn get_source(&mut self) -> Option<&mut AnySoundHandle> { self.source.as_mut() }
 
     /// Get an immutable reference to the channel's track for purposes of
     /// setting the output destination of a sound
-    pub fn get_track(&self) -> Option<&TrackHandle> { self.track.as_ref() }
+    pub fn get_track(&self) -> &TrackHandle { &self.track }
 
     /// Get a mutable reference to the channel's track
-    pub fn get_track_mut(&mut self) -> Option<&mut TrackHandle> { self.track.as_mut() }
+    pub fn get_track_mut(&mut self) -> &mut TrackHandle { &mut self.track }
 
     /// Get the volume of this channel. The volume may be in the process of
     /// being faded to.
@@ -335,13 +320,13 @@ impl AmbienceChannel {
 /// Note: currently, emitters are static once spawned
 #[derive(Debug)]
 pub struct SfxChannel {
-    source: Option<StaticSoundHandle>,
-    emitter: Option<EmitterHandle>,
+    source: Option<AnySoundHandle>,
+    emitter: EmitterHandle,
     pub pos: Vec3<f32>,
 }
 
 impl SfxChannel {
-    pub fn new(emitter: Option<EmitterHandle>) -> Self {
+    pub fn new(emitter: EmitterHandle) -> Self {
         Self {
             source: None,
             emitter,
@@ -349,7 +334,7 @@ impl SfxChannel {
         }
     }
 
-    pub fn set_source(&mut self, source_handle: Option<StaticSoundHandle>) {
+    pub fn set_source(&mut self, source_handle: Option<AnySoundHandle>) {
         self.source = source_handle;
     }
 
@@ -365,23 +350,21 @@ impl SfxChannel {
         }
     }
 
+    pub fn get_emitter(&self) -> &EmitterHandle { &self.emitter }
+
     pub fn is_done(&self) -> bool {
         self.source
             .as_ref()
             .map_or(true, |source| source.state() == PlaybackState::Stopped)
     }
 
-    pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
-
     pub fn update(&mut self, pos: Vec3<f32>) {
-        let tween = Tween {
-            duration: Duration::from_secs_f32(0.01),
-            ..Default::default()
-        };
+        self.pos = pos;
 
-        if let Some(emitter) = self.emitter.as_mut() {
-            emitter.set_position(pos, tween);
-        }
+        self.emitter.set_position(pos, Tween {
+            duration: Duration::from_secs_f32(0.0),
+            ..Default::default()
+        });
     }
 }
 
@@ -390,7 +373,7 @@ impl SfxChannel {
 /// playback or fading/transitions
 pub struct UiChannel {
     track: Option<TrackHandle>,
-    source: Option<StaticSoundHandle>,
+    source: Option<AnySoundHandle>,
 }
 
 impl UiChannel {
@@ -415,7 +398,7 @@ impl UiChannel {
         }
     }
 
-    pub fn set_source(&mut self, source_handle: Option<StaticSoundHandle>) {
+    pub fn set_source(&mut self, source_handle: Option<AnySoundHandle>) {
         self.source = source_handle;
     }
 
