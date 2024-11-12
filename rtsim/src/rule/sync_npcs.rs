@@ -77,7 +77,7 @@ fn on_death(ctx: EventCtx<SyncNpcs, OnDeath>) {
     if let Actor::Npc(npc_id) = ctx.event.actor {
         if let Some(npc) = data.npcs.get_mut(npc_id) {
             // Mark the NPC as dead, allowing us to clear them up later
-            npc.is_dead = true;
+            npc.hp = 0.0;
         }
     }
 }

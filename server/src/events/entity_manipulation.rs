@@ -168,35 +168,57 @@ impl ServerEvent for PoiseChangeEvent {
     }
 }
 
-impl ServerEvent for HealthChangeEvent {
-    type SystemData<'a> = (
-        Entities<'a>,
-        Read<'a, EventBus<Outcome>>,
-        Read<'a, Time>,
-        ReadStorage<'a, Pos>,
-        ReadStorage<'a, Uid>,
-        WriteStorage<'a, Agent>,
-        WriteStorage<'a, Health>,
-        WriteStorage<'a, Heads>,
-    );
+pub fn entity_as_actor(
+    entity: Entity,
+    rtsim_entities: &ReadStorage<RtSimEntity>,
+    presences: &ReadStorage<Presence>,
+) -> Option<Actor> {
+    if let Some(rtsim_entity) = rtsim_entities.get(entity).copied() {
+        Some(Actor::Npc(rtsim_entity.0))
+    } else if let Some(PresenceKind::Character(character)) = presences.get(entity).map(|p| p.kind) {
+        Some(Actor::Character(character))
+    } else {
+        None
+    }
+}
 
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (entities, outcomes, time, positions, uids, mut agents, mut healths, mut heads): Self::SystemData<
-            '_,
-        >,
-    ) {
-        let mut outcomes_emitter = outcomes.emitter();
+#[derive(SystemData)]
+struct HealthChangeEventData<'a> {
+    entities: Entities<'a>,
+    #[cfg(feature = "worldgen")]
+    rtsim: WriteExpect<'a, RtSim>,
+    outcomes: Read<'a, EventBus<Outcome>>,
+    time: Read<'a, Time>,
+    #[cfg(feature = "worldgen")]
+    id_maps: Read<'a, IdMaps>,
+    #[cfg(feature = "worldgen")]
+    world: ReadExpect<'a, Arc<World>>,
+    #[cfg(feature = "worldgen")]
+    index: ReadExpect<'a, IndexOwned>,
+    positions: ReadStorage<'a, Pos>,
+    uids: ReadStorage<'a, Uid>,
+    presences: ReadStorage<'a, Presence>,
+    rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    agents: WriteStorage<'a, Agent>,
+    healths: WriteStorage<'a, Health>,
+    heads: WriteStorage<'a, Heads>,
+}
+
+impl ServerEvent for HealthChangeEvent {
+    type SystemData<'a> = HealthChangeEventData<'a>;
+
+    fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
+        let mut outcomes_emitter = data.outcomes.emitter();
         let mut rng = rand::thread_rng();
         for ev in events {
             if let Some((mut health, pos, uid, heads)) = (
-                &mut healths,
-                positions.maybe(),
-                uids.maybe(),
-                (&mut heads).maybe(),
+                &mut data.healths,
+                data.positions.maybe(),
+                data.uids.maybe(),
+                (&mut data.heads).maybe(),
             )
                 .lend_join()
-                .get(ev.entity, &entities)
+                .get(ev.entity, &data.entities)
             {
                 // If the change amount was not zero
                 let changed = health.change_by(ev.change);
@@ -208,7 +230,7 @@ impl ServerEvent for HealthChangeEvent {
                     if heads.amount() > 0 && ev.change.amount < 0.0 && heads.amount() > target_heads
                     {
                         for _ in target_heads..heads.amount() {
-                            if let Some(head) = heads.remove_one(&mut rng, *time) {
+                            if let Some(head) = heads.remove_one(&mut rng, *data.time) {
                                 if let Some(uid) = uid {
                                     outcomes_emitter.emit(Outcome::HeadLost { uid: *uid, head });
                                 }
@@ -217,6 +239,26 @@ impl ServerEvent for HealthChangeEvent {
                             }
                         }
                     }
+                }
+
+                #[cfg(feature = "worldgen")]
+                let entity_as_actor =
+                    |entity| entity_as_actor(entity, &data.rtsim_entities, &data.presences);
+                #[cfg(feature = "worldgen")]
+                if let Some(actor) = entity_as_actor(ev.entity) {
+                    let cause = ev
+                        .change
+                        .damage_by()
+                        .map(|by| by.uid())
+                        .and_then(|uid| data.id_maps.uid_entity(uid))
+                        .and_then(entity_as_actor);
+                    data.rtsim.hook_rtsim_actor_hp_change(
+                        &data.world,
+                        data.index.as_index_ref(),
+                        actor,
+                        cause,
+                        health.fraction(),
+                    );
                 }
 
                 if let (Some(pos), Some(uid)) = (pos, uid) {
@@ -240,7 +282,7 @@ impl ServerEvent for HealthChangeEvent {
             // TODO: Find a better way to separate direct damage from DOT here
             let damage = -ev.change.amount;
             if damage > 5.0 {
-                if let Some(agent) = agents.get_mut(ev.entity) {
+                if let Some(agent) = data.agents.get_mut(ev.entity) {
                     agent.inbox.push_back(AgentEvent::Hurt);
                 }
             }
@@ -893,22 +935,11 @@ impl ServerEvent for DestroyEvent {
             }
 
             #[cfg(feature = "worldgen")]
-            let entity_as_actor = |entity| {
-                if let Some(rtsim_entity) = data.rtsim_entities.get(entity).copied() {
-                    Some(Actor::Npc(rtsim_entity.0))
-                } else if let Some(PresenceKind::Character(character)) =
-                    data.presences.get(entity).map(|p| p.kind)
-                {
-                    Some(Actor::Character(character))
-                } else {
-                    None
-                }
-            };
-            #[cfg(feature = "worldgen")]
-            let actor = entity_as_actor(ev.entity);
+            let entity_as_actor =
+                |entity| entity_as_actor(entity, &data.rtsim_entities, &data.presences);
 
             #[cfg(feature = "worldgen")]
-            if let Some(actor) = actor
+            if let Some(actor) = entity_as_actor(ev.entity)
                 // Skip the death hook for rtsim entities if they aren't deleted, otherwise
                 // we'll end up with rtsim respawning an entity that wasn't actually
                 // removed, producing 2 entities having the same RtsimEntityId.

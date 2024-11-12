@@ -40,6 +40,14 @@ pub struct OnDeath {
 impl Event for OnDeath {}
 
 #[derive(Clone)]
+pub struct OnHpChange {
+    pub actor: Actor,
+    pub cause: Option<Actor>,
+    pub new_hp: f32,
+}
+impl Event for OnHpChange {}
+
+#[derive(Clone)]
 pub struct OnTheft {
     pub actor: Actor,
     pub wpos: Vec3<i32>,

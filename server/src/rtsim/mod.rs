@@ -15,7 +15,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use enum_map::EnumMap;
 use rtsim::{
     data::{npc::SimulationMode, Data, ReadError},
-    event::{OnDeath, OnMountVolume, OnSetup, OnTheft},
+    event::{OnDeath, OnHpChange, OnMountVolume, OnSetup, OnTheft},
     RtState,
 };
 use specs::DispatcherBuilder;
@@ -213,6 +213,25 @@ impl RtSim {
             }
             npc.mode = SimulationMode::Simulated;
         }
+    }
+
+    pub fn hook_rtsim_actor_hp_change(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        actor: Actor,
+        cause: Option<Actor>,
+        new_hp_fraction: f32,
+    ) {
+        self.state.emit(
+            OnHpChange {
+                actor,
+                cause,
+                new_hp: new_hp_fraction,
+            },
+            world,
+            index,
+        )
     }
 
     pub fn hook_rtsim_actor_death(

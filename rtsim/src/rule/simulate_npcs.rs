@@ -194,12 +194,15 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                 .npcs
                 .npcs
                 .get(link.mount)
-                .filter(|mount| !mount.is_dead)
+                .filter(|mount| !mount.is_dead())
             {
                 let wpos = mount.wpos;
                 if let Actor::Npc(rider) = link.rider {
-                    if let Some(rider) =
-                        data.npcs.npcs.get_mut(rider).filter(|rider| !rider.is_dead)
+                    if let Some(rider) = data
+                        .npcs
+                        .npcs
+                        .get_mut(rider)
+                        .filter(|rider| !rider.is_dead())
                     {
                         rider.wpos = wpos;
                         mount_activity.insert(link.mount, rider.controller.activity);
@@ -213,7 +216,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         }
     }
 
-    for (npc_id, npc) in data.npcs.npcs.iter_mut().filter(|(_, npc)| !npc.is_dead) {
+    for (npc_id, npc) in data.npcs.npcs.iter_mut().filter(|(_, npc)| !npc.is_dead()) {
         if matches!(npc.mode, SimulationMode::Simulated) {
             // Consume NPC actions
             for action in std::mem::take(&mut npc.controller.actions) {
