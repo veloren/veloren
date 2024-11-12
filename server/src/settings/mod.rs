@@ -2,6 +2,7 @@ pub mod admin;
 pub mod banlist;
 mod editable;
 pub mod server_description;
+pub mod server_physics;
 pub mod whitelist;
 
 pub use editable::{EditableSetting, Error as SettingError};
@@ -35,12 +36,15 @@ use world::sim::{FileOpts, DEFAULT_WORLD_SEED};
 
 use self::server_description::ServerDescription;
 
+use self::server_physics::ServerPhysicsForceList;
+
 const CONFIG_DIR: &str = "server_config";
 const SETTINGS_FILENAME: &str = "settings.ron";
 const WHITELIST_FILENAME: &str = "whitelist.ron";
 const BANLIST_FILENAME: &str = "banlist.ron";
 const SERVER_DESCRIPTION_FILENAME: &str = "description.ron";
 const ADMINS_FILENAME: &str = "admins.ron";
+const SERVER_PHYSICS_FORCE_FILENAME: &str = "server_physics_force.ron";
 
 pub const SINGLEPLAYER_SERVER_NAME: &str = "Singleplayer";
 
@@ -384,6 +388,7 @@ pub struct EditableSettings {
     pub banlist: Banlist,
     pub server_description: ServerDescriptions,
     pub admins: Admins,
+    pub server_physics_force_list: ServerPhysicsForceList,
 }
 
 impl EditableSettings {
@@ -393,6 +398,7 @@ impl EditableSettings {
             banlist: Banlist::load(data_dir),
             server_description: ServerDescriptions::load(data_dir),
             admins: Admins::load(data_dir),
+            server_physics_force_list: ServerPhysicsForceList::load(data_dir),
         }
     }
 

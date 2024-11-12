@@ -829,6 +829,7 @@ impl ServerChatCommand {
                 vec![
                     PlayerName(Required),
                     Boolean("enabled", "true".to_string(), Optional),
+                    Message(Optional),
                 ],
                 Content::localized("command-server_physics-desc"),
                 Some(Moderator),

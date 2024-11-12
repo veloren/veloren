@@ -1,6 +1,6 @@
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
-use crate::{client::Client, Settings};
+use crate::{client::Client, EditableSettings, Settings};
 use common::{
     comp::{
         Admin, AdminRole, Body, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori,
@@ -72,6 +72,7 @@ impl Sys {
         settings: &Read<'_, Settings>,
         build_areas: &Read<'_, AreasContainer<BuildArea>>,
         player_physics_setting: Option<&mut PlayerPhysicsSetting>,
+        server_physics_forced: bool,
         maybe_admin: &Option<&Admin>,
         time_for_vd_changes: Instant,
         msg: ClientGeneral,
@@ -146,6 +147,7 @@ impl Sys {
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && is_rider.get(entity).is_none()
                     && is_volume_rider.get(entity).is_none()
+                    && !server_physics_forced
                     && player_physics_setting
                         .as_ref()
                         .map_or(true, |s| s.client_authoritative())
@@ -280,8 +282,11 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Events<'a>,
-        ReadExpect<'a, TerrainGrid>,
-        ReadExpect<'a, SlowJobPool>,
+        (
+            ReadExpect<'a, TerrainGrid>,
+            ReadExpect<'a, SlowJobPool>,
+            ReadExpect<'a, EditableSettings>,
+        ),
         ReadStorage<'a, CanBuild>,
         WriteStorage<'a, ForceUpdate>,
         ReadStorage<'a, Is<Rider>>,
@@ -315,8 +320,7 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             events,
-            terrain,
-            slow_jobs,
+            (terrain, slow_jobs, editable_settings),
             can_build,
             mut force_updates,
             is_rider,
@@ -390,6 +394,7 @@ impl<'a> System<'a> for Sys {
                             .unwrap_or_default()
                     });
                     let mut new_player_physics_setting = old_player_physics_setting;
+                    let is_server_physics_forced = maybe_player.map_or(true, |p| editable_settings.server_physics_force_list.contains_key(&p.uuid()));
                     // If an `ExitInGame` message is received this is set to `None` allowing further
                     // ingame messages to be ignored.
                     let mut clearable_maybe_presence = maybe_presence.as_deref_mut();
@@ -414,6 +419,7 @@ impl<'a> System<'a> for Sys {
                             &settings,
                             &build_areas,
                             new_player_physics_setting.as_mut(),
+                            is_server_physics_forced,
                             &maybe_admin,
                             time_for_vd_changes,
                             msg,
