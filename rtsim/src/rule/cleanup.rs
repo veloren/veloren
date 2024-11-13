@@ -33,7 +33,7 @@ impl Rule for CleanUp {
             // TODO: Don't do this every tick, find a sensible way to gradually remove dead NPCs after they've been
             // forgotten
             data.npcs
-                .retain(|npc_id, npc| if npc.is_dead {
+                .retain(|npc_id, npc| if npc.is_dead() {
                     // Remove NPC from home population
                     if let Some(home) = npc.home.and_then(|home| data.sites.get_mut(home)) {
                         home.population.remove(&npc_id);

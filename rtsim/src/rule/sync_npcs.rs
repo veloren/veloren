@@ -1,5 +1,5 @@
 use crate::{
-    event::{EventCtx, OnDeath, OnSetup, OnTick},
+    event::{EventCtx, OnDeath, OnHealthChange, OnSetup, OnTick},
     RtState, Rule, RuleError,
 };
 use common::{
@@ -14,6 +14,7 @@ impl Rule for SyncNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind::<Self, OnSetup>(on_setup);
         rtstate.bind::<Self, OnDeath>(on_death);
+        rtstate.bind::<Self, OnHealthChange>(on_health_change);
         rtstate.bind::<Self, OnTick>(on_tick);
 
         Ok(Self)
@@ -71,13 +72,23 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
     }
 }
 
+fn on_health_change(ctx: EventCtx<SyncNpcs, OnHealthChange>) {
+    let data = &mut *ctx.state.data_mut();
+
+    if let Actor::Npc(npc_id) = ctx.event.actor {
+        if let Some(npc) = data.npcs.get_mut(npc_id) {
+            npc.health_fraction = ctx.event.new_health_fraction;
+        }
+    }
+}
+
 fn on_death(ctx: EventCtx<SyncNpcs, OnDeath>) {
     let data = &mut *ctx.state.data_mut();
 
     if let Actor::Npc(npc_id) = ctx.event.actor {
         if let Some(npc) = data.npcs.get_mut(npc_id) {
             // Mark the NPC as dead, allowing us to clear them up later
-            npc.is_dead = true;
+            npc.health_fraction = 0.0;
         }
     }
 }

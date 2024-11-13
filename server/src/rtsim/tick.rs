@@ -348,6 +348,10 @@ impl<'a> System<'a> for Sys {
                     agent.rtsim_outbox = Some(Default::default());
                 }
 
+                if let Some(health) = &mut npc_builder.health {
+                    health.set_fraction(npc.health_fraction);
+                }
+
                 create_npc_emitter.emit(CreateNpcEvent {
                     pos,
                     ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),

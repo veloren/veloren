@@ -87,6 +87,12 @@ impl Health {
     /// Returns the fraction of health an entity has remaining
     pub fn fraction(&self) -> f32 { self.current() / self.maximum().max(1.0) }
 
+    /// Instantly set the health fraction.
+    pub fn set_fraction(&mut self, fraction: f32) {
+        self.current = (self.maximum() * fraction * Self::SCALING_FACTOR_FLOAT) as u32;
+        self.is_dead = self.current == 0;
+    }
+
     /// Calculates a new maximum value and returns it if the value differs from
     /// the current maximum.
     ///

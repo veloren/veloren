@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Water splashes and river particles.
 - Custom furniture for Coastal Houses.
 - Airship docks for desert cities, coastal towns and mesa towns.
+- Health tracking for NPCs in unloaded chunks.
 
 ### Changed
 
