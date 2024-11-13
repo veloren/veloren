@@ -2162,6 +2162,8 @@ impl SiteKind {
                 },
                 SiteKind::DesertCity => {
                     (0.9..1.0).contains(&chunk.temp) && !chunk.near_cliffs() && suitable_for_town()
+                        && on_land()
+                        && !chunk.river.near_water()
                 },
                 SiteKind::ChapelSite => {
                     matches!(chunk.get_biome(), BiomeKind::Ocean)

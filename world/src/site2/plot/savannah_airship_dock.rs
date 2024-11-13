@@ -4,7 +4,11 @@ use crate::{
     util::{RandomField, Sampler, CARDINALS, DIAGONALS},
     Land,
 };
-use common::terrain::{BlockKind, SpriteKind};
+use common::{
+    comp::Content,
+    generation::SpecialEntity,
+    terrain::{BlockKind, SpriteCfg, SpriteKind},
+};
 use rand::prelude::*;
 use std::{f32::consts::TAU, sync::Arc};
 use vek::*;
@@ -13,10 +17,12 @@ use vek::*;
 pub struct SavannahAirshipDock {
     /// Tile position of the door tile
     pub door_tile: Vec2<i32>,
-    /// Axis aligned bounding region for the house
-    bounds: Aabr<i32>,
     /// Approximate altitude of the door tile
     pub(crate) alt: i32,
+    center: Vec2<i32>,
+    length: i32,
+    platform_height: i32,
+    pub docking_positions: Vec<Vec3<i32>>,
 }
 
 impl SavannahAirshipDock {
@@ -33,10 +39,25 @@ impl SavannahAirshipDock {
             min: site.tile_wpos(tile_aabr.min),
             max: site.tile_wpos(tile_aabr.max),
         };
+        let center = bounds.center();
+        let alt = land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32 + 2;
+        let base = alt + 1;
+        let length = 18;
+        let platform_height = 40;
+        let mut docking_positions = vec![];
+        let top_floor = base + platform_height - 2;
+        for dir in CARDINALS {
+            let docking_pos = center + dir * (length + 5);
+            docking_positions.push(docking_pos.with_z(top_floor));
+        }
+
         Self {
-            bounds,
             door_tile: door_tile_pos,
-            alt: land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32 + 2,
+            alt,
+            center,
+            length,
+            platform_height,
+            docking_positions,
         }
     }
 }
@@ -48,8 +69,7 @@ impl Structure for SavannahAirshipDock {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_savannah_airship_dock")]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 1;
-        let center = self.bounds.center();
-
+        let center = self.center;
         let wood_dark = Fill::Brick(BlockKind::Misc, Rgb::new(142, 67, 27), 12);
         let reed = Fill::Brick(BlockKind::Misc, Rgb::new(72, 55, 46), 22);
         let clay = Fill::Brick(BlockKind::Misc, Rgb::new(209, 124, 57), 22);
@@ -64,10 +84,10 @@ impl Structure for SavannahAirshipDock {
                 _ => Block::new(BlockKind::GlowingRock, Rgb::new(178, 124, 90)),
             })
         }));
-        let length = 18;
+        let length = self.length;
         let height = length / 2;
+        let platform_height = self.platform_height;
         let storeys = 1;
-        let platform_height = 40;
         let radius = length + (length / 3);
         let reed_var = (1 + RandomField::new(0).get(center.with_z(base)) % 4) as f32;
         let reed_parts = 36_f32 + reed_var;
@@ -123,6 +143,35 @@ impl Structure for SavannahAirshipDock {
                 max: (center + length + 1).with_z(base + platform_height - 2),
             })
             .fill(clay.clone());
+        // docks
+        for dir in CARDINALS {
+            let dock_pos = center + dir * (length + 2);
+            painter
+                .cylinder(Aabb {
+                    min: (dock_pos - 5).with_z(base + platform_height - 3),
+                    max: (dock_pos + 5).with_z(base + platform_height - 2),
+                })
+                .fill(color.clone());
+            painter
+                .cylinder(Aabb {
+                    min: (dock_pos - 4).with_z(base + platform_height - 3),
+                    max: (dock_pos + 4).with_z(base + platform_height - 2),
+                })
+                .fill(wood_dark.clone());
+        }
+
+        for dock_pos in &self.docking_positions {
+            painter.rotated_sprite_with_cfg(
+                *dock_pos,
+                SpriteKind::Sign,
+                Dir::from_vec2(dock_pos.xy() - self.center).sprite_ori(),
+                SpriteCfg {
+                    unlock: None,
+                    content: Some(Content::localized("common-signs-airship_dock")),
+                },
+            );
+        }
+
         // lanterns, crates & barrels
         for dir in CARDINALS {
             let lantern_pos = center + (dir * length);
@@ -160,6 +209,12 @@ impl Structure for SavannahAirshipDock {
                 }
             }
         }
+        // campfire
+        let campfire_pos = (center - (2 * (length / 3)) - 1).with_z(base + platform_height);
+        painter.spawn(
+            EntityInfo::at(campfire_pos.map(|e| e as f32 + 0.5))
+                .into_special(SpecialEntity::Waypoint),
+        );
         for b in 0..2 {
             let base = base + (b * platform_height);
             let radius = radius - (b * (radius / 3));

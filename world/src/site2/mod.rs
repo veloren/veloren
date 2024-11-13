@@ -1358,39 +1358,87 @@ impl Site {
         };
         let mut campfires = 0;
         site.make_plaza(land, &mut rng);
-        for _ in 0..30 {
-            // CliffTower
-            let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
-            let campfire = campfires < 4;
-            if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
-                site.find_roadside_aabr(&mut rng, 8..(size + 1).pow(2), Extent2::broadcast(size))
-            }) {
-                let cliff_tower = plot::CliffTower::generate(
-                    land,
-                    index,
-                    &mut reseed(&mut rng),
-                    &site,
-                    door_tile,
-                    door_dir,
-                    aabr,
-                    campfire,
-                );
-                let cliff_tower_alt = cliff_tower.alt;
-                let plot = site.create_plot(Plot {
-                    kind: PlotKind::CliffTower(cliff_tower),
-                    root_tile: aabr.center(),
-                    tiles: aabr_tiles(aabr).collect(),
-                    seed: rng.gen(),
-                });
+        let build_chance = Lottery::from(vec![(30.0, 1), (50.0, 2)]);
+        let mut airship_docks = 0;
+        for _ in 0..80 {
+            match *build_chance.choose_seeded(rng.gen()) {
+                1 => {
+                    // CliffTower
+                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+                    let campfire = campfires < 4;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            8..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let cliff_tower = plot::CliffTower::generate(
+                            land,
+                            index,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                            campfire,
+                        );
+                        let cliff_tower_alt = cliff_tower.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::CliffTower(cliff_tower),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
 
-                site.blit_aabr(aabr, Tile {
-                    kind: TileKind::Building,
-                    plot: Some(plot),
-                    hard_alt: Some(cliff_tower_alt),
-                });
-                campfires += 1;
-            } else {
-                site.make_plaza(land, &mut rng);
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(cliff_tower_alt),
+                        });
+                        campfires += 1;
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+                2 if airship_docks < 1 => {
+                    // CliffTownAirshipDock
+                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            8..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let cliff_town_airship_dock = plot::CliffTownAirshipDock::generate(
+                            land,
+                            index,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let cliff_town_airship_dock_alt = cliff_town_airship_dock.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::CliffTownAirshipDock(cliff_town_airship_dock),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(cliff_town_airship_dock_alt),
+                        });
+                        airship_docks += 1;
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
+                _ => {},
             }
         }
 
@@ -1410,7 +1458,7 @@ impl Site {
         site.make_plaza(land, &mut rng);
 
         let mut airship_dock = 0;
-        let build_chance = Lottery::from(vec![(25.0, 1), (7.0, 2), (3.0, 3), (15.0, 4)]);
+        let build_chance = Lottery::from(vec![(25.0, 1), (5.0, 2), (5.0, 3), (15.0, 4)]);
 
         for _ in 0..50 {
             match *build_chance.choose_seeded(rng.gen()) {
@@ -1489,7 +1537,7 @@ impl Site {
                 3 if airship_dock < 1 => {
                     // SavannahAirshipDock
 
-                    let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1518,10 +1566,10 @@ impl Site {
                             plot: Some(plot),
                             hard_alt: Some(savannah_airship_dock_alt),
                         });
+                        airship_dock += 1;
                     } else {
                         site.make_plaza(land, &mut rng);
                     }
-                    airship_dock += 1;
                 },
                 // Field
                 4 => {
@@ -1543,9 +1591,9 @@ impl Site {
         site.demarcate_obstacles(land);
 
         site.make_plaza(land, &mut rng);
-        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2), (15.0, 3)]);
-
-        for _ in 0..45 {
+        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2), (15.0, 3), (15.0, 4)]);
+        let mut airship_docks = 0;
+        for _ in 0..55 {
             match *build_chance.choose_seeded(rng.gen()) {
                 1 => {
                     // CoastalHouse
@@ -1619,8 +1667,44 @@ impl Site {
                         site.make_plaza(land, &mut rng);
                     }
                 },
+                3 if airship_docks < 1 => {
+                    // CoastalAirshipDock
+                    let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            7..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let coastal_airship_dock = plot::CoastalAirshipDock::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let coastal_airship_dock_alt = coastal_airship_dock.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::CoastalAirshipDock(coastal_airship_dock),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(coastal_airship_dock_alt),
+                        });
+                        airship_docks += 1;
+                    } else {
+                        site.make_plaza(land, &mut rng);
+                    }
+                },
                 // Field
-                3 => {
+                4 => {
                     Self::generate_farm(false, &mut rng, &mut site, land);
                 },
                 _ => {},
@@ -1665,12 +1749,13 @@ impl Site {
             hard_alt: Some(desert_city_arena_alt),
         });
 
-        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (10.0, 3)]);
+        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (5.0, 3), (10.0, 4)]);
 
         let mut temples = 0;
+        let mut airship_docks = 0;
         let mut campfires = 0;
 
-        for _ in 0..30 {
+        for _ in 0..35 {
             match *build_chance.choose_seeded(rng.gen()) {
                 // DesertCityMultiplot
                 1 => {
@@ -1744,8 +1829,42 @@ impl Site {
                         temples += 1;
                     }
                 },
+                // DesertCityAirshipDock
+                3 if airship_docks < 1 => {
+                    let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            8..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let desert_city_airship_dock = plot::DesertCityAirshipDock::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let desert_city_airship_dock_alt = desert_city_airship_dock.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::DesertCityAirshipDock(desert_city_airship_dock),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(desert_city_airship_dock_alt),
+                        });
+                        airship_docks += 1;
+                    }
+                },
                 // cactus farm
-                3 => {
+                4 => {
                     Self::generate_farm(true, &mut rng, &mut site, land);
                 },
                 _ => {},
@@ -2491,6 +2610,9 @@ impl Site {
                 },
                 PlotKind::GliderFinish(glider_finish) => glider_finish.render_collect(self, canvas),
                 PlotKind::Tavern(tavern) => tavern.render_collect(self, canvas),
+                PlotKind::CoastalAirshipDock(coastal_airship_dock) => {
+                    coastal_airship_dock.render_collect(self, canvas)
+                },
                 PlotKind::CoastalHouse(coastal_house) => coastal_house.render_collect(self, canvas),
                 PlotKind::CoastalWorkshop(coastal_workshop) => {
                     coastal_workshop.render_collect(self, canvas)
@@ -2504,6 +2626,9 @@ impl Site {
                 PlotKind::Haniwa(haniwa) => haniwa.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
+                PlotKind::CliffTownAirshipDock(cliff_town_airship_dock) => {
+                    cliff_town_airship_dock.render_collect(self, canvas)
+                },
                 PlotKind::Sahagin(sahagin) => sahagin.render_collect(self, canvas),
                 PlotKind::SavannahAirshipDock(savannah_airship_dock) => {
                     savannah_airship_dock.render_collect(self, canvas)
@@ -2540,6 +2665,9 @@ impl Site {
                 },
                 PlotKind::DesertCityArena(desert_city_arena) => {
                     desert_city_arena.render_collect(self, canvas)
+                },
+                PlotKind::DesertCityAirshipDock(desert_city_airship_dock) => {
+                    desert_city_airship_dock.render_collect(self, canvas)
                 },
                 PlotKind::Citadel(citadel) => citadel.render_collect(self, canvas),
                 PlotKind::Bridge(bridge) => bridge.render_collect(self, canvas),

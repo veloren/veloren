@@ -1231,7 +1231,11 @@ fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
                     .filter(|plot| {
                         matches!(
                             plot.kind(),
-                            PlotKind::AirshipDock(_) | PlotKind::SavannahAirshipDock(_)
+                            PlotKind::AirshipDock(_)
+                                | PlotKind::SavannahAirshipDock(_)
+                                | PlotKind::DesertCityAirshipDock(_)
+                                | PlotKind::CoastalAirshipDock(_)
+                                | PlotKind::CliffTownAirshipDock(_)
                         )
                     })
                     .map(|plot| site.tile_center_wpos(plot.root_tile()))

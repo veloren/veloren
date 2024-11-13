@@ -5,9 +5,12 @@ mod camp;
 mod castle;
 mod citadel;
 mod cliff_tower;
+mod cliff_town_airship_dock;
+mod coastal_airship_dock;
 mod coastal_house;
 mod coastal_workshop;
 mod cultist;
+mod desert_city_airship_dock;
 mod desert_city_arena;
 mod desert_city_multiplot;
 mod desert_city_temple;
@@ -40,8 +43,10 @@ mod workshop;
 
 pub use self::{
     adlet::AdletStronghold, airship_dock::AirshipDock, bridge::Bridge, camp::Camp, castle::Castle,
-    citadel::Citadel, cliff_tower::CliffTower, coastal_house::CoastalHouse,
-    coastal_workshop::CoastalWorkshop, cultist::Cultist, desert_city_arena::DesertCityArena,
+    citadel::Citadel, cliff_tower::CliffTower, cliff_town_airship_dock::CliffTownAirshipDock,
+    coastal_airship_dock::CoastalAirshipDock, coastal_house::CoastalHouse,
+    coastal_workshop::CoastalWorkshop, cultist::Cultist,
+    desert_city_airship_dock::DesertCityAirshipDock, desert_city_arena::DesertCityArena,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
     dwarven_mine::DwarvenMine, farm_field::FarmField, giant_tree::GiantTree,
     glider_finish::GliderFinish, glider_platform::GliderPlatform, glider_ring::GliderRing,
@@ -98,12 +103,14 @@ pub enum PlotKind {
     GliderPlatform(GliderPlatform),
     GliderFinish(GliderFinish),
     Tavern(Tavern),
+    CoastalAirshipDock(CoastalAirshipDock),
     CoastalHouse(CoastalHouse),
     CoastalWorkshop(CoastalWorkshop),
     Workshop(Workshop),
     DesertCityMultiPlot(DesertCityMultiPlot),
     DesertCityTemple(DesertCityTemple),
     DesertCityArena(DesertCityArena),
+    DesertCityAirshipDock(DesertCityAirshipDock),
     SeaChapel(SeaChapel),
     JungleRuin(JungleRuin),
     Plaza,
@@ -115,6 +122,7 @@ pub enum PlotKind {
     Haniwa(Haniwa),
     GiantTree(GiantTree),
     CliffTower(CliffTower),
+    CliffTownAirshipDock(CliffTownAirshipDock),
     Sahagin(Sahagin),
     Citadel(Citadel),
     SavannahAirshipDock(SavannahAirshipDock),
@@ -141,9 +149,11 @@ macro_rules! foreach_plot {
         match $p {
             PlotKind::House($x) => $y,
             PlotKind::AirshipDock($x) => $y,
+            PlotKind::CoastalAirshipDock($x) => $y,
             PlotKind::CoastalHouse($x) => $y,
             PlotKind::CoastalWorkshop($x) => $y,
             PlotKind::Workshop($x) => $y,
+            PlotKind::DesertCityAirshipDock($x) => $y,
             PlotKind::DesertCityMultiPlot($x) => $y,
             PlotKind::DesertCityTemple($x) => $y,
             PlotKind::DesertCityArena($x) => $y,
@@ -156,6 +166,7 @@ macro_rules! foreach_plot {
             PlotKind::Adlet($x) => $y,
             PlotKind::GiantTree($x) => $y,
             PlotKind::CliffTower($x) => $y,
+            PlotKind::CliffTownAirshipDock($x) => $y,
             PlotKind::Citadel($x) => $y,
             PlotKind::SavannahAirshipDock($x) => $y,
             PlotKind::SavannahHut($x) => $y,
