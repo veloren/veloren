@@ -183,7 +183,7 @@ pub fn entity_as_actor(
 }
 
 #[derive(SystemData)]
-struct HealthChangeEventData<'a> {
+pub struct HealthChangeEventData<'a> {
     entities: Entities<'a>,
     #[cfg(feature = "worldgen")]
     rtsim: WriteExpect<'a, RtSim>,

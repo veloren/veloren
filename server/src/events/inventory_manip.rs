@@ -14,7 +14,7 @@ use common::{
         item::{self, flatten_counted_items, tool::AbilityMap, MaterialStatManifest},
         loot_owner::LootOwnerKind,
         slot::{self, Slot},
-        InventoryUpdate, LootOwner, PickupItem, PresenceKind,
+        InventoryUpdate, LootOwner, PickupItem,
     },
     consts::MAX_PICKUP_RANGE,
     event::{
@@ -25,6 +25,7 @@ use common::{
     mounting::VolumePos,
     recipe::{self, default_component_recipe_book, default_repair_recipe_book, RecipeBookManifest},
     resources::{ProgramTime, Time},
+    rtsim::RtSimEntity,
     terrain::{Block, SpriteKind},
     trade::Trades,
     uid::{IdMaps, Uid},
@@ -77,11 +78,14 @@ pub struct InventoryManipData<'a> {
     events: Events<'a>,
     block_change: Write<'a, common_state::BlockChange>,
     trades: Write<'a, Trades>,
+    #[cfg(feature = "worldgen")]
     rtsim: WriteExpect<'a, crate::rtsim::RtSim>,
     terrain: ReadExpect<'a, common::terrain::TerrainGrid>,
     id_maps: Read<'a, IdMaps>,
     time: Read<'a, Time>,
+    #[cfg(feature = "worldgen")]
     world: ReadExpect<'a, std::sync::Arc<world::World>>,
+    #[cfg(feature = "worldgen")]
     index: ReadExpect<'a, world::IndexOwned>,
     program_time: ReadExpect<'a, ProgramTime>,
     ability_map: ReadExpect<'a, AbilityMap>,
@@ -110,7 +114,10 @@ pub struct InventoryManipData<'a> {
     pets: ReadStorage<'a, comp::Pet>,
     velocities: ReadStorage<'a, comp::Vel>,
     masses: ReadStorage<'a, comp::Mass>,
+    #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, comp::Presence>,
+    #[cfg(feature = "worldgen")]
+    rtsim_entities: ReadStorage<'a, RtSimEntity>,
 }
 
 impl ServerEvent for InventoryManipEvent {
@@ -355,9 +362,14 @@ impl ServerEvent for InventoryManipEvent {
 
                     if let Some(block) = block {
                         if block.is_collectible() && data.block_change.can_set_block(sprite_pos) {
+                            // Send event to rtsim if something was stolen.
+                            #[cfg(feature = "worldgen")]
                             if block.is_owned()
-                                && let Some(PresenceKind::Character(character)) =
-                                    data.presences.get(entity).map(|p| p.kind)
+                                && let Some(actor) = super::entity_manipulation::entity_as_actor(
+                                    entity,
+                                    &data.rtsim_entities,
+                                    &data.presences,
+                                )
                             {
                                 data.rtsim.hook_pickup_owned_sprite(
                                     &data.world,
@@ -366,7 +378,7 @@ impl ServerEvent for InventoryManipEvent {
                                         .get_sprite()
                                         .expect("If the block is owned, it is a sprite"),
                                     sprite_pos,
-                                    common::rtsim::Actor::Character(character),
+                                    actor,
                                 );
                             }
                             // If an item was required to collect the sprite, consume it now

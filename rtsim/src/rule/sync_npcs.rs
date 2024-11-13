@@ -1,5 +1,5 @@
 use crate::{
-    event::{EventCtx, OnDeath, OnSetup, OnTick},
+    event::{EventCtx, OnDeath, OnHpChange, OnSetup, OnTick},
     RtState, Rule, RuleError,
 };
 use common::{
@@ -14,6 +14,7 @@ impl Rule for SyncNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind::<Self, OnSetup>(on_setup);
         rtstate.bind::<Self, OnDeath>(on_death);
+        rtstate.bind::<Self, OnHpChange>(on_hp_change);
         rtstate.bind::<Self, OnTick>(on_tick);
 
         Ok(Self)
@@ -67,6 +68,16 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
     for (site_id, nearest_by_size) in nearest_by_size {
         if let Some(site) = data.sites.get_mut(site_id) {
             site.nearby_sites_by_size = nearest_by_size;
+        }
+    }
+}
+
+fn on_hp_change(ctx: EventCtx<SyncNpcs, OnHpChange>) {
+    let data = &mut *ctx.state.data_mut();
+
+    if let Actor::Npc(npc_id) = ctx.event.actor {
+        if let Some(npc) = data.npcs.get_mut(npc_id) {
+            npc.hp = ctx.event.new_hp;
         }
     }
 }
