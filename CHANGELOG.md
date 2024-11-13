@@ -45,7 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Npcs can catch you stealing.
 - Button to show unknown recipes.
 - Water splashes and river particles.
-- Custom furniture for Coastal Houses
+- Custom furniture for Coastal Houses.
+- Airship docks for desert cities, coastal towns and mesa towns.
 
 ### Changed
 
