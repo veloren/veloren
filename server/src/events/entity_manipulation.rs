@@ -168,6 +168,7 @@ impl ServerEvent for PoiseChangeEvent {
     }
 }
 
+#[cfg(feature = "worldgen")]
 pub fn entity_as_actor(
     entity: Entity,
     rtsim_entities: &ReadStorage<RtSimEntity>,
@@ -197,7 +198,9 @@ pub struct HealthChangeEventData<'a> {
     index: ReadExpect<'a, IndexOwned>,
     positions: ReadStorage<'a, Pos>,
     uids: ReadStorage<'a, Uid>,
+    #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, Presence>,
+    #[cfg(feature = "worldgen")]
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
     agents: WriteStorage<'a, Agent>,
     healths: WriteStorage<'a, Health>,

@@ -2,7 +2,7 @@ use hashbrown::HashSet;
 use rand::{seq::IteratorRandom, Rng};
 use specs::{
     join::Join, shred, DispatcherBuilder, Entities, Entity as EcsEntity, Read, ReadExpect,
-    ReadStorage, SystemData, Write, WriteExpect, WriteStorage,
+    ReadStorage, SystemData, Write, WriteStorage,
 };
 use tracing::{debug, error, warn};
 use vek::{Rgb, Vec3};
@@ -25,7 +25,6 @@ use common::{
     mounting::VolumePos,
     recipe::{self, default_component_recipe_book, default_repair_recipe_book, RecipeBookManifest},
     resources::{ProgramTime, Time},
-    rtsim::RtSimEntity,
     terrain::{Block, SpriteKind},
     trade::Trades,
     uid::{IdMaps, Uid},
@@ -79,7 +78,7 @@ pub struct InventoryManipData<'a> {
     block_change: Write<'a, common_state::BlockChange>,
     trades: Write<'a, Trades>,
     #[cfg(feature = "worldgen")]
-    rtsim: WriteExpect<'a, crate::rtsim::RtSim>,
+    rtsim: specs::WriteExpect<'a, crate::rtsim::RtSim>,
     terrain: ReadExpect<'a, common::terrain::TerrainGrid>,
     id_maps: Read<'a, IdMaps>,
     time: Read<'a, Time>,
@@ -117,7 +116,7 @@ pub struct InventoryManipData<'a> {
     #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, comp::Presence>,
     #[cfg(feature = "worldgen")]
-    rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    rtsim_entities: ReadStorage<'a, common::rtsim::RtSimEntity>,
 }
 
 impl ServerEvent for InventoryManipEvent {
