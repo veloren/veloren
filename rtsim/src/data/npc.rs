@@ -112,7 +112,7 @@ pub struct Npc {
     pub home: Option<SiteId>,
     pub faction: Option<FactionId>,
     /// The current health of the NPC, < 0.0 is dead and 1.0 is max.
-    pub hp: f32,
+    pub health_fraction: f32,
 
     /// The [`Report`]s that the NPC is aware of.
     pub known_reports: HashSet<ReportId>,
@@ -154,7 +154,7 @@ impl Clone for Npc {
             role: self.role.clone(),
             home: self.home,
             faction: self.faction,
-            hp: self.hp,
+            health_fraction: self.health_fraction,
             known_reports: self.known_reports.clone(),
             body: self.body,
             personality: self.personality,
@@ -187,7 +187,7 @@ impl Npc {
             role,
             home: None,
             faction: None,
-            hp: 1.0,
+            health_fraction: 1.0,
             known_reports: Default::default(),
             chunk_pos: None,
             current_site: None,
@@ -198,7 +198,7 @@ impl Npc {
         }
     }
 
-    pub fn is_dead(&self) -> bool { self.hp <= 0.0 }
+    pub fn is_dead(&self) -> bool { self.health_fraction <= 0.0 }
 
     // TODO: have a dedicated `NpcBuilder` type for this.
     pub fn with_personality(mut self, personality: Personality) -> Self {

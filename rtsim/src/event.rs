@@ -40,12 +40,12 @@ pub struct OnDeath {
 impl Event for OnDeath {}
 
 #[derive(Clone)]
-pub struct OnHpChange {
+pub struct OnHealthChange {
     pub actor: Actor,
     pub cause: Option<Actor>,
-    pub new_hp: f32,
+    pub new_health_fraction: f32,
 }
-impl Event for OnHpChange {}
+impl Event for OnHealthChange {}
 
 #[derive(Clone)]
 pub struct OnTheft {

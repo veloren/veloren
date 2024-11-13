@@ -349,7 +349,7 @@ impl<'a> System<'a> for Sys {
                 }
 
                 if let Some(health) = &mut npc_builder.health {
-                    health.set_fraction(npc.hp);
+                    health.set_fraction(npc.health_fraction);
                 }
 
                 create_npc_emitter.emit(CreateNpcEvent {

@@ -15,7 +15,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use enum_map::EnumMap;
 use rtsim::{
     data::{npc::SimulationMode, Data, ReadError},
-    event::{OnDeath, OnHpChange, OnMountVolume, OnSetup, OnTheft},
+    event::{OnDeath, OnHealthChange, OnMountVolume, OnSetup, OnTheft},
     RtState,
 };
 use specs::DispatcherBuilder;
@@ -224,10 +224,10 @@ impl RtSim {
         new_hp_fraction: f32,
     ) {
         self.state.emit(
-            OnHpChange {
+            OnHealthChange {
                 actor,
                 cause,
-                new_hp: new_hp_fraction,
+                new_health_fraction: new_hp_fraction,
             },
             world,
             index,
