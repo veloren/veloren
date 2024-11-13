@@ -28,6 +28,16 @@ impl Spiral2d {
             .filter(move |pos| pos.magnitude_squared() < (radius + 1).pow(2))
             .filter(move |pos| pos.magnitude_squared() >= radius.pow(2))
     }
+
+    pub fn with_ring(inner_radius: i32, outer_radius: i32) -> impl Iterator<Item = Vec2<i32>> {
+        assert!(inner_radius < outer_radius);
+        Spiral2d {
+            layer: inner_radius,
+            i: 0,
+        }.take((outer_radius * 2 + 1).pow(2) as usize - (inner_radius * 2 + 1).pow(2) as usize)
+            .filter(move |pos| pos.magnitude_squared() < (outer_radius + 1).pow(2))
+            .filter(move |pos| pos.magnitude_squared() >= inner_radius.pow(2))
+    }
 }
 
 impl Iterator for Spiral2d {
