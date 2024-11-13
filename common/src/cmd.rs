@@ -496,7 +496,7 @@ impl ServerChatCommand {
                     Message(Optional),
                 ],
                 Content::localized("command-ban-ip-desc"),
-                Some(Admin),
+                Some(Moderator),
             ),
             #[rustfmt::skip]
             ServerChatCommand::BattleMode => cmd(
