@@ -313,10 +313,10 @@
             stealth: Some(0.45),
         ),
         "Brinestone": (
-            protection: Some(Normal(81.0)),
+            protection: Some(Normal(90.0)),
             poise_resilience: Some(Normal(27.0)),
-            energy_max: Some(63.0),
-            energy_reward: Some(0.63),
+            energy_max: Some(54.0),
+            energy_reward: Some(0.54),
             precision_power: Some(-0.18),
         ),
         "Miner": (

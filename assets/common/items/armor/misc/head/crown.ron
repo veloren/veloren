@@ -6,7 +6,7 @@ ItemDef(
         stats: Direct((
             protection: Some(Normal(10.0)),
             poise_resilience: Some(Normal(3.0)),
-            energy_max: Some(7.0),
+            energy_max: Some(8.0),
         )),
     )),
     quality: Epic,
