@@ -7,7 +7,7 @@ BasicBeam(
     range: 22.0,
     max_angle: 22.5,
     damage_effect: Some(Buff((
-        kind: Frigid,
+        kind: Frozen,
         dur_secs: 3.0,
         strength: Value(0.5),
         chance: 1.0,

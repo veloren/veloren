@@ -6,7 +6,7 @@ RapidMelee(
         kind: NecroticVortex(
             damage: 20,
             pull: 12.0,
-            lifesteal: 8.0,
+            lifesteal: 3.0,
             energy_regen: 30,
         ),
         range: 25.0,
