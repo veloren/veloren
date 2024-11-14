@@ -1,11 +1,14 @@
 [
-  (1.7, All([
-            // coins are temporary placeholder for unique drops
+    (1, All([
+        Item("common.items.keys.myrmidon_key"),
+        Lottery([
+            (1.7, All([
+            // Coins are temporary placeholder for unique drops
             MultiDrop(Item("common.items.utility.coins"), 200, 500),
             MultiDrop(Item("common.items.log.eldwood"), 2, 6),
-            Item("common.items.keys.myrmidon_key"),
-      ],
-   )),
-  (0.1, Item("common.items.weapons.axe.parashu")),
-  (0.2, Item("common.items.armor.misc.neck.carcanet_of_wrath")),
+            ])),
+            (0.1, Item("common.items.weapons.axe.parashu")),
+            (0.2, Item("common.items.armor.misc.neck.carcanet_of_wrath")),
+        ])
+    ])),
 ]
