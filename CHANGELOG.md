@@ -87,7 +87,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Reduced generation of towns/cities without workshops or houses.
 - NPC path-finding, especially for merchants and travellers is now less dumb.
 - Moderate buff to wild large bipeds, to bring in line with other balancing
 - Loot protection for solo players and NPCs works again
@@ -109,6 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Positional audio is less glitchy.
 - Thunder sfx (corresponding with lightning) is now controlled by ambience volume.
 - Moderator badge alignment.
+- Reduced generation of towns/cities without workshops or houses.
 
 ## [0.16.0] - 2024-03-30
 
