@@ -842,6 +842,7 @@ impl<'a> Widget for Bag<'a> {
             self.pulse,
             self.msm,
             self.rbm,
+            Some(inventory),
             self.localized_strings,
             self.item_i18n,
         )

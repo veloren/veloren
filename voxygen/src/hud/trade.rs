@@ -227,6 +227,15 @@ impl<'a> Trade<'a> {
         };
         // TODO: update in accordance with https://gitlab.com/veloren/veloren/-/issues/960
         let inventory = inventories.get(entity)?;
+        // Get our inventory to use it in item tooltips
+        // Our inventory is needed to know what recipes are known
+        let our_inventory = if entity == self.client.entity() {
+            inventory
+        } else {
+            let uid = trade.parties[if who == 0 { 1 } else { 0 }];
+            let entity = self.client.state().ecs().entity_from_uid(uid)?;
+            inventories.get(entity)?
+        };
 
         // Alignment for Grid
         let mut alignment = Rectangle::fill_with([200.0, 180.0], color::TRANSPARENT);
@@ -304,6 +313,7 @@ impl<'a> Trade<'a> {
                     state,
                     ui,
                     inventory,
+                    our_inventory,
                     who,
                     ours,
                     entity,
@@ -324,6 +334,8 @@ impl<'a> Trade<'a> {
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         inventory: &Inventory,
+        // Used for item tooltip
+        our_inventory: &Inventory,
         who: usize,
         ours: bool,
         entity: EcsEntity,
@@ -353,6 +365,7 @@ impl<'a> Trade<'a> {
             self.pulse,
             self.msm,
             self.rbm,
+            Some(our_inventory),
             self.localized_strings,
             self.item_i18n,
         )

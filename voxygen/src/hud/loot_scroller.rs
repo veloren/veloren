@@ -9,7 +9,7 @@ use client::Client;
 use common::{
     comp::{
         inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
-        FrontendItem,
+        FrontendItem, Inventory,
     },
     recipe::RecipeBookManifest,
     uid::Uid,
@@ -69,6 +69,7 @@ pub struct LootScroller<'a> {
     item_i18n: &'a ItemI18n,
     msm: &'a MaterialStatManifest,
     rbm: &'a RecipeBookManifest,
+    inventory: Option<&'a Inventory>,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     pulse: f32,
 
@@ -89,6 +90,7 @@ impl<'a> LootScroller<'a> {
         item_i18n: &'a ItemI18n,
         msm: &'a MaterialStatManifest,
         rbm: &'a RecipeBookManifest,
+        inventory: Option<&'a Inventory>,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         pulse: f32,
     ) -> Self {
@@ -105,6 +107,7 @@ impl<'a> LootScroller<'a> {
             item_i18n,
             msm,
             rbm,
+            inventory,
             item_tooltip_manager,
             pulse,
             common: widget::CommonBuilder::default(),
@@ -167,6 +170,7 @@ impl<'a> Widget for LootScroller<'a> {
             self.pulse,
             self.msm,
             self.rbm,
+            self.inventory,
             self.localized_strings,
             self.item_i18n,
         )

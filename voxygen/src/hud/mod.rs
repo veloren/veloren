@@ -3549,7 +3549,7 @@ impl Hud {
             )
             .set(self.ids.subtitles, ui_widgets);
         }
-
+        let inventory = inventories.get(entity);
         //Loot
         LootScroller::new(
             &mut self.new_loot_messages,
@@ -3564,6 +3564,7 @@ impl Hud {
             &self.item_i18n,
             &msm,
             &rbm,
+            inventory,
             item_tooltip_manager,
             self.pulse,
         )
