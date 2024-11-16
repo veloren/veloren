@@ -39,13 +39,13 @@ use serde::Deserialize;
 use super::{event_dispatch, mounting::within_mounting_range, ServerEvent};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
-    event_dispatch::<SetLanternEvent>(builder);
-    event_dispatch::<NpcInteractEvent>(builder);
-    event_dispatch::<SetPetStayEvent>(builder);
-    event_dispatch::<MineBlockEvent>(builder);
-    event_dispatch::<SoundEvent>(builder);
-    event_dispatch::<CreateSpriteEvent>(builder);
-    event_dispatch::<ToggleSpriteLightEvent>(builder);
+    event_dispatch::<SetLanternEvent>(builder, &[]);
+    event_dispatch::<NpcInteractEvent>(builder, &[]);
+    event_dispatch::<SetPetStayEvent>(builder, &[]);
+    event_dispatch::<MineBlockEvent>(builder, &[]);
+    event_dispatch::<SoundEvent>(builder, &[]);
+    event_dispatch::<CreateSpriteEvent>(builder, &[]);
+    event_dispatch::<ToggleSpriteLightEvent>(builder, &[]);
 }
 
 impl ServerEvent for SetLanternEvent {

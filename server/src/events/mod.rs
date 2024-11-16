@@ -89,10 +89,12 @@ impl<'a, T: ServerEvent> common_ecs::System<'a> for EventHandler<T> {
     }
 }
 
-fn event_dispatch<T: ServerEvent>(builder: &mut DispatcherBuilder) {
-    // TODO: We currently don't consider the order of these event. But as
-    //       some events produce other events that might be worth doing.
-    common_ecs::dispatch::<EventHandler<T>>(builder, &[]);
+fn event_dispatch<T: ServerEvent>(builder: &mut DispatcherBuilder, dependencies: &[&str]) {
+    common_ecs::dispatch::<EventHandler<T>>(builder, dependencies);
+}
+
+fn event_sys_name<T: ServerEvent>() -> String {
+    <EventHandler<T> as common_ecs::System>::sys_name()
 }
 
 pub fn register_event_systems(builder: &mut DispatcherBuilder) {

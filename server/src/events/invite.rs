@@ -34,8 +34,8 @@ const INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(31);
 const PRESENTED_INVITE_TIMEOUT_DUR: Duration = Duration::from_secs(30);
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
-    event_dispatch::<InitiateInviteEvent>(builder);
-    event_dispatch::<InviteResponseEvent>(builder);
+    event_dispatch::<InitiateInviteEvent>(builder, &[]);
+    event_dispatch::<InviteResponseEvent>(builder, &[]);
 }
 
 impl ServerEvent for InitiateInviteEvent {

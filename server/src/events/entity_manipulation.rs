@@ -51,7 +51,7 @@ use common::{
     lottery::distribute_many,
     mounting::{Rider, VolumeRider},
     outcome::{HealthChangeInfo, Outcome},
-    resources::{ProgramTime, Secs, Time},
+    resources::{EntitiesDiedLastTick, ProgramTime, Secs, Time},
     spiral::Spiral2d,
     states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
@@ -78,33 +78,33 @@ use vek::{Vec2, Vec3};
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
-use super::{event_dispatch, ServerEvent};
+use super::{event_dispatch, event_sys_name, ServerEvent};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
-    event_dispatch::<PoiseChangeEvent>(builder);
-    event_dispatch::<HealthChangeEvent>(builder);
-    event_dispatch::<KnockbackEvent>(builder);
-    event_dispatch::<DestroyEvent>(builder);
-    event_dispatch::<LandOnGroundEvent>(builder);
-    event_dispatch::<RespawnEvent>(builder);
-    event_dispatch::<ExplosionEvent>(builder);
-    event_dispatch::<BonkEvent>(builder);
-    event_dispatch::<AuraEvent>(builder);
-    event_dispatch::<BuffEvent>(builder);
-    event_dispatch::<EnergyChangeEvent>(builder);
-    event_dispatch::<ComboChangeEvent>(builder);
-    event_dispatch::<ParryHookEvent>(builder);
-    event_dispatch::<TeleportToEvent>(builder);
-    event_dispatch::<EntityAttackedHookEvent>(builder);
-    event_dispatch::<ChangeAbilityEvent>(builder);
-    event_dispatch::<UpdateMapMarkerEvent>(builder);
-    event_dispatch::<MakeAdminEvent>(builder);
-    event_dispatch::<ChangeStanceEvent>(builder);
-    event_dispatch::<ChangeBodyEvent>(builder);
-    event_dispatch::<RemoveLightEmitterEvent>(builder);
-    event_dispatch::<TeleportToPositionEvent>(builder);
-    event_dispatch::<StartTeleportingEvent>(builder);
-    event_dispatch::<RegrowHeadEvent>(builder);
+    event_dispatch::<PoiseChangeEvent>(builder, &[]);
+    event_dispatch::<HealthChangeEvent>(builder, &[]);
+    event_dispatch::<KnockbackEvent>(builder, &[]);
+    event_dispatch::<DestroyEvent>(builder, &[&event_sys_name::<HealthChangeEvent>()]);
+    event_dispatch::<LandOnGroundEvent>(builder, &[]);
+    event_dispatch::<RespawnEvent>(builder, &[]);
+    event_dispatch::<ExplosionEvent>(builder, &[]);
+    event_dispatch::<BonkEvent>(builder, &[]);
+    event_dispatch::<AuraEvent>(builder, &[]);
+    event_dispatch::<BuffEvent>(builder, &[]);
+    event_dispatch::<EnergyChangeEvent>(builder, &[]);
+    event_dispatch::<ComboChangeEvent>(builder, &[]);
+    event_dispatch::<ParryHookEvent>(builder, &[]);
+    event_dispatch::<TeleportToEvent>(builder, &[]);
+    event_dispatch::<EntityAttackedHookEvent>(builder, &[]);
+    event_dispatch::<ChangeAbilityEvent>(builder, &[]);
+    event_dispatch::<UpdateMapMarkerEvent>(builder, &[]);
+    event_dispatch::<MakeAdminEvent>(builder, &[]);
+    event_dispatch::<ChangeStanceEvent>(builder, &[]);
+    event_dispatch::<ChangeBodyEvent>(builder, &[]);
+    event_dispatch::<RemoveLightEmitterEvent>(builder, &[]);
+    event_dispatch::<TeleportToPositionEvent>(builder, &[]);
+    event_dispatch::<StartTeleportingEvent>(builder, &[]);
+    event_dispatch::<RegrowHeadEvent>(builder, &[]);
 }
 
 event_emitters! {
@@ -189,6 +189,7 @@ pub struct HealthChangeEventData<'a> {
     #[cfg(feature = "worldgen")]
     rtsim: WriteExpect<'a, RtSim>,
     outcomes: Read<'a, EventBus<Outcome>>,
+    destroy_events: Read<'a, EventBus<DestroyEvent>>,
     time: Read<'a, Time>,
     #[cfg(feature = "worldgen")]
     id_maps: Read<'a, IdMaps>,
@@ -212,6 +213,7 @@ impl ServerEvent for HealthChangeEvent {
 
     fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
         let mut outcomes_emitter = data.outcomes.emitter();
+        let mut destroy_emitter = data.destroy_events.emitter();
         let mut rng = rand::thread_rng();
         for ev in events {
             if let Some((mut health, pos, uid, heads)) = (
@@ -278,6 +280,13 @@ impl ServerEvent for HealthChangeEvent {
                             },
                         });
                     }
+                }
+
+                if !health.is_dead && health.should_die() {
+                    destroy_emitter.emit(DestroyEvent {
+                        entity: ev.entity,
+                        cause: ev.change,
+                    });
                 }
             }
 
@@ -409,6 +418,7 @@ pub struct DestroyEventData<'a> {
     delete_event: Read<'a, EventBus<DeleteEvent>>,
     transform_events: Read<'a, EventBus<TransformEvent>>,
     chat_events: Read<'a, EventBus<ChatEvent>>,
+    entities_died_last_tick: Write<'a, EntitiesDiedLastTick>,
     melees: WriteStorage<'a, comp::Melee>,
     beams: WriteStorage<'a, comp::Beam>,
     skill_sets: WriteStorage<'a, SkillSet>,
@@ -423,7 +433,7 @@ pub struct DestroyEventData<'a> {
     clients: ReadStorage<'a, Client>,
     uids: ReadStorage<'a, Uid>,
     positions: ReadStorage<'a, Pos>,
-    healths: ReadStorage<'a, Health>,
+    healths: WriteStorage<'a, Health>,
     bodies: ReadStorage<'a, Body>,
     poises: ReadStorage<'a, Poise>,
     groups: ReadStorage<'a, Group>,
@@ -452,6 +462,7 @@ impl ServerEvent for DestroyEvent {
         let mut outcomes_emitter = data.outcomes.emitter();
         let mut buff_emitter = data.buff_events.emitter();
         let mut transform_emitter = data.transform_events.emitter();
+        data.entities_died_last_tick.0.clear();
 
         for ev in events {
             // TODO: Investigate duplicate `Destroy` events (but don't remove this).
@@ -460,6 +471,18 @@ impl ServerEvent for DestroyEvent {
                 continue;
             }
             let mut outcomes = data.outcomes.emitter();
+            if let Some(mut health) = data.healths.get_mut(ev.entity) {
+                if !health.is_dead {
+                    health.is_dead = true;
+
+                    if let Some(pos) = data.positions.get(ev.entity).copied() {
+                        data.entities_died_last_tick.0.push((ev.entity, pos));
+                    }
+                } else {
+                    // Skip for entities that have already died
+                    continue;
+                }
+            }
 
             // Remove components that should not persist across death
             data.melees.remove(ev.entity);

@@ -15,7 +15,7 @@ use specs::{world::Entity, DispatcherBuilder, Entities, Read, ReadStorage, Write
 use super::{event_dispatch, ServerEvent};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
-    event_dispatch::<GroupManipEvent>(builder);
+    event_dispatch::<GroupManipEvent>(builder, &[]);
 }
 
 pub fn can_invite(

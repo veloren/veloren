@@ -2,16 +2,14 @@ use common::{
     combat,
     comp::{
         self, item::MaterialStatManifest, CharacterState, Combo, Energy, Health, Inventory, Poise,
-        Pos, Stats, StatsModifier,
+        Stats, StatsModifier,
     },
     event::{DestroyEvent, EmitExt},
     event_emitters,
-    resources::{DeltaTime, EntitiesDiedLastTick, Time},
+    resources::{DeltaTime, Time},
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{
-    shred, Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, Write, WriteStorage,
-};
+use specs::{shred, Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage};
 
 const ENERGY_REGEN_ACCEL: f32 = 1.0;
 const SIT_ENERGY_REGEN_ACCEL: f32 = 2.5;
@@ -29,7 +27,6 @@ pub struct ReadData<'a> {
     dt: Read<'a, DeltaTime>,
     time: Read<'a, Time>,
     events: Events<'a>,
-    positions: ReadStorage<'a, Pos>,
     char_states: ReadStorage<'a, CharacterState>,
     inventories: ReadStorage<'a, Inventory>,
     msm: ReadExpect<'a, MaterialStatManifest>,
@@ -46,7 +43,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Poise>,
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Combo>,
-        Write<'a, EntitiesDiedLastTick>,
     );
 
     const NAME: &'static str = "stats";
@@ -55,17 +51,8 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (
-            read_data,
-            stats,
-            mut healths,
-            mut poises,
-            mut energies,
-            mut combos,
-            mut entities_died_last_tick,
-        ): Self::SystemData,
+        (read_data, stats, mut healths, mut poises, mut energies, mut combos): Self::SystemData,
     ) {
-        entities_died_last_tick.0.clear();
         let mut emitters = read_data.events.get_emitters();
         let dt = read_data.dt.0;
 
@@ -74,23 +61,18 @@ impl<'a> System<'a> for Sys {
             &read_data.entities,
             &stats,
             &mut healths,
-            &read_data.positions,
             &mut energies,
             read_data.inventories.maybe(),
         )
             .lend_join();
-        join.for_each(|(entity, stats, mut health, pos, mut energy, inventory)| {
+        join.for_each(|(entity, stats, mut health, mut energy, inventory)| {
             let set_dead = { health.should_die() && !health.is_dead };
 
             if set_dead {
-                let cloned_entity = (entity, *pos);
-                entities_died_last_tick.0.push(cloned_entity);
                 emitters.emit(DestroyEvent {
                     entity,
                     cause: health.last_change,
                 });
-
-                health.is_dead = true;
             }
             let stat = stats;
 

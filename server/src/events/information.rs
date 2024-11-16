@@ -13,9 +13,9 @@ use world::IndexOwned;
 use super::{event_dispatch, ServerEvent};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
-    event_dispatch::<RequestSiteInfoEvent>(builder);
+    event_dispatch::<RequestSiteInfoEvent>(builder, &[]);
     #[cfg(feature = "plugins")]
-    event_dispatch::<common::event::RequestPluginsEvent>(builder);
+    event_dispatch::<common::event::RequestPluginsEvent>(builder, &[]);
 }
 
 #[cfg(not(feature = "worldgen"))]

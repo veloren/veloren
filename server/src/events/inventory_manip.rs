@@ -42,7 +42,7 @@ use common_net::msg::ServerGeneral;
 use super::{entity_manipulation::emit_effect_events, event_dispatch, ServerEvent};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
-    event_dispatch::<InventoryManipEvent>(builder);
+    event_dispatch::<InventoryManipEvent>(builder, &[]);
 }
 
 pub fn swap_lantern(
