@@ -142,7 +142,14 @@ prometheus-hyper = "0.2"
 
 strum = { version = "0.26.3", features = ["derive"] }
 enum-map = { version = "2.4" }
-hashbrown = { version = "0.14", features = ["rayon", "serde", "nightly"] }
+hashbrown = { version = "0.15", default-features = false, features = [
+    "rayon",
+    "serde",
+    "nightly",
+    "default-hasher",
+    "inline-more",
+    "equivalent",
+] }
 fxhash = { version = "0.2.1" }
 crossbeam-utils = { version = "0.8.1" }
 crossbeam-channel = { version = "0.5" }

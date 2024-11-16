@@ -137,7 +137,7 @@ rand_chacha = { workspace = true }
 rayon = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
-serde_with = { version = "3.9.0", features = ["hashbrown_0_14"] }
+serde_with = { version = "3.11.0", features = ["hashbrown_0_15"] }
 slab = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }

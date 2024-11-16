@@ -1,6 +1,6 @@
 use crate::comp::{Pos, Presence, Vel};
 use common_base::span;
-use hashbrown::{hash_map::DefaultHashBuilder, HashSet};
+use hashbrown::{DefaultHashBuilder, HashSet};
 use indexmap::IndexMap;
 use specs::{hibitset::BitSetLike, BitSet, Entities, Join, LendJoin, ReadStorage};
 use vek::*;

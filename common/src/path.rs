@@ -4,7 +4,7 @@ use crate::{
     vol::{BaseVol, ReadVol},
 };
 use common_base::span;
-use hashbrown::hash_map::DefaultHashBuilder;
+use hashbrown::DefaultHashBuilder;
 #[cfg(feature = "rrt_pathfinding")]
 use hashbrown::HashMap;
 #[cfg(feature = "rrt_pathfinding")]
