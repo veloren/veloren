@@ -6,7 +6,7 @@ use crossterm::{
 };
 use ratatui::{
     backend::CrosstermBackend,
-    layout::Rect,
+    layout::{Position, Rect},
     text::Text,
     widgets::{Block, Borders, Paragraph},
     Terminal,
@@ -125,17 +125,17 @@ impl Tui {
 
         while running.load(Ordering::Relaxed) {
             if let Err(e) = terminal.draw(|f| {
-                let (log_rect, input_rect) = if f.size().height > 6 {
-                    let mut log_rect = f.size();
+                let (log_rect, input_rect) = if f.area().height > 6 {
+                    let mut log_rect = f.area();
                     log_rect.height -= 3;
 
-                    let mut input_rect = f.size();
+                    let mut input_rect = f.area();
                     input_rect.y = input_rect.height - 3;
                     input_rect.height = 3;
 
                     (log_rect, input_rect)
                 } else {
-                    (f.size(), Rect::default())
+                    (f.area(), Rect::default())
                 };
 
                 let block = Block::default().borders(Borders::ALL);
@@ -154,7 +154,7 @@ impl Tui {
                 let input_field = Paragraph::new(text).block(block);
                 f.render_widget(input_field, input_rect);
 
-                f.set_cursor(x, size.y);
+                f.set_cursor_position(Position { x, y: size.y });
             }) {
                 warn!(?e, "couldn't draw frame");
             };
