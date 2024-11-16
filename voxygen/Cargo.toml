@@ -101,7 +101,7 @@ vek = { workspace = true }
 levenshtein = "1.0.5"
 
 # Controller
-gilrs = { version = "0.10.0", features = ["serde-serialize"] }
+gilrs = { version = "0.11.0", features = ["serde-serialize"] }
 
 # Singleplayer
 server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = [

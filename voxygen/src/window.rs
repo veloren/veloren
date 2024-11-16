@@ -459,6 +459,14 @@ impl Window {
                 );
                 None
             },
+            Err(e) => {
+                error!(
+                    ?e,
+                    "Unspecified error when creating a Gilrs instance. Falling back to no \
+                     controller support."
+                );
+                None
+            },
         };
 
         let controller_settings = ControllerSettings::from(&settings.controller);
@@ -788,9 +796,7 @@ impl Window {
                             }
                         }
                     },
-                    EventType::Connected => {},
-                    EventType::Disconnected => {},
-                    EventType::Dropped => {},
+                    _ => {},
                 }
             }
         }
