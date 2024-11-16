@@ -223,15 +223,32 @@ impl RtSim {
         cause: Option<Actor>,
         new_hp_fraction: f32,
     ) {
-        self.state.emit(
-            OnHealthChange {
-                actor,
-                cause,
-                new_health_fraction: new_hp_fraction,
-            },
-            world,
-            index,
-        )
+        // Avoid setting the health to dead here, the `OnHealthChange` event handler in
+        // rtsim cannot (and shouldn't) handle the death of entities appropriately.
+        // Removing this check may lead to the following bug:
+        //
+        //  1. A health change brings down an entity's health to 0, the `HealthChange`
+        //     server event defers emitting the `DestroyEvent` to the `stats` system (in
+        //     the next tick).
+        //  2. The rtsim health is set to 0, the `OnDeath` event for this entity hasn't
+        //     been emitted yet, and the entity is cleaned up later in that tick by the
+        //     `CleanUp` rule without a new one being spawned.
+        //  3. In the next tick, the `stats` system emits the `DestroyEvent`, which
+        //     calls the rtsim death hook for an entity that is already gone and is
+        //     therefore not respawned.
+        //
+        // TODO: Investigate reordering how `DestroyEvent` is emitted to fix this too.
+        if new_hp_fraction > 0.0 {
+            self.state.emit(
+                OnHealthChange {
+                    actor,
+                    cause,
+                    new_health_fraction: new_hp_fraction,
+                },
+                world,
+                index,
+            )
+        }
     }
 
     pub fn hook_rtsim_actor_death(
