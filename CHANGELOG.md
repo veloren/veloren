@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wild Legoom and Goblin mobs
 - Bloodservants, Strigoi, and Scarlet Spectacles added to Halloween event
 - IP Bans
+- Wild Cactid mob.
 - Npcs can catch you stealing.
 - Button to show unknown recipes.
 - Water splashes and river particles.
