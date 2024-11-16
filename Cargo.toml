@@ -131,7 +131,7 @@ chrono = { version = "0.4.24", default-features = false, features = [
     "wasmbind",
     "serde",
 ] }
-chrono-tz = { version = "0.9", features = ["serde"] }
+chrono-tz = { version = "0.10", features = ["serde"] }
 inline_tweak = { version = "1.0.8" }
 
 tokio = { version = "1.28", default-features = false, features = ["rt"] }
@@ -166,6 +166,12 @@ ron = { version = "0.8", default-features = false }
 specs = { version = "0.20", features = ["nightly"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 rayon = { version = "1.5" }
+rusqlite = { version = "0.31", features = [
+    "array",
+    "vtab",
+    "bundled",
+    "trace",
+] }
 
 clap = { version = "4.2", features = ["derive", "env"] }
 async-trait = "0.1.42"

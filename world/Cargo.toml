@@ -80,12 +80,7 @@ tracing-subscriber = { version = "0.3.7", default-features = false, features = [
     "env-filter",
 ] }
 minifb = "0.27"
-rusqlite = { version = "0.31.0", features = [
-    "array",
-    "vtab",
-    "bundled",
-    "trace",
-] }
+rusqlite = { workspace = true }
 svg_fmt = "0.4"
 
 [[bench]]

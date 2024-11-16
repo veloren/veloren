@@ -71,12 +71,7 @@ enum-map = { workspace = true }
 noise = { workspace = true }
 censor = "0.3"
 
-rusqlite = { version = "0.31.0", features = [
-    "array",
-    "vtab",
-    "bundled",
-    "trace",
-] }
+rusqlite = { workspace = true }
 refinery = { version = "0.8.14", features = ["rusqlite"] }
 
 schnellru = "0.2.1"

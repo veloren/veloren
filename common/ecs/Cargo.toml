@@ -16,4 +16,4 @@ specs = { workspace = true, features = ["serde", "storage-event-control"] }
 
 [dev-dependencies]
 #bench
-float-cmp = "0.9.0"
+float-cmp = "0.10.0"
