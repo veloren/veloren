@@ -150,7 +150,7 @@ impl Sys {
                     && !server_physics_forced
                     && player_physics_setting
                         .as_ref()
-                        .map_or(true, |s| s.client_authoritative())
+                        .map_or(true, |s| !s.server_authoritative_physics_optin())
                 {
                     *player_physics = Some((pos, vel, ori));
                 }

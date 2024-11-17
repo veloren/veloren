@@ -96,9 +96,12 @@ pub struct PlayerPhysicsSetting {
 }
 
 impl PlayerPhysicsSetting {
-    pub fn server_authoritative(&self) -> bool { self.client_optin }
-
-    pub fn client_authoritative(&self) -> bool { !self.server_authoritative() }
+    /// Indicates that the client wants to use server authoritative physics
+    ///
+    /// NOTE: This is not the only source used to determine whether a client
+    /// should use server authoritative physics, make sure to also check
+    /// `ServerPhysicsForceList` on the server.
+    pub fn server_authoritative_physics_optin(&self) -> bool { self.client_optin }
 }
 
 /// Describe how the map should be generated.
