@@ -75,7 +75,11 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
 fn on_health_change(ctx: EventCtx<SyncNpcs, OnHealthChange>) {
     let data = &mut *ctx.state.data_mut();
 
-    if let Actor::Npc(npc_id) = ctx.event.actor {
+    // As this handler does not correctly handle death, ignore events that set the
+    // health fraction to 0 (dead)
+    if ctx.event.new_health_fraction != 0.0
+        && let Actor::Npc(npc_id) = ctx.event.actor
+    {
         if let Some(npc) = data.npcs.get_mut(npc_id) {
             npc.health_fraction = ctx.event.new_health_fraction;
         }
