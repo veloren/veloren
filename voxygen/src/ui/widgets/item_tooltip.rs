@@ -12,7 +12,7 @@ use common::{
             armor::Protection, item_key::ItemKey, modular::ModularComponent, Item, ItemDesc,
             ItemI18n, ItemKind, ItemTag, MaterialStatManifest, Quality,
         },
-        Energy,
+        Energy, Inventory,
     },
     recipe::RecipeBookManifest,
     trade::SitePrices,
@@ -288,6 +288,9 @@ pub struct ItemTooltip<'a> {
     item: &'a dyn ItemDesc,
     msm: &'a MaterialStatManifest,
     rbm: &'a RecipeBookManifest,
+    /// Inventory is optional because not all clients have an inventory
+    /// (spectator)
+    inventory: Option<&'a Inventory>,
     prices: &'a Option<SitePrices>,
     image: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
@@ -366,6 +369,7 @@ impl<'a> ItemTooltip<'a> {
         pulse: f32,
         msm: &'a MaterialStatManifest,
         rbm: &'a RecipeBookManifest,
+        inventory: Option<&'a Inventory>,
         localized_strings: &'a Localization,
         item_i18n: &'a ItemI18n,
     ) -> Self {
@@ -375,6 +379,7 @@ impl<'a> ItemTooltip<'a> {
             item: &*EMPTY_ITEM,
             msm,
             rbm,
+            inventory,
             prices: &None,
             transparency: 1.0,
             image_frame,
@@ -1056,7 +1061,30 @@ impl<'a> Widget for ItemTooltip<'a> {
                 }
             },
             ItemKind::RecipeGroup { recipes } => {
-                for (i, desc) in recipes.iter().enumerate() {
+                const KNOWN_COLOR: Color = Color::Rgba(0.0, 1.0, 0.0, 1.0);
+                const NOT_KNOWN_COLOR: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
+                let recipe_known = self.inventory.map(|inv| {
+                    inv.recipe_groups_iter()
+                        .any(|group| group.item_definition_id() == item.item_definition_id())
+                });
+                let known_key_color = match recipe_known {
+                    Some(false) => Some(("items-common-recipe-not_known", NOT_KNOWN_COLOR)),
+                    Some(true) => Some(("items-common-recipe-known", KNOWN_COLOR)),
+                    None => None,
+                };
+                if let Some((recipe_known_key, recipe_known_color)) = known_key_color {
+                    let recipe_known_text = self.localized_strings.get_msg(recipe_known_key);
+                    widget::Text::new(&recipe_known_text)
+                        .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(recipe_known_color)
+                        .down_from(state.ids.item_frame, V_PAD)
+                        .set(state.ids.stats[0], ui);
+                }
+                let offset = if known_key_color.is_some() { 1 } else { 0 };
+                for (i, desc) in recipes.iter().enumerate().map(|(i, s)| (i + offset, s)) {
                     if let Some(recipe) = self.rbm.get(desc) {
                         let (item_name, _) = util::item_text(
                             recipe.output.0.as_ref(),

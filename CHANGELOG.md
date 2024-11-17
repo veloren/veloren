@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced building Savannah Pit with Savannah Town Airship Dock
 - Server authoritative physics forces now persist across server restarts.
 - Defensive basics block instead of parry.
+- Add line in recipe tooltips to show if a recipe is already known
 
 ### Removed
 
