@@ -2,6 +2,7 @@ mod gen;
 pub mod plot;
 mod tile;
 pub mod util;
+pub mod genstat;
 
 use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TILE_SIZE};
 pub use self::{
@@ -9,6 +10,7 @@ pub use self::{
     plot::{foreach_plot, Plot, PlotKind},
     tile::TileKind,
     util::Dir,
+    genstat::{GenStatPlotKind,GenStatSiteKind,SitesGenMeta},
 };
 use crate::{
     config::CONFIG,
@@ -32,7 +34,6 @@ use hashbrown::hash_map::DefaultHashBuilder;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use std::ops::Range;
-use tracing::debug;
 use vek::*;
 
 /// Seed a new RNG from an old RNG, thereby making the old RNG indepedent of
@@ -337,7 +338,8 @@ impl Site {
         Some(plaza)
     }
 
-    pub fn make_plaza(&mut self, land: &Land, rng: &mut impl Rng) -> Option<Id<Plot>> {
+    pub fn make_plaza(&mut self, land: &Land, rng: &mut impl Rng,generator_stats: &mut SitesGenMeta,site_name: &String) -> Option<Id<Plot>> {
+        generator_stats.attempt(site_name, GenStatPlotKind::Plaza);
         let plaza_radius = rng.gen_range(1..4);
         let plaza_dist = 6.5 + plaza_radius as f32 * 4.0;
         let pos = attempt(32, || {
@@ -359,7 +361,7 @@ impl Site {
                     }) && rng.gen_range(0..48) > tile.map(|e| e.abs()).reduce_max()
                 })
         })?;
-
+        generator_stats.success(site_name, GenStatPlotKind::Plaza);
         self.make_plaza_at(land, &pos, plaza_radius, rng)
     }
 
@@ -403,28 +405,37 @@ impl Site {
     /// The find_roadside_aabr function wants to have an existing plaza or road.
     /// This function is used to find a suitable location for the first plaza in a town,
     /// which has the side-effect of creating at least one road. This function is more
-    /// expensive than the make_plaza function but fails to find a plaza location less often.
+    /// expensive than the make_plaza function but fails to find a plaza location only if there
+    /// are no suitable locations within the entire search radius.
+    /// 
+    /// It works by exhaustively finding all tiles within a ring pattern around the town center
+    /// where the tile and all surrounding tiles to the plaza radius are not hazards or roads.
+    /// It then chooses the tile with the minimum distance from the town center as the plaza location.
+    /// See the comments in common/src/spiral.rs for more information on the spiral ring pattern.
     ///
-    /// demarcate_obstacles() must be called before this function to mark the obstacles and roads.
-
-    pub fn make_initial_plaza(&mut self, land: &Land, rng: &mut impl Rng) -> Option<Id<Plot>> {
-        // First, find all the suitable locations for a plaza.
-        // The plaza radius can be 1, 2, or 3.
-        let plaza_radius = rng.gen_range(1..4);
-        // look for plaza locations within a ring with an outer dimension
-        // of 24 tiles and an inner dimension that will offset the plaza from the town center.
-        let search_inner_radius = 6 + plaza_radius * 4;
-        const PLAZA_MAX_SEARCH_RADIUS: i32 = 24;
+    /// demarcate_obstacles() should be called before this function to mark the obstacles and roads.
+    /// (Cliff Towns are an exception).
+    /// 
+    pub fn make_initial_plaza(&mut self,
+        land: &Land,
+        rng: &mut impl Rng,
+        plaza_radius: u32,
+        search_inner_radius: u32,
+        search_width: u32,
+        generator_stats: &mut SitesGenMeta,
+        site_name: &String) -> Option<Id<Plot>>
+    {
+        generator_stats.attempt(site_name, GenStatPlotKind::InitialPlaza);
+        // Find all the suitable locations for a plaza.
         let mut plaza_locations = vec![];
-        // search over a spiral ring pattern
-        Spiral2d::with_ring(search_inner_radius, PLAZA_MAX_SEARCH_RADIUS - search_inner_radius)
+        // Search over a spiral ring pattern
+        Spiral2d::with_ring(search_inner_radius, search_width)
             .for_each(|tile| {
-                // plaza_locations_considered += 1;
                 // if the tile is not a hazard or road
                 if self.tiles.get_known(tile).is_none() {
                     // if all the tiles in the proposed plaza location are also not hazards or roads
                     // then add the tile as a candidate for a plaza location
-                    if !Spiral2d::new()
+                    if Spiral2d::new()
                         .take((plaza_radius * 2 + 1).pow(2) as usize)
                         .all(|rpos| self.tiles.get_known(rpos + tile).is_none())
                         {
@@ -435,19 +446,49 @@ impl Site {
         if plaza_locations.is_empty() {
             // No suitable plaza locations were found, it's unlikely that the town will be able to be generated,
             // but we can try to make a plaza anyway with the original make_plaza function.
-            self.make_plaza(land, rng)
+            self.make_plaza(land, rng, generator_stats, site_name)
         } else {
             // Choose the minimum distance from the town center.
-            // By sorting the plaza locations by distance from the town center,
-            // and then choosing the first one, we are effectively placing the plaza
-            // where the make_plaza function would have placed it if it had found a suitable location.
-            // Unlike make_plaza, this function will always find a location for the plaza if one exists within
-            // the max search radius.
             plaza_locations.sort_by_key(|&pos| pos.distance_squared(Vec2::zero()));
             // use the first plaza location as the plaza position
             let pos = plaza_locations.first()?;
-            self.make_plaza_at(land, pos, plaza_radius, rng)
+            generator_stats.success(site_name, GenStatPlotKind::InitialPlaza);
+            self.make_plaza_at(land, pos, plaza_radius as i32, rng)
         }
+    }
+
+    /// This is make_initial_plaza with default options/parameters. This calls make_initial_plaza
+    /// with the default parameters for the plaza_radius and search_inner_radius. The plaza_radius will be in
+    /// the range 1-3, and the search_inner_radius will be 7 + plaza_radius. The search_width will be
+    /// PLAZA_MAX_SEARCH_RADIUS - search_inner_radius. The search_inner_radius is approximately the same distance
+    /// from the center of town as for the original make_plaza function, so this function will place the initial
+    /// plaza and roads near where the original make_plaza function would place them in the case where the site is
+    /// clear of hazards.
+    /// 
+    /// This default plaza generation function is used for generating cities, cliff towns, savannah towns, and
+    /// coastal towns. The other town types (terracotta, myrmidon, desert city) have a central feature so they
+    /// use specific plaza generation parameters and call the make_initial_plaza function directly.
+    ///
+    /// demarcate_obstacles() should be called before this function to mark the obstacles and roads.
+    pub fn make_initial_plaza_default(&mut self,
+        land: &Land,
+        rng: &mut impl Rng,
+        generator_stats: &mut SitesGenMeta,
+        site_name: &String) -> Option<Id<Plot>>
+    {
+        // The plaza radius can be 1, 2, or 3.
+        let plaza_radius = rng.gen_range(1..4);
+        // look for plaza locations within a ring with an outer dimension
+        // of 24 tiles and an inner dimension that will offset the plaza from the town center.
+        let search_inner_radius = 7 + plaza_radius;
+        const PLAZA_MAX_SEARCH_RADIUS: u32 = 24;
+        self.make_initial_plaza(land,
+            rng,
+            plaza_radius,
+            search_inner_radius,
+            PLAZA_MAX_SEARCH_RADIUS - search_inner_radius,
+            generator_stats,
+            site_name)
     }
 
     pub fn name(&self) -> &str { &self.name }
@@ -579,7 +620,7 @@ impl Site {
         site
     }
 
-    pub fn generate_terracotta(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_terracotta(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
         let mut rng = reseed(rng);
         let gen_name = NameGen::location(&mut rng).generate_terracotta();
         let suffix = [
@@ -601,12 +642,23 @@ impl Site {
         };
         let mut site = Site {
             origin,
-            name,
+            name: name.clone(),
             ..Site::default()
         };
 
+        // place the initial plaza
         site.demarcate_obstacles(land);
-        site.make_initial_plaza(land, &mut rng);
+        // The terracotta_palace is 15 tiles in radius, so the plaza should be outside the palace.
+        const TERRACOTTA_PLAZA_RADIUS: u32 = 3;
+        const TERRACOTTA_PLAZA_SEARCH_INNER: u32 = 17;
+        const TERRACOTTA_PLAZA_SEARCH_WIDTH: u32 = 12;
+        generator_stats.add(&site.name, GenStatSiteKind::Terracotta);
+        site.make_initial_plaza(land, &mut rng,
+            TERRACOTTA_PLAZA_RADIUS,
+            TERRACOTTA_PLAZA_SEARCH_INNER,
+            TERRACOTTA_PLAZA_SEARCH_WIDTH,
+            generator_stats,
+            &name);
 
         let size = 15.0 as i32;
         let aabr = Aabr {
@@ -635,6 +687,7 @@ impl Site {
             match *build_chance.choose_seeded(rng.gen()) {
                 1 => {
                     // TerracottaHouse
+                    generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     if let Some((aabr, _, _)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -662,13 +715,16 @@ impl Site {
                             plot: Some(plot),
                             hard_alt: Some(terracotta_house_alt),
                         });
+
+                        generator_stats.success(&site.name, GenStatPlotKind::House);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
 
                 2 => {
                     // TerracottaYard
+                    generator_stats.attempt(&site.name, GenStatPlotKind::Yard);
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     if let Some((aabr, _, _)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -696,8 +752,10 @@ impl Site {
                             plot: Some(plot),
                             hard_alt: Some(terracotta_yard_alt),
                         });
+
+                        generator_stats.success(&site.name, GenStatPlotKind::Yard);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 _ => {},
@@ -706,7 +764,7 @@ impl Site {
         site
     }
 
-    pub fn generate_myrmidon(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_myrmidon(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
         let mut rng = reseed(rng);
         let gen_name = NameGen::location(&mut rng).generate_danari();
         let suffix = ["City", "Metropolis"].choose(&mut rng).unwrap();
@@ -716,12 +774,24 @@ impl Site {
         };
         let mut site = Site {
             origin,
-            name,
+            name: name.clone(),
             ..Site::default()
         };
 
+        // place the initial plaza
         site.demarcate_obstacles(land);
-        site.make_initial_plaza(land, &mut rng);
+        // The myrmidon_arena is 16 tiles in radius, so the plaza should be outside the palace.
+        const MYRMIDON_PLAZA_RADIUS: u32 = 3;
+        const MYRMIDON_PLAZA_SEARCH_INNER: u32 = 18;
+        const MYRMIDON_PLAZA_SEARCH_WIDTH: u32 = 12;
+        generator_stats.add(&site.name, GenStatSiteKind::Myrmidon);
+        generator_stats.attempt(&site.name, GenStatPlotKind::InitialPlaza);
+        site.make_initial_plaza(land, &mut rng,
+            MYRMIDON_PLAZA_RADIUS, 
+            MYRMIDON_PLAZA_SEARCH_INNER,
+            MYRMIDON_PLAZA_SEARCH_WIDTH,
+            generator_stats,
+            &name);
 
         let size = 16.0 as i32;
         let aabr = Aabr {
@@ -747,6 +817,7 @@ impl Site {
         }
         for _ in 0..30 {
             // MyrmidonHouse
+            generator_stats.attempt(&site.name, GenStatPlotKind::House);
             let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
             if let Some((aabr, _, _)) = attempt(32, || {
                 site.find_roadside_aabr(&mut rng, 9..(size + 1).pow(2), Extent2::broadcast(size))
@@ -766,8 +837,10 @@ impl Site {
                     plot: Some(plot),
                     hard_alt: Some(myrmidon_house_alt),
                 });
+
+                generator_stats.success(&site.name, GenStatPlotKind::House);
             } else {
-                site.make_plaza(land, &mut rng);
+                site.make_plaza(land, &mut rng, generator_stats, &name);
             }
         }
 
@@ -810,25 +883,29 @@ impl Site {
         origin: Vec2<i32>,
         size: f32,
         calendar: Option<&Calendar>,
+        generator_stats: &mut SitesGenMeta,
     ) -> Self {
         let mut rng = reseed(rng);
-
+        let name = NameGen::location(&mut rng).generate_town();
         let mut site = Site {
             origin,
-            name: NameGen::location(&mut rng).generate_town(),
+            name: name.clone(),
             ..Site::default()
         };
+
+        // place the initial plaza
         site.demarcate_obstacles(land);
-        site.make_initial_plaza(land, &mut rng);
+        generator_stats.add(&site.name, GenStatSiteKind::City);
+        site.make_initial_plaza_default(land, &mut rng, generator_stats, &name);
 
         let build_chance = Lottery::from(vec![
             (64.0, 1),  // house
-            (5.0, 2),   // workshop
+            (5.0, 2),   // guard tower
             (15.0, 3),  // field
             (5.0, 4),   // castle
-            (5.0, 5),   // guard tower
-            (15.0, 6),  // tavern
-            (15.0, 7),  // airship dock
+            (5.0, 5),   // workshop
+            (15.0, 6),  // airship dock
+            (15.0, 7),  // tavern
         ]);
 
         // These plots have minimums or limits.
@@ -837,23 +914,11 @@ impl Site {
         let mut taverns = 0;
         let mut airship_docks = 0;
 
-        // The rest of these tracking variables are for debugging purposes.
-        let mut houses = 0;
-        let mut fields = 0;
-        let guard_towers = 0;
-        let mut house_attempts = 0;
-        let mut workshop_attempts = 0;
-        let mut field_attempts = 0;
-        let mut castle_attempts = 0;
-        let mut guard_tower_attempts = 0;
-        let mut tavern_attempts = 0;
-        let mut airship_dock_attempts = 0;
-
         for _ in 0..(size * 200.0) as i32 {
             match *build_chance.choose_seeded(rng.gen()) {
                 // Workshop
                 n if (n == 5 && workshops < (size * 5.0) as i32) || workshops == 0 => {
-                    workshop_attempts += 1;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
                     let size = (3.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -884,14 +949,15 @@ impl Site {
                             hard_alt: Some(workshop_alt),
                         });
                         workshops += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::Workshop);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 // House
                 1 => {
                     let size = (1.5 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
-                    house_attempts += 1;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -921,14 +987,14 @@ impl Site {
                             plot: Some(plot),
                             hard_alt: Some(house_alt),
                         });
-                        houses += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::House);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 // Guard tower
                 2 => {
-                    guard_tower_attempts += 1;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::GuardTower);
                     if let Some((_aabr, _, _door_dir)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
                     }) {
@@ -953,14 +1019,11 @@ impl Site {
                 },
                 // Field
                 3 => {
-                    field_attempts += 1;
-                    if Self::generate_farm(false, &mut rng, &mut site, land) {
-                        fields += 1;
-                    }
+                    Self::generate_farm(false, &mut rng, &mut site, land);
                 },
                 // Castle
                 4 if castles < 1 => {
-                    castle_attempts += 1;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::Castle);
                     if let Some((aabr, _entrance_tile, _door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(&mut rng, 16 * 16..18 * 18, Extent2::new(16, 16))
                     }) {
@@ -1103,11 +1166,12 @@ impl Site {
                         );
 
                         castles += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::Castle);
                     }
                 },
                 //airship dock
-                n if (n == 6 && size > 0.125 && airship_docks == 0) => {
-                    airship_dock_attempts += 1;
+                6 if (size > 0.125 && airship_docks == 0) => {
+                    generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
                     if let Some((_aabr, _, _door_dir)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
                     }) {
@@ -1141,13 +1205,14 @@ impl Site {
                                 hard_alt: Some(airship_dock_alt),
                             });
                             airship_docks += 1;
+                            generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                         } else {
-                            site.make_plaza(land, &mut rng);
+                            site.make_plaza(land, &mut rng, generator_stats, &name);
                         }
                     }
                 },
                 7 if (size > 0.125 && taverns < 2) => {
-                    tavern_attempts += 1;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::Tavern);
                     let size = (3.5 + rng.gen::<f32>().powf(5.0) * 2.0).round() as u32;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -1180,18 +1245,13 @@ impl Site {
                         });
 
                         taverns += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::Tavern);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 _ => {},
             }
-        }
-
-        if workshops == 0 || houses == 0 {
-            debug!("  H {:?}/{:?} W {:?}/{:?} F {:?}/{:?} C {:?}/{:?} G {:?}/{:?} T {:?}/{:?} A {:?}/{:?} ",
-                houses, house_attempts, workshops, workshop_attempts, fields, field_attempts, castles, castle_attempts, guard_towers, guard_tower_attempts, taverns, tavern_attempts, airship_docks, airship_dock_attempts);
-            debug!("City failed to generate, workshops: {:?}, houses: {:?}", workshops, houses);
         }
 
         site
@@ -1432,16 +1492,20 @@ impl Site {
         index: IndexRef,
         rng: &mut impl Rng,
         origin: Vec2<i32>,
+        generator_stats: &mut SitesGenMeta,
     ) -> Self {
         let mut rng = reseed(rng);
+        let name = NameGen::location(&mut rng).generate_arabic();
         let mut site = Site {
             origin,
-            name: NameGen::location(&mut rng).generate_arabic(),
+            name: name.clone(),
             ..Site::default()
         };
         let mut campfires = 0;
 
-        site.make_initial_plaza(land, &mut rng);
+        // place the initial plaza
+        generator_stats.add(&site.name, GenStatSiteKind::CliffTown);
+        site.make_initial_plaza_default(land, &mut rng, generator_stats, &name);
 
         let build_chance = Lottery::from(vec![(30.0, 1), (50.0, 2)]);
         let mut airship_docks = 0;
@@ -1450,6 +1514,7 @@ impl Site {
                 1 => {
                     // CliffTower
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     let campfire = campfires < 4;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -1475,20 +1540,21 @@ impl Site {
                             tiles: aabr_tiles(aabr).collect(),
                             seed: rng.gen(),
                         });
-
                         site.blit_aabr(aabr, Tile {
                             kind: TileKind::Building,
                             plot: Some(plot),
                             hard_alt: Some(cliff_tower_alt),
                         });
                         campfires += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::House);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 2 if airship_docks < 1 => {
                     // CliffTownAirshipDock
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1519,8 +1585,9 @@ impl Site {
                             hard_alt: Some(cliff_town_airship_dock_alt),
                         });
                         airship_docks += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 _ => {},
@@ -1530,61 +1597,30 @@ impl Site {
         site
     }
 
-    pub fn generate_savannah_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_savannah_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
         let mut rng = reseed(rng);
+        let name = NameGen::location(&mut rng).generate_savannah_custom();
         let mut site = Site {
             origin,
-            name: NameGen::location(&mut rng).generate_savannah_custom(),
+            name: name.clone(),
             ..Site::default()
         };
-        site.demarcate_obstacles(land);
-        site.make_initial_plaza(land, &mut rng);
 
+        // place the initial plaza
+        site.demarcate_obstacles(land);
+        generator_stats.add(&site.name, GenStatSiteKind::SavannahTown);
+        site.make_initial_plaza_default(land, &mut rng, generator_stats, &name);
+
+        let mut workshops = 0;
         let mut airship_dock = 0;
         let build_chance = Lottery::from(vec![(25.0, 1), (5.0, 2), (5.0, 3), (15.0, 4)]);
 
         for _ in 0..50 {
             match *build_chance.choose_seeded(rng.gen()) {
-                1 => {
-                    // SavannahHut
-
-                    let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
-                        site.find_roadside_aabr(
-                            &mut rng,
-                            4..(size + 1).pow(2),
-                            Extent2::broadcast(size),
-                        )
-                    }) {
-                        let savannah_hut = plot::SavannahHut::generate(
-                            land,
-                            &mut reseed(&mut rng),
-                            &site,
-                            door_tile,
-                            door_dir,
-                            aabr,
-                        );
-                        let savannah_hut_alt = savannah_hut.alt;
-                        let plot = site.create_plot(Plot {
-                            kind: PlotKind::SavannahHut(savannah_hut),
-                            root_tile: aabr.center(),
-                            tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
-                        });
-
-                        site.blit_aabr(aabr, Tile {
-                            kind: TileKind::Building,
-                            plot: Some(plot),
-                            hard_alt: Some(savannah_hut_alt),
-                        });
-                    } else {
-                        site.make_plaza(land, &mut rng);
-                    }
-                },
-                2 => {
+                n if (n == 2 && workshops < 3) || workshops == 0 => {
                     // SavannahWorkshop
-
                     let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1613,14 +1649,55 @@ impl Site {
                             plot: Some(plot),
                             hard_alt: Some(savannah_workshop_alt),
                         });
+                        workshops += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::Workshop);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
+                    }
+                }
+                1 => {
+                    // SavannahHut
+
+                    let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::House);
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            4..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let savannah_hut = plot::SavannahHut::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let savannah_hut_alt = savannah_hut.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::SavannahHut(savannah_hut),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(savannah_hut_alt),
+                        });
+                        generator_stats.success(&site.name, GenStatPlotKind::House);
+                    } else {
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 3 if airship_dock < 1 => {
                     // SavannahAirshipDock
 
                     let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1650,8 +1727,9 @@ impl Site {
                             hard_alt: Some(savannah_airship_dock_alt),
                         });
                         airship_dock += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 // Field
@@ -1664,60 +1742,29 @@ impl Site {
         site
     }
 
-    pub fn generate_coastal_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_coastal_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
         let mut rng = reseed(rng);
+        let name = NameGen::location(&mut rng).generate_danari();
         let mut site = Site {
             origin,
-            name: NameGen::location(&mut rng).generate_danari(),
+            name: name.clone(),
             ..Site::default()
         };
-        site.demarcate_obstacles(land);
-        site.make_initial_plaza(land, &mut rng);
 
-        let build_chance = Lottery::from(vec![(38.0, 1), (7.0, 2), (15.0, 3), (15.0, 4)]);
+        // place the initial plaza
+        site.demarcate_obstacles(land);
+        generator_stats.add(&site.name, GenStatSiteKind::CoastalTown);
+        site.make_initial_plaza_default(land, &mut rng, generator_stats, &name);
+
+        let mut workshops = 0;
+        let build_chance = Lottery::from(vec![(38.0, 1), (5.0, 2), (15.0, 3), (15.0, 4)]);
         let mut airship_docks = 0;
         for _ in 0..55 {
             match *build_chance.choose_seeded(rng.gen()) {
-                1 => {
-                    // CoastalHouse
-
-                    let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
-                        site.find_roadside_aabr(
-                            &mut rng,
-                            7..(size + 1).pow(2),
-                            Extent2::broadcast(size),
-                        )
-                    }) {
-                        let coastal_house = plot::CoastalHouse::generate(
-                            land,
-                            &mut reseed(&mut rng),
-                            &site,
-                            door_tile,
-                            door_dir,
-                            aabr,
-                        );
-                        let coastal_house_alt = coastal_house.alt;
-                        let plot = site.create_plot(Plot {
-                            kind: PlotKind::CoastalHouse(coastal_house),
-                            root_tile: aabr.center(),
-                            tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
-                        });
-
-                        site.blit_aabr(aabr, Tile {
-                            kind: TileKind::Building,
-                            plot: Some(plot),
-                            hard_alt: Some(coastal_house_alt),
-                        })
-                    } else {
-                        site.make_plaza(land, &mut rng);
-                    }
-                },
-                2 => {
+                n if (n == 2 && workshops < 3) || workshops == 0 => {
                     // CoastalWorkshop
-
                     let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1745,14 +1792,56 @@ impl Site {
                             kind: TileKind::Building,
                             plot: Some(plot),
                             hard_alt: Some(coastal_workshop_alt),
-                        })
+                        });
+                        workshops += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::Workshop);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
+                    }
+                },
+                1 => {
+                    // CoastalHouse
+
+                    let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::House);
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            7..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let coastal_house = plot::CoastalHouse::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                        );
+                        let coastal_house_alt = coastal_house.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::CoastalHouse(coastal_house),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(coastal_house_alt),
+                        });
+
+                        generator_stats.success(&site.name, GenStatPlotKind::House);
+                    } else {
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 3 if airship_docks < 1 => {
                     // CoastalAirshipDock
                     let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1782,8 +1871,9 @@ impl Site {
                             hard_alt: Some(coastal_airship_dock_alt),
                         });
                         airship_docks += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 // Field
@@ -1796,16 +1886,29 @@ impl Site {
         site
     }
 
-    pub fn generate_desert_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_desert_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
         let mut rng = reseed(rng);
 
+        let name = NameGen::location(&mut rng).generate_arabic();
         let mut site = Site {
             origin,
-            name: NameGen::location(&mut rng).generate_arabic(),
+            name: name.clone(),
             ..Site::default()
         };
+
+        // place the initial plaza
         site.demarcate_obstacles(land);
-        site.make_initial_plaza(land, &mut rng);
+        // The desert_city_arena is 17 tiles in radius, so the plaza should be outside the palace.
+        const DESERT_CITY_PLAZA_RADIUS: u32 = 3;
+        const DESERT_CITY_PLAZA_SEARCH_INNER: u32 = 19;
+        const DESERT_CITY_PLAZA_SEARCH_WIDTH: u32 = 12;
+        generator_stats.add(&site.name, GenStatSiteKind::DesertCity);
+        site.make_initial_plaza(land, &mut rng,
+            DESERT_CITY_PLAZA_RADIUS, 
+            DESERT_CITY_PLAZA_SEARCH_INNER,
+            DESERT_CITY_PLAZA_SEARCH_WIDTH,
+            generator_stats,
+            &name);
 
         let size = 17.0 as i32;
         let aabr = Aabr {
@@ -1841,6 +1944,7 @@ impl Site {
                 // DesertCityMultiplot
                 1 => {
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::MultiPlot);
                     let campfire = campfires < 4;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -1872,13 +1976,15 @@ impl Site {
                             hard_alt: Some(desert_city_multi_plot_alt),
                         });
                         campfires += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::MultiPlot);
                     } else {
-                        site.make_plaza(land, &mut rng);
+                        site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
                 },
                 // DesertCityTemple
                 2 if temples < 1 => {
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::Temple);
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1908,11 +2014,13 @@ impl Site {
                             hard_alt: Some(desert_city_temple_alt),
                         });
                         temples += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::Temple);
                     }
                 },
                 // DesertCityAirshipDock
                 3 if airship_docks < 1 => {
                     let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1942,6 +2050,7 @@ impl Site {
                             hard_alt: Some(desert_city_airship_dock_alt),
                         });
                         airship_docks += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                     }
                 },
                 // cactus farm
@@ -2043,7 +2152,7 @@ impl Site {
             name: NameGen::location(&mut rng).generate_danari(),
             ..Site::default()
         };
-        
+
         // SeaChapel
         let size = 10.0 as i32;
         let aabr = Aabr {
@@ -2871,6 +2980,7 @@ pub fn test_site() -> Site {
         features: &index.features(),
         index: &index,
     };
+    let mut gen_meta = SitesGenMeta::new(0);
     Site::generate_city(
         &Land::empty(),
         index_ref,
@@ -2878,6 +2988,7 @@ pub fn test_site() -> Site {
         Vec2::zero(),
         0.5,
         None,
+        &mut gen_meta
     )
 }
 

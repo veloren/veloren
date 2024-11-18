@@ -72,11 +72,11 @@ impl Spiral2d {
             Vec2 { x: -2, y: -1 }
         Run the first test below to see this output.
     */
-    pub fn with_ring(inner_radius: i32, margin: i32) -> impl Iterator<Item = Vec2<i32>> {
-        let outer_radius: i32 = inner_radius + margin - 1;
+    pub fn with_ring(inner_radius: u32, margin: u32) -> impl Iterator<Item = Vec2<i32>> {
+        let outer_radius: u32 = inner_radius + margin - 1;
         let adjusted_inner_radius = if inner_radius > 0 { inner_radius - 1 } else { 0 };
         Spiral2d {
-            layer: inner_radius,
+            layer: inner_radius as i32,
             i: 0,
         }.take((outer_radius * 2 + 1).pow(2) as usize - (adjusted_inner_radius * 2 + 1).pow(2) as usize)
 }
