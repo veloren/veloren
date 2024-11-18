@@ -269,7 +269,9 @@ impl Data {
         }
 
         // Spawn monsters into the world
-        for _ in 0..100 {
+        for _ in
+            0..(world.sim().map_size_lg().vec().magnitude_squared() / 2u32.pow(13)).clamp(5, 1000)
+        {
             // Try a few times to find a location that's not underwater
             if let Some((wpos, chunk)) = (0..10)
                 .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))
