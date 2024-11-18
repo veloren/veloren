@@ -96,6 +96,21 @@ impl Plot {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum PlotKindMeta<'plot> {
+    AirshipDock {
+        door_tile: Vec2<i32>,
+        docking_positions: &'plot Vec<Vec3<i32>>,
+    },
+    Workshop {
+        door_tile: Option<Vec2<i32>>,
+    },
+    House {
+        door_tile: Vec2<i32>,
+    },
+    Dungeon,
+}
+
 pub enum PlotKind {
     House(House),
     AirshipDock(AirshipDock),
@@ -141,6 +156,84 @@ pub enum PlotKind {
     VampireCastle(VampireCastle),
     MyrmidonArena(MyrmidonArena),
     MyrmidonHouse(MyrmidonHouse),
+}
+
+impl PlotKind {
+    pub fn meta(&self) -> Option<PlotKindMeta<'_>> {
+        match self {
+            PlotKind::SavannahAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
+                door_tile: d.door_tile,
+                docking_positions: &d.docking_positions,
+            }),
+            PlotKind::AirshipDock(d) => Some(PlotKindMeta::AirshipDock {
+                door_tile: d.door_tile,
+                docking_positions: &d.docking_positions,
+            }),
+            PlotKind::CoastalAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
+                door_tile: d.door_tile,
+                docking_positions: &d.docking_positions,
+            }),
+            PlotKind::DesertCityAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
+                door_tile: d.door_tile,
+                docking_positions: &d.docking_positions,
+            }),
+            PlotKind::CliffTownAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
+                door_tile: d.door_tile,
+                docking_positions: &d.docking_positions,
+            }),
+            PlotKind::House(h) => Some(PlotKindMeta::House {
+                door_tile: h.door_tile,
+            }),
+            PlotKind::CoastalHouse(h) => Some(PlotKindMeta::House {
+                door_tile: h.door_tile,
+            }),
+            PlotKind::DesertCityTemple(h) => Some(PlotKindMeta::House {
+                door_tile: h.door_tile,
+            }),
+            PlotKind::Sahagin(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::SavannahHut(h) => Some(PlotKindMeta::House {
+                door_tile: h.door_tile,
+            }),
+            PlotKind::CoastalWorkshop(w) => Some(PlotKindMeta::Workshop {
+                door_tile: Some(w.door_tile),
+            }),
+            PlotKind::Workshop(_) => Some(PlotKindMeta::Workshop { door_tile: None }),
+            PlotKind::SavannahWorkshop(w) => Some(PlotKindMeta::Workshop {
+                door_tile: Some(w.door_tile),
+            }),
+            PlotKind::SeaChapel(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::Cultist(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::Gnarling(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::Adlet(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::Haniwa(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::DwarvenMine(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::TerracottaPalace(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::VampireCastle(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::MyrmidonArena(_) => Some(PlotKindMeta::Dungeon),
+            PlotKind::GliderRing(_)
+            | PlotKind::GliderPlatform(_)
+            | PlotKind::GliderFinish(_)
+            | PlotKind::Tavern(_)
+            | PlotKind::JungleRuin(_)
+            | PlotKind::DesertCityArena(_)
+            | PlotKind::DesertCityMultiPlot(_)
+            | PlotKind::Plaza
+            | PlotKind::Castle(_)
+            | PlotKind::Road(_)
+            | PlotKind::GiantTree(_)
+            | PlotKind::CliffTower(_)
+            | PlotKind::Citadel(_)
+            | PlotKind::Bridge(_)
+            | PlotKind::PirateHideout(_)
+            | PlotKind::RockCircle(_)
+            | PlotKind::TrollCave(_)
+            | PlotKind::Camp(_)
+            | PlotKind::TerracottaHouse(_)
+            | PlotKind::TerracottaYard(_)
+            | PlotKind::FarmField(_)
+            | PlotKind::MyrmidonHouse(_) => None,
+        }
+    }
 }
 
 #[macro_export]
