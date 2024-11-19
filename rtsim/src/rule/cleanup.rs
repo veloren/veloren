@@ -38,6 +38,7 @@ impl Rule for CleanUp {
                     if let Some(home) = npc.home.and_then(|home| data.sites.get_mut(home)) {
                         home.population.remove(&npc_id);
                     }
+                    tracing::debug!(?npc_id, "Cleaning up dead NPC");
                     false
                 } else {
                     true

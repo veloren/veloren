@@ -18,7 +18,11 @@ use common::{
 use rand::prelude::*;
 use tracing::info;
 use vek::*;
-use world::{site::SiteKind, site2::PlotKind, IndexRef, World, CONFIG};
+use world::{
+    site::SiteKind,
+    site2::{plot::PlotKindMeta, PlotKind},
+    IndexRef, World, CONFIG,
+};
 
 impl Data {
     pub fn generate(settings: &WorldSettings, world: &World, index: IndexRef) -> Self {
@@ -183,7 +187,7 @@ impl Data {
             for plot in site2
                 .plots
                 .values()
-                .filter(|plot| matches!(plot.kind(), PlotKind::AirshipDock(_)))
+                .filter(|plot| matches!(plot.kind().meta(), Some(PlotKindMeta::AirshipDock { .. })))
             {
                 let wpos = site2.tile_center_wpos(plot.root_tile());
                 let wpos = wpos.as_().with_z(world.sim().get_surface_alt_approx(wpos))
@@ -265,7 +269,7 @@ impl Data {
         }
 
         // Spawn monsters into the world
-        for _ in 0..100 {
+        for _ in 0..(world.sim().map_size_lg().chunks_len() / 2usize.pow(13)).clamp(5, 1000) {
             // Try a few times to find a location that's not underwater
             if let Some((wpos, chunk)) = (0..10)
                 .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))

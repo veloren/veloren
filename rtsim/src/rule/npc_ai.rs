@@ -38,7 +38,11 @@ use vek::*;
 use world::{
     civ::{self, Track},
     site::{Site as WorldSite, SiteKind},
-    site2::{self, plot::tavern, PlotKind, TileKind},
+    site2::{
+        self,
+        plot::{tavern, PlotKindMeta},
+        PlotKind, TileKind,
+    },
     util::NEIGHBORS,
     IndexRef, World,
 };
@@ -89,11 +93,14 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             | TileKind::DwarvenMine
             | TileKind::GnarlingFortification => 5.0,
         };
-        let is_door_tile = |plot: Id<site2::Plot>, tile: Vec2<i32>| match site.plot(plot).kind() {
-            site2::PlotKind::House(house) => house.door_tile == tile,
-            site2::PlotKind::Workshop(_) => true,
-            _ => false,
-        };
+        let is_door_tile =
+            |plot: Id<site2::Plot>, tile: Vec2<i32>| match site.plot(plot).kind().meta() {
+                Some(PlotKindMeta::House { door_tile }) => door_tile == tile,
+                Some(PlotKindMeta::Workshop { door_tile }) => {
+                    door_tile.map_or(true, |door_tile| door_tile == tile)
+                },
+                _ => false,
+            };
         let building = if a_tile.is_building() && b_tile.is_road() {
             a_tile
                 .plot
@@ -925,7 +932,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                             // Find a house in the site we're visiting
                             let house = site2
                                 .plots()
-                                .filter(|p| matches!(p.kind(), PlotKind::House(_)))
+                                .filter(|p| matches!(p.kind().meta(), Some(PlotKindMeta::House { .. })))
                                 .choose(&mut ctx.rng)?;
                             Some(site2.tile_center_wpos(house.root_tile()).as_())
                         })
@@ -1229,14 +1236,7 @@ fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
             .flat_map(|site| {
                 site.plots()
                     .filter(|plot| {
-                        matches!(
-                            plot.kind(),
-                            PlotKind::AirshipDock(_)
-                                | PlotKind::SavannahAirshipDock(_)
-                                | PlotKind::DesertCityAirshipDock(_)
-                                | PlotKind::CoastalAirshipDock(_)
-                                | PlotKind::CliffTownAirshipDock(_)
-                        )
+                        matches!(plot.kind().meta(), Some(PlotKindMeta::AirshipDock { .. }))
                     })
                     .map(|plot| site.tile_center_wpos(plot.root_tile()))
             })

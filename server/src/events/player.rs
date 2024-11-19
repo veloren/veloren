@@ -141,6 +141,25 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
         maybe_rtsim,
     );
 
+    // If the character had a RtSim id (possibly from possesing an rtsim entity),
+    // make rtsim aware that this entity can now be respawned.
+    #[cfg(feature = "worldgen")]
+    if let Some(rtsim_entity) = maybe_rtsim {
+        let world = state.ecs().read_resource::<std::sync::Arc<world::World>>();
+        let index = state.ecs().read_resource::<world::index::IndexOwned>();
+        let pos = state.read_component_copied::<comp::Pos>(entity);
+        state
+            .ecs()
+            .write_resource::<crate::rtsim::RtSim>()
+            .hook_rtsim_actor_death(
+                &world,
+                index.as_index_ref(),
+                common::rtsim::Actor::Npc(rtsim_entity.0),
+                pos.map(|p| p.0),
+                None,
+            );
+    }
+
     // We don't want to use delete_entity_recorded since we are transfering the
     // Uid to a new entity (and e.g. don't want it to be unmapped).
     //

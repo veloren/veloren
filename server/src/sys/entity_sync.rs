@@ -1,5 +1,5 @@
 use super::sentinel::{DeletedEntities, TrackedStorages, UpdateTrackers};
-use crate::{client::Client, presence::RegionSubscription, Tick};
+use crate::{client::Client, presence::RegionSubscription, EditableSettings, Tick};
 use common::{
     calendar::Calendar,
     comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Presence, Vel},
@@ -50,6 +50,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
         Read<'a, EventBus<Outcome>>,
+        ReadExpect<'a, EditableSettings>,
     );
 
     const NAME: &'static str = "entity_sync";
@@ -83,6 +84,7 @@ impl<'a> System<'a> for Sys {
             mut inventory_updates,
             mut deleted_entities,
             outcomes,
+            editable_settings,
         ): Self::SystemData,
     ) {
         let tick = tick.0;
@@ -255,6 +257,7 @@ impl<'a> System<'a> for Sys {
                                 &players,
                                 &force_updates,
                                 is_rider,
+                                &editable_settings,
                             )
                         } else if matches!(collider, Some(Collider::Voxel { .. })) {
                             // Things with a voxel collider (airships, etc.) need to have very
@@ -340,6 +343,7 @@ impl<'a> System<'a> for Sys {
                     &players,
                     &force_updates,
                     is_rider,
+                    &editable_settings,
                 );
                 add_physics_components(
                     send_now,
@@ -468,16 +472,22 @@ fn should_sync_client_physics(
     players: &ReadStorage<'_, Player>,
     force_updates: &WriteStorage<'_, ForceUpdate>,
     is_rider: &ReadStorage<'_, Is<Rider>>,
+    editable_settings: &EditableSettings,
 ) -> bool {
-    let player_physics_setting = players
-        .get(entity)
-        .and_then(|p| player_physics_settings.settings.get(&p.uuid()).copied())
-        .unwrap_or_default();
+    let server_authoritative_physics = players.get(entity).map_or(true, |player| {
+        player_physics_settings
+            .settings
+            .get(&player.uuid())
+            .is_some_and(|settings| settings.server_authoritative_physics_optin())
+            || editable_settings
+                .server_physics_force_list
+                .contains_key(&player.uuid())
+    });
     // Don't send client physics updates about itself unless force update is
     // set or the client is subject to
     // server-authoritative physics
     force_updates.get(entity).map_or(false, |f| f.is_forced())
-        || player_physics_setting.server_authoritative()
+        || server_authoritative_physics
         || is_rider.contains(entity)
 }
 
