@@ -76,12 +76,7 @@ impl fmt::Display for GenStatSiteKind {
 /// Plot generation statistics.
 /// The attempts field increments each time a plot is attempted to be generated.
 /// An attempt is counted only once even if find_roadside_aabr is called
-/// multiple times. ```
-/// if let Some((aabr, _, _)) = attempt(32, || {
-///    site.find_roadside_aabr(&mut rng, 9..(size + 1).pow(2),
-/// Extent2::broadcast(size)) })
-/// ```
-/// counts as one attempt.
+/// multiple times.
 pub struct GenPlot {
     attempts: u32,
     successful: u32,
