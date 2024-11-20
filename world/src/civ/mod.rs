@@ -624,18 +624,22 @@ impl Civs {
                         wpos,
                         &mut gen_meta,
                     )),
-                    SiteKind::SavannahTown => WorldSite::savannah_town(site2::Site::generate_savannah_town(
+                    SiteKind::SavannahTown => {
+                        WorldSite::savannah_town(site2::Site::generate_savannah_town(
                             &Land::from_sim(ctx.sim),
                             &mut rng,
                             wpos,
-                        &mut gen_meta,
-                    )),
-                    SiteKind::CoastalTown => WorldSite::coastal_town(site2::Site::generate_coastal_town(
+                            &mut gen_meta,
+                        ))
+                    },
+                    SiteKind::CoastalTown => {
+                        WorldSite::coastal_town(site2::Site::generate_coastal_town(
                             &Land::from_sim(ctx.sim),
                             &mut rng,
                             wpos,
-                        &mut gen_meta,
-                    )),
+                            &mut gen_meta,
+                        ))
+                    },
                     SiteKind::PirateHideout => {
                         WorldSite::pirate_hideout(site2::Site::generate_pirate_hideout(
                             &Land::from_sim(ctx.sim),
@@ -659,12 +663,14 @@ impl Civs {
                         &mut rng,
                         wpos,
                     )),
-                    SiteKind::DesertCity => WorldSite::desert_city(site2::Site::generate_desert_city(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                        &mut gen_meta,
-                    )),
+                    SiteKind::DesertCity => {
+                        WorldSite::desert_city(site2::Site::generate_desert_city(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                            &mut gen_meta,
+                        ))
+                    },
                     SiteKind::Tree => {
                         WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
                     },
@@ -686,12 +692,14 @@ impl Civs {
                     SiteKind::ChapelSite => WorldSite::chapel_site(
                         site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
-                    SiteKind::Terracotta => WorldSite::terracotta(site2::Site::generate_terracotta(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                        &mut gen_meta,
-                    )),
+                    SiteKind::Terracotta => {
+                        WorldSite::terracotta(site2::Site::generate_terracotta(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                            &mut gen_meta,
+                        ))
+                    },
                     SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
                         &Land::from_sim(ctx.sim),
                         &mut rng,

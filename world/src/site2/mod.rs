@@ -1,16 +1,16 @@
 mod gen;
+pub mod genstat;
 pub mod plot;
 mod tile;
 pub mod util;
-pub mod genstat;
 
 use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TILE_SIZE};
 pub use self::{
     gen::{aabr_with_z, Fill, Painter, Primitive, PrimitiveRef, Structure},
+    genstat::{GenStatPlotKind, GenStatSiteKind, SitesGenMeta},
     plot::{foreach_plot, Plot, PlotKind},
     tile::TileKind,
     util::Dir,
-    genstat::{GenStatPlotKind,GenStatSiteKind,SitesGenMeta},
 };
 use crate::{
     config::CONFIG,
@@ -285,7 +285,13 @@ impl Site {
         self.find_aabr(search_pos, area_range, min_dims)
     }
 
-    pub fn make_plaza_at(&mut self, land: &Land, pos: &Vec2<i32>, radius: i32, rng: &mut impl Rng) -> Option<Id<Plot>> {
+    pub fn make_plaza_at(
+        &mut self,
+        land: &Land,
+        pos: &Vec2<i32>,
+        radius: i32,
+        rng: &mut impl Rng,
+    ) -> Option<Id<Plot>> {
         let plaza_alt = land.get_alt_approx(self.tile_center_wpos(*pos)) as i32;
 
         let aabr = Aabr {
@@ -338,7 +344,13 @@ impl Site {
         Some(plaza)
     }
 
-    pub fn make_plaza(&mut self, land: &Land, rng: &mut impl Rng,generator_stats: &mut SitesGenMeta,site_name: &String) -> Option<Id<Plot>> {
+    pub fn make_plaza(
+        &mut self,
+        land: &Land,
+        rng: &mut impl Rng,
+        generator_stats: &mut SitesGenMeta,
+        site_name: &String,
+    ) -> Option<Id<Plot>> {
         generator_stats.attempt(site_name, GenStatPlotKind::Plaza);
         let plaza_radius = rng.gen_range(1..4);
         let plaza_dist = 6.5 + plaza_radius as f32 * 4.0;
@@ -403,49 +415,52 @@ impl Site {
     }
 
     /// The find_roadside_aabr function wants to have an existing plaza or road.
-    /// This function is used to find a suitable location for the first plaza in a town,
-    /// which has the side-effect of creating at least one road. This function is more
-    /// expensive than the make_plaza function but fails to find a plaza location only if there
-    /// are no suitable locations within the entire search radius.
-    /// 
-    /// It works by exhaustively finding all tiles within a ring pattern around the town center
-    /// where the tile and all surrounding tiles to the plaza radius are not hazards or roads.
-    /// It then chooses the tile with the minimum distance from the town center as the plaza location.
-    /// See the comments in common/src/spiral.rs for more information on the spiral ring pattern.
+    /// This function is used to find a suitable location for the first plaza in
+    /// a town, which has the side-effect of creating at least one road.
+    /// This function is more expensive than the make_plaza function but
+    /// fails to find a plaza location only if there are no suitable
+    /// locations within the entire search radius.
     ///
-    /// demarcate_obstacles() should be called before this function to mark the obstacles and roads.
-    /// (Cliff Towns are an exception).
-    /// 
-    pub fn make_initial_plaza(&mut self,
+    /// It works by exhaustively finding all tiles within a ring pattern around
+    /// the town center where the tile and all surrounding tiles to the
+    /// plaza radius are not hazards or roads. It then chooses the tile with
+    /// the minimum distance from the town center as the plaza location. See
+    /// the comments in common/src/spiral.rs for more information on the spiral
+    /// ring pattern.
+    ///
+    /// demarcate_obstacles() should be called before this function to mark the
+    /// obstacles and roads. (Cliff Towns are an exception).
+    pub fn make_initial_plaza(
+        &mut self,
         land: &Land,
         rng: &mut impl Rng,
         plaza_radius: u32,
         search_inner_radius: u32,
         search_width: u32,
         generator_stats: &mut SitesGenMeta,
-        site_name: &String) -> Option<Id<Plot>>
-    {
+        site_name: &String,
+    ) -> Option<Id<Plot>> {
         generator_stats.attempt(site_name, GenStatPlotKind::InitialPlaza);
         // Find all the suitable locations for a plaza.
         let mut plaza_locations = vec![];
         // Search over a spiral ring pattern
-        Spiral2d::with_ring(search_inner_radius, search_width)
-            .for_each(|tile| {
-                // if the tile is not a hazard or road
-                if self.tiles.get_known(tile).is_none() {
-                    // if all the tiles in the proposed plaza location are also not hazards or roads
-                    // then add the tile as a candidate for a plaza location
-                    if Spiral2d::new()
-                        .take((plaza_radius * 2 + 1).pow(2) as usize)
-                        .all(|rpos| self.tiles.get_known(rpos + tile).is_none())
-                        {
-                            plaza_locations.push(tile);
-                        }
+        Spiral2d::with_ring(search_inner_radius, search_width).for_each(|tile| {
+            // if the tile is not a hazard or road
+            if self.tiles.get_known(tile).is_none() {
+                // if all the tiles in the proposed plaza location are also not hazards or roads
+                // then add the tile as a candidate for a plaza location
+                if Spiral2d::new()
+                    .take((plaza_radius * 2 + 1).pow(2) as usize)
+                    .all(|rpos| self.tiles.get_known(rpos + tile).is_none())
+                {
+                    plaza_locations.push(tile);
                 }
-            });
+            }
+        });
         if plaza_locations.is_empty() {
-            // No suitable plaza locations were found, it's unlikely that the town will be able to be generated,
-            // but we can try to make a plaza anyway with the original make_plaza function.
+            // No suitable plaza locations were found, it's unlikely that the town will be
+            // able to be generated, but we can try to make a plaza anyway with
+            // the original make_plaza function.
             self.make_plaza(land, rng, generator_stats, site_name)
         } else {
             // Choose the minimum distance from the town center.
@@ -457,38 +472,48 @@ impl Site {
         }
     }
 
-    /// This is make_initial_plaza with default options/parameters. This calls make_initial_plaza
-    /// with the default parameters for the plaza_radius and search_inner_radius. The plaza_radius will be in
-    /// the range 1-3, and the search_inner_radius will be 7 + plaza_radius. The search_width will be
-    /// PLAZA_MAX_SEARCH_RADIUS - search_inner_radius. The search_inner_radius is approximately the same distance
-    /// from the center of town as for the original make_plaza function, so this function will place the initial
-    /// plaza and roads near where the original make_plaza function would place them in the case where the site is
-    /// clear of hazards.
-    /// 
-    /// This default plaza generation function is used for generating cities, cliff towns, savannah towns, and
-    /// coastal towns. The other town types (terracotta, myrmidon, desert city) have a central feature so they
-    /// use specific plaza generation parameters and call the make_initial_plaza function directly.
+    /// This is make_initial_plaza with default options/parameters. This calls
+    /// make_initial_plaza with the default parameters for the plaza_radius
+    /// and search_inner_radius. The plaza_radius will be in the range 1-3,
+    /// and the search_inner_radius will be 7 + plaza_radius. The search_width
+    /// will be PLAZA_MAX_SEARCH_RADIUS - search_inner_radius. The
+    /// search_inner_radius is approximately the same distance
+    /// from the center of town as for the original make_plaza function, so this
+    /// function will place the initial plaza and roads near where the
+    /// original make_plaza function would place them in the case where the site
+    /// is clear of hazards.
     ///
-    /// demarcate_obstacles() should be called before this function to mark the obstacles and roads.
-    pub fn make_initial_plaza_default(&mut self,
+    /// This default plaza generation function is used for generating cities,
+    /// cliff towns, savannah towns, and coastal towns. The other town types
+    /// (terracotta, myrmidon, desert city) have a central feature so they
+    /// use specific plaza generation parameters and call the make_initial_plaza
+    /// function directly.
+    ///
+    /// demarcate_obstacles() should be called before this function to mark the
+    /// obstacles and roads.
+    pub fn make_initial_plaza_default(
+        &mut self,
         land: &Land,
         rng: &mut impl Rng,
         generator_stats: &mut SitesGenMeta,
-        site_name: &String) -> Option<Id<Plot>>
-    {
+        site_name: &String,
+    ) -> Option<Id<Plot>> {
         // The plaza radius can be 1, 2, or 3.
         let plaza_radius = rng.gen_range(1..4);
         // look for plaza locations within a ring with an outer dimension
-        // of 24 tiles and an inner dimension that will offset the plaza from the town center.
+        // of 24 tiles and an inner dimension that will offset the plaza from the town
+        // center.
         let search_inner_radius = 7 + plaza_radius;
         const PLAZA_MAX_SEARCH_RADIUS: u32 = 24;
-        self.make_initial_plaza(land,
+        self.make_initial_plaza(
+            land,
             rng,
             plaza_radius,
             search_inner_radius,
             PLAZA_MAX_SEARCH_RADIUS - search_inner_radius,
             generator_stats,
-            site_name)
+            site_name,
+        )
     }
 
     pub fn name(&self) -> &str { &self.name }
@@ -620,7 +645,12 @@ impl Site {
         site
     }
 
-    pub fn generate_terracotta(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
+    pub fn generate_terracotta(
+        land: &Land,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+        generator_stats: &mut SitesGenMeta,
+    ) -> Self {
         let mut rng = reseed(rng);
         let gen_name = NameGen::location(&mut rng).generate_terracotta();
         let suffix = [
@@ -648,17 +678,21 @@ impl Site {
 
         // place the initial plaza
         site.demarcate_obstacles(land);
-        // The terracotta_palace is 15 tiles in radius, so the plaza should be outside the palace.
+        // The terracotta_palace is 15 tiles in radius, so the plaza should be outside
+        // the palace.
         const TERRACOTTA_PLAZA_RADIUS: u32 = 3;
         const TERRACOTTA_PLAZA_SEARCH_INNER: u32 = 17;
         const TERRACOTTA_PLAZA_SEARCH_WIDTH: u32 = 12;
         generator_stats.add(&site.name, GenStatSiteKind::Terracotta);
-        site.make_initial_plaza(land, &mut rng,
+        site.make_initial_plaza(
+            land,
+            &mut rng,
             TERRACOTTA_PLAZA_RADIUS,
             TERRACOTTA_PLAZA_SEARCH_INNER,
             TERRACOTTA_PLAZA_SEARCH_WIDTH,
             generator_stats,
-            &name);
+            &name,
+        );
 
         let size = 15.0 as i32;
         let aabr = Aabr {
@@ -764,7 +798,12 @@ impl Site {
         site
     }
 
-    pub fn generate_myrmidon(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
+    pub fn generate_myrmidon(
+        land: &Land,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+        generator_stats: &mut SitesGenMeta,
+    ) -> Self {
         let mut rng = reseed(rng);
         let gen_name = NameGen::location(&mut rng).generate_danari();
         let suffix = ["City", "Metropolis"].choose(&mut rng).unwrap();
@@ -780,18 +819,22 @@ impl Site {
 
         // place the initial plaza
         site.demarcate_obstacles(land);
-        // The myrmidon_arena is 16 tiles in radius, so the plaza should be outside the palace.
+        // The myrmidon_arena is 16 tiles in radius, so the plaza should be outside the
+        // palace.
         const MYRMIDON_PLAZA_RADIUS: u32 = 3;
         const MYRMIDON_PLAZA_SEARCH_INNER: u32 = 18;
         const MYRMIDON_PLAZA_SEARCH_WIDTH: u32 = 12;
         generator_stats.add(&site.name, GenStatSiteKind::Myrmidon);
         generator_stats.attempt(&site.name, GenStatPlotKind::InitialPlaza);
-        site.make_initial_plaza(land, &mut rng,
-            MYRMIDON_PLAZA_RADIUS, 
+        site.make_initial_plaza(
+            land,
+            &mut rng,
+            MYRMIDON_PLAZA_RADIUS,
             MYRMIDON_PLAZA_SEARCH_INNER,
             MYRMIDON_PLAZA_SEARCH_WIDTH,
             generator_stats,
-            &name);
+            &name,
+        );
 
         let size = 16.0 as i32;
         let aabr = Aabr {
@@ -899,13 +942,13 @@ impl Site {
         site.make_initial_plaza_default(land, &mut rng, generator_stats, &name);
 
         let build_chance = Lottery::from(vec![
-            (64.0, 1),  // house
-            (5.0, 2),   // guard tower
-            (15.0, 3),  // field
-            (5.0, 4),   // castle
-            (5.0, 5),   // workshop
-            (15.0, 6),  // airship dock
-            (15.0, 7),  // tavern
+            (64.0, 1), // house
+            (5.0, 2),  // guard tower
+            (15.0, 3), // field
+            (5.0, 4),  // castle
+            (5.0, 5),  // workshop
+            (15.0, 6), // airship dock
+            (15.0, 7), // tavern
         ]);
 
         // These plots have minimums or limits.
@@ -1597,7 +1640,12 @@ impl Site {
         site
     }
 
-    pub fn generate_savannah_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
+    pub fn generate_savannah_town(
+        land: &Land,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+        generator_stats: &mut SitesGenMeta,
+    ) -> Self {
         let mut rng = reseed(rng);
         let name = NameGen::location(&mut rng).generate_savannah_custom();
         let mut site = Site {
@@ -1654,7 +1702,7 @@ impl Site {
                     } else {
                         site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
-                }
+                },
                 1 => {
                     // SavannahHut
 
@@ -1742,7 +1790,12 @@ impl Site {
         site
     }
 
-    pub fn generate_coastal_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
+    pub fn generate_coastal_town(
+        land: &Land,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+        generator_stats: &mut SitesGenMeta,
+    ) -> Self {
         let mut rng = reseed(rng);
         let name = NameGen::location(&mut rng).generate_danari();
         let mut site = Site {
@@ -1886,7 +1939,12 @@ impl Site {
         site
     }
 
-    pub fn generate_desert_city(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>, generator_stats: &mut SitesGenMeta) -> Self {
+    pub fn generate_desert_city(
+        land: &Land,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+        generator_stats: &mut SitesGenMeta,
+    ) -> Self {
         let mut rng = reseed(rng);
 
         let name = NameGen::location(&mut rng).generate_arabic();
@@ -1898,17 +1956,21 @@ impl Site {
 
         // place the initial plaza
         site.demarcate_obstacles(land);
-        // The desert_city_arena is 17 tiles in radius, so the plaza should be outside the palace.
+        // The desert_city_arena is 17 tiles in radius, so the plaza should be outside
+        // the palace.
         const DESERT_CITY_PLAZA_RADIUS: u32 = 3;
         const DESERT_CITY_PLAZA_SEARCH_INNER: u32 = 19;
         const DESERT_CITY_PLAZA_SEARCH_WIDTH: u32 = 12;
         generator_stats.add(&site.name, GenStatSiteKind::DesertCity);
-        site.make_initial_plaza(land, &mut rng,
-            DESERT_CITY_PLAZA_RADIUS, 
+        site.make_initial_plaza(
+            land,
+            &mut rng,
+            DESERT_CITY_PLAZA_RADIUS,
             DESERT_CITY_PLAZA_SEARCH_INNER,
             DESERT_CITY_PLAZA_SEARCH_WIDTH,
             generator_stats,
-            &name);
+            &name,
+        );
 
         let size = 17.0 as i32;
         let aabr = Aabr {
@@ -2063,7 +2125,12 @@ impl Site {
         site
     }
 
-    pub fn generate_farm(is_desert: bool, mut rng: &mut impl Rng, site: &mut Site, land: &Land) -> bool {
+    pub fn generate_farm(
+        is_desert: bool,
+        mut rng: &mut impl Rng,
+        site: &mut Site,
+        land: &Land,
+    ) -> bool {
         let size = (3.0 + rng.gen::<f32>().powf(5.0) * 6.0).round() as u32;
         if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
             site.find_rural_aabr(&mut rng, 6..(size + 1).pow(2), Extent2::broadcast(size))
@@ -2988,7 +3055,7 @@ pub fn test_site() -> Site {
         Vec2::zero(),
         0.5,
         None,
-        &mut gen_meta
+        &mut gen_meta,
     )
 }
 

@@ -204,7 +204,7 @@ impl fmt::Display for TileKind {
             TileKind::Hazard(_) => write!(f, "Hazard"),
             TileKind::Field => write!(f, "Field"),
             TileKind::Plaza => write!(f, "Plaza"),
-            TileKind::Road {a: _, b: _, w: _} => write!(f, "Road"),
+            TileKind::Road { a: _, b: _, w: _ } => write!(f, "Road"),
             TileKind::Path => write!(f, "Path"),
             TileKind::Building => write!(f, "Building"),
             TileKind::Castle => write!(f, "Castle"),
@@ -216,7 +216,7 @@ impl fmt::Display for TileKind {
             TileKind::Bridge => write!(f, "Bridge"),
             TileKind::AdletStronghold => write!(f, "AdletStronghold"),
             TileKind::DwarvenMine => write!(f, "DwarvenMine"),
-       }
+        }
     }
 }
 

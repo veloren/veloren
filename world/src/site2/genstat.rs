@@ -2,12 +2,13 @@
 
 use crate::util::DHashMap;
 use std::{env, fmt, fs::OpenOptions, io::Write};
-use tracing::{error, debug};
+use tracing::{debug, error};
 
 /// Plot kinds for site generation statistics.
-/// These are similar but discrete from the PlotKind enum in the site2 plot module.
-/// For tracking site generation, similar plot kinds are grouped by these enum variants.
-/// For example, the House variant includes all kinds of houses (e.g. House, CoastalHouse, DesertCityHouse).
+/// These are similar but discrete from the PlotKind enum in the site2 plot
+/// module. For tracking site generation, similar plot kinds are grouped by
+/// these enum variants. For example, the House variant includes all kinds of
+/// houses (e.g. House, CoastalHouse, DesertCityHouse).
 #[derive(Eq, Hash, PartialEq, Copy, Clone)]
 pub enum GenStatPlotKind {
     InitialPlaza,
@@ -74,8 +75,8 @@ impl fmt::Display for GenStatSiteKind {
 
 /// Plot generation statistics.
 /// The attempts field increments each time a plot is attempted to be generated.
-/// An attempt is counted only once even if find_roadside_aabr is called multiple times.
-/// ```
+/// An attempt is counted only once even if find_roadside_aabr is called
+/// multiple times. ```
 /// if let Some((aabr, _, _)) = attempt(32, || {
 ///    site.find_roadside_aabr(&mut rng, 9..(size + 1).pow(2), Extent2::broadcast(size))
 /// })
@@ -86,9 +87,7 @@ pub struct GenPlot {
     successful: u32,
 }
 impl Default for GenPlot {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl GenPlot {
@@ -99,13 +98,9 @@ impl GenPlot {
         }
     }
 
-    pub fn attempt(&mut self) {
-        self.attempts += 1;
-    }
+    pub fn attempt(&mut self) { self.attempts += 1; }
 
-    pub fn success(&mut self) {
-        self.successful += 1;
-    }
+    pub fn success(&mut self) { self.successful += 1; }
 }
 
 /// Site generation statistics.
@@ -124,9 +119,7 @@ impl GenSite {
         }
     }
 
-    pub fn kind(&self) -> &GenStatSiteKind {
-        &self.kind
-    }
+    pub fn kind(&self) -> &GenStatSiteKind { &self.kind }
 
     pub fn attempt(&mut self, kind: GenStatPlotKind) {
         self.stats.entry(kind).or_default().attempt();
@@ -136,30 +129,64 @@ impl GenSite {
         self.stats.entry(kind).or_default().success();
     }
 
-    fn at_least(&self, count: u32, plotkind: &GenStatPlotKind, genplot: &GenPlot, statstr: &mut String) {
+    fn at_least(
+        &self,
+        count: u32,
+        plotkind: &GenStatPlotKind,
+        genplot: &GenPlot,
+        statstr: &mut String,
+    ) {
         if genplot.successful < count {
-            statstr.push_str(&format!("  {} {} {}: {}/{} GenError: expected at least {}\n", self.kind, self.name, plotkind, genplot.successful, genplot.attempts, count));
+            statstr.push_str(&format!(
+                "  {} {} {}: {}/{} GenError: expected at least {}\n",
+                self.kind, self.name, plotkind, genplot.successful, genplot.attempts, count
+            ));
         }
     }
 
-    fn at_most(&self, count: u32, plotkind: &GenStatPlotKind, genplot: &GenPlot, statstr: &mut String) {
+    fn at_most(
+        &self,
+        count: u32,
+        plotkind: &GenStatPlotKind,
+        genplot: &GenPlot,
+        statstr: &mut String,
+    ) {
         if genplot.successful > count {
-            statstr.push_str(&format!("  {} {} {}: {}/{} GenError: expected at most {}\n", self.kind, self.name, plotkind, genplot.successful, genplot.attempts, count));
+            statstr.push_str(&format!(
+                "  {} {} {}: {}/{} GenError: expected at most {}\n",
+                self.kind, self.name, plotkind, genplot.successful, genplot.attempts, count
+            ));
         }
     }
 
-    fn should_not_be_zero(&self, plotkind: &GenStatPlotKind, genplot: &GenPlot, statstr: &mut String) {
+    fn should_not_be_zero(
+        &self,
+        plotkind: &GenStatPlotKind,
+        genplot: &GenPlot,
+        statstr: &mut String,
+    ) {
         if genplot.successful == 0 {
-            statstr.push_str(&format!("  {} {} {}: {}/{} GenWarn: should not be zero\n", self.kind, self.name, plotkind, genplot.successful, genplot.attempts));
+            statstr.push_str(&format!(
+                "  {} {} {}: {}/{} GenWarn: should not be zero\n",
+                self.kind, self.name, plotkind, genplot.successful, genplot.attempts
+            ));
         }
     }
 
-    fn success_rate(&self, rate: f32, plotkind: &GenStatPlotKind, genplot: &GenPlot, statstr: &mut String) {
+    fn success_rate(
+        &self,
+        rate: f32,
+        plotkind: &GenStatPlotKind,
+        genplot: &GenPlot,
+        statstr: &mut String,
+    ) {
         if (genplot.successful as f32 / genplot.attempts as f32) < rate {
-            statstr.push_str(&format!("  {} {} {}: GenWarn: success rate less than {} ({}/{})\n", self.kind, self.name, plotkind, rate, genplot.successful, genplot.attempts));
+            statstr.push_str(&format!(
+                "  {} {} {}: GenWarn: success rate less than {} ({}/{})\n",
+                self.kind, self.name, plotkind, rate, genplot.successful, genplot.attempts
+            ));
         }
     }
-
 }
 
 /// World site generation statistics.
@@ -188,8 +215,12 @@ fn get_bool_env_var(var_name: &str) -> bool {
 
 fn get_log_opts() -> (bool, Option<String>) {
     let site_generation_stats_verbose = get_bool_env_var("SITE_GENERATION_STATS_VERBOSE");
-    let site_generation_stats_file_path: Option<String> = env::var("SITE_GENERATION_STATS_LOG").ok();
-    (site_generation_stats_verbose, site_generation_stats_file_path)
+    let site_generation_stats_file_path: Option<String> =
+        env::var("SITE_GENERATION_STATS_LOG").ok();
+    (
+        site_generation_stats_verbose,
+        site_generation_stats_file_path,
+    )
 }
 
 impl SitesGenMeta {
@@ -201,7 +232,9 @@ impl SitesGenMeta {
     }
 
     pub fn add(&mut self, site_name: &str, kind: GenStatSiteKind) {
-        self.sites.entry(site_name.to_owned()).or_insert_with(|| GenSite::new(kind, site_name));
+        self.sites
+            .entry(site_name.to_owned())
+            .or_insert_with(|| GenSite::new(kind, site_name));
     }
 
     pub fn attempt(&mut self, site_name: &String, kind: GenStatPlotKind) {
@@ -221,13 +254,16 @@ impl SitesGenMeta {
     }
 
     /// Log the site generation statistics.
-    /// Nothing is logged unless the RUST_LOG environment variable is set to DEBUG.
-    /// Two additional environment variables can be set to control the output:
-    /// SITE_GENERATION_STATS_VERBOSE: If set to true, the output will include everything shown in the output format below.
+    /// Nothing is logged unless the RUST_LOG environment variable is set to
+    /// DEBUG. Two additional environment variables can be set to control
+    /// the output: SITE_GENERATION_STATS_VERBOSE: If set to true, the
+    /// output will include everything shown in the output format below.
     /// If set to false or not set, only generation errors will be shown.
-    /// SITE_GENERATION_STATS_LOG: If set, the output will be appended to the file at the path specified by this variable.
-    /// The value must be a valid absolute or relative path (from the current working directory), including the file name.
-    /// The file will be created if it does not exist.
+    /// SITE_GENERATION_STATS_LOG: If set, the output will be appended to the
+    /// file at the path specified by this variable. The value must be a
+    /// valid absolute or relative path (from the current working directory),
+    /// including the file name. The file will be created if it does not
+    /// exist.
     pub fn log(&self) {
         // Get the current tracing log level
         // This can be set with the RUST_LOG environment variable.
@@ -236,37 +272,37 @@ impl SitesGenMeta {
             let (verbose, log_path) = get_log_opts();
 
             /*
-                For each world generated, gather this information:
-                    seed
-                    Number of sites generated
-                    Number of each site kind generated
-                    For Each Site
-                        Number of plots generated (success/attempts)
-                        Number of each plot kind generated
+               For each world generated, gather this information:
+                   seed
+                   Number of sites generated
+                   Number of each site kind generated
+                   For Each Site
+                       Number of plots generated (success/attempts)
+                       Number of each plot kind generated
 
-                Output format
-                    ------------------ SitesGenMeta seed  12345
-                    Number of sites: 7
-                        Terracotta: 5
-                        Myrmidon: 2
-                        City: 8
-                    Terracotta <Town Name>
-                        Number of plots: 4
-                            InitialPlaza: 1/1
-                            Plaza: 1/3
-                            House: 1/1
-                            ...
-                        GenErrors
-                        GenWarnings
-                    City <Town Name>
-                        Number of plots: 4
-                            InitialPlaza: 1/1
-                            Plaza: 1/3
-                            House: 1/1
-                            ...
-                        GenErrors
-                        GenWarnings
-             */
+               Output format
+                   ------------------ SitesGenMeta seed  12345
+                   Number of sites: 7
+                       Terracotta: 5
+                       Myrmidon: 2
+                       City: 8
+                   Terracotta <Town Name>
+                       Number of plots: 4
+                           InitialPlaza: 1/1
+                           Plaza: 1/3
+                           House: 1/1
+                           ...
+                       GenErrors
+                       GenWarnings
+                   City <Town Name>
+                       Number of plots: 4
+                           InitialPlaza: 1/1
+                           Plaza: 1/3
+                           House: 1/1
+                           ...
+                       GenErrors
+                       GenWarnings
+            */
             let mut num_sites: u32 = 0;
             let mut site_counts: DHashMap<GenStatSiteKind, u32> = DHashMap::default();
             let mut stat_stat_str = String::new();
@@ -274,7 +310,10 @@ impl SitesGenMeta {
                 num_sites += 1;
                 *site_counts.entry(*gensite.kind()).or_insert(0) += 1;
             }
-            stat_stat_str.push_str(&format!("------------------ SitesGenMeta seed {}\n", self.seed));
+            stat_stat_str.push_str(&format!(
+                "------------------ SitesGenMeta seed {}\n",
+                self.seed
+            ));
             if verbose {
                 stat_stat_str.push_str(&format!("Sites: {}\n", num_sites));
                 for (site_kind, count) in site_counts.iter() {
@@ -288,8 +327,8 @@ impl SitesGenMeta {
                 let mut plot_counts: DHashMap<GenStatPlotKind, (u32, u32)> = DHashMap::default();
                 for (plotkind, genplot) in gensite.stats.iter() {
                     num_plots += 1;
-                    plot_counts.entry(*plotkind).or_insert((0,0)).0 += genplot.successful;
-                    plot_counts.entry(*plotkind).or_insert((0,0)).1 += genplot.attempts;
+                    plot_counts.entry(*plotkind).or_insert((0, 0)).0 += genplot.successful;
+                    plot_counts.entry(*plotkind).or_insert((0, 0)).1 += genplot.attempts;
                 }
                 match &gensite.kind() {
                     GenStatSiteKind::Terracotta => {
@@ -308,9 +347,9 @@ impl SitesGenMeta {
                                 GenStatPlotKind::Yard => {
                                     gensite.should_not_be_zero(kind, genplot, &mut stat_warn_str);
                                 },
-                                _ => {}
+                                _ => {},
                             }
-                        };
+                        }
                     },
                     GenStatSiteKind::Myrmidon => {
                         for (kind, genplot) in gensite.stats.iter() {
@@ -325,9 +364,9 @@ impl SitesGenMeta {
                                     gensite.at_least(1, kind, genplot, &mut stat_err_str);
                                     gensite.success_rate(0.1, kind, genplot, &mut stat_warn_str);
                                 },
-                                _ => {}
+                                _ => {},
                             }
-                        };
+                        }
                     },
                     GenStatSiteKind::City => {
                         for (kind, genplot) in gensite.stats.iter() {
@@ -345,9 +384,9 @@ impl SitesGenMeta {
                                     gensite.at_least(1, kind, genplot, &mut stat_err_str);
                                     gensite.success_rate(0.2, kind, genplot, &mut stat_warn_str);
                                 },
-                                _ => {}
+                                _ => {},
                             }
-                        };
+                        }
                     },
                     GenStatSiteKind::CliffTown => {
                         for (kind, genplot) in gensite.stats.iter() {
@@ -366,9 +405,9 @@ impl SitesGenMeta {
                                     gensite.should_not_be_zero(kind, genplot, &mut stat_warn_str);
                                     gensite.success_rate(0.1, kind, genplot, &mut stat_warn_str);
                                 },
-                                _ => {}
+                                _ => {},
                             }
-                        };
+                        }
                     },
                     GenStatSiteKind::SavannahTown => {
                         for (kind, genplot) in gensite.stats.iter() {
@@ -389,9 +428,9 @@ impl SitesGenMeta {
                                 GenStatPlotKind::AirshipDock => {
                                     gensite.should_not_be_zero(kind, genplot, &mut stat_warn_str);
                                 },
-                                _ => {}
+                                _ => {},
                             }
-                        };
+                        }
                     },
                     GenStatSiteKind::CoastalTown => {
                         for (kind, genplot) in gensite.stats.iter() {
@@ -413,9 +452,9 @@ impl SitesGenMeta {
                                     gensite.should_not_be_zero(kind, genplot, &mut stat_warn_str);
                                     gensite.at_most(1, kind, genplot, &mut stat_err_str);
                                 },
-                                _ => {}
+                                _ => {},
                             }
-                        };
+                        }
                     },
                     GenStatSiteKind::DesertCity => {
                         for (kind, genplot) in gensite.stats.iter() {
@@ -435,16 +474,17 @@ impl SitesGenMeta {
                                 GenStatPlotKind::AirshipDock => {
                                     gensite.should_not_be_zero(kind, genplot, &mut stat_warn_str);
                                 },
-                                _ => {}
+                                _ => {},
                             }
-                        };
-                    }
+                        }
+                    },
                 }
                 if verbose {
                     stat_stat_str.push_str(&format!("{} {}\n", gensite.kind(), site_name));
                     stat_stat_str.push_str(&format!("  Number of plots: {}\n", num_plots));
                     for (plotkind, count) in plot_counts.iter() {
-                        stat_stat_str.push_str(&format!("  {}: {}/{}\n", plotkind, count.0, count.1));
+                        stat_stat_str
+                            .push_str(&format!("  {}: {}/{}\n", plotkind, count.0, count.1));
                     }
                 }
                 if !stat_err_str.is_empty() {

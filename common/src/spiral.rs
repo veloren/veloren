@@ -29,21 +29,22 @@ impl Spiral2d {
             .filter(move |pos| pos.magnitude_squared() >= radius.pow(2))
     }
 
-    /// Creates an iterator over points in the margin between two squares, inclusive of the inner_radius
-    /// and exclusive of the outer_radius where outer_radius = inner_radius + margin
+    /// Creates an iterator over points in the margin between two squares,
+    /// inclusive of the inner_radius and exclusive of the outer_radius
+    /// where outer_radius = inner_radius + margin
     /**
         Spiral2d iterates over the points in a square spiral pattern starting at the bottom left.
         In the ring spiral, the iteration starts at the bottom left of the inner square and
         does not include the outer square (if you think of the outer square as inner_radius + margin).
-        +-----------------------+                           
-        |        Margin         |                           
-        |     +-----------+     |                           
-        |     |           |     |                           
-        |     |    Not    |     |                           
-        |     | Included  |     |                           
-        |     |           |     |                           
-        |     +-----------+     |                           
-        |                       |                           
+        +-----------------------+
+        |        Margin         |
+        |     +-----------+     |
+        |     |           |     |
+        |     |    Not    |     |
+        |     | Included  |     |
+        |     |           |     |
+        |     +-----------+     |
+        |                       |
         +-----------------------+
         For example, Spiral2d::with_ring(1, 2) yields the following output:
             Vec2 { x: -1, y: -1 }
@@ -74,12 +75,20 @@ impl Spiral2d {
     **/
     pub fn with_ring(inner_radius: u32, margin: u32) -> impl Iterator<Item = Vec2<i32>> {
         let outer_radius: u32 = inner_radius + margin - 1;
-        let adjusted_inner_radius = if inner_radius > 0 { inner_radius - 1 } else { 0 };
+        let adjusted_inner_radius = if inner_radius > 0 {
+            inner_radius - 1
+        } else {
+            0
+        };
         Spiral2d {
             layer: inner_radius as i32,
             i: 0,
-        }.take((outer_radius * 2 + 1).pow(2) as usize - (adjusted_inner_radius * 2 + 1).pow(2) as usize)
-}
+        }
+        .take(
+            (outer_radius * 2 + 1).pow(2) as usize
+                - (adjusted_inner_radius * 2 + 1).pow(2) as usize,
+        )
+    }
 }
 
 impl Iterator for Spiral2d {
