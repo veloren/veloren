@@ -196,6 +196,30 @@ pub enum TileKind {
     DwarvenMine,
 }
 
+use std::fmt;
+impl fmt::Display for TileKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            TileKind::Empty => write!(f, "Empty"),
+            TileKind::Hazard(_) => write!(f, "Hazard"),
+            TileKind::Field => write!(f, "Field"),
+            TileKind::Plaza => write!(f, "Plaza"),
+            TileKind::Road { a: _, b: _, w: _ } => write!(f, "Road"),
+            TileKind::Path => write!(f, "Path"),
+            TileKind::Building => write!(f, "Building"),
+            TileKind::Castle => write!(f, "Castle"),
+            TileKind::Wall(_) => write!(f, "Wall"),
+            TileKind::Tower(_) => write!(f, "Tower"),
+            TileKind::Keep(_) => write!(f, "Keep"),
+            TileKind::Gate => write!(f, "Gate"),
+            TileKind::GnarlingFortification => write!(f, "GnarlingFortification"),
+            TileKind::Bridge => write!(f, "Bridge"),
+            TileKind::AdletStronghold => write!(f, "AdletStronghold"),
+            TileKind::DwarvenMine => write!(f, "DwarvenMine"),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq)]
 pub struct Tile {
     pub kind: TileKind,

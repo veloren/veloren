@@ -286,6 +286,7 @@ impl Server {
         #[cfg(feature = "plugins")]
         let plugin_mgr = PluginMgr::from_asset_or_default();
 
+        debug!("Generating world, seed: {}", settings.world_seed);
         #[cfg(feature = "worldgen")]
         let (world, index) = World::generate(
             settings.world_seed,

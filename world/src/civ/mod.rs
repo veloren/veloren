@@ -7,6 +7,7 @@ use crate::{
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
+    site2::genstat::SitesGenMeta,
     util::{attempt, seed_expan, DHashMap, NEIGHBORS},
     Index, IndexRef, Land,
 };
@@ -573,6 +574,7 @@ impl Civs {
         // Place sites in world
         prof_span!(guard, "Place sites in world");
         let mut cnt = 0;
+        let mut gen_meta = SitesGenMeta::new(seed);
         for sim_site in this.sites.values_mut() {
             cnt += 1;
             let wpos = sim_site
@@ -604,6 +606,7 @@ impl Civs {
                             wpos,
                             size,
                             calendar,
+                            &mut gen_meta,
                         ))
                     },
                     SiteKind::GliderCourse => {
@@ -619,12 +622,14 @@ impl Civs {
                         index_ref,
                         &mut rng,
                         wpos,
+                        &mut gen_meta,
                     )),
                     SiteKind::SavannahTown => {
                         WorldSite::savannah_town(site2::Site::generate_savannah_town(
                             &Land::from_sim(ctx.sim),
                             &mut rng,
                             wpos,
+                            &mut gen_meta,
                         ))
                     },
                     SiteKind::CoastalTown => {
@@ -632,6 +637,7 @@ impl Civs {
                             &Land::from_sim(ctx.sim),
                             &mut rng,
                             wpos,
+                            &mut gen_meta,
                         ))
                     },
                     SiteKind::PirateHideout => {
@@ -657,9 +663,14 @@ impl Civs {
                         &mut rng,
                         wpos,
                     )),
-                    SiteKind::DesertCity => WorldSite::desert_city(
-                        site2::Site::generate_desert_city(&Land::from_sim(ctx.sim), &mut rng, wpos),
-                    ),
+                    SiteKind::DesertCity => {
+                        WorldSite::desert_city(site2::Site::generate_desert_city(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                            &mut gen_meta,
+                        ))
+                    },
                     SiteKind::Tree => {
                         WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
                     },
@@ -681,9 +692,14 @@ impl Civs {
                     SiteKind::ChapelSite => WorldSite::chapel_site(
                         site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
                     ),
-                    SiteKind::Terracotta => WorldSite::terracotta(
-                        site2::Site::generate_terracotta(&Land::from_sim(ctx.sim), &mut rng, wpos),
-                    ),
+                    SiteKind::Terracotta => {
+                        WorldSite::terracotta(site2::Site::generate_terracotta(
+                            &Land::from_sim(ctx.sim),
+                            &mut rng,
+                            wpos,
+                            &mut gen_meta,
+                        ))
+                    },
                     SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
                         &Land::from_sim(ctx.sim),
                         &mut rng,
@@ -716,6 +732,7 @@ impl Civs {
                         &Land::from_sim(ctx.sim),
                         &mut rng,
                         wpos,
+                        &mut gen_meta,
                     )),
                     SiteKind::Sahagin => WorldSite::sahagin(site2::Site::generate_sahagin(
                         &Land::from_sim(ctx.sim),
@@ -747,6 +764,7 @@ impl Civs {
         }
         drop(guard);
         info!(?cnt, "all sites placed");
+        gen_meta.log();
 
         //this.display_info();
 
