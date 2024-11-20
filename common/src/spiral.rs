@@ -130,8 +130,8 @@ mod tests {
 
     #[test]
     fn empty_spiral_ring() {
-        assert_eq!(Spiral2d::with_ring(0, 0).count(), 0);
         assert_eq!(Spiral2d::with_ring(0, 1).count(), 0);
+        assert_eq!(Spiral2d::with_ring(0, 2).count(), 8);
     }
 
     #[test]
