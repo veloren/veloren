@@ -45,21 +45,16 @@ impl fmt::Display for GenStatPlotKind {
 /// Site kinds for site generation statistics.
 /// Only the sites that are tracked for generation statistics are included here,
 /// which includes all sites that use the find_roadside_aabr function.
-#[derive(Eq, Hash, PartialEq, Copy, Clone)]
+#[derive(Eq, Hash, PartialEq, Copy, Clone, Default)]
 pub enum GenStatSiteKind {
     Terracotta,
     Myrmidon,
+    #[default]
     City,
     CliffTown,
     SavannahTown,
     CoastalTown,
     DesertCity,
-}
-
-impl Default for GenStatSiteKind {
-    fn default() -> Self {
-        GenStatSiteKind::City
-    }
 }
 
 impl fmt::Display for GenStatSiteKind {
@@ -90,6 +85,11 @@ pub struct GenPlot {
     attempts: u32,
     successful: u32,
 }
+impl Default for GenPlot {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl GenPlot {
     pub fn new() -> Self {
@@ -116,10 +116,10 @@ pub struct GenSite {
 }
 
 impl GenSite {
-    pub fn new(kind: GenStatSiteKind, name: &String) -> Self {
+    pub fn new(kind: GenStatSiteKind, name: &str) -> Self {
         Self {
             kind,
-            name: name.clone(),
+            name: name.to_owned(),
             stats: DHashMap::default(),
         }
     }
@@ -129,11 +129,11 @@ impl GenSite {
     }
 
     pub fn attempt(&mut self, kind: GenStatPlotKind) {
-        self.stats.entry(kind).or_insert_with(GenPlot::new).attempt();
+        self.stats.entry(kind).or_default().attempt();
     }
 
     pub fn success(&mut self, kind: GenStatPlotKind) {
-        self.stats.entry(kind).or_insert_with(GenPlot::new).success();
+        self.stats.entry(kind).or_default().success();
     }
 
     fn at_least(&self, count: u32, plotkind: &GenStatPlotKind, genplot: &GenPlot, statstr: &mut String) {
@@ -200,8 +200,8 @@ impl SitesGenMeta {
         }
     }
 
-    pub fn add(&mut self, site_name: &String, kind: GenStatSiteKind) {
-        self.sites.entry(site_name.clone()).or_insert_with(|| GenSite::new(kind, site_name));
+    pub fn add(&mut self, site_name: &str, kind: GenStatSiteKind) {
+        self.sites.entry(site_name.to_owned()).or_insert_with(|| GenSite::new(kind, site_name));
     }
 
     pub fn attempt(&mut self, site_name: &String, kind: GenStatPlotKind) {
@@ -448,10 +448,10 @@ impl SitesGenMeta {
                     }
                 }
                 if !stat_err_str.is_empty() {
-                    stat_stat_str.push_str(&format!("{}", stat_err_str));
+                    stat_stat_str.push_str(&stat_err_str.to_string());
                 }
                 if verbose && !stat_warn_str.is_empty() {
-                    stat_stat_str.push_str(&format!("{}", stat_warn_str));
+                    stat_stat_str.push_str(&stat_warn_str.to_string());
                 }
             }
             debug!("{}", stat_stat_str);
