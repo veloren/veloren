@@ -169,3 +169,6 @@ subtitle-utterance-phoenix-angry = Phoenix screaming
 subtitle-utterance-phoenix-hurt = Phoenix hurting
 subtitle-utterance-vampire-bat-angry = Bat screaming
 subtitle-utterance-vampire-bat-hurt = Bat hurting
+subtitle-utterance-legoom-calm = Legoom calling
+subtitle-utterance-legoom-hurt = Legoom hurting
+subtitle-utterance-legoom-angry = Legoom shouting

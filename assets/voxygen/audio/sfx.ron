@@ -1949,6 +1949,39 @@
             threshold: 1.0,
             subtitle: "subtitle-utterance-wolf-hurt",
         ),
+        Utterance(Calm, Legoom): (
+            files: [
+                "voxygen.audio.sfx.utterance.legoom_3",
+                "voxygen.audio.sfx.utterance.legoom_4",
+                "voxygen.audio.sfx.utterance.legoom_6",
+                "voxygen.audio.sfx.utterance.legoom_11",
+                "voxygen.audio.sfx.utterance.legoom_15",
+            ],
+            threshold: 1.0,
+            subtitle:"subtitle-utterance-legoom-calm",
+        ),
+        Utterance(Hurt, Legoom): (
+            files: [
+                "voxygen.audio.sfx.utterance.legoom_2",
+                "voxygen.audio.sfx.utterance.legoom_9",
+                "voxygen.audio.sfx.utterance.legoom_10",
+                "voxygen.audio.sfx.utterance.legoom_12",
+                "voxygen.audio.sfx.utterance.legoom_13",
+            ],
+            threshold: 1.0,
+            subtitle:"subtitle-utterance-legoom-hurt",
+        ),
+        Utterance(Angry, Legoom): (
+            files: [
+                "voxygen.audio.sfx.utterance.legoom_1",
+                "voxygen.audio.sfx.utterance.legoom_5",
+                "voxygen.audio.sfx.utterance.legoom_7",
+                "voxygen.audio.sfx.utterance.legoom_8",
+                "voxygen.audio.sfx.utterance.legoom_14",
+            ],
+            threshold: 1.0,
+            subtitle:"subtitle-utterance-legoom-angry",
+        ),
         Lightning: (
             files: [
                 "voxygen.audio.sfx.ambient.lightning_1",

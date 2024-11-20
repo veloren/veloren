@@ -230,6 +230,7 @@ pub enum VoiceKind {
     Wyvern,
     Phoenix,
     VampireBat,
+    Legoom,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
@@ -297,6 +298,10 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             biped_small::Species::Adlet => VoiceKind::Adlet,
             biped_small::Species::Mandragora => VoiceKind::Mandragora,
             biped_small::Species::Flamekeeper => VoiceKind::BipedLarge,
+            biped_small::Species::GreenLegoom
+            | biped_small::Species::OchreLegoom
+            | biped_small::Species::PurpleLegoom
+            | biped_small::Species::RedLegoom => VoiceKind::Legoom,
             _ => return None,
         },
         Body::BipedLarge(body) => match body.species {
