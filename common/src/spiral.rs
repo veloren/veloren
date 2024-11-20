@@ -31,7 +31,7 @@ impl Spiral2d {
 
     /// Creates an iterator over points in the margin between two squares, inclusive of the inner_radius
     /// and exclusive of the outer_radius where outer_radius = inner_radius + margin
-    /*
+    /**
         Spiral2d iterates over the points in a square spiral pattern starting at the bottom left.
         In the ring spiral, the iteration starts at the bottom left of the inner square and
         does not include the outer square (if you think of the outer square as inner_radius + margin).
@@ -71,7 +71,7 @@ impl Spiral2d {
             Vec2 { x: -2, y: 0 }
             Vec2 { x: -2, y: -1 }
         Run the first test below to see this output.
-    */
+    **/
     pub fn with_ring(inner_radius: u32, margin: u32) -> impl Iterator<Item = Vec2<i32>> {
         let outer_radius: u32 = inner_radius + margin - 1;
         let adjusted_inner_radius = if inner_radius > 0 { inner_radius - 1 } else { 0 };

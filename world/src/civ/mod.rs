@@ -635,7 +635,7 @@ impl Civs {
                             &mut rng,
                             wpos,
                         &mut gen_meta,
-                    )),                    
+                    )),
                     SiteKind::PirateHideout => {
                         WorldSite::pirate_hideout(site2::Site::generate_pirate_hideout(
                             &Land::from_sim(ctx.sim),

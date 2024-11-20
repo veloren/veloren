@@ -7,7 +7,7 @@ use tracing::{error, debug};
 /// Plot kinds for site generation statistics.
 /// These are similar but discrete from the PlotKind enum in the site2 plot module.
 /// For tracking site generation, similar plot kinds are grouped by these enum variants.
-/// For example, the House variadnt includes all kinds of houses (e.g. House, CoastalHouse, DesertCityHouse).
+/// For example, the House variant includes all kinds of houses (e.g. House, CoastalHouse, DesertCityHouse).
 #[derive(Eq, Hash, PartialEq, Copy, Clone)]
 pub enum GenStatPlotKind {
     InitialPlaza,
@@ -141,25 +141,25 @@ impl GenSite {
             statstr.push_str(&format!("  {} {} {}: {}/{} GenError: expected at least {}\n", self.kind, self.name, plotkind, genplot.successful, genplot.attempts, count));
         }
     }
-    
+
     fn at_most(&self, count: u32, plotkind: &GenStatPlotKind, genplot: &GenPlot, statstr: &mut String) {
         if genplot.successful > count {
             statstr.push_str(&format!("  {} {} {}: {}/{} GenError: expected at most {}\n", self.kind, self.name, plotkind, genplot.successful, genplot.attempts, count));
         }
     }
-    
+
     fn should_not_be_zero(&self, plotkind: &GenStatPlotKind, genplot: &GenPlot, statstr: &mut String) {
         if genplot.successful == 0 {
             statstr.push_str(&format!("  {} {} {}: {}/{} GenWarn: should not be zero\n", self.kind, self.name, plotkind, genplot.successful, genplot.attempts));
         }
     }
-    
+
     fn success_rate(&self, rate: f32, plotkind: &GenStatPlotKind, genplot: &GenPlot, statstr: &mut String) {
         if (genplot.successful as f32 / genplot.attempts as f32) < rate {
             statstr.push_str(&format!("  {} {} {}: GenWarn: success rate less than {} ({}/{})\n", self.kind, self.name, plotkind, rate, genplot.successful, genplot.attempts));
         }
     }
-    
+
 }
 
 /// World site generation statistics.
