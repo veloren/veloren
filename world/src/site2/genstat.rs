@@ -78,8 +78,8 @@ impl fmt::Display for GenStatSiteKind {
 /// An attempt is counted only once even if find_roadside_aabr is called
 /// multiple times. ```
 /// if let Some((aabr, _, _)) = attempt(32, || {
-///    site.find_roadside_aabr(&mut rng, 9..(size + 1).pow(2), Extent2::broadcast(size))
-/// })
+///    site.find_roadside_aabr(&mut rng, 9..(size + 1).pow(2),
+/// Extent2::broadcast(size)) })
 /// ```
 /// counts as one attempt.
 pub struct GenPlot {
