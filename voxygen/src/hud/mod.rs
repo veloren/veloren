@@ -1511,6 +1511,7 @@ impl Hud {
             let is_riders = ecs.read_storage::<Is<Rider>>();
             let stances = ecs.read_storage::<comp::Stance>();
             let char_activities = ecs.read_storage::<comp::CharacterActivity>();
+            let char_states = ecs.read_storage::<comp::CharacterState>();
             let time = ecs.read_resource::<Time>();
 
             // Check if there was a persistence load error of the skillset, and if so
@@ -2350,6 +2351,7 @@ impl Hud {
                 alignment,
                 is_mount,
                 character_activity,
+                character_state,
             ) in (
                 &entities,
                 &pos,
@@ -2371,6 +2373,7 @@ impl Hud {
                     is_mounts.maybe(),
                     is_riders.maybe(),
                     stances.maybe(),
+                    char_states.maybe(),
                 ),
             )
                 .join()
@@ -2395,7 +2398,7 @@ impl Hud {
                         inventory,
                         character_activity,
                         poise,
-                        (alignment, is_mount, is_rider, stance),
+                        (alignment, is_mount, is_rider, stance, char_state),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2473,6 +2476,7 @@ impl Hud {
                                 alignment,
                                 is_mount,
                                 character_activity,
+                                char_state,
                             )
                         })
                     },
@@ -2504,8 +2508,14 @@ impl Hud {
                             if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2)
                                 && interactable.and_then(|i| i.entity()) == Some(entity) =>
                         {
+                            let interact_text =
+                                if matches!(character_state, Some(comp::CharacterState::Crawl)) {
+                                    "hud-help"
+                                } else {
+                                    "hud-talk"
+                                };
                             vec![
-                                (GameInput::Interact, i18n.get_msg("hud-talk").to_string()),
+                                (GameInput::Interact, i18n.get_msg(interact_text).to_string()),
                                 (GameInput::Trade, i18n.get_msg("hud-trade").to_string()),
                             ]
                         },

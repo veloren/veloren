@@ -57,6 +57,7 @@ hud-mine-needs_pickaxe = Needs Pickaxe
 hud-mine-needs_shovel = Needs Shovel
 hud-mine-needs_unhandled_case = Needs ???
 hud-talk = Talk
+hud-help = Help
 hud-pet = Pet
 hud-trade = Trade
 hud-mount = Mount
