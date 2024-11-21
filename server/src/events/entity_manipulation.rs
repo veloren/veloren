@@ -39,11 +39,11 @@ use common::{
     event::{
         AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
         ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
-        DeleteEvent, DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent,
-        EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent,
-        MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent,
-        RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
-        TransformEvent, UpdateMapMarkerEvent,
+        DeleteEvent, DestroyEvent, DownedEvent, EmitExt, Emitter, EnergyChangeEvent,
+        EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent,
+        LandOnGroundEvent, MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent,
+        RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent,
+        TeleportToPositionEvent, TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
     generation::{EntityConfig, EntityInfo},
@@ -83,6 +83,7 @@ use super::{event_dispatch, event_sys_name, ServerEvent};
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<PoiseChangeEvent>(builder, &[]);
     event_dispatch::<HealthChangeEvent>(builder, &[]);
+    event_dispatch::<DownedEvent>(builder, &[&event_sys_name::<HealthChangeEvent>()]);
     event_dispatch::<KnockbackEvent>(builder, &[]);
     event_dispatch::<DestroyEvent>(builder, &[&event_sys_name::<HealthChangeEvent>()]);
     event_dispatch::<LandOnGroundEvent>(builder, &[]);
@@ -90,7 +91,7 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<ExplosionEvent>(builder, &[]);
     event_dispatch::<BonkEvent>(builder, &[]);
     event_dispatch::<AuraEvent>(builder, &[]);
-    event_dispatch::<BuffEvent>(builder, &[]);
+    event_dispatch::<BuffEvent>(builder, &[&event_sys_name::<DownedEvent>()]);
     event_dispatch::<EnergyChangeEvent>(builder, &[]);
     event_dispatch::<ComboChangeEvent>(builder, &[]);
     event_dispatch::<ParryHookEvent>(builder, &[]);
@@ -127,6 +128,12 @@ event_emitters! {
         knockback: KnockbackEvent,
         energy_change: EnergyChangeEvent,
     }
+
+    struct HealthChangeEvents[HealthChangeEmitters] {
+        destroy: DestroyEvent,
+        downed: DownedEvent,
+        outcome: Outcome,
+    }
 }
 
 pub fn handle_delete(server: &mut Server, DeleteEvent(entity): DeleteEvent) {
@@ -159,7 +166,8 @@ impl ServerEvent for PoiseChangeEvent {
                 .lend_join()
                 .get(ev.entity, &entities)
             {
-                // Entity is invincible to poise change during stunned character state
+                // Entity is invincible to poise change during stunned character state or the
+                // crawling character state.
                 if !matches!(character_state, CharacterState::Stunned(_)) {
                     poise.change(ev.change);
                 }
@@ -188,8 +196,7 @@ pub struct HealthChangeEventData<'a> {
     entities: Entities<'a>,
     #[cfg(feature = "worldgen")]
     rtsim: WriteExpect<'a, RtSim>,
-    outcomes: Read<'a, EventBus<Outcome>>,
-    destroy_events: Read<'a, EventBus<DestroyEvent>>,
+    events: HealthChangeEvents<'a>,
     time: Read<'a, Time>,
     #[cfg(feature = "worldgen")]
     id_maps: Read<'a, IdMaps>,
@@ -212,8 +219,7 @@ impl ServerEvent for HealthChangeEvent {
     type SystemData<'a> = HealthChangeEventData<'a>;
 
     fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
-        let mut outcomes_emitter = data.outcomes.emitter();
-        let mut destroy_emitter = data.destroy_events.emitter();
+        let mut emitters = data.events.get_emitters();
         let mut rng = rand::thread_rng();
         for ev in events {
             if let Some((mut health, pos, uid, heads)) = (
@@ -237,7 +243,7 @@ impl ServerEvent for HealthChangeEvent {
                         for _ in target_heads..heads.amount() {
                             if let Some(head) = heads.remove_one(&mut rng, *data.time) {
                                 if let Some(uid) = uid {
-                                    outcomes_emitter.emit(Outcome::HeadLost { uid: *uid, head });
+                                    emitters.emit(Outcome::HeadLost { uid: *uid, head });
                                 }
                             } else {
                                 break;
@@ -268,7 +274,7 @@ impl ServerEvent for HealthChangeEvent {
 
                 if let (Some(pos), Some(uid)) = (pos, uid) {
                     if changed {
-                        outcomes_emitter.emit(Outcome::HealthChange {
+                        emitters.emit(Outcome::HealthChange {
                             pos: pos.0,
                             info: HealthChangeInfo {
                                 amount: ev.change.amount,
@@ -283,10 +289,14 @@ impl ServerEvent for HealthChangeEvent {
                 }
 
                 if !health.is_dead && health.should_die() {
-                    destroy_emitter.emit(DestroyEvent {
-                        entity: ev.entity,
-                        cause: ev.change,
-                    });
+                    if health.death_protection_active {
+                        emitters.emit(DownedEvent { entity: ev.entity });
+                    } else {
+                        emitters.emit(DestroyEvent {
+                            entity: ev.entity,
+                            cause: ev.change,
+                        });
+                    }
                 }
             }
 
@@ -298,6 +308,37 @@ impl ServerEvent for HealthChangeEvent {
                     agent.inbox.push_back(AgentEvent::Hurt);
                 }
             }
+        }
+    }
+}
+
+impl ServerEvent for DownedEvent {
+    type SystemData<'a> = (
+        Read<'a, EventBus<BuffEvent>>,
+        WriteStorage<'a, comp::CharacterState>,
+        WriteStorage<'a, comp::Health>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (buff_event, mut character_states, mut healths): Self::SystemData<'_>,
+    ) {
+        let mut buff_emitter = buff_event.emitter();
+        for ev in events {
+            if let Some(mut health) = healths.get_mut(ev.entity) {
+                health.consume_death_protection()
+            }
+
+            if let Some(mut character_state) = character_states.get_mut(ev.entity) {
+                *character_state = CharacterState::Crawl;
+            }
+
+            buff_emitter.emit(BuffEvent {
+                entity: ev.entity,
+                buff_change: comp::BuffChange::RemoveByDescriptor(
+                    buff::BuffDescriptor::SimpleNegative,
+                ),
+            })
         }
     }
 }
@@ -1896,6 +1937,18 @@ impl ServerEvent for BuffEvent {
                             buffs.remove(key);
                         }
                     },
+                    BuffChange::RemoveByDescriptor(descriptor) => {
+                        let mut keys_to_remove = Vec::new();
+
+                        for (key, buff) in buffs.buffs.iter() {
+                            if buff.kind.differentiate() == descriptor {
+                                keys_to_remove.push(key);
+                            }
+                        }
+                        for key in keys_to_remove {
+                            buffs.remove(key);
+                        }
+                    },
                     BuffChange::Refresh(kind) => {
                         buffs
                             .buffs
@@ -2158,7 +2211,9 @@ impl ServerEvent for EntityAttackedHookEvent {
                     {
                         // Reset poise if there is some stunned state to apply
                         poise.reset(*data.time, stunned_duration);
-                        *char_state = stunned_state;
+                        if !matches!(*char_state, CharacterState::Crawl) {
+                            *char_state = stunned_state;
+                        }
                         outcomes.emit(Outcome::PoiseChange {
                             pos: pos.0,
                             state: poise_state,

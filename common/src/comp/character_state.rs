@@ -100,6 +100,7 @@ impl From<&JoinData<'_>> for StateUpdate {
 #[derive(Clone, Debug, Display, PartialEq, Serialize, Deserialize)]
 pub enum CharacterState {
     Idle(idle::Data),
+    Crawl,
     Climb(climb::Data),
     Sit,
     Dance,
@@ -509,6 +510,7 @@ impl CharacterState {
             CharacterState::GlideWield(data) => data.behavior(j, output_events),
             CharacterState::Stunned(data) => data.behavior(j, output_events),
             CharacterState::Sit => sit::Data::behavior(&sit::Data, j, output_events),
+            CharacterState::Crawl => crawl::Data::behavior(&crawl::Data, j, output_events),
             CharacterState::Dance => dance::Data::behavior(&dance::Data, j, output_events),
             CharacterState::Pet(data) => data.behavior(j, output_events),
             CharacterState::BasicBlock(data) => data.behavior(j, output_events),
@@ -562,6 +564,9 @@ impl CharacterState {
             CharacterState::Stunned(data) => data.handle_event(j, output_events, action),
             CharacterState::Sit => {
                 states::sit::Data::handle_event(&sit::Data, j, output_events, action)
+            },
+            CharacterState::Crawl => {
+                states::crawl::Data::handle_event(&crawl::Data, j, output_events, action)
             },
             CharacterState::Dance => {
                 states::dance::Data::handle_event(&dance::Data, j, output_events, action)
@@ -621,6 +626,7 @@ impl CharacterState {
             CharacterState::GlideWield(_) => None,
             CharacterState::Stunned(_) => None,
             CharacterState::Sit => None,
+            CharacterState::Crawl => None,
             CharacterState::Dance => None,
             CharacterState::Pet(_) => None,
             CharacterState::BasicBlock(data) => Some(data.static_data.ability_info),
@@ -668,6 +674,7 @@ impl CharacterState {
             CharacterState::GlideWield(_) => None,
             CharacterState::Stunned(data) => Some(data.stage_section),
             CharacterState::Sit => None,
+            CharacterState::Crawl => None,
             CharacterState::Dance => None,
             CharacterState::Pet(_) => None,
             CharacterState::BasicBlock(data) => Some(data.stage_section),
@@ -719,6 +726,7 @@ impl CharacterState {
                 ..Default::default()
             }),
             CharacterState::Sit => None,
+            CharacterState::Crawl => None,
             CharacterState::Dance => None,
             CharacterState::Pet(_) => None,
             CharacterState::BasicBlock(data) => Some(DurationsInfo {
@@ -907,6 +915,7 @@ impl CharacterState {
     pub fn timer(&self) -> Option<Duration> {
         match &self {
             CharacterState::Idle(_) => None,
+            CharacterState::Crawl => None,
             CharacterState::Talk => None,
             CharacterState::Climb(_) => None,
             CharacterState::Wallrun(_) => None,
@@ -954,6 +963,7 @@ impl CharacterState {
     pub fn attack_kind(&self) -> Option<AttackSource> {
         match self {
             CharacterState::Idle(_) => None,
+            CharacterState::Crawl => None,
             CharacterState::Talk => None,
             CharacterState::Climb(_) => None,
             CharacterState::Wallrun(_) => None,

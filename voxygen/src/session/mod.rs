@@ -232,6 +232,15 @@ impl SessionState {
             .unwrap_or_else(|| (self.client.borrow().entity(), true))
     }
 
+    fn controlling_char(&self) -> bool {
+        self.viewpoint_entity.is_none()
+            && self
+                .client
+                .borrow()
+                .presence()
+                .is_some_and(|p| p.controlling_char())
+    }
+
     /// Tick the session (and the client attached to it).
     fn tick(
         &mut self,
@@ -691,6 +700,8 @@ impl PlayState for SessionState {
             // Throw out distance info, it will be useful in the future
             self.target_entity = entity_target.map(|t| t.kind.0);
 
+            let controlling_char = self.controlling_char();
+
             // Handle window events.
             for event in events {
                 // Pass all events to the ui first.
@@ -780,7 +791,7 @@ impl PlayState for SessionState {
                                             self.selected_block = block;
                                         }
                                     }
-                                } else {
+                                } else if controlling_char {
                                     client.handle_input(
                                         InputKind::Roll,
                                         state,
@@ -812,13 +823,19 @@ impl PlayState for SessionState {
                                 self.key_state.swim_down = state;
                             },
                             GameInput::Sit => {
-                                if state {
+                                if state && controlling_char {
                                     self.stop_auto_walk();
                                     self.client.borrow_mut().toggle_sit();
                                 }
                             },
+                            GameInput::Crawl => {
+                                if state && controlling_char {
+                                    self.stop_auto_walk();
+                                    self.client.borrow_mut().toggle_crawl();
+                                }
+                            },
                             GameInput::Dance => {
-                                if state {
+                                if state && controlling_char {
                                     self.stop_auto_walk();
                                     self.client.borrow_mut().toggle_dance();
                                 }
@@ -830,7 +847,7 @@ impl PlayState for SessionState {
                             },
                             GameInput::Sneak => {
                                 let is_trading = self.client.borrow().is_trading();
-                                if state && !is_trading {
+                                if state && !is_trading && controlling_char {
                                     self.stop_auto_walk();
                                     self.client.borrow_mut().toggle_sneak();
                                 }
@@ -862,7 +879,7 @@ impl PlayState for SessionState {
                             GameInput::Glide => {
                                 self.walking_speed = false;
                                 let is_trading = self.client.borrow().is_trading();
-                                if state && !is_trading {
+                                if state && !is_trading && controlling_char {
                                     if global_state.settings.gameplay.stop_auto_walk_on_input {
                                         self.stop_auto_walk();
                                     }
@@ -890,7 +907,7 @@ impl PlayState for SessionState {
                                 self.key_state.climb_down = state;
                             },
                             GameInput::ToggleWield => {
-                                if state {
+                                if state && controlling_char {
                                     let mut client = self.client.borrow_mut();
                                     if client.is_wielding().is_some_and(|b| !b) {
                                         self.walking_speed = false;
@@ -899,11 +916,11 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::SwapLoadout => {
-                                if state {
+                                if state && controlling_char {
                                     self.client.borrow_mut().swap_loadout();
                                 }
                             },
-                            GameInput::ToggleLantern if state => {
+                            GameInput::ToggleLantern if state && controlling_char => {
                                 let mut client = self.client.borrow_mut();
                                 if client.is_lantern_enabled() {
                                     client.disable_lantern();
@@ -911,7 +928,7 @@ impl PlayState for SessionState {
                                     client.enable_lantern();
                                 }
                             },
-                            GameInput::Mount if state => {
+                            GameInput::Mount if state && controlling_char => {
                                 let mut client = self.client.borrow_mut();
                                 if client.is_riding() {
                                     client.unmount();
@@ -1109,7 +1126,7 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Trade => {
-                                if state {
+                                if state && controlling_char {
                                     if let Some(interactable) = &self.interactable {
                                         let mut client = self.client.borrow_mut();
                                         match interactable {

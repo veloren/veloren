@@ -11,6 +11,7 @@ pub mod charged_melee;
 pub mod charged_ranged;
 pub mod climb;
 pub mod combo_melee2;
+pub mod crawl;
 pub mod dance;
 pub mod dash_melee;
 pub mod dive_melee;

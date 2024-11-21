@@ -52,6 +52,10 @@ pub struct Health {
     /// The last change to health
     pub last_change: HealthChange,
     pub is_dead: bool,
+    /// If death protection is true, any damage that would kill instead leaves
+    /// the entity at 1 health.
+    pub death_protection: bool,
+    pub death_protection_active: bool,
 
     /// Keeps track of damage per DamageContributor and the last time they
     /// caused damage, used for EXP sharing
@@ -89,8 +93,14 @@ impl Health {
 
     /// Instantly set the health fraction.
     pub fn set_fraction(&mut self, fraction: f32) {
-        self.current = (self.maximum() * fraction * Self::SCALING_FACTOR_FLOAT) as u32;
-        self.is_dead = self.current == 0;
+        self.current =
+            (self.maximum() * fraction.clamp(0.0, 1.0) * Self::SCALING_FACTOR_FLOAT).ceil() as u32;
+    }
+
+    pub fn set_amount(&mut self, amount: f32) {
+        self.current = (amount * Self::SCALING_FACTOR_FLOAT)
+            .clamp(0.0, self.maximum())
+            .ceil() as u32;
     }
 
     /// Calculates a new maximum value and returns it if the value differs from
@@ -123,6 +133,7 @@ impl Health {
 
     pub fn new(body: comp::Body) -> Self {
         let health = u32::from(body.base_health()) * Self::SCALING_FACTOR_INT;
+        let death_protection = body.death_protection();
         Health {
             current: health,
             base_max: health,
@@ -136,6 +147,8 @@ impl Health {
                 instance: rand::random(),
             },
             is_dead: false,
+            death_protection,
+            death_protection_active: death_protection,
             damage_contributors: HashMap::new(),
         }
     }
@@ -191,6 +204,20 @@ impl Health {
     pub fn revive(&mut self) {
         self.current = self.maximum;
         self.is_dead = false;
+        self.death_protection_active = self.death_protection;
+    }
+
+    pub fn consume_death_protection(&mut self) {
+        if self.death_protection_active {
+            self.death_protection_active = false;
+            if self.current() < 1.0 {
+                self.set_amount(1.0);
+            }
+        }
+    }
+
+    pub fn has_consumed_death_protection(&self) -> bool {
+        self.death_protection && !self.death_protection_active
     }
 
     #[cfg(test)]
@@ -208,6 +235,8 @@ impl Health {
                 instance: rand::random(),
             },
             is_dead: false,
+            death_protection: false,
+            death_protection_active: false,
             damage_contributors: HashMap::new(),
         }
     }

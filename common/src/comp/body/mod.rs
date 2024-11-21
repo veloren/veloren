@@ -870,6 +870,8 @@ impl Body {
         }
     }
 
+    pub fn death_protection(&self) -> bool { matches!(self, Body::Humanoid(_)) }
+
     pub fn base_health(&self) -> u16 {
         match self {
             Body::Humanoid(_) => 100,

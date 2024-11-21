@@ -1926,6 +1926,21 @@ impl Client {
         }
     }
 
+    pub fn toggle_crawl(&mut self) {
+        let is_crawling = self
+            .state
+            .ecs()
+            .read_storage::<CharacterState>()
+            .get(self.entity())
+            .map(|cs| matches!(cs, CharacterState::Crawl));
+
+        match is_crawling {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => self.control_action(ControlAction::Crawl),
+            None => warn!("Can't toggle sit, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
     pub fn toggle_dance(&mut self) {
         let is_dancing = self
             .state

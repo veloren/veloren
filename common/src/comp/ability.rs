@@ -715,6 +715,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::SelfBuff(_) => Self::SelfBuff,
             CharacterState::Music(data) => Self::Music(data.stage_section),
             CharacterState::Idle(_)
+            | CharacterState::Crawl
             | CharacterState::Climb(_)
             | CharacterState::Sit
             | CharacterState::Dance

@@ -90,6 +90,12 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn crawl(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_crawl(data, &mut update);
+        update
+    }
+
     fn stand(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         // Try to Fall/Stand up/Move

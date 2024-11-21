@@ -180,6 +180,7 @@ pub enum ControlAction {
     GlideWield,
     Unwield,
     Sit,
+    Crawl,
     Dance,
     Pet {
         target_uid: Uid,

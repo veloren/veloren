@@ -41,6 +41,7 @@ gameinput-bag = Bag
 gameinput-trade = Trade
 gameinput-social = Social
 gameinput-sit = Sit
+gameinput-crawl = Crawl
 gameinput-diary = Diary
 gameinput-settings = Settings
 gameinput-respawn = Respawn

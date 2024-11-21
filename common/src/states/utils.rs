@@ -896,6 +896,13 @@ pub fn attempt_sit(data: &JoinData<'_>, update: &mut StateUpdate) {
     }
 }
 
+/// Checks that player can `Crawl` and updates `CharacterState` if so
+pub fn attempt_crawl(data: &JoinData<'_>, update: &mut StateUpdate) {
+    if data.physics.on_ground.is_some() {
+        update.character = CharacterState::Crawl;
+    }
+}
+
 pub fn attempt_dance(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
         update.character = CharacterState::Dance;

@@ -224,6 +224,7 @@ pub enum BuffKind {
 }
 
 /// Tells a little more about the buff kind than simple buff/debuff
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BuffDescriptor {
     /// Simple positive buffs, like `BuffKind::Saturation`
     SimplePositive,
@@ -805,6 +806,8 @@ pub enum BuffChange {
         any_required: Vec<BuffCategory>,
         none_required: Vec<BuffCategory>,
     },
+    /// Removes all buffs that match this descriptor.
+    RemoveByDescriptor(BuffDescriptor),
     /// Refreshes durations of all buffs with this kind.
     Refresh(BuffKind),
 }

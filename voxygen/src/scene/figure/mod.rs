@@ -1766,6 +1766,15 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::Crawl { .. } => {
+                            anim::character::SitAnimation::update_skeleton(
+                                &target_base,
+                                (active_tool_kind, second_tool_kind, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::GlideWield(data) => {
                             anim::character::GlideWieldAnimation::update_skeleton(
                                 &target_base,

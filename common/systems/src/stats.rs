@@ -4,7 +4,7 @@ use common::{
         self, item::MaterialStatManifest, CharacterState, Combo, Energy, Health, Inventory, Poise,
         Stats, StatsModifier,
     },
-    event::{DestroyEvent, EmitExt},
+    event::{DestroyEvent, DownedEvent, EmitExt},
     event_emitters,
     resources::{DeltaTime, Time},
 };
@@ -18,6 +18,7 @@ const POISE_REGEN_ACCEL: f32 = 2.0;
 event_emitters! {
     struct Events[Emitters] {
         destroy: DestroyEvent,
+        downed: DownedEvent,
     }
 }
 
@@ -69,10 +70,14 @@ impl<'a> System<'a> for Sys {
             let set_dead = { health.should_die() && !health.is_dead };
 
             if set_dead {
-                emitters.emit(DestroyEvent {
-                    entity,
-                    cause: health.last_change,
-                });
+                if health.death_protection_active {
+                    emitters.emit(DownedEvent { entity });
+                } else {
+                    emitters.emit(DestroyEvent {
+                        entity,
+                        cause: health.last_change,
+                    });
+                }
             }
             let stat = stats;
 
@@ -157,6 +162,7 @@ impl<'a> System<'a> for Sys {
                 },
                 // Abilities that temporarily stall energy gain, but preserve regen_rate.
                 CharacterState::Roll(_)
+                | CharacterState::Crawl
                 | CharacterState::Wallrun(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::BasicBlock(_)

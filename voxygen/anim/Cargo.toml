@@ -8,7 +8,7 @@ version = "0.10.0"
 use-dyn-lib = ["lazy_static", "common-dynlib"]
 be-dyn-lib = []
 simd = ["vek/platform_intrinsics"]
-plugins = [ "dep:common-state" ]
+plugins = [ "dep:common-state", "common-state/plugins"]
 
 default = ["simd"]
 

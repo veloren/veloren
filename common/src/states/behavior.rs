@@ -48,6 +48,9 @@ pub trait CharacterBehavior {
     fn sit(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
+    fn crawl(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
     fn dance(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
@@ -104,6 +107,7 @@ pub trait CharacterBehavior {
             ControlAction::GlideWield => self.glide_wield(data, output_events),
             ControlAction::Unwield => self.unwield(data, output_events),
             ControlAction::Sit => self.sit(data, output_events),
+            ControlAction::Crawl => self.crawl(data, output_events),
             ControlAction::Dance => self.dance(data, output_events),
             ControlAction::Pet { target_uid } => self.pet(data, output_events, target_uid),
             ControlAction::Sneak => {

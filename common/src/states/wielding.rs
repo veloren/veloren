@@ -99,6 +99,12 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn crawl(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_crawl(data, &mut update);
+        update
+    }
+
     fn dance(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_dance(data, &mut update);
