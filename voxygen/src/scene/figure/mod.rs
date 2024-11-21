@@ -51,7 +51,7 @@ use common::{
     link::Is,
     mounting::{Rider, VolumeRider},
     resources::{DeltaTime, Time},
-    states::{equipping, idle, utils::StageSection, wielding},
+    states::{equipping, idle, interact, utils::StageSection, wielding},
     terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
     uid::IdMaps,
     util::Dir,
@@ -1527,9 +1527,17 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::SpriteInteract(s) => {
+                        CharacterState::Interact(s) => {
                             let stage_time = s.timer.as_secs_f32();
-                            let sprite_pos = s.static_data.sprite_pos;
+                            let interact_pos = match s.static_data.interact {
+                                interact::InteractKind::Invalid => pos.0,
+                                interact::InteractKind::Entity { pos, .. } => {
+                                    anim::vek::Vec3::from(pos)
+                                },
+                                interact::InteractKind::Sprite { pos, .. } => {
+                                    anim::vek::Vec3::from(pos.as_() + 0.5)
+                                },
+                            };
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
@@ -1542,12 +1550,7 @@ impl FigureMgr {
                             };
                             anim::character::CollectAnimation::update_skeleton(
                                 &target_base,
-                                (
-                                    pos.0,
-                                    time,
-                                    Some(s.stage_section),
-                                    anim::vek::Vec3::from(sprite_pos.map(|x| x as f32)),
-                                ),
+                                (pos.0, time, Some(s.stage_section), interact_pos),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,

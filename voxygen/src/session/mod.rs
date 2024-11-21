@@ -1092,7 +1092,18 @@ impl PlayState for SessionState {
                                                         },
                                                     );
 
-                                                if client
+                                                if matches!(
+                                                    client
+                                                        .state()
+                                                        .ecs()
+                                                        .read_storage::<comp::CharacterState>()
+                                                        .get(*entity),
+                                                    Some(comp::CharacterState::Crawl)
+                                                ) && let Some(uid) =
+                                                    client.state().ecs().uid_from_entity(*entity)
+                                                {
+                                                    client.help_downed(uid);
+                                                } else if client
                                                     .state()
                                                     .ecs()
                                                     .read_storage::<comp::PickupItem>()

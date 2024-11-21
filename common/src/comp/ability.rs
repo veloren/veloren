@@ -731,7 +731,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::BasicSummon(_)
             | CharacterState::SpriteSummon(_)
             | CharacterState::UseItem(_)
-            | CharacterState::SpriteInteract(_)
+            | CharacterState::Interact(_)
             | CharacterState::Skate(_)
             | CharacterState::Transform(_)
             | CharacterState::RegrowHead(_)

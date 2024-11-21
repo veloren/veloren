@@ -1731,6 +1731,12 @@ impl Client {
         ));
     }
 
+    pub fn help_downed(&mut self, target: Uid) {
+        self.control_action(ControlAction::InventoryAction(InventoryAction::HelpDowned(
+            target,
+        )));
+    }
+
     pub fn remove_buff(&mut self, buff_id: BuffKind) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::RemoveBuff(
             buff_id,

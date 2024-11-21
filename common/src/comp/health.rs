@@ -216,6 +216,12 @@ impl Health {
         }
     }
 
+    pub fn refresh_death_protection(&mut self) {
+        if self.death_protection {
+            self.death_protection_active = true;
+        }
+    }
+
     pub fn has_consumed_death_protection(&self) -> bool {
         self.death_protection && !self.death_protection_active
     }

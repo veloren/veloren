@@ -220,6 +220,10 @@ pub struct HealthChangeEvent {
     pub change: comp::HealthChange,
 }
 
+pub struct HelpDownedEvent {
+    pub target: Uid,
+}
+
 pub struct DownedEvent {
     pub entity: EcsEntity,
 }
@@ -374,6 +378,10 @@ pub struct TeleportToEvent {
     pub entity: EcsEntity,
     pub target: Uid,
     pub max_range: Option<f32>,
+}
+
+pub struct UpdateEntityInteractPositionEvent {
+    pub entity: EcsEntity,
 }
 
 pub struct CreateSafezoneEvent {
@@ -543,6 +551,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<ExplosionEvent>::default());
     ecs.insert(EventBus::<BonkEvent>::default());
     ecs.insert(EventBus::<HealthChangeEvent>::default());
+    ecs.insert(EventBus::<HelpDownedEvent>::default());
     ecs.insert(EventBus::<DownedEvent>::default());
     ecs.insert(EventBus::<PoiseChangeEvent>::default());
     ecs.insert(EventBus::<DeleteEvent>::default());
@@ -576,6 +585,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<RequestSiteInfoEvent>::default());
     ecs.insert(EventBus::<MineBlockEvent>::default());
     ecs.insert(EventBus::<TeleportToEvent>::default());
+    ecs.insert(EventBus::<UpdateEntityInteractPositionEvent>::default());
     ecs.insert(EventBus::<CreateSafezoneEvent>::default());
     ecs.insert(EventBus::<SoundEvent>::default());
     ecs.insert(EventBus::<CreateSpriteEvent>::default());

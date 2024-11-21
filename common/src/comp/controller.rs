@@ -43,9 +43,10 @@ pub enum InventoryAction {
     Use(Slot),
     Sort,
     Collect(Vec3<i32>),
-    // TODO: Not actually inventory-related: refactor to allow sprite interaction without
+    // TODO: Not actually inventory-related: refactor to allow sprite & entity interaction without
     // inventory manipulation!
     ToggleSpriteLight(VolumePos, bool),
+    HelpDowned(Uid),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

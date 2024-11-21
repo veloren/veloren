@@ -169,7 +169,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::UseItem(_)
                 | CharacterState::Transform(_)
                 | CharacterState::RegrowHead(_)
-                | CharacterState::SpriteInteract(_) => {},
+                | CharacterState::Interact(_) => {},
             }
         });
 

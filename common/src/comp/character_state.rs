@@ -54,6 +54,8 @@ event_emitters! {
         transform: event::TransformEvent,
         regrow_head: event::RegrowHeadEvent,
         create_aura_entity: event::CreateAuraEntityEvent,
+        update_entity_interaction_position: event::UpdateEntityInteractPositionEvent,
+        help_downed: event::HelpDownedEvent,
     }
 }
 
@@ -158,9 +160,9 @@ pub enum CharacterState {
     SpriteSummon(sprite_summon::Data),
     /// Handles logic for using an item so it is not simply instant
     UseItem(use_item::Data),
-    /// Handles logic for interacting with a sprite, e.g. using a chest or
-    /// picking a plant
-    SpriteInteract(sprite_interact::Data),
+    /// Handles logic for interacting with a sprite or an entity, e.g. using a
+    /// chest, picking a plant, helping a downed entity up
+    Interact(interact::Data),
     /// Runs on the wall
     Wallrun(wallrun::Data),
     /// Ice skating or skiing
@@ -258,7 +260,7 @@ impl CharacterState {
             CharacterState::SelfBuff(_) => false,
             CharacterState::SpriteSummon(_) => false,
             CharacterState::UseItem(_) => false,
-            CharacterState::SpriteInteract(_) => false,
+            CharacterState::Interact(_) => false,
             CharacterState::Wallrun(_) => false,
             CharacterState::Skate(_) => false,
             CharacterState::Music(_) => false,
@@ -275,7 +277,7 @@ impl CharacterState {
         match self {
             CharacterState::Roll(data) => data.was_wielded,
             CharacterState::Stunned(data) => data.was_wielded,
-            CharacterState::SpriteInteract(data) => data.static_data.was_wielded,
+            CharacterState::Interact(data) => data.static_data.was_wielded,
             CharacterState::UseItem(data) => data.static_data.was_wielded,
             CharacterState::Wallrun(data) => data.was_wielded,
             _ => false,
@@ -518,7 +520,7 @@ impl CharacterState {
                 | CharacterState::SelfBuff(_)
                 | CharacterState::SpriteSummon(_)
                 | CharacterState::UseItem(_)
-                | CharacterState::SpriteInteract(_)
+                | CharacterState::Interact(_)
                 | CharacterState::Music(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
@@ -583,7 +585,7 @@ impl CharacterState {
             CharacterState::SelfBuff(data) => data.behavior(j, output_events),
             CharacterState::SpriteSummon(data) => data.behavior(j, output_events),
             CharacterState::UseItem(data) => data.behavior(j, output_events),
-            CharacterState::SpriteInteract(data) => data.behavior(j, output_events),
+            CharacterState::Interact(data) => data.behavior(j, output_events),
             CharacterState::Skate(data) => data.behavior(j, output_events),
             CharacterState::Music(data) => data.behavior(j, output_events),
             CharacterState::FinisherMelee(data) => data.behavior(j, output_events),
@@ -642,7 +644,7 @@ impl CharacterState {
             CharacterState::SelfBuff(data) => data.handle_event(j, output_events, action),
             CharacterState::SpriteSummon(data) => data.handle_event(j, output_events, action),
             CharacterState::UseItem(data) => data.handle_event(j, output_events, action),
-            CharacterState::SpriteInteract(data) => data.handle_event(j, output_events, action),
+            CharacterState::Interact(data) => data.handle_event(j, output_events, action),
             CharacterState::Skate(data) => data.handle_event(j, output_events, action),
             CharacterState::Music(data) => data.handle_event(j, output_events, action),
             CharacterState::FinisherMelee(data) => data.handle_event(j, output_events, action),
@@ -699,7 +701,7 @@ impl CharacterState {
             CharacterState::SelfBuff(data) => Some(data.static_data.ability_info),
             CharacterState::SpriteSummon(data) => Some(data.static_data.ability_info),
             CharacterState::UseItem(_) => None,
-            CharacterState::SpriteInteract(_) => None,
+            CharacterState::Interact(_) => None,
             CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Music(data) => Some(data.static_data.ability_info),
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
@@ -747,7 +749,7 @@ impl CharacterState {
             CharacterState::SelfBuff(data) => Some(data.stage_section),
             CharacterState::SpriteSummon(data) => Some(data.stage_section),
             CharacterState::UseItem(data) => Some(data.stage_section),
-            CharacterState::SpriteInteract(data) => Some(data.stage_section),
+            CharacterState::Interact(data) => Some(data.stage_section),
             CharacterState::FinisherMelee(data) => Some(data.stage_section),
             CharacterState::Music(data) => Some(data.stage_section),
             CharacterState::DiveMelee(data) => Some(data.stage_section),
@@ -903,7 +905,7 @@ impl CharacterState {
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
-            CharacterState::SpriteInteract(data) => Some(DurationsInfo {
+            CharacterState::Interact(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
                 action: Some(data.static_data.use_duration),
                 recover: Some(data.static_data.recover_duration),
@@ -996,7 +998,7 @@ impl CharacterState {
             CharacterState::SelfBuff(data) => Some(data.timer),
             CharacterState::SpriteSummon(data) => Some(data.timer),
             CharacterState::UseItem(data) => Some(data.timer),
-            CharacterState::SpriteInteract(data) => Some(data.timer),
+            CharacterState::Interact(data) => Some(data.timer),
             CharacterState::FinisherMelee(data) => Some(data.timer),
             CharacterState::Music(data) => Some(data.timer),
             CharacterState::DiveMelee(data) => Some(data.timer),
@@ -1061,7 +1063,7 @@ impl CharacterState {
             CharacterState::SelfBuff(_) => None,
             CharacterState::SpriteSummon(_) => None,
             CharacterState::UseItem(_) => None,
-            CharacterState::SpriteInteract(_) => None,
+            CharacterState::Interact(_) => None,
             CharacterState::FinisherMelee(_) => Some(AttackSource::Melee),
             CharacterState::Music(_) => None,
             CharacterState::DiveMelee(_) => Some(AttackSource::Melee),

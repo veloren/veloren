@@ -40,10 +40,11 @@ use common::{
         AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
         ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         DeleteEvent, DestroyEvent, DownedEvent, EmitExt, Emitter, EnergyChangeEvent,
-        EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent,
-        LandOnGroundEvent, MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent,
-        RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent,
-        TeleportToPositionEvent, TransformEvent, UpdateMapMarkerEvent,
+        EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, HelpDownedEvent,
+        KnockbackEvent, LandOnGroundEvent, MakeAdminEvent, ParryHookEvent, PoiseChangeEvent,
+        RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartTeleportingEvent,
+        TeleportToEvent, TeleportToPositionEvent, TransformEvent,
+        UpdateEntityInteractPositionEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
     generation::{EntityConfig, EntityInfo},
@@ -53,7 +54,7 @@ use common::{
     outcome::{HealthChangeInfo, Outcome},
     resources::{EntitiesDiedLastTick, ProgramTime, Secs, Time},
     spiral::Spiral2d,
-    states::utils::StageSection,
+    states::{interact, utils::StageSection},
     terrain::{Block, BlockKind, TerrainGrid},
     trade::{TradeResult, Trades},
     uid::{IdMaps, Uid},
@@ -83,6 +84,7 @@ use super::{event_dispatch, event_sys_name, ServerEvent};
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<PoiseChangeEvent>(builder, &[]);
     event_dispatch::<HealthChangeEvent>(builder, &[]);
+    event_dispatch::<HelpDownedEvent>(builder, &[]);
     event_dispatch::<DownedEvent>(builder, &[&event_sys_name::<HealthChangeEvent>()]);
     event_dispatch::<KnockbackEvent>(builder, &[]);
     event_dispatch::<DestroyEvent>(builder, &[&event_sys_name::<HealthChangeEvent>()]);
@@ -96,6 +98,7 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<ComboChangeEvent>(builder, &[]);
     event_dispatch::<ParryHookEvent>(builder, &[]);
     event_dispatch::<TeleportToEvent>(builder, &[]);
+    event_dispatch::<UpdateEntityInteractPositionEvent>(builder, &[]);
     event_dispatch::<EntityAttackedHookEvent>(builder, &[]);
     event_dispatch::<ChangeAbilityEvent>(builder, &[]);
     event_dispatch::<UpdateMapMarkerEvent>(builder, &[]);
@@ -306,6 +309,32 @@ impl ServerEvent for HealthChangeEvent {
             if damage > 5.0 {
                 if let Some(agent) = data.agents.get_mut(ev.entity) {
                     agent.inbox.push_back(AgentEvent::Hurt);
+                }
+            }
+        }
+    }
+}
+
+impl ServerEvent for HelpDownedEvent {
+    type SystemData<'a> = (
+        Read<'a, IdMaps>,
+        WriteStorage<'a, comp::CharacterState>,
+        WriteStorage<'a, comp::Health>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (id_maps, mut character_states, mut healths): Self::SystemData<'_>,
+    ) {
+        for ev in events {
+            if let Some(entity) = id_maps.uid_entity(ev.target) {
+                if let Some(mut health) = healths.get_mut(entity) {
+                    health.refresh_death_protection();
+                }
+                if let Some(mut character_state) = character_states.get_mut(entity)
+                    && matches!(*character_state, comp::CharacterState::Crawl)
+                {
+                    *character_state = CharacterState::Idle(Default::default());
                 }
             }
         }
@@ -2153,6 +2182,54 @@ impl ServerEvent for TeleportToEvent {
     }
 }
 
+impl ServerEvent for UpdateEntityInteractPositionEvent {
+    type SystemData<'a> = (
+        Read<'a, IdMaps>,
+        WriteStorage<'a, comp::CharacterState>,
+        ReadStorage<'a, Pos>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (id_maps, mut character_states, positions): Self::SystemData<'_>,
+    ) {
+        for ev in events {
+            let mut set_invalid = false;
+            if let Some(mut character_state) = character_states.get_mut(ev.entity)
+                && let CharacterState::Interact(interact_data) = &mut *character_state
+                && let interact::InteractKind::Entity { target, pos, kind } =
+                    &mut interact_data.static_data.interact
+            {
+                if let Some(target_entity) = id_maps.uid_entity(*target)
+                    && let Some(position) = positions.get(target_entity)
+                {
+                    *pos = position.0;
+
+                    match *kind {
+                        interact::EntityInteractKind::HelpDowned => {
+                            if !matches!(
+                                character_states.get(target_entity),
+                                Some(CharacterState::Crawl)
+                            ) {
+                                set_invalid = true;
+                            }
+                        },
+                    }
+                } else {
+                    set_invalid = true;
+                }
+            }
+
+            if set_invalid
+                && let Some(mut character_state) = character_states.get_mut(ev.entity)
+                && let CharacterState::Interact(interact_data) = &mut *character_state
+            {
+                interact_data.static_data.interact = interact::InteractKind::Invalid;
+            }
+        }
+    }
+}
+
 #[derive(SystemData)]
 pub struct EntityAttackedHookData<'a> {
     entities: Entities<'a>,
@@ -2202,7 +2279,7 @@ impl ServerEvent for EntityAttackedHookEvent {
                 // Interrupt sprite interaction and item use if any attack is applied to entity
                 if matches!(
                     *char_state,
-                    CharacterState::SpriteInteract(_) | CharacterState::UseItem(_)
+                    CharacterState::Interact(_) | CharacterState::UseItem(_)
                 ) {
                     let poise_state = comp::poise::PoiseState::Interrupted;
                     let was_wielded = char_state.is_wield();

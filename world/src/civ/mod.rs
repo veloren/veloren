@@ -1833,7 +1833,7 @@ fn walk_in_all_dirs(
             .enumerate()
             .find(|(_, n_dir)| **n_dir == dir)
         {
-            potential[dir_index] = Some((p, 0.0));
+            potential[dir_index] = Some((p, (p - a).map(|e| e.abs()).reduce_max() as f32));
         }
     }
 
