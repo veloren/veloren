@@ -199,7 +199,10 @@ impl Health {
 
     pub fn should_die(&self) -> bool { self.current == 0 }
 
-    pub fn kill(&mut self) { self.current = 0; }
+    pub fn kill(&mut self) {
+        self.current = 0;
+        self.death_protection_active = false;
+    }
 
     pub fn revive(&mut self) {
         self.current = self.maximum;
