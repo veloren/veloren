@@ -667,7 +667,8 @@ fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
 
 /// Try to heal self if our damage went below a certain threshold
 fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
-    if bdata.agent_data.damage < HEALING_ITEM_THRESHOLD
+    if bdata.agent_data.char_state.can_use_item()
+        && bdata.agent_data.damage < HEALING_ITEM_THRESHOLD
         && bdata
             .agent_data
             .heal_self(bdata.agent, bdata.controller, false)
@@ -796,10 +797,19 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
             }
             let aggro_on = *aggro_on;
 
-            if agent_data.below_flee_health(agent) {
+            let (flee, flee_dur_mul) = match agent_data.char_state {
+                CharacterState::Crawl => {
+                    controller.push_action(ControlAction::Stand);
+
+                    (true, 5.0)
+                },
+                _ => (agent_data.below_flee_health(agent), 1.0),
+            };
+
+            if flee {
                 let flee_timer_done = agent.behavior_state.timers
                     [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize]
-                    > FLEE_DURATION;
+                    > FLEE_DURATION * flee_dur_mul;
                 let within_normal_flee_dir_dist = dist_sqrd < NORMAL_FLEE_DIR_DIST.powi(2);
 
                 // FIXME: Using action state timer to see if allowed to speak is a hack.

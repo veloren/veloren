@@ -223,6 +223,54 @@ impl CharacterState {
         )
     }
 
+    pub fn can_use_item(&self) -> bool {
+        match self {
+            CharacterState::Idle(_) => true,
+            CharacterState::Crawl => false,
+            CharacterState::Climb(_) => false,
+            CharacterState::Sit => true,
+            CharacterState::Dance => true,
+            CharacterState::Talk => true,
+            CharacterState::Pet(_) => true,
+            CharacterState::Glide(_) => false,
+            CharacterState::GlideWield(_) => true,
+            CharacterState::Stunned(_) => false,
+            CharacterState::BasicBlock(_) => false,
+            CharacterState::Equipping(_) => true,
+            CharacterState::Wielding(_) => true,
+            CharacterState::Roll(_) => false,
+            CharacterState::BasicMelee(_) => false,
+            CharacterState::BasicRanged(_) => false,
+            CharacterState::Boost(_) => false,
+            CharacterState::DashMelee(_) => false,
+            CharacterState::ComboMelee2(_) => false,
+            CharacterState::LeapMelee(_) => false,
+            CharacterState::LeapShockwave(_) => false,
+            CharacterState::ChargedRanged(_) => false,
+            CharacterState::ChargedMelee(_) => false,
+            CharacterState::RepeaterRanged(_) => false,
+            CharacterState::Shockwave(_) => false,
+            CharacterState::BasicBeam(_) => false,
+            CharacterState::BasicAura(_) => false,
+            CharacterState::StaticAura(_) => false,
+            CharacterState::Blink(_) => false,
+            CharacterState::BasicSummon(_) => false,
+            CharacterState::SelfBuff(_) => false,
+            CharacterState::SpriteSummon(_) => false,
+            CharacterState::UseItem(_) => false,
+            CharacterState::SpriteInteract(_) => false,
+            CharacterState::Wallrun(_) => false,
+            CharacterState::Skate(_) => false,
+            CharacterState::Music(_) => false,
+            CharacterState::FinisherMelee(_) => false,
+            CharacterState::DiveMelee(_) => false,
+            CharacterState::RiposteMelee(_) => false,
+            CharacterState::RapidMelee(_) => false,
+            CharacterState::Transform(_) => false,
+            CharacterState::RegrowHead(_) => false,
+        }
+    }
+
     pub fn was_wielded(&self) -> bool {
         match self {
             CharacterState::Roll(data) => data.was_wielded,

@@ -225,9 +225,8 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                                 self.closest_node = Some((node.clone(), h));
                             };
 
-                            // TODO: I think the if here should be removed
-                            // if we hadn't already visited, add this to potential nodes, what about
-                            // its neighbors, wouldn't they need to be revisted???
+                            // We don't need to reconsider already visited nodes as astar finds the
+                            // shortest path to a node the first time it's visited.
                             if !previously_visited {
                                 self.potential_nodes.push(PathEntry {
                                     cost_estimate,
