@@ -1770,9 +1770,15 @@ impl FigureMgr {
                             )
                         },
                         CharacterState::Crawl { .. } => {
-                            anim::character::SitAnimation::update_skeleton(
+                            anim::character::CrawlAnimation::update_skeleton(
                                 &target_base,
-                                (active_tool_kind, second_tool_kind, time),
+                                (
+                                    rel_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,

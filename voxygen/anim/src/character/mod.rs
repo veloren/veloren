@@ -3,6 +3,7 @@ pub mod boost;
 pub mod climb;
 pub mod collect;
 pub mod consume;
+pub mod crawl;
 pub mod dance;
 pub mod equip;
 pub mod glidewield;
@@ -37,6 +38,7 @@ pub use self::{
     climb::ClimbAnimation,
     collect::CollectAnimation,
     consume::ConsumeAnimation,
+    crawl::CrawlAnimation,
     dance::DanceAnimation,
     equip::EquipAnimation,
     glidewield::GlideWieldAnimation,
