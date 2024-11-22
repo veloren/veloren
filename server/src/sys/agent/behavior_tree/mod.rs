@@ -8,6 +8,7 @@ use common::{
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, CharacterState,
         ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
     },
+    consts::MAX_INTERACT_RANGE,
     path::TraversalConfig,
     rtsim::{NpcAction, RtSimEntity},
 };
@@ -102,6 +103,7 @@ impl BehaviorTree {
                 update_target_awareness,
                 search_last_known_pos_if_not_alert,
                 do_hostile_tree_if_hostile_and_aware,
+                do_save_allies,
                 do_pet_tree_if_owned,
                 do_pickup_loot,
                 do_idle_tree,
@@ -432,7 +434,56 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-// If too far away, then follow the target
+/// If there are nearby downed allies, save them.
+fn do_save_allies(bdata: &mut BehaviorData) -> bool {
+    if let Some(Target {
+        target,
+        hostile: false,
+        aggro_on: false,
+        ..
+    }) = bdata.agent.target
+    {
+        if matches!(
+            bdata.read_data.char_states.get(target),
+            Some(CharacterState::Crawl)
+        ) && bdata
+            .read_data
+            .healths
+            .get(target)
+            .is_some_and(|health| health.has_consumed_death_protection())
+            && let Some(target_pos) = bdata.read_data.positions.get(target)
+            && let Some(target_uid) = bdata.read_data.uids.get(target)
+        {
+            let dist_sqr = bdata.agent_data.pos.0.distance_squared(target_pos.0);
+            if dist_sqr < (MAX_INTERACT_RANGE * 0.5).powi(2) {
+                bdata.controller.push_action(ControlAction::InventoryAction(
+                    common::comp::InventoryAction::HelpDowned(*target_uid),
+                ));
+                bdata.agent.target = None;
+            } else if let Some((bearing, speed)) = bdata.agent.chaser.chase(
+                &*bdata.read_data.terrain,
+                bdata.agent_data.pos.0,
+                bdata.agent_data.vel.0,
+                target_pos.0,
+                TraversalConfig {
+                    min_tgt_dist: MAX_INTERACT_RANGE * 0.5,
+                    ..bdata.agent_data.traversal_config
+                },
+            ) {
+                bdata.controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
+                        * speed
+                            .min(0.2 + (dist_sqr - (MAX_INTERACT_RANGE * 0.5 - 0.5).powi(2)) / 8.0);
+                bdata.agent_data.jump_if(bearing.z > 1.5, bdata.controller);
+                bdata.controller.inputs.move_z = bearing.z;
+            }
+            return true;
+        }
+    }
+    false
+}
+
+/// If too far away, then follow the target
 fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
@@ -800,6 +851,11 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
             let (flee, flee_dur_mul) = match agent_data.char_state {
                 CharacterState::Crawl => {
                     controller.push_action(ControlAction::Stand);
+
+                    if agent.recieving_help {
+                        agent.recieving_help = false;
+                        return true;
+                    }
 
                     (true, 5.0)
                 },

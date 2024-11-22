@@ -962,7 +962,14 @@ impl<'a> AgentData<'a> {
                 if read_data.healths.get(entity).map_or(false, |health| {
                     !health.is_dead && !is_invulnerable(entity, read_data)
                 }) {
-                    Some((entity, true))
+                    let save_target = matches!(
+                        read_data.char_states.get(entity),
+                        Some(CharacterState::Crawl)
+                    ) && read_data
+                        .healths
+                        .get(entity)
+                        .is_some_and(|health| health.has_consumed_death_protection());
+                    Some((entity, !save_target))
                 } else {
                     None
                 }

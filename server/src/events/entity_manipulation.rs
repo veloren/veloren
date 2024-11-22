@@ -2186,12 +2186,13 @@ impl ServerEvent for UpdateEntityInteractPositionEvent {
     type SystemData<'a> = (
         Read<'a, IdMaps>,
         WriteStorage<'a, comp::CharacterState>,
+        WriteStorage<'a, comp::Agent>,
         ReadStorage<'a, Pos>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (id_maps, mut character_states, positions): Self::SystemData<'_>,
+        (id_maps, mut character_states, mut agents, positions): Self::SystemData<'_>,
     ) {
         for ev in events {
             let mut set_invalid = false;
@@ -2212,6 +2213,8 @@ impl ServerEvent for UpdateEntityInteractPositionEvent {
                                 Some(CharacterState::Crawl)
                             ) {
                                 set_invalid = true;
+                            } else if let Some(agent) = agents.get_mut(target_entity) {
+                                agent.recieving_help = true;
                             }
                         },
                     }
