@@ -30,7 +30,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     vol::RectVolSize,
 };
-use hashbrown::hash_map::DefaultHashBuilder;
+use hashbrown::DefaultHashBuilder;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use std::ops::Range;

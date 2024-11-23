@@ -64,7 +64,7 @@ client-i18n = { package = "veloren-client-i18n", path = "i18n", optional = true 
 serde = { workspace = true, features = ["rc"], optional = true }
 ron = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
-rustyline = { version = "14.0.0", optional = true }
+rustyline = { version = "15.0.0", optional = true }
 ## logging
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
 

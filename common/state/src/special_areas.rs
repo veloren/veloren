@@ -42,7 +42,7 @@ impl Areas {
     /// If the area_name is already in the map, returns Err(area_name).
     pub fn insert(&mut self, area_name: String, area: Aabb<i32>) -> Result<Id<Aabb<i32>>, String> {
         let area_name_entry = match self.area_names.entry(area_name) {
-            hash_map::Entry::Occupied(o) => return Err(o.replace_key()),
+            hash_map::Entry::Occupied(o) => return Err(o.key().to_string()),
             hash_map::Entry::Vacant(v) => v,
         };
         let bb_id = self.areas.insert(area.made_valid());

@@ -101,7 +101,7 @@ vek = { workspace = true }
 levenshtein = "1.0.5"
 
 # Controller
-gilrs = { version = "0.10.0", features = ["serde-serialize"] }
+gilrs = { version = "0.11.0", features = ["serde-serialize"] }
 
 # Singleplayer
 server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = [
@@ -137,7 +137,7 @@ rand_chacha = { workspace = true }
 rayon = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
-serde_with = { version = "3.9.0", features = ["hashbrown_0_14"] }
+serde_with = { version = "3.11.0", features = ["hashbrown_0_15"] }
 slab = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }
