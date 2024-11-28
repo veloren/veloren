@@ -202,7 +202,7 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::Bowl
             | SpriteKind::PotionMinor
             | SpriteKind::Seashells
-            | SpriteKind::Bomb 
+            | SpriteKind::Bomb
             | SpriteKind::SnowPebbles => Some(SpriteInteractKind::Collectible),
             SpriteKind::Keyhole
             | SpriteKind::BoneKeyhole

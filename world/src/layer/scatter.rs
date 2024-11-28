@@ -594,6 +594,22 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             },
         },
         ScatterConfig {
+            kind: TallSnowGrass,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow),
+            f: |_, col| {
+                (
+                    close(col.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.5,
+                    )) * GRASS_FACT
+                        * 25.0,
+                    Some((0.0, 48.0, 0.2)),
+                )
+            },
+        },
+        ScatterConfig {
             kind: Moonbell,
             water_mode: Ground,
             permit: |b| matches!(b, BlockKind::Grass),

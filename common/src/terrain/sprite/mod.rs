@@ -240,6 +240,7 @@ sprites! {
         SnowBush         = 0x83,
         SnowPebbles      = 0x84,
         GrassSnow2       = 0x85,
+        TallSnowGrass    = 0x86,
     },
     // Solid resources
     // TODO: Remove small variants, make deposit size be an attribute
