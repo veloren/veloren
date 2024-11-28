@@ -513,7 +513,7 @@ impl SpriteKind {
             SpriteKind::SpinningWheel => 1.6,
             SpriteKind::TanningRack => 2.2,
             SpriteKind::Loom => 1.27,
-            SpriteKind::Anvil => 1.1,
+            SpriteKind::Anvil => 1.18,
             SpriteKind::CookingPot => 1.36,
             SpriteKind::DismantlingBench => 1.18,
             SpriteKind::IceSpike => 1.0,
