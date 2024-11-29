@@ -330,13 +330,6 @@ sprites! {
         TerracottaStatue = 0x46,
         TerracottaBlock = 0x47,
         MetalChain = 0x48,
-        // Fences
-        // TODO: remove different shapes, make part of the `Adjacency` attribute
-        FenceI = 0x50,
-        FenceL = 0x51,
-        FenceT = 0x52,
-        FenceX = 0x53,
-        FenceEnd = 0x54,
     },
     // Decorative items, both natural and artificial
     Decor = 7 has Ori {
@@ -398,6 +391,9 @@ sprites! {
         Barrel            = 0x0E,
         CrateBlock        = 0x0F,
     },
+    Modular = 10 has Ori, AdjacentType {
+        Fence = 0x00,
+    }
 }
 
 attributes! {
@@ -406,6 +402,7 @@ attributes! {
     LightEnabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightEnabled(x)| x as u16 },
     Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
     Owned { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |Owned(x)| x as u16 },
+    AdjacentType { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |AdjacentType(x)| x as u16 },
 }
 
 // The orientation of the sprite, 0..16
@@ -430,6 +427,26 @@ pub struct Owned(pub bool);
 impl Default for LightEnabled {
     fn default() -> Self { Self(true) }
 }
+
+/*
+an "enum" to determine the exact sprite for AdjacentType sprites
+Relative Neighbor Position:
+I - straight - 0
+L - corner - 1
+T - junction - 2
+X - intersection - 3
+End - single connection - 4
+*/
+
+// Whether it has neighboring blocks of the same type, slots 0..4
+// (left/right/up/down)
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct AdjacentType(pub u8);
+
+impl Default for AdjacentType {
+    fn default() -> Self { Self(15) }
+}
+
 // Damage of an ore
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub struct Damage(pub u8);
@@ -465,11 +482,7 @@ impl SpriteKind {
             SpriteKind::TerracottaChest => 1.09,
             SpriteKind::TerracottaStatue => 5.29,
             SpriteKind::TerracottaBlock => 1.00,
-            SpriteKind::FenceI => 1.00,
-            SpriteKind::FenceL => 1.00,
-            SpriteKind::FenceT => 1.00,
-            SpriteKind::FenceX => 1.00,
-            SpriteKind::FenceEnd => 1.00,
+            SpriteKind::Fence => 1.00,
             SpriteKind::SeaDecorChain => 1.09,
             SpriteKind::SeaDecorBlock => 1.00,
             SpriteKind::SeaDecorWindowHor => 0.55,

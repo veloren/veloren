@@ -688,6 +688,13 @@ impl Block {
     #[must_use]
     pub fn with_ori(self, ori: u8) -> Option<Self> { self.with_attr(sprite::Ori(ori)).ok() }
 
+    /// If this block can have adjacent sprites, give it its AdjacentType
+    #[inline]
+    #[must_use]
+    pub fn with_adjacent_type(self, adj: u8) -> Option<Self> {
+        self.with_attr(sprite::AdjacentType(adj)).ok()
+    }
+
     /// Remove the terrain sprite or solid aspects of a block
     #[inline]
     #[must_use]

@@ -64,7 +64,8 @@ macro_rules! impl_sprite_attribute_filter {
 impl_sprite_attribute_filter!(
     Growth growth_stage = |filter: Range<u8>, growth| { filter.contains(&growth.0) },
     LightEnabled light_enabled = |filter: bool, light_enabled| { *filter == light_enabled.0 },
-    Damage damage = |filter: Range<u8>, damage| { filter.contains(&damage.0) }
+    Damage damage = |filter: Range<u8>, damage| { filter.contains(&damage.0) },
+    AdjacentType adjacent_type = |filter: u8, adjacent_type| { *filter == adjacent_type.0 },
 );
 
 /// Configuration data for a group of sprites (currently associated with a
