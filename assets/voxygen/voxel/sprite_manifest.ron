@@ -1604,7 +1604,7 @@ Fence: [
             ),
         ],
         wind_sway: 0.0,
-        filter: (adjacent_type: 0),
+        filter: (adjacent_type: I),
     ),
     (
         variations: [
@@ -1615,7 +1615,7 @@ Fence: [
             ),
         ],
         wind_sway: 0.0,
-        filter: (adjacent_type: 1),
+        filter: (adjacent_type: L),
     ),
     (
         variations: [
@@ -1626,7 +1626,7 @@ Fence: [
             ),
         ],
         wind_sway: 0.0,
-        filter: (adjacent_type: 2),
+        filter: (adjacent_type: T),
     ),
     (
         variations: [
@@ -1637,7 +1637,7 @@ Fence: [
             ),
         ],
         wind_sway: 0.0,
-        filter: (adjacent_type: 3),
+        filter: (adjacent_type: X),
     ),
     (
         variations: [
@@ -1648,7 +1648,7 @@ Fence: [
             ),
         ],
         wind_sway: 0.0,
-        filter: (adjacent_type: 4),
+        filter: (adjacent_type: End),
     ),
 ],
 MyrmidonKeyDoor: [(

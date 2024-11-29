@@ -1,6 +1,9 @@
 use super::*;
 use crate::{ColumnSample, Land};
-use common::terrain::{sprite::Owned, Block, BlockKind, SpriteKind};
+use common::terrain::{
+    sprite::{Owned, RelativeNeighborPosition},
+    Block, BlockKind, SpriteKind,
+};
 use rand::prelude::*;
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
@@ -206,7 +209,11 @@ impl Structure for FarmField {
             ))
         } else if z_off == 1 && is_bounds {
             // fence
-            let adjacent_type = if is_corner { 1 } else { 0 };
+            let adjacent_type = if is_corner {
+                RelativeNeighborPosition::L
+            } else {
+                RelativeNeighborPosition::I
+            };
 
             let ori = if !is_corner {
                 // for straight - "I"

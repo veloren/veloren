@@ -1,4 +1,7 @@
-use super::{sprite, SpriteKind};
+use super::{
+    sprite::{self, RelativeNeighborPosition},
+    SpriteKind,
+};
 use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
@@ -691,8 +694,8 @@ impl Block {
     /// If this block can have adjacent sprites, give it its AdjacentType
     #[inline]
     #[must_use]
-    pub fn with_adjacent_type(self, adj: u8) -> Option<Self> {
-        self.with_attr(sprite::AdjacentType(adj)).ok()
+    pub fn with_adjacent_type(self, adj: RelativeNeighborPosition) -> Option<Self> {
+        self.with_attr(sprite::AdjacentType(adj as u8)).ok()
     }
 
     /// Remove the terrain sprite or solid aspects of a block

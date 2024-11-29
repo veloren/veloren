@@ -402,7 +402,7 @@ attributes! {
     LightEnabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightEnabled(x)| x as u16 },
     Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
     Owned { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |Owned(x)| x as u16 },
-    AdjacentType { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |AdjacentType(x)| x as u16 },
+    AdjacentType { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |AdjacentType(x)| x as u16 },
 }
 
 // The orientation of the sprite, 0..16
@@ -428,23 +428,31 @@ impl Default for LightEnabled {
     fn default() -> Self { Self(true) }
 }
 
-/*
-an "enum" to determine the exact sprite for AdjacentType sprites
-Relative Neighbor Position:
-I - straight - 0
-L - corner - 1
-T - junction - 2
-X - intersection - 3
-End - single connection - 4
-*/
+/** Relative Neighbor Position:
+    an enum to determine the exact sprite for AdjacentType sprites
+    I - Straight - 0
+    L - Corner - 1
+    T - Junction - 2
+    X - Intersection - 3
+    End - single connection - 4
+**/
 
-// Whether it has neighboring blocks of the same type, slots 0..4
-// (left/right/up/down)
+#[derive(Default, Copy, Clone, Debug, PartialEq, Eq, Deserialize, FromPrimitive, Hash)]
+#[repr(u8)]
+pub enum RelativeNeighborPosition {
+    #[default]
+    I,
+    L,
+    T,
+    X,
+    End,
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct AdjacentType(pub u8);
 
 impl Default for AdjacentType {
-    fn default() -> Self { Self(15) }
+    fn default() -> Self { Self(RelativeNeighborPosition::I as u8) }
 }
 
 // Damage of an ore
@@ -482,7 +490,7 @@ impl SpriteKind {
             SpriteKind::TerracottaChest => 1.09,
             SpriteKind::TerracottaStatue => 5.29,
             SpriteKind::TerracottaBlock => 1.00,
-            SpriteKind::Fence => 1.00,
+            SpriteKind::Fence => 1.09,
             SpriteKind::SeaDecorChain => 1.09,
             SpriteKind::SeaDecorBlock => 1.00,
             SpriteKind::SeaDecorWindowHor => 0.55,
