@@ -21,7 +21,11 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_wield(data, &mut update);
+        if self.was_wielded {
+            attempt_input(data, output_events, &mut update);
+        } else {
+            handle_wield(data, &mut update);
+        }
         handle_jump(data, output_events, &mut update, 1.0);
         handle_climb(data, &mut update);
 
