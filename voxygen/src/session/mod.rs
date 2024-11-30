@@ -1099,10 +1099,8 @@ impl PlayState for SessionState {
                                                         .read_storage::<comp::CharacterState>()
                                                         .get(*entity),
                                                     Some(comp::CharacterState::Crawl)
-                                                ) && let Some(uid) =
-                                                    client.state().ecs().uid_from_entity(*entity)
-                                                {
-                                                    client.help_downed(uid);
+                                                ) {
+                                                    client.help_downed(*entity);
                                                 } else if client
                                                     .state()
                                                     .ecs()

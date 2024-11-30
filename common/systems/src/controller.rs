@@ -6,8 +6,9 @@ use common::{
     },
     event::{self, EmitExt},
     event_emitters,
+    interaction::Interaction,
     terrain::TerrainGrid,
-    uid::IdMaps,
+    uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{shred, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage};
@@ -32,6 +33,7 @@ event_emitters! {
         change_stance: event::ChangeStanceEvent,
         start_teleporting: event::StartTeleportingEvent,
         buff: event::BuffEvent,
+        start_interaction: event::StartInteractionEvent,
     }
 }
 
@@ -45,6 +47,7 @@ pub struct ReadData<'a> {
     bodies: ReadStorage<'a, Body>,
     scales: ReadStorage<'a, Scale>,
     colliders: ReadStorage<'a, Collider>,
+    uids: ReadStorage<'a, Uid>,
 }
 
 #[derive(Default)]
@@ -159,6 +162,15 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::ActivatePortal(portal_uid) => {
                         if let Some(portal) = read_data.id_maps.uid_entity(portal_uid) {
                             emitters.emit(event::StartTeleportingEvent { entity, portal });
+                        }
+                    },
+                    ControlEvent::InteractWith { target, kind } => {
+                        if let Some(uid) = read_data.uids.get(entity) {
+                            emitters.emit(event::StartInteractionEvent(Interaction {
+                                interactor: *uid,
+                                target,
+                                kind,
+                            }));
                         }
                     },
                 }

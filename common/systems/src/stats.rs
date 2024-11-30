@@ -118,7 +118,6 @@ impl<'a> System<'a> for Sys {
                 CharacterState::Idle(_)
                 | CharacterState::Talk
                 | CharacterState::Dance
-                | CharacterState::Pet(_)
                 | CharacterState::Skate(_)
                 | CharacterState::Glide(_)
                 | CharacterState::GlideWield(_)

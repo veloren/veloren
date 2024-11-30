@@ -24,7 +24,6 @@ pub mod interact;
 pub mod leap_melee;
 pub mod leap_shockwave;
 pub mod music;
-pub mod pet;
 pub mod rapid_melee;
 pub mod regrow_head;
 pub mod repeater_ranged;

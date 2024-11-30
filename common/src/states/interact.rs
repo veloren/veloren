@@ -4,11 +4,8 @@ use crate::{
         character_state::OutputEvents, controller::InputKind, item::ItemDefinitionIdOwned,
         slot::InvSlotId, CharacterState, InventoryManip, StateUpdate,
     },
-    consts::MAX_ACTIVE_INTERACT_RANGE,
-    event::{
-        HelpDownedEvent, InventoryManipEvent, LocalEvent, ToggleSpriteLightEvent,
-        UpdateEntityInteractPositionEvent,
-    },
+    consts::MAX_INTERACT_RANGE,
+    event::{HelpDownedEvent, InventoryManipEvent, LocalEvent, ToggleSpriteLightEvent},
     outcome::Outcome,
     states::behavior::{CharacterBehavior, JoinData},
     terrain::SpriteKind,
@@ -65,16 +62,24 @@ impl CharacterBehavior for Data {
                     end_ability(data, &mut update);
                     break 'logic;
                 },
-                InteractKind::Entity { pos, .. } => {
-                    output_events.emit_server(UpdateEntityInteractPositionEvent {
-                        entity: data.entity,
-                    });
-                    *pos
+                InteractKind::Entity { target, .. } => {
+                    if let Some(pos) = data
+                        .id_maps
+                        .uid_entity(*target)
+                        .and_then(|target| data.prev_phys_caches.get(target))
+                        .and_then(|prev| prev.pos)
+                    {
+                        pos.0
+                    } else {
+                        // Not a valid target. We end the state.
+                        end_ability(data, &mut update);
+                        break 'logic;
+                    }
                 },
                 InteractKind::Sprite { pos, .. } => pos.as_() + 0.5,
             };
 
-            if interact_pos.distance_squared(data.pos.0) > MAX_ACTIVE_INTERACT_RANGE.powi(2) {
+            if interact_pos.distance_squared(data.pos.0) > MAX_INTERACT_RANGE.powi(2) {
                 end_ability(data, &mut update);
                 break 'logic;
             }
@@ -143,9 +148,10 @@ impl CharacterBehavior for Data {
                             match self.static_data.interact {
                                 InteractKind::Invalid => unreachable!(),
                                 InteractKind::Entity { target, kind, .. } => match kind {
-                                    EntityInteractKind::HelpDowned => {
+                                    crate::interaction::InteractionKind::HelpDowned => {
                                         output_events.emit_server(HelpDownedEvent { target });
                                     },
+                                    crate::interaction::InteractionKind::Pet => {},
                                 },
                                 InteractKind::Sprite { pos, kind } => {
                                     let inv_manip = InventoryManip::Collect {
@@ -201,8 +207,7 @@ pub enum InteractKind {
     Invalid,
     Entity {
         target: Uid,
-        pos: Vec3<f32>,
-        kind: EntityInteractKind,
+        kind: crate::interaction::InteractionKind,
     },
     Sprite {
         // TODO: This could be `VolumePos` in the future.
@@ -211,18 +216,18 @@ pub enum InteractKind {
     },
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum EntityInteractKind {
-    HelpDowned,
-}
-
-impl EntityInteractKind {
+impl crate::interaction::InteractionKind {
     pub fn durations(&self) -> (Duration, Duration, Duration) {
         match self {
             Self::HelpDowned => (
                 Duration::from_secs_f32(0.5),
                 Duration::from_secs_f32(4.0),
                 Duration::from_secs_f32(0.5),
+            ),
+            Self::Pet => (
+                Duration::from_secs_f32(0.0),
+                Duration::from_secs_f32(3.0),
+                Duration::from_secs_f32(0.0),
             ),
         }
     }

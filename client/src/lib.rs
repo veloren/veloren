@@ -1477,7 +1477,10 @@ impl Client {
         }
 
         if let Some(target_uid) = self.state.read_component_copied(target_entity) {
-            self.control_action(ControlAction::Pet { target_uid });
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InteractWith {
+                target: target_uid,
+                kind: common::interaction::InteractionKind::Pet,
+            }))
         }
     }
 
@@ -1731,10 +1734,17 @@ impl Client {
         ));
     }
 
-    pub fn help_downed(&mut self, target: Uid) {
-        self.control_action(ControlAction::InventoryAction(InventoryAction::HelpDowned(
-            target,
-        )));
+    pub fn help_downed(&mut self, target_entity: EcsEntity) {
+        if self.is_dead() {
+            return;
+        }
+
+        if let Some(target_uid) = self.state.read_component_copied(target_entity) {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InteractWith {
+                target: target_uid,
+                kind: common::interaction::InteractionKind::HelpDowned,
+            }))
+        }
     }
 
     pub fn remove_buff(&mut self, buff_id: BuffKind) {

@@ -24,7 +24,6 @@ use crate::{
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
     terrain::{Block, TerrainGrid, UnlockKind},
-    uid::Uid,
     util::Dir,
     vol::ReadVol,
 };
@@ -916,27 +915,6 @@ pub fn can_perform_pet(position: Pos, target_position: Pos, target_alignment: Al
     within_distance && valid_alignment
 }
 
-pub fn attempt_pet(data: &JoinData<'_>, update: &mut StateUpdate, target_uid: Uid) {
-    let can_pet = data
-        .id_maps
-        .uid_entity(target_uid)
-        .and_then(|target_entity| {
-            data.prev_phys_caches
-                .get(target_entity)
-                .and_then(|prev_phys| prev_phys.pos)
-                .zip(data.alignments.get(target_entity))
-        })
-        .map_or(false, |(target_position, target_alignment)| {
-            can_perform_pet(*data.pos, target_position, *target_alignment)
-        });
-
-    if can_pet && data.physics.on_ground.is_some() && data.body.is_humanoid() {
-        update.character = CharacterState::Pet(pet::Data {
-            static_data: pet::StaticData { target_uid },
-        });
-    }
-}
-
 pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() {
         update.character = CharacterState::Talk;
@@ -1242,29 +1220,6 @@ pub fn handle_manipulate_loadout(
                     stage_section: StageSection::Buildup,
                 });
             }
-        },
-        InventoryAction::HelpDowned(target) => {
-            let entity_interact = interact::EntityInteractKind::HelpDowned;
-
-            let (buildup_duration, use_duration, recover_duration) = entity_interact.durations();
-            update.character = CharacterState::Interact(interact::Data {
-                static_data: interact::StaticData {
-                    buildup_duration,
-                    use_duration,
-                    recover_duration,
-                    interact: interact::InteractKind::Entity {
-                        target,
-                        // Temporarily set it to own position. This will be updated eventually.
-                        pos: data.pos.0,
-                        kind: entity_interact,
-                    },
-                    was_wielded: data.character.is_wield(),
-                    was_sneak: data.character.is_stealthy(),
-                    required_item: None,
-                },
-                timer: Duration::default(),
-                stage_section: StageSection::Buildup,
-            });
         },
     }
 }

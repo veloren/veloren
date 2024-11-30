@@ -9,6 +9,7 @@ use common::{
         ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
     },
     consts::MAX_INTERACT_RANGE,
+    interaction::InteractionKind,
     path::TraversalConfig,
     rtsim::{NpcAction, RtSimEntity},
 };
@@ -456,9 +457,10 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
         {
             let dist_sqr = bdata.agent_data.pos.0.distance_squared(target_pos.0);
             if dist_sqr < (MAX_INTERACT_RANGE * 0.5).powi(2) {
-                bdata.controller.push_action(ControlAction::InventoryAction(
-                    common::comp::InventoryAction::HelpDowned(*target_uid),
-                ));
+                bdata.controller.push_event(ControlEvent::InteractWith {
+                    target: *target_uid,
+                    kind: common::interaction::InteractionKind::HelpDowned,
+                });
                 bdata.agent.target = None;
             } else if let Some((bearing, speed)) = bdata.agent.chaser.chase(
                 &*bdata.read_data.terrain,
@@ -718,7 +720,7 @@ fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
 
 /// Try to heal self if our damage went below a certain threshold
 fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
-    if bdata.agent_data.char_state.can_use_item()
+    if bdata.agent_data.char_state.can_interact()
         && bdata.agent_data.damage < HEALING_ITEM_THRESHOLD
         && bdata
             .agent_data
@@ -852,8 +854,12 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                 CharacterState::Crawl => {
                     controller.push_action(ControlAction::Stand);
 
-                    if agent.recieving_help {
-                        agent.recieving_help = false;
+                    // Stay still if we're being helped up.
+                    if let Some(interactors) = read_data.interactors.get(*agent_data.entity)
+                        && interactors.iter().any(|interaction| {
+                            matches!(interaction.kind, InteractionKind::HelpDowned)
+                        })
+                    {
                         return true;
                     }
 

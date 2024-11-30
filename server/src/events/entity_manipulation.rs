@@ -42,9 +42,9 @@ use common::{
         DeleteEvent, DestroyEvent, DownedEvent, EmitExt, Emitter, EnergyChangeEvent,
         EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, HelpDownedEvent,
         KnockbackEvent, LandOnGroundEvent, MakeAdminEvent, ParryHookEvent, PoiseChangeEvent,
-        RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartTeleportingEvent,
-        TeleportToEvent, TeleportToPositionEvent, TransformEvent,
-        UpdateEntityInteractPositionEvent, UpdateMapMarkerEvent,
+        RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartInteractionEvent,
+        StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent, TransformEvent,
+        UpdateMapMarkerEvent,
     },
     event_emitters,
     generation::{EntityConfig, EntityInfo},
@@ -54,7 +54,7 @@ use common::{
     outcome::{HealthChangeInfo, Outcome},
     resources::{EntitiesDiedLastTick, ProgramTime, Secs, Time},
     spiral::Spiral2d,
-    states::{interact, utils::StageSection},
+    states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     trade::{TradeResult, Trades},
     uid::{IdMaps, Uid},
@@ -98,7 +98,6 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<ComboChangeEvent>(builder, &[]);
     event_dispatch::<ParryHookEvent>(builder, &[]);
     event_dispatch::<TeleportToEvent>(builder, &[]);
-    event_dispatch::<UpdateEntityInteractPositionEvent>(builder, &[]);
     event_dispatch::<EntityAttackedHookEvent>(builder, &[]);
     event_dispatch::<ChangeAbilityEvent>(builder, &[]);
     event_dispatch::<UpdateMapMarkerEvent>(builder, &[]);
@@ -2182,57 +2181,6 @@ impl ServerEvent for TeleportToEvent {
     }
 }
 
-impl ServerEvent for UpdateEntityInteractPositionEvent {
-    type SystemData<'a> = (
-        Read<'a, IdMaps>,
-        WriteStorage<'a, comp::CharacterState>,
-        WriteStorage<'a, comp::Agent>,
-        ReadStorage<'a, Pos>,
-    );
-
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (id_maps, mut character_states, mut agents, positions): Self::SystemData<'_>,
-    ) {
-        for ev in events {
-            let mut set_invalid = false;
-            if let Some(mut character_state) = character_states.get_mut(ev.entity)
-                && let CharacterState::Interact(interact_data) = &mut *character_state
-                && let interact::InteractKind::Entity { target, pos, kind } =
-                    &mut interact_data.static_data.interact
-            {
-                if let Some(target_entity) = id_maps.uid_entity(*target)
-                    && let Some(position) = positions.get(target_entity)
-                {
-                    *pos = position.0;
-
-                    match *kind {
-                        interact::EntityInteractKind::HelpDowned => {
-                            if !matches!(
-                                character_states.get(target_entity),
-                                Some(CharacterState::Crawl)
-                            ) {
-                                set_invalid = true;
-                            } else if let Some(agent) = agents.get_mut(target_entity) {
-                                agent.recieving_help = true;
-                            }
-                        },
-                    }
-                } else {
-                    set_invalid = true;
-                }
-            }
-
-            if set_invalid
-                && let Some(mut character_state) = character_states.get_mut(ev.entity)
-                && let CharacterState::Interact(interact_data) = &mut *character_state
-            {
-                interact_data.static_data.interact = interact::InteractKind::Invalid;
-            }
-        }
-    }
-}
-
 #[derive(SystemData)]
 pub struct EntityAttackedHookData<'a> {
     entities: Entities<'a>,
@@ -2574,6 +2522,41 @@ impl ServerEvent for StartTeleportingEvent {
     }
 }
 
+impl ServerEvent for RegrowHeadEvent {
+    type SystemData<'a> = (
+        Read<'a, EventBus<HealthChangeEvent>>,
+        Read<'a, Time>,
+        WriteStorage<'a, Heads>,
+        ReadStorage<'a, Health>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (health_change_events, time, mut heads, healths): Self::SystemData<'_>,
+    ) {
+        let mut health_change_emitter = health_change_events.emitter();
+        for ev in events {
+            if let Some(mut heads) = heads.get_mut(ev.entity)
+                && heads.regrow_oldest()
+                && let Some(health) = healths.get(ev.entity)
+            {
+                let amount = 1.0 / (heads.capacity() as f32) * health.maximum();
+                health_change_emitter.emit(HealthChangeEvent {
+                    entity: ev.entity,
+                    change: comp::HealthChange {
+                        amount,
+                        by: None,
+                        cause: Some(DamageSource::Other),
+                        time: *time,
+                        precise: false,
+                        instance: rand::random(),
+                    },
+                })
+            }
+        }
+    }
+}
+
 pub fn handle_transform(
     server: &mut Server,
     TransformEvent {
@@ -2781,37 +2764,13 @@ pub fn transform_entity(
     Ok(())
 }
 
-impl ServerEvent for RegrowHeadEvent {
-    type SystemData<'a> = (
-        Read<'a, EventBus<HealthChangeEvent>>,
-        Read<'a, Time>,
-        WriteStorage<'a, Heads>,
-        ReadStorage<'a, Health>,
-    );
-
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (health_change_events, time, mut heads, healths): Self::SystemData<'_>,
-    ) {
-        let mut health_change_emitter = health_change_events.emitter();
-        for ev in events {
-            if let Some(mut heads) = heads.get_mut(ev.entity)
-                && heads.regrow_oldest()
-                && let Some(health) = healths.get(ev.entity)
-            {
-                let amount = 1.0 / (heads.capacity() as f32) * health.maximum();
-                health_change_emitter.emit(HealthChangeEvent {
-                    entity: ev.entity,
-                    change: comp::HealthChange {
-                        amount,
-                        by: None,
-                        cause: Some(DamageSource::Other),
-                        time: *time,
-                        precise: false,
-                        instance: rand::random(),
-                    },
-                })
-            }
-        }
+pub fn handle_start_interaction(
+    server: &mut Server,
+    StartInteractionEvent(interaction): StartInteractionEvent,
+) {
+    let i = interaction.interactor;
+    let t = interaction.target;
+    if let Err(e) = server.state.link(interaction) {
+        error!("Error trying to start interaction between {i:?} and {t:?}: {e:?}");
     }
 }

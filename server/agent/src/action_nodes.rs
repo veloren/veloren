@@ -29,6 +29,7 @@ use common::{
     consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
     event::{ChatEvent, EmitExt, SoundEvent},
+    interaction::InteractionKind,
     mounting::VolumePos,
     path::TraversalConfig,
     rtsim::NpcActivity,
@@ -465,13 +466,12 @@ impl<'a> AgentData<'a> {
 
             let owner = owner_uid.and_then(|owner_uid| get_entity_by_id(*owner_uid, read_data));
 
-            let is_being_pet = owner
-                .and_then(|owner| read_data.char_states.get(owner))
-                .map_or(false, |char_state| match char_state {
-                    CharacterState::Pet(petting_data) => {
-                        petting_data.static_data.target_uid == *self.uid
-                    },
-                    _ => false,
+            let is_being_pet = read_data
+                .interactors
+                .get(*self.entity)
+                .and_then(|interactors| interactors.get(*owner_uid?))
+                .map_or(false, |interaction| {
+                    matches!(interaction.kind, InteractionKind::Pet)
                 });
 
             let is_in_range = owner
@@ -969,7 +969,18 @@ impl<'a> AgentData<'a> {
                         .healths
                         .get(entity)
                         .is_some_and(|health| health.has_consumed_death_protection());
-                    Some((entity, !save_target))
+
+                    let wants_to_save = match (self.alignment, read_data.alignments.get(entity)) {
+                        (_, Some(Alignment::Owned(owner))) => owner == self.uid,
+                        (Some(Alignment::Npc), Some(Alignment::Npc | Alignment::Tame)) => true,
+                        // Npcs generally do want to save players. Could have extra checks for
+                        // sentiment in the future.
+                        (Some(Alignment::Npc), None) => true,
+                        (Some(Alignment::Enemy), Some(Alignment::Enemy)) => true,
+                        _ => false,
+                    } && agent.allowed_to_speak();
+
+                    Some((entity, !(save_target && wants_to_save)))
                 } else {
                     None
                 }

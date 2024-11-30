@@ -46,7 +46,6 @@ pub enum InventoryAction {
     // TODO: Not actually inventory-related: refactor to allow sprite & entity interaction without
     // inventory manipulation!
     ToggleSpriteLight(VolumePos, bool),
-    HelpDowned(Uid),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -171,6 +170,10 @@ pub enum ControlEvent {
         new_ability: ability::AuxiliaryAbility,
     },
     ActivatePortal(Uid),
+    InteractWith {
+        target: Uid,
+        kind: crate::interaction::InteractionKind,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -183,9 +186,6 @@ pub enum ControlAction {
     Sit,
     Crawl,
     Dance,
-    Pet {
-        target_uid: Uid,
-    },
     Sneak,
     Stand,
     Talk,

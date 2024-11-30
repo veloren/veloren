@@ -54,14 +54,6 @@ pub trait CharacterBehavior {
     fn dance(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
-    fn pet(
-        &self,
-        data: &JoinData,
-        _output_events: &mut OutputEvents,
-        _target_uid: Uid,
-    ) -> StateUpdate {
-        StateUpdate::from(data)
-    }
     fn sneak(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
@@ -109,7 +101,6 @@ pub trait CharacterBehavior {
             ControlAction::Sit => self.sit(data, output_events),
             ControlAction::Crawl => self.crawl(data, output_events),
             ControlAction::Dance => self.dance(data, output_events),
-            ControlAction::Pet { target_uid } => self.pet(data, output_events, target_uid),
             ControlAction::Sneak => {
                 if data.mount_data.is_none() && data.volume_mount_data.is_none() {
                     self.sneak(data, output_events)

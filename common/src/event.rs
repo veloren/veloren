@@ -9,6 +9,7 @@ use crate::{
         DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
     },
     generation::{EntityInfo, SpecialEntity},
+    interaction::Interaction,
     lottery::LootSpec,
     mounting::VolumePos,
     outcome::Outcome,
@@ -305,6 +306,8 @@ pub struct TransformEvent {
     pub delete_on_failure: bool,
 }
 
+pub struct StartInteractionEvent(pub Interaction);
+
 pub struct InitializeCharacterEvent {
     pub entity: EcsEntity,
     pub character_id: CharacterId,
@@ -378,10 +381,6 @@ pub struct TeleportToEvent {
     pub entity: EcsEntity,
     pub target: Uid,
     pub max_range: Option<f32>,
-}
-
-pub struct UpdateEntityInteractPositionEvent {
-    pub entity: EcsEntity,
 }
 
 pub struct CreateSafezoneEvent {
@@ -585,7 +584,6 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<RequestSiteInfoEvent>::default());
     ecs.insert(EventBus::<MineBlockEvent>::default());
     ecs.insert(EventBus::<TeleportToEvent>::default());
-    ecs.insert(EventBus::<UpdateEntityInteractPositionEvent>::default());
     ecs.insert(EventBus::<CreateSafezoneEvent>::default());
     ecs.insert(EventBus::<SoundEvent>::default());
     ecs.insert(EventBus::<CreateSpriteEvent>::default());
@@ -602,6 +600,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<StartTeleportingEvent>::default());
     ecs.insert(EventBus::<ToggleSpriteLightEvent>::default());
     ecs.insert(EventBus::<TransformEvent>::default());
+    ecs.insert(EventBus::<StartInteractionEvent>::default());
     ecs.insert(EventBus::<RequestPluginsEvent>::default());
     ecs.insert(EventBus::<CreateAuraEntityEvent>::default());
     ecs.insert(EventBus::<RegrowHeadEvent>::default());
