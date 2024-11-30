@@ -25,9 +25,9 @@ impl CharacterBehavior for Data {
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, if self.is_sneaking { 0.4 } else { 1.0 });
         handle_climb(data, &mut update);
+        handle_wallrun(data, &mut update);
         attempt_input(data, output_events, &mut update);
         handle_jump(data, output_events, &mut update, 1.0);
-        handle_wallrun(data, &mut update);
 
         if self.is_sneaking
             && (data.physics.on_ground.is_none() || data.physics.in_liquid().is_some())
