@@ -968,7 +968,16 @@ impl<'a> AgentData<'a> {
                     ) && read_data
                         .healths
                         .get(entity)
-                        .is_some_and(|health| health.has_consumed_death_protection());
+                        .is_some_and(|health| health.has_consumed_death_protection())
+                        // Check that anyone else isn't saving them
+                        && read_data
+                            .interactors
+                            .get(entity)
+                            .map_or(true, |interactors| {
+                                !interactors.iter().any(|interaction| {
+                                    matches!(interaction.kind, InteractionKind::HelpDowned)
+                                })
+                            });
 
                     let wants_to_save = match (self.alignment, read_data.alignments.get(entity)) {
                         (_, Some(Alignment::Owned(owner))) => owner == self.uid,

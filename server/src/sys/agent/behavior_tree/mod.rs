@@ -452,6 +452,15 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
             .healths
             .get(target)
             .is_some_and(|health| health.has_consumed_death_protection())
+            && bdata
+                .read_data
+                .interactors
+                .get(target)
+                .map_or(true, |interactors| {
+                    !interactors
+                        .iter()
+                        .any(|interaction| matches!(interaction.kind, InteractionKind::HelpDowned))
+                })
             && let Some(target_pos) = bdata.read_data.positions.get(target)
             && let Some(target_uid) = bdata.read_data.uids.get(target)
         {
