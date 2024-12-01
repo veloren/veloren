@@ -2784,6 +2784,6 @@ pub fn handle_start_interaction(
     let i = interaction.interactor;
     let t = interaction.target;
     if let Err(e) = server.state.link(interaction) {
-        error!("Error trying to start interaction between {i:?} and {t:?}: {e:?}");
+        debug!("Error trying to start interaction between {i:?} and {t:?}: {e:?}");
     }
 }

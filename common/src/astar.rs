@@ -227,7 +227,8 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                             };
 
                             // We don't need to reconsider already visited nodes as astar finds the
-                            // shortest path to a node the first time it's visited.
+                            // shortest path to a node the first time it's visited, assuming the
+                            // heuristic function is admissible.
                             if !previously_visited {
                                 self.potential_nodes.push(PathEntry {
                                     cost_estimate,

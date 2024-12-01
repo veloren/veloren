@@ -133,7 +133,7 @@ impl Health {
 
     pub fn new(body: comp::Body) -> Self {
         let health = u32::from(body.base_health()) * Self::SCALING_FACTOR_INT;
-        let death_protection = body.death_protection();
+        let death_protection = body.has_death_protection();
         Health {
             current: health,
             base_max: health,
