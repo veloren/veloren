@@ -2560,7 +2560,9 @@ impl Hud {
                             }
                             options
                         },
-                        Some(comp::Alignment::Tame) => {
+                        Some(comp::Alignment::Tame)
+                            if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
+                        {
                             vec![(GameInput::Interact, i18n.get_msg("hud-pet").to_string())]
                         },
                         _ => Vec::new(),
