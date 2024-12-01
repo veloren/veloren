@@ -570,7 +570,7 @@ where
         _ => return (None, false),
     };
 
-    let heuristic = |pos: &Vec3<i32>, _: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
+    let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let transition = |a: Vec3<i32>, b: Vec3<i32>| {
         let crow_line = LineSegment2 {
             start: startf.xy(),

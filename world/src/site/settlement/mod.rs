@@ -1362,7 +1362,7 @@ impl Land {
         dest: Vec2<i32>,
         path_cost_fn: impl Fn(Option<&Tile>, Option<&Tile>) -> f32,
     ) -> Option<Path<Vec2<i32>>> {
-        let heuristic = |pos: &Vec2<i32>, _: &Vec2<i32>| (pos - dest).map(|e| e as f32).magnitude();
+        let heuristic = |pos: &Vec2<i32>| (pos - dest).map(|e| e as f32).magnitude();
         let transition =
             |from: Vec2<i32>, to: Vec2<i32>| path_cost_fn(self.tile_at(from), self.tile_at(to));
         let neighbors = |pos: &Vec2<i32>| {

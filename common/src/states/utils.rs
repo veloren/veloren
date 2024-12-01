@@ -1011,8 +1011,7 @@ fn can_reach_block(
         // of iterations
         let iters = (3.0 * (block_pos_f32 - player_pos).map(|x| x.abs()).sum()) as usize;
         // Heuristic compares manhattan distance of start and end pos
-        let heuristic =
-            move |pos: &Vec3<i32>, _: &Vec3<i32>| (block_pos - pos).map(|x| x.abs()).sum() as f32;
+        let heuristic = move |pos: &Vec3<i32>| (block_pos - pos).map(|x| x.abs()).sum() as f32;
 
         let mut astar = Astar::new(
             iters,

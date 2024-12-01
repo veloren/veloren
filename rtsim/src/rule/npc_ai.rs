@@ -69,7 +69,7 @@ struct DefaultState {
 }
 
 fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathResult<Vec2<i32>> {
-    let heuristic = |tile: &Vec2<i32>, _: &Vec2<i32>| tile.as_::<f32>().distance(end.as_());
+    let heuristic = |tile: &Vec2<i32>| tile.as_::<f32>().distance(end.as_());
     let mut astar = Astar::new(1_000, start, BuildHasherDefault::<FxHasher64>::default());
 
     let transition = |a: Vec2<i32>, b: Vec2<i32>| {
@@ -158,8 +158,7 @@ fn path_between_sites(
     let get_site = |site: &Id<civ::Site>| world.civs().sites.get(*site);
 
     let end_pos = get_site(&end).center.as_::<f32>();
-    let heuristic =
-        |site: &Id<civ::Site>, _: &Id<civ::Site>| get_site(site).center.as_().distance(end_pos);
+    let heuristic = |site: &Id<civ::Site>| get_site(site).center.as_().distance(end_pos);
 
     let mut astar = Astar::new(250, start, BuildHasherDefault::<FxHasher64>::default());
 
