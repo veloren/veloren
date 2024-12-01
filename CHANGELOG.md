@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Airship docks for desert cities, coastal towns and mesa towns.
 - Health tracking for NPCs in unloaded chunks.
 - More snow covered variants of grass and flowers
+- A downed state, at the moment of death humanoids survive with 1 hp, and have to be helped up.
 
 ### Changed
 
