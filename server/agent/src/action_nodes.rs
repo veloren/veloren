@@ -962,22 +962,13 @@ impl<'a> AgentData<'a> {
                 if read_data.healths.get(entity).map_or(false, |health| {
                     !health.is_dead && !is_invulnerable(entity, read_data)
                 }) {
-                    let save_target = matches!(
+                    let needs_saving = matches!(
                         read_data.char_states.get(entity),
                         Some(CharacterState::Crawl)
                     ) && read_data
                         .healths
                         .get(entity)
-                        .is_some_and(|health| health.has_consumed_death_protection())
-                        // Check that anyone else isn't saving them
-                        && read_data
-                            .interactors
-                            .get(entity)
-                            .map_or(true, |interactors| {
-                                !interactors.iter().any(|interaction| {
-                                    matches!(interaction.kind, InteractionKind::HelpDowned)
-                                })
-                            });
+                        .is_some_and(|health| health.has_consumed_death_protection());
 
                     let wants_to_save = match (self.alignment, read_data.alignments.get(entity)) {
                         (_, Some(Alignment::Owned(owner))) => owner == self.uid,
@@ -987,9 +978,19 @@ impl<'a> AgentData<'a> {
                         (Some(Alignment::Npc), None) => true,
                         (Some(Alignment::Enemy), Some(Alignment::Enemy)) => true,
                         _ => false,
-                    } && agent.allowed_to_speak();
+                    } && agent.allowed_to_speak()
+                        // Check that anyone else isn't already saving them.
+                        && read_data
+                            .interactors
+                            .get(entity)
+                            .map_or(true, |interactors| {
+                                !interactors.iter().any(|interaction| {
+                                    matches!(interaction.kind, InteractionKind::HelpDowned)
+                                })
+                            }) && self.char_state.can_interact();
 
-                    Some((entity, !(save_target && wants_to_save)))
+                    // TODO: Make targets that need saving have less priority as a target.
+                    Some((entity, !(needs_saving && wants_to_save)))
                 } else {
                     None
                 }
