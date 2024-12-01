@@ -423,6 +423,78 @@ impl<'a> Skillbar<'a> {
             .set(text, ui);
     }
 
+    fn show_give_up_message(&self, state: &State, ui: &mut UiCell) {
+        let localized_strings = self.localized_strings;
+        let key_layout = &self.global_state.window.key_layout;
+        let hardcore = self.client.current::<Hardcore>().is_some();
+
+        if let Some(key) = self
+            .global_state
+            .settings
+            .controls
+            .get_binding(GameInput::Respawn)
+        {
+            let respawn_msg =
+                localized_strings.get_msg_ctx("hud-press_key_to_give_up", &i18n::fluent_args! {
+                    "key" => key.display_string(key_layout)
+                });
+            let penalty_msg = if hardcore {
+                self.localized_strings
+                    .get_msg("hud-hardcore_will_char_deleted")
+            } else {
+                self.localized_strings.get_msg("hud-items_will_lose_dur")
+            };
+
+            let recieving_help_msg = localized_strings.get_msg("hud-downed_recieving_help");
+            Text::new(&penalty_msg)
+                .mid_bottom_with_margin_on(ui.window, 180.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.death_message_3_bg, ui);
+            Text::new(&respawn_msg)
+                .mid_top_with_margin_on(state.ids.death_message_3_bg, -50.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.death_message_2_bg, ui);
+            Text::new(&penalty_msg)
+                .bottom_left_with_margins_on(state.ids.death_message_3_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.death_message_3, ui);
+            Text::new(&respawn_msg)
+                .bottom_left_with_margins_on(state.ids.death_message_2_bg, 2.0, 2.0)
+                .font_size(self.fonts.cyri.scale(30))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.death_message_2, ui);
+            if self
+                .client
+                .state()
+                .read_storage::<common::interaction::Interactors>()
+                .get(self.client.entity())
+                .map_or(false, |interactors| {
+                    interactors.has_interaction(common::interaction::InteractionKind::HelpDowned)
+                })
+            {
+                Text::new(&recieving_help_msg)
+                    .mid_top_with_margin_on(state.ids.death_message_2_bg, -50.0)
+                    .font_size(self.fonts.cyri.scale(24))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                    .set(state.ids.death_message_1_bg, ui);
+                Text::new(&recieving_help_msg)
+                    .bottom_left_with_margins_on(state.ids.death_message_1_bg, 2.0, 2.0)
+                    .font_size(self.fonts.cyri.scale(24))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(HP_COLOR)
+                    .set(state.ids.death_message_1, ui);
+            }
+        }
+    }
+
     fn show_death_message(&self, state: &State, ui: &mut UiCell) {
         let localized_strings = self.localized_strings;
         let key_layout = &self.global_state.window.key_layout;
@@ -455,7 +527,7 @@ impl<'a> Skillbar<'a> {
             let penalty_msg = if hardcore {
                 self.localized_strings.get_msg("hud-hardcore_char_deleted")
             } else {
-                self.localized_strings.get_msg("hud_items_lost_dur")
+                self.localized_strings.get_msg("hud-items_lost_dur")
             };
             Text::new(&respawn_msg)
                 .mid_bottom_with_margin_on(state.ids.death_message_1_bg, -120.0)
@@ -1303,6 +1375,12 @@ impl<'a> Widget for Skillbar<'a> {
         // Death message
         if self.health.is_dead {
             self.show_death_message(state, ui);
+        }
+        // Give up message
+        else if self.health.has_consumed_death_protection()
+            && matches!(self.client.current(), Some(CharacterState::Crawl))
+        {
+            self.show_give_up_message(state, ui);
         }
 
         // Skillbar

@@ -1865,19 +1865,19 @@ impl Client {
     }
 
     pub fn respawn(&mut self) {
-        if self
-            .state
-            .ecs()
-            .read_storage::<comp::Health>()
-            .get(self.entity())
-            .map_or(false, |h| h.is_dead)
-        {
+        let health = self.current::<comp::Health>();
+        if health.as_ref().map_or(false, |h| h.is_dead) {
             // Hardcore characters cannot respawn, kick them to character selection
             if self.current::<Hardcore>().is_some() {
                 self.request_remove_character();
             } else {
                 self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
             }
+        } else if health
+            .as_ref()
+            .map_or(false, |h| h.has_consumed_death_protection())
+        {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
         }
     }
 

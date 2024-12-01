@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use specs::{Component, DenseVecStorage, Entities, Read, ReadStorage, WriteStorage};
+use specs::{Component, DerefFlaggedStorage, Entities, Read, ReadStorage, WriteStorage};
 
 use crate::{
     comp::{Alignment, CharacterState, Health, Pos},
@@ -18,7 +18,7 @@ impl Role for Interactor {
     type Link = Interaction;
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Interactors {
     interactors: HashMap<Uid, LinkHandle<Interaction>>,
 }
@@ -29,10 +29,14 @@ impl Interactors {
     pub fn iter(&self) -> impl Iterator<Item = &LinkHandle<Interaction>> {
         self.interactors.values()
     }
+
+    pub fn has_interaction(&self, kind: InteractionKind) -> bool {
+        self.iter().any(|i| i.kind == kind)
+    }
 }
 
 impl Component for Interactors {
-    type Storage = DenseVecStorage<Interactors>;
+    type Storage = DerefFlaggedStorage<Interactors>;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -148,7 +152,7 @@ impl Link for Interaction {
                     });
 
                     let _ = is_interactors.insert(interactor, this.make_role());
-                    if let Some(interactors) = interactors.get_mut(target) {
+                    if let Some(mut interactors) = interactors.get_mut(target) {
                         interactors
                             .interactors
                             .insert(this.interactor, this.clone());
@@ -234,7 +238,7 @@ impl Link for Interaction {
 
         interactor.map(|interactor| is_interactors.remove(interactor));
         target.map(|target| {
-            if let Some(i) = interactors.get_mut(target) {
+            if let Some(mut i) = interactors.get_mut(target) {
                 i.interactors.remove(&this.interactor);
 
                 if i.interactors.is_empty() {

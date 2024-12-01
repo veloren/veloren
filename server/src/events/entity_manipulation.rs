@@ -41,10 +41,10 @@ use common::{
         ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         DeleteEvent, DestroyEvent, DownedEvent, EmitExt, Emitter, EnergyChangeEvent,
         EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, HelpDownedEvent,
-        KnockbackEvent, LandOnGroundEvent, MakeAdminEvent, ParryHookEvent, PoiseChangeEvent,
-        RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent, StartInteractionEvent,
-        StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent, TransformEvent,
-        UpdateMapMarkerEvent,
+        KillEvent, KnockbackEvent, LandOnGroundEvent, MakeAdminEvent, ParryHookEvent,
+        PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent,
+        StartInteractionEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
+        TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
     generation::{EntityConfig, EntityInfo},
@@ -84,6 +84,7 @@ use super::{event_dispatch, event_sys_name, ServerEvent};
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<PoiseChangeEvent>(builder, &[]);
     event_dispatch::<HealthChangeEvent>(builder, &[]);
+    event_dispatch::<KillEvent>(builder, &[]);
     event_dispatch::<HelpDownedEvent>(builder, &[]);
     event_dispatch::<DownedEvent>(builder, &[&event_sys_name::<HealthChangeEvent>()]);
     event_dispatch::<KnockbackEvent>(builder, &[]);
@@ -309,6 +310,18 @@ impl ServerEvent for HealthChangeEvent {
                 if let Some(agent) = data.agents.get_mut(ev.entity) {
                     agent.inbox.push_back(AgentEvent::Hurt);
                 }
+            }
+        }
+    }
+}
+
+impl ServerEvent for KillEvent {
+    type SystemData<'a> = WriteStorage<'a, comp::Health>;
+
+    fn handle(events: impl ExactSizeIterator<Item = Self>, mut healths: Self::SystemData<'_>) {
+        for ev in events {
+            if let Some(mut health) = healths.get_mut(ev.entity) {
+                health.kill();
             }
         }
     }

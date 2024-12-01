@@ -2,7 +2,7 @@ use common::{
     comp::{
         ability::Stance,
         agent::{Sound, SoundKind},
-        Body, BuffChange, Collider, ControlEvent, Controller, Pos, Scale,
+        Body, BuffChange, Collider, ControlEvent, Controller, Health, Pos, Scale,
     },
     event::{self, EmitExt},
     event_emitters,
@@ -34,6 +34,7 @@ event_emitters! {
         start_teleporting: event::StartTeleportingEvent,
         buff: event::BuffEvent,
         start_interaction: event::StartInteractionEvent,
+        kill: event::KillEvent,
     }
 }
 
@@ -48,6 +49,7 @@ pub struct ReadData<'a> {
     scales: ReadStorage<'a, Scale>,
     colliders: ReadStorage<'a, Collider>,
     uids: ReadStorage<'a, Uid>,
+    healths: ReadStorage<'a, Health>,
 }
 
 #[derive(Default)]
@@ -124,7 +126,16 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::GroupManip(manip) => {
                         emitters.emit(event::GroupManipEvent(entity, manip))
                     },
-                    ControlEvent::Respawn => emitters.emit(event::RespawnEvent(entity)),
+                    ControlEvent::Respawn => {
+                        let health = read_data.healths.get(entity);
+                        if health.as_ref().map_or(false, |h| h.is_dead) {
+                            emitters.emit(event::RespawnEvent(entity));
+                        } else if let Some(health) = health
+                            && health.has_consumed_death_protection()
+                        {
+                            emitters.emit(event::KillEvent { entity });
+                        }
+                    },
                     ControlEvent::Utterance(kind) => {
                         if let (Some(pos), Some(body), scale) = (
                             read_data.positions.get(entity),

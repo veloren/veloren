@@ -984,9 +984,7 @@ impl<'a> AgentData<'a> {
                             .interactors
                             .get(entity)
                             .map_or(true, |interactors| {
-                                !interactors.iter().any(|interaction| {
-                                    matches!(interaction.kind, InteractionKind::HelpDowned)
-                                })
+                                !interactors.has_interaction(InteractionKind::HelpDowned)
                             }) && self.char_state.can_interact();
 
                     // TODO: Make targets that need saving have less priority as a target.

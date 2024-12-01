@@ -1591,7 +1591,8 @@ impl Hud {
                         .graphics_for(ui_widgets.window)
                         .color(Some(Color::Rgba(0.0, 0.0, 0.0, 1.0)))
                         .set(self.ids.death_bg, ui_widgets);
-                } // Crosshair
+                }
+                // Crosshair
                 let show_crosshair = (info.is_aiming || info.is_first_person) && !health.is_dead;
                 self.crosshair_opacity = Lerp::lerp(
                     self.crosshair_opacity,

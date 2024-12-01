@@ -221,6 +221,10 @@ pub struct HealthChangeEvent {
     pub change: comp::HealthChange,
 }
 
+pub struct KillEvent {
+    pub entity: EcsEntity,
+}
+
 pub struct HelpDownedEvent {
     pub target: Uid,
 }
@@ -550,6 +554,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<ExplosionEvent>::default());
     ecs.insert(EventBus::<BonkEvent>::default());
     ecs.insert(EventBus::<HealthChangeEvent>::default());
+    ecs.insert(EventBus::<KillEvent>::default());
     ecs.insert(EventBus::<HelpDownedEvent>::default());
     ecs.insert(EventBus::<DownedEvent>::default());
     ecs.insert(EventBus::<PoiseChangeEvent>::default());

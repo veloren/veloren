@@ -865,9 +865,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
 
                     // Stay still if we're being helped up.
                     if let Some(interactors) = read_data.interactors.get(*agent_data.entity)
-                        && interactors.iter().any(|interaction| {
-                            matches!(interaction.kind, InteractionKind::HelpDowned)
-                        })
+                        && interactors.has_interaction(InteractionKind::HelpDowned)
                     {
                         return true;
                     }
