@@ -640,13 +640,13 @@ impl TradePricing {
                 Good::Recipe
             },
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.glider.") => {
-                Good::default()
+                Good::Tools
             },
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.utility.") => {
                 Good::default()
             },
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.boss_drops.") => {
-                Good::default()
+                Good::Tools
             },
             ItemDefinitionIdOwned::Simple(name)
                 if name.starts_with("common.items.crafting_tools.") =>
@@ -654,10 +654,10 @@ impl TradePricing {
                 Good::default()
             },
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.lantern.") => {
-                Good::default()
+                Good::Tools
             },
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.keys.") => {
-                Good::default()
+                Good::Tools
             },
             ItemDefinitionIdOwned::Modular {
                 pseudo_base: _,

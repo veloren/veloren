@@ -12,7 +12,7 @@ loot_tables: [
     (6.0, true, "common.loot_tables.armor.twigs"),
     (6.0, true, "common.loot_tables.armor.twigsflowers"),
     (6.0, true, "common.loot_tables.armor.twigsleaves"),
-    (4.0, false, "common.trading.misc_armor"),
+    (2.0, false, "common.trading.misc_armor"),
     (0.09, false, "common.loot_tables.armor.cultist"),
     (0.0016, false, "common.loot_tables.armor.boreal"),
 
@@ -37,7 +37,7 @@ loot_tables: [
     // and economy.
     //
     // Collections
-    (0.00026, false, "common.trading.collection"),
+    (1.0, false, "common.trading.collection"),
     // Manual balance
     (81.0, false, "common.trading.balance"),
 ],

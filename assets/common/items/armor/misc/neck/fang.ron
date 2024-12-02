@@ -9,6 +9,6 @@ ItemDef(
             energy_max: Some(-3.75),
         )),
     )),
-    quality: High,
+    quality: Moderate,
     tags: [],
 )

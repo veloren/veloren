@@ -9,52 +9,54 @@
 // Please keep it sorted by rarity so it's easier to reason about things
 [
     // Bags
-    (0.1, Item("common.items.armor.misc.bag.heavy_seabag")),
+    (0.12, Item("common.items.armor.misc.bag.heavy_seabag")),
     (0.2, Item("common.items.armor.misc.bag.liana_kit")),
 
     // Basic
-    (2.0, Item("common.items.armor.misc.head.straw")),
-    (2.0, Item("common.items.armor.misc.head.bamboo_twig")),
+    (2.5, Item("common.items.armor.misc.head.straw")),
+    (2.5, Item("common.items.armor.misc.head.bamboo_twig")),
 
     // General humanoid
-    (0.75, Item("common.items.armor.misc.ring.gold")),
-    (0.75, Item("common.items.armor.misc.neck.gold")),
+    (0.12, Item("common.items.armor.misc.ring.gold")),
+    (0.12, Item("common.items.armor.misc.neck.gold")),
 
     // Grim Salvager
-    (2.0, Item("common.items.armor.misc.head.bandana.thief")),
-    (2.0, Item("common.items.armor.misc.head.bandana.red")),
-    (2.0, Item("common.items.armor.misc.head.hood")),
-    (2.0, Item("common.items.armor.misc.head.hood_dark")),
+    (1.5, Item("common.items.armor.misc.head.bandana.thief")),
+    (1.5, Item("common.items.armor.misc.head.bandana.red")),
+    (0.5, Item("common.items.armor.misc.head.hood")),
+    (0.5, Item("common.items.armor.misc.head.hood_dark")),
 
     // Pirate
-    (0.05, Item("common.items.armor.misc.head.crown")),
-    (0.05, Item("common.items.armor.pirate.hat")),
+    (0.03, Item("common.items.armor.misc.head.crown")),
+    (0.03, Item("common.items.armor.pirate.hat")),
 
     // Witch
-    (0.05, Item("common.items.armor.witch.hat")),
+    (0.03, Item("common.items.armor.witch.hat")),
 
     // Gnarling
-    (0.5, Item("common.items.armor.misc.head.gnarling_mask")),
-    (1.5, Item("common.items.armor.misc.head.wanderers_hat")),
-    (2.0, Item("common.items.armor.misc.neck.scratched")),
+    (0.3, Item("common.items.armor.misc.head.gnarling_mask")),
+    (0.5, Item("common.items.armor.misc.head.wanderers_hat")),
+    (1.5, Item("common.items.armor.misc.neck.scratched")),
 
     // Adlet
-    (0.1, Item("common.items.armor.misc.head.bear_bonnet")),
-    (0.1, Item("common.items.armor.misc.head.howl_cowl")),
+    (0.07, Item("common.items.armor.misc.head.bear_bonnet")),
+    (0.07, Item("common.items.armor.misc.head.howl_cowl")),
     (0.2, Item("common.items.armor.misc.head.hog_hood")),
-    (0.75, Item("common.items.armor.misc.neck.pendant_of_protection")),
+    (0.5, Item("common.items.armor.misc.neck.pendant_of_protection")),
 
     // Sahagin
-    (0.25, Item("common.items.armor.misc.neck.gem_of_resilience")),
+    (0.2, Item("common.items.armor.misc.neck.gem_of_resilience")),
 
     // Haniwa
-    (0.2, Item("common.items.armor.misc.neck.haniwa_talisman")),
+    (0.12, Item("common.items.armor.misc.neck.haniwa_talisman")),
 
     // Myrmidon
-    (0.05, Item("common.items.armor.misc.head.spikeguard")),
-    (0.05, Item("common.items.armor.misc.neck.carcanet_of_wrath")),
-    (0.05, Item("common.items.armor.misc.head.mitre")),
+    (0.07, Item("common.items.armor.misc.head.spikeguard")),
+    (0.03, Item("common.items.armor.misc.neck.carcanet_of_wrath")),
+
+    // Vampire
+    (0.07, Item("common.items.armor.misc.head.mitre")),
 
     // Cultist
-    (0.0005, Item("common.items.armor.misc.neck.ankh_of_life")),
+    (0.03, Item("common.items.armor.misc.neck.ankh_of_life")),
 ]
