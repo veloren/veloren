@@ -45,3 +45,6 @@ weapon-tool-shamisen = Shamisen
     
 weapon-tool-kora = Kora
     .desc = Kora.    
+
+weapon-tool-banjo = Banjo
+    .desc = Banjo.

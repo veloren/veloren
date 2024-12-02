@@ -1698,7 +1698,11 @@
     Simple("common.items.tool.instruments.kora"): VoxTrans(
         "voxel.weapon.tool.kora",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
-    ),    
+    ),
+    Simple("common.items.tool.instruments.banjo"): VoxTrans(
+        "voxel.weapon.tool.banjo",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
+    ),
     // Picks
     Simple("common.items.tool.pickaxe_stone"): VoxTrans(
         "voxel.weapon.tool.pickaxe_stone",

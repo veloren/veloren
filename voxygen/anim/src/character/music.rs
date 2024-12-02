@@ -89,7 +89,7 @@ impl Animation for MusicAnimation {
         next.shoulder_r.orientation = Quaternion::rotation_x(shorte * -0.15);
 
         next.lantern.orientation = match ability_id {
-            Some("common.abilities.music.kora") => {
+            Some("common.abilities.music.kora" | "common.abilities.music.banjo") => {
                 Quaternion::rotation_x(shorte * 0.2) * Quaternion::rotation_y(shorte * 0.2)
             },
             _ => Quaternion::rotation_x(shorte * 0.7 + 0.4) * Quaternion::rotation_y(shorte * 0.4),
@@ -117,6 +117,7 @@ impl Animation for MusicAnimation {
                         | "common.abilities.music.dark_guitar"
                         | "common.abilities.music.lute"
                         | "common.abilities.music.kora"
+                        | "common.abilities.music.banjo"
                         | "common.abilities.music.sitar",
                     ) => 0.5,
 
@@ -276,7 +277,11 @@ impl Animation for MusicAnimation {
                             * Quaternion::rotation_y(-0.75)
                             * Quaternion::rotation_z(PI - 0.2);
                     },
-                    Some("common.abilities.music.lute" | "common.abilities.music.shamisen") => {
+                    Some(
+                        "common.abilities.music.lute"
+                        | "common.abilities.music.shamisen"
+                        | "common.abilities.music.banjo",
+                    ) => {
                         next.hand_l.position = Vec3::new(
                             2.0 - s_a.hand.0,
                             5.0 + s_a.hand.1 + shortealt * -1.0,

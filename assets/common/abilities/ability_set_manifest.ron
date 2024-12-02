@@ -1031,7 +1031,12 @@
         primary: Simple(None, "common.abilities.music.kora"),
         secondary: Simple(None, "common.abilities.music.kora"),
         abilities: [],
-    ),    
+    ),
+    Custom("Banjo"): (
+        primary: Simple(None, "common.abilities.music.banjo"),
+        secondary: Simple(None, "common.abilities.music.banjo"),
+        abilities: [],
+    ),
     Tool(Debug): (
         primary: Simple(None, "common.abilities.debug.forwardboost"),
         secondary: Simple(None, "common.abilities.debug.upboost"),

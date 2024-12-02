@@ -427,7 +427,8 @@
         (Item("common.items.tool.instruments.wildskin_drum"),1),
         (Item("common.items.tool.instruments.steeltonguedrum"),1),
         (Item("common.items.tool.instruments.shamisen"),1),
-        (Item("common.items.tool.instruments.kora"),1),        
+        (Item("common.items.tool.instruments.kora"),1),
+        (Item("common.items.tool.instruments.banjo"),1),
     ],
     "recipes": [
         // Armor
