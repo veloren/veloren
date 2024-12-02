@@ -14,6 +14,12 @@
     (0.5, Item("common.items.mineral.ore.coal")),
     (1.0, Item("common.items.mineral.ore.iron")),
 
+    // High tier Gems
+    (0.1, Item("common.items.mineral.gem.diamond")),
+    (0.3, Item("common.items.mineral.gem.ruby")),
+    (0.35, Item("common.items.mineral.gem.emerald")),
+    (0.4, Item("common.items.mineral.gem.sapphire")),
+
     // High tier woods
     (0.05, Item("common.items.log.eldwood")),
     (0.1, Item("common.items.log.frostwood")),
@@ -32,9 +38,19 @@
 
     // High tier Mob drops
     (0.005, Item("common.items.crafting_ing.animal_misc.phoenix_feather")),
-    (0.18, Item("common.items.crafting_ing.animal_misc.large_horn")),
-    (0.28, Item("common.items.crafting_ing.animal_misc.lively_vine")),
-    (0.35, Item("common.items.crafting_ing.sticky_thread")),
+    (0.025, Item("common.items.crafting_ing.golem_core")),
+    (0.025, Item("common.items.crafting_ing.cursed_bead")),
+    (0.025, Item("common.items.mineral.ore.ancient_gold")),
+    (0.05, Item("common.items.crafting_ing.alkahest")),
+    (0.05, Item("common.items.crafting_ing.dwarven_battery")),
+    (0.25, Item("common.items.crafting_ing.animal_misc.large_horn")),
+    (0.3, Item("common.items.crafting_ing.animal_misc.lively_vine")),
+    (0.5, Item("common.items.crafting_ing.sticky_thread")),
+    (1.0, Item("common.items.crafting_ing.earthern_shard")),
+
+    // High tier Flowers
+    (1.0, Item("common.items.flowers.pyrebloom")),
+    (2.0, Item("common.items.flowers.moonbell")),
 
     // Sea Materials
     (0.05, Item("common.items.crafting_ing.abyssal_heart")),
@@ -42,12 +58,7 @@
     (0.25, Item("common.items.crafting_ing.brinestone")),
     (1.0, Item("common.items.crafting_ing.coral_branch")),
 
-    // Miscellaneous Materials
-    (0.75, Item("common.items.crafting_ing.resin")),
-    (1.0, Item("common.items.crafting_ing.sentient_seed")),
-    (2.0, Item("common.items.crafting_ing.living_embers")),
-
     // Ultra Rare drops
-    (0.0005, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-    (0.00075, Item("common.items.crafting_ing.glacial_crystal")),
+    (0.001, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    (0.001, Item("common.items.crafting_ing.glacial_crystal")),
 ]
