@@ -1,5 +1,6 @@
 mod adlet;
 mod airship_dock;
+mod barn;
 mod bridge;
 mod camp;
 mod castle;
@@ -42,7 +43,7 @@ mod vampire_castle;
 mod workshop;
 
 pub use self::{
-    adlet::AdletStronghold, airship_dock::AirshipDock, bridge::Bridge, camp::Camp, castle::Castle,
+    adlet::AdletStronghold, airship_dock::AirshipDock, barn::Barn, bridge::Bridge, camp::Camp, castle::Castle,
     citadel::Citadel, cliff_tower::CliffTower, cliff_town_airship_dock::CliffTownAirshipDock,
     coastal_airship_dock::CoastalAirshipDock, coastal_house::CoastalHouse,
     coastal_workshop::CoastalWorkshop, cultist::Cultist,
@@ -143,6 +144,7 @@ pub enum PlotKind {
     SavannahAirshipDock(SavannahAirshipDock),
     SavannahHut(SavannahHut),
     SavannahWorkshop(SavannahWorkshop),
+    Barn(Barn),
     Bridge(Bridge),
     PirateHideout(PirateHideout),
     RockCircle(RockCircle),
@@ -223,6 +225,7 @@ impl PlotKind {
             | PlotKind::GiantTree(_)
             | PlotKind::CliffTower(_)
             | PlotKind::Citadel(_)
+            | PlotKind::Barn(_)
             | PlotKind::Bridge(_)
             | PlotKind::PirateHideout(_)
             | PlotKind::RockCircle(_)
@@ -264,6 +267,7 @@ macro_rules! foreach_plot {
             PlotKind::SavannahAirshipDock($x) => $y,
             PlotKind::SavannahHut($x) => $y,
             PlotKind::SavannahWorkshop($x) => $y,
+            PlotKind::Barn($x) => $y,
             PlotKind::Bridge($x) => $y,
             PlotKind::PirateHideout($x) => $y,
             PlotKind::Tavern($x) => $y,

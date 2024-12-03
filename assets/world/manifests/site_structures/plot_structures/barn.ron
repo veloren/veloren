@@ -1,0 +1,9 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.plots.barn_final",
+        center: (22, 11, 0),
+        custom_indices: {},
+    ),
+]
