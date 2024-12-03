@@ -1,10 +1,12 @@
 use super::*;
 use crate::{ColumnSample, Land};
-use common::terrain::{sprite::Owned, Block, BlockKind, SpriteKind};
+use common::terrain::{
+    sprite::{Owned, RelativeNeighborPosition},
+    Block, BlockKind, SpriteKind,
+};
 use rand::prelude::*;
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
-use Dir;
 
 #[derive(EnumIter)]
 enum Crop {
@@ -190,29 +192,8 @@ impl Structure for FarmField {
             && (hit_max_x_bounds || hit_min_x_bounds)
             && is_bounds;
 
-        let ori = if is_bounds && !is_corner {
-            // for FenceI, can only go in the X or Y direction
-            if hit_min_x_bounds || hit_max_x_bounds {
-                Dir::Y
-            } else {
-                Dir::X
-            }
-        } else if is_bounds && is_corner {
-            // for FenceL, can be rotated in 4 different directions
-            if hit_min_x_bounds && hit_min_y_bounds {
-                Dir::Y
-            } else if hit_max_x_bounds && hit_min_y_bounds {
-                Dir::X
-            } else if hit_min_x_bounds && hit_max_y_bounds {
-                Dir::NegY
-            } else {
-                Dir::NegX
-            }
-        } else {
-            Dir::Y
-        };
-
         if z_off == 0 {
+            // soil
             Some(Block::new(
                 if self.is_desert {
                     BlockKind::Sand
@@ -227,28 +208,45 @@ impl Structure for FarmField {
                     .as_(),
             ))
         } else if z_off == 1 && is_bounds {
-            let sprite = if is_corner {
-                SpriteKind::FenceL
+            // fence
+            let adjacent_type = if is_corner {
+                RelativeNeighborPosition::L
             } else {
-                SpriteKind::FenceI
+                RelativeNeighborPosition::I
             };
-            let ori = if is_corner {
-                match ori {
-                    Dir::Y => 4,
-                    Dir::X => 6,
-                    Dir::NegY => 2,
-                    Dir::NegX => 0,
+
+            let ori = if !is_corner {
+                // for straight - "I"
+                // can only go in the vertical or horizontal direction
+                if hit_min_x_bounds || hit_max_x_bounds {
+                    2
+                } else {
+                    0
                 }
             } else {
-                match ori {
-                    Dir::Y => 2,
-                    Dir::X => 0,
-                    _ => 0,
+                // for corners - "L"
+                // can be rotated in 4 different directions
+                if hit_min_x_bounds && hit_min_y_bounds {
+                    4
+                } else if hit_max_x_bounds && hit_min_y_bounds {
+                    6
+                } else if hit_min_x_bounds && hit_max_y_bounds {
+                    2
+                } else {
+                    0
                 }
             };
 
-            Some(old.into_vacant().with_sprite(sprite).with_ori(ori).unwrap())
+            Some(
+                old.into_vacant()
+                    .with_sprite(SpriteKind::Fence)
+                    .with_ori(ori)
+                    .unwrap()
+                    .with_adjacent_type(adjacent_type)
+                    .unwrap(),
+            )
         } else if z_off == 1 && (is_trench || self.crop.row_spacing().is_none()) {
+            // crops
             self.crop
                 .sprites()
                 .choose_weighted(rng, |(w, _)| *w)
