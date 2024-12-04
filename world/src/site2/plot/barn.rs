@@ -5,6 +5,8 @@ use common::terrain::{BlockKind, SpriteKind};
 use rand::prelude::*;
 use vek::*;
 use crate::util::{RandomField, Sampler};
+use common::generation::{ChunkSupplement, EntityInfo};
+use tracing::info;
 
 pub struct Barn {
     /// Tile position of the door tile
@@ -34,6 +36,42 @@ impl Barn {
             bounds,
             alt: land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32 + 2,
         }
+    }
+
+    pub fn apply_supplement(
+        &self,
+        dynamic_rng: &mut impl Rng,
+        wpos2d: Vec2<i32>,
+        supplement: &mut ChunkSupplement,
+    ) {
+        
+        let rpos = wpos2d;
+
+        let area = Aabr {
+            min: rpos,
+            max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+        };
+
+        if area.contains_point(self.bounds.center()) {
+            for _ in 1..5 {
+                let spec = [
+                    "common.entity.wild.peaceful.cattle",
+                    "common.entity.wild.peaceful.horse",
+                ]
+                .choose(dynamic_rng)
+                .unwrap();
+        
+                supplement.add_entity(
+                    EntityInfo::at(Vec3::new(rpos.x + 20, rpos.y + 20, self.alt + 1).as_()).with_asset_expect(
+                        spec,
+                        dynamic_rng,
+                    None,
+                ).with_alignment(Alignment::Tame));
+            }
+
+            info!("generating creatures for barn at {:?}", wpos2d)
+        }
+        
     }
 }
 
