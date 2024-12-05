@@ -178,7 +178,9 @@ impl<'a> System<'a> for Sys {
                 {
                     // Reset poise if there is some stunned state to apply
                     poise.reset(*read_data.time, stunned_duration);
-                    if !matches!(*char_state, CharacterState::Crawl) {
+                    if !(matches!(*char_state, CharacterState::Crawl)
+                        && health.map_or(false, |h| h.has_consumed_death_protection()))
+                    {
                         *char_state = stunned_state;
                     }
                     outcomes_emitter.emit(Outcome::PoiseChange {

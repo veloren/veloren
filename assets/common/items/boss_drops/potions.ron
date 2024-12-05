@@ -19,7 +19,7 @@ ItemDef(
                     duration: Some(45),
                     delay: Some(1)
                 ),
-                cat_ids: [Natural],
+                cat_ids: [Natural, PersistOnDowned],
             )),
         ])
     ),

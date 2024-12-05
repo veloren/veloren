@@ -60,11 +60,12 @@ pub enum InteractionError {
     CannotInteract,
 }
 
-pub fn can_help_downed(pos: Pos, target_pos: Pos, target_state: Option<&CharacterState>) -> bool {
+pub fn can_help_downed(pos: Pos, target_pos: Pos, target_health: Option<&Health>) -> bool {
     let within_distance = pos.0.distance_squared(target_pos.0) <= MAX_INTERACT_RANGE.powi(2);
-    let valid_state = matches!(target_state, Some(CharacterState::Crawl));
+    let consumed_death_protection =
+        target_health.map_or(false, |health| health.has_consumed_death_protection());
 
-    within_distance && valid_state
+    within_distance && consumed_death_protection
 }
 
 pub fn can_pet(pos: Pos, target_pos: Pos, target_alignment: Option<&Alignment>) -> bool {
@@ -83,6 +84,7 @@ impl Link for Interaction {
         WriteStorage<'a, Is<Interactor>>,
         WriteStorage<'a, Interactors>,
         WriteStorage<'a, CharacterState>,
+        ReadStorage<'a, Health>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Alignment>,
     );
@@ -106,7 +108,7 @@ impl Link for Interaction {
 
     fn create(
         this: &crate::link::LinkHandle<Self>,
-        (id_maps, is_interactors, interactors, character_states, positions, alignments): &mut Self::CreateData<
+        (id_maps, is_interactors, interactors, character_states, healths, positions, alignments): &mut Self::CreateData<
             '_,
         >,
     ) -> Result<(), Self::Error> {
@@ -127,7 +129,7 @@ impl Link for Interaction {
                 && let Some(target_pos) = positions.get(target)
                 && match this.kind {
                     InteractionKind::HelpDowned => {
-                        can_help_downed(*pos, *target_pos, character_states.get(target))
+                        can_help_downed(*pos, *target_pos, healths.get(target))
                     },
                     InteractionKind::Pet => can_pet(*pos, *target_pos, alignments.get(target)),
                 }
@@ -202,7 +204,7 @@ impl Link for Interaction {
             && let Some(target_pos) = positions.get(target)
             && match this.kind {
                 InteractionKind::HelpDowned => {
-                    can_help_downed(*pos, *target_pos, character_states.get(target))
+                    can_help_downed(*pos, *target_pos, healths.get(target))
                 },
                 InteractionKind::Pet => can_pet(*pos, *target_pos, alignments.get(target)),
             }

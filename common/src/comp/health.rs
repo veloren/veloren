@@ -52,10 +52,11 @@ pub struct Health {
     /// The last change to health
     pub last_change: HealthChange,
     pub is_dead: bool,
+    /// If this entity supports having death protection.
+    pub can_have_death_protection: bool,
     /// If death protection is true, any damage that would kill instead leaves
     /// the entity at 1 health.
     pub death_protection: bool,
-    pub death_protection_active: bool,
 
     /// Keeps track of damage per DamageContributor and the last time they
     /// caused damage, used for EXP sharing
@@ -147,8 +148,8 @@ impl Health {
                 instance: rand::random(),
             },
             is_dead: false,
+            can_have_death_protection: death_protection,
             death_protection,
-            death_protection_active: death_protection,
             damage_contributors: HashMap::new(),
         }
     }
@@ -201,18 +202,18 @@ impl Health {
 
     pub fn kill(&mut self) {
         self.current = 0;
-        self.death_protection_active = false;
+        self.death_protection = false;
     }
 
     pub fn revive(&mut self) {
         self.current = self.maximum;
         self.is_dead = false;
-        self.death_protection_active = self.death_protection;
+        self.death_protection = self.can_have_death_protection;
     }
 
     pub fn consume_death_protection(&mut self) {
-        if self.death_protection_active {
-            self.death_protection_active = false;
+        if self.death_protection {
+            self.death_protection = false;
             if self.current() < 1.0 {
                 self.set_amount(1.0);
             }
@@ -220,13 +221,13 @@ impl Health {
     }
 
     pub fn refresh_death_protection(&mut self) {
-        if self.death_protection {
-            self.death_protection_active = true;
+        if self.can_have_death_protection {
+            self.death_protection = true;
         }
     }
 
     pub fn has_consumed_death_protection(&self) -> bool {
-        self.death_protection && !self.death_protection_active
+        self.can_have_death_protection && !self.death_protection
     }
 
     #[cfg(test)]
@@ -244,8 +245,8 @@ impl Health {
                 instance: rand::random(),
             },
             is_dead: false,
+            can_have_death_protection: false,
             death_protection: false,
-            death_protection_active: false,
             damage_contributors: HashMap::new(),
         }
     }

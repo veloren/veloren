@@ -70,7 +70,7 @@ impl<'a> System<'a> for Sys {
             let set_dead = { health.should_die() && !health.is_dead };
 
             if set_dead {
-                if health.death_protection_active {
+                if health.death_protection {
                     emitters.emit(DownedEvent { entity });
                 } else {
                     emitters.emit(DestroyEvent {

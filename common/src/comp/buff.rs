@@ -556,6 +556,9 @@ impl BuffKind {
             BuffKind::ImminentCritical => {
                 cat_ids.push(BuffCategory::RemoveOnAttack);
             },
+            BuffKind::PotionSickness => {
+                cat_ids.push(BuffCategory::PersistOnDowned);
+            },
             _ => {},
         }
         cat_ids
@@ -675,6 +678,7 @@ pub enum BuffCategory {
     Physical,
     Magical,
     Divine,
+    PersistOnDowned,
     PersistOnDeath,
     FromActiveAura(Uid, AuraKey),
     RemoveOnAttack,
@@ -806,8 +810,6 @@ pub enum BuffChange {
         any_required: Vec<BuffCategory>,
         none_required: Vec<BuffCategory>,
     },
-    /// Removes all buffs that match this descriptor.
-    RemoveByDescriptor(BuffDescriptor),
     /// Refreshes durations of all buffs with this kind.
     Refresh(BuffKind),
 }

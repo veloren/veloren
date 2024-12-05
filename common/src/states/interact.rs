@@ -146,6 +146,8 @@ impl CharacterBehavior for Data {
                             });
                         if has_required_item {
                             match self.static_data.interact {
+                                // If the innteract kind is invalid we break out of this block
+                                // above.
                                 InteractKind::Invalid => unreachable!(),
                                 InteractKind::Entity { target, kind, .. } => match kind {
                                     crate::interaction::InteractionKind::HelpDowned => {

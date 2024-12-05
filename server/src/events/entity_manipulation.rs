@@ -31,9 +31,9 @@ use common::{
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
-        Alignment, Auras, Body, BuffEffect, CharacterState, Energy, Group, Hardcore, Health,
-        Inventory, Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind,
-        SkillSet, Stats, BASE_ABILITY_LIMIT,
+        Alignment, Auras, Body, BuffCategory, BuffEffect, CharacterState, Energy, Group, Hardcore,
+        Health, Inventory, Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence,
+        PresenceKind, SkillSet, Stats, BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
@@ -292,7 +292,7 @@ impl ServerEvent for HealthChangeEvent {
                 }
 
                 if !health.is_dead && health.should_die() {
-                    if health.death_protection_active {
+                    if health.death_protection {
                         emitters.emit(DownedEvent { entity: ev.entity });
                     } else {
                         emitters.emit(DestroyEvent {
@@ -374,12 +374,15 @@ impl ServerEvent for DownedEvent {
                 *character_state = CharacterState::Crawl;
             }
 
+            // Remove buffs that don't persist when downed.
             buff_emitter.emit(BuffEvent {
                 entity: ev.entity,
-                buff_change: comp::BuffChange::RemoveByDescriptor(
-                    buff::BuffDescriptor::SimpleNegative,
-                ),
-            })
+                buff_change: comp::BuffChange::RemoveByCategory {
+                    all_required: vec![],
+                    any_required: vec![],
+                    none_required: vec![BuffCategory::PersistOnDowned],
+                },
+            });
         }
     }
 }
@@ -1978,18 +1981,6 @@ impl ServerEvent for BuffEvent {
                             buffs.remove(key);
                         }
                     },
-                    BuffChange::RemoveByDescriptor(descriptor) => {
-                        let mut keys_to_remove = Vec::new();
-
-                        for (key, buff) in buffs.buffs.iter() {
-                            if buff.kind.differentiate() == descriptor {
-                                keys_to_remove.push(key);
-                            }
-                        }
-                        for key in keys_to_remove {
-                            buffs.remove(key);
-                        }
-                    },
                     BuffChange::Refresh(kind) => {
                         buffs
                             .buffs
@@ -2209,6 +2200,7 @@ pub struct EntityAttackedHookData<'a> {
     uids: ReadStorage<'a, Uid>,
     clients: ReadStorage<'a, Client>,
     stats: ReadStorage<'a, Stats>,
+    healths: ReadStorage<'a, Health>,
 }
 
 impl ServerEvent for EntityAttackedHookEvent {
@@ -2252,7 +2244,12 @@ impl ServerEvent for EntityAttackedHookEvent {
                     {
                         // Reset poise if there is some stunned state to apply
                         poise.reset(*data.time, stunned_duration);
-                        if !matches!(*char_state, CharacterState::Crawl) {
+                        if !(matches!(*char_state, CharacterState::Crawl)
+                            && data
+                                .healths
+                                .get(ev.entity)
+                                .map_or(false, |h| h.has_consumed_death_protection()))
+                        {
                             *char_state = stunned_state;
                         }
                         outcomes.emit(Outcome::PoiseChange {
