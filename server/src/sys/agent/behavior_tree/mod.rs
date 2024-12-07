@@ -6,7 +6,8 @@ use common::{
         },
         dialogue::Subject,
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, CharacterState,
-        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
+        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, PresenceKind,
+        UtteranceKind,
     },
     consts::MAX_INTERACT_RANGE,
     interaction::InteractionKind,
@@ -443,26 +444,36 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
         aggro_on: false,
         ..
     }) = bdata.agent.target
+        && let Some(target_uid) = bdata.read_data.uids.get(target)
     {
-        if matches!(
+        let needs_saving = matches!(
             bdata.read_data.char_states.get(target),
             Some(CharacterState::Crawl)
         ) && bdata
             .read_data
             .healths
             .get(target)
-            .is_some_and(|health| health.has_consumed_death_protection())
-            && bdata
-                .read_data
-                .interactors
-                .get(target)
-                .map_or(true, |interactors| {
-                    !interactors
-                        .iter()
-                        .any(|interaction| matches!(interaction.kind, InteractionKind::HelpDowned))
-                })
+            .is_some_and(|health| health.has_consumed_death_protection());
+
+        let wants_to_save = match (bdata.agent_data.alignment, bdata.read_data.alignments.get(target)) {
+                        // Npcs generally do want to save players. Could have extra checks for
+                        // sentiment in the future.
+                        (Some(Alignment::Npc), _) if bdata.read_data.presences.get(target).map_or(false, |presence| matches!(presence.kind, PresenceKind::Character(_))) => true,
+                        (Some(Alignment::Npc), Some(Alignment::Npc)) => true,
+                        (Some(Alignment::Enemy), Some(Alignment::Enemy)) => true,
+                        _ => false,
+                    } && bdata.agent.allowed_to_speak()
+                        // Check that anyone else isn't already saving them.
+                        && bdata.read_data
+                            .interactors
+                            .get(target)
+                            .map_or(true, |interactors| {
+                                !interactors.has_interaction(InteractionKind::HelpDowned)
+                            }) && bdata.agent_data.char_state.can_interact();
+
+        if needs_saving
+            && wants_to_save
             && let Some(target_pos) = bdata.read_data.positions.get(target)
-            && let Some(target_uid) = bdata.read_data.uids.get(target)
         {
             let dist_sqr = bdata.agent_data.pos.0.distance_squared(target_pos.0);
             if dist_sqr < (MAX_INTERACT_RANGE * 0.5).powi(2) {

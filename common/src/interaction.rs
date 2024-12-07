@@ -2,7 +2,10 @@ use std::time::Duration;
 
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage, Entities, Read, ReadStorage, WriteStorage};
+use specs::{
+    storage::GenericWriteStorage, Component, DerefFlaggedStorage, Entities, Read, ReadStorage,
+    WriteStorage,
+};
 
 use crate::{
     comp::{Alignment, CharacterState, Health, Pos},
@@ -18,7 +21,7 @@ impl Role for Interactor {
     type Link = Interaction;
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct Interactors {
     interactors: HashMap<Uid, LinkHandle<Interaction>>,
 }
@@ -154,14 +157,12 @@ impl Link for Interaction {
                     });
 
                     let _ = is_interactors.insert(interactor, this.make_role());
-                    if let Some(mut interactors) = interactors.get_mut(target) {
+                    if let Some(mut interactors) = interactors.get_mut_or_default(target) {
                         interactors
                             .interactors
                             .insert(this.interactor, this.clone());
                     } else {
-                        let _ = interactors.insert(target, Interactors {
-                            interactors: std::iter::once((this.interactor, this.clone())).collect(),
-                        });
+                        return Err(InteractionError::CannotInteract);
                     }
 
                     Ok(())

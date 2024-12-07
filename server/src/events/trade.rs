@@ -6,6 +6,7 @@ use common::{
             item::{tool::AbilityMap, ItemDefinitionIdOwned, MaterialStatManifest},
             Inventory,
         },
+        CharacterState, Health,
     },
     event::ProcessTradeActionEvent,
     trade::{PendingTrade, ReducedInventory, TradeAction, TradeResult, Trades},
@@ -74,7 +75,26 @@ pub(super) fn handle_process_trade_action(
                         AgentEvent::FinishedTrade(TradeResult::Declined),
                     );
                 });
-        } else {
+        }
+        // Check that the entity doing the trade action is alive and well.
+        else if server
+            .state
+            .ecs()
+            .read_storage::<Health>()
+            .get(entity)
+            .map_or(true, |health| {
+                !(health.is_dead
+                    || (health.has_consumed_death_protection()
+                        && matches!(
+                            server
+                                .state
+                                .ecs()
+                                .read_storage::<CharacterState>()
+                                .get(entity),
+                            Some(CharacterState::Crawl)
+                        )))
+            })
+        {
             {
                 let ecs = server.state.ecs();
                 let inventories = ecs.read_component::<Inventory>();

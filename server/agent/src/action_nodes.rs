@@ -24,7 +24,8 @@ use common::{
         item_drop,
         projectile::ProjectileConstructorKind,
         Agent, Alignment, Body, CharacterState, Content, ControlAction, ControlEvent, Controller,
-        HealthChange, InputKind, InventoryAction, Pos, Scale, UnresolvedChatMsg, UtteranceKind,
+        HealthChange, InputKind, InventoryAction, Pos, PresenceKind, Scale, UnresolvedChatMsg,
+        UtteranceKind,
     },
     consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
@@ -971,11 +972,10 @@ impl<'a> AgentData<'a> {
                         .is_some_and(|health| health.has_consumed_death_protection());
 
                     let wants_to_save = match (self.alignment, read_data.alignments.get(entity)) {
-                        (_, Some(Alignment::Owned(owner))) => owner == self.uid,
-                        (Some(Alignment::Npc), Some(Alignment::Npc | Alignment::Tame)) => true,
                         // Npcs generally do want to save players. Could have extra checks for
                         // sentiment in the future.
-                        (Some(Alignment::Npc), None) => true,
+                        (Some(Alignment::Npc), _) if read_data.presences.get(entity).map_or(false, |presence| matches!(presence.kind, PresenceKind::Character(_))) => true,
+                        (Some(Alignment::Npc), Some(Alignment::Npc)) => true,
                         (Some(Alignment::Enemy), Some(Alignment::Enemy)) => true,
                         _ => false,
                     } && agent.allowed_to_speak()
