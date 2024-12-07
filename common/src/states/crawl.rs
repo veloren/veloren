@@ -13,6 +13,8 @@ fn can_stand(data: &JoinData) -> bool {
         .map_or(true, |health| !health.has_consumed_death_protection())
 }
 
+// NOTE: In the future we might want to allow using some items while downed, but
+// right now we just ignore those events.
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
