@@ -384,7 +384,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => 1.12,
                 (Myrmidon, _) => 1.24,
                 (Husk, _) => 1.12,
-                (Boreal, _) => 1.0,
+                (Boreal, _) => 1.8,
                 (Bushly, _) => 1.0,
                 (Irrwurz, _) => 1.0,
                 (IronDwarf, _) => 1.5,

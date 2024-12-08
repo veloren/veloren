@@ -656,7 +656,7 @@ impl SfxMgr {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::LaserBeam);
                         audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
-                    Body::Object(object::Body::AdletTrap | object::Body::Mine) => {
+                    Body::Object(object::Body::AdletTrap | object::Body::BorealTrap | object::Body::Mine) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Yeet);
                         audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
@@ -704,7 +704,7 @@ impl SfxMgr {
                     }
                 },
                 Body::Object(
-                    object::Body::AdletTrap | object::Body::Mine | object::Body::StrigoiHead,
+                    object::Body::AdletTrap | object::Body::BorealTrap | object::Body::Mine | object::Body::StrigoiHead,
                 ) => {
                     if target.is_none() {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Klonk);

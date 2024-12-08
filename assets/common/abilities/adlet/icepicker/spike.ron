@@ -6,7 +6,7 @@ BasicMelee(
     recover_duration: 0.45,
     melee_constructor: (
         kind: Stab(
-            damage: 12,
+            damage: 8,
             poise: 10,
             knockback: 0,
             energy_regen: 0,

@@ -3,12 +3,12 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Bash(
-                    damage: 15,
+                    damage: 65,
                     poise: 0,
                     knockback: 3.5,
-                    energy_regen: 5,
+                    energy_regen: 35,
                 ),
-                range: 4.5,
+                range: 6.5,
                 angle: 50.0,
                 damage_effect: Some(Buff((
                     kind: Frozen,
@@ -20,7 +20,10 @@ ComboMelee2(
             buildup_duration: 0.7,
             swing_duration: 0.1,
             hit_timing: 0.5,
-            recover_duration: 0.45,
+            recover_duration: 1.6,
+            movement: (
+                swing: Some(Forward(1.0)),
+            ),
             ori_modifier: 1.0,
         ),
     ],

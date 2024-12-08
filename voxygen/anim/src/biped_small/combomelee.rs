@@ -112,6 +112,7 @@ impl Animation for ComboAnimation {
                     | "common.abilities.custom.green_legoom.doublestrike"
                     | "common.abilities.custom.red_legoom.doublestrike"
                     | "common.abilities.vampire.bloodservant.doublestrike"
+                    | "common.abilities.custom.boreal_warrior.bow.doublestrike"
                     | "common.abilities.custom.boreal_warrior.hammer.singlestrike",
                 ) => {
                     let anim_time = anim_time.min(1.0);

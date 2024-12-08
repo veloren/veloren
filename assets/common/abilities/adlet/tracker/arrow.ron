@@ -1,11 +1,11 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 0.6,
+    buildup_duration: 1.0,
     recover_duration: 0.4,
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 12,
+            damage: 6,
             energy: 0,
             buff: Some((
                 kind: Bleeding,
