@@ -3073,7 +3073,6 @@ impl Site {
             match &plot.kind {
                 PlotKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
                 PlotKind::Adlet(a) => a.apply_supplement(dynamic_rng, wpos2d, supplement),
-                PlotKind::Barn(b) => b.apply_supplement(dynamic_rng, wpos2d, supplement),
                 _ => {},
             }
         }

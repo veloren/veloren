@@ -1,12 +1,10 @@
 use super::*;
 use crate::{site2::gen::PrimitiveTransform, Land};
 use common::terrain::Structure as PrefabStructure;
-use common::terrain::{BlockKind, SpriteKind};
 use rand::prelude::*;
 use vek::*;
 use crate::util::{RandomField, Sampler};
-use common::generation::{ChunkSupplement, EntityInfo};
-use tracing::info;
+use common::generation::EntityInfo;
 
 pub struct Barn {
     /// Tile position of the door tile
@@ -37,42 +35,6 @@ impl Barn {
             alt: land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32 + 2,
         }
     }
-
-    pub fn apply_supplement(
-        &self,
-        dynamic_rng: &mut impl Rng,
-        wpos2d: Vec2<i32>,
-        supplement: &mut ChunkSupplement,
-    ) {
-        
-        let rpos = wpos2d;
-
-        let area = Aabr {
-            min: rpos,
-            max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-        };
-
-        if area.contains_point(self.bounds.center()) {
-            for _ in 1..5 {
-                let spec = [
-                    "common.entity.wild.peaceful.cattle",
-                    "common.entity.wild.peaceful.horse",
-                ]
-                .choose(dynamic_rng)
-                .unwrap();
-        
-                supplement.add_entity(
-                    EntityInfo::at(Vec3::new(rpos.x + 20, rpos.y + 20, self.alt + 1).as_()).with_asset_expect(
-                        spec,
-                        dynamic_rng,
-                    None,
-                ).with_alignment(Alignment::Tame));
-            }
-
-            info!("generating creatures for barn at {:?}", wpos2d)
-        }
-        
-    }
 }
 
 impl Structure for Barn {
@@ -81,19 +43,19 @@ impl Structure for Barn {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_barn")]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
-        let base = self.alt + 1;
+        let base = self.alt;
         let center = self.bounds.center();
         
         let length = (22 + RandomField::new(0).get(center.with_z(base)) % 3) as i32;
         let width = (8 + RandomField::new(0).get((center - 1).with_z(base)) % 3) as i32;
 
-        let fill = Fill::Block(Block::new(BlockKind::Earth, Rgb::new(251, 251, 227)));
-
         // solid dirt
+        let fill = Fill::Block(Block::new(BlockKind::Earth, Rgb::new(161, 116, 86)));
+
         painter
             .aabb(Aabb {
                 min: Vec2::new(center.x - length - 6, center.y - width - 6).with_z(base - 10),
-                max: Vec2::new(center.x + length + 7, center.y + width + 7).with_z(base - 1),
+                max: Vec2::new(center.x + length + 7, center.y + width + 7).with_z(base),
             })
             .fill(fill);
 
@@ -104,6 +66,25 @@ impl Structure for Barn {
         let barn_site_pos: Vec3<i32> = entrance_pos + Vec3::new(0, 0, 0);
         render_prefab(barn_path, barn_site_pos, painter);
 
+        // barn animals
+        let mut thread_rng = thread_rng();
+
+        let barn_animals = [
+            "common.entity.wild.peaceful.cattle",
+            "common.entity.wild.peaceful.horse",
+        ];
+        
+        for _ in 1..=5 {
+            let npc_rng = thread_rng.gen_range(0..=1);
+            let spec = barn_animals[npc_rng];
+
+            painter.spawn(
+                EntityInfo::at(Vec3::new(center.x, center.y, self.alt).as_()).with_asset_expect(
+                    spec,
+                    &mut thread_rng,
+                    None,
+                ));
+        }
     }
 }
 

@@ -468,6 +468,7 @@ impl Site {
             SiteKind::Refactor(_)
             | SiteKind::CliffTown(_)
             | SiteKind::SavannahTown(_)
+            | SiteKind::CoastalTown(_)
             | SiteKind::PirateHideout(_)
             | SiteKind::JungleRuin(_)
             | SiteKind::RockCircle(_)
@@ -476,7 +477,6 @@ impl Site {
             | SiteKind::DesertCity(_)
             | SiteKind::GliderCourse(_)
             | SiteKind::Tree(_) => {},
-            SiteKind::CoastalTown(ct) => ct.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::ChapelSite(p) => p.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Terracotta(tr) => tr.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::DwarvenMine(dm) => dm.apply_supplement(dynamic_rng, wpos2d, supplement),
