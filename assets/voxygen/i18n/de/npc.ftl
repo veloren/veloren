@@ -328,5 +328,5 @@ npc-speech-night =
 # - $site represents hard-coded site in the world
 npc-speech-site =
     .a0 = Glaubst du nicht auch, dass unser Dorf das beste ist?
-    .a1 = Willkommen in { $site } !
+    .a1 = Willkommen in { $site }!
     .a2 = { $site } ist ein schönes Dorf zum Leben.
