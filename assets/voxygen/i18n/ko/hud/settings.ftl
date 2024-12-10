@@ -146,3 +146,5 @@ hud-settings-group_only = 그룹만
 hud-settings-reset_chat = 기본값으로 되돌리기
 hud-settings-third_party_integrations = Third-party Integrations
 hud-settings-enable_discord_integration = Enable Discord Integration
+hud-settings-slots = 슬롯
+hud-settings-autopress_behavior-auto = 자동

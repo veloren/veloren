@@ -164,3 +164,4 @@ hud-settings-ultra_graphics = Nejvyšší
 hud-settings-point_glow = Bodová světla
 hud-settings-ambience_volume = Hlasitost prostředí
 hud-settings-music_spacing = Rozložení hudby
+hud-settings-show_all_recipes = Ukázat všechny recepty

@@ -32,3 +32,4 @@ hud-trade-your_offer = Votre offre
 hud-trade-their_offer = Son offre
 hud-trade-amount_input = Sélectionner un objet
 hud-confirm-trade-for-nothing = Vous donnez vraiment ces objets en échange de rien ?
+hud-trade-invite-declined = { $target } a refusé ta demande d'échange.

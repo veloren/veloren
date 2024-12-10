@@ -30,3 +30,5 @@ weapon-tool-kora = Kora
     .desc = Africká harfa ve tvaru loutny.
 weapon-tool-wooden_bass = Basa
     .desc = Dřevěná basa.
+weapon-tool-banjo = Banjo
+    .desc = Banjo.

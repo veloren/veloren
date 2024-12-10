@@ -60,3 +60,5 @@ weapon-sceptre-wood-simple = Naturalistisk prommenadkäpp
     .desc = Läker dina allierade med kraften av naturen.
 weapon-shield-wood-0 = En Sliten Targe
     .desc = Borde motså några fler träffar, förhoppningsvis...
+weapon-staff-firestaff_starter = Knotigt Spö
+    .desc = Luktar som kåda och magi.

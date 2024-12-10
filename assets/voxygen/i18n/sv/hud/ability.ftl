@@ -469,3 +469,5 @@ common-abilities-axe-sunder = Söndra
 # Axe abilities
 common-abilities-axe-skull_bash = Skalleslag
     .desc = Ett slag med det platta av din yxa som kan vackla.
+common-abilities-hammer-scornful_swipe = Föraktfullt Slag
+    .desc = Förstärk din mod och ork genom att håna dina fiender innan du slår dem. Om du faller du till en fiende blir de stärkta.

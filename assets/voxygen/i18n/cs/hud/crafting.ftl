@@ -52,3 +52,5 @@ hud-crafting-recipe-unlearned = Nejdřív se musíš naučit, jak takovou věc v
 hud-crafting-mod_comp_sec_slot_desc = Sem můžeš vložit část zvířete k výrobě, jen některé části zvířat mohou změnit vlastnosti zbraní.
 hud-crafting-repair_slot_title = Poškozený předmět
 hud-crafting-recipe-uncraftable = Recept nemůže být vyroben
+hud-crafting-hide_unknown_recipes = Skrýt neznámé recepty
+hud-crafting-show_unknown_recipes = Ukázat neznámé recepty

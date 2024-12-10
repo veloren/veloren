@@ -278,3 +278,7 @@ npc-speech-dist_near = pas trop loin
 npc-speech-dist_near_to = très près
 # NPC proposals
 npc-speech-arena = Asseyons-nous ici !
+npc-speech-site =
+    .a0 = Vous ne pensez pas que notre village est le meilleur ?
+    .a1 = Bienvenue à { $site }
+    .a2 = Il fait bon vivre à { $site }.
