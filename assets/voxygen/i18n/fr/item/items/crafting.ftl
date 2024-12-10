@@ -131,11 +131,11 @@ sprite-flowers-pyrebloom = Fleur de feu
     .desc = Chaud au toucher, longtemps après la cueillette.
 sprite-flowers-sunflower_1 = Tournesol
     .desc = Ça respire l'été.
-sprite-mineral-ingot-bronze =
-    Lingot de bronze
-    Un alliage robuste fabriqué à partir d'une combinaison de cuivre et d'étain.
+sprite-mineral-ingot-bronze = Lingot de bronze
+    .desc =
+        Un alliage robuste fabriqué à partir d'une combinaison de cuivre et d'étain.
 
-    Peut être utilisé lors de la fabrication d'armes ou d'armures.
+        Peut être utilisé lors de la fabrication d'armes ou d'armures.
 sprite-mineral-ingot-cobalt = Lingot de cobalt
     .desc =
         Un lingot d'un bleu éclatant.
