@@ -136,3 +136,26 @@ sprite-mineral-ingot-bronze =
     Un alliage robuste fabriqué à partir d'une combinaison de cuivre et d'étain.
 
     Peut être utilisé lors de la fabrication d'armes ou d'armures.
+sprite-mineral-ingot-cobalt = Lingot de cobalt
+    .desc =
+        Un lingot d'un bleu éclatant.
+
+        Peut être utilisé pour fabriquer des armes et armures.
+sprite-mineral-ingot-silver = Lingot d'argent
+    .desc = Un lingot fait d'argent métallique raffiné.
+sprite-mineral-ingot-gold = Lingot d'or
+    .desc = Un lingot fait d'or métallique raffiné.
+sprite-mineral-ingot-tin = Lingot d'étain
+    .desc = Un lingot principalement utilisé pour fabriquer du bronze.
+sprite-mineral-ingot-copper = Lingot de cuivre
+    .desc = Un lingot avec une couleur brune unique.
+sprite-mineral-ingot-iron = Lingot de fer
+    .desc =
+        Un métal incroyablement courant.
+
+        Il peut être utilisé lors de la fabrication d'armes ou d'armures.
+sprite-mineral-ingot-steel = Lingot d'acier
+    .desc =
+        Un alliage de fer et de charbon qui est beaucoup plus résistant que ses composants.
+
+        Peut être utilisé lors de la fabrication d'armes ou d'armures.
