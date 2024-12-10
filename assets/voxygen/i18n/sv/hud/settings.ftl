@@ -164,3 +164,4 @@ hud-settings-slots = Platser
 hud-settings-keybind-helper =
     M1 för att sätta
     M2 för att avsätta
+hud-settings-show_all_recipes = Visa Alla Recept

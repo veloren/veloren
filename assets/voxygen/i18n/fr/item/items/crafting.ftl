@@ -72,3 +72,90 @@ sprite-crafting_ing-dwarven_battery = Batterie naine
     .desc = Conteneur d'énergie magique.
 sprite-rocks-rock-0 = Pierres
     .desc = Cailloux du sol, rien d'extraordinaire.
+sprite-crafting_ing-alkahest = Alkahest
+    .desc = Solvant alchimique.
+sprite-crafting_ing-golemite_slab = Plaque de golemite
+    .desc = Après avoir retrouvé sa gloire d'antan, ce matériau terrestre est devenu robuste et adapté à la fabrication d'armures.
+sprite-crafting_ing-cursed_bead = Perle maudite
+    .desc = Quels sinistres pouvoirs magiques cette vieille perle mystique peut-elle receler ?
+sprite-crafting_ing-golem_core = Noyau de golem
+    .desc = Un mystérieux noyau magique, capable d'alimenter une ancienne construction gardienne.
+sprite-crafting_ing-earthern_shard = Éclat de terre
+    .desc = Tesson durci qui faisait autrefois partie d'un être de céramique animé.
+sprite-twigs-twigs-0 = Brindilles
+    .desc = Trouvé près des arbres, un écureuil a dû la faire tomber.
+sprite-crafting_ing-hide-carapace = Carapace dure
+    .desc = Carapace dure et résistante, un bouclier pour de nombreuses créatures.
+sprite-crafting_ing-hide-animal_hide = Peau d'animal
+    .desc = Peau commune de la plupart des animaux. Devient du cuir.
+sprite-crafting_ing-animal_misc-sharp_fang = Dent aiguisé
+    .desc =
+        Une dent aiguisé comme un rasoir d'un animal féroce.
+
+        Les armes conçues avec auront des effets plus puissant et plus long.
+sprite-crafting_ing-animal_misc-venom_sac = Sac à venin
+    .desc = Sac à venin provenant d'une créature venimeuse.
+sprite-crafting_ing-leather-rigid_leather = Cuir rigide
+    .desc = Léger mais multicouches, parfait pour la protection.
+sprite-crafting_ing-leather-simple_leather = Cuir simple
+    .desc = Léger et souple.
+sprite-crafting_ing-cloth-cloth_strips = Bandes de tissu
+    .desc = Petites et douces, mais utiles.
+sprite-crafting_ing-animal_misc-viscous_ooze = Suintement visqueux
+    .desc = Une mesure de suintement visqueux provenant d'une créature visqueuse.
+sprite-crafting_ing-leather-leather_strips = Bandes de cuir
+    .desc = Simple et versatile.
+sprite-crafting_ing-leather-thick_leather = Cuir épais
+    .desc = Solide et durable.
+sprite-crafting_ing-cloth-cotton = Coton
+    .desc = Facile à travailler et multi-fonctionnel.
+sprite-crafting_ing-cloth-linen = Lin
+    .desc = Textile fabriqué à partir de fibres de lin.
+sprite-crafting_ing-cloth-linen_red = Lin rouge
+    .desc = Textile en fibre de lin, teint pour ressortir.
+sprite-crafting_ing-cloth-moonweave = Tissu de lune
+    .desc = Un textile léger mais très robuste.
+sprite-crafting_ing-cloth-silk = Soie
+    .desc = Fibre fine et résistante produite par les araignées.
+sprite-crafting_ing-cloth-sunsilk = Soie solaire
+    .desc = Tissu extraordinairement résistant.
+sprite-crafting_ing-cloth-wool = Laine douce
+    .desc = Laine douce provenant d'un animal.
+sprite-crafting_ing-cloth-lifecloth = Tissu de vie
+    .desc = Un tissu imprégné de la douceur que la nature a à offrir.
+sprite-flowers-moonbell = Cloche de lune
+    .desc = Elle scintille sous le clair de lune.
+sprite-crafting_ing-plant_fiber = Fibre végétale
+    .desc = brin de matière végétale brute.
+sprite-flowers-pyrebloom = Fleur de feu
+    .desc = Chaud au toucher, longtemps après la cueillette.
+sprite-flowers-sunflower_1 = Tournesol
+    .desc = Ça respire l'été.
+sprite-mineral-ingot-bronze = Lingot de bronze
+    .desc =
+        Un alliage robuste fabriqué à partir d'une combinaison de cuivre et d'étain.
+
+        Peut être utilisé lors de la fabrication d'armes ou d'armures.
+sprite-mineral-ingot-cobalt = Lingot de cobalt
+    .desc =
+        Un lingot d'un bleu éclatant.
+
+        Peut être utilisé pour fabriquer des armes et armures.
+sprite-mineral-ingot-silver = Lingot d'argent
+    .desc = Un lingot fait d'argent métallique raffiné.
+sprite-mineral-ingot-gold = Lingot d'or
+    .desc = Un lingot fait d'or métallique raffiné.
+sprite-mineral-ingot-tin = Lingot d'étain
+    .desc = Un lingot principalement utilisé pour fabriquer du bronze.
+sprite-mineral-ingot-copper = Lingot de cuivre
+    .desc = Un lingot avec une couleur brune unique.
+sprite-mineral-ingot-iron = Lingot de fer
+    .desc =
+        Un métal incroyablement courant.
+
+        Il peut être utilisé lors de la fabrication d'armes ou d'armures.
+sprite-mineral-ingot-steel = Lingot d'acier
+    .desc =
+        Un alliage de fer et de charbon qui est beaucoup plus résistant que ses composants.
+
+        Peut être utilisé lors de la fabrication d'armes ou d'armures.

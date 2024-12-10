@@ -76,3 +76,5 @@ armor-misc-bag-soulkeeper_cursed = Guardián de almas maldito
     .desc = WIP.
 armor-misc-bag-knitted_red_pouch = Faltriquera roja tricotada
     .desc = Bolsa de lana de un tamaño considerable y con dos bolsillos.
+lantern-delvers_lamp = La lampara de Delver
+    .desc = Es perfecta para ir a minar.

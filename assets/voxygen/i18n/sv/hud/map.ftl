@@ -40,3 +40,7 @@ hud-map-terracotta = Terrakottaruinerna
 hud-map-haniwa = Haniwakatakomb
 hud-map-sahagin = Sahagin-ön
 hud-map-cultist = Kultisk Dungeon
+hud-map-bridges = Broar
+hud-map-glider_course = Glidbana
+hud-map-glider_courses = Glidbanor
+hud-map-vampire_castle = Vampyrslott

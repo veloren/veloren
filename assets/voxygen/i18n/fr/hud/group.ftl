@@ -11,3 +11,4 @@ hud-group-add_friend = Ajouter aux Amis
 hud-group-link_group = Lier le Groupe
 hud-group-in_menu = Dans les Menus
 hud-group-members = Membres du groupe
+hud-group-invite-declined = { $target } a refusé ton invitation au groupe.

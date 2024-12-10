@@ -28,3 +28,5 @@ weapon-tool-steeltonguedrum = Tambor metálico de lengüetas
     .desc = Tambor metálico de lengüetas.
 weapon-tool-wildskin_drum = Tambor salvaje
     .desc = Uno, dos, ¡ya sabes qué hacer!
+weapon-tool-kora = Kora
+    .desc = Kora.

@@ -52,3 +52,5 @@ hud-crafting-repair_equipped = Utrustade
 hud-crafting-repair-selection = Vald
 hud-crafting-req_crafting_station = Station:
 hud-crafting-repair_desc = Dra skadade saker hit för att reparera dem
+hud-crafting-show_unknown_recipes = Visa Okända Recept
+hud-crafting-hide_unknown_recipes = Dölj Okända Recept

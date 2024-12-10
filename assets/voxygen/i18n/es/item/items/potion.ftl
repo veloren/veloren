@@ -18,3 +18,7 @@ object-frozen_charm = Talismán congelante
     .desc = Haz que tus enemigos sientan el abrazo gélido de la escarcha con la que los detienes.
 object-lifesteal_charm = Talismán de succión
     .desc = Drena la fuerza vital de tu objetivo para tu propio beneficio.
+object-potion_freezing = Poción congeladora
+    .desc = Congela el cerebro del usuario
+object-potion_curious = Poción Curiosa
+    .desc = ¿Que hará esto...?

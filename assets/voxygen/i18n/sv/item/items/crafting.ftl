@@ -153,3 +153,5 @@ sprite-crafting_ing-oil = Olja
     .desc = Ett mått tjock, geggig olja.
 sprite-crafting_ing-brinestone = Saltlagssten
     .desc = Används för rustningstillverkning.
+sprite-crafting_ing-resin = Kåda
+    .desc = Används till trähantverk.

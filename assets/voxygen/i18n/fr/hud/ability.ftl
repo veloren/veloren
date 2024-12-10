@@ -226,3 +226,27 @@ common-abilities-sword-basic_dual_cross_cut = Coupe croisée basique
 # so please keep them, even when not used in English file.
 # See https://github.com/WeblateOrg/weblate/issues/9895
 -cleaving_stance = ""
+common-abilities-sword-basic_mighty_strike = Frappe puissante
+    .desc =
+        Un coup simple et puissant.
+        Nécessite une quantité modérée de combo pour l'utiliser.
+common-abilities-sword-heavy_guillotine = Guillotine
+    .desc =
+        Un clivage puissant qui étourdira probablement ce qu'il ne tue pas.
+        Nécessite une quantité modérée de combo pour être utilisé.
+common-abilities-sword-defensive_counter = Counter
+    .desc =
+        Une attaque lancée rapidement qui inflige beaucoup plus de dégâts à un ennemi paré.
+        Nécessite une quantité modérée de combo pour être utilisée.
+common-abilities-sword-cleaving_bladestorm = Tempête de lames
+    .desc =
+        Décimez vos ennemis en tourbillonant avec votre épée.
+        Nécessite une quantité modérée de combo pour l'utiliser.
+common-abilities-sword-agile_hundred_cuts = Cent coupures
+    .desc =
+        De nombreuses entailles très rapides sur une cible.
+        Nécessite une quantité modérée de combo pour être utilisé.
+common-abilities-sword-crippling_mutilate = Mutilation
+    .desc =
+        Mutilez votre ennemi en sciant ses blessures, inflige plus de dégâts aux ennemis qui saignent.
+        Nécessite une quantité modérée de combo pour être utilisé.
