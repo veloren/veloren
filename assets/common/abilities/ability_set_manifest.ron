@@ -923,18 +923,18 @@
             Simple(None, "common.abilities.custom.gigas_frost.whirlwind"),
         ],
     ),
-    Custom("Boreal Bow"): (
-            primary: Simple(None, "common.abilities.custom.boreal_warrior.bow.doublestrike"),
-            secondary: Simple(None, "common.abilities.custom.boreal_warrior.bow.shotgun"),
-        abilities: [
-            Simple(None, "common.abilities.custom.boreal_warrior.bow.trap"),
-        ],
-    ),
     Custom("Boreal Hammer"): (
         primary: Simple(None, "common.abilities.custom.boreal_warrior.hammer.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.boreal_warrior.hammer.dash"),
         abilities: [
             Simple(None, "common.abilities.custom.boreal_warrior.hammer.leap"),
+        ],
+    ),
+    Custom("Boreal Bow"): (
+        primary: Simple(None, "common.abilities.custom.boreal_warrior.bow.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.boreal_warrior.bow.shotgun"),
+        abilities: [
+            Simple(None, "common.abilities.custom.boreal_warrior.bow.trap"),
         ],
     ),
     Custom("Tornado"): (

@@ -257,6 +257,7 @@ pub enum Tactic {
     Roshwalr,
     FrostGigas,
     BorealHammer,
+    BorealBow,
     Dullahan,
     Cyclops,
     IceDrake,

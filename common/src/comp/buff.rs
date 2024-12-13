@@ -453,9 +453,7 @@ impl BuffKind {
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
                 BuffEffect::PoiseDamageFromLostHealth(data.strength),
             ],
-            BuffKind::Parried => vec![
-                BuffEffect::PrecisionVulnerabilityOverride(1.0),
-            ],
+            BuffKind::Parried => vec![BuffEffect::PrecisionVulnerabilityOverride(1.0)],
             BuffKind::PotionSickness => vec![BuffEffect::ItemEffectReduction(data.strength)],
             BuffKind::Reckless => vec![
                 BuffEffect::DamageReduction(-data.strength),
