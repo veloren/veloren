@@ -1,6 +1,6 @@
 BasicBlock(
     buildup_duration: 0.25,
-    recover_duration: 0.2,
+    recover_duration: 0.4,
     max_angle: 60.0,
     block_strength: 2.25,
     parry_window: (

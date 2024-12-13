@@ -1173,7 +1173,7 @@ impl<'a> AgentData<'a> {
                             "Gnarling Chieftain" => Tactic::GnarlingChieftain,
                             "Frost Gigas" => Tactic::FrostGigas,
                             "Boreal Hammer" => Tactic::BorealHammer,
-                            "Boreal Bow" => Tactic::BorealHammer,
+                            "Boreal Bow" => Tactic::BorealBow,
                             "Adlet Hunter" => Tactic::AdletHunter,
                             "Adlet Icepicker" => Tactic::AdletIcepicker,
                             "Adlet Tracker" => Tactic::AdletTracker,
