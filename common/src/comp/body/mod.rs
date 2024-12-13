@@ -392,6 +392,7 @@ impl Body {
             Body::BipedSmall(body) => match body.species {
                 biped_small::Species::IronDwarf => 1000.0,
                 biped_small::Species::Flamekeeper => 1000.0,
+                biped_small::Species::Boreal => 1000.0,
                 _ => 50.0,
             },
             // ravens are 0.69-2 kg, crows are 0.51 kg on average.
@@ -1350,6 +1351,7 @@ impl Body {
             Body::BipedSmall(b) => match b.species {
                 biped_small::Species::GnarlingChieftain => 130,
                 biped_small::Species::IronDwarf | biped_small::Species::Flamekeeper => 300,
+                biped_small::Species::Boreal => 470,
                 _ => 100,
             },
             Body::BirdLarge(b) => match b.species {
