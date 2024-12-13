@@ -169,6 +169,12 @@ widget_ids! {
         slot10,
         slot10_text,
         slot10_text_bg,
+        slot11,
+        slot11_text,
+        slot11_text_bg,
+        slot12,
+        slot12_text,
+        slot12_text_bg,
     }
 }
 
@@ -183,7 +189,7 @@ struct SlotEntry {
     shortcut_widget_ids: (widget::Id, widget::Id),
 }
 
-fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
+fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 12] {
     use PositionSpecifier::*;
 
     [
@@ -191,7 +197,7 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
         SlotEntry {
             slot: hotbar::Slot::One,
             widget_id: state.ids.slot1,
-            position: BottomLeftWithMarginsOn(state.ids.frame, 0.0, 0.0),
+            position: BottomLeftWithMarginsOn(state.ids.frame, 0.0, -42.5),
             game_input: GameInput::Slot1,
             shortcut_position: BottomLeftWithMarginsOn(state.ids.slot1_text_bg, 1.0, 1.0),
             shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot1, 3.0, 5.0),
@@ -237,7 +243,7 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
         SlotEntry {
             slot: hotbar::Slot::Six,
             widget_id: state.ids.slot6,
-            position: RightFrom(state.ids.m2_slot_bg, slot_offset),
+            position: RightFrom(state.ids.slot5, slot_offset),
             game_input: GameInput::Slot6,
             shortcut_position: BottomLeftWithMarginsOn(state.ids.slot6_text_bg, 1.0, 1.0),
             shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot6, 3.0, 5.0),
@@ -273,11 +279,30 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 10] {
         SlotEntry {
             slot: hotbar::Slot::Ten,
             widget_id: state.ids.slot10,
-            position: RightFrom(state.ids.slot9, slot_offset),
+            position: RightFrom(state.ids.m2_slot_bg, slot_offset),
             game_input: GameInput::Slot10,
             shortcut_position: BottomLeftWithMarginsOn(state.ids.slot10_text_bg, 1.0, 1.0),
             shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot10, 3.0, 5.0),
             shortcut_widget_ids: (state.ids.slot10_text, state.ids.slot10_text_bg),
+        },
+        // 11 & 12 additional slots
+        SlotEntry {
+            slot: hotbar::Slot::Eleven,
+            widget_id: state.ids.slot11,
+            position: RightFrom(state.ids.slot10, slot_offset),
+            game_input: GameInput::Slot11,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot11_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot11, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot11_text, state.ids.slot11_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::Twelve,
+            widget_id: state.ids.slot12,
+            position: RightFrom(state.ids.slot11, slot_offset),
+            game_input: GameInput::Slot12,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot12_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot12, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot12_text, state.ids.slot12_text_bg),
         },
     ]
 }
@@ -626,7 +651,7 @@ impl<'a> Skillbar<'a> {
         // Bag button and indicator
         Image::new(self.imgs.selected_exp_bg)
             .w_h(34.0, 38.0)
-            .bottom_right_with_margins_on(state.ids.slot10, 0.0, -37.0)
+            .bottom_right_with_margins_on(state.ids.slot12, 0.0, -37.0)
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
             .set(state.ids.bag_img_frame_bg, ui);
 
@@ -781,7 +806,7 @@ impl<'a> Skillbar<'a> {
             // Exp Type and Level Display
             Image::new(self.imgs.selected_exp_bg)
                 .w_h(34.0, 38.0)
-                .top_left_with_margins_on(state.ids.exp_frame, -39.0, 3.0)
+                .bottom_left_with_margins_on(state.ids.slot1, 0.0, -37.0)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(state.ids.exp_img_frame_bg, ui);
 
@@ -1140,7 +1165,7 @@ impl<'a> Skillbar<'a> {
         // Slot M1
         Image::new(self.imgs.skillbar_slot)
             .w_h(40.0, 40.0)
-            .right_from(state.ids.slot5, slot_offset)
+            .right_from(state.ids.slot9, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
 
         let primary_ability_id = self.active_abilities.and_then(|a| {

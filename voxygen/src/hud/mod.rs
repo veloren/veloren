@@ -5276,6 +5276,8 @@ fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
         GameInput::Slot8 => hotbar::Slot::Eight,
         GameInput::Slot9 => hotbar::Slot::Nine,
         GameInput::Slot10 => hotbar::Slot::Ten,
+        GameInput::Slot11 => hotbar::Slot::Eleven,
+        GameInput::Slot12 => hotbar::Slot::Twelve,
         _ => return None,
     })
 }

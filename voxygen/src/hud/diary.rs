@@ -812,7 +812,7 @@ impl<'a> Widget for Diary<'a> {
                     //.graphics_for(state.ids.content_align)
                     .set(state.ids.spellbook_art, ui);
                 Image::new(self.imgs.skills_bg)
-                    .w_h(240.0 * 2.0, 40.0 * 2.0)
+                    .w_h(408.0 * 2.0, 40.0 * 2.0)
                     .mid_bottom_with_margin_on(state.ids.content_align, 8.0)
                     .set(state.ids.spellbook_skills_bg, ui);
 
@@ -921,6 +921,10 @@ impl<'a> Widget for Diary<'a> {
                         GameInput::Slot3,
                         GameInput::Slot4,
                         GameInput::Slot5,
+                        GameInput::Slot6,
+                        GameInput::Slot7,
+                        GameInput::Slot8,
+                        GameInput::Slot9,
                     ]
                     .get(i)
                     .and_then(|input| keys.get_binding(*input))

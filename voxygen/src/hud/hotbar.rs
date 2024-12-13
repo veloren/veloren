@@ -18,6 +18,8 @@ pub enum Slot {
     Eight = 7,
     Nine = 8,
     Ten = 9,
+    Eleven = 10,
+    Twelve = 11,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -28,15 +30,15 @@ pub enum SlotContents {
 
 #[derive(Clone, Default)]
 pub struct State {
-    pub slots: [Option<SlotContents>; 10],
-    inputs: [bool; 10],
+    pub slots: [Option<SlotContents>; 12],
+    inputs: [bool; 12],
 }
 
 impl State {
-    pub fn new(slots: [Option<SlotContents>; 10]) -> Self {
+    pub fn new(slots: [Option<SlotContents>; 12]) -> Self {
         Self {
             slots,
-            inputs: [false; 10],
+            inputs: [false; 12],
         }
     }
 

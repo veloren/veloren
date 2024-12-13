@@ -103,6 +103,12 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.slot10)
                     .or_default()
                     .push(GameInput::Slot10);
+                map.entry(settings.game_buttons.slot11)
+                    .or_default()
+                    .push(GameInput::Slot11);
+                map.entry(settings.game_buttons.slot12)
+                    .or_default()
+                    .push(GameInput::Slot12);
                 map.entry(settings.game_buttons.toggle_cursor)
                     .or_default()
                     .push(GameInput::ToggleCursor);
@@ -338,6 +344,12 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_layer_buttons.slot10)
                     .or_default()
                     .push(GameInput::Slot10);
+                map.entry(settings.game_layer_buttons.slot11)
+                    .or_default()
+                    .push(GameInput::Slot11);
+                map.entry(settings.game_layer_buttons.slot12)
+                    .or_default()
+                    .push(GameInput::Slot12);
                 map.entry(settings.game_layer_buttons.toggle_cursor)
                     .or_default()
                     .push(GameInput::ToggleCursor);

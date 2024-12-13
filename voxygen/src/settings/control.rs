@@ -186,6 +186,8 @@ impl ControlSettings {
             GameInput::Slot8 => Some(KeyMouse::Key(VirtualKeyCode::Key8)),
             GameInput::Slot9 => Some(KeyMouse::Key(VirtualKeyCode::Key9)),
             GameInput::Slot10 => Some(KeyMouse::Key(VirtualKeyCode::Q)),
+            GameInput::Slot11 => None,
+            GameInput::Slot12 => None,
             GameInput::SwapLoadout => Some(KeyMouse::Key(VirtualKeyCode::Tab)),
             GameInput::Select => Some(KeyMouse::Key(VirtualKeyCode::X)),
             GameInput::AcceptGroupInvite => Some(KeyMouse::Key(VirtualKeyCode::Y)),
