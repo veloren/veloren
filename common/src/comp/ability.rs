@@ -36,7 +36,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{borrow::Cow, time::Duration};
 
-pub const BASE_ABILITY_LIMIT: usize = 5;
+pub const BASE_ABILITY_LIMIT: usize = 9;
 
 // NOTE: different AbilitySpec on same ToolKind share the same key
 /// Descriptor to pick the right (auxiliary) ability set
