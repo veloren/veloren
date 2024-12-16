@@ -169,8 +169,7 @@ impl ServerEvent for PoiseChangeEvent {
                 .lend_join()
                 .get(ev.entity, &entities)
             {
-                // Entity is invincible to poise change during stunned character state or the
-                // crawling character state.
+                // Entity is invincible to poise change during stunned character state.
                 if !matches!(character_state, CharacterState::Stunned(_)) {
                     poise.change(ev.change);
                 }
@@ -2244,12 +2243,7 @@ impl ServerEvent for EntityAttackedHookEvent {
                     {
                         // Reset poise if there is some stunned state to apply
                         poise.reset(*data.time, stunned_duration);
-                        if !(matches!(*char_state, CharacterState::Crawl)
-                            && data
-                                .healths
-                                .get(ev.entity)
-                                .map_or(false, |h| h.has_consumed_death_protection()))
-                        {
+                        if !comp::is_downed(data.healths.get(ev.entity), Some(&char_state)) {
                             *char_state = stunned_state;
                         }
                         outcomes.emit(Outcome::PoiseChange {

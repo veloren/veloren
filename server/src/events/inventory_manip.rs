@@ -154,15 +154,7 @@ impl ServerEvent for InventoryManipEvent {
                 continue;
             }
 
-            if data
-                .healths
-                .get(entity)
-                .map_or(false, |health| health.has_consumed_death_protection())
-                && matches!(
-                    data.character_states.get(entity),
-                    Some(comp::CharacterState::Crawl)
-                )
-            {
+            if comp::is_downed(data.healths.get(entity), data.character_states.get(entity)) {
                 // Can't manipulate the inventory while downed.
                 continue;
             }

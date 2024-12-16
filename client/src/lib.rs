@@ -1873,10 +1873,7 @@ impl Client {
             } else {
                 self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
             }
-        } else if health
-            .as_ref()
-            .map_or(false, |h| h.has_consumed_death_protection())
-        {
+        } else if comp::is_downed(health.as_ref(), self.current().as_ref()) {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
         }
     }

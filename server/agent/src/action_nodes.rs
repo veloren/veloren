@@ -963,13 +963,10 @@ impl<'a> AgentData<'a> {
                 if read_data.healths.get(entity).map_or(false, |health| {
                     !health.is_dead && !is_invulnerable(entity, read_data)
                 }) {
-                    let needs_saving = matches!(
+                    let needs_saving = comp::is_downed(
+                        read_data.healths.get(entity),
                         read_data.char_states.get(entity),
-                        Some(CharacterState::Crawl)
-                    ) && read_data
-                        .healths
-                        .get(entity)
-                        .is_some_and(|health| health.has_consumed_death_protection());
+                    );
 
                     let wants_to_save = match (self.alignment, read_data.alignments.get(entity)) {
                         // Npcs generally do want to save players. Could have extra checks for

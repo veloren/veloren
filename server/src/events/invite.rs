@@ -103,13 +103,7 @@ impl ServerEvent for InitiateInviteEvent {
             if matches!(kind, InviteKind::Trade) {
                 let is_alive_and_well = |entity| {
                     entities.is_alive(entity)
-                        && healths.get(entity).map_or(true, |health| {
-                            !health.has_consumed_death_protection()
-                                && !matches!(
-                                    character_states.get(entity),
-                                    Some(comp::CharacterState::Crawl)
-                                )
-                        })
+                        && !comp::is_downed(healths.get(entity), character_states.get(entity))
                 };
                 // Check whether the inviter is in range of the invitee or dead
                 if !within_trading_range(positions.get(inviter), positions.get(invitee))

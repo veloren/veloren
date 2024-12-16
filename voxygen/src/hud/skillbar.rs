@@ -1377,9 +1377,7 @@ impl<'a> Widget for Skillbar<'a> {
             self.show_death_message(state, ui);
         }
         // Give up message
-        else if self.health.has_consumed_death_protection()
-            && matches!(self.client.current(), Some(CharacterState::Crawl))
-        {
+        else if comp::is_downed(Some(self.health), self.client.current().as_ref()) {
             self.show_give_up_message(state, ui);
         }
 

@@ -5,9 +5,9 @@ use common::{
             TRADE_INTERACTION_TIME,
         },
         dialogue::Subject,
-        Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, CharacterState,
-        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, PresenceKind,
-        UtteranceKind,
+        is_downed, Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind,
+        CharacterState, ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos,
+        PresenceKind, UtteranceKind,
     },
     consts::MAX_INTERACT_RANGE,
     interaction::InteractionKind,
@@ -446,14 +446,10 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
     }) = bdata.agent.target
         && let Some(target_uid) = bdata.read_data.uids.get(target)
     {
-        let needs_saving = matches!(
+        let needs_saving = is_downed(
+            bdata.read_data.healths.get(target),
             bdata.read_data.char_states.get(target),
-            Some(CharacterState::Crawl)
-        ) && bdata
-            .read_data
-            .healths
-            .get(target)
-            .is_some_and(|health| health.has_consumed_death_protection());
+        );
 
         let wants_to_save = match (bdata.agent_data.alignment, bdata.read_data.alignments.get(target)) {
                         // Npcs generally do want to save players. Could have extra checks for
