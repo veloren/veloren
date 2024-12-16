@@ -1953,7 +1953,7 @@ impl Client {
         match is_crawling {
             Some(true) => self.control_action(ControlAction::Stand),
             Some(false) => self.control_action(ControlAction::Crawl),
-            None => warn!("Can't toggle sit, client entity doesn't have a `CharacterState`"),
+            None => warn!("Can't toggle crawl, client entity doesn't have a `CharacterState`"),
         }
     }
 

@@ -226,48 +226,49 @@ impl CharacterState {
     /// If this state can manipulate loadout, interact with sprites etc.
     pub fn can_interact(&self) -> bool {
         match self {
-            CharacterState::Idle(_) => true,
-            CharacterState::Crawl => false,
-            CharacterState::Climb(_) => false,
-            CharacterState::Sit => true,
-            CharacterState::Dance => true,
-            CharacterState::Talk => true,
-            CharacterState::Glide(_) => false,
-            CharacterState::GlideWield(_) => true,
-            CharacterState::Stunned(_) => false,
-            CharacterState::BasicBlock(_) => false,
-            CharacterState::Equipping(_) => true,
-            CharacterState::Wielding(_) => true,
-            CharacterState::Roll(_) => false,
-            CharacterState::BasicMelee(_) => false,
-            CharacterState::BasicRanged(_) => false,
-            CharacterState::Boost(_) => false,
-            CharacterState::DashMelee(_) => false,
-            CharacterState::ComboMelee2(_) => false,
-            CharacterState::LeapMelee(_) => false,
-            CharacterState::LeapShockwave(_) => false,
-            CharacterState::ChargedRanged(_) => false,
-            CharacterState::ChargedMelee(_) => false,
-            CharacterState::RepeaterRanged(_) => false,
-            CharacterState::Shockwave(_) => false,
-            CharacterState::BasicBeam(_) => false,
-            CharacterState::BasicAura(_) => false,
-            CharacterState::StaticAura(_) => false,
-            CharacterState::Blink(_) => false,
-            CharacterState::BasicSummon(_) => false,
-            CharacterState::SelfBuff(_) => false,
-            CharacterState::SpriteSummon(_) => false,
-            CharacterState::UseItem(_) => false,
-            CharacterState::Interact(_) => false,
-            CharacterState::Wallrun(_) => false,
-            CharacterState::Skate(_) => false,
-            CharacterState::Music(_) => false,
-            CharacterState::FinisherMelee(_) => false,
-            CharacterState::DiveMelee(_) => false,
-            CharacterState::RiposteMelee(_) => false,
-            CharacterState::RapidMelee(_) => false,
-            CharacterState::Transform(_) => false,
-            CharacterState::RegrowHead(_) => false,
+            CharacterState::Idle(_)
+            | CharacterState::Sit
+            | CharacterState::Dance
+            | CharacterState::Talk
+            | CharacterState::Equipping(_)
+            | CharacterState::Wielding(_)
+            | CharacterState::GlideWield(_) => true,
+            CharacterState::Crawl
+            | CharacterState::Climb(_)
+            | CharacterState::Glide(_)
+            | CharacterState::Stunned(_)
+            | CharacterState::BasicBlock(_)
+            | CharacterState::Roll(_)
+            | CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
+            | CharacterState::Boost(_)
+            | CharacterState::DashMelee(_)
+            | CharacterState::ComboMelee2(_)
+            | CharacterState::LeapMelee(_)
+            | CharacterState::LeapShockwave(_)
+            | CharacterState::ChargedRanged(_)
+            | CharacterState::ChargedMelee(_)
+            | CharacterState::RepeaterRanged(_)
+            | CharacterState::Shockwave(_)
+            | CharacterState::BasicBeam(_)
+            | CharacterState::BasicAura(_)
+            | CharacterState::StaticAura(_)
+            | CharacterState::Blink(_)
+            | CharacterState::BasicSummon(_)
+            | CharacterState::SelfBuff(_)
+            | CharacterState::SpriteSummon(_)
+            | CharacterState::UseItem(_)
+            | CharacterState::Interact(_)
+            | CharacterState::Wallrun(_)
+            | CharacterState::Skate(_)
+            | CharacterState::Music(_)
+            | CharacterState::FinisherMelee(_)
+            | CharacterState::DiveMelee(_)
+            | CharacterState::RiposteMelee(_)
+            | CharacterState::RapidMelee(_)
+            | CharacterState::Transform(_)
+            | CharacterState::RegrowHead(_) => false,
+
         }
     }
 
