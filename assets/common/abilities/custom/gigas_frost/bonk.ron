@@ -6,20 +6,14 @@ BasicMelee(
     recover_duration: 0.6,
     melee_constructor: (
         kind: Bash(
-            damage: 30,
-            poise: 100,
+            damage: 68,
+            poise: 250,
             knockback: 0,
             energy_regen: 0,
         ),
         range: 8.0,
         angle: 100.0,
         attack_effect: Some((Poise(1000), TargetBlocking)),
-        damage_effect: Some(Buff((
-            kind: Frozen,
-            dur_secs: 5,
-            strength: Value(0.7),
-            chance: 1.0,
-        ))),
         multi_target: Some(Normal),
     ),
     ori_modifier: 0.8,
