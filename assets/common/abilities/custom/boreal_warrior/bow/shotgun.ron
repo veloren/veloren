@@ -1,7 +1,7 @@
 BasicRanged(
     energy_cost: 0.0,
     buildup_duration: 0.75,
-    recover_duration: 0.75,
+    recover_duration: 1.4,
     projectile_spread: 0.05,
     projectile: (
         kind: Pointed,
