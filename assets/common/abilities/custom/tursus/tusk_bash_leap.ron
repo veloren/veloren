@@ -3,7 +3,7 @@ LeapMelee(
     buildup_duration: 1.5,
     movement_duration: 0.6,
     swing_duration: 0.15,
-    recover_duration: 0.2,
+    recover_duration: 1.0,
     melee_constructor: (
         kind: Bash(
             damage: 25.0,

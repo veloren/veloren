@@ -8,7 +8,7 @@ BasicRanged(
             duration: 10,
         ),
         attack: Some((
-            damage: 12,
+            damage: 8,
             energy: 0,
         )),
     ),

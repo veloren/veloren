@@ -2,8 +2,8 @@ BasicSummon(
     buildup_duration: 1.75,
     cast_duration: 1.5,
     recover_duration: 0.75,
-    summon_amount: 12,
-    summon_distance: (10, 15),
+    summon_amount: 2,
+    summon_distance: (5, 10),
     summon_info: (
         body: BipedSmall((
             species: Boreal,

@@ -1085,7 +1085,7 @@ impl<'a> AgentData<'a> {
                             "Staff Simple" | "BipedLargeCultistStaff" => Tactic::Staff,
                             "BipedLargeCultistHammer" => Tactic::Hammer,
                             "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
-                            "Bow Simple" | "Boreal Bow" | "BipedLargeCultistBow" => Tactic::Bow,
+                            "Bow Simple" | "BipedLargeCultistBow" => Tactic::Bow,
                             "Stone Golem" | "Coral Golem" => Tactic::StoneGolem,
                             "Iron Golem" => Tactic::IronGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
@@ -1173,6 +1173,7 @@ impl<'a> AgentData<'a> {
                             "Gnarling Chieftain" => Tactic::GnarlingChieftain,
                             "Frost Gigas" => Tactic::FrostGigas,
                             "Boreal Hammer" => Tactic::BorealHammer,
+                            "Boreal Bow" => Tactic::BorealBow,
                             "Adlet Hunter" => Tactic::AdletHunter,
                             "Adlet Icepicker" => Tactic::AdletIcepicker,
                             "Adlet Tracker" => Tactic::AdletTracker,
@@ -1719,6 +1720,14 @@ impl<'a> AgentData<'a> {
                 rng,
             ),
             Tactic::BorealHammer => self.handle_boreal_hammer_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::BorealBow => self.handle_boreal_bow_attack(
                 agent,
                 controller,
                 &attack_data,

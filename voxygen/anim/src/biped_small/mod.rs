@@ -384,7 +384,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Haniwa, _) => 1.12,
                 (Myrmidon, _) => 1.24,
                 (Husk, _) => 1.12,
-                (Boreal, _) => 1.0,
+                (Boreal, _) => 1.8,
                 (Bushly, _) => 1.0,
                 (Irrwurz, _) => 1.0,
                 (IronDwarf, _) => 1.5,
@@ -472,30 +472,30 @@ pub fn biped_small_alpha_axe(
     move1abs: f32,
     move2abs: f32,
 ) {
-    next.head.orientation = Quaternion::rotation_z(move1abs * 0.3 + move2abs * -0.6);
-    next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
-    next.control_r.position = Vec3::new(
-        9.0 + move1abs * -10.0 + s_a.grip.0 * 2.0,
-        -1.0 + move1abs * 2.0,
-        move1abs * 3.0 - 2.0,
-    );
+    next.main.position = Vec3::new(2.0, 2.0, 0.0);
+    next.control_l.position = Vec3::new(2.0 - 2.0 * s_a.grip.0, 1.0, 3.0);
+    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0);
+
+    next.head.orientation = Quaternion::rotation_z(0.3 * move1abs - 0.6 * move2abs);
+    next.chest.orientation = Quaternion::rotation_z(0.5 * move1abs - 1.2 * move2abs);
+    next.foot_l.orientation = Quaternion::rotation_z(0.5 * move1abs - 0.8 * move2abs);
+    next.foot_r.orientation = Quaternion::rotation_z(0.3 * move1abs - 0.6 * move2abs);
 
     next.control.position = Vec3::new(
-        -5.0 + move1abs * 5.0,
+        -5.0 + 5.0 * move1abs,
         -1.0 + s_a.grip.2,
-        -1.0 + move1abs * 3.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0,
+        -1.0 + 3.0 * move1abs + -s_a.grip.2 / 2.5 - 2.0 * s_a.grip.0,
     );
-
-    next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move2abs * 1.0)
-        * Quaternion::rotation_y(-0.0)
-        * Quaternion::rotation_z(-0.0);
-    next.control_r.orientation = Quaternion::rotation_x(0.5 + move1abs * 1.5 + s_a.grip.0 * 0.2)
-        * Quaternion::rotation_y(0.2 + s_a.grip.0 * 0.2)
-        * Quaternion::rotation_z(-0.0);
-
-    next.control.orientation = Quaternion::rotation_x(-0.3 + move2abs * -1.0)
-        * Quaternion::rotation_y(move1abs * -0.9 + move2abs * 2.0)
+    next.control.orientation = Quaternion::rotation_x(-0.3 - move2abs)
+        * Quaternion::rotation_y(-0.9 * move1abs + 1.0 * move2abs)
         * Quaternion::rotation_z(-0.3);
+    next.control_r.position = Vec3::new(
+        9.0 - 5.0 * move1abs + 2.0 * s_a.grip.0,
+        -1.0 + 2.0 * move1abs,
+        3.0 * move1abs - 2.0,
+    );
+    next.control_r.orientation = Quaternion::rotation_x(0.5 + 1.5 * move1abs + 0.2 * s_a.grip.0)
+        * Quaternion::rotation_y(0.2 + 0.2 * s_a.grip.0);
 }
 
 pub fn biped_small_alpha_dagger(
@@ -611,8 +611,8 @@ pub fn biped_small_wield_bow(
     let fastalt = (anim_time * 10.0 + PI / 2.0).sin();
     let slow = (anim_time * 2.0).sin();
 
-    next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 0.0, 0.0);
-    next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 6.0, -2.0);
+    next.control_l.position = Vec3::new(-1.0 - s_a.grip.0 * 2.0, 0.0, 0.0);
+    next.control_r.position = Vec3::new(1.0 + s_a.grip.0 * 2.0, 3.0, -2.0);
 
     next.control.position = Vec3::new(
         -1.0,

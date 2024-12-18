@@ -15,6 +15,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Fraction of normal movement speed allowed during the state
     pub movement_speed: f32,
+    pub ori_rate: f32,
     pub poise_state: PoiseState,
 }
 
@@ -42,7 +43,7 @@ impl CharacterBehavior for Data {
             leave_stance(data, output_events);
         }
 
-        handle_orientation(data, &mut update, 1.0, None);
+        handle_orientation(data, &mut update, self.static_data.ori_rate, None);
         handle_move(data, &mut update, self.static_data.movement_speed);
 
         match self.stage_section {

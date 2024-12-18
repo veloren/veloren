@@ -142,11 +142,11 @@ impl Animation for ShootAnimation {
                     let move1abs = move1base * pullback;
                     let move2abs = move2base * pullback;
                     next.control_l.position = Vec3::new(
-                        1.0 - s_a.grip.0 * 2.0 + move2abs * -4.0,
+                        -1.0 - s_a.grip.0 * 2.0 + move2abs * -4.0,
                         move2abs * -8.0,
                         0.0,
                     );
-                    next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 6.0, -2.0);
+                    next.control_r.position = Vec3::new(1.0 + s_a.grip.0 * 2.0, 3.0, -2.0);
 
                     next.control.position = Vec3::new(
                         -1.0,

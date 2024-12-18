@@ -3,7 +3,7 @@ BasicMelee(
     buildup_duration: 0.50,
     swing_duration: 0.6,
     hit_timing: 0.4,
-    recover_duration: 0.85,
+    recover_duration: 1.1,
     melee_constructor: (
         kind: Bash(
             damage:26.0,

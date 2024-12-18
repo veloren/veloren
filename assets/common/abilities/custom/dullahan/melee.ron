@@ -43,7 +43,7 @@ ComboMelee2(
                     chance: 0.15,
                 ))),
             ),
-            buildup_duration: 0.95,
+            buildup_duration: 1.25,
             swing_duration: 0.15,
             hit_timing: 0.4,
             recover_duration: 1.3,
