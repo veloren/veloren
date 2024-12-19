@@ -131,7 +131,7 @@
                 pseudo_id: "common.abilities.sword.agile_flurry",
                 abilities: [
                     ((stance: Sword(Agile), dual_wielding_same_kind: true), (Sword(AgileFlurry), "common.abilities.sword.agile_dual_flurry")),
-                    ((stance: Sword(Agile)), (Sword(AgileFlurry), "common.abilities.sword.agile_flurry")),
+                    ((), (Sword(AgileFlurry), "common.abilities.sword.agile_flurry")),
                 ],
             ),
             Simple(Sword(DefensiveStalwartSword), "common.abilities.sword.defensive_stalwart_sword"),
