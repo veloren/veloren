@@ -771,90 +771,26 @@ ShortGrass: [
         filter: (snow_covered: true),
     ),
 ],
-LargeGrass: [
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.grass.grass_large-0",
-                offset: (-2.0, -2.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_large-1",
-                offset: (-5.5, -5.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_large-2",
-                offset: (-5.5, -5.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.5,
-        filter: (snow_covered: false),
-    ),
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_0",
-                offset: (-3.5, -3.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_1",
-                offset: (-5.0, -5.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_2",
-                offset: (-5.5, -6.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_3",
-                offset: (-4.0, -5.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_4",
-                offset: (-5.0, -5.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_5",
-                offset: (-6.5, -5.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_6",
-                offset: (-8.0, -6.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_7",
-                offset: (-5.0, -1.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_8",
-                offset: (-10.0, -4.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_9",
-                offset: (-4.0, -8.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-            (
-                model: "voxygen.voxel.sprite.grass.grass_snow_tall_10",
-                offset: (-2.0, -4.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.2,
-        filter: (snow_covered: true),
-    ),
-],
+LargeGrass: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grass.grass_large-0",
+            offset: (-2.0, -2.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_large-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grass.grass_large-2",
+            offset: (-5.5, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.5,
+)],
 JungleRedGrass: [(
     variations: [
         (

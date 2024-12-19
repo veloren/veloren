@@ -436,19 +436,29 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
         ScatterConfig {
             kind: ShortGrass,
             water_mode: Ground,
-            permit: |b| matches!(b, BlockKind::Grass | BlockKind::Snow),
+            permit: |b| matches!(b, BlockKind::Grass),
             f: |_, col| {
                 (
-                    close(col.temp, 0.2, 0.75)
-                        .max(close(col.temp, CONFIG.snow_temp - 0.2, 0.4))
-                        .min(close(col.humidity, CONFIG.jungle_hum, 0.4).max(close(
-                            col.humidity,
-                            CONFIG.forest_hum,
-                            0.5,
-                        )))
+                    close(col.temp, 0.2, 0.75).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                         * GRASS_FACT
                         * 150.0,
                     Some((0.3, 64.0, 0.3)),
+                )
+            },
+        },
+        ScatterConfig {
+            kind: ShortGrass,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow),
+            f: |_, col| {
+                (
+                    close(col.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.5,
+                    )) * GRASS_FACT
+                        * 50.0,
+                    Some((0.0, 48.0, 0.2)),
                 )
             },
         },
@@ -475,6 +485,22 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
                         * GRASS_FACT
                         * 150.0,
                     Some((0.1, 48.0, 0.3)),
+                )
+            },
+        },
+        ScatterConfig {
+            kind: LongGrass,
+            water_mode: Ground,
+            permit: |b| matches!(b, BlockKind::Snow),
+            f: |_, col| {
+                (
+                    close(col.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
+                        col.humidity,
+                        CONFIG.forest_hum,
+                        0.5,
+                    )) * GRASS_FACT
+                        * 25.0,
+                    Some((0.0, 48.0, 0.2)),
                 )
             },
         },
