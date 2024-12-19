@@ -268,7 +268,6 @@ impl CharacterState {
             | CharacterState::RapidMelee(_)
             | CharacterState::Transform(_)
             | CharacterState::RegrowHead(_) => false,
-
         }
     }
 
