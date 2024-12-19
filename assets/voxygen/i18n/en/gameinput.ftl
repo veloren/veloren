@@ -44,6 +44,7 @@ gameinput-sit = Sit
 gameinput-crawl = Crawl
 gameinput-diary = Diary
 gameinput-settings = Settings
+gameinput-giveup = Give Up
 gameinput-respawn = Respawn
 gameinput-togglewield = Toggle Wield
 gameinput-interact = Interact

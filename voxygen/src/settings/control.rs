@@ -167,6 +167,7 @@ impl ControlSettings {
             GameInput::Screenshot => Some(KeyMouse::Key(VirtualKeyCode::F4)),
             GameInput::ToggleIngameUi => Some(KeyMouse::Key(VirtualKeyCode::F6)),
             GameInput::Roll => Some(MIDDLE_CLICK_KEY),
+            GameInput::GiveUp => Some(KeyMouse::Key(VirtualKeyCode::Space)),
             GameInput::Respawn => Some(KeyMouse::Key(VirtualKeyCode::Space)),
             GameInput::Interact => Some(KeyMouse::Key(VirtualKeyCode::E)),
             GameInput::ToggleWield => Some(KeyMouse::Key(VirtualKeyCode::R)),

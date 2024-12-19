@@ -800,6 +800,11 @@ impl PlayState for SessionState {
                                     );
                                 }
                             },
+                            GameInput::GiveUp => {
+                                if state {
+                                    self.client.borrow_mut().give_up();
+                                }
+                            },
                             GameInput::Respawn => {
                                 self.walking_speed = false;
                                 self.stop_auto_walk();

@@ -1864,17 +1864,20 @@ impl Client {
         }
     }
 
+    pub fn give_up(&mut self) {
+        if comp::is_downed(self.current().as_ref(), self.current().as_ref()) {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GiveUp));
+        }
+    }
+
     pub fn respawn(&mut self) {
-        let health = self.current::<comp::Health>();
-        if health.as_ref().map_or(false, |h| h.is_dead) {
+        if self.current::<comp::Health>().map_or(false, |h| h.is_dead) {
             // Hardcore characters cannot respawn, kick them to character selection
             if self.current::<Hardcore>().is_some() {
                 self.request_remove_character();
             } else {
                 self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
             }
-        } else if comp::is_downed(health.as_ref(), self.current().as_ref()) {
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
         }
     }
 

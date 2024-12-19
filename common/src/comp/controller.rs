@@ -162,6 +162,7 @@ pub enum ControlEvent {
     GroupManip(GroupManip),
     RemoveBuff(BuffKind),
     LeaveStance,
+    GiveUp,
     Respawn,
     Utterance(UtteranceKind),
     ChangeAbility {

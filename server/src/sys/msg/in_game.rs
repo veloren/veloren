@@ -121,9 +121,7 @@ impl Sys {
                 {
                     // Skip respawn if client entity is alive
                     let skip_respawn = matches!(event, ControlEvent::Respawn)
-                        && healths
-                            .get(entity)
-                            .map_or(true, |h| !h.is_dead && !h.has_consumed_death_protection());
+                        && healths.get(entity).map_or(true, |h| !h.is_dead);
 
                     if !skip_respawn {
                         controller.push_event(event);

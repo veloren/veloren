@@ -124,6 +124,8 @@ pub enum GameInput {
     ToggleIngameUi,
     #[strum(serialize = "gameinput-roll")]
     Roll,
+    #[strum(serialize = "gameinput-giveup")]
+    GiveUp,
     #[strum(serialize = "gameinput-respawn")]
     Respawn,
     #[strum(serialize = "gameinput-interact")]

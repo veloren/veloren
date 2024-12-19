@@ -432,7 +432,7 @@ impl<'a> Skillbar<'a> {
             .global_state
             .settings
             .controls
-            .get_binding(GameInput::Respawn)
+            .get_binding(GameInput::GiveUp)
         {
             let respawn_msg =
                 localized_strings.get_msg_ctx("hud-press_key_to_give_up", &i18n::fluent_args! {

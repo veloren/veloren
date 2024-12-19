@@ -255,8 +255,9 @@ impl Health {
 /// Returns true if an entity is downed, their character state is `Crawl` and
 /// their death protection has been consumed.
 pub fn is_downed(health: Option<&Health>, character_state: Option<&super::CharacterState>) -> bool {
-    health.map_or(false, |health| health.has_consumed_death_protection())
-        && matches!(character_state, Some(super::CharacterState::Crawl))
+    health.map_or(false, |health| {
+        !health.is_dead && health.has_consumed_death_protection()
+    }) && matches!(character_state, Some(super::CharacterState::Crawl))
 }
 
 impl Component for Health {

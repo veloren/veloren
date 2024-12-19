@@ -126,14 +126,18 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::GroupManip(manip) => {
                         emitters.emit(event::GroupManipEvent(entity, manip))
                     },
-                    ControlEvent::Respawn => {
-                        let health = read_data.healths.get(entity);
-                        if health.as_ref().map_or(false, |h| h.is_dead) {
-                            emitters.emit(event::RespawnEvent(entity));
-                        } else if let Some(health) = health
-                            && health.has_consumed_death_protection()
+                    ControlEvent::GiveUp => {
+                        if read_data
+                            .healths
+                            .get(entity)
+                            .map_or(false, |h| h.has_consumed_death_protection())
                         {
                             emitters.emit(event::KillEvent { entity });
+                        }
+                    },
+                    ControlEvent::Respawn => {
+                        if read_data.healths.get(entity).map_or(false, |h| h.is_dead) {
+                            emitters.emit(event::RespawnEvent(entity));
                         }
                     },
                     ControlEvent::Utterance(kind) => {
