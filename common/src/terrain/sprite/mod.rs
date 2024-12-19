@@ -140,7 +140,7 @@ sprites! {
         Hearth         = 0x72,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
-    Plant = 3 has Growth, Owned {
+    Plant = 3 has Growth, Owned, SnowCovered {
         // Cacti
         BarrelCactus    = 0x00,
         RoundCactus     = 0x01,
@@ -168,28 +168,27 @@ sprites! {
         ShortGrass         = 0x22,
         Fern               = 0x23,
         LargeGrass         = 0x24,
-        GrassSnow          = 0x25,
-        Reed               = 0x26,
-        GrassBlue          = 0x27,
-        SavannaGrass       = 0x28,
-        TallSavannaGrass   = 0x29,
-        RedSavannaGrass    = 0x2A,
-        SavannaBush        = 0x2B,
-        Welwitch           = 0x2C,
-        LeafyPlant         = 0x2D,
-        DeadBush           = 0x2E,
-        JungleFern         = 0x2F,
-        GrassBlueShort     = 0x30,
-        GrassBlueMedium    = 0x31,
-        GrassBlueLong      = 0x32,
-        CavernLillypadBlue = 0x33,
-        EnsnaringVines     = 0x34,
-        LillyPads          = 0x35,
-        JungleLeafyPlant   = 0x36,
-        JungleRedGrass     = 0x37,
-        LanternPlant       = 0x38,
-        SporeReed          = 0x39,
-        DeadPlant          = 0x3A,
+        Reed               = 0x25,
+        GrassBlue          = 0x26,
+        SavannaGrass       = 0x27,
+        TallSavannaGrass   = 0x28,
+        RedSavannaGrass    = 0x29,
+        SavannaBush        = 0x2A,
+        Welwitch           = 0x2B,
+        LeafyPlant         = 0x2C,
+        DeadBush           = 0x2D,
+        JungleFern         = 0x2E,
+        GrassBlueShort     = 0x2F,
+        GrassBlueMedium    = 0x30,
+        GrassBlueLong      = 0x31,
+        CavernLillypadBlue = 0x32,
+        EnsnaringVines     = 0x33,
+        LillyPads          = 0x34,
+        JungleLeafyPlant   = 0x35,
+        JungleRedGrass     = 0x36,
+        LanternPlant       = 0x37,
+        SporeReed          = 0x38,
+        DeadPlant          = 0x39,
         // Crops, berries, and fungi
         Corn          = 0x40,
         WheatYellow   = 0x41,
@@ -233,18 +232,10 @@ sprites! {
         CeilingLanternPlant     = 0x75,
         CeilingLanternFlower    = 0x76,
         CeilingJungleLeafyPlant = 0x77,
-        // Snow plants and pebbles
-        SnowRose         = 0x80,
-        SnowCrocus       = 0x81,
-        SnowForsythia    = 0x82,
-        SnowBush         = 0x83,
-        SnowPebbles      = 0x84,
-        GrassSnow2       = 0x85,
-        TallSnowGrass    = 0x86,
     },
     // Solid resources
     // TODO: Remove small variants, make deposit size be an attribute
-    Resource = 4 has Owned {
+    Resource = 4 has Owned, SnowCovered {
         // Gems and ores
         // Woods and twigs
         Twigs     = 0x00,
@@ -411,6 +402,7 @@ attributes! {
     Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
     Owned { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |Owned(x)| x as u16 },
     AdjacentType { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |AdjacentType(x)| x as u16 },
+    SnowCovered { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |SnowCovered(x)| x as u16 },
 }
 
 // The orientation of the sprite, 0..16
@@ -466,6 +458,10 @@ impl Default for AdjacentType {
 // Damage of an ore
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub struct Damage(pub u8);
+
+// Whether a sprite has snow on it
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+pub struct SnowCovered(pub bool);
 
 impl SpriteKind {
     #[inline]
@@ -776,7 +772,6 @@ impl SpriteKind {
             | SpriteKind::MinotaurKeyhole => {
                 return Some(None);
             },
-            SpriteKind::SnowPebbles => item("common.items.crafting_ing.stones"),
             _ => return None,
         }))
     }
