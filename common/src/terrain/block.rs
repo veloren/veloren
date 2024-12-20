@@ -318,7 +318,6 @@ impl Block {
                 | SpriteKind::MediumGrass
                 | SpriteKind::ShortGrass
                 | SpriteKind::LargeGrass
-                | SpriteKind::GrassSnow
                 | SpriteKind::GrassBlue
                 | SpriteKind::SavannaGrass
                 | SpriteKind::TallSavannaGrass

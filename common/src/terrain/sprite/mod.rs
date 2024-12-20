@@ -140,7 +140,7 @@ sprites! {
         Hearth         = 0x72,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
-    Plant = 3 has Growth, Owned {
+    Plant = 3 has Growth, Owned, SnowCovered {
         // Cacti
         BarrelCactus    = 0x00,
         RoundCactus     = 0x01,
@@ -168,8 +168,8 @@ sprites! {
         ShortGrass         = 0x22,
         Fern               = 0x23,
         LargeGrass         = 0x24,
-        GrassSnow          = 0x25,
-        Reed               = 0x26,
+        Reed               = 0x25,
+        TaigaGrass         = 0x26,
         GrassBlue          = 0x27,
         SavannaGrass       = 0x28,
         TallSavannaGrass   = 0x29,
@@ -191,52 +191,52 @@ sprites! {
         SporeReed          = 0x39,
         DeadPlant          = 0x3A,
         // Crops, berries, and fungi
-        Corn          = 0x40,
-        WheatYellow   = 0x41,
-        WheatGreen    = 0x42, // TODO: Remove `WheatGreen`, make part of the `Growth` attribute
-        LingonBerry   = 0x43,
-        Blueberry     = 0x44,
-        Cabbage       = 0x45,
-        Pumpkin       = 0x46,
-        Carrot        = 0x47,
-        Tomato        = 0x48,
-        Radish        = 0x49,
-        Turnip        = 0x4A,
-        Flax          = 0x4B,
-        Mushroom      = 0x4C,
-        CaveMushroom  = 0x4D,
-        Cotton        = 0x4E,
-        WildFlax      = 0x4F,
-        SewerMushroom = 0x50,
-        LushMushroom  = 0x51,
-        RockyMushroom = 0x52,
-        GlowMushroom  = 0x53,
+        Corn          = 0x41,
+        WheatYellow   = 0x42,
+        WheatGreen    = 0x43, // TODO: Remove `WheatGreen`, make part of the `Growth` attribute
+        LingonBerry   = 0x44,
+        Blueberry     = 0x45,
+        Cabbage       = 0x46,
+        Pumpkin       = 0x47,
+        Carrot        = 0x48,
+        Tomato        = 0x49,
+        Radish        = 0x4A,
+        Turnip        = 0x4B,
+        Flax          = 0x4C,
+        Mushroom      = 0x4D,
+        CaveMushroom  = 0x4E,
+        Cotton        = 0x4F,
+        WildFlax      = 0x50,
+        SewerMushroom = 0x51,
+        LushMushroom  = 0x52,
+        RockyMushroom = 0x53,
+        GlowMushroom  = 0x54,
         // Seaweeds, corals, and other underwater plants
-        StonyCoral       = 0x60,
-        SoftCoral        = 0x61,
-        SeaweedTemperate = 0x62,
-        SeaweedTropical  = 0x63,
-        GiantKelp        = 0x64,
-        BullKelp         = 0x65,
-        WavyAlgae        = 0x66,
-        SeaGrapes        = 0x67,
-        MermaidsFan      = 0x68,
-        SeaAnemone       = 0x69,
-        Seagrass         = 0x6A,
-        RedAlgae         = 0x6B,
+        StonyCoral       = 0x61,
+        SoftCoral        = 0x62,
+        SeaweedTemperate = 0x63,
+        SeaweedTropical  = 0x64,
+        GiantKelp        = 0x65,
+        BullKelp         = 0x66,
+        WavyAlgae        = 0x67,
+        SeaGrapes        = 0x68,
+        MermaidsFan      = 0x69,
+        SeaAnemone       = 0x6A,
+        Seagrass         = 0x6B,
+        RedAlgae         = 0x6C,
         // Danglying ceiling plants/fungi
-        Liana                   = 0x70,
-        MycelBlue               = 0x71,
-        CeilingMushroom         = 0x72,
-        Mold                    = 0x73,
-        Root                    = 0x74,
-        CeilingLanternPlant     = 0x75,
-        CeilingLanternFlower    = 0x76,
-        CeilingJungleLeafyPlant = 0x77,
+        Liana                   = 0x71,
+        MycelBlue               = 0x72,
+        CeilingMushroom         = 0x73,
+        Mold                    = 0x74,
+        Root                    = 0x75,
+        CeilingLanternPlant     = 0x76,
+        CeilingLanternFlower    = 0x77,
+        CeilingJungleLeafyPlant = 0x78,
     },
     // Solid resources
     // TODO: Remove small variants, make deposit size be an attribute
-    Resource = 4 has Owned {
+    Resource = 4 has Owned, SnowCovered {
         // Gems and ores
         // Woods and twigs
         Twigs     = 0x00,
@@ -403,6 +403,7 @@ attributes! {
     Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
     Owned { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |Owned(x)| x as u16 },
     AdjacentType { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |AdjacentType(x)| x as u16 },
+    SnowCovered { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |SnowCovered(x)| x as u16 },
 }
 
 // The orientation of the sprite, 0..16
@@ -458,6 +459,10 @@ impl Default for AdjacentType {
 // Damage of an ore
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub struct Damage(pub u8);
+
+// Whether a sprite has snow on it
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+pub struct SnowCovered(pub bool);
 
 impl SpriteKind {
     #[inline]
