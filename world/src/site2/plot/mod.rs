@@ -43,10 +43,10 @@ mod vampire_castle;
 mod workshop;
 
 pub use self::{
-    adlet::AdletStronghold, airship_dock::AirshipDock, barn::Barn, bridge::Bridge, camp::Camp, castle::Castle,
-    citadel::Citadel, cliff_tower::CliffTower, cliff_town_airship_dock::CliffTownAirshipDock,
-    coastal_airship_dock::CoastalAirshipDock, coastal_house::CoastalHouse,
-    coastal_workshop::CoastalWorkshop, cultist::Cultist,
+    adlet::AdletStronghold, airship_dock::AirshipDock, barn::Barn, bridge::Bridge, camp::Camp,
+    castle::Castle, citadel::Citadel, cliff_tower::CliffTower,
+    cliff_town_airship_dock::CliffTownAirshipDock, coastal_airship_dock::CoastalAirshipDock,
+    coastal_house::CoastalHouse, coastal_workshop::CoastalWorkshop, cultist::Cultist,
     desert_city_airship_dock::DesertCityAirshipDock, desert_city_arena::DesertCityArena,
     desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
     dwarven_mine::DwarvenMine, farm_field::FarmField, giant_tree::GiantTree,
