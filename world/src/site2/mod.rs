@@ -949,7 +949,7 @@ impl Site {
             (5.0, 5),  // workshop
             (15.0, 6), // airship dock
             (15.0, 7), // tavern
-            (5.0, 8), // barn
+            (5.0, 8),  // barn
         ]);
 
         // These plots have minimums or limits.
@@ -1817,8 +1817,7 @@ impl Site {
         site.make_initial_plaza_default(land, &mut rng, generator_stats, &name);
 
         let mut workshops = 0;
-        let build_chance =
-            Lottery::from(vec![(38.0, 1), (5.0, 2), (15.0, 3), (15.0, 4), (5.0, 5)]);
+        let build_chance = Lottery::from(vec![(38.0, 1), (5.0, 2), (15.0, 3), (15.0, 4), (5.0, 5)]);
         let mut airship_docks = 0;
         for _ in 0..55 {
             match *build_chance.choose_seeded(rng.gen()) {
@@ -2006,8 +2005,7 @@ impl Site {
             hard_alt: Some(desert_city_arena_alt),
         });
 
-        let build_chance =
-            Lottery::from(vec![(20.0, 1), (10.0, 2), (5.0, 3), (10.0, 4), (5.0, 5)]);
+        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (5.0, 3), (10.0, 4), (5.0, 5)]);
 
         let mut temples = 0;
         let mut airship_docks = 0;
