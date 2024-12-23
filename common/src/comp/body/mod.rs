@@ -870,6 +870,10 @@ impl Body {
         }
     }
 
+    /// If this body will retain 1 hp when it would die, and consume death
+    /// protection, and entering a downed state.
+    pub fn has_death_protection(&self) -> bool { matches!(self, Body::Humanoid(_)) }
+
     pub fn base_health(&self) -> u16 {
         match self {
             Body::Humanoid(_) => 100,

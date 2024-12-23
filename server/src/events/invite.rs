@@ -10,7 +10,7 @@ use common::{
         agent::{Agent, AgentEvent},
         group::GroupManager,
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
-        ChatType, Content, Group, Health, Pos,
+        CharacterState, ChatType, Content, Group, Health, Pos,
     },
     consts::MAX_TRADE_RANGE,
     event::{InitiateInviteEvent, InviteResponseEvent},
@@ -40,6 +40,7 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
 
 impl ServerEvent for InitiateInviteEvent {
     type SystemData<'a> = (
+        Entities<'a>,
         Write<'a, Trades>,
         Read<'a, Settings>,
         Read<'a, IdMaps>,
@@ -52,11 +53,13 @@ impl ServerEvent for InitiateInviteEvent {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Group>,
         ReadStorage<'a, Health>,
+        ReadStorage<'a, CharacterState>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
         (
+            entities,
             mut trades,
             settings,
             id_maps,
@@ -69,6 +72,7 @@ impl ServerEvent for InitiateInviteEvent {
             positions,
             groups,
             healths,
+            character_states,
         ): Self::SystemData<'_>,
     ) {
         for InitiateInviteEvent(inviter, invitee_uid, kind) in events {
@@ -97,10 +101,14 @@ impl ServerEvent for InitiateInviteEvent {
             }
 
             if matches!(kind, InviteKind::Trade) {
+                let is_alive_and_well = |entity| {
+                    entities.is_alive(entity)
+                        && !comp::is_downed(healths.get(entity), character_states.get(entity))
+                };
                 // Check whether the inviter is in range of the invitee or dead
                 if !within_trading_range(positions.get(inviter), positions.get(invitee))
-                    || healths.get(inviter).is_some_and(|h| h.is_dead)
-                    || healths.get(invitee).is_some_and(|h| h.is_dead)
+                    || !is_alive_and_well(inviter)
+                    || !is_alive_and_well(invitee)
                 {
                     continue;
                 }

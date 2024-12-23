@@ -31,18 +31,19 @@ use common::{
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
-        Alignment, Auras, Body, BuffEffect, CharacterState, Energy, Group, Hardcore, Health,
-        Inventory, Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence, PresenceKind,
-        SkillSet, Stats, BASE_ABILITY_LIMIT,
+        Alignment, Auras, Body, BuffCategory, BuffEffect, CharacterState, Energy, Group, Hardcore,
+        Health, Inventory, Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence,
+        PresenceKind, SkillSet, Stats, BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
         AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
         ChatEvent, ComboChangeEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
-        DeleteEvent, DestroyEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent,
-        EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent, LandOnGroundEvent,
-        MakeAdminEvent, ParryHookEvent, PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent,
-        RespawnEvent, SoundEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
+        DeleteEvent, DestroyEvent, DownedEvent, EmitExt, Emitter, EnergyChangeEvent,
+        EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, HelpDownedEvent,
+        KillEvent, KnockbackEvent, LandOnGroundEvent, MakeAdminEvent, ParryHookEvent,
+        PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, SoundEvent,
+        StartInteractionEvent, StartTeleportingEvent, TeleportToEvent, TeleportToPositionEvent,
         TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
@@ -83,6 +84,9 @@ use super::{event_dispatch, event_sys_name, ServerEvent};
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<PoiseChangeEvent>(builder, &[]);
     event_dispatch::<HealthChangeEvent>(builder, &[]);
+    event_dispatch::<KillEvent>(builder, &[]);
+    event_dispatch::<HelpDownedEvent>(builder, &[]);
+    event_dispatch::<DownedEvent>(builder, &[&event_sys_name::<HealthChangeEvent>()]);
     event_dispatch::<KnockbackEvent>(builder, &[]);
     event_dispatch::<DestroyEvent>(builder, &[&event_sys_name::<HealthChangeEvent>()]);
     event_dispatch::<LandOnGroundEvent>(builder, &[]);
@@ -90,7 +94,7 @@ pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<ExplosionEvent>(builder, &[]);
     event_dispatch::<BonkEvent>(builder, &[]);
     event_dispatch::<AuraEvent>(builder, &[]);
-    event_dispatch::<BuffEvent>(builder, &[]);
+    event_dispatch::<BuffEvent>(builder, &[&event_sys_name::<DownedEvent>()]);
     event_dispatch::<EnergyChangeEvent>(builder, &[]);
     event_dispatch::<ComboChangeEvent>(builder, &[]);
     event_dispatch::<ParryHookEvent>(builder, &[]);
@@ -127,6 +131,12 @@ event_emitters! {
         knockback: KnockbackEvent,
         energy_change: EnergyChangeEvent,
     }
+
+    struct HealthChangeEvents[HealthChangeEmitters] {
+        destroy: DestroyEvent,
+        downed: DownedEvent,
+        outcome: Outcome,
+    }
 }
 
 pub fn handle_delete(server: &mut Server, DeleteEvent(entity): DeleteEvent) {
@@ -159,7 +169,7 @@ impl ServerEvent for PoiseChangeEvent {
                 .lend_join()
                 .get(ev.entity, &entities)
             {
-                // Entity is invincible to poise change during stunned character state
+                // Entity is invincible to poise change during stunned character state.
                 if !matches!(character_state, CharacterState::Stunned(_)) {
                     poise.change(ev.change);
                 }
@@ -188,8 +198,7 @@ pub struct HealthChangeEventData<'a> {
     entities: Entities<'a>,
     #[cfg(feature = "worldgen")]
     rtsim: WriteExpect<'a, RtSim>,
-    outcomes: Read<'a, EventBus<Outcome>>,
-    destroy_events: Read<'a, EventBus<DestroyEvent>>,
+    events: HealthChangeEvents<'a>,
     time: Read<'a, Time>,
     #[cfg(feature = "worldgen")]
     id_maps: Read<'a, IdMaps>,
@@ -212,8 +221,7 @@ impl ServerEvent for HealthChangeEvent {
     type SystemData<'a> = HealthChangeEventData<'a>;
 
     fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
-        let mut outcomes_emitter = data.outcomes.emitter();
-        let mut destroy_emitter = data.destroy_events.emitter();
+        let mut emitters = data.events.get_emitters();
         let mut rng = rand::thread_rng();
         for ev in events {
             if let Some((mut health, pos, uid, heads)) = (
@@ -237,7 +245,7 @@ impl ServerEvent for HealthChangeEvent {
                         for _ in target_heads..heads.amount() {
                             if let Some(head) = heads.remove_one(&mut rng, *data.time) {
                                 if let Some(uid) = uid {
-                                    outcomes_emitter.emit(Outcome::HeadLost { uid: *uid, head });
+                                    emitters.emit(Outcome::HeadLost { uid: *uid, head });
                                 }
                             } else {
                                 break;
@@ -268,7 +276,7 @@ impl ServerEvent for HealthChangeEvent {
 
                 if let (Some(pos), Some(uid)) = (pos, uid) {
                     if changed {
-                        outcomes_emitter.emit(Outcome::HealthChange {
+                        emitters.emit(Outcome::HealthChange {
                             pos: pos.0,
                             info: HealthChangeInfo {
                                 amount: ev.change.amount,
@@ -283,10 +291,14 @@ impl ServerEvent for HealthChangeEvent {
                 }
 
                 if !health.is_dead && health.should_die() {
-                    destroy_emitter.emit(DestroyEvent {
-                        entity: ev.entity,
-                        cause: ev.change,
-                    });
+                    if health.death_protection {
+                        emitters.emit(DownedEvent { entity: ev.entity });
+                    } else {
+                        emitters.emit(DestroyEvent {
+                            entity: ev.entity,
+                            cause: ev.change,
+                        });
+                    }
                 }
             }
 
@@ -298,6 +310,78 @@ impl ServerEvent for HealthChangeEvent {
                     agent.inbox.push_back(AgentEvent::Hurt);
                 }
             }
+        }
+    }
+}
+
+impl ServerEvent for KillEvent {
+    type SystemData<'a> = WriteStorage<'a, comp::Health>;
+
+    fn handle(events: impl ExactSizeIterator<Item = Self>, mut healths: Self::SystemData<'_>) {
+        for ev in events {
+            if let Some(mut health) = healths.get_mut(ev.entity) {
+                health.kill();
+            }
+        }
+    }
+}
+
+impl ServerEvent for HelpDownedEvent {
+    type SystemData<'a> = (
+        Read<'a, IdMaps>,
+        WriteStorage<'a, comp::CharacterState>,
+        WriteStorage<'a, comp::Health>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (id_maps, mut character_states, mut healths): Self::SystemData<'_>,
+    ) {
+        for ev in events {
+            if let Some(entity) = id_maps.uid_entity(ev.target) {
+                if let Some(mut health) = healths.get_mut(entity) {
+                    health.refresh_death_protection();
+                }
+                if let Some(mut character_state) = character_states.get_mut(entity)
+                    && matches!(*character_state, comp::CharacterState::Crawl)
+                {
+                    *character_state = CharacterState::Idle(Default::default());
+                }
+            }
+        }
+    }
+}
+
+impl ServerEvent for DownedEvent {
+    type SystemData<'a> = (
+        Read<'a, EventBus<BuffEvent>>,
+        WriteStorage<'a, comp::CharacterState>,
+        WriteStorage<'a, comp::Health>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (buff_event, mut character_states, mut healths): Self::SystemData<'_>,
+    ) {
+        let mut buff_emitter = buff_event.emitter();
+        for ev in events {
+            if let Some(mut health) = healths.get_mut(ev.entity) {
+                health.consume_death_protection()
+            }
+
+            if let Some(mut character_state) = character_states.get_mut(ev.entity) {
+                *character_state = CharacterState::Crawl;
+            }
+
+            // Remove buffs that don't persist when downed.
+            buff_emitter.emit(BuffEvent {
+                entity: ev.entity,
+                buff_change: comp::BuffChange::RemoveByCategory {
+                    all_required: vec![],
+                    any_required: vec![],
+                    none_required: vec![BuffCategory::PersistOnDowned],
+                },
+            });
         }
     }
 }
@@ -2115,6 +2199,7 @@ pub struct EntityAttackedHookData<'a> {
     uids: ReadStorage<'a, Uid>,
     clients: ReadStorage<'a, Client>,
     stats: ReadStorage<'a, Stats>,
+    healths: ReadStorage<'a, Health>,
 }
 
 impl ServerEvent for EntityAttackedHookEvent {
@@ -2149,7 +2234,7 @@ impl ServerEvent for EntityAttackedHookEvent {
                 // Interrupt sprite interaction and item use if any attack is applied to entity
                 if matches!(
                     *char_state,
-                    CharacterState::SpriteInteract(_) | CharacterState::UseItem(_)
+                    CharacterState::Interact(_) | CharacterState::UseItem(_)
                 ) {
                     let poise_state = comp::poise::PoiseState::Interrupted;
                     let was_wielded = char_state.is_wield();
@@ -2158,7 +2243,9 @@ impl ServerEvent for EntityAttackedHookEvent {
                     {
                         // Reset poise if there is some stunned state to apply
                         poise.reset(*data.time, stunned_duration);
-                        *char_state = stunned_state;
+                        if !comp::is_downed(data.healths.get(ev.entity), Some(&char_state)) {
+                            *char_state = stunned_state;
+                        }
                         outcomes.emit(Outcome::PoiseChange {
                             pos: pos.0,
                             state: poise_state,
@@ -2439,6 +2526,41 @@ impl ServerEvent for StartTeleportingEvent {
     }
 }
 
+impl ServerEvent for RegrowHeadEvent {
+    type SystemData<'a> = (
+        Read<'a, EventBus<HealthChangeEvent>>,
+        Read<'a, Time>,
+        WriteStorage<'a, Heads>,
+        ReadStorage<'a, Health>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (health_change_events, time, mut heads, healths): Self::SystemData<'_>,
+    ) {
+        let mut health_change_emitter = health_change_events.emitter();
+        for ev in events {
+            if let Some(mut heads) = heads.get_mut(ev.entity)
+                && heads.regrow_oldest()
+                && let Some(health) = healths.get(ev.entity)
+            {
+                let amount = 1.0 / (heads.capacity() as f32) * health.maximum();
+                health_change_emitter.emit(HealthChangeEvent {
+                    entity: ev.entity,
+                    change: comp::HealthChange {
+                        amount,
+                        by: None,
+                        cause: Some(DamageSource::Other),
+                        time: *time,
+                        precise: false,
+                        instance: rand::random(),
+                    },
+                })
+            }
+        }
+    }
+}
+
 pub fn handle_transform(
     server: &mut Server,
     TransformEvent {
@@ -2646,37 +2768,13 @@ pub fn transform_entity(
     Ok(())
 }
 
-impl ServerEvent for RegrowHeadEvent {
-    type SystemData<'a> = (
-        Read<'a, EventBus<HealthChangeEvent>>,
-        Read<'a, Time>,
-        WriteStorage<'a, Heads>,
-        ReadStorage<'a, Health>,
-    );
-
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (health_change_events, time, mut heads, healths): Self::SystemData<'_>,
-    ) {
-        let mut health_change_emitter = health_change_events.emitter();
-        for ev in events {
-            if let Some(mut heads) = heads.get_mut(ev.entity)
-                && heads.regrow_oldest()
-                && let Some(health) = healths.get(ev.entity)
-            {
-                let amount = 1.0 / (heads.capacity() as f32) * health.maximum();
-                health_change_emitter.emit(HealthChangeEvent {
-                    entity: ev.entity,
-                    change: comp::HealthChange {
-                        amount,
-                        by: None,
-                        cause: Some(DamageSource::Other),
-                        time: *time,
-                        precise: false,
-                        instance: rand::random(),
-                    },
-                })
-            }
-        }
+pub fn handle_start_interaction(
+    server: &mut Server,
+    StartInteractionEvent(interaction): StartInteractionEvent,
+) {
+    let i = interaction.interactor;
+    let t = interaction.target;
+    if let Err(e) = server.state.link(interaction) {
+        debug!("Error trying to start interaction between {i:?} and {t:?}: {e:?}");
     }
 }

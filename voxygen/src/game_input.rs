@@ -59,6 +59,8 @@ pub enum GameInput {
     Jump,
     #[strum(serialize = "gameinput-sit")]
     Sit,
+    #[strum(serialize = "gameinput-crawl")]
+    Crawl,
     #[strum(serialize = "gameinput-dance")]
     Dance,
     #[strum(serialize = "gameinput-greet")]
@@ -122,6 +124,8 @@ pub enum GameInput {
     ToggleIngameUi,
     #[strum(serialize = "gameinput-roll")]
     Roll,
+    #[strum(serialize = "gameinput-giveup")]
+    GiveUp,
     #[strum(serialize = "gameinput-respawn")]
     Respawn,
     #[strum(serialize = "gameinput-interact")]

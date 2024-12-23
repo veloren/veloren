@@ -1003,7 +1003,7 @@ impl Civs {
 
     /// Find the cheapest route between two places
     fn route_between(&self, a: Id<Site>, b: Id<Site>) -> Option<(Path<Id<Site>>, f32)> {
-        let heuristic = move |p: &Id<Site>, _: &Id<Site>| {
+        let heuristic = move |p: &Id<Site>| {
             (self
                 .sites
                 .get(*p)
@@ -1747,7 +1747,7 @@ fn find_path(
     // TODO: heuristic can be larger than actual cost, since existing bridges cost
     // 1.0 (after the 1.0 that is added to everthting), but they can cover
     // multiple chunks.
-    let heuristic = move |l: &Vec2<i32>, _: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
+    let heuristic = move |l: &Vec2<i32>| (l.distance_squared(b) as f32).sqrt();
     let neighbors = |l: &Vec2<i32>| {
         let l = *l;
         let bridge = get_bridge(l);
@@ -1833,7 +1833,7 @@ fn walk_in_all_dirs(
             .enumerate()
             .find(|(_, n_dir)| **n_dir == dir)
         {
-            potential[dir_index] = Some((p, 0.0));
+            potential[dir_index] = Some((p, (p - a).map(|e| e.abs()).reduce_max() as f32));
         }
     }
 

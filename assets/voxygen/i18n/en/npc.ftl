@@ -326,3 +326,6 @@ npc-speech-night =
     .a0 = Lanterns are handy for getting around at night!
     .a1 = I hope we are alone in the dark...
     .a2 = Boo!
+npc-speech-thank_you =
+    .a0 = Thanks!
+    .a1 = Thank you

@@ -152,12 +152,13 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
         self
     }
 
+    /// To guarantee an optimal path the heuristic function needs to be
+    /// [admissible](https://en.wikipedia.org/wiki/A*_search_algorithm#Admissibility).
     pub fn poll<I>(
         &mut self,
         iters: usize,
-        // Estimate how far we are from the target? but we are given two nodes...
-        // (current, previous)
-        mut heuristic: impl FnMut(&S, &S) -> f32,
+        // Estimate how far we are from the target.
+        mut heuristic: impl FnMut(&S) -> f32,
         // get neighboring nodes
         mut neighbors: impl FnMut(&S) -> I,
         // have we reached target?
@@ -211,7 +212,7 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                                     cost,
                                 })
                                 .is_some();
-                            let h = heuristic(&neighbor, &node);
+                            let h = heuristic(&neighbor);
                             // note that `cost` field does not include the heuristic
                             // priority queue does include heuristic
                             let cost_estimate = cost + h;
@@ -225,9 +226,9 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
                                 self.closest_node = Some((node.clone(), h));
                             };
 
-                            // TODO: I think the if here should be removed
-                            // if we hadn't already visited, add this to potential nodes, what about
-                            // its neighbors, wouldn't they need to be revisted???
+                            // We don't need to reconsider already visited nodes as astar finds the
+                            // shortest path to a node the first time it's visited, assuming the
+                            // heuristic function is admissible.
                             if !previously_visited {
                                 self.potential_nodes.push(PathEntry {
                                     cost_estimate,

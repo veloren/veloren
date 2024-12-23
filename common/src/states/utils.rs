@@ -24,7 +24,6 @@ use crate::{
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
     terrain::{Block, TerrainGrid, UnlockKind},
-    uid::Uid,
     util::Dir,
     vol::ReadVol,
 };
@@ -896,6 +895,13 @@ pub fn attempt_sit(data: &JoinData<'_>, update: &mut StateUpdate) {
     }
 }
 
+/// Checks that player can `Crawl` and updates `CharacterState` if so
+pub fn attempt_crawl(data: &JoinData<'_>, update: &mut StateUpdate) {
+    if data.physics.on_ground.is_some() {
+        update.character = CharacterState::Crawl;
+    }
+}
+
 pub fn attempt_dance(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
         update.character = CharacterState::Dance;
@@ -907,27 +913,6 @@ pub fn can_perform_pet(position: Pos, target_position: Pos, target_alignment: Al
     let valid_alignment = matches!(target_alignment, Alignment::Owned(_) | Alignment::Tame);
 
     within_distance && valid_alignment
-}
-
-pub fn attempt_pet(data: &JoinData<'_>, update: &mut StateUpdate, target_uid: Uid) {
-    let can_pet = data
-        .id_maps
-        .uid_entity(target_uid)
-        .and_then(|target_entity| {
-            data.prev_phys_caches
-                .get(target_entity)
-                .and_then(|prev_phys| prev_phys.pos)
-                .zip(data.alignments.get(target_entity))
-        })
-        .map_or(false, |(target_position, target_alignment)| {
-            can_perform_pet(*data.pos, target_position, *target_alignment)
-        });
-
-    if can_pet && data.physics.on_ground.is_some() && data.body.is_humanoid() {
-        update.character = CharacterState::Pet(pet::Data {
-            static_data: pet::StaticData { target_uid },
-        });
-    }
 }
 
 pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
@@ -1026,8 +1011,7 @@ fn can_reach_block(
         // of iterations
         let iters = (3.0 * (block_pos_f32 - player_pos).map(|x| x.abs()).sum()) as usize;
         // Heuristic compares manhattan distance of start and end pos
-        let heuristic =
-            move |pos: &Vec3<i32>, _: &Vec3<i32>| (block_pos - pos).map(|x| x.abs()).sum() as f32;
+        let heuristic = move |pos: &Vec3<i32>| (block_pos - pos).map(|x| x.abs()).sum() as f32;
 
         let mut astar = Astar::new(
             iters,
@@ -1128,7 +1112,7 @@ pub fn handle_manipulate_loadout(
             // Checks if position has a collectible sprite as well as what sprite is at the
             // position
             let sprite_interact =
-                sprite_at_pos.and_then(Option::<sprite_interact::SpriteInteractKind>::from);
+                sprite_at_pos.and_then(Option::<interact::SpriteInteractKind>::from);
             if let Some(sprite_interact) = sprite_interact {
                 if can_reach_block(
                     data.pos.0,
@@ -1168,13 +1152,15 @@ pub fn handle_manipulate_loadout(
                         let (buildup_duration, use_duration, recover_duration) =
                             sprite_interact.durations();
 
-                        update.character = CharacterState::SpriteInteract(sprite_interact::Data {
-                            static_data: sprite_interact::StaticData {
+                        update.character = CharacterState::Interact(interact::Data {
+                            static_data: interact::StaticData {
                                 buildup_duration,
                                 use_duration,
                                 recover_duration,
-                                sprite_pos,
-                                sprite_kind: sprite_interact,
+                                interact: interact::InteractKind::Sprite {
+                                    pos: sprite_pos,
+                                    kind: sprite_interact,
+                                },
                                 was_wielded: data.character.is_wield(),
                                 was_sneak: data.character.is_stealthy(),
                                 required_item,
@@ -1211,18 +1197,20 @@ pub fn handle_manipulate_loadout(
         },
         InventoryAction::ToggleSpriteLight(pos, enable) => {
             if matches!(pos.kind, Volume::Terrain) {
-                let sprite_interact = sprite_interact::SpriteInteractKind::ToggleLight(enable);
+                let sprite_interact = interact::SpriteInteractKind::ToggleLight(enable);
 
                 let (buildup_duration, use_duration, recover_duration) =
                     sprite_interact.durations();
 
-                update.character = CharacterState::SpriteInteract(sprite_interact::Data {
-                    static_data: sprite_interact::StaticData {
+                update.character = CharacterState::Interact(interact::Data {
+                    static_data: interact::StaticData {
                         buildup_duration,
                         use_duration,
                         recover_duration,
-                        sprite_pos: pos.pos,
-                        sprite_kind: sprite_interact,
+                        interact: interact::InteractKind::Sprite {
+                            pos: pos.pos,
+                            kind: sprite_interact,
+                        },
                         was_wielded: data.character.is_wield(),
                         was_sneak: data.character.is_stealthy(),
                         required_item: None,

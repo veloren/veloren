@@ -19,6 +19,7 @@ use common::{
     },
     consts::GRAVITY,
     event, event_emitters,
+    interaction::Interactors,
     link::Is,
     mounting::{Mount, Rider, VolumeRider},
     path::TraversalConfig,
@@ -420,6 +421,7 @@ pub struct ReadData<'a> {
     pub is_mounts: ReadStorage<'a, Is<Mount>>,
     pub is_riders: ReadStorage<'a, Is<Rider>>,
     pub is_volume_riders: ReadStorage<'a, Is<VolumeRider>>,
+    pub interactors: ReadStorage<'a, Interactors>,
     pub time_of_day: Read<'a, TimeOfDay>,
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]

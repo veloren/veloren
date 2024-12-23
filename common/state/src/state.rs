@@ -9,6 +9,7 @@ use common::{
     calendar::Calendar,
     comp,
     event::{EventBus, LocalEvent},
+    interaction,
     link::Is,
     mounting::{Mount, Rider, VolumeRider, VolumeRiders},
     outcome::Outcome,
@@ -259,6 +260,8 @@ impl State {
         ecs.register::<Is<VolumeRider>>();
         ecs.register::<Is<tether::Leader>>();
         ecs.register::<Is<tether::Follower>>();
+        ecs.register::<Is<interaction::Interactor>>();
+        ecs.register::<interaction::Interactors>();
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Density>();
         ecs.register::<comp::Collider>();

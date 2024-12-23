@@ -162,6 +162,7 @@ pub enum ControlEvent {
     GroupManip(GroupManip),
     RemoveBuff(BuffKind),
     LeaveStance,
+    GiveUp,
     Respawn,
     Utterance(UtteranceKind),
     ChangeAbility {
@@ -170,6 +171,10 @@ pub enum ControlEvent {
         new_ability: ability::AuxiliaryAbility,
     },
     ActivatePortal(Uid),
+    InteractWith {
+        target: Uid,
+        kind: crate::interaction::InteractionKind,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -180,10 +185,8 @@ pub enum ControlAction {
     GlideWield,
     Unwield,
     Sit,
+    Crawl,
     Dance,
-    Pet {
-        target_uid: Uid,
-    },
     Sneak,
     Stand,
     Talk,

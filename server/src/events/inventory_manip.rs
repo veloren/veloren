@@ -154,6 +154,11 @@ impl ServerEvent for InventoryManipEvent {
                 continue;
             }
 
+            if comp::is_downed(data.healths.get(entity), data.character_states.get(entity)) {
+                // Can't manipulate the inventory while downed.
+                continue;
+            }
+
             let mut inventory = if let Some(inventory) = data.inventories.get_mut(entity) {
                 inventory
             } else {

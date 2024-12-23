@@ -5,9 +5,12 @@ use common::{
             TRADE_INTERACTION_TIME,
         },
         dialogue::Subject,
-        Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, CharacterState,
-        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, UtteranceKind,
+        is_downed, Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind,
+        CharacterState, ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos,
+        PresenceKind, UtteranceKind,
     },
+    consts::MAX_INTERACT_RANGE,
+    interaction::InteractionKind,
     path::TraversalConfig,
     rtsim::{NpcAction, RtSimEntity},
 };
@@ -102,6 +105,7 @@ impl BehaviorTree {
                 update_target_awareness,
                 search_last_known_pos_if_not_alert,
                 do_hostile_tree_if_hostile_and_aware,
+                do_save_allies,
                 do_pet_tree_if_owned,
                 do_pickup_loot,
                 do_idle_tree,
@@ -432,7 +436,72 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
     false
 }
 
-// If too far away, then follow the target
+/// If there are nearby downed allies, save them.
+fn do_save_allies(bdata: &mut BehaviorData) -> bool {
+    if let Some(Target {
+        target,
+        hostile: false,
+        aggro_on: false,
+        ..
+    }) = bdata.agent.target
+        && let Some(target_uid) = bdata.read_data.uids.get(target)
+    {
+        let needs_saving = is_downed(
+            bdata.read_data.healths.get(target),
+            bdata.read_data.char_states.get(target),
+        );
+
+        let wants_to_save = match (bdata.agent_data.alignment, bdata.read_data.alignments.get(target)) {
+                        // Npcs generally do want to save players. Could have extra checks for
+                        // sentiment in the future.
+                        (Some(Alignment::Npc), _) if bdata.read_data.presences.get(target).map_or(false, |presence| matches!(presence.kind, PresenceKind::Character(_))) => true,
+                        (Some(Alignment::Npc), Some(Alignment::Npc)) => true,
+                        (Some(Alignment::Enemy), Some(Alignment::Enemy)) => true,
+                        _ => false,
+                    } && bdata.agent.allowed_to_speak()
+                        // Check that anyone else isn't already saving them.
+                        && bdata.read_data
+                            .interactors
+                            .get(target)
+                            .map_or(true, |interactors| {
+                                !interactors.has_interaction(InteractionKind::HelpDowned)
+                            }) && bdata.agent_data.char_state.can_interact();
+
+        if needs_saving
+            && wants_to_save
+            && let Some(target_pos) = bdata.read_data.positions.get(target)
+        {
+            let dist_sqr = bdata.agent_data.pos.0.distance_squared(target_pos.0);
+            if dist_sqr < (MAX_INTERACT_RANGE * 0.5).powi(2) {
+                bdata.controller.push_event(ControlEvent::InteractWith {
+                    target: *target_uid,
+                    kind: common::interaction::InteractionKind::HelpDowned,
+                });
+                bdata.agent.target = None;
+            } else if let Some((bearing, speed)) = bdata.agent.chaser.chase(
+                &*bdata.read_data.terrain,
+                bdata.agent_data.pos.0,
+                bdata.agent_data.vel.0,
+                target_pos.0,
+                TraversalConfig {
+                    min_tgt_dist: MAX_INTERACT_RANGE * 0.5,
+                    ..bdata.agent_data.traversal_config
+                },
+            ) {
+                bdata.controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
+                        * speed
+                            .min(0.2 + (dist_sqr - (MAX_INTERACT_RANGE * 0.5 - 0.5).powi(2)) / 8.0);
+                bdata.agent_data.jump_if(bearing.z > 1.5, bdata.controller);
+                bdata.controller.inputs.move_z = bearing.z;
+            }
+            return true;
+        }
+    }
+    false
+}
+
+/// If too far away, then follow the target
 fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
         if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
@@ -667,7 +736,8 @@ fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
 
 /// Try to heal self if our damage went below a certain threshold
 fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
-    if bdata.agent_data.damage < HEALING_ITEM_THRESHOLD
+    if bdata.agent_data.char_state.can_interact()
+        && bdata.agent_data.damage < HEALING_ITEM_THRESHOLD
         && bdata
             .agent_data
             .heal_self(bdata.agent, bdata.controller, false)
@@ -796,10 +866,26 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
             }
             let aggro_on = *aggro_on;
 
-            if agent_data.below_flee_health(agent) {
+            let (flee, flee_dur_mul) = match agent_data.char_state {
+                CharacterState::Crawl => {
+                    controller.push_action(ControlAction::Stand);
+
+                    // Stay still if we're being helped up.
+                    if let Some(interactors) = read_data.interactors.get(*agent_data.entity)
+                        && interactors.has_interaction(InteractionKind::HelpDowned)
+                    {
+                        return true;
+                    }
+
+                    (true, 5.0)
+                },
+                _ => (agent_data.below_flee_health(agent), 1.0),
+            };
+
+            if flee {
                 let flee_timer_done = agent.behavior_state.timers
                     [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize]
-                    > FLEE_DURATION;
+                    > FLEE_DURATION * flee_dur_mul;
                 let within_normal_flee_dir_dist = dist_sqrd < NORMAL_FLEE_DIR_DIST.powi(2);
 
                 // FIXME: Using action state timer to see if allowed to speak is a hack.

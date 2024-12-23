@@ -50,6 +50,7 @@ macro_rules! synced_components {
             beam: Beam,
             alignment: Alignment,
             stance: Stance,
+            object: Object,
             // TODO: change this to `SyncFrom::ClientEntity` and sync the bare minimum
             // from other entities (e.g. just keys needed to show appearance
             // based on their loadout). Also, it looks like this actually has
@@ -68,7 +69,8 @@ macro_rules! synced_components {
             combo: Combo,
             active_abilities: ActiveAbilities,
             can_build: CanBuild,
-            object: Object,
+            is_interactor: IsInteractor,
+            interactors: Interactors,
         }
     };
 }
@@ -78,10 +80,12 @@ macro_rules! reexport_comps {
         mod inner {
             pub use common::comp::*;
             pub use body::parts::Heads;
+            pub use common::interaction::Interactors;
             use common::link::Is;
             use common::{
                 mounting::{Mount, Rider, VolumeRider},
                 tether::{Leader, Follower},
+                interaction::{Interactor},
             };
 
             // We alias these because the identifier used for the
@@ -95,6 +99,7 @@ macro_rules! reexport_comps {
             pub type IsVolumeRider = Is<VolumeRider>;
             pub type IsLeader = Is<Leader>;
             pub type IsFollower = Is<Follower>;
+            pub type IsInteractor = Is<Interactor>;
         }
 
         // Re-export all the component types. So that uses of `synced_components!` outside this
@@ -261,6 +266,10 @@ impl NetSync for Stance {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
+impl NetSync for Object {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
 // These are synced only from the client's own entity.
 
 impl NetSync for Admin {
@@ -279,6 +288,10 @@ impl NetSync for CanBuild {
     const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
 }
 
-impl NetSync for Object {
-    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+impl NetSync for IsInteractor {
+    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
+}
+
+impl NetSync for Interactors {
+    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
 }

@@ -43,10 +43,13 @@ pub enum MountingError {
 impl Link for Mounting {
     type CreateData<'a> = (
         Read<'a, IdMaps>,
+        Entities<'a>,
         WriteStorage<'a, Is<Mount>>,
         WriteStorage<'a, Is<Rider>>,
         ReadStorage<'a, Is<VolumeRider>>,
         ReadStorage<'a, Is<tether::Follower>>,
+        ReadStorage<'a, comp::Health>,
+        ReadStorage<'a, comp::CharacterState>,
     );
     type DeleteData<'a> = (
         Read<'a, IdMaps>,
@@ -69,14 +72,27 @@ impl Link for Mounting {
 
     fn create(
         this: &LinkHandle<Self>,
-        (id_maps, is_mounts, is_riders, is_volume_rider, is_followers): &mut Self::CreateData<'_>,
+        (
+            id_maps,
+            entities,
+            is_mounts,
+            is_riders,
+            is_volume_rider,
+            is_followers,
+            healths,
+            character_states,
+        ): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
-
         if this.mount == this.rider {
             // Forbid self-mounting
             Err(MountingError::NotMountable)
         } else if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
+            let is_alive_and_well = |entity| {
+                entities.is_alive(entity)
+                    && !comp::is_downed(healths.get(entity), character_states.get(entity))
+            };
+
             // Ensure that neither mount or rider are already part of a mounting
             // relationship
             if !is_mounts.contains(mount)
@@ -85,6 +101,9 @@ impl Link for Mounting {
                 // TODO: Does this definitely prevent mount cycles?
                 && (!is_mounts.contains(rider) || !is_riders.contains(mount))
                 && !is_volume_rider.contains(rider)
+                // Ensure that both are alive and well.
+                && is_alive_and_well(rider)
+                && is_alive_and_well(rider)
             {
                 let _ = is_mounts.insert(mount, this.make_role());
                 let _ = is_riders.insert(rider, this.make_role());
@@ -104,8 +123,9 @@ impl Link for Mounting {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
 
         if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
-            let is_alive = |entity| {
-                entities.is_alive(entity) && healths.get(entity).map_or(true, |h| !h.is_dead)
+            let is_alive_and_well = |entity| {
+                entities.is_alive(entity)
+                    && !comp::is_downed(healths.get(entity), character_states.get(entity))
             };
 
             let is_in_ridable_state = character_states
@@ -113,8 +133,8 @@ impl Link for Mounting {
                 .map_or(false, |cs| !matches!(cs, comp::CharacterState::Roll(_)));
 
             // Ensure that both entities are alive and that they continue to be linked
-            is_alive(mount)
-                && is_alive(rider)
+            is_alive_and_well(mount)
+                && is_alive_and_well(rider)
                 && is_mounts.get(mount).is_some()
                 && is_riders.get(rider).is_some()
                 && bodies.get(mount).map_or(false, |mount_body| {
@@ -306,6 +326,7 @@ impl VolumeMounting {
 
 impl Link for VolumeMounting {
     type CreateData<'a> = (
+        Entities<'a>,
         Write<'a, VolumeRiders>,
         WriteStorage<'a, VolumeRiders>,
         WriteStorage<'a, Is<VolumeRider>>,
@@ -313,6 +334,8 @@ impl Link for VolumeMounting {
         ReadExpect<'a, TerrainGrid>,
         Read<'a, IdMaps>,
         ReadStorage<'a, comp::Collider>,
+        ReadStorage<'a, comp::Health>,
+        ReadStorage<'a, comp::CharacterState>,
     );
     type DeleteData<'a> = (
         Write<'a, VolumeRiders>,
@@ -330,11 +353,13 @@ impl Link for VolumeMounting {
         ReadExpect<'a, TerrainGrid>,
         Read<'a, IdMaps>,
         ReadStorage<'a, comp::Collider>,
+        ReadStorage<'a, comp::CharacterState>,
     );
 
     fn create(
         this: &LinkHandle<Self>,
         (
+            entities,
             terrain_riders,
             volume_riders,
             is_volume_riders,
@@ -342,13 +367,20 @@ impl Link for VolumeMounting {
             terrain_grid,
             id_maps,
             colliders,
+            healths,
+            character_states,
         ): &mut Self::CreateData<'_>,
     ) -> Result<(), Self::Error> {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
+        let is_alive_and_well = |entity| {
+            entities.is_alive(entity)
+                && !comp::is_downed(healths.get(entity), character_states.get(entity))
+        };
 
         let riders = match this.pos.kind {
             Volume::Terrain => &mut *terrain_riders,
             Volume::Entity(uid) => entity(uid)
+                .filter(|entity| is_alive_and_well(*entity))
                 .and_then(|entity| volume_riders.get_mut_or_default(entity))
                 .ok_or(MountingError::NoSuchEntity)?,
         };
@@ -358,6 +390,7 @@ impl Link for VolumeMounting {
             && !is_volume_riders.contains(rider)
             && !is_volume_riders.contains(rider)
             && !is_riders.contains(rider)
+            && is_alive_and_well(rider)
         {
             let block = this
                 .pos
@@ -387,16 +420,20 @@ impl Link for VolumeMounting {
             terrain_grid,
             id_maps,
             colliders,
+            character_states,
         ): &mut Self::PersistData<'_>,
     ) -> bool {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
-        let is_alive =
-            |entity| entities.is_alive(entity) && healths.get(entity).map_or(true, |h| !h.is_dead);
+        let is_alive_and_well = |entity| {
+            entities.is_alive(entity)
+                && !comp::is_downed(healths.get(entity), character_states.get(entity))
+        };
+
         let riders = match this.pos.kind {
             Volume::Terrain => &*terrain_riders,
             Volume::Entity(uid) => {
                 let Some(riders) = entity(uid)
-                    .filter(|entity| is_alive(*entity))
+                    .filter(|entity| is_alive_and_well(*entity))
                     .and_then(|entity| volume_riders.get(entity))
                 else {
                     return false;
@@ -406,7 +443,7 @@ impl Link for VolumeMounting {
         };
 
         let rider_exists = entity(this.rider).map_or(false, |rider| {
-            is_volume_riders.contains(rider) && is_alive(rider)
+            is_volume_riders.contains(rider) && is_alive_and_well(rider)
         });
         let mount_spot_exists = riders.riders.contains(&this.pos.pos);
 

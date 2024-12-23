@@ -52,6 +52,11 @@ pub struct Health {
     /// The last change to health
     pub last_change: HealthChange,
     pub is_dead: bool,
+    /// If this entity supports having death protection.
+    pub can_have_death_protection: bool,
+    /// If death protection is true, any damage that would kill instead leaves
+    /// the entity at 1 health.
+    pub death_protection: bool,
 
     /// Keeps track of damage per DamageContributor and the last time they
     /// caused damage, used for EXP sharing
@@ -89,8 +94,14 @@ impl Health {
 
     /// Instantly set the health fraction.
     pub fn set_fraction(&mut self, fraction: f32) {
-        self.current = (self.maximum() * fraction * Self::SCALING_FACTOR_FLOAT) as u32;
-        self.is_dead = self.current == 0;
+        self.current =
+            (self.maximum() * fraction.clamp(0.0, 1.0) * Self::SCALING_FACTOR_FLOAT).ceil() as u32;
+    }
+
+    pub fn set_amount(&mut self, amount: f32) {
+        self.current = (amount * Self::SCALING_FACTOR_FLOAT)
+            .clamp(0.0, self.maximum())
+            .ceil() as u32;
     }
 
     /// Calculates a new maximum value and returns it if the value differs from
@@ -123,6 +134,7 @@ impl Health {
 
     pub fn new(body: comp::Body) -> Self {
         let health = u32::from(body.base_health()) * Self::SCALING_FACTOR_INT;
+        let death_protection = body.has_death_protection();
         Health {
             current: health,
             base_max: health,
@@ -136,6 +148,8 @@ impl Health {
                 instance: rand::random(),
             },
             is_dead: false,
+            can_have_death_protection: death_protection,
+            death_protection,
             damage_contributors: HashMap::new(),
         }
     }
@@ -186,11 +200,34 @@ impl Health {
 
     pub fn should_die(&self) -> bool { self.current == 0 }
 
-    pub fn kill(&mut self) { self.current = 0; }
+    pub fn kill(&mut self) {
+        self.current = 0;
+        self.death_protection = false;
+    }
 
     pub fn revive(&mut self) {
         self.current = self.maximum;
         self.is_dead = false;
+        self.death_protection = self.can_have_death_protection;
+    }
+
+    pub fn consume_death_protection(&mut self) {
+        if self.death_protection {
+            self.death_protection = false;
+            if self.current() < 1.0 {
+                self.set_amount(1.0);
+            }
+        }
+    }
+
+    pub fn refresh_death_protection(&mut self) {
+        if self.can_have_death_protection {
+            self.death_protection = true;
+        }
+    }
+
+    pub fn has_consumed_death_protection(&self) -> bool {
+        self.can_have_death_protection && !self.death_protection
     }
 
     #[cfg(test)]
@@ -208,9 +245,19 @@ impl Health {
                 instance: rand::random(),
             },
             is_dead: false,
+            can_have_death_protection: false,
+            death_protection: false,
             damage_contributors: HashMap::new(),
         }
     }
+}
+
+/// Returns true if an entity is downed, their character state is `Crawl` and
+/// their death protection has been consumed.
+pub fn is_downed(health: Option<&Health>, character_state: Option<&super::CharacterState>) -> bool {
+    health.map_or(false, |health| {
+        !health.is_dead && health.has_consumed_death_protection()
+    }) && matches!(character_state, Some(super::CharacterState::Crawl))
 }
 
 impl Component for Health {

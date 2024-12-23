@@ -4,7 +4,7 @@ use crate::{
     vol::{BaseVol, ReadVol},
 };
 use common_base::span;
-use hashbrown::DefaultHashBuilder;
+use fxhash::FxBuildHasher;
 #[cfg(feature = "rrt_pathfinding")]
 use hashbrown::HashMap;
 #[cfg(feature = "rrt_pathfinding")]
@@ -356,11 +356,11 @@ pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
     /// `bool` indicates whether the Route is a complete route to the target
     route: Option<(Route, bool)>,
-    /// We use this hasher (AAHasher) because:
-    /// (1) we care about DDOS attacks (ruling out FxHash);
-    /// (2) we don't care about determinism across computers (we can use
-    /// AAHash).
-    astar: Option<Astar<Vec3<i32>, DefaultHashBuilder>>,
+    /// We use this hasher (FxHash) because:
+    /// (1) we don't care about DDOS attacks (We can use FxHash);
+    /// (2) we want this to be constant across compiles because of hot-reloading
+    /// (Ruling out AAHash);
+    astar: Option<Astar<Vec3<i32>, FxBuildHasher>>,
 }
 
 impl Chaser {
@@ -534,7 +534,7 @@ where
 /// Attempt to search for a path to a target, returning the path (if one was
 /// found) and whether it is complete (reaches the target)
 fn find_path<V>(
-    astar: &mut Option<Astar<Vec3<i32>, DefaultHashBuilder>>,
+    astar: &mut Option<Astar<Vec3<i32>, FxBuildHasher>>,
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
@@ -570,7 +570,7 @@ where
         _ => return (None, false),
     };
 
-    let heuristic = |pos: &Vec3<i32>, _: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
+    let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
     let transition = |a: Vec3<i32>, b: Vec3<i32>| {
         let crow_line = LineSegment2 {
             start: startf.xy(),
@@ -688,7 +688,7 @@ where
                 500
             },
             start,
-            DefaultHashBuilder::default(),
+            FxBuildHasher::default(),
         ),
         Some(astar) => astar,
     };

@@ -715,10 +715,10 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::SelfBuff(_) => Self::SelfBuff,
             CharacterState::Music(data) => Self::Music(data.stage_section),
             CharacterState::Idle(_)
+            | CharacterState::Crawl
             | CharacterState::Climb(_)
             | CharacterState::Sit
             | CharacterState::Dance
-            | CharacterState::Pet(_)
             | CharacterState::Talk
             | CharacterState::Glide(_)
             | CharacterState::GlideWield(_)
@@ -730,7 +730,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::BasicSummon(_)
             | CharacterState::SpriteSummon(_)
             | CharacterState::UseItem(_)
-            | CharacterState::SpriteInteract(_)
+            | CharacterState::Interact(_)
             | CharacterState::Skate(_)
             | CharacterState::Transform(_)
             | CharacterState::RegrowHead(_)

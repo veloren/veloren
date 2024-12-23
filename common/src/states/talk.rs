@@ -5,7 +5,6 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         idle,
     },
-    uid::Uid,
 };
 use serde::{Deserialize, Serialize};
 
@@ -52,12 +51,6 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle(idle::Data::default());
         attempt_dance(data, &mut update);
-        update
-    }
-
-    fn pet(&self, data: &JoinData, _: &mut OutputEvents, target_uid: Uid) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        attempt_pet(data, &mut update, target_uid);
         update
     }
 
