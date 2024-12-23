@@ -4,9 +4,8 @@ use crate::{
     util::{DIAGONALS, RandomField, Sampler},
 };
 use common::{
-    comp::Content,
     generation::SpecialEntity,
-    terrain::{BlockKind, SpriteCfg, SpriteKind},
+    terrain::{BlockKind, SpriteKind},
 };
 
 use rand::prelude::*;
@@ -342,17 +341,6 @@ impl Structure for DesertCityAirshipDock {
                             .map(|e| e as f32 + 0.5),
                     )
                     .into_special(SpecialEntity::Waypoint),
-                );
-            }
-            for dock_pos in &self.docking_positions {
-                painter.rotated_sprite_with_cfg(
-                    *dock_pos,
-                    SpriteKind::Sign,
-                    Dir::from_vec2(dock_pos.xy() - self.center).sprite_ori(),
-                    SpriteCfg {
-                        unlock: None,
-                        content: Some(Content::localized("common-signs-airship_dock")),
-                    },
                 );
             }
             // stairs

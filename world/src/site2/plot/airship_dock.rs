@@ -1,13 +1,14 @@
 use super::*;
 use crate::{
+    site2::gen::{spiral_staircase, PrimitiveTransform},
+    util::{RandomField, Sampler, CARDINALS},
     Land,
     site2::gen::{PrimitiveTransform, spiral_staircase},
     util::{RandomField, Sampler},
 };
 use common::{
-    comp::Content,
     generation::SpecialEntity,
-    terrain::{BlockKind, SpriteCfg, SpriteKind},
+    terrain::{BlockKind, SpriteKind},
 };
 use rand::prelude::*;
 use std::f32::consts::PI;
@@ -53,10 +54,11 @@ impl AirshipDock {
         } else {
             0.0
         };
-        let docking_positions = vec![
-            (center + (door_dir.yx() * 16)).with_z(height + 9),
-            (center - (door_dir.yx() * 21)).with_z(height + 9),
-        ];
+        let mut docking_positions = vec![];
+        for dir in CARDINALS {
+            let pos = (center + dir * 17).with_z(height + 9);
+            docking_positions.push(pos);
+        }
         let campfire_pos = (center - (door_dir * 10)).with_z(height + 9);
         Self {
             door_tile: door_tile_pos,
@@ -763,17 +765,11 @@ impl Structure for AirshipDock {
             EntityInfo::at(self.campfire_pos.map(|e| e as f32 + 0.5))
                 .into_special(SpecialEntity::Waypoint),
         );
-        // dock
+        // docks
         for dock_pos in &self.docking_positions {
-            painter.rotated_sprite_with_cfg(
-                *dock_pos - self.door_dir.yx(),
-                SpriteKind::Sign,
-                Dir::from_vec2(dock_pos.xy() - self.center).sprite_ori(),
-                SpriteCfg {
-                    unlock: None,
-                    content: Some(Content::localized("common-signs-airship_dock")),
-                },
-            );
+            painter
+                .cylinder_with_radius(*dock_pos, 5.0, 1.0)
+                .fill(wood.clone());
         }
     }
 }
