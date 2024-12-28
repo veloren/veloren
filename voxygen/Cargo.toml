@@ -6,7 +6,7 @@ authors = [
 default-run = "veloren-voxygen"
 edition = "2021"
 name = "veloren-voxygen"
-version = "0.16.0"
+version = "0.17.0"
 # Cargo thinks it should build the voxygen binary even when a specific bench is specified for building
 # Uncomment below and comment out default-run if you want to avoid this
 # autobins = false
