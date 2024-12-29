@@ -1,6 +1,7 @@
 use super::*;
-use crate::{site2::gen::PrimitiveTransform, Land};
-use common::{generation::EntityInfo, terrain::Structure as PrefabStructure};
+use crate::Land;
+use common::generation::EntityInfo;
+use gen::render_prefab;
 use rand::prelude::*;
 use vek::*;
 
@@ -110,15 +111,4 @@ impl Structure for Barn {
             );
         }
     }
-}
-
-fn render_prefab(file_path: &str, position: Vec3<i32>, painter: &Painter) {
-    let asset_handle = PrefabStructure::load_group(file_path);
-    let prefab_structure = asset_handle.read()[0].clone();
-
-    // Render the prefab
-    painter
-        .prim(Primitive::Prefab(Box::new(prefab_structure.clone())))
-        .translate(position)
-        .fill(Fill::Prefab(Box::new(prefab_structure), position, 0));
 }

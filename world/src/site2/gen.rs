@@ -1405,6 +1405,17 @@ impl Painter {
     }
 }
 
+pub fn render_prefab(file_path: &str, position: Vec3<i32>, painter: &Painter) {
+    let asset_handle = PrefabStructure::load_group(file_path);
+    let prefab_structure = asset_handle.read()[0].clone();
+
+    // Render the prefab
+    painter
+        .prim(Primitive::Prefab(Box::new(prefab_structure.clone())))
+        .translate(position)
+        .fill(Fill::Prefab(Box::new(prefab_structure), position, 0));
+}
+
 #[derive(Copy, Clone)]
 pub struct PrimitiveRef<'a> {
     id: Id<Primitive>,
