@@ -224,6 +224,7 @@ pub enum BuffKind {
 }
 
 /// Tells a little more about the buff kind than simple buff/debuff
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BuffDescriptor {
     /// Simple positive buffs, like `BuffKind::Saturation`
     SimplePositive,
@@ -453,10 +454,7 @@ impl BuffKind {
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
                 BuffEffect::PoiseDamageFromLostHealth(data.strength),
             ],
-            BuffKind::Parried => vec![
-                BuffEffect::RecoverySpeed(0.25),
-                BuffEffect::PrecisionVulnerabilityOverride(1.0),
-            ],
+            BuffKind::Parried => vec![BuffEffect::PrecisionVulnerabilityOverride(1.0)],
             BuffKind::PotionSickness => vec![BuffEffect::ItemEffectReduction(data.strength)],
             BuffKind::Reckless => vec![
                 BuffEffect::DamageReduction(-data.strength),
@@ -552,11 +550,12 @@ impl BuffKind {
     }
 
     fn extend_cat_ids(&self, mut cat_ids: Vec<BuffCategory>) -> Vec<BuffCategory> {
-        // TODO: Remove clippy allow after another buff needs this
-        #[allow(clippy::single_match)]
         match self {
             BuffKind::ImminentCritical => {
                 cat_ids.push(BuffCategory::RemoveOnAttack);
+            },
+            BuffKind::PotionSickness => {
+                cat_ids.push(BuffCategory::PersistOnDowned);
             },
             _ => {},
         }
@@ -677,6 +676,7 @@ pub enum BuffCategory {
     Physical,
     Magical,
     Divine,
+    PersistOnDowned,
     PersistOnDeath,
     FromActiveAura(Uid, AuraKey),
     RemoveOnAttack,

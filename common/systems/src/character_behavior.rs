@@ -178,7 +178,9 @@ impl<'a> System<'a> for Sys {
                 {
                     // Reset poise if there is some stunned state to apply
                     poise.reset(*read_data.time, stunned_duration);
-                    *char_state = stunned_state;
+                    if !comp::is_downed(health, Some(&char_state)) {
+                        *char_state = stunned_state;
+                    }
                     outcomes_emitter.emit(Outcome::PoiseChange {
                         pos,
                         state: poise_state,

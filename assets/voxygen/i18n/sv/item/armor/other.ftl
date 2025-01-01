@@ -56,3 +56,5 @@ armor-misc-bag-liana_kit = Liankit
     .desc = Vävd från torkade lianer.
 lantern-green = Limeskalslykta
     .desc = Den har en öppning som kan rymma en ring…
+glider-cultists = Skullgrin
+    .desc = Död från ovan.

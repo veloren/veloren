@@ -131,6 +131,7 @@ make_case_elim!(
         HarlequinDagger = 116,
         BloodBomb = 117,
         MinotaurAxe = 118,
+        BorealTrap = 119,
     }
 );
 
@@ -141,7 +142,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 119] = [
+pub const ALL_OBJECTS: [Body; 120] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -261,6 +262,7 @@ pub const ALL_OBJECTS: [Body; 119] = [
     Body::HarlequinDagger,
     Body::BloodBomb,
     Body::MinotaurAxe,
+    Body::BorealTrap,
 ];
 
 impl From<Body> for super::Body {
@@ -389,6 +391,7 @@ impl Body {
             Body::HarlequinDagger => "harlequin_dagger",
             Body::BloodBomb => "blood_bomb",
             Body::MinotaurAxe => "minotaur_axe",
+            Body::BorealTrap => "boreal_trap",
         }
     }
 
@@ -423,6 +426,7 @@ impl Body {
             | Body::AdletTrap
             | Body::Flamethrower
             | Body::Lavathrower
+            | Body::BorealTrap
             | Body::BloodBomb => 500.0,
             Body::Bomb | Body::Mine | Body::SurpriseEgg => 2000.0, /* I have no idea what it's */
             // supposed to be
@@ -543,6 +547,7 @@ impl Body {
             Body::AdletTrap => 10.0,
             Body::Mine => 100.0,
             Body::HarlequinDagger => 1.5,
+            Body::BorealTrap => 10.0,
             Body::LightningBolt | Body::SpearIcicle => 20000.0,
             Body::Portal | Body::PortalActive => 10., // I dont know really
         };
@@ -573,6 +578,7 @@ impl Body {
             Body::Snowball => Vec3::broadcast(2.5),
             Body::Tornado | Body::FieryTornado => Vec3::new(2.0, 2.0, 3.4),
             Body::TrainingDummy => Vec3::new(1.5, 1.5, 3.0),
+            Body::BorealTrap => Vec3::new(1.0, 0.6, 0.3),
             Body::GnarlingTotemRed | Body::GnarlingTotemGreen | Body::GnarlingTotemWhite => {
                 Vec3::new(0.8, 0.8, 1.4)
             },

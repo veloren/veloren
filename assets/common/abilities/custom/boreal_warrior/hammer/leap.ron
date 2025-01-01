@@ -1,27 +1,27 @@
 LeapMelee(
-    energy_cost: 35.0,
-    buildup_duration: 0.1,
+    energy_cost: 25.0,
+    buildup_duration: 0.8,
     movement_duration: 0.6,
     swing_duration: 0.15,
     recover_duration: 0.2,
     melee_constructor: (
         kind: Bash(
-            damage: 25.0,
+            damage: 50.0,
             poise: 40.0,
             knockback: 25.0,
             energy_regen: 0.0,
         ),
-        range: 4.5,
+        range: 7.5,
         angle: 360.0,
         multi_target: Some(Normal),
         damage_effect: Some(Buff((
             kind: Frozen,
-            dur_secs: 2.0,
+            dur_secs: 8.0,
             strength: Value(0.3),
             chance: 1.0,
         ))),
     ),
-    forward_leap_strength: 20.0,
+    forward_leap_strength: 60.0,
     vertical_leap_strength: 8.0,
     specifier: None,
 )

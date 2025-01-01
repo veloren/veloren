@@ -1497,6 +1497,7 @@ impl Hud {
             let is_riders = ecs.read_storage::<Is<Rider>>();
             let stances = ecs.read_storage::<comp::Stance>();
             let char_activities = ecs.read_storage::<comp::CharacterActivity>();
+            let char_states = ecs.read_storage::<comp::CharacterState>();
             let time = ecs.read_resource::<Time>();
 
             // Check if there was a persistence load error of the skillset, and if so
@@ -1576,7 +1577,8 @@ impl Hud {
                         .graphics_for(ui_widgets.window)
                         .color(Some(Color::Rgba(0.0, 0.0, 0.0, 1.0)))
                         .set(self.ids.death_bg, ui_widgets);
-                } // Crosshair
+                }
+                // Crosshair
                 let show_crosshair = (info.is_aiming || info.is_first_person) && !health.is_dead;
                 self.crosshair_opacity = Lerp::lerp(
                     self.crosshair_opacity,
@@ -2336,6 +2338,7 @@ impl Hud {
                 alignment,
                 is_mount,
                 character_activity,
+                character_state,
             ) in (
                 &entities,
                 &pos,
@@ -2357,6 +2360,7 @@ impl Hud {
                     is_mounts.maybe(),
                     is_riders.maybe(),
                     stances.maybe(),
+                    char_states.maybe(),
                 ),
             )
                 .join()
@@ -2381,7 +2385,7 @@ impl Hud {
                         inventory,
                         character_activity,
                         poise,
-                        (alignment, is_mount, is_rider, stance),
+                        (alignment, is_mount, is_rider, stance, char_state),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2459,6 +2463,7 @@ impl Hud {
                                 alignment,
                                 is_mount,
                                 character_activity,
+                                char_state,
                             )
                         })
                     },
@@ -2472,6 +2477,77 @@ impl Hud {
                 let height_offset = body.height() * scale.map_or(1.0, |s| s.0) + 0.5;
                 let ingame_pos = pos + Vec3::unit_z() * height_offset;
 
+                let mut interaction_options = match alignment {
+                    // TODO: Don't use `MAX_MOUNT_RANGE` here, add dedicated interaction range
+                    Some(comp::Alignment::Npc)
+                        if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2)
+                            && interactable.and_then(|i| i.entity()) == Some(entity) =>
+                    {
+                        let interact_text =
+                            if matches!(character_state, Some(comp::CharacterState::Crawl)) {
+                                "hud-help"
+                            } else {
+                                "hud-talk"
+                            };
+                        vec![
+                            (GameInput::Interact, i18n.get_msg(interact_text).to_string()),
+                            (GameInput::Trade, i18n.get_msg("hud-trade").to_string()),
+                        ]
+                    },
+                    Some(comp::Alignment::Owned(owner))
+                        if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
+                    {
+                        let mut options = Vec::new();
+                        if is_mount.is_none() {
+                            if Some(*owner) == client.uid() {
+                                options.push((
+                                    GameInput::Trade,
+                                    i18n.get_msg("hud-trade").to_string(),
+                                ));
+                                if !client.is_riding()
+                                    && is_mountable(body, bodies.get(client.entity()))
+                                {
+                                    options.push((
+                                        GameInput::Mount,
+                                        i18n.get_msg("hud-mount").to_string(),
+                                    ));
+                                }
+
+                                let is_staying = character_activity
+                                    .map_or(false, |activity| activity.is_pet_staying);
+
+                                options.push((
+                                    GameInput::StayFollow,
+                                    i18n.get_msg(if is_staying {
+                                        "hud-follow"
+                                    } else {
+                                        "hud-stay"
+                                    })
+                                    .to_string(),
+                                ));
+                            }
+
+                            // Anyone can pet a tamed animal
+                            options
+                                .push((GameInput::Interact, i18n.get_msg("hud-pet").to_string()));
+                        }
+                        options
+                    },
+                    Some(comp::Alignment::Tame)
+                        if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
+                    {
+                        vec![(GameInput::Interact, i18n.get_msg("hud-pet").to_string())]
+                    },
+                    _ => Vec::new(),
+                };
+
+                if comp::is_downed(health, character_state) {
+                    let help_input = GameInput::Interact;
+                    interaction_options.retain(|opt| opt.0 != help_input);
+                    interaction_options
+                        .insert(0, (help_input, i18n.get_msg("hud-help").to_string()));
+                }
+
                 // Speech bubble, name, level, and hp bars
                 overhead::Overhead::new(
                     info,
@@ -2484,63 +2560,7 @@ impl Hud {
                     &self.imgs,
                     &self.fonts,
                     &global_state.window.key_layout,
-                    match alignment {
-                        // TODO: Don't use `MAX_MOUNT_RANGE` here, add dedicated interaction range
-                        Some(comp::Alignment::Npc)
-                            if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2)
-                                && interactable.and_then(|i| i.entity()) == Some(entity) =>
-                        {
-                            vec![
-                                (GameInput::Interact, i18n.get_msg("hud-talk").to_string()),
-                                (GameInput::Trade, i18n.get_msg("hud-trade").to_string()),
-                            ]
-                        },
-                        Some(comp::Alignment::Owned(owner))
-                            if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
-                        {
-                            let mut options = Vec::new();
-                            if is_mount.is_none() {
-                                if Some(*owner) == client.uid() {
-                                    options.push((
-                                        GameInput::Trade,
-                                        i18n.get_msg("hud-trade").to_string(),
-                                    ));
-                                    if !client.is_riding()
-                                        && is_mountable(body, bodies.get(client.entity()))
-                                    {
-                                        options.push((
-                                            GameInput::Mount,
-                                            i18n.get_msg("hud-mount").to_string(),
-                                        ));
-                                    }
-
-                                    let is_staying = character_activity
-                                        .map_or(false, |activity| activity.is_pet_staying);
-
-                                    options.push((
-                                        GameInput::StayFollow,
-                                        i18n.get_msg(if is_staying {
-                                            "hud-follow"
-                                        } else {
-                                            "hud-stay"
-                                        })
-                                        .to_string(),
-                                    ));
-                                }
-
-                                // Anyone can pet a tamed animal
-                                options.push((
-                                    GameInput::Interact,
-                                    i18n.get_msg("hud-pet").to_string(),
-                                ));
-                            }
-                            options
-                        },
-                        Some(comp::Alignment::Tame) => {
-                            vec![(GameInput::Interact, i18n.get_msg("hud-pet").to_string())]
-                        },
-                        _ => Vec::new(),
-                    },
+                    interaction_options,
                     &time,
                 )
                 .x_y(0.0, 100.0)

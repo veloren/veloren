@@ -160,27 +160,17 @@ impl Site {
         w: u16,
     ) -> Option<Id<Plot>> {
         const MAX_ITERS: usize = 4096;
-        let range = -(w as i32) / 2..w as i32 - (w as i32 + 1) / 2;
-        let heuristic = |(tile, dir): &(Vec2<i32>, Vec2<i32>),
-                         (_, old_dir): &(Vec2<i32>, Vec2<i32>)| {
-            let mut max_cost = (tile.distance_squared(b) as f32).sqrt();
-            for y in range.clone() {
-                for x in range.clone() {
-                    if self.tiles.get(*tile + Vec2::new(x, y)).is_obstacle() {
-                        max_cost = max_cost.max(1000.0);
-                    } else if !self.tiles.get(*tile + Vec2::new(x, y)).is_empty() {
-                        max_cost = max_cost.max(25.0);
-                    }
-                }
-            }
-            max_cost + (dir != old_dir) as i32 as f32 * 35.0
-        };
+        let range = &(-(w as i32) / 2..w as i32 - (w as i32 + 1) / 2);
+        // Manhattan distance.
+        let heuristic =
+            |(tile, _): &(Vec2<i32>, Vec2<i32>)| (tile - b).map(|e| e.abs()).sum() as f32;
         let (path, _cost) = Astar::new(MAX_ITERS, (a, Vec2::zero()), DefaultHashBuilder::default())
             .poll(
                 MAX_ITERS,
                 &heuristic,
-                |(tile, _)| {
+                |(tile, prev_dir)| {
                     let tile = *tile;
+                    let prev_dir = *prev_dir;
                     let this = &self;
                     CARDINALS.iter().map(move |dir| {
                         let neighbor = (tile + *dir, *dir);
@@ -188,7 +178,19 @@ impl Site {
                         // Transition cost
                         let alt_a = land.get_alt_approx(this.tile_center_wpos(tile));
                         let alt_b = land.get_alt_approx(this.tile_center_wpos(neighbor.0));
-                        let cost = (alt_a - alt_b).abs() / TILE_SIZE as f32;
+                        let mut cost = 1.0
+                            + (alt_a - alt_b).abs() / TILE_SIZE as f32
+                            + (prev_dir != *dir) as i32 as f32;
+
+                        for i in range.clone() {
+                            let orth = dir.yx() * i;
+                            let tile = this.tiles.get(neighbor.0 + orth);
+                            if tile.is_obstacle() {
+                                cost += 1000.0;
+                            } else if !tile.is_empty() && !tile.is_road() {
+                                cost += 25.0;
+                            }
+                        }
 
                         (neighbor, cost)
                     })

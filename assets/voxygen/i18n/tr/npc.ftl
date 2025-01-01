@@ -78,3 +78,4 @@ npc-speech-villager_under_attack =
     .a76 = Lütfen bunu bir daha yapma.
     .a77 = Muhafızlar, şu canavarı göle atın!
     .a78 = Tarrasque'ımı üzerine salarım!
+npc-speech-villager = Peynire bayılırım.

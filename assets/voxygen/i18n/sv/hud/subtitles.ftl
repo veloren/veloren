@@ -150,3 +150,4 @@ subtitle-instrument_kora = Kora spelas
 subtitle-attack-strigoi_head = Strigoi skriker
 subtitle-utterance-vampire-bat-hurt = Fladdermus har ont
 subtitle-attack-bloodmoon_heiress_summon = Läskigt fågelljud
+subtitle-splash = Plask

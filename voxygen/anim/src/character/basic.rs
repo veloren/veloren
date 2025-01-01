@@ -698,6 +698,9 @@ impl Animation for BasicAction {
                             * Quaternion::rotation_z(s_a.ac.5 + move1 * 4.0);
                     },
                     (Some(Hands::One), offhand) => {
+                        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                        next.main.orientation = Quaternion::rotation_x(0.0);
+
                         next.control_l.position =
                             Vec3::new(-7.0, 8.0 + move1 * 3.0, 2.0 + move1 * 3.0);
                         next.control_l.orientation =
@@ -705,6 +708,8 @@ impl Animation for BasicAction {
                         next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                         next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
                         if offhand.is_some() {
+                            next.second.position = Vec3::new(0.0, 0.0, 0.0);
+                            next.second.orientation = Quaternion::rotation_x(0.0);
                             next.control_r.position =
                                 Vec3::new(7.0, 8.0 + move1 * 3.0, 2.0 + move1 * 3.0);
                             next.control_r.orientation =
@@ -1176,16 +1181,17 @@ impl Animation for BasicAction {
 
                 match d.hands {
                     (Some(Hands::Two), _) => {
-                        next.hand_l.position =
-                            Vec3::new(s_a.hhl.0, s_a.hhl.1 + move1 * 6.0, s_a.hhl.2 + move1 * 6.0);
-                        next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3 + move1 * -0.5)
-                            * Quaternion::rotation_y(s_a.hhl.4 + move1 * 1.5)
-                            * Quaternion::rotation_z(s_a.hhl.5 + move1 * PI);
+                        next.hand_l.position = Vec3::new(s_a.hhl.0, s_a.hhl.1, s_a.hhl.2);
+                        next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3)
+                            * Quaternion::rotation_y(s_a.hhl.4)
+                            * Quaternion::rotation_z(s_a.hhl.5);
                         next.hand_r.position = Vec3::new(s_a.hhr.0, s_a.hhr.1, s_a.hhr.2);
                         next.hand_r.orientation = Quaternion::rotation_x(s_a.hhr.3)
                             * Quaternion::rotation_y(s_a.hhr.4)
                             * Quaternion::rotation_z(s_a.hhr.5);
 
+                        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                        next.main.orientation = Quaternion::rotation_x(0.0);
                         next.control.position = Vec3::new(
                             s_a.hc.0 + move1 * 3.0,
                             s_a.hc.1 + move1 * 3.0,
@@ -1202,13 +1208,19 @@ impl Animation for BasicAction {
                             Quaternion::rotation_x(-0.3) * Quaternion::rotation_y(move1 * 1.0);
                         next.hand_l.position = Vec3::new(0.0, -0.5, 0.0);
                         next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                        next.main.orientation = Quaternion::rotation_x(0.0);
+
                         if offhand.is_some() {
                             next.control_r.position =
                                 Vec3::new(7.0, 8.0 + move1 * 3.0, 2.0 + move1 * 3.0);
                             next.control_r.orientation =
                                 Quaternion::rotation_x(-0.3) * Quaternion::rotation_y(move1 * -1.0);
                             next.hand_r.position = Vec3::new(0.0, -0.5, 0.0);
-                            next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0)
+                            next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.second.position = Vec3::new(0.0, 0.0, 0.0);
+                            next.second.orientation = Quaternion::rotation_x(0.0);
                         } else {
                             next.hand_r.position = Vec3::new(4.5, 8.0, 5.0);
                             next.hand_r.orientation =

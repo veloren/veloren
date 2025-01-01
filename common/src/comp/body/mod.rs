@@ -392,6 +392,7 @@ impl Body {
             Body::BipedSmall(body) => match body.species {
                 biped_small::Species::IronDwarf => 1000.0,
                 biped_small::Species::Flamekeeper => 1000.0,
+                biped_small::Species::Boreal => 1000.0,
                 _ => 50.0,
             },
             // ravens are 0.69-2 kg, crows are 0.51 kg on average.
@@ -575,7 +576,7 @@ impl Body {
                 biped_small::Species::Sahagin => Vec3::new(1.3, 2.0, 1.7),
                 biped_small::Species::Myrmidon => Vec3::new(1.3, 1.0, 2.2),
                 biped_small::Species::Husk => Vec3::new(1.7, 0.7, 2.7),
-                biped_small::Species::Boreal => Vec3::new(1.3, 2.0, 2.5),
+                biped_small::Species::Boreal => Vec3::new(2.6, 2.0, 4.6),
                 biped_small::Species::Bushly => Vec3::new(1.2, 1.3, 1.6),
                 biped_small::Species::Cactid => Vec3::new(1.0, 0.75, 1.4),
                 biped_small::Species::Irrwurz => Vec3::new(1.5, 1.5, 2.0),
@@ -869,6 +870,10 @@ impl Body {
         }
     }
 
+    /// If this body will retain 1 hp when it would die, and consume death
+    /// protection, and entering a downed state.
+    pub fn has_death_protection(&self) -> bool { matches!(self, Body::Humanoid(_)) }
+
     pub fn base_health(&self) -> u16 {
         match self {
             Body::Humanoid(_) => 100,
@@ -1042,7 +1047,7 @@ impl Body {
                 biped_small::Species::Haniwa => 100,
                 biped_small::Species::Myrmidon => 100,
                 biped_small::Species::Husk => 50,
-                biped_small::Species::Boreal => 100,
+                biped_small::Species::Boreal => 800,
                 biped_small::Species::IronDwarf => 250,
                 biped_small::Species::Irrwurz => 100,
                 biped_small::Species::ShamanicSpirit => 240,
@@ -1350,6 +1355,7 @@ impl Body {
             Body::BipedSmall(b) => match b.species {
                 biped_small::Species::GnarlingChieftain => 130,
                 biped_small::Species::IronDwarf | biped_small::Species::Flamekeeper => 300,
+                biped_small::Species::Boreal => 470,
                 _ => 100,
             },
             Body::BirdLarge(b) => match b.species {

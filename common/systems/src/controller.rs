@@ -2,12 +2,13 @@ use common::{
     comp::{
         ability::Stance,
         agent::{Sound, SoundKind},
-        Body, BuffChange, Collider, ControlEvent, Controller, Pos, Scale,
+        Body, BuffChange, Collider, ControlEvent, Controller, Health, Pos, Scale,
     },
     event::{self, EmitExt},
     event_emitters,
+    interaction::Interaction,
     terrain::TerrainGrid,
-    uid::IdMaps,
+    uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{shred, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage};
@@ -32,6 +33,8 @@ event_emitters! {
         change_stance: event::ChangeStanceEvent,
         start_teleporting: event::StartTeleportingEvent,
         buff: event::BuffEvent,
+        start_interaction: event::StartInteractionEvent,
+        kill: event::KillEvent,
     }
 }
 
@@ -45,6 +48,8 @@ pub struct ReadData<'a> {
     bodies: ReadStorage<'a, Body>,
     scales: ReadStorage<'a, Scale>,
     colliders: ReadStorage<'a, Collider>,
+    uids: ReadStorage<'a, Uid>,
+    healths: ReadStorage<'a, Health>,
 }
 
 #[derive(Default)]
@@ -121,7 +126,20 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::GroupManip(manip) => {
                         emitters.emit(event::GroupManipEvent(entity, manip))
                     },
-                    ControlEvent::Respawn => emitters.emit(event::RespawnEvent(entity)),
+                    ControlEvent::GiveUp => {
+                        if read_data
+                            .healths
+                            .get(entity)
+                            .map_or(false, |h| h.has_consumed_death_protection())
+                        {
+                            emitters.emit(event::KillEvent { entity });
+                        }
+                    },
+                    ControlEvent::Respawn => {
+                        if read_data.healths.get(entity).map_or(false, |h| h.is_dead) {
+                            emitters.emit(event::RespawnEvent(entity));
+                        }
+                    },
                     ControlEvent::Utterance(kind) => {
                         if let (Some(pos), Some(body), scale) = (
                             read_data.positions.get(entity),
@@ -159,6 +177,15 @@ impl<'a> System<'a> for Sys {
                     ControlEvent::ActivatePortal(portal_uid) => {
                         if let Some(portal) = read_data.id_maps.uid_entity(portal_uid) {
                             emitters.emit(event::StartTeleportingEvent { entity, portal });
+                        }
+                    },
+                    ControlEvent::InteractWith { target, kind } => {
+                        if let Some(uid) = read_data.uids.get(entity) {
+                            emitters.emit(event::StartInteractionEvent(Interaction {
+                                interactor: *uid,
+                                target,
+                                kind,
+                            }));
                         }
                     },
                 }

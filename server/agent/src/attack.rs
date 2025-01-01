@@ -5486,6 +5486,9 @@ impl<'a> AgentData<'a> {
             controller.push_basic_input(InputKind::Ability(0));
         };
 
+        agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
+            read_data.dt.0;
+
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] > 4.0
@@ -5497,16 +5500,10 @@ impl<'a> AgentData<'a> {
                 > 3.0
             {
                 controller.push_basic_input(InputKind::Secondary);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
             } else if has_energy(50.0) && rng.gen_bool(0.9) {
                 use_leap(controller);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
             } else {
                 controller.push_basic_input(InputKind::Primary);
-                agent.combat_state.timers[ActionStateTimers::TimerHandleHammerAttack as usize] +=
-                    read_data.dt.0;
             }
         } else {
             self.path_toward_target(
@@ -5519,7 +5516,6 @@ impl<'a> AgentData<'a> {
             );
 
             if attack_data.dist_sqrd < 32.0f32.powi(2)
-                && has_energy(50.0)
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
@@ -5530,14 +5526,118 @@ impl<'a> AgentData<'a> {
                     read_data,
                 )
             {
-                use_leap(controller);
+                if rng.gen_bool(0.5) && has_energy(50.0) {
+                    use_leap(controller);
+                } else if agent.combat_state.timers
+                    [ActionStateTimers::TimerHandleHammerAttack as usize]
+                    > 2.0
+                {
+                    controller.push_basic_input(InputKind::Secondary);
+                } else if agent.combat_state.timers
+                    [ActionStateTimers::TimerHandleHammerAttack as usize]
+                    > 4.0
+                {
+                    controller.push_cancel_input(InputKind::Secondary);
+                    agent.combat_state.timers
+                        [ActionStateTimers::TimerHandleHammerAttack as usize] = 0.0;
+                }
             }
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && rng.gen::<f32>() < 0.02
-            {
-                controller.push_basic_input(InputKind::Roll);
+        }
+    }
+
+    pub fn handle_boreal_bow_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        let line_of_sight_with_target = || {
+            entities_have_line_of_sight(
+                self.pos,
+                self.body,
+                self.scale,
+                tgt_data.pos,
+                tgt_data.body,
+                tgt_data.scale,
+                read_data,
+            )
+        };
+
+        let has_energy = |need| self.energy.current() > need;
+
+        let use_trap = |controller: &mut Controller| {
+            controller.push_basic_input(InputKind::Ability(0));
+        };
+
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            if rng.gen_bool(0.5) && has_energy(15.0) {
+                controller.push_basic_input(InputKind::Secondary);
+            } else if attack_data.angle < 15.0 {
+                controller.push_basic_input(InputKind::Primary);
             }
+        } else if attack_data.dist_sqrd < (4.0 * attack_data.min_attack_dist).powi(2)
+            && line_of_sight_with_target()
+        {
+            if rng.gen_bool(0.5) && has_energy(15.0) {
+                controller.push_basic_input(InputKind::Secondary);
+            } else if has_energy(20.0) {
+                use_trap(controller);
+            }
+        }
+
+        if has_energy(50.0) {
+            if attack_data.dist_sqrd < (10.0 * attack_data.min_attack_dist).powi(2) {
+                // Attempt to circle the target if neither too close nor too far
+                if let Some((bearing, speed)) = agent.chaser.chase(
+                    &*read_data.terrain,
+                    self.pos.0,
+                    self.vel.0,
+                    tgt_data.pos.0,
+                    TraversalConfig {
+                        min_tgt_dist: 1.25,
+                        ..self.traversal_config
+                    },
+                ) {
+                    if line_of_sight_with_target() && attack_data.angle < 45.0 {
+                        controller.inputs.move_dir = bearing
+                            .xy()
+                            .rotated_z(rng.gen_range(0.5..1.57))
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero)
+                            * 2.0
+                            * speed;
+                    } else {
+                        // Unless cannot see target, then move towards them
+                        controller.inputs.move_dir =
+                            bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                        self.jump_if(bearing.z > 1.5, controller);
+                        controller.inputs.move_z = bearing.z;
+                    }
+                }
+            } else {
+                // Path to enemy if too far
+                self.path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Partial,
+                    None,
+                );
+            }
+        } else {
+            // Path to enemy for melee hits if need more energy
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
         }
     }
 

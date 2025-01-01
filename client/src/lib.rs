@@ -1477,7 +1477,10 @@ impl Client {
         }
 
         if let Some(target_uid) = self.state.read_component_copied(target_entity) {
-            self.control_action(ControlAction::Pet { target_uid });
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InteractWith {
+                target: target_uid,
+                kind: common::interaction::InteractionKind::Pet,
+            }))
         }
     }
 
@@ -1731,6 +1734,19 @@ impl Client {
         ));
     }
 
+    pub fn help_downed(&mut self, target_entity: EcsEntity) {
+        if self.is_dead() {
+            return;
+        }
+
+        if let Some(target_uid) = self.state.read_component_copied(target_entity) {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InteractWith {
+                target: target_uid,
+                kind: common::interaction::InteractionKind::HelpDowned,
+            }))
+        }
+    }
+
     pub fn remove_buff(&mut self, buff_id: BuffKind) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::RemoveBuff(
             buff_id,
@@ -1848,14 +1864,14 @@ impl Client {
         }
     }
 
+    pub fn give_up(&mut self) {
+        if comp::is_downed(self.current().as_ref(), self.current().as_ref()) {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::GiveUp));
+        }
+    }
+
     pub fn respawn(&mut self) {
-        if self
-            .state
-            .ecs()
-            .read_storage::<comp::Health>()
-            .get(self.entity())
-            .map_or(false, |h| h.is_dead)
-        {
+        if self.current::<comp::Health>().map_or(false, |h| h.is_dead) {
             // Hardcore characters cannot respawn, kick them to character selection
             if self.current::<Hardcore>().is_some() {
                 self.request_remove_character();
@@ -1923,6 +1939,21 @@ impl Client {
             Some(true) => self.control_action(ControlAction::Stand),
             Some(false) => self.control_action(ControlAction::Sit),
             None => warn!("Can't toggle sit, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
+    pub fn toggle_crawl(&mut self) {
+        let is_crawling = self
+            .state
+            .ecs()
+            .read_storage::<CharacterState>()
+            .get(self.entity())
+            .map(|cs| matches!(cs, CharacterState::Crawl));
+
+        match is_crawling {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => self.control_action(ControlAction::Crawl),
+            None => warn!("Can't toggle crawl, client entity doesn't have a `CharacterState`"),
         }
     }
 

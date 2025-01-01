@@ -18,7 +18,7 @@ use self::{
         handle_initialize_character, handle_initialize_spectator, handle_loaded_character_data,
         handle_shockwave, handle_shoot,
     },
-    entity_manipulation::{handle_delete, handle_transform},
+    entity_manipulation::{handle_delete, handle_start_interaction, handle_transform},
     interaction::handle_tame_pet,
     mounting::{handle_mount, handle_mount_volume, handle_unmount},
     player::{
@@ -175,6 +175,7 @@ impl Server {
         });
         self.handle_serial_events(handle_possess);
         self.handle_serial_events(handle_transform);
+        self.handle_serial_events(handle_start_interaction);
         self.handle_serial_events(|this, ev: CommandEvent| {
             this.process_command(ev.0, ev.1, ev.2);
         });

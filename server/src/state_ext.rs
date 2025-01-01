@@ -20,6 +20,7 @@ use common::{
         self, item::ItemKind, misc::PortalData, object, ChatType, Content, Group, Inventory,
         LootOwner, Object, Player, Poise, Presence, PresenceKind, BASE_ABILITY_LIMIT,
     },
+    interaction::Interaction,
     link::{Is, Link, LinkHandle},
     mounting::{Mounting, Rider, VolumeMounting, VolumeRider},
     resources::{Secs, Time},
@@ -1057,6 +1058,7 @@ impl StateExt for State {
         maintain_link::<Mounting>(self);
         maintain_link::<VolumeMounting>(self);
         maintain_link::<Tethered>(self);
+        maintain_link::<Interaction>(self);
     }
 
     fn delete_entity_recorded(

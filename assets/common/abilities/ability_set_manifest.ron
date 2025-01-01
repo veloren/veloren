@@ -131,7 +131,7 @@
                 pseudo_id: "common.abilities.sword.agile_flurry",
                 abilities: [
                     ((stance: Sword(Agile), dual_wielding_same_kind: true), (Sword(AgileFlurry), "common.abilities.sword.agile_dual_flurry")),
-                    ((stance: Sword(Agile)), (Sword(AgileFlurry), "common.abilities.sword.agile_flurry")),
+                    ((), (Sword(AgileFlurry), "common.abilities.sword.agile_flurry")),
                 ],
             ),
             Simple(Sword(DefensiveStalwartSword), "common.abilities.sword.defensive_stalwart_sword"),
@@ -923,18 +923,18 @@
             Simple(None, "common.abilities.custom.gigas_frost.whirlwind"),
         ],
     ),
-    Custom("Boreal Bow"): (
-        primary: Simple(None, "common.abilities.custom.boreal_warrior.bow.charged"),
-        secondary: Simple(None, "common.abilities.custom.boreal_warrior.bow.repeater"),
-        abilities: [
-            Simple(None, "common.abilities.custom.boreal_warrior.bow.shotgun")
-        ],
-    ),
     Custom("Boreal Hammer"): (
         primary: Simple(None, "common.abilities.custom.boreal_warrior.hammer.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.boreal_warrior.hammer.dash"),
         abilities: [
-            Simple(None, "common.abilities.custom.boreal_warrior.hammer.leap")
+            Simple(None, "common.abilities.custom.boreal_warrior.hammer.leap"),
+        ],
+    ),
+    Custom("Boreal Bow"): (
+        primary: Simple(None, "common.abilities.custom.boreal_warrior.bow.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.boreal_warrior.bow.shotgun"),
+        abilities: [
+            Simple(None, "common.abilities.custom.boreal_warrior.bow.trap"),
         ],
     ),
     Custom("Tornado"): (

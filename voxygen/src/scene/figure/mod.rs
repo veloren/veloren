@@ -48,10 +48,11 @@ use common::{
         Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem, PoiseState, Pos,
         Scale, Vel,
     },
+    interaction::InteractionKind,
     link::Is,
     mounting::{Rider, VolumeRider},
     resources::{DeltaTime, Time},
-    states::{equipping, idle, utils::StageSection, wielding},
+    states::{equipping, idle, interact, utils::StageSection, wielding},
     terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
     uid::IdMaps,
     util::Dir,
@@ -900,6 +901,8 @@ impl FigureMgr {
 
         let terrain_grid = ecs.read_resource::<TerrainGrid>();
 
+        let positions = ecs.read_storage::<Pos>();
+
         for (
             i,
             (
@@ -922,7 +925,7 @@ impl FigureMgr {
             ),
         ) in (
             &ecs.entities(),
-            &ecs.read_storage::<Pos>(),
+            &positions,
             ecs.read_storage::<Controller>().maybe(),
             ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Vel>(),
@@ -1527,9 +1530,19 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::SpriteInteract(s) => {
+                        CharacterState::Interact(s) => {
                             let stage_time = s.timer.as_secs_f32();
-                            let sprite_pos = s.static_data.sprite_pos;
+                            let interact_pos = match s.static_data.interact {
+                                interact::InteractKind::Invalid => pos.0,
+                                interact::InteractKind::Entity { target, .. } => id_maps
+                                    .uid_entity(target)
+                                    .and_then(|target| positions.get(target))
+                                    .map(|pos| anim::vek::Vec3::from(pos.0))
+                                    .unwrap_or(pos.0),
+                                interact::InteractKind::Sprite { pos, .. } => {
+                                    anim::vek::Vec3::from(pos.as_() + 0.5)
+                                },
+                            };
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
@@ -1540,18 +1553,25 @@ impl FigureMgr {
                                 },
                                 _ => 0.0,
                             };
-                            anim::character::CollectAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    pos.0,
-                                    time,
-                                    Some(s.stage_section),
-                                    anim::vek::Vec3::from(sprite_pos.map(|x| x as f32)),
+                            match s.static_data.interact {
+                                interact::InteractKind::Entity {
+                                    kind: InteractionKind::Pet,
+                                    ..
+                                } => anim::character::PetAnimation::update_skeleton(
+                                    &target_base,
+                                    (pos.0, interact_pos, time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
                                 ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                                _ => anim::character::CollectAnimation::update_skeleton(
+                                    &target_base,
+                                    (pos.0, time, Some(s.stage_section), interact_pos),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                ),
+                            }
                         },
                         CharacterState::Boost(_) => {
                             anim::character::BoostAnimation::update_skeleton(
@@ -1766,6 +1786,21 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::Crawl { .. } => {
+                            anim::character::CrawlAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    rel_vel,
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        },
                         CharacterState::GlideWield(data) => {
                             anim::character::GlideWieldAnimation::update_skeleton(
                                 &target_base,
@@ -1796,22 +1831,6 @@ impl FigureMgr {
                             anim::character::DanceAnimation::update_skeleton(
                                 &target_base,
                                 (active_tool_kind, second_tool_kind, time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Pet(s) => {
-                            let target_entity = id_maps.uid_entity(s.static_data.target_uid);
-                            let target_pos = target_entity.and_then(|target_entity| {
-                                ecs.read_component::<Pos>()
-                                    .get(target_entity)
-                                    .map(|pos| pos.0)
-                            });
-
-                            anim::character::PetAnimation::update_skeleton(
-                                &target_base,
-                                (pos.0, target_pos, time),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,

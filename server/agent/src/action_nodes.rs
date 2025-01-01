@@ -24,11 +24,13 @@ use common::{
         item_drop,
         projectile::ProjectileConstructorKind,
         Agent, Alignment, Body, CharacterState, Content, ControlAction, ControlEvent, Controller,
-        HealthChange, InputKind, InventoryAction, Pos, Scale, UnresolvedChatMsg, UtteranceKind,
+        HealthChange, InputKind, InventoryAction, Pos, PresenceKind, Scale, UnresolvedChatMsg,
+        UtteranceKind,
     },
     consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
     event::{ChatEvent, EmitExt, SoundEvent},
+    interaction::InteractionKind,
     mounting::VolumePos,
     path::TraversalConfig,
     rtsim::NpcActivity,
@@ -465,13 +467,12 @@ impl<'a> AgentData<'a> {
 
             let owner = owner_uid.and_then(|owner_uid| get_entity_by_id(*owner_uid, read_data));
 
-            let is_being_pet = owner
-                .and_then(|owner| read_data.char_states.get(owner))
-                .map_or(false, |char_state| match char_state {
-                    CharacterState::Pet(petting_data) => {
-                        petting_data.static_data.target_uid == *self.uid
-                    },
-                    _ => false,
+            let is_being_pet = read_data
+                .interactors
+                .get(*self.entity)
+                .and_then(|interactors| interactors.get(*owner_uid?))
+                .map_or(false, |interaction| {
+                    matches!(interaction.kind, InteractionKind::Pet)
                 });
 
             let is_in_range = owner
@@ -962,7 +963,29 @@ impl<'a> AgentData<'a> {
                 if read_data.healths.get(entity).map_or(false, |health| {
                     !health.is_dead && !is_invulnerable(entity, read_data)
                 }) {
-                    Some((entity, true))
+                    let needs_saving = comp::is_downed(
+                        read_data.healths.get(entity),
+                        read_data.char_states.get(entity),
+                    );
+
+                    let wants_to_save = match (self.alignment, read_data.alignments.get(entity)) {
+                        // Npcs generally do want to save players. Could have extra checks for
+                        // sentiment in the future.
+                        (Some(Alignment::Npc), _) if read_data.presences.get(entity).map_or(false, |presence| matches!(presence.kind, PresenceKind::Character(_))) => true,
+                        (Some(Alignment::Npc), Some(Alignment::Npc)) => true,
+                        (Some(Alignment::Enemy), Some(Alignment::Enemy)) => true,
+                        _ => false,
+                    } && agent.allowed_to_speak()
+                        // Check that anyone else isn't already saving them.
+                        && read_data
+                            .interactors
+                            .get(entity)
+                            .map_or(true, |interactors| {
+                                !interactors.has_interaction(InteractionKind::HelpDowned)
+                            }) && self.char_state.can_interact();
+
+                    // TODO: Make targets that need saving have less priority as a target.
+                    Some((entity, !(needs_saving && wants_to_save)))
                 } else {
                     None
                 }
@@ -1085,7 +1108,7 @@ impl<'a> AgentData<'a> {
                             "Staff Simple" | "BipedLargeCultistStaff" => Tactic::Staff,
                             "BipedLargeCultistHammer" => Tactic::Hammer,
                             "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
-                            "Bow Simple" | "Boreal Bow" | "BipedLargeCultistBow" => Tactic::Bow,
+                            "Bow Simple" | "BipedLargeCultistBow" => Tactic::Bow,
                             "Stone Golem" | "Coral Golem" => Tactic::StoneGolem,
                             "Iron Golem" => Tactic::IronGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
@@ -1173,6 +1196,7 @@ impl<'a> AgentData<'a> {
                             "Gnarling Chieftain" => Tactic::GnarlingChieftain,
                             "Frost Gigas" => Tactic::FrostGigas,
                             "Boreal Hammer" => Tactic::BorealHammer,
+                            "Boreal Bow" => Tactic::BorealBow,
                             "Adlet Hunter" => Tactic::AdletHunter,
                             "Adlet Icepicker" => Tactic::AdletIcepicker,
                             "Adlet Tracker" => Tactic::AdletTracker,
@@ -1719,6 +1743,14 @@ impl<'a> AgentData<'a> {
                 rng,
             ),
             Tactic::BorealHammer => self.handle_boreal_hammer_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::BorealBow => self.handle_boreal_bow_attack(
                 agent,
                 controller,
                 &attack_data,

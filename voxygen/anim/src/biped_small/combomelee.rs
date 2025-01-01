@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use super::{
     super::{vek::*, Animation},
     biped_small_alpha_axe, biped_small_alpha_dagger, biped_small_alpha_spear,
@@ -127,6 +129,56 @@ impl Animation for ComboAnimation {
 
                     init_biped_small_alpha(&mut next, s_a);
                     biped_small_alpha_axe(&mut next, s_a, move1abs, move2abs);
+                },
+                Some("common.abilities.custom.boreal_warrior.bow.doublestrike") => {
+                    let anim_time = anim_time.min(1.0);
+                    let (move1base, move2base) = if strike == current_strike {
+                        match stage_section {
+                            StageSection::Buildup => (anim_time.sqrt(), 0.0),
+                            StageSection::Action => (1.0, anim_time.powi(4)),
+                            StageSection::Recover => (1.0, 1.0),
+                            _ => (0.0, 0.0),
+                        }
+                    } else {
+                        (1.0, 1.0)
+                    };
+                    let move1 = move1base * multi_strike_pullback;
+                    let move2 = move2base * multi_strike_pullback;
+
+                    match strike {
+                        0 => {
+                            init_biped_small_alpha(&mut next, s_a);
+                            next.control.position += Vec3::new(0.0, 8.0, 0.0);
+                            next.control.orientation.rotate_x(-PI / 8.0);
+                            next.hand_l.position += Vec3::new(-6.0, -4.0, -4.0);
+                            next.hand_l.orientation.rotate_x(PI / 2.0);
+                            next.hand_l.orientation.rotate_z(-PI / 8.0);
+                            next.hand_r.position += Vec3::new(4.0, -4.0, -6.0);
+                            next.hand_r.orientation.rotate_x(PI / 2.0);
+                            next.hand_r.orientation.rotate_z(PI / 9.0);
+
+                            next.chest.orientation.rotate_z(PI / 4.0 * move1);
+                            next.control.position += Vec3::new(0.0, (PI * move1).cos(), 0.0);
+                            next.control.orientation.rotate_y(-PI / 8.0 * move1);
+                            next.control.orientation.rotate_x(-PI / 8.0 * move1.powi(2));
+
+                            next.control
+                                .orientation
+                                .rotate_y(-PI / 3.0 * f32::from(move2 != 0.0));
+                            next.chest.orientation.rotate_z(-PI / 2.5 * move2);
+                        },
+                        1 => {
+                            next.chest.orientation.rotate_z(-PI / 5.0 * move1);
+                            next.control.position += Vec3::new(0.0, (PI * move1).cos(), 0.0);
+                            next.control.orientation.rotate_y(PI / 2.0 * move1);
+
+                            next.control
+                                .orientation
+                                .rotate_y(PI / 3.0 * f32::from(move2 != 0.0));
+                            next.chest.orientation.rotate_z(PI / 2.0 * move2);
+                        },
+                        _ => {},
+                    }
                 },
                 Some(
                     "common.abilities.daggersimple.singlestrike"

@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct PetAnimation;
 
 impl Animation for PetAnimation {
-    type Dependency<'a> = (Vec3<f32>, Option<vek::Vec3<f32>>, f32);
+    type Dependency<'a> = (Vec3<f32>, Vec3<f32>, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -27,7 +27,7 @@ impl Animation for PetAnimation {
         let fast = (anim_time * 3.0).sin();
         let fast_offset = (anim_time * 3.0 + PI * 0.5).sin();
 
-        let z_diff = target_pos.map_or(0., |target_pos| target_pos.z - pos.z);
+        let z_diff = target_pos.z - pos.z;
 
         // Tilt head down by 10 deg
         next.head.orientation = Quaternion::rotation_x(-1. * PI / 2. / 9.);

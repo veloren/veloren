@@ -40,14 +40,14 @@ impl LoadedLib {
     ///
     /// This is necessary because the very first time you use hot reloading you
     /// wont have the library, so you can't load it until you have compiled it!
-    fn compile_load(dyn_package: &str) -> Self {
+    fn compile_load(dyn_package: &str, features: &[&str]) -> Self {
         let reload_count = 0; // This is the first time loading.
 
         #[cfg(target_os = "macos")]
         error!("The hot reloading feature does not work on macos.");
 
         // Compile
-        if !compile(dyn_package) {
+        if !compile(dyn_package, features) {
             panic!("{} compile failed.", dyn_package);
         } else {
             info!("{} compile succeeded.", dyn_package);
@@ -135,8 +135,9 @@ impl LoadedLib {
 pub fn init(
     package: &'static str,
     package_source_dir: &'static str,
+    features: &'static [&'static str],
 ) -> Arc<Mutex<Option<LoadedLib>>> {
-    let lib_storage = Arc::new(Mutex::new(Some(LoadedLib::compile_load(package))));
+    let lib_storage = Arc::new(Mutex::new(Some(LoadedLib::compile_load(package, features))));
 
     // TODO: use crossbeam
     let (reload_send, reload_recv) = mpsc::channel();
@@ -176,7 +177,7 @@ pub fn init(
                     "Hot reloading {} because files in `{}` modified.", package, package_source_dir
                 );
 
-                hotreload(package, &lib_storage_clone);
+                hotreload(package, &lib_storage_clone, features);
             }
         })
         .unwrap();
@@ -237,9 +238,9 @@ fn event_fn(res: notify::Result<notify::Event>, sender: &mpsc::Sender<String>) {
 ///
 /// This will reload the dynamic library by first internally calling compile
 /// and then reloading the library.
-fn hotreload(dyn_package: &str, loaded_lib: &Mutex<Option<LoadedLib>>) {
+fn hotreload(dyn_package: &str, loaded_lib: &Mutex<Option<LoadedLib>>, features: &[&str]) {
     // Do nothing if recompile failed.
-    if compile(dyn_package) {
+    if compile(dyn_package, features) {
         let mut lock = loaded_lib.lock().unwrap();
 
         // Close lib.
@@ -258,7 +259,15 @@ fn hotreload(dyn_package: &str, loaded_lib: &Mutex<Option<LoadedLib>>) {
 /// Recompile the dyn package
 ///
 /// Returns `false` if the compile failed.
-fn compile(dyn_package: &str) -> bool {
+fn compile(dyn_package: &str, features: &[&str]) -> bool {
+    let mut features_arg = format!("{}/be-dyn-lib", dyn_package);
+
+    for feature in features {
+        features_arg.push(',');
+        features_arg.push_str(dyn_package);
+        features_arg.push('/');
+        features_arg.push_str(feature);
+    }
     let output = Command::new("cargo")
         .stderr(Stdio::inherit())
         .stdout(Stdio::inherit())
@@ -266,7 +275,7 @@ fn compile(dyn_package: &str) -> bool {
         .arg("--package")
         .arg(dyn_package)
         .arg("--features")
-        .arg(format!("{}/be-dyn-lib", dyn_package))
+        .arg(features_arg)
         .arg("-Z")
         .arg("unstable-options")
         .arg("--crate-type")

@@ -97,7 +97,10 @@ pub type Bone = Transform<f32, f32, f32>;
 #[cfg(feature = "use-dyn-lib")]
 lazy_static! {
     static ref LIB: Arc<Mutex<Option<LoadedLib>>> =
-        common_dynlib::init("veloren-voxygen-anim", "anim");
+        common_dynlib::init("veloren-voxygen-anim", "anim", &[
+            #[cfg(feature = "plugins")]
+            "plugins",
+        ]);
 }
 
 #[cfg(feature = "use-dyn-lib")]

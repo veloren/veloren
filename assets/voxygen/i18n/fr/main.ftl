@@ -108,3 +108,5 @@ main-singleplayer-map_erosion_quality = Qualité de l'érosion
 main-singleplayer-generate_and_play = Générer et Jouer
 main-server-rules = Ce serveur a des règles qui souvent être acceptées.
 main-server-rules-seen-before = Ces règles ont changés depuis la dernière fois que vous les avez accepté.
+main-singleplayer-map_shape-circle = Cercle
+main-singleplayer-map_shape-square = Carré

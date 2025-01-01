@@ -40,6 +40,7 @@ pub mod explosion;
 pub mod figure;
 pub mod generation;
 pub mod grid;
+pub mod interaction;
 pub mod link;
 pub mod lod;
 pub mod lottery;
