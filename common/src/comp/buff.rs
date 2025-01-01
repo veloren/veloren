@@ -111,7 +111,7 @@ pub enum BuffKind {
     /// Allows attacks to ignore DR and increases energy reward
     /// DR penetration is non-linear, 0.5 is 50% penetration and 1.0 is a 67%
     /// penetration. Energy reward is increased linearly to strength, 1.0 is a
-    /// 200 % increase.
+    /// 150 % increase.
     Sunderer,
     /// Increases damage resistance and poise resistance, causes combo to be
     /// generated when damaged, and decreases movement speed.
@@ -504,7 +504,7 @@ impl BuffKind {
             )],
             BuffKind::Sunderer => vec![
                 BuffEffect::MitigationsPenetration(nn_scaling(data.strength)),
-                BuffEffect::EnergyReward(1.0 + 2.0 * data.strength),
+                BuffEffect::EnergyReward(1.0 + 1.5 * data.strength),
             ],
             BuffKind::Defiance => vec![
                 BuffEffect::DamageReduction(nn_scaling(data.strength)),

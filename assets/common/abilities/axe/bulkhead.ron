@@ -4,8 +4,8 @@ FinisherMelee(
     swing_duration: 0.2,
     recover_duration: 0.4,
     melee_constructor: (
-        kind: Slash(
-            damage: 40,
+        kind: Bash(
+            damage: 45,
             poise: 100,
             knockback: 0,
             energy_regen: 0,

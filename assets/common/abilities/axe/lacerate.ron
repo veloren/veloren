@@ -5,7 +5,7 @@ FinisherMelee(
     recover_duration: 0.5,
     melee_constructor: (
         kind: Slash(
-            damage: 10,
+            damage: 8,
             poise: 5,
             knockback: 0,
             energy_regen: 0,
@@ -14,7 +14,7 @@ FinisherMelee(
         angle: 45.0,
         damage_effect: Some(Buff((
             kind: Bleeding,
-            dur_secs: 5.0,
+            dur_secs: 8.0,
             strength: DamageFraction(1.0),
             chance: 1.0,
         ))),

@@ -84,17 +84,18 @@ pub struct MeleeConstructor {
     pub dodgeable: Dodgeable,
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
-    pub custom_combo: Option<CustomCombo>,
+    #[serde(default)]
+    pub custom_combo: CustomCombo,
     #[serde(default)]
     pub precision_flank_multipliers: FlankMults,
     #[serde(default)]
     pub precision_flank_invert: bool,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Default, Deserialize)]
 pub struct CustomCombo {
-    pub additional: i32,
-    pub requirement: Option<CombatRequirement>,
+    pub base: Option<i32>,
+    pub conditional: Option<(i32, CombatRequirement)>,
 }
 
 impl MeleeConstructor {
@@ -379,18 +380,16 @@ impl MeleeConstructor {
             attack
         };
 
-        let attack = match self.custom_combo {
-            None => attack.with_combo_increment(),
-            Some(CustomCombo {
-                additional,
-                requirement: None,
-            }) => attack.with_combo(1 + additional),
-            Some(CustomCombo {
-                additional,
-                requirement: Some(req),
-            }) => attack
-                .with_combo_increment()
-                .with_combo_requirement(additional, req),
+        let attack = if let Some(combo) = self.custom_combo.base {
+            attack.with_combo(combo)
+        } else {
+            attack.with_combo_increment()
+        };
+
+        let attack = if let Some((additional, req)) = self.custom_combo.conditional {
+            attack.with_combo_requirement(additional, req)
+        } else {
+            attack
         };
 
         Melee {
@@ -554,7 +553,7 @@ impl MeleeConstructor {
     }
 
     #[must_use]
-    pub fn custom_combo(mut self, custom: Option<CustomCombo>) -> Self {
+    pub fn custom_combo(mut self, custom: CustomCombo) -> Self {
         self.custom_combo = custom;
         self
     }

@@ -4,7 +4,7 @@ SelfBuff(
     recover_duration: 0.2,
     buff_kind: Fury,
     buff_strength: 1.0,
-    buff_duration: Some(15.0),
+    buff_duration: Some(20.0),
     energy_cost: 20,
     enforced_limit: false,
 )

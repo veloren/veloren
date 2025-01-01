@@ -925,7 +925,8 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         specifier: Option<charged_melee::FrontendSpecifier>,
         damage_effect: Option<CombatEffect>,
-        custom_combo: Option<CustomCombo>,
+        #[serde(default)]
+        custom_combo: CustomCombo,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1169,7 +1170,10 @@ impl Default for CharacterAbility {
                 damage_effect: None,
                 attack_effect: None,
                 simultaneous_hits: 1,
-                custom_combo: None,
+                custom_combo: CustomCombo {
+                    base: None,
+                    conditional: None,
+                },
                 dodgeable: Dodgeable::Roll,
                 precision_flank_multipliers: Default::default(),
                 precision_flank_invert: false,

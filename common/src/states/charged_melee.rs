@@ -41,7 +41,7 @@ pub struct StaticData {
     /// Adds an effect onto the main damage of the attack
     pub damage_effect: Option<CombatEffect>,
     /// The actual additional combo is modified by duration of charge
-    pub custom_combo: Option<CustomCombo>,
+    pub custom_combo: CustomCombo,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -159,15 +159,18 @@ impl CharacterBehavior for Data {
 
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
-                    let custom_combo = self.static_data.custom_combo.map(|c| {
-                        let additional =
-                            (self.charge_amount * c.additional as f32 + 0.5).floor() as i32;
-
-                        CustomCombo {
-                            additional,
-                            requirement: c.requirement,
-                        }
-                    });
+                    let custom_combo = CustomCombo {
+                        base: self
+                            .static_data
+                            .custom_combo
+                            .base
+                            .map(|b| (self.charge_amount * b as f32).round() as i32),
+                        conditional: self
+                            .static_data
+                            .custom_combo
+                            .conditional
+                            .map(|c| ((self.charge_amount * c.0 as f32).round() as i32, c.1)),
+                    };
 
                     data.updater.insert(
                         data.entity,

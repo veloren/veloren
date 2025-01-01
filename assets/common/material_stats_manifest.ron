@@ -330,7 +330,7 @@
             protection: Some(Normal(117.0)),
             poise_resilience: Some(Normal(40.5)),
             energy_max: Some(63.0),
-            energy_reward: Some(-0.63),
+            energy_reward: Some(-0.45),
         ),
     },
 )

@@ -89,7 +89,10 @@ fn maps_basic_melee() {
                     attack_effect: None,
                     multi_target: None,
                     simultaneous_hits: 1,
-                    custom_combo: None,
+                    custom_combo: melee::CustomCombo {
+                        base: None,
+                        conditional: None,
+                    },
                     dodgeable: common::comp::ability::Dodgeable::Roll,
                     precision_flank_multipliers: Default::default(),
                     precision_flank_invert: false,

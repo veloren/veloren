@@ -38,7 +38,7 @@ pub struct Strike<T> {
     /// Adjusts turning rate during the attack
     pub ori_modifier: f32,
     #[serde(default)]
-    pub custom_combo: Option<CustomCombo>,
+    pub custom_combo: CustomCombo,
 }
 
 impl Strike<f32> {
