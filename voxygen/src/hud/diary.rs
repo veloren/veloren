@@ -23,7 +23,7 @@ use common::{
     combat,
     comp::{
         self,
-        ability::{Ability, ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT},
+        ability::{Ability, ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_MAJOR_COUNT, BASE_ABILITY_LIMIT},
         inventory::{
             item::{
                 item_key::ItemKey,
@@ -812,7 +812,7 @@ impl<'a> Widget for Diary<'a> {
                     //.graphics_for(state.ids.content_align)
                     .set(state.ids.spellbook_art, ui);
                 Image::new(self.imgs.skills_bg)
-                    .w_h(408.0 * 2.0, 40.0 * 2.0)
+                    .w_h(282.0 * 2.0, 40.0 * 2.0)
                     .mid_bottom_with_margin_on(state.ids.content_align, 8.0)
                     .set(state.ids.spellbook_skills_bg, ui);
 
@@ -886,11 +886,16 @@ impl<'a> Widget for Diary<'a> {
                         )
                     };
 
-                    let image_size = 80.0;
+                    let alternatives_multiplier = 0.55 as f32;
+                    let image_size= 80.0 as f32;
                     let image_offsets = 92.0 * i as f64;
 
                     let slot = AbilitySlot::Slot(i);
-                    let mut ability_slot = slot_maker.fabricate(slot, [image_size; 2]);
+                    let mut ability_slot = if i < BASE_ABILITY_MAJOR_COUNT {
+                        slot_maker.fabricate(slot, [image_size; 2])
+                    } else {
+                        slot_maker.fabricate(slot, [image_size * alternatives_multiplier; 2])
+};
 
                     if i == 0 {
                         ability_slot = ability_slot.top_left_with_margins_on(
@@ -898,9 +903,14 @@ impl<'a> Widget for Diary<'a> {
                             0.0,
                             32.0 + image_offsets,
                         );
-                    } else {
+                    } else if i < BASE_ABILITY_MAJOR_COUNT {
                         ability_slot =
-                            ability_slot.right_from(state.ids.active_abilities[i - 1], 4.0)
+                            ability_slot.right_from(state.ids.active_abilities[i - 1], 4.0);
+                    } else {
+                        // it's supposed there are now just one additional stances alternative skills row
+                        ability_slot = ability_slot
+                            .mid_bottom_with_margin_on(state.ids.active_abilities[i - BASE_ABILITY_MAJOR_COUNT], -5.0);
+                        
                     }
                     ability_slot
                         .with_tooltip(
@@ -922,9 +932,12 @@ impl<'a> Widget for Diary<'a> {
                         GameInput::Slot4,
                         GameInput::Slot5,
                         GameInput::Slot6,
-                        GameInput::Slot7,
-                        GameInput::Slot8,
-                        GameInput::Slot9,
+                        // GameInput::Slot1,
+                        // GameInput::Slot2,
+                        // GameInput::Slot3,
+                        // GameInput::Slot4,
+                        // GameInput::Slot5,
+                        // GameInput::Slot6,
                     ]
                     .get(i)
                     .and_then(|input| keys.get_binding(*input))

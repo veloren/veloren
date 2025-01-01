@@ -30,8 +30,9 @@ pub mod item_imgs;
 pub mod util;
 
 pub use crafting::CraftingTab;
-pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
+pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState, Slot as HotbarSlot};
 pub use item_imgs::animate_by_pulse;
+use itertools::Itertools;
 pub use loot_scroller::LootMessage;
 pub use settings_window::ScaleChange;
 pub use subtitles::Subtitle;
@@ -62,28 +63,17 @@ use subtitles::Subtitles;
 use trade::Trade;
 
 use crate::{
-    audio::ActiveChannels,
-    cmd::get_player_uuid,
-    ecs::comp::{self as vcomp, HpFloater, HpFloaterList},
-    game_input::GameInput,
-    hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
-    render::UiDrawer,
-    scene::camera::{self, Camera},
-    session::{
+    audio::ActiveChannels, cmd::get_player_uuid, ecs::comp::{self as vcomp, HpFloater, HpFloaterList}, game_input::GameInput, hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent}, render::UiDrawer, scene::camera::{self, Camera}, session::{
         interactable::{BlockInteraction, Interactable},
         settings_change::{
             Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
         },
-    },
-    settings::chat::ChatFilter,
-    ui::{
+    }, settings::chat::ChatFilter, ui::{
         fonts::Fonts,
         img_ids::Rotations,
         slot::{self, SlotKey},
         Graphic, Ingameable, ScaleMode, Ui,
-    },
-    window::Event as WinEvent,
-    GlobalState,
+    }, window::Event as WinEvent, GlobalState
 };
 use client::Client;
 use common::{
@@ -134,11 +124,7 @@ use i18n::Localization;
 use rand::Rng;
 use specs::{Entity as EcsEntity, Join, LendJoin, WorldExt};
 use std::{
-    borrow::Cow,
-    cmp::Ordering,
-    collections::VecDeque,
-    sync::Arc,
-    time::{Duration, Instant},
+    borrow::Cow, cmp::Ordering, collections::VecDeque, sync::Arc, time::{Duration, Instant}
 };
 use tracing::warn;
 use vek::*;
@@ -4658,8 +4644,10 @@ impl Hud {
         &mut self,
         event: WinEvent,
         global_state: &mut GlobalState,
-        client_inventory: Option<&comp::Inventory>,
+        client: &Client,
     ) -> bool {
+        let inventories = client.inventories();
+        let client_inventory = inventories.get(client.entity());
         // Helper
         fn handle_slot(
             slot: hotbar::Slot,
@@ -4708,6 +4696,53 @@ impl Hud {
                     hotbar::SlotContents::Ability(i) => events.push(Event::Ability(i, state)),
                 });
             }
+        }
+
+        fn filter_slots_applicable_by_stance(slots: Vec<HotbarSlot>, client: &Client) -> Vec<HotbarSlot>{
+            // hack to make possible utilize of several skills per single input (i.e. stances alternative skills)
+            //      (but technically placed in different active ability slots)
+            //      it determines which of abilities may be actually performed by current stance
+            //      (because being handled both of them at the same time, makes them block each other - actually performs just first of them)
+            let state = client.state();
+            let ecs = state.ecs();
+            let entity = client.entity();
+
+            let stance_ecs = ecs.read_storage::<common::comp::Stance>();
+            let inventory_ecs = ecs.read_storage::<common::comp::Inventory>();
+            let skill_set_ecs = ecs.read_storage::<common::comp::SkillSet>();
+            let stats_ecs = ecs.read_storage::<common::comp::Stats>();
+            let active_abilities_ecs = ecs.read_storage::<common::comp::ActiveAbilities>();
+            let combo_ecs = ecs.read_storage::<comp::Combo>();
+            let char_state_ecs = ecs.read_storage::<comp::CharacterState>();
+            let body_ecs = ecs.read_storage::<comp::Body>();
+
+            let stance = stance_ecs.get(entity).unwrap();
+            let inventory = inventory_ecs.get(entity).unwrap();
+            let skill_set = skill_set_ecs.get(entity).unwrap();
+            let stats = stats_ecs.get(entity).unwrap();
+            let active_abilities = active_abilities_ecs.get(entity).unwrap();
+            let combo = combo_ecs.get(entity).unwrap();
+            let char_state = char_state_ecs.get(entity).unwrap();
+            let body = body_ecs.get(entity).unwrap();
+            let context = AbilityContext::from(Some(stance), Some(inventory), Some(combo));
+
+            let applicables = slots.into_iter().filter(|slot| {
+                let i = *slot as usize;
+                let applicable = active_abilities.activate_ability(
+                    common::comp::AbilityInput::Auxiliary(i),
+                    Some(inventory),
+                    skill_set,
+                    Some(body),
+                    Some(char_state),
+                    &context,
+                    Some(stats),
+                )
+                .map(|(c, _, _)| c)
+                .map(|c| c.ability_meta().requirements.requirements_met(Some(stance)))
+                .unwrap_or(false);
+                applicable
+            }).collect_vec();
+            applicables
         }
 
         fn handle_map_zoom(
@@ -4772,7 +4807,11 @@ impl Hud {
             // If not showing the ui don't allow keys that change the ui state but do listen for
             // hotbar keys
             WinEvent::InputUpdate(key, state) if !self.show.ui => {
-                if let Some(slot) = try_hotbar_slot_from_input(key) {
+                let slots = try_hotbar_slot_from_input(key);
+                if !slots.is_empty() {
+                    let applicable_slots = filter_slots_applicable_by_stance(slots.clone(), &client);
+                    // handles just one slot because on try to do both at the same time leads to performing the first one only anyway
+                    let slot = if !applicable_slots.is_empty() {applicable_slots[0]} else {slots[0]};
                     handle_slot(
                         slot,
                         state,
@@ -4906,7 +4945,11 @@ impl Hud {
                     },
                     // Skillbar
                     input => {
-                        if let Some(slot) = try_hotbar_slot_from_input(input) {
+                        let slots = try_hotbar_slot_from_input(input);
+                        if !slots.is_empty() {
+                            let applicable_slots = filter_slots_applicable_by_stance(slots.clone(), &client);
+                            // handles just one slot because on try to do both at the same time leads to performing the first one only anyway
+                            let slot = if !applicable_slots.is_empty() {applicable_slots[0]} else {slots[0]};
                             handle_slot(
                                 slot,
                                 state,
@@ -4914,7 +4957,7 @@ impl Hud {
                                 &mut self.slot_manager,
                                 &mut self.hotbar,
                                 client_inventory,
-                            );
+                            );                                
                             true
                         } else {
                             false
@@ -5264,22 +5307,22 @@ pub fn get_quality_col<I: ItemDesc + ?Sized>(item: &I) -> Color {
     }
 }
 
-fn try_hotbar_slot_from_input(input: GameInput) -> Option<hotbar::Slot> {
-    Some(match input {
-        GameInput::Slot1 => hotbar::Slot::One,
-        GameInput::Slot2 => hotbar::Slot::Two,
-        GameInput::Slot3 => hotbar::Slot::Three,
-        GameInput::Slot4 => hotbar::Slot::Four,
-        GameInput::Slot5 => hotbar::Slot::Five,
-        GameInput::Slot6 => hotbar::Slot::Six,
-        GameInput::Slot7 => hotbar::Slot::Seven,
-        GameInput::Slot8 => hotbar::Slot::Eight,
-        GameInput::Slot9 => hotbar::Slot::Nine,
-        GameInput::Slot10 => hotbar::Slot::Ten,
-        GameInput::Slot11 => hotbar::Slot::Eleven,
-        GameInput::Slot12 => hotbar::Slot::Twelve,
-        _ => return None,
-    })
+fn try_hotbar_slot_from_input(input: GameInput) -> Vec<hotbar::Slot> {
+    match input {
+        GameInput::Slot1 => vec![hotbar::Slot::One, hotbar::Slot::OneAlt],
+        GameInput::Slot2 => vec![hotbar::Slot::Two, hotbar::Slot::TwoAlt],
+        GameInput::Slot3 => vec![hotbar::Slot::Three, hotbar::Slot::ThreeAlt],
+        GameInput::Slot4 => vec![hotbar::Slot::Four, hotbar::Slot::FourAlt],
+        GameInput::Slot5 => vec![hotbar::Slot::Five, hotbar::Slot::FiveAlt],
+        GameInput::Slot6 => vec![hotbar::Slot::Six, hotbar::Slot::SixAlt],
+        GameInput::Slot7 => vec![hotbar::Slot::Seven],
+        GameInput::Slot8 => vec![hotbar::Slot::Eight],
+        GameInput::Slot9 => vec![hotbar::Slot::Nine],
+        GameInput::Slot10 => vec![hotbar::Slot::Ten],
+        GameInput::Slot11 => vec![hotbar::Slot::Eleven],
+        GameInput::Slot12 => vec![hotbar::Slot::Twelve],
+        _ => return vec![],
+    }
 }
 
 pub fn cr_color(combat_rating: f32) -> Color {

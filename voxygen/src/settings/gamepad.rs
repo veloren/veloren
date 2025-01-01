@@ -75,18 +75,29 @@ pub mod con_settings {
         pub primary: LayerEntry,
         pub secondary: LayerEntry,
         pub block: LayerEntry,
+
+        // skills
         pub slot1: LayerEntry,
         pub slot2: LayerEntry,
         pub slot3: LayerEntry,
         pub slot4: LayerEntry,
         pub slot5: LayerEntry,
         pub slot6: LayerEntry,
+        // stances alternative skills
+        pub slot1a: LayerEntry,
+        pub slot2a: LayerEntry,
+        pub slot3a: LayerEntry,
+        pub slot4a: LayerEntry,
+        pub slot5a: LayerEntry,
+        pub slot6a: LayerEntry,
+        // items
         pub slot7: LayerEntry,
         pub slot8: LayerEntry,
         pub slot9: LayerEntry,
         pub slot10: LayerEntry,
         pub slot11: LayerEntry,
         pub slot12: LayerEntry,
+
         pub toggle_cursor: LayerEntry,
         pub escape: LayerEntry,
         pub enter: LayerEntry,
@@ -136,6 +147,8 @@ pub mod con_settings {
                 primary: LayerEntry::default(),
                 secondary: LayerEntry::default(),
                 block: LayerEntry::default(),
+
+                // skills
                 slot1: LayerEntry {
                     button: Button::Simple(GilButton::DPadRight),
                     mod1: Button::Simple(GilButton::RightTrigger),
@@ -166,6 +179,38 @@ pub mod con_settings {
                     mod1: Button::Simple(GilButton::LeftTrigger),
                     mod2: Button::Simple(GilButton::Unknown),
                 },
+                // stances alternative skills
+                slot1a: LayerEntry {
+                    button: Button::Simple(GilButton::DPadRight),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot2a: LayerEntry {
+                    button: Button::Simple(GilButton::DPadDown),
+                    mod1: Button::Simple(GilButton::RightTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot3a: LayerEntry {
+                    button: Button::Simple(GilButton::DPadUp),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot4a: LayerEntry {
+                    button: Button::Simple(GilButton::DPadLeft),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot5a: LayerEntry {
+                    button: Button::Simple(GilButton::DPadRight),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                slot6a: LayerEntry {
+                    button: Button::Simple(GilButton::DPadDown),
+                    mod1: Button::Simple(GilButton::LeftTrigger),
+                    mod2: Button::Simple(GilButton::Unknown),
+                },
+                // items
                 slot7: LayerEntry {
                     button: Button::Simple(GilButton::DPadUp),
                     mod1: Button::Simple(GilButton::RightTrigger),
@@ -196,6 +241,7 @@ pub mod con_settings {
                     mod1: Button::Simple(GilButton::Unknown),
                     mod2: Button::Simple(GilButton::Unknown),
                 },
+
                 toggle_cursor: LayerEntry {
                     button: Button::Simple(GilButton::Start),
                     mod1: Button::Simple(GilButton::RightTrigger),
@@ -303,18 +349,29 @@ pub mod con_settings {
         pub primary: Button,
         pub secondary: Button,
         pub block: Button,
+
+        // skills
         pub slot1: Button,
         pub slot2: Button,
         pub slot3: Button,
         pub slot4: Button,
         pub slot5: Button,
         pub slot6: Button,
+        // stances alternative skills
+        pub slot1a: Button,
+        pub slot2a: Button,
+        pub slot3a: Button,
+        pub slot4a: Button,
+        pub slot5a: Button,
+        pub slot6a: Button,
+        // items
         pub slot7: Button,
         pub slot8: Button,
         pub slot9: Button,
         pub slot10: Button,
         pub slot11: Button,
         pub slot12: Button,
+
         pub toggle_cursor: Button,
         pub escape: Button,
         pub enter: Button,
@@ -410,18 +467,29 @@ pub mod con_settings {
                 primary: Button::Simple(GilButton::RightTrigger2),
                 secondary: Button::Simple(GilButton::LeftTrigger2),
                 block: Button::Simple(GilButton::North),
+
+                // skills
                 slot1: Button::Simple(GilButton::Unknown),
                 slot2: Button::Simple(GilButton::Unknown),
                 slot3: Button::Simple(GilButton::Unknown),
                 slot4: Button::Simple(GilButton::Unknown),
                 slot5: Button::Simple(GilButton::Unknown),
                 slot6: Button::Simple(GilButton::Unknown),
+                // stances alternative skills
+                slot1a: Button::Simple(GilButton::Unknown),
+                slot2a: Button::Simple(GilButton::Unknown),
+                slot3a: Button::Simple(GilButton::Unknown),
+                slot4a: Button::Simple(GilButton::Unknown),
+                slot5a: Button::Simple(GilButton::Unknown),
+                slot6a: Button::Simple(GilButton::Unknown),
+                // items
                 slot7: Button::Simple(GilButton::Unknown),
                 slot8: Button::Simple(GilButton::Unknown),
                 slot9: Button::Simple(GilButton::Unknown),
                 slot10: Button::Simple(GilButton::Unknown),
                 slot11: Button::Simple(GilButton::Unknown),
                 slot12: Button::Simple(GilButton::Unknown),
+
                 toggle_cursor: Button::Simple(GilButton::Unknown),
                 escape: Button::Simple(GilButton::Unknown),
                 enter: Button::Simple(GilButton::Unknown),

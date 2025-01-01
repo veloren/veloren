@@ -698,11 +698,9 @@ impl PlayState for SessionState {
                 // Pass all events to the ui first.
                 {
                     let client = self.client.borrow();
-                    let inventories = client.inventories();
-                    let inventory = inventories.get(client.entity());
                     if self
                         .hud
-                        .handle_event(event.clone(), global_state, inventory)
+                        .handle_event(event.clone(), global_state, &client)
                     {
                         continue;
                     }

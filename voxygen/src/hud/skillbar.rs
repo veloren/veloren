@@ -24,14 +24,14 @@ use client::{self, Client};
 use common::{
     comp::{
         self,
-        ability::{AbilityInput, Stance},
+        ability::{AbilityInput, Stance, BASE_ABILITY_MAJOR_COUNT},
         item::{
             tool::{AbilityContext, ToolKind},
             ItemDesc, ItemI18n, MaterialStatManifest,
         },
         skillset::SkillGroupKind,
         Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Hardcore, Health, Inventory,
-        Poise, PoiseState, SkillSet, Stats,
+        Poise, PoiseState, SkillSet, Stats, BASE_ABILITY_LIMIT,
     },
     recipe::RecipeBookManifest,
 };
@@ -126,7 +126,7 @@ widget_ids! {
         combo_align,
         combo_bg,
         combo,
-        // Slots
+        // major skills slots
         m1_slot,
         m1_slot_bg,
         m1_text,
@@ -139,6 +139,7 @@ widget_ids! {
         m2_text_bg,
         m2_slot_act,
         m2_content,
+        // skills slots
         slot1,
         slot1_text,
         slot1_text_bg,
@@ -157,6 +158,26 @@ widget_ids! {
         slot6,
         slot6_text,
         slot6_text_bg,
+        // stance alternative skills slots
+        slot1a,
+        slot1a_text,
+        slot1a_text_bg,
+        slot2a,
+        slot2a_text,
+        slot2a_text_bg,
+        slot3a,
+        slot3a_text,
+        slot3a_text_bg,
+        slot4a,
+        slot4a_text,
+        slot4a_text_bg,
+        slot5a,
+        slot5a_text,
+        slot5a_text_bg,
+        slot6a,
+        slot6a_text,
+        slot6a_text_bg,
+        // items slots
         slot7,
         slot7_text,
         slot7_text_bg,
@@ -189,11 +210,11 @@ struct SlotEntry {
     shortcut_widget_ids: (widget::Id, widget::Id),
 }
 
-fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 12] {
+fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; BASE_ABILITY_LIMIT+6] {
     use PositionSpecifier::*;
 
     [
-        // 1th - 5th slots
+        // skills slots
         SlotEntry {
             slot: hotbar::Slot::One,
             widget_id: state.ids.slot1,
@@ -239,7 +260,6 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 12] {
             shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot5, 3.0, 5.0),
             shortcut_widget_ids: (state.ids.slot5_text, state.ids.slot5_text_bg),
         },
-        // 6th - 10th slots
         SlotEntry {
             slot: hotbar::Slot::Six,
             widget_id: state.ids.slot6,
@@ -249,10 +269,66 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 12] {
             shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot6, 3.0, 5.0),
             shortcut_widget_ids: (state.ids.slot6_text, state.ids.slot6_text_bg),
         },
+        // stance alternative skills slots
+        SlotEntry {
+            slot: hotbar::Slot::OneAlt,
+            widget_id: state.ids.slot1a,
+            position: MiddleOf(state.ids.slot1),
+            game_input: GameInput::Slot1,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot1a_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot1a, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot1a_text, state.ids.slot1a_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::TwoAlt,
+            widget_id: state.ids.slot2a,
+            position: MiddleOf(state.ids.slot2),
+            game_input: GameInput::Slot2,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot2a_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot2a, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot2a_text, state.ids.slot2a_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::ThreeAlt,
+            widget_id: state.ids.slot3a,
+            position: MiddleOf(state.ids.slot3),
+            game_input: GameInput::Slot3,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot3a_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot3a, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot3a_text, state.ids.slot3a_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::FourAlt,
+            widget_id: state.ids.slot4a,
+            position: MiddleOf(state.ids.slot4),
+            game_input: GameInput::Slot4,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot4a_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot4a, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot4a_text, state.ids.slot4a_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::FiveAlt,
+            widget_id: state.ids.slot5a,
+            position: MiddleOf(state.ids.slot5),
+            game_input: GameInput::Slot5,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot5a_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot5a, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot5a_text, state.ids.slot5a_text_bg),
+        },
+        SlotEntry {
+            slot: hotbar::Slot::SixAlt,
+            widget_id: state.ids.slot6a,
+            position: MiddleOf(state.ids.slot6),
+            game_input: GameInput::Slot6,
+            shortcut_position: BottomLeftWithMarginsOn(state.ids.slot6a_text_bg, 1.0, 1.0),
+            shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot6a, 3.0, 5.0),
+            shortcut_widget_ids: (state.ids.slot6a_text, state.ids.slot6a_text_bg),
+        },
+        // items slots
         SlotEntry {
             slot: hotbar::Slot::Seven,
             widget_id: state.ids.slot7,
-            position: RightFrom(state.ids.slot6, slot_offset),
+            position: RightFrom(state.ids.m2_slot_bg, slot_offset),
             game_input: GameInput::Slot7,
             shortcut_position: BottomLeftWithMarginsOn(state.ids.slot7_text_bg, 1.0, 1.0),
             shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot7, 3.0, 5.0),
@@ -279,13 +355,12 @@ fn slot_entries(state: &State, slot_offset: f64) -> [SlotEntry; 12] {
         SlotEntry {
             slot: hotbar::Slot::Ten,
             widget_id: state.ids.slot10,
-            position: RightFrom(state.ids.m2_slot_bg, slot_offset),
+            position: RightFrom(state.ids.slot9, slot_offset),
             game_input: GameInput::Slot10,
             shortcut_position: BottomLeftWithMarginsOn(state.ids.slot10_text_bg, 1.0, 1.0),
             shortcut_position_bg: TopRightWithMarginsOn(state.ids.slot10, 3.0, 5.0),
             shortcut_widget_ids: (state.ids.slot10_text, state.ids.slot10_text_bg),
         },
-        // 11 & 12 additional slots
         SlotEntry {
             slot: hotbar::Slot::Eleven,
             widget_id: state.ids.slot11,
@@ -1109,11 +1184,20 @@ impl<'a> Skillbar<'a> {
         slot_maker.selected_slot = self.imgs.skillbar_slot;
 
         let slots = slot_entries(state, slot_offset);
-        for entry in slots {
-            let slot = slot_maker
-                .fabricate(entry.slot, [40.0; 2])
-                .filled_slot(self.imgs.skillbar_slot)
-                .position(entry.position);
+        for i in 0..slots.len() {
+            let entry = slots[i];
+            let slot = if i < BASE_ABILITY_MAJOR_COUNT {
+                slot_maker
+                    .fabricate(entry.slot, [40.0; 2])
+                    .filled_slot(self.imgs.skillbar_slot)
+                    .position(entry.position)
+            } else {
+                slot_maker
+                    .fabricate(entry.slot, [40.0; 2])
+                    .with_background_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                    .with_alternative_skill_behaviour(true)
+                    .position(entry.position)
+            };
             // if there is an item attached, show item tooltip
             if let Some(item) = slot_content(entry.slot) {
                 slot.with_item_tooltip(
@@ -1165,7 +1249,7 @@ impl<'a> Skillbar<'a> {
         // Slot M1
         Image::new(self.imgs.skillbar_slot)
             .w_h(40.0, 40.0)
-            .right_from(state.ids.slot9, slot_offset)
+            .right_from(state.ids.slot6, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
 
         let primary_ability_id = self.active_abilities.and_then(|a| {

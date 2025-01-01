@@ -36,7 +36,10 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{borrow::Cow, time::Duration};
 
-pub const BASE_ABILITY_LIMIT: usize = 9;
+// actual focus abilities count == BASE_ABILITY_LIMIT == BASE_ABILITY_MAJOR_COUNT + BASE_ALTERNATIVE_ABILITY_COUNT
+pub const BASE_ABILITY_MAJOR_COUNT: usize = 6;
+pub const BASE_ABILITY_ALTERNATIVE_COUNT: usize = 6;
+pub const BASE_ABILITY_LIMIT: usize = BASE_ABILITY_MAJOR_COUNT + BASE_ABILITY_ALTERNATIVE_COUNT; 
 
 // NOTE: different AbilitySpec on same ToolKind share the same key
 /// Descriptor to pick the right (auxiliary) ability set

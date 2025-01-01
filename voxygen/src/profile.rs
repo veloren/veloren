@@ -1,5 +1,5 @@
 use crate::hud;
-use common::{character::CharacterId, uuid::Uuid};
+use common::{character::CharacterId, comp::BASE_ABILITY_LIMIT, uuid::Uuid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -14,11 +14,11 @@ use tracing::warn;
 #[serde(default)]
 pub struct CharacterProfile {
     /// Array representing a character's hotbar.
-    pub hotbar_slots: [Option<hud::HotbarSlotContents>; 12],
+    pub hotbar_slots: [Option<hud::HotbarSlotContents>; BASE_ABILITY_LIMIT+6],
 }
 
-const fn default_slots() -> [Option<hud::HotbarSlotContents>; 12] {
-    [None, None, None, None, None, None, None, None, None, None, None, None]
+const fn default_slots() -> [Option<hud::HotbarSlotContents>; BASE_ABILITY_LIMIT+6] {
+    [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
 }
 
 impl Default for CharacterProfile {
@@ -121,7 +121,7 @@ impl Profile {
         &self,
         server: &str,
         character_id: Option<CharacterId>,
-    ) -> [Option<hud::HotbarSlotContents>; 12] {
+    ) -> [Option<hud::HotbarSlotContents>; BASE_ABILITY_LIMIT+6] {
         match character_id {
             Some(character_id) => self
                 .servers
@@ -148,7 +148,7 @@ impl Profile {
         &mut self,
         server: &str,
         character_id: Option<CharacterId>,
-        slots: [Option<hud::HotbarSlotContents>; 12],
+        slots: [Option<hud::HotbarSlotContents>; BASE_ABILITY_LIMIT+6],
     ) {
         match character_id {
             Some(character_id) => self.servers
@@ -257,13 +257,13 @@ mod tests {
     fn test_get_slots_with_empty_profile() {
         let profile = Profile::default();
         let slots = profile.get_hotbar_slots("TestServer", Some(CharacterId(12345)));
-        assert_eq!(slots, [(); 10].map(|()| None))
+        assert_eq!(slots, [(); BASE_ABILITY_LIMIT+6].map(|()| None))
     }
 
     #[test]
     fn test_set_slots_with_empty_profile() {
         let mut profile = Profile::default();
-        let slots = [(); 12].map(|()| None);
+        let slots = [(); BASE_ABILITY_LIMIT+6].map(|()| None);
         profile.set_hotbar_slots("TestServer", Some(CharacterId(12345)), slots);
     }
 }

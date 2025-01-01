@@ -468,6 +468,7 @@ pub struct Slot<'a, K: SlotKey<C, I> + Into<S>, C, I, S: SumSlot> {
     empty_slot: image::Id,
     selected_slot: image::Id,
     background_color: Option<Color>,
+    alternative_skill_behaviour: bool,
 
     // Size of content image
     content_size: Vec2<f32>,
@@ -519,6 +520,10 @@ where
         pub with_background_color { background_color = Some(Color) }
     }
 
+    builder_methods! {
+        pub with_alternative_skill_behaviour { alternative_skill_behaviour = bool }
+    }
+
     #[must_use]
     pub fn with_manager(mut self, slot_manager: &'a mut SlotManager<S>) -> Self {
         self.slot_manager = Some(slot_manager);
@@ -558,6 +563,7 @@ where
             filled_slot,
             selected_slot,
             background_color: None,
+            alternative_skill_behaviour: false,
             content_size,
             selected_content_scale,
             icon: None,
@@ -608,6 +614,7 @@ where
             empty_slot,
             selected_slot,
             background_color,
+            alternative_skill_behaviour,
             content_size,
             selected_content_scale,
             icon,
@@ -671,14 +678,16 @@ where
         let (x, y, w, h) = rect.x_y_w_h();
 
         // Draw slot frame/background
-        Image::new(slot_image)
-            .x_y(x, y)
-            .w_h(w, h)
-            .parent(id)
-            .graphics_for(id)
-            .color(background_color)
-            .set(state.ids.background, ui);
-
+        if !(alternative_skill_behaviour) {
+            Image::new(slot_image)
+                .x_y(x, y)
+                .w_h(w, h)
+                .parent(id)
+                .graphics_for(id)
+                .color(background_color)
+                .set(state.ids.background, ui);
+        }
+        
         // Draw icon (only when there is not content)
         // Note: this could potentially be done by the user instead
         if let (Some((icon_image, size, color)), true) = (icon, content_images.is_none()) {
@@ -688,7 +697,11 @@ where
                 .wh(wh)
                 .parent(id)
                 .graphics_for(id)
-                .color(color)
+                .color(if !alternative_skill_behaviour || color.is_none() {color} else {
+                    Some(Color::alpha(
+                        color.unwrap(), 
+                        if !alternative_skill_behaviour {1.0} else {0.5}))
+                })
                 .set(state.ids.icon, ui);
         }
 
@@ -704,7 +717,11 @@ where
                     })
                 .map(|e| e as f64)
                 .into_array())
-                .color(content_color)
+                .color(if !alternative_skill_behaviour || content_color.is_none() {content_color} else {
+                    Some(Color::alpha(
+                        content_color.unwrap(), 
+                        if !alternative_skill_behaviour {1.0} else {0.5}))
+                })
                 .parent(id)
                 .graphics_for(id)
                 .set(state.ids.content, ui);

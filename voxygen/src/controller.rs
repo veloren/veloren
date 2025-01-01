@@ -64,6 +64,7 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
         Self {
             game_button_map: {
                 let mut map: HashMap<_, Vec<_>> = HashMap::new();
+                // skills
                 map.entry(settings.game_buttons.primary)
                     .or_default()
                     .push(GameInput::Primary);
@@ -91,6 +92,26 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.slot6)
                     .or_default()
                     .push(GameInput::Slot6);
+                // stances alternative skills
+                map.entry(settings.game_buttons.slot1a)
+                    .or_default()
+                    .push(GameInput::Slot1);
+                map.entry(settings.game_buttons.slot2a)
+                    .or_default()
+                    .push(GameInput::Slot2);
+                map.entry(settings.game_buttons.slot3a)
+                    .or_default()
+                    .push(GameInput::Slot3);
+                map.entry(settings.game_buttons.slot4a)
+                    .or_default()
+                    .push(GameInput::Slot4);
+                map.entry(settings.game_buttons.slot5a)
+                    .or_default()
+                    .push(GameInput::Slot5);
+                map.entry(settings.game_buttons.slot6a)
+                    .or_default()
+                    .push(GameInput::Slot6);
+                // items
                 map.entry(settings.game_buttons.slot7)
                     .or_default()
                     .push(GameInput::Slot7);
@@ -305,6 +326,7 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
             },
             layer_button_map: {
                 let mut map: HashMap<_, Vec<_>> = HashMap::new();
+                // skills
                 map.entry(settings.game_layer_buttons.primary)
                     .or_default()
                     .push(GameInput::Primary);
@@ -332,6 +354,26 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_layer_buttons.slot6)
                     .or_default()
                     .push(GameInput::Slot6);
+                // stances alternative skills
+                map.entry(settings.game_layer_buttons.slot1a)
+                    .or_default()
+                    .push(GameInput::Slot1);
+                map.entry(settings.game_layer_buttons.slot2a)
+                    .or_default()
+                    .push(GameInput::Slot2);
+                map.entry(settings.game_layer_buttons.slot3a)
+                    .or_default()
+                    .push(GameInput::Slot3);
+                map.entry(settings.game_layer_buttons.slot4a)
+                    .or_default()
+                    .push(GameInput::Slot4);
+                map.entry(settings.game_layer_buttons.slot5a)
+                    .or_default()
+                    .push(GameInput::Slot5);
+                map.entry(settings.game_layer_buttons.slot6a)
+                    .or_default()
+                    .push(GameInput::Slot6);
+                // items
                 map.entry(settings.game_layer_buttons.slot7)
                     .or_default()
                     .push(GameInput::Slot7);

@@ -1,25 +1,34 @@
 use common::comp::{
     self,
-    inventory::item::{item_key::ItemKey, Item},
+    inventory::item::{item_key::ItemKey, Item}, BASE_ABILITY_LIMIT,
 };
 use serde::{Deserialize, Serialize};
 
 use super::HudInfo;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Slot {
+pub enum Slot { // values represents sequential position in abilities/slots in logical operations
+    // skills
     One = 0,
     Two = 1,
     Three = 2,
     Four = 3,
     Five = 4,
     Six = 5,
-    Seven = 6,
-    Eight = 7,
-    Nine = 8,
-    Ten = 9,
-    Eleven = 10,
-    Twelve = 11,
+    // skills alternatives
+    OneAlt = 6,
+    TwoAlt = 7,
+    ThreeAlt = 8,
+    FourAlt = 9,
+    FiveAlt = 10,
+    SixAlt = 11,
+    // items
+    Seven = 12,
+    Eight = 13,
+    Nine = 14,
+    Ten = 15,
+    Eleven = 16,
+    Twelve = 17,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -30,15 +39,15 @@ pub enum SlotContents {
 
 #[derive(Clone, Default)]
 pub struct State {
-    pub slots: [Option<SlotContents>; 12],
-    inputs: [bool; 12],
+    pub slots: [Option<SlotContents>; BASE_ABILITY_LIMIT+6],
+    inputs: [bool;  BASE_ABILITY_LIMIT+6],
 }
 
 impl State {
-    pub fn new(slots: [Option<SlotContents>; 12]) -> Self {
+    pub fn new(slots: [Option<SlotContents>; BASE_ABILITY_LIMIT+6]) -> Self {
         Self {
             slots,
-            inputs: [false; 12],
+            inputs: [false; BASE_ABILITY_LIMIT+6],
         }
     }
 

@@ -1186,7 +1186,7 @@ impl<'a> AgentData<'a> {
                             "Tursus Claws" => Tactic::RandomAbilities {
                                 primary: 2,
                                 secondary: 1,
-                                abilities: [4, 0, 0, 0, 0, 0, 0, 0, 0],
+                                abilities: [4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                             },
                             "Adlet Elder" => Tactic::AdletElder,
                             "Haniwa Soldier" => Tactic::HaniwaSoldier,
