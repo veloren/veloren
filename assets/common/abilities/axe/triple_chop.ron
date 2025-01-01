@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 4,
+                    damage: 6,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 8,
@@ -20,7 +20,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 4,
+                    damage: 6,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 8,
@@ -37,7 +37,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 8,
+                    damage: 9,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 9,

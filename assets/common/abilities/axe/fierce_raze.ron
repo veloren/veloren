@@ -9,11 +9,11 @@ RapidMelee(
             knockback: 0,
             energy_regen: 0,
         ),
-        range: 6.0,
+        range: 5.0,
         angle: 10.0,
     ),
     energy_cost: 4,
-    max_strikes: Some(5),
+    max_strikes: Some(4),
     move_modifier: 0.35,
     ori_modifier: 0.25,
 )
