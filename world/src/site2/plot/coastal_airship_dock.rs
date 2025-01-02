@@ -42,7 +42,7 @@ impl CoastalAirshipDock {
         };
         let diameter = (bounds.max.x - bounds.min.x).min(bounds.max.y - bounds.min.y);
         let alt = land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32 + 2;
-        let size = (diameter / 3) + 2;
+        let size = (diameter / 3) + 6;
         let bldg_height = 12;
         let base = alt + 1;
         let center = bounds.center();
