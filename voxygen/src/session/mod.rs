@@ -480,6 +480,8 @@ impl SessionState {
                 | GameInput::Slot8
                 | GameInput::Slot9
                 | GameInput::Slot10
+                | GameInput::Slot11
+                | GameInput::Slot12
                 | GameInput::SpectateViewpoint
                 | GameInput::SpectateSpeedBoost => return true,
                 _ => (),
@@ -707,11 +709,9 @@ impl PlayState for SessionState {
                 // Pass all events to the ui first.
                 {
                     let client = self.client.borrow();
-                    let inventories = client.inventories();
-                    let inventory = inventories.get(client.entity());
                     if self
                         .hud
-                        .handle_event(event.clone(), global_state, inventory)
+                        .handle_event(event.clone(), global_state, &client)
                     {
                         continue;
                     }
