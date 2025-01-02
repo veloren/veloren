@@ -633,7 +633,7 @@ impl SpriteKind {
             SpriteKind::MagicalBarrier => 3.0,
             SpriteKind::MagicalSeal => 1.0,
             SpriteKind::Helm => 1.7,
-            SpriteKind::Sign => 17.0 / 11.0,
+            SpriteKind::Sign => 16.0 / 11.0,
             SpriteKind::SmithingTable => 13.0 / 11.0,
             SpriteKind::Forge0 => 17.0 / 11.0,
             SpriteKind::GearWheel0 => 3.0 / 11.0,
