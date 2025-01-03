@@ -1,31 +1,3 @@
-## Internal terms, currently only used in zh-Hans.
-## If we remove them here, they also get auto-removed in zh-Hans,
-## so please keep them, even when not used in English file.
-## See https://github.com/WeblateOrg/weblate/issues/9895
-
--heavy_stance = ""
--agile_stance = ""
--defensive_stance = ""
--crippling_stance = ""
--cleaving_stance = ""
-
--basic_state = ""
--heavy_state = ""
--agile_state = ""
--defensive_state = ""
--crippling_state = ""
--cleaving_state = ""
--double_slash = ""
--modified_depending_stance = ""
--crescent_slash = ""
--fell_strike = ""
--skewer = ""
--cascade = ""
--cross_cut = ""
--requires_moderate_combo = ""
--enter_stance = ""
--require_stance = ""
-
 ## Debug abilities
 common-abilities-debug-possess = Possessing Arrow
     .desc = Shoots a poisonous arrow. Lets you control your target.
