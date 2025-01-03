@@ -1,11 +1,3 @@
-## Internal terms, currently only used in es
-## If we remove them here, they also get auto-removed in es,
-## so please keep them, even when not used in English file.
-## See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-sc_wardaura_title = ""
--hud-skill-bow_shotgun_title = ""
--hud-skill-st_shockwave_title = ""
-
 ## Skill tree UI
 
 hud-skill_tree-general = General Combat
