@@ -32,7 +32,7 @@ hud-settings-energybar_numbers = Valeurs des barres d'énergie
 hud-settings-always_show_bars = Toujours montrer les barres d'énergie
 hud-settings-enable_poise_bar = Activer la barre d'Équilibre
 hud-settings-experience_numbers = Points d'expérience
-hud-settings-accumulate_experience = Accumuler les points d'expérience
+hud-settings-accumulate_experience = Affiche les points d'expérience cumulés
 hud-settings-values = Valeurs
 hud-settings-percentages = Pourcentages
 hud-settings-chat = Tchat
@@ -159,3 +159,9 @@ hud-settings-aim_offset_x = Compensation de visée horizontale
 hud-settings-walking_speed_behavior = Comportement de la vitesse de marche
 hud-settings-walking_speed = Vitesse de marche
 hud-settings-language_send_to_server = Envoyez la langue configurée au serveurs (pour les règles localisé et les messages motd)
+hud-settings-use_prefixes = Utilise les préfixes SI pour les quantités
+hud-settings-prefix_switch_point = Limite de digit pour le changement de préfixes SI
+hud-settings-show_all_recipes = Afficher toutes les recettes
+hud-settings-keybind-helper =
+    M1 pour modifier
+    M2 pour effacer

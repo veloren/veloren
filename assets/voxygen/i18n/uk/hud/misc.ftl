@@ -13,7 +13,6 @@ hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] Ліхтар
 hud-press_key_to_show_debug_info_fmt = Натисніть { $key } для відображення технічної інформації
 hud-press_key_to_toggle_keybindings_fmt = Натисніть { $key } для відображення прив'язки клавіш
 hud-press_key_to_toggle_debug_info_fmt = Натисніть { $key } для відображення технічної інформації
-hud_items_lost_dur = Ваші екіпіровані предмети втратили Міцність.
 hud-press_key_to_respawn = Натисніть { $key }, щоб відновитись біля останньої відвіданого вогнища.
 hud-tutorial_btn = Туторіал
 hud-tutorial_click_here = Натисни [ { $key } ] щоб мати змогу тицьнути цю кнопку!

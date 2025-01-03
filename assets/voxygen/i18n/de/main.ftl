@@ -111,3 +111,6 @@ main-singleplayer-map_scale = Vertikale Skalierung
 main-server-rules-seen-before = Diese Regeln haben sich geändert, seitdem du sie zuletzt akzeptiert hast.
 main-singleplayer-map_shape-circle = Kreis
 main-singleplayer-map_shape-square = Quadrat
+main-login-banned_until =
+    Du wurdest vorübergehend aus dem folgenden Grund gebannt: { $reason }
+    Bis: { $end_date }

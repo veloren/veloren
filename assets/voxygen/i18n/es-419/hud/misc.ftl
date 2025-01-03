@@ -57,4 +57,3 @@ hud-stay = Quedarse
 hud-unlock-consumes = Usar { $item } para abrir
 hud-portal = Portal
 hud-follow = Seguir
-hud_items_lost_dur = Tus objetos equipados han perdido durabilidad.

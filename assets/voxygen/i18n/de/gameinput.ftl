@@ -73,3 +73,6 @@ gameinput-zoomout = Kamera herauszoomen
 gameinput-stayfollow = Bleiben/Folgen
 gameinput-togglewalk = Laufen Umschalten
 gameinput-diary = Tagebuch
+gameinput-controls = Tastenbelegung
+gameinput-giveup = Aufgeben
+gameinput-crawl = Kriechen

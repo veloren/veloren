@@ -8,7 +8,6 @@
 -defensive_stance = ""
 -crippling_stance = ""
 -cleaving_stance = ""
-
 -basic_state = ""
 -heavy_state = ""
 -agile_state = ""
@@ -27,6 +26,7 @@
 -require_stance = ""
 
 ## 除錯能力
+
 common-abilities-debug-possess = 控制箭
     .desc = 射出一支毒箭，讓你可以控制目標
 common-abilities-debug-evolve = 進化
@@ -37,6 +37,7 @@ common-abilities-debug-glide_speeder = 嗡嗡飛行
     .desc = 賦予你力量飛向目光所及之處
 
 ## 快捷欄能力
+
 
 # 尚未重製的武器能力
 
@@ -50,6 +51,7 @@ common-abilities-sceptre-wardingaura = 防護光環
     .desc = 保護你的盟友免受敵方攻擊
 
 ## 劍的能力
+
 veloren-core-pseudo_abilities-sword-heavy_stance = 重型姿態
     .desc = 此姿態下的攻擊可以使敵人踉蹌，對已踉蹌的敵人造成更多傷害，但攻擊速度較慢
 veloren-core-pseudo_abilities-sword-agile_stance = 敏捷姿態
@@ -306,6 +308,7 @@ common-abilities-sword-cleaving_sky_splitter = 天空裂斬
         需要劈砍姿態
 
 ## 斧頭能力
+
 common-abilities-axe-triple_chop = 三重劈砍
     .desc = 三次快速的斬擊
 common-abilities-axe-cleave = 劈砍
@@ -375,80 +378,54 @@ common-abilities-axe-capsize = 翻覆
     .desc =
         用重型旋轉斬擊使周圍所有敵人踉蹌
         在達到50點連擊時自動從隔艙升級
-
 # 鎚子能力
 common-abilities-hammer-solid_smash = 強力重擊
-    .desc =
-        一個沉重的打擊，會造成疼痛
+    .desc = 一個沉重的打擊，會造成疼痛
 common-abilities-hammer-wide_wallop = 寬幅打擊
-    .desc =
-        拉開距離並將敵人擊飛
+    .desc = 拉開距離並將敵人擊飛
 common-abilities-hammer-scornful_swipe = 輕蔑一擊
-    .desc =
-        嘲諷敵人後進行攻擊，提升你的堅韌和耐力如果你被敵人擊敗，他們會變得更強大
+    .desc = 嘲諷敵人後進行攻擊，提升你的堅韌和耐力如果你被敵人擊敗，他們會變得更強大
 common-abilities-hammer-tremor = 震動
-    .desc =
-        用力擊打地面，使你的敵人腳下的地面顫抖
+    .desc = 用力擊打地面，使你的敵人腳下的地面顫抖
 common-abilities-hammer-vigorous_bash = 猛烈重擊
-    .desc =
-        用鎚子的頭快速擊打敵人，若敵人失去平衡，會激發腎上腺素
+    .desc = 用鎚子的頭快速擊打敵人，若敵人失去平衡，會激發腎上腺素
 common-abilities-hammer-heavy_whorl = 重型旋風
-    .desc =
-        用你的鎚子攻擊周圍所有敵人
+    .desc = 用你的鎚子攻擊周圍所有敵人
 common-abilities-hammer-dual_heavy_whorl = 雙持重型旋風
-    .desc =
-        用雙鎚攻擊周圍所有敵人
+    .desc = 用雙鎚攻擊周圍所有敵人
 common-abilities-hammer-intercept = 攔截
-    .desc =
-        揮動你的鎚子向前衝鋒，將全身力量集中在攻擊上
+    .desc = 揮動你的鎚子向前衝鋒，將全身力量集中在攻擊上
 common-abilities-hammer-dual_intercept = 雙持攔截
-    .desc =
-        揮動雙鎚向前衝鋒，將全身力量集中在攻擊上
+    .desc = 揮動雙鎚向前衝鋒，將全身力量集中在攻擊上
 common-abilities-hammer-retaliate = 反擊
-    .desc =
-        在格擋敵人攻擊後，反擊以重擊回應
+    .desc = 在格擋敵人攻擊後，反擊以重擊回應
 common-abilities-hammer-spine_cracker = 脊椎重擊
-    .desc =
-        當敵人背對你時，重擊他們的背部，瞄準他們脆弱的脊椎部位
+    .desc = 當敵人背對你時，重擊他們的背部，瞄準他們脆弱的脊椎部位
 common-abilities-hammer-breach = 衝破
-    .desc =
-        用重擊衝破敵人的防禦
+    .desc = 用重擊衝破敵人的防禦
 common-abilities-hammer-pile_driver = 樁打擊
-    .desc =
-        將敵人擊入地面，阻止他們的移動，直到他們能擺脫困境
+    .desc = 將敵人擊入地面，阻止他們的移動，直到他們能擺脫困境
 common-abilities-hammer-lung_pummel = 肺部重擊
-    .desc =
-        用鎚子擊打敵人的側腹，使其氣喘吁吁
+    .desc = 用鎚子擊打敵人的側腹，使其氣喘吁吁
 common-abilities-hammer-helm_crusher = 頭盔破碎者
-    .desc =
-        用鎚子重擊敵人的頭部，使其震暈
+    .desc = 用鎚子重擊敵人的頭部，使其震暈
 common-abilities-hammer-iron_tempest = 鋼鐵風暴
-    .desc =
-        快速揮動鎚子，使它像風暴般掃蕩敵人
+    .desc = 快速揮動鎚子，使它像風暴般掃蕩敵人
 common-abilities-hammer-dual_iron_tempest = 雙持鋼鐵風暴
-    .desc =
-        快速揮動雙鎚，使它們像風暴般掃蕩敵人
+    .desc = 快速揮動雙鎚，使它們像風暴般掃蕩敵人
 common-abilities-hammer-upheaval = 動盪
-    .desc =
-        用鎚子猛擊敵人，將其擊飛，使其更容易受到踉蹌攻擊
+    .desc = 用鎚子猛擊敵人，將其擊飛，使其更容易受到踉蹌攻擊
 common-abilities-hammer-dual_upheaval = 雙持動盪
-    .desc =
-        用雙鎚猛擊敵人，將其擊飛，使其更容易受到踉蹌攻擊
+    .desc = 用雙鎚猛擊敵人，將其擊飛，使其更容易受到踉蹌攻擊
 common-abilities-hammer-rampart = 堡壘
-    .desc =
-        擊打地面，造成輕微的地殼上升，保護你的盟友免受攻擊
+    .desc = 擊打地面，造成輕微的地殼上升，保護你的盟友免受攻擊
 common-abilities-hammer-tenacity = 韌性
-    .desc =
-        在承受一次又一次攻擊的同時，依然能堅持進行攻擊
+    .desc = 在承受一次又一次攻擊的同時，依然能堅持進行攻擊
 common-abilities-hammer-thunderclap = 雷霆一擊
-    .desc =
-        對敵人進行毀滅性的腎上腺素激發的上擊攻擊
+    .desc = 對敵人進行毀滅性的腎上腺素激發的上擊攻擊
 common-abilities-hammer-seismic_shock = 地震衝擊
-    .desc =
-        在積累了足夠的動能後，用鎚子擊打地面，產生足以將敵人拋向空中的震波
+    .desc = 在積累了足夠的動能後，用鎚子擊打地面，產生足以將敵人拋向空中的震波
 common-abilities-hammer-earthshaker = 撼地者
-    .desc =
-        將血染的鎚子猛擊地面，釋放震波，使周圍的敵人失去戰鬥力
+    .desc = 將血染的鎚子猛擊地面，釋放震波，使周圍的敵人失去戰鬥力
 common-abilities-hammer-judgement = 裁決
-    .desc =
-        用鎚子全力猛擊敵人，如果敵人處於踉蹌狀態，這一擊可能會直接擊殺他們
+    .desc = 用鎚子全力猛擊敵人，如果敵人處於踉蹌狀態，這一擊可能會直接擊殺他們

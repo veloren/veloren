@@ -72,3 +72,5 @@ gameinput-zoomlock = Verrouillage du zoom de la caméra
 gameinput-zoomin = Zoom avant de la caméra
 gameinput-zoomout = Zoom arrière de la caméra
 gameinput-togglewalk = Basculement marche
+gameinput-diary = Journal
+gameinput-controls = Contrôles

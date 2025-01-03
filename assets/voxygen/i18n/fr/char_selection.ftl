@@ -21,3 +21,5 @@ char_selection-starting_site_kind = Type : { $kind }
 char_selection-create_info_name = Votre personnage doit avoir un nom !
 char_selection-version_mismatch = ATTENTION ! Ce serveur fonctionne sur une version différente et est possiblement incompatible avec celle de votre jeu. Veuillez mettre à jour votre jeu s'il vous plaît.
 char_selection-rules = Règles
+char_selection-hardcore = Hardcore
+char_selection-hardcore_tooltip = Les personnages hardcore seront supprimés à leur mort, sans autre changement de difficulté

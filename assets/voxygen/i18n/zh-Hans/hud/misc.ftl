@@ -13,7 +13,6 @@ hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] 显示提灯
 hud-press_key_to_show_debug_info_fmt = 按下 { $key } 显示调试信息
 hud-press_key_to_toggle_keybindings_fmt = 按下 { $key } 切换显示快捷键设置
 hud-press_key_to_toggle_debug_info_fmt = 按下 { $key } 切换显示调试信息
-hud_items_lost_dur = 您装备的物品失去了一些耐久.
 hud-press_key_to_respawn = 按下 { $key } 在你上次访问的篝火处重生.
 hud-tutorial_btn = 教程
 hud-tutorial_click_here = 按下 [ { $key } ] 释放鼠标光标并单击此按钮!

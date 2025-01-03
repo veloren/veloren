@@ -60,3 +60,4 @@ body-npc-speech-biped_large-wendigo = un wendigo
 body-npc-speech-biped_large-werewolf = un loup-garou
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-gigas_frost = un géant de givre
+body-npc-speech-biped_large-executioner = un bourreau

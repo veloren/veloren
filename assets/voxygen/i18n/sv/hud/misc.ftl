@@ -13,7 +13,6 @@ hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] Lykta
 hud-press_key_to_show_debug_info_fmt = Tryck { $key } för att visa felsökningsinfo
 hud-press_key_to_toggle_keybindings_fmt = Tryck { $key } för att visa/dölja tangentbordsgenvägar
 hud-press_key_to_toggle_debug_info_fmt = Tryck { $key } att visa/dölja felsökningsinfo
-hud_items_lost_dur = Din utrustning har förlorat Hållbarhet.
 hud-press_key_to_respawn = Tryck { $key } för att återuppliva vid lägerelden du besökte sist.
 hud-tutorial_btn = Instruktioner
 hud-tutorial_click_here = Tryck [ { $key } ] för att frigöra din muspekare och klicka på den här knappen!

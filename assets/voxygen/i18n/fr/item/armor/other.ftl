@@ -52,10 +52,10 @@ armor-misc-bag-knitted_red_pouch = Sac rouge tricoté
     .desc = Un grand sac rouge avec deux poches, fait de laine et de teinture.
 armor-misc-bag-liana_kit = Trousse de lianes
     .desc = Tissu de lianes séchées.
-armor-misc-bag-mindflayer_spellbag = Sac à sortilèges du tueur d'esprit
+armor-misc-bag-mindflayer_spellbag = Sac à sortilèges Mindflayer
     .desc =
         On peut presque sentir la présence maléfique
-        du tueur d'esprit qui s'écoule à travers le tissu.
+        d'un Mindflayer à travers le tissu.
 glider-cultists = Sourire osseux
     .desc = Mort par le haut.
 armor-misc-bag-reliable_backpack = Sac à dos fiable

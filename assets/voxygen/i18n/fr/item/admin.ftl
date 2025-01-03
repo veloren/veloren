@@ -2,7 +2,7 @@ armor-tabard_admin = Tabard d'administrateur
     .desc = Un grand pouvoir implique de grandes responsabilités.
 weapon-bow-velorite-debug = Arc en velorite de l'administrateur
     .desc = Infusé avec le pouvoir de la velorite.
-armor-misc-back-admin = Cap de l'administrateur
+armor-misc-back-admin = Cape de l'administrateur
     .desc =
         Un grand pouvoir implique
         de grandes responsabilités.
@@ -10,7 +10,7 @@ armor-tabard-admin_tabard = Tabard de l'administrateur
     .desc =
         Un grand pouvoir implique
         de grandes responsabilités.
-armor-misc-back-admin_back = Cap de l'administrateur
+armor-misc-back-admin_back = Cape de l'administrateur
     .desc =
         Un grand pouvoir implique
         de grandes responsabilités.

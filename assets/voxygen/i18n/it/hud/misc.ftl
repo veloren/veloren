@@ -13,7 +13,6 @@ hud-press_key_to_toggle_lantern_fmt = Lanterna [{ $key }]
 hud-press_key_to_show_debug_info_fmt = Premi { $key } per mostrare le info di debug
 hud-press_key_to_toggle_keybindings_fmt = Premi { $key } per attivare/disattivare la configurazione dei tasti
 hud-press_key_to_toggle_debug_info_fmt = Premi { $key } per attivare/disattivare le informazioni di debug
-hud_items_lost_dur = Il tuo equipaggiamento ha perso resistenza.
 hud-press_key_to_respawn = Premi { $key } per rinascere all'ultimo falò che hai visitato.
 hud-tutorial_btn = Addestramento
 hud-tutorial_click_here = Premi [ { $key } ] per liberare il tuo cursore e cliccare questo pulsante!

@@ -178,3 +178,4 @@ hud-settings-walking_speed_behavior = Laufgeschwindigkeits-Verhalten
 hud-settings-keybind-helper =
     M1 zum Setzen
     M2 zum Deaktivieren
+hud-settings-show_all_recipes = Zeige alle Rezepte

@@ -1,6 +1,6 @@
 hud-group = 그룹
-hud-group-invite_to_join = [{ $name }]이(가) 당신을 그룹으로 초대했습니다!
-hud-group-invite_to_trade = [{ $name }]이(가) 당신과 거래하기를 원합니다.
+hud-group-invite_to_join = { "[" }{ $name }]이(가) 당신을 그룹으로 초대했습니다!
+hud-group-invite_to_trade = { "[" }{ $name }]이(가) 당신과 거래하기를 원합니다.
 hud-group-invite = 초대
 hud-group-kick = 추방
 hud-group-assign_leader = 대장으로 추대
@@ -11,3 +11,6 @@ hud-group-add_friend = 친구 추가
 hud-group-link_group = 그룹 묶기
 hud-group-in_menu = 메뉴 보는중
 hud-group-members = 그룹 구성원
+hug-group-invite-accepted = { $target } (이)가 당신의 그룹 초대를 수락했습니다.
+hud-group-invite-declined = { $target } 이(가) 당신의 그룹 초대를 거절했습니다.
+hud-group-invite-timed_out = 시간이 초과되어 { $target }에게 보낸 그룹 초대가 실패했습니다.

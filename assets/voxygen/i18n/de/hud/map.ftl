@@ -41,3 +41,7 @@ hud-map-df_mine = Bergwerk
 hud-map-cultist = Kultist-Kerker
 hud-map-sahagin = Sahagin-Insel
 hud-map-vampire_castle = Vampirschloss
+hud-map-glider_course = Gleiterkurs
+hud-map-glider_courses = Gleiterkurse
+hud-map-myrmidon = Myrmidonen-Verlies
+hud-map-bridges = Brücken

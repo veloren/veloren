@@ -37,7 +37,6 @@ hud-another_group = jiná skupina
 hud-activate = Aktivovat
 hud-collect = Sebrat
 hud-owned_by_for_secs = { $name } to vlastní ještě { $secs } sekund
-hud_items_lost_dur = Tvoje výbava ztratila odolnost.
 hud-init-stage-server-spotgen = { "[" }{ -server }]: Generuji místečka...
 hud-init-stage-server-starting = { "[" }{ -server }]: Spouštím server...
 hud-deactivate = Deaktivovat

@@ -1,7 +1,7 @@
-hud-rank_up = Nouveau Point de compétence
+hud-rank_up = Nouveau point de compétence
 hud-skill-sp_available =
     { $number ->
-        [0] Pas de point de compétence
+        [0] Pas de point de compétence disponible
         [1] { $number } point de compétence disponible
        *[other] { $number } points de compétence disponible
     }
@@ -129,3 +129,14 @@ hud-skill-pick_strike_oregain_title = Récolte de minerais
 hud-skill-pick_strike_oregain = Possibilité de récupérer plus de minerais ({ $boost }% par niveau){ $SP }
 hud-skill-pick_strike_gemgain_title = Récolte de gemmes
 hud-skill-pick_strike_gemgain = Possibilité de récupérer plus de gemmes ({ $boost }% par niveau){ $SP }
+hud-skill_tree-axe = Hache
+hud-skill_tree-hammer = Marteau
+hud-skill_tree-bow = Arc
+hud-skill_tree-staff = Bâton de feu
+hud-skill_tree-sceptre = Sceptre
+hud-skill_tree-mining = Minage
+hud-skill-persistence-common_message = Certains de vos points de compétences ont été réinitialisés. Vous allez devoir les ré-assigner.
+hud-skill-persistence-spent_experience_missing = La quantité d'expérience que vous aviez dans un des groupes de compétences diffère depuis votre dernière connexion.
+hud-skill-persistence-skills_unlock_failed = Vos compétences n'ont pas pû être obtenues dans le même ordre d'acquisition. Les pré-requis ou les coûts ont dû changer.
+hud-skill-persistence-deserialization_failure = Il y a eu une erreur dans le chargement de vos compétences depuis la base de données.
+hud-skill-persistence-hash_mismatch = Une différence a été détectée dans un de vos groupes de compétences depuis votre dernière partie.

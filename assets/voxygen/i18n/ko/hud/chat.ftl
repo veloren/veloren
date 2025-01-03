@@ -1,7 +1,7 @@
 ## Player events
 
-hud-chat-online_msg = { "[" }{ $name }]이(가) 현재 온라인
-hud-chat-offline_msg = { "[" }{ $name }]이(가) 현재 오프라인
+hud-chat-online_msg = { "[" }{ $name }]이(가) 현재 온라인 상태입니다.
+hud-chat-offline_msg = { "[" }{ $name }]이(가) 현재 오프라인입니다.
 
 ## Buff deaths
 
