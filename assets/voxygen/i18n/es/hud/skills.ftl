@@ -89,16 +89,15 @@ hud-skill-sc_heal_range = El aura llega un { $boost } % más lejos.{ $SP }
 
 ## Aura de protección
 
--hud-skill-sc_wardaura_title = Aura del guardián
-hud-skill-sc_wardaura_unlock_title = Desbloquear {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_unlock_title = Desbloquear Aura del guardián
 hud-skill-sc_wardaura_unlock = Emana de ti un aura que te protege a ti y a tus aliados.{ $SP }
-hud-skill-sc_wardaura_strength_title = Potencia de {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_strength_title = Potencia de Aura del guardián
 hud-skill-sc_wardaura_strength = La potencia de la protección aumenta en un { $boost } %.{ $SP }
-hud-skill-sc_wardaura_duration_title = Duración de {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_duration_title = Duración de Aura del guardián
 hud-skill-sc_wardaura_duration = Los efectos de la protección duran un { $boost } % más.{ $SP }
-hud-skill-sc_wardaura_range_title = Alcance de {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_range_title = Alcance de Aura del guardián
 hud-skill-sc_wardaura_range = El aura llega un { $boost } % más lejos.{ $SP }
-hud-skill-sc_wardaura_cost_title = Coste de energía de {{ -hud-skill-sc_wardaura_title }}
+hud-skill-sc_wardaura_cost_title = Coste de energía de Aura del guardián
 hud-skill-sc_wardaura_cost = El aura requiere un { $boost } % menos de energía.{ $SP }
 
 # Árco - Árbol de habilidades
@@ -128,16 +127,15 @@ hud-skill-bow_repeater_speed = Aumenta la velocidad a la que se disparan flechas
 
 ## Escopeta
 
--hud-skill-bow_shotgun_title = Escopeta
 hud-skill-bow_shotgun_unlock_title = Desbloquear Escopeta
 hud-skill-bow_shotgun_unlock = Desbloquea la capacidad de disparar una multitud de flechas al mismo tiempo.{ $SP }
-hud-skill-bow_shotgun_damage_title = Daño de {{ -hud-skill-bow_shotgun_title }}
+hud-skill-bow_shotgun_damage_title = Daño de Escopeta
 hud-skill-bow_shotgun_damage = Aumenta el daño infligido en un { $boost } %.{ $SP }
-hud-skill-bow_shotgun_spread_title = Dispersión de {{ -hud-skill-bow_shotgun_title }}
+hud-skill-bow_shotgun_spread_title = Dispersión de Escopeta
 hud-skill-bow_shotgun_spread = Reduce la dispersión de las flechas en un { $boost } %.{ $SP }
-hud-skill-bow_shotgun_cost_title = Coste de {{ -hud-skill-bow_shotgun_title }}
+hud-skill-bow_shotgun_cost_title = Coste de Escopeta
 hud-skill-bow_shotgun_cost = Reduce el coste de escopeta en un { $boost } %.{ $SP }
-hud-skill-bow_shotgun_arrow_count_title = Flechas de {{ -hud-skill-bow_shotgun_title }}
+hud-skill-bow_shotgun_arrow_count_title = Flechas de Escopeta
 hud-skill-bow_shotgun_arrow_count = Aumenta el número de flechas por disparo en { $boost }.{ $SP }
 
 ## Velocidad de proyectil
@@ -175,15 +173,15 @@ hud-skill-st_flamethrower_range = Las llamas llegan un { $boost } % más lejos.{
 ## Onda de choque
 
 -hud-skill-st_shockwave_title = Onda de choque
-hud-skill-st_shockwave_unlock_title = Desbloquear {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_unlock_title = Desbloquear Onda de choque
 hud-skill-st_shockwave_unlock = Desbloquea la habilidad de lanzar por los aires a los enemigos usando fuego.{ $SP }
-hud-skill-st_shockwave_damage_title = Daño de {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_damage_title = Daño de Onda de choque
 hud-skill-st_shockwave_damage = Aumenta el daño infligido en un { $boost } %.{ $SP }
-hud-skill-st_shockwave_range_title = Alcance de {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_range_title = Alcance de Onda de choque
 hud-skill-st_shockwave_range = Aumenta el alcance de la onda en un { $boost } %.{ $SP }
-hud-skill-st_shockwave_knockback_title = Retroceso de {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_knockback_title = Retroceso de Onda de choque
 hud-skill-st_shockwave_knockback = Aumenta la potencia de lanzamiento en un { $boost } %.{ $SP }
-hud-skill-st_shockwave_cost_title = Coste de {{ -hud-skill-st_shockwave_title }}
+hud-skill-st_shockwave_cost_title = Coste de Onda de choque
 hud-skill-st_shockwave_cost = Reduce el coste de energía en un { $boost } %.{ $SP }
 
 # Minería - Árbol de habilidades
