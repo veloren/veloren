@@ -92,3 +92,5 @@ loading-tips =
     .a19 = '{ $gameinput-roll }' 키를 눌러 구르세요. 구르면 적의 공격을 피하거나 더 빨리 움직일수 있습니다.
     .a20 = 어느 물건이 어디에 쓰이는지 궁금하세요? 'input:<item name>'를 제작 메뉴에서 검색하여 어디에 쓰이는지 알아보세요.
     .a21 = 멋진 것을 발견했나요? '{ $gameinput-screenshot }' 키로 스크린샷을 찍을 수 있습니다.
+main-singleplayer-seed = 시드
+main-singleplayer-delete = 삭제

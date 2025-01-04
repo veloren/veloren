@@ -109,3 +109,4 @@ common-sprite-street_lamp = Lampes de rue
 common-sprite-lantern = Lanterne
 common-sprite-seashell_lantern = Lanterne coquillage
 common-sprite-firebowl_ground = Bol à feu
+common-kind-recipegroup = Recettes

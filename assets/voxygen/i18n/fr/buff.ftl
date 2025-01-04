@@ -164,3 +164,7 @@ buff-heatstroke = Coup de chaleur
 # Poisoned
 buff-poisoned = Empoisonné(e)
     .desc = Vous sentez votre vitalité vous échapper…
+buff-rooted = Enraciné
+    .desc = Vous êtes bloqué sur place et ne pouvez pas bouger.
+buff-scornfultaunt = Raillerie méprisante
+    .desc = Vous raillez vos ennemis avec mépris, ce qui vous confère une force d'âme et une endurance accrues. Cependant, votre mort renforcera votre tueur.

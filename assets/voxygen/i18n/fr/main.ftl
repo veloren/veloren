@@ -44,8 +44,8 @@ main-login-failed_sending_request = Demande d'authentification serveur échouée
 main-login-invalid_character = Le personnage sélectionné n'est pas valide.
 main-login-client_crashed = Le client a planté.
 main-login-not_on_whitelist = Vous ne figurez pas dans la liste blanche du serveur que vous avez tenté de rejoindre.
-main-login-banned = Vous avez été banni pour la raison suivante:
-main-login-kicked = Vous avez été exclu pour la raison suivante:
+main-login-banned = Vous avez été banni de façon permanente pour la raison suivante : { $reason }
+main-login-kicked = Vous avez été exclu pour le motif suivant : { $reason }
 main-login-select_language = Sélectionnez une langue
 main-login-client_version = Version du client
 main-login-server_version = Version du serveur
@@ -110,3 +110,6 @@ main-server-rules = Ce serveur a des règles qui souvent être acceptées.
 main-server-rules-seen-before = Ces règles ont changés depuis la dernière fois que vous les avez accepté.
 main-singleplayer-map_shape-circle = Cercle
 main-singleplayer-map_shape-square = Carré
+main-login-banned_until =
+    Vous avez été temporairement banni pour la raison suivante : { $reason }
+    Jusqu'au : { $end_date }

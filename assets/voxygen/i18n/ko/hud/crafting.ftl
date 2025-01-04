@@ -28,7 +28,7 @@ hud-crafting-dismantle_title = 분해
 hud-crafting-dismantle_explanation =
     가방 안에 있는 아이템 위에 커서를 놓으면
     분해해서 무엇을 얻을 수 있는지 볼수 있습니다.
-    
+
     두번 클릭하면 분해 합니다.
 hud-crafting-modular_desc = 아이템을 여기로 드래그 하여 물건을 만든다
 hud-crafting-mod_weap_prim_slot_title = 주 무기 부품
@@ -41,3 +41,7 @@ hud-crafting-mod_comp_wood_prim_slot_title = 나무
 hud-crafting-mod_comp_wood_prim_slot_desc = 나무를 여기에 놓는다. 몇몇 나무만 무기로 만들수 있다.
 hud-crafting-mod_comp_sec_slot_title = 동물 재료
 hud-crafting-mod_comp_sec_slot_desc = 부가적으로 동물 재료를 여기에 놓는다. 몇몇 동물 재료만 무기를 강화할수 있다.
+hud-crafting-repair-selection = 선택
+hud-crafting-repair_equipped = 장비됨
+hud-crafting-repair_all = 모두
+hud-crafting-tool_cata = 도구:

@@ -14,11 +14,10 @@ hud-press_key_to_show_debug_info_fmt = Appuyer sur { $key } pour afficher les in
 hud-press_key_to_toggle_keybindings_fmt = Appuyer sur { $key } pour afficher les contrôles
 hud-press_key_to_toggle_debug_info_fmt = Appuyer sur { $key } pour activer les informations de débogage
 hud-press_key_to_respawn = Appuyez sur { $key } pour réapparaitre au dernier feu de camp visité.
-hud_items_lost_dur = Vos objets équipés ont perdu en Durabilité.
 hud-tutorial_btn = Tutoriel
 hud-tutorial_click_here = Appuyez sur [ { $key } ] pour libérer votre souris et cliquez sur ce bouton!
 hud-tutorial_elements = Artisanat
-hud-temp_quest_headline = Salutations, Voyageur !
+hud-temp_quest_headline = Salutations voyageur !
 hud-temp_quest_text =
     Pour commencer votre voyage, vous pourriez commencer à chercher dans ce village et rassembler quelques provisions.
 
@@ -81,3 +80,6 @@ hud-init-stage-server-worldsim-erosion = { "[" }{ -server }]: Érosion { $percen
 hud-init-stage-server-worldciv-site = { "[" }{ -server }]: Génération de sites...
 hud-init-stage-server-spotgen = { "[" }{ -server }]: Génération de spots...
 hud-steal = Voler
+hud-pet = Caresser
+hud-hardcore_char_deleted = Ce personnage hardcore a été supprimé.
+hud-press_key_to_return_to_char_menu = Appuyez sur { $key } pour revenir au menu des personnages.

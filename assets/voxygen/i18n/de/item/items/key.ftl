@@ -28,3 +28,7 @@ object-key-vampire = Vampirschlüsel
     .desc = Wird zum Öffnen von Türen verwendet. Zerbricht nach Gebrauch.
 object-key-bloodmoon = Blutmond-Schlüssel
     .desc = Wird zum Öffnen von Türen verwendet. Zerbricht nach Gebrauch.
+object-key-myrmidon = Myrmidonenschlüssel
+    .desc = Wird zum Öffnen knöcherne Schlösser verwendet. Zerbricht nach Gebrauch.
+object-key-minotaur = Minotaurusschlüssel
+    .desc = Wird zum Öffnen knöcherne Schlösser verwendet. Zerbricht nach Gebrauch.

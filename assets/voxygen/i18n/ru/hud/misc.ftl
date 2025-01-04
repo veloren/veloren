@@ -45,7 +45,6 @@ hud-trade = Торговать
 hud-mount = Оседлать
 hud-sit = Сесть
 hud-zoom_lock_indicator-enable = Зум камеры заблокирован
-hud_items_lost_dur = Ваши экипированные предметы потеряли прочность.
 hud-unlock-requires = Открыть с помощью { $item }
 hud-read = Читать
 hud-unlock-consumes = Используйте { $item } для открытия

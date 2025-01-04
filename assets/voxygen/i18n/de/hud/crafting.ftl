@@ -56,3 +56,5 @@ hud-crafting-repair_slot_title = Beschädigter Gegenstand
 hud-crafting-repair_slot_desc = Lege hier einen Gegenstand ab, um die Reparaturkosten auf der aktuellen Haltbarkeitsstufe zu sehen.
 hud-crafting-recipe-unlearned = Du musst erst lernen, wie du dieses Rezept herstellst.
 hud-crafting-recipe-uncraftable = Rezept kann nicht hergestellt werden
+hud-crafting-show_unknown_recipes = Zeige unbekannte Rezepte
+hud-crafting-hide_unknown_recipes = Verstecke unbekannte Rezepte

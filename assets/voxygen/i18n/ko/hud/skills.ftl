@@ -127,3 +127,7 @@ hud-skill-pick_strike_oregain_title = 곡괭이 광석 채산성
 hud-skill-pick_strike_oregain = 광석을 더 얻을 확률이 증가한다 (레벨당 { $boost }%){ $SP }
 hud-skill-pick_strike_gemgain_title = 곡괭이 보석 채산성
 hud-skill-pick_strike_gemgain = 보석을 더 얻을 확률이 증가한다 (레벨당 { $boost }%){ $SP }
+hud-skill_tree-general = 일반 전투
+hud-skill_tree-axe = 도끼
+hud-skill_tree-bow = 활
+hud-skill_tree-staff = 화염 지팡이

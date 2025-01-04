@@ -46,7 +46,6 @@ hud-steer = Кіраваць
 hud-someone_else = камусці іншаму
 hud-another_group = іншаму гурту
 hud-owned_by_for_secs = Належыць { $name } яшчэ { $secs } сек
-hud_items_lost_dur = Вашы экіпіраваныя рэчы страцілі трываласць.
 hud-zoom_lock_indicator-remind = Зум зафіксаваны
 hud-zoom_lock_indicator-disable = Зум камеры расфіксаваны
 hud-deactivate = Дэактываваць

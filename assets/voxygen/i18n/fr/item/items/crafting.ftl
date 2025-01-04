@@ -159,3 +159,94 @@ sprite-mineral-ingot-steel = Lingot d'acier
         Un alliage de fer et de charbon qui est beaucoup plus résistant que ses composants.
 
         Peut être utilisé lors de la fabrication d'armes ou d'armures.
+sprite-flowers-flower_red-4 = Fleur Rouge
+    .desc = Peut être utilisée en tant que colorant.
+sprite-flowers-flax = Lin Sauvage
+    .desc = Pourrait être utilisé pour filer un simple tissu.
+object-sewing_set = Set de couture
+    .desc = Utilisé pour fabriquer divers objets.
+object-honey = Miel
+    .desc = Volé dans une ruche. Les abeilles ne vont pas être contentes !
+object-ice_shard = Éclat glacé
+    .desc = Trouvé sur une créature glacée.
+sprite-mineral-ore-bloodstone = Pierre de Sang
+    .desc = Minerai d'un rouge profond, il rappelle le sang.
+sprite-mineral-ore-ancient_gold = Or ancien
+    .desc = Ancien lingot d'or, imprégné d'énergies magiques.
+sprite-mineral-ore-silver = Minerai d'argent
+    .desc = Métal précieux, brillant, de couleur blanc-grisâtre.
+sprite-velorite-velorite_ore = Vélorite
+    .desc = Minerai étrangement brillant, dont l'origine semble entourée de mystère.
+sprite-mineral-ore-iron = Minerai de fer
+    .desc = Un métal commun mais incroyablement polyvalent.
+sprite-mineral-gem-amethystgem = Améthyste
+    .desc = Pierre précieuse de couleur pourpre.
+sprite-flowers-yellow = Fleur Jaune
+    .desc = Brille comme le soleil.
+object-training_dummy = Mannequin d'entraînement
+    .desc = S'appelle William. Feu à volonté !
+object-v-coin = Pièces
+    .desc = Pièces de monnaie précieuses pouvant être échangées contre des biens et services.
+object-raptor_feather = Plume de rapace
+    .desc = Une grande plume colorée d'un rapace.
+sprite-mineral-ore-coal = Charbon
+    .desc = Source d'énergie sombre et combustible.
+sprite-mineral-ore-cobalt = Minerai de cobalt
+    .desc = Minerai bleu et brillant.
+sprite-mineral-ore-copper = Minerai de cuivre
+    .desc = Métal brun. Composant essentiel de création du bronze.
+sprite-mineral-ore-gold = Minerai d'or
+    .desc = Métal jaune précieux.
+sprite-mineral-ingot-bloodsteel = Lingot d'acier sanguin
+    .desc =
+        Alliage de pierre de sang et de fer, de couleur rouge foncé.
+
+        Peut être utilisé pour fabriquer des armes en métal.
+object-collar = Collier
+    .desc = Apprivoise les animaux sauvages neutres dans un rayon de 5 blocs.
+sprite-mineral-gem-rubygem = Rubis
+    .desc = Une gemme écarlate.
+sprite-mineral-gem-topazgem = Topaze
+    .desc = Une gemme d'un orange remarquable.
+sprite-mineral-gem-emeraldgem = Émeraude
+    .desc = Une pierre précieuse viridienne vibrante.
+sprite-mineral-gem-diamondgem = Diamant
+    .desc = Une pierre précieuse argentée étincelante.
+object-potion_empty = Fiole vide
+    .desc = Une simple fiole en verre utilisée pour contenir divers fluides.
+object-elegant_crest = Écusson élégant
+    .desc =
+        Plumage brillant faisant autrefois partie d'une créature colorée.
+
+        Peut être utilisé pour fabriquer des armes facilement maniables et économes en énergie.
+object-long_tusk = Longue défense
+    .desc =
+        Une défense d'une longueur impressionnante provenant d'une bête fière.
+
+        Peut être utilisée pour fabriquer des armes efficaces à longue portée.
+object-glowing_remains = Vestiges incandescents
+    .desc =
+        Pillé sur un être maléfique.
+
+        Avec un peu de travail supplémentaire, il peut sûrement
+        de retrouver sa gloire d'antan...
+object-strong_pincer = Pince forte
+    .desc =
+        Une puissante pince provenant d'une créature à carapace dure.
+
+        Elle permet d'augmenter la puissance des armes fabriquées.
+sprite-mineral-ore-tin = Minerai d'étain
+    .desc = Métal argenté. Un des composants du bronze.
+object-glacial_crystal = Cristal de glace
+    .desc = La forme la plus pure de la glace, suffisamment froide pour refroidir la lave.
+sprite-velorite-velorite = Fragment de Vélorite
+    .desc = De petites runes scintillent à sa surface, mais vous ne savez pas ce qu'elles signifient.
+object-mortar_pestle = Mortier et pilon
+    .desc = Écrase et broie les ingrédients pour en faire une fine poudre ou une pâte. Nécessaire pour fabriquer divers objets.
+sprite-mineral-ingot-orichalcum = Lingot d'Orichalque
+    .desc =
+        Un lingot d'orichalque raffiné.
+
+        Peut être utilisé pour fabriquer des armes en métal.
+sprite-mineral-gem-sapphiregem = Saphir
+    .desc = Une gemme de cobalt colorée.

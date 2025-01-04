@@ -12,3 +12,5 @@ weapon-projectile-fireworks_white = Feu d'artifice blanc
     .desc = Scintille comme les étoiles.
 weapon-projectile-fireworks_yellow = Feu d'artifice jaune
     .desc = Le Grand Docteur est décédé après avoir testé cet engin en intérieur.
+object-surprise_egg = Œuf surprise
+    .desc = Spécial Pâques explosif.

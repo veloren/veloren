@@ -13,7 +13,6 @@ hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] Linterna
 hud-press_key_to_show_debug_info_fmt = Pulsa { $key } para mostrar la información de depuración
 hud-press_key_to_toggle_keybindings_fmt = Pulsa { $key } para alternar atajos de teclado
 hud-press_key_to_toggle_debug_info_fmt = Pulsa { $key } para alternar la información de depuración
-hud_items_lost_dur = La durabilidad de tus objetos equipados se ha reducido.
 hud-press_key_to_respawn = Pulsa { $key } para reaparecer en la última hoguera que hayas visitado.
 hud-tutorial_btn = Tutorial
 hud-tutorial_click_here = ¡Pulsa [ { $key } ] para liberar tu cursor y hacer click sobre este botón!
