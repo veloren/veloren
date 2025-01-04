@@ -1,4 +1,7 @@
-use crate::{render::RenderMode, window::FullScreenSettings};
+use crate::{
+    render::RenderMode,
+    window::{FullScreenSettings, WindowSettings},
+};
 use common::ViewDistances;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -44,7 +47,7 @@ pub struct GraphicsSettings {
     pub exposure: f32,
     pub ambiance: f32,
     pub render_mode: RenderMode,
-    pub window_size: [u16; 2],
+    pub window: WindowSettings,
     pub fullscreen: FullScreenSettings,
     pub lod_detail: u32,
 }
@@ -66,7 +69,7 @@ impl Default for GraphicsSettings {
             exposure: 1.0,
             ambiance: 0.5,
             render_mode: RenderMode::default(),
-            window_size: [1280, 720],
+            window: WindowSettings::default(),
             fullscreen: FullScreenSettings::default(),
             lod_detail: 250,
         }

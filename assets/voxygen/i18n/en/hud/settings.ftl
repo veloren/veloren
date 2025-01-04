@@ -120,7 +120,6 @@ hud-settings-shadow_rendering_mode-map = Map
 hud-settings-shadow_rendering_mode-map-resolution = Resolution
 hud-settings-rain_occlusion-resolution = Rain Occlusion Resolution
 hud-settings-lod_detail = LoD Detail
-hud-settings-save_window_size = Save window size
 hud-settings-reset_graphics = Reset to Defaults
 hud-settings-minimal_graphics = Minimal
 hud-settings-low_graphics = Low

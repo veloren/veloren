@@ -129,9 +129,7 @@ widget_ids! {
         shadow_mode_map_resolution_value,
         rain_map_resolution_text,
         rain_map_resolution_slider,
-        rain_map_resolution_value,
-        save_window_size_button,
-
+        rain_map_resolution_value
     }
 }
 
@@ -1733,33 +1731,6 @@ impl<'a> Widget for Video<'a> {
                 mode: mode_list[clicked],
                 ..self.global_state.settings.graphics.fullscreen
             }));
-        }
-
-        // Save current screen size
-        if Button::image(self.imgs.button)
-            .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .down_from(state.ids.fullscreen_mode_list, 12.0)
-            .label(
-                &self
-                    .localized_strings
-                    .get_msg("hud-settings-save_window_size"),
-            )
-            .label_font_size(self.fonts.cyri.scale(14))
-            .label_color(TEXT_COLOR)
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .label_y(Relative::Scalar(2.0))
-            .set(state.ids.save_window_size_button, ui)
-            .was_clicked()
-        {
-            events.push(GraphicsChange::AdjustWindowSize(
-                self.global_state
-                    .window
-                    .logical_size()
-                    .map(|e| e as u16)
-                    .into_array(),
-            ));
         }
 
         events

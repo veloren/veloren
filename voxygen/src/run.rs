@@ -53,6 +53,12 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
             event: winit::event::WindowEvent::Resized(_),
             ..
         }) {
+            // Save new window state in settings
+            let scale = global_state.window.window().scale_factor();
+            let size = global_state.window.window().inner_size().to_logical(scale);
+            global_state.settings.graphics.window.size = [size.width, size.height];
+            global_state.settings.graphics.window.maximised =
+                global_state.window.window().is_maximized();
             // Get events for the ui.
             if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
                 global_state.window.send_event(Event::Ui(event));
