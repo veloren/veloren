@@ -418,12 +418,15 @@ impl Window {
     ) -> Result<(Window, EventLoop), Error> {
         let event_loop = EventLoop::new();
 
-        let size = settings.graphics.window_size;
+        let window = settings.graphics.window;
 
         let win_builder = winit::window::WindowBuilder::new()
             .with_title("Veloren")
-            .with_inner_size(winit::dpi::LogicalSize::new(size[0] as f64, size[1] as f64))
-            .with_maximized(true);
+            .with_inner_size(winit::dpi::LogicalSize::new(
+                window.size[0] as f64,
+                window.size[1] as f64,
+            ))
+            .with_maximized(window.maximised);
 
         // Avoid cpal / winit OleInitialize conflict
         // See: https://github.com/rust-windowing/winit/pull/1524
@@ -1429,6 +1432,22 @@ pub enum FullscreenMode {
     #[serde(other)]
     #[default]
     Borderless,
+}
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct WindowSettings {
+    pub size: [u16; 2],
+    pub maximised: bool,
+}
+
+impl Default for WindowSettings {
+    fn default() -> Self {
+        Self {
+            size: [1280, 720],
+            maximised: false,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]

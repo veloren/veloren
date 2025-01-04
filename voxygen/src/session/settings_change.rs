@@ -517,7 +517,7 @@ impl SettingsChange {
                     },
                     Graphics::AdjustWindowSize(new_size) => {
                         global_state.window.set_size(new_size.into());
-                        settings.graphics.window_size = new_size;
+                        settings.graphics.window.size = new_size;
                     },
                     Graphics::ResetGraphicsSettings => {
                         settings.graphics = GraphicsSettings::default();
@@ -529,7 +529,7 @@ impl SettingsChange {
                         // Window size
                         global_state
                             .window
-                            .set_size(settings.graphics.window_size.into());
+                            .set_size(settings.graphics.window.size.into());
                     },
                     Graphics::ChangeGraphicsSettings(f) => {
                         settings.graphics = f(settings.graphics.clone());
