@@ -256,3 +256,29 @@ common-abilities-debug-glide_speeder = Vrombissement
     .desc = Vous donne la force d'atteindre l'endroit que vous regardez
 common-abilities-hammer-leap = Coup de désolation
     .desc = Une attaque AOE qui repousse. Saute à la position du curseur.
+common-abilities-sword-cleaving_dual_bladestorm = Tempête de lames
+    .desc =
+        Décimez vos ennemis en tourbillonant avec vos épées.
+        Nécessite une quantité modérée de combo pour l'utiliser.
+common-abilities-sword-agile_flurry = Rafale
+    .desc =
+        Multiple coups rapides.
+        Nécessite une position agile.
+common-abilities-sword-defensive_disengage = Désengagement
+    .desc =
+        Recule d'un pas en arrière après avoir frappé.
+        Entre en position défensive.
+common-abilities-sword-agile_dual_flurry = Rafale
+    .desc =
+        Multiple coups rapides avec vos deux épées.
+        Nécessite une position agile.
+common-abilities-sword-crippling_eviscerate = Éviscération
+    .desc =
+        Lacère les blessures, inflige plus de dégats aux ennemis paralysés.
+        Nécessite une position paralysante.
+common-abilities-axe-berserk = Berserk
+    .desc = Augmente votre force mais vous rend vulnérable.
+common-abilities-axe-adrenaline_rush = Montée d'adrénaline
+    .desc =
+        Consomme tout votre combo pour récupérer votre énergie.
+        S'amplifie avec le combo à l'activation, consomme votre combo.
