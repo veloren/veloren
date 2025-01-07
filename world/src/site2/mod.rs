@@ -2005,7 +2005,7 @@ impl Site {
             hard_alt: Some(desert_city_arena_alt),
         });
 
-        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (5.0, 3), (10.0, 4), (5.0, 5)]);
+        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (5.0, 3), (10.0, 4), (0.0, 5)]);
 
         let mut temples = 0;
         let mut airship_docks = 0;
@@ -2129,6 +2129,8 @@ impl Site {
                 4 => {
                     Self::generate_farm(true, &mut rng, &mut site, land);
                 },
+                // desert barn - disabled for now (0.0 spawn chance)
+                // need desert-variant sprite
                 5 => {
                     Self::generate_barn(true, &mut rng, &mut site, land);
                 },
