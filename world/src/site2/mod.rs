@@ -951,6 +951,7 @@ impl Site {
             (5.0, 5),  // workshop
             (15.0, 6), // airship dock
             (15.0, 7), // tavern
+            (5.0, 8),  // barn
         ]);
 
         // These plots have minimums or limits.
@@ -1294,6 +1295,9 @@ impl Site {
                     } else {
                         site.make_plaza(land, &mut rng, generator_stats, &name);
                     }
+                },
+                8 => {
+                    Self::generate_barn(false, &mut rng, &mut site, land);
                 },
                 _ => {},
             }
@@ -1663,7 +1667,7 @@ impl Site {
 
         let mut workshops = 0;
         let mut airship_dock = 0;
-        let build_chance = Lottery::from(vec![(25.0, 1), (5.0, 2), (5.0, 3), (15.0, 4)]);
+        let build_chance = Lottery::from(vec![(25.0, 1), (5.0, 2), (5.0, 3), (15.0, 4), (5.0, 5)]);
 
         for _ in 0..50 {
             match *build_chance.choose_seeded(rng.gen()) {
@@ -1786,6 +1790,9 @@ impl Site {
                 4 => {
                     Self::generate_farm(false, &mut rng, &mut site, land);
                 },
+                5 => {
+                    Self::generate_barn(false, &mut rng, &mut site, land);
+                },
                 _ => {},
             }
         }
@@ -1812,7 +1819,7 @@ impl Site {
         site.make_initial_plaza_default(land, &mut rng, generator_stats, &name);
 
         let mut workshops = 0;
-        let build_chance = Lottery::from(vec![(38.0, 1), (5.0, 2), (15.0, 3), (15.0, 4)]);
+        let build_chance = Lottery::from(vec![(38.0, 1), (5.0, 2), (15.0, 3), (15.0, 4), (5.0, 5)]);
         let mut airship_docks = 0;
         for _ in 0..55 {
             match *build_chance.choose_seeded(rng.gen()) {
@@ -1935,6 +1942,9 @@ impl Site {
                 4 => {
                     Self::generate_farm(false, &mut rng, &mut site, land);
                 },
+                5 => {
+                    Self::generate_barn(false, &mut rng, &mut site, land);
+                },
                 _ => {},
             }
         }
@@ -1997,7 +2007,7 @@ impl Site {
             hard_alt: Some(desert_city_arena_alt),
         });
 
-        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (5.0, 3), (10.0, 4)]);
+        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (5.0, 3), (10.0, 4), (0.0, 5)]);
 
         let mut temples = 0;
         let mut airship_docks = 0;
@@ -2121,6 +2131,11 @@ impl Site {
                 4 => {
                     Self::generate_farm(true, &mut rng, &mut site, land);
                 },
+                // desert barn - disabled for now (0.0 spawn chance)
+                // need desert-variant sprite
+                5 => {
+                    Self::generate_barn(true, &mut rng, &mut site, land);
+                },
                 _ => {},
             }
         }
@@ -2160,6 +2175,45 @@ impl Site {
                 plot: Some(plot),
                 hard_alt: Some(field_alt),
             });
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn generate_barn(
+        is_desert: bool,
+        mut rng: &mut impl Rng,
+        site: &mut Site,
+        land: &Land,
+    ) -> bool {
+        let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+        if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+            site.find_rural_aabr(&mut rng, 9..(size + 1).pow(2), Extent2::broadcast(size))
+        }) {
+            let barn = plot::Barn::generate(
+                land,
+                &mut reseed(&mut rng),
+                site,
+                door_tile,
+                door_dir,
+                aabr,
+                is_desert,
+            );
+            let barn_alt = barn.alt;
+            let plot = site.create_plot(Plot {
+                kind: PlotKind::Barn(barn),
+                root_tile: aabr.center(),
+                tiles: aabr_tiles(aabr).collect(),
+                seed: rng.gen(),
+            });
+
+            site.blit_aabr(aabr, Tile {
+                kind: TileKind::Building,
+                plot: Some(plot),
+                hard_alt: Some(barn_alt),
+            });
+
             true
         } else {
             false
@@ -2934,6 +2988,7 @@ impl Site {
                     desert_city_airship_dock.render_collect(self, canvas)
                 },
                 PlotKind::Citadel(citadel) => citadel.render_collect(self, canvas),
+                PlotKind::Barn(barn) => barn.render_collect(self, canvas),
                 PlotKind::Bridge(bridge) => bridge.render_collect(self, canvas),
                 PlotKind::PirateHideout(pirate_hideout) => {
                     pirate_hideout.render_collect(self, canvas)

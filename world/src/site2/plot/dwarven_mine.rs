@@ -12,8 +12,8 @@ ChatGPT: Improving Code Quality, Speeding up finding Syntax Errors
 */
 
 use super::*;
-use crate::{site2::gen::PrimitiveTransform, Land};
-use common::terrain::Structure as PrefabStructure;
+use crate::Land;
+use gen::render_prefab;
 use rand::prelude::*;
 use vek::*;
 
@@ -443,17 +443,6 @@ fn spawn_entities(
 
         painter.spawn(EntityInfo::at(spawn_pos).with_asset_expect(entity_path, &mut rng, None));
     }
-}
-
-fn render_prefab(file_path: &str, position: Vec3<i32>, painter: &Painter) {
-    let asset_handle = PrefabStructure::load_group(file_path);
-    let prefab_structure = asset_handle.read()[0].clone();
-
-    // Render the prefab
-    painter
-        .prim(Primitive::Prefab(Box::new(prefab_structure.clone())))
-        .translate(position)
-        .fill(Fill::Prefab(Box::new(prefab_structure), position, 0));
 }
 
 fn spawn_random_entity(pos: Vec3<i32>, painter: &Painter, rot: u8) {
