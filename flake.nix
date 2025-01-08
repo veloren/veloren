@@ -2,8 +2,11 @@
   description = "Flake providing Veloren, a multiplayer voxel RPG written in Rust.";
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs.d2n.url = "github:nix-community/dream2nix/git-fetcher-no-shallow";
+  inputs.d2n.inputs.nixpkgs.follows = "nixpkgs";
   inputs.nci.url = "github:yusdacra/nix-cargo-integration";
   inputs.nci.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.nci.inputs.dream2nix.follows = "d2n";
   inputs.parts.url = "github:hercules-ci/flake-parts";
 
   outputs = inp: let
@@ -119,11 +122,13 @@
         packages.default = config.packages."veloren-voxygen";
 
         devShells.default = config.nci.outputs."veloren".devShell.overrideAttrs (old: {
+          VELOREN_ASSETS = "";
           shellHook = ''
             ${checkIfLfsIsSetup "$PWD/assets/voxygen/background/bg_main.jpg"}
             if [ $? -ne 0 ]; then
               exit 1
             fi
+            export VELOREN_ASSETS="$PWD/assets"
             export VELOREN_GIT_VERSION="${git.prettyRev}"
             export VELOREN_GIT_TAG="${git.tag}"
           '';
@@ -131,7 +136,7 @@
 
         nci.projects."veloren" = {
           export = false;
-          path = ./.;
+          path = filteredSource;
         };
         nci.crates."veloren-server-cli" = {
           profiles = {
@@ -141,13 +146,11 @@
             dev.runTests = false;
           };
           drvConfig = {
-            mkDerivation = {
-              src = filteredSource;
-            };
+            mkDerivation.src = filteredSource;
             env = veloren-common-env;
           };
         };
-        nci.crates."veloren-voxygen" = {
+        nci.crates."veloren-voxygen" = rec {
           profiles = {
             release.features = ["default-publish"];
             release.runTests = false;
@@ -172,7 +175,6 @@
               veloren-common-env
               // {
                 SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
-                VELOREN_ASSETS = "${assets}";
               };
             mkDerivation = {
               buildInputs = with pkgs; [
@@ -191,18 +193,18 @@
               ];
             };
           };
-          drvConfig = let
-            depsConf = config.nci.crates."veloren-voxygen".depsDrvConfig;
-          in {
+          drvConfig = {
             env =
-              depsConf.env
+              depsDrvConfig.env
               // {
                 dontUseCmakeConfigure = true;
+                VOXYGEN_NULL_SOUND_PATH = ./assets/voxygen/audio/null.ogg;
               };
             mkDerivation =
-              depsConf.mkDerivation
+              depsDrvConfig.mkDerivation
               // {
                 src = filteredSource;
+                patches = [./nix/voxygen-null-sound.patch];
                 preConfigure = ''
                   substituteInPlace voxygen/src/audio/soundcache.rs \
                     --replace \
