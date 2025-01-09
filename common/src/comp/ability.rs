@@ -1298,28 +1298,31 @@ impl CharacterAbility {
     }
 
     pub fn default_roll(current_state: Option<&CharacterState>) -> CharacterAbility {
-        let remaining_recover = if let Some(char_state) = current_state {
-            if matches!(char_state.stage_section(), Some(StageSection::Recover)) {
-                let timer = char_state.timer().map_or(0.0, |t| t.as_secs_f32());
-                let recover_duration = char_state
-                    .durations()
-                    .and_then(|durs| durs.recover)
-                    .map_or(timer, |rec| rec.as_secs_f32());
-                recover_duration - timer
-            } else {
-                0.0
-            }
-        } else {
-            0.0
-        }
-        .max(0.0);
+        let remaining_duration = current_state
+            .and_then(|char_state| {
+                char_state.timer().zip(
+                    char_state
+                        .durations()
+                        .zip(char_state.stage_section())
+                        .and_then(|(durations, stage_section)| match stage_section {
+                            StageSection::Buildup => durations.buildup,
+                            StageSection::Recover => durations.recover,
+                            _ => None,
+                        }),
+                )
+            })
+            .map_or(0.0, |(timer, duration)| {
+                duration.as_secs_f32() - timer.as_secs_f32()
+            })
+            .max(0.0);
+
         CharacterAbility::Roll {
-            energy_cost: 10.85,
+            energy_cost: 10.85 + if remaining_duration > 0.0 { 25.0 } else { 0.0 },
             // Remaining recover flows into buildup
-            buildup_duration: 0.05 + remaining_recover,
-            movement_duration: 0.36,
+            buildup_duration: 0.05,
+            movement_duration: (0.36 - 1.17 * remaining_duration).max(0.04),
             recover_duration: 0.125,
-            roll_strength: 3.3075,
+            roll_strength: (3.3075 - 1.67 * remaining_duration).max(0.2),
             attack_immunities: AttackFilters {
                 melee: true,
                 projectiles: false,
