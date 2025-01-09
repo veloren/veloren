@@ -39,7 +39,7 @@ impl Haniwa {
         let base = land.get_alt_approx(center) as i32;
         let diameter = (150 + RandomField::new(0).get(center.with_z(base)) % 10) as i32;
         let dir_select = (RandomField::new(0).get(center.with_z(base)) % 4) as usize;
-        let rotation = (PI / 2.0) - ((PI / 2.0) * dir_select as f32);
+        let rotation = (PI / 2.0) * dir_select as f32;
         let entrance_dir = CARDINALS[dir_select];
         let tree_dir = -entrance_dir;
         let entrance_pos = (center + (entrance_dir * (2 * (diameter / 3)))).with_z(base);
