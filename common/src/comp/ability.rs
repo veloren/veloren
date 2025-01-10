@@ -1317,12 +1317,12 @@ impl CharacterAbility {
             .max(0.0);
 
         CharacterAbility::Roll {
-            energy_cost: 10.85 + if remaining_duration > 0.0 { 25.0 } else { 0.0 },
+            energy_cost: 10.0 + 10.0 * f32::from(remaining_duration > 0.0),
             // Remaining recover flows into buildup
             buildup_duration: 0.05,
-            movement_duration: (0.36 - 1.17 * remaining_duration).max(0.04),
+            movement_duration: (0.36 - 0.72 * remaining_duration).max(0.1),
             recover_duration: 0.125,
-            roll_strength: (3.3075 - 1.67 * remaining_duration).max(0.2),
+            roll_strength: (3.3075 - 5.71 * remaining_duration).max(0.9),
             attack_immunities: AttackFilters {
                 melee: true,
                 projectiles: false,
