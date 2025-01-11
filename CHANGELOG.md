@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Barns that can spawn at the edge of towns.
+
 ### Changed
 
 - Axe balance tweaks.
