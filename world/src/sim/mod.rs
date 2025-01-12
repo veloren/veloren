@@ -565,20 +565,20 @@ pub type ModernMap = WorldMap_0_7_0;
 // gen_opts: (
 //     erosion_quality: 1.0,
 //     map_kind: Circle,
-//     scale: 2.098048498703866,
+//     scale: 2.157574498096227,
 //     x_lg: 10,
 //     y_lg: 10,
 // )
-// seed: 469876673
+// seed: 3582734543
 //
 // The biome seed can found below
-pub const DEFAULT_WORLD_MAP: &str = "world.map.veloren_0_16_0_0";
+pub const DEFAULT_WORLD_MAP: &str = "world.map.veloren_0_18_0_0";
 /// This is *not* the seed used to generate the default map, this seed was used
 /// to generate a better set of biomes on it as the original ones were
 /// unsuitable.
 ///
 /// See DEFAULT_WORLD_MAP to get the original worldgen parameters.
-pub const DEFAULT_WORLD_SEED: u32 = 1948292704;
+pub const DEFAULT_WORLD_SEED: u32 = 130626853;
 
 impl WorldFileLegacy {
     #[inline]
