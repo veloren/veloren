@@ -1528,7 +1528,7 @@ impl ParticleMgr {
                         );
                     }
                 },
-                CharacterState::Glide(_) => {
+                CharacterState::Glide(glide) => {
                     if let Some(Fluid::Air {
                         vel: air_vel,
                         elevation: _,
@@ -1581,6 +1581,27 @@ impl ParticleMgr {
                                 start_pos + air_vel.0,
                             )
                         });
+
+                        // When using the glide boost, emit particles
+                        if let Some(states::glide::Boost::Forward(_)) = &glide.booster
+                            && let Some(figure_state) =
+                                figure_mgr.states.character_states.get(&entity)
+                            && let Some(tp0) = figure_state.main_abs_trail_points
+                            && let Some(tp1) = figure_state.off_abs_trail_points
+                        {
+                            for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
+                                self.particles.push(Particle::new(
+                                    Duration::from_secs(2),
+                                    time,
+                                    ParticleMode::EngineJet,
+                                    Vec3::<f32>::from((tp0.0 + tp1.1) * 0.5)
+                                        // TODO: This offset is used to position the particles at the engine outlet. Ideally, we'd have a way to configure this per-glider
+                                        + Vec3::unit_z() * 0.5
+                                        + Vec3::<f32>::zero().map(|_| rng.gen_range(-0.25..0.25))
+                                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.gen::<f32>()),
+                                ));
+                            }
+                        }
                     }
                 },
                 CharacterState::Transform(data) => {
