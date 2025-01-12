@@ -265,25 +265,23 @@ pub enum NpcAction {
     Dialogue(Actor, Dialogue),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Dialogue {
     Question {
         // Used to uniquely track each question/response
         id: u64,
         msg: Content,
-        // Response options for the target
+        // Response options for the target (option_id, content)
         options: Vec<(u16, Content)>,
+    },
+    Response {
+        // Used to uniquely track each question/response
+        id: u64,
+        msg: Content,
+        option_id: u16,
     },
 }
 
-impl core::cmp::PartialEq for Dialogue {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Question { id, .. }, Self::Question { id: other, .. }) => id == other,
-            // _ => false,
-        }
-    }
-}
 impl core::cmp::Eq for Dialogue {}
 
 // Represents a message passed back to rtsim from an agent's brain
@@ -291,6 +289,7 @@ impl core::cmp::Eq for Dialogue {}
 pub enum NpcInput {
     Report(ReportId),
     Interaction(Actor, Subject),
+    Dialogue(Actor, Dialogue),
 }
 
 // Note: the `serde(name = "...")` is to minimise the length of field

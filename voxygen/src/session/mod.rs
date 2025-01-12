@@ -2120,6 +2120,9 @@ impl PlayState for SessionState {
                     HudEvent::MapMarkerEvent(event) => {
                         self.client.borrow_mut().map_marker_event(event);
                     },
+                    HudEvent::Dialogue(target, dialogue) => {
+                        self.client.borrow_mut().perform_dialogue(target, dialogue);
+                    },
                 }
             }
 

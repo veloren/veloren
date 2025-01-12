@@ -21,13 +21,14 @@ use common::{
         dialogue::Subject,
     },
     path::Path,
-    rtsim::{Actor, ChunkResource, NpcInput, PersonalityTrait, Profession, Role, SiteId},
+    rtsim::{Actor, ChunkResource, Dialogue, NpcInput, PersonalityTrait, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
     terrain::{CoordinateConversions, TerrainChunkSize, sprite},
     time::DayPeriod,
     util::Dir,
 };
+use core::ops::ControlFlow;
 use fxhash::FxHasher64;
 use itertools::{Either, Itertools};
 use rand::prelude::*;
@@ -311,6 +312,9 @@ impl Rule for NpcAi {
                             },
                             rng: ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>()),
                         }, &mut ());
+
+                        // If an input wasn't processed by the brain, we no longer have a use for it
+                        inbox.clear();
                     });
             }
 
@@ -455,7 +459,9 @@ where
 {
     until(move |ctx, next_point: &mut F| {
         // Pick next waypoint, return if path ended
-        let wpos = next_point(ctx)?;
+        let Some(wpos) = next_point(ctx) else {
+            return ControlFlow::Break(());
+        };
 
         let wpos_site = |wpos: Vec2<f32>| {
             ctx.world
@@ -483,7 +489,7 @@ where
 
             // Navigate through the site to the site exit
             if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
-                Some(Either::Left(
+                ControlFlow::Continue(Either::Left(
                     seq(path.into_iter().map(move |wpos| goto_2d(wpos, 1.0, 8.0))).then(goto_2d(
                         site_exit,
                         speed_factor,
@@ -492,7 +498,7 @@ where
                 ))
             } else {
                 // No intra-site path found, just attempt to move towards the exit node
-                Some(Either::Right(
+                ControlFlow::Continue(Either::Right(
                     goto_2d(site_exit, speed_factor, 8.0)
                         .debug(move || {
                             format!(
@@ -505,7 +511,7 @@ where
             }
         } else {
             // We're in the middle of a road, just go to the next waypoint
-            Some(Either::Right(
+            ControlFlow::Continue(Either::Right(
                 goto_2d(wpos, speed_factor, 8.0)
                     .debug(move || {
                         format!(
@@ -628,17 +634,57 @@ fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Action<
         .map(|_, _| ())
 }
 
+fn wait_for_response<S: State>(question_id: u64) -> impl Action<S, u16> {
+    until(move |ctx, _| {
+        let mut response = None;
+        ctx.inbox.retain(|input| match input {
+            // TODO: Check response ID
+            NpcInput::Dialogue(sender, Dialogue::Response { id, option_id, .. })
+                if question_id == *id =>
+            {
+                response = Some(*option_id);
+                false
+            },
+            _ => true,
+        });
+        match response {
+            // TODO: Should be 'engage target in conversation'
+            None => ControlFlow::Continue(idle().boxed()),
+            Some(option_id) => ControlFlow::Break(option_id),
+        }
+    })
+}
+
+fn dialogue<S: State>(tgt: Actor) -> impl Action<S> {
+    just(move |ctx, _| {
+        ctx.controller
+            .question(tgt, Content::Plain("Hello, how are you?".to_string()), [
+                (0, Content::Plain("I'm good!".to_string())),
+                (1, Content::Plain("Terrible".to_string())),
+                (2, Content::Plain("You're on thin ice, buddy".to_string())),
+            ])
+    })
+    .and_then(wait_for_response)
+    .and_then(move |option_id| {
+        just(move |ctx, _| match option_id {
+            0 => ctx
+                .controller
+                .say(tgt, Content::Plain("Great!".to_string())),
+            1 => ctx.controller.say(
+                tgt,
+                Content::Plain("Oh dear, I'm sorry to hear that.".to_string()),
+            ),
+            _ => ctx
+                .controller
+                .say(tgt, Content::Plain("Woah, chill!".to_string())),
+        })
+    })
+}
+
 fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
     now(move |ctx, _| {
         if true {
-            just(move |ctx, _| {
-                ctx.controller
-                    .dialogue(tgt, Content::Plain("HELLO!".to_string()), [
-                        (0, Content::Plain("Go away!".to_string())),
-                        (1, Content::Plain("Who are you?".to_string())),
-                    ]);
-            })
-            .boxed()
+            dialogue(tgt).boxed()
         } else if matches!(tgt, Actor::Npc(_)) && ctx.rng.gen_bool(0.2) {
             // Cut off the conversation sometimes to avoid infinite conversations (but only
             // if the target is an NPC!) TODO: Don't special case this, have
@@ -1306,12 +1352,13 @@ fn captain<S: State>() -> impl Action<S> {
 }
 
 fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
-    loop {
-        match ctx.inbox.pop_front() {
-            Some(NpcInput::Report(report_id)) if !ctx.known_reports.contains(&report_id) => {
+    let mut action = None;
+    ctx.inbox.retain(|input| {
+        match input {
+            NpcInput::Report(report_id) if !ctx.known_reports.contains(report_id) => {
                 let data = ctx.state.data();
-                let Some(report) = data.reports.get(report_id) else {
-                    continue;
+                let Some(report) = data.reports.get(*report_id) else {
+                    return false;
                 };
 
                 const REPORT_RESPONSE_TIME: f64 = 60.0 * 5.0;
@@ -1354,10 +1401,10 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                         } else {
                             "npc-speech-witness_death"
                         };
-                        ctx.known_reports.insert(report_id);
+                        ctx.known_reports.insert(*report_id);
 
                         if ctx.time_of_day.0 - report.at_tod.0 < REPORT_RESPONSE_TIME {
-                            break Some(
+                            action = Some(
                                 just(move |ctx, _| {
                                     ctx.controller.say(killer, Content::localized(phrase))
                                 })
@@ -1365,6 +1412,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                                 .l(),
                             );
                         }
+                        false
                     },
                     ReportKind::Theft {
                         thief,
@@ -1379,7 +1427,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                             ctx.sentiments
                                 .toward_mut(thief)
                                 .change_by(-0.2, Sentiment::VILLAIN);
-                            ctx.known_reports.insert(report_id);
+                            ctx.known_reports.insert(*report_id);
 
                             let phrase = if matches!(ctx.npc.profession(), Some(Profession::Farmer))
                                 && matches!(sprite.category(), sprite::Category::Plant)
@@ -1390,7 +1438,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                             };
 
                             if ctx.time_of_day.0 - report.at_tod.0 < REPORT_RESPONSE_TIME {
-                                break Some(
+                                action = Some(
                                     just(move |ctx, _| {
                                         ctx.controller.say(thief, Content::localized(phrase))
                                     })
@@ -1399,16 +1447,24 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                                 );
                             }
                         }
+                        false
                     },
                     // We don't care about deaths of non-civilians
-                    ReportKind::Death { .. } => {},
+                    ReportKind::Death { .. } => false,
                 }
             },
-            Some(NpcInput::Report(_)) => {}, // Reports we already know of are ignored
-            Some(NpcInput::Interaction(by, subject)) => break Some(talk_to(by, Some(subject)).r()),
-            None => break None,
+            NpcInput::Report(_) => false, // Reports we already know of are ignored
+            NpcInput::Interaction(by, subject) => {
+                action = Some(talk_to(*by, Some(subject.clone())).r());
+                false
+            },
+            // Dialogue inputs get retained because they're handled by specific conversation actions
+            // later
+            NpcInput::Dialogue(_, _) => true,
         }
-    }
+    });
+
+    action
 }
 
 fn check_for_enemies<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {

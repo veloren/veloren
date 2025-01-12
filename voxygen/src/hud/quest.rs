@@ -1,5 +1,8 @@
-use client::Client;
-use common::comp::{Stats, inventory::item::item_key::ItemKey};
+use client::{Client, EcsEntity};
+use common::{
+    comp::{Stats, inventory::item::item_key::ItemKey},
+    rtsim,
+};
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
@@ -34,10 +37,10 @@ widget_ids! {
         intro_txt,
         desc_txt_0,
         quest_objectives[],
-        quest_reward_txt,
+        quest_option_txt,
         objective_text,
-        quest_rewards_frames[],
-        quest_rewards_icons[],
+        quest_options_frames[],
+        quest_options_icons[],
         quest_rewards_txts[],
         accept_btn,
         decline_btn,
@@ -56,6 +59,8 @@ pub struct Quest<'a> {
     stats: &'a Stats,
     item_imgs: &'a ItemImgs,
     pulse: f32,
+    sender: EcsEntity,
+    dialogue: &'a rtsim::Dialogue,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -73,6 +78,8 @@ impl<'a> Quest<'a> {
         stats: &'a Stats,
         item_imgs: &'a ItemImgs,
         pulse: f32,
+        sender: EcsEntity,
+        dialogue: &'a rtsim::Dialogue,
     ) -> Self {
         Self {
             _show,
@@ -85,12 +92,15 @@ impl<'a> Quest<'a> {
             stats,
             item_imgs,
             pulse,
+            sender,
+            dialogue,
             common: widget::CommonBuilder::default(),
         }
     }
 }
 
 pub enum Event {
+    Dialogue(EcsEntity, rtsim::Dialogue),
     Close,
 }
 
@@ -145,7 +155,7 @@ impl Widget for Quest<'_> {
         Rectangle::fill_with([212.0, 42.0], color::TRANSPARENT)
             .top_left_with_margins_on(state.ids.frame, 2.0, 44.0)
             .set(state.ids.title_align, ui);
-        Text::new(&self.localized_strings.get_msg("hud-quest"))
+        Text::new(&self.localized_strings.get_msg("hud-dialogue"))
             .middle_of(state.ids.title_align)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(20))
@@ -164,20 +174,19 @@ impl Widget for Quest<'_> {
 
         // Quest Text
 
-        // Introduction
-
-        Text::new(
-            &self
-                .localized_strings
-                .get_msg_ctx("hud-quest-intro", &i18n::fluent_args! {
-                    "playername" => self.stats.name.to_string(),
-                }),
-        )
-        .top_left_with_margins_on(state.ids.content_align, tweak!(0.0), tweak!(2.0))
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(tweak!(20)))
-        .color(TEXT_COLOR)
-        .set(state.ids.intro_txt, ui);
+        // // Introduction
+        // Text::new(
+        //     &self
+        //         .localized_strings
+        //         .get_msg_ctx("hud-quest-intro", &i18n::fluent_args! {
+        //             "playername" => self.stats.name.to_string(),
+        //         }),
+        // )
+        // .top_left_with_margins_on(state.ids.content_align, tweak!(0.0), tweak!(2.0))
+        // .font_id(self.fonts.cyri.conrod_id)
+        // .font_size(self.fonts.cyri.scale(tweak!(20)))
+        // .color(TEXT_COLOR)
+        // .set(state.ids.intro_txt, ui);
 
         enum QuestType {
             FetchQuest,
@@ -188,149 +197,145 @@ impl Widget for Quest<'_> {
 
         let quest_type = QuestType::FetchQuest;
 
-        let q_desc0 = match quest_type {
-            QuestType::FetchQuest => "hud-quest-desc-fetch",
-            // QuestType::KillQuest => "hud-quest-desc-kill",
+        let q_desc0 = match &self.dialogue {
+            rtsim::Dialogue::Question { msg, .. } => self.localized_strings.get_content(msg),
+            rtsim::Dialogue::Response { msg, .. } => self.localized_strings.get_content(msg),
         };
 
-        Text::new(&self.localized_strings.get_msg(q_desc0))
-            .top_left_with_margins_on(state.ids.intro_txt, tweak!(40.0), tweak!(0.0))
+        Text::new(&q_desc0)
+            .top_left_with_margins_on(state.ids.content_align, tweak!(0.0), tweak!(4.0))
+            .w(350.0)
+            // .top_left_with_margins_on(state.ids.intro_txt, tweak!(40.0), tweak!(0.0))
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(tweak!(20)))
             .color(TEXT_COLOR)
             .set(state.ids.desc_txt_0, ui);
 
-        // Objective(s)
-        let objective_amount = 20.0;
-        let objective_name = "Flower";
-        let objective_txt = format!("{}x {}", objective_amount, objective_name);
+        // // Objective(s)
+        // let objective_amount = 20.0;
+        // let objective_name = "Flower";
+        // let objective_txt = format!("{}x {}", objective_amount, objective_name);
 
-        Text::new(&objective_txt)
-            .down_from(state.ids.desc_txt_0, tweak!(10.0))
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(20)))
-            .color(TEXT_VELORITE)
-            .set(state.ids.objective_text, ui);
+        // Text::new(&objective_txt)
+        //     .down_from(state.ids.desc_txt_0, tweak!(10.0))
+        //     .font_id(self.fonts.cyri.conrod_id)
+        //     .font_size(self.fonts.cyri.scale(tweak!(20)))
+        //     .color(TEXT_VELORITE)
+        //     .set(state.ids.objective_text, ui);
 
-        Text::new(&self.localized_strings.get_msg("hud-quest-reward"))
-            .down_from(state.ids.objective_text, tweak!(30.0))
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(20)))
-            .color(TEXT_COLOR)
-            .set(state.ids.quest_reward_txt, ui);
+        // Text::new(&self.localized_strings.get_msg("hud-quest-reward"))
+        //     .down_from(state.ids.objective_text, tweak!(30.0))
+        //     .font_id(self.fonts.cyri.conrod_id)
+        //     .font_size(self.fonts.cyri.scale(tweak!(20)))
+        //     .color(TEXT_COLOR)
+        //     .set(state.ids.quest_option_txt, ui);
 
         // insert reward item data here
         // [amount, item_desc]
 
-        //("common.items.weapons.sword.caladbolg");
-        let rewards = [
-            (1, "common.items.weapons.dagger.starter_dagger", "Dagger"),
-            (4, "common.items.crafting_ing.seashells", "Seashell"),
-            (
-                8,
-                "common.items.crafting_ing.animal_misc.raptor_feather",
-                "Raptor Feather",
-            ),
-        ];
-        let rewards_amount = rewards.len();
-
-        if state.ids.quest_rewards_frames.len() < rewards_amount {
-            state.update(|s| {
-                s.ids
-                    .quest_rewards_frames
-                    .resize(rewards.len(), &mut ui.widget_id_generator())
-            })
-        };
-        if state.ids.quest_rewards_icons.len() < rewards_amount {
-            state.update(|s| {
-                s.ids
-                    .quest_rewards_icons
-                    .resize(rewards.len(), &mut ui.widget_id_generator())
-            })
-        };
-        if state.ids.quest_rewards_txts.len() < rewards_amount {
-            state.update(|s| {
-                s.ids
-                    .quest_rewards_txts
-                    .resize(rewards.len(), &mut ui.widget_id_generator())
-            })
-        };
-
-        for (i, item) in rewards.iter().enumerate() {
-            // Slot BG
-            let mut frame_img = Image::new(self.imgs.skillbar_slot)
-                .w_h(40.0, 40.0)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)));
-
-            if i == 0 {
-                frame_img = frame_img.down_from(state.ids.quest_reward_txt, tweak!(10.0))
-            } else {
-                frame_img = frame_img.down_from(state.ids.quest_rewards_frames[i - 1], tweak!(5.0))
-            }
-            frame_img.set(state.ids.quest_rewards_frames[i], ui);
-
-            // Item amount and text
-            let item_txt = if item.0 == 1 {
-                item.2.to_string()
-            } else {
-                format!("{}x {}", item.0, item.2)
+        if let rtsim::Dialogue::Question {
+            id: question_id,
+            options,
+            ..
+        } = &self.dialogue
+        {
+            if state.ids.quest_options_frames.len() < options.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_options_frames
+                        .resize(options.len(), &mut ui.widget_id_generator())
+                })
             };
-            //INPUT QUALITY HERE TO CHANGE COLOR
-            let item_quality = TEXT_VELORITE;
-            Text::new(&item_txt)
-                .right_from(state.ids.quest_rewards_frames[i], tweak!(10.0))
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(tweak!(18)))
-                .color(item_quality)
-                .set(state.ids.quest_rewards_txts[i], ui);
-            // Item image
-            Image::new(animate_by_pulse(
-                &self
-                    .item_imgs
-                    .img_ids_or_not_found_img(ItemKey::Simple(item.1.to_string())),
-                self.pulse,
-            ))
-            .w_h(38.0, 38.0)
-            .middle_of(state.ids.quest_rewards_frames[i])
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-            .set(state.ids.quest_rewards_icons[i], ui);
+            if state.ids.quest_options_icons.len() < options.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_options_icons
+                        .resize(options.len(), &mut ui.widget_id_generator())
+                })
+            };
+            if state.ids.quest_rewards_txts.len() < options.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_rewards_txts
+                        .resize(options.len(), &mut ui.widget_id_generator())
+                })
+            };
+
+            for (i, (option_id, option_content)) in options.iter().enumerate() {
+                // Slot BG
+                let button = Button::image(self.imgs.button)
+                    .w_h(40.0, 40.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press);
+                let button = if i == 0 {
+                    button.down_from(state.ids.desc_txt_0, tweak!(10.0))
+                } else {
+                    button.down_from(state.ids.quest_options_frames[i - 1], tweak!(5.0))
+                };
+                let button = button.set(state.ids.quest_options_frames[i], ui);
+                if button.was_clicked() {
+                    event = Some(Event::Dialogue(self.sender, rtsim::Dialogue::Response {
+                        id: *question_id,
+                        msg: option_content.clone(),
+                        option_id: *option_id,
+                    }));
+                }
+
+                Text::new(&self.localized_strings.get_content(option_content))
+                    .right_from(state.ids.quest_options_frames[i], tweak!(10.0))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .font_size(self.fonts.cyri.scale(tweak!(18)))
+                    .set(state.ids.quest_rewards_txts[i], ui);
+                // // Item image
+                // Image::new(animate_by_pulse(
+                //     &self
+                //         .item_imgs
+                //         .img_ids_or_not_found_img(ItemKey::Simple(item.1.
+                // to_string())),     self.pulse,
+                // ))
+                // .w_h(38.0, 38.0)
+                // .middle_of(state.ids.quest_options_frames[i])
+                // .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                // .set(state.ids.quest_options_icons[i], ui);
+            }
         }
 
-        // Accept/Decline Buttons
+        // // Accept/Decline Buttons
 
-        if Button::image(self.imgs.button)
-            .bottom_left_with_margins_on(state.ids.content_align, tweak!(5.0), tweak!(5.0))
-            .w_h(tweak!(120.0), tweak!(50.0))
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label(&self.localized_strings.get_msg("hud-quest-accept"))
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(self.fonts.cyri.scale(20))
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .image_color(HP_COLOR)
-            .set(state.ids.accept_btn, ui)
-            .was_clicked()
-        {
-            event = Some(Event::Close);
-        };
+        // if Button::image(self.imgs.button)
+        //     .bottom_left_with_margins_on(state.ids.content_align, tweak!(5.0),
+        // tweak!(5.0))     .w_h(tweak!(120.0), tweak!(50.0))
+        //     .hover_image(self.imgs.button_hover)
+        //     .press_image(self.imgs.button_press)
+        //     .label(&self.localized_strings.get_msg("hud-quest-accept"))
+        //     .label_y(conrod_core::position::Relative::Scalar(3.0))
+        //     .label_color(TEXT_COLOR)
+        //     .label_font_size(self.fonts.cyri.scale(20))
+        //     .label_font_id(self.fonts.cyri.conrod_id)
+        //     .image_color(HP_COLOR)
+        //     .set(state.ids.accept_btn, ui)
+        //     .was_clicked()
+        // {
+        //     event = Some(Event::Close);
+        // };
 
-        if Button::image(self.imgs.button)
-            .bottom_right_with_margins_on(state.ids.content_align, tweak!(5.0), tweak!(5.0))
-            .w_h(tweak!(120.0), tweak!(50.0))
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label(&self.localized_strings.get_msg("hud-quest-decline"))
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(self.fonts.cyri.scale(20))
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .image_color(TEXT_DULL_RED_COLOR)
-            .set(state.ids.decline_btn, ui)
-            .was_clicked()
-        {
-            event = Some(Event::Close);
-        };
+        // if Button::image(self.imgs.button)
+        //     .bottom_right_with_margins_on(state.ids.content_align, tweak!(5.0),
+        // tweak!(5.0))     .w_h(tweak!(120.0), tweak!(50.0))
+        //     .hover_image(self.imgs.button_hover)
+        //     .press_image(self.imgs.button_press)
+        //     .label(&self.localized_strings.get_msg("hud-quest-decline"))
+        //     .label_y(conrod_core::position::Relative::Scalar(3.0))
+        //     .label_color(TEXT_COLOR)
+        //     .label_font_size(self.fonts.cyri.scale(20))
+        //     .label_font_id(self.fonts.cyri.conrod_id)
+        //     .image_color(TEXT_DULL_RED_COLOR)
+        //     .set(state.ids.decline_btn, ui)
+        //     .was_clicked()
+        // {
+        //     event = Some(Event::Close);
+        // };
 
         event
     }

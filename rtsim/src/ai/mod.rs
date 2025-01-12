@@ -152,6 +152,19 @@ pub trait Action<S = (), R = ()>: Any + Send + Sync {
         }
     }
 
+    #[must_use]
+    fn and_then<F, A1: Action<S, R1>, R1>(self, f: F) -> AndThen<Self, F, A1, R>
+    where
+        Self: Sized,
+    {
+        AndThen {
+            a0: self,
+            f,
+            a1: None,
+            phantom: PhantomData,
+        }
+    }
+
     /// Create an action that repeats a sub-action indefinitely.
     ///
     /// # Example
@@ -441,19 +454,20 @@ where
 
 /// See [`now`].
 #[derive(Copy, Clone)]
-pub struct Until<F, A, R>(F, Option<A>, PhantomData<R>);
+pub struct Until<F, A, R, R1>(F, Option<A>, PhantomData<(R, R1)>);
 
 impl<
     S: State,
     R: Send + Sync + 'static,
-    F: Fn(&mut NpcCtx, &mut S) -> Option<A> + Send + Sync + 'static,
+    F: Fn(&mut NpcCtx, &mut S) -> ControlFlow<R1, A> + Send + Sync + 'static,
     A: Action<S, R>,
-> Action<S, ()> for Until<F, A, R>
+    R1: Send + Sync + 'static,
+> Action<S, R1> for Until<F, A, R, R1>
 {
     // TODO: This doesn't compare?!
     fn is_same(&self, _other: &Self) -> bool { true }
 
-    fn dyn_is_same(&self, other: &dyn Action<S, ()>) -> bool { self.dyn_is_same_sized(other) }
+    fn dyn_is_same(&self, other: &dyn Action<S, R1>) -> bool { self.dyn_is_same_sized(other) }
 
     fn backtrace(&self, bt: &mut Vec<String>) {
         if let Some(action) = &self.1 {
@@ -465,7 +479,7 @@ impl<
 
     fn reset(&mut self) { self.1 = None; }
 
-    fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<()> {
+    fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R1> {
         match &mut self.1 {
             Some(x) => match x.tick(ctx, state) {
                 ControlFlow::Continue(()) => ControlFlow::Continue(()),
@@ -475,19 +489,19 @@ impl<
                 },
             },
             None => match (self.0)(ctx, state) {
-                Some(x) => {
+                ControlFlow::Continue(x) => {
                     self.1 = Some(x);
                     ControlFlow::Continue(())
                 },
-                None => ControlFlow::Break(()),
+                ControlFlow::Break(b) => ControlFlow::Break(b),
             },
         }
     }
 }
 
-pub fn until<S, F, A: Action<S, R>, R>(f: F) -> Until<F, A, R>
+pub fn until<S, F, A: Action<S, R>, R, R1>(f: F) -> Until<F, A, R, R1>
 where
-    F: Fn(&mut NpcCtx, &mut S) -> Option<A>,
+    F: Fn(&mut NpcCtx, &mut S) -> ControlFlow<R1, A>,
 {
     Until(f, None, PhantomData)
 }
@@ -756,6 +770,61 @@ impl<
             }
         }
         self.a1.tick(ctx, state)
+    }
+}
+
+// AndThen
+
+/// See [`Action::and_then`].
+#[derive(Copy, Clone)]
+pub struct AndThen<A0, F, A1, R0> {
+    a0: A0,
+    f: F,
+    a1: Option<A1>,
+    phantom: PhantomData<R0>,
+}
+
+impl<
+    S: State,
+    A0: Action<S, R0>,
+    A1: Action<S, R1>,
+    R0: Send + Sync + 'static,
+    R1: Send + Sync + 'static,
+    F: Fn(R0) -> A1 + Send + Sync + 'static,
+> Action<S, R1> for AndThen<A0, F, A1, R0>
+{
+    fn is_same(&self, other: &Self) -> bool {
+        self.a0.is_same(&other.a0)
+            && match (&self.a1, &other.a1) {
+                (Some(a1_0), Some(a1_1)) => a1_0.is_same(a1_1),
+                _ => true,
+            }
+    }
+
+    fn dyn_is_same(&self, other: &dyn Action<S, R1>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) {
+        if let Some(a1) = &self.a1 {
+            a1.backtrace(bt);
+        } else {
+            self.a0.backtrace(bt);
+        }
+    }
+
+    fn reset(&mut self) {
+        self.a0.reset();
+        self.a1 = None;
+    }
+
+    fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R1> {
+        let a1 = match &mut self.a1 {
+            None => match self.a0.tick(ctx, state) {
+                ControlFlow::Continue(()) => return ControlFlow::Continue(()),
+                ControlFlow::Break(r) => self.a1.insert((self.f)(r)),
+            },
+            Some(a1) => a1,
+        };
+        a1.tick(ctx, state)
     }
 }
 

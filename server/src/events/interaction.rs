@@ -159,7 +159,6 @@ impl ServerEvent for DialogueEvent {
             if within_range {
                 // Send to agent, if target is an agent, or the client
                 if let Some(agent) = agents.get_mut(target)
-                    && agent.target.is_none()
                     && let Some(interactor_uid) = uids.get(interactor)
                 {
                     agent
@@ -169,10 +168,11 @@ impl ServerEvent for DialogueEvent {
                     && let Some(interactor_uid) = uids.get(interactor)
                 {
                     client.send_fallible(ServerGeneral::Dialogue(*interactor_uid, dialogue));
-                    println!("HERE!");
                 } else {
                     warn!(
-                        "Dialogue event terminated due to entity not having receiving capability"
+                        "Dialogue event {:?} terminated due to entity not having receiving \
+                         capability",
+                        dialogue
                     );
                 }
             }

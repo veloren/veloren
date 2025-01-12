@@ -95,7 +95,7 @@ impl Controller {
     pub fn set_new_home(&mut self, new_home: SiteId) { self.new_home = Some(new_home); }
 
     /// Ask a question, with various possible answers. Returns the dialogue ID.
-    pub fn dialogue(
+    pub fn question(
         &mut self,
         target: impl Into<Actor>,
         msg: comp::Content,

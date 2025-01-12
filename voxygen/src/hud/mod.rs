@@ -755,6 +755,7 @@ pub enum Event {
     SettingsChange(SettingsChange),
     AcknowledgePersistenceLoadError,
     MapMarkerEvent(MapMarkerChange),
+    Dialogue(EcsEntity, rtsim::Dialogue),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -1299,6 +1300,7 @@ pub struct Hud {
     map_drag: Vec2<f64>,
     force_chat: bool,
     clear_chat: bool,
+    current_dialogue: Option<(EcsEntity, rtsim::Dialogue)>,
 }
 
 impl Hud {
@@ -1436,6 +1438,7 @@ impl Hud {
             map_drag: Vec2::zero(),
             force_chat: false,
             clear_chat: false,
+            current_dialogue: None,
         }
     }
 
@@ -3640,7 +3643,9 @@ impl Hud {
         // Quest Window
         let stats = client.state().ecs().read_storage::<comp::Stats>();
         if self.show.quest {
-            if let Some(stats) = stats.get(entity) {
+            if let Some(stats) = stats.get(entity)
+                && let Some((sender, dialogue)) = &self.current_dialogue
+            {
                 match Quest::new(
                     &self.show,
                     client,
@@ -3652,9 +3657,14 @@ impl Hud {
                     stats,
                     &self.item_imgs,
                     self.pulse,
+                    *sender,
+                    dialogue,
                 )
                 .set(self.ids.quest_window, ui_widgets)
                 {
+                    Some(quest::Event::Dialogue(target, dialogue)) => {
+                        events.push(Event::Dialogue(target, dialogue))
+                    },
                     Some(quest::Event::Close) => {
                         self.show.quest(false);
                         if !self.show.bag {
@@ -4573,11 +4583,8 @@ impl Hud {
     }
 
     pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue) {
-        println!("Received dialogue!!!");
-        // self.show.dialogue(true);
-        // if !state {
-        //     slot_manager.idle();
-        // }
+        self.show.quest(true);
+        self.current_dialogue = Some((sender, dialogue));
     }
 
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }

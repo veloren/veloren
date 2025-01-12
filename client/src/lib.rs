@@ -2044,6 +2044,18 @@ impl Client {
         self.send_msg(ClientGeneral::ControlAction(control_action));
     }
 
+    fn control_event(&mut self, control_event: ControlEvent) {
+        if let Some(controller) = self
+            .state
+            .ecs()
+            .write_storage::<Controller>()
+            .get_mut(self.entity())
+        {
+            controller.push_event(control_event.clone());
+        }
+        self.send_msg(ClientGeneral::ControlEvent(control_event));
+    }
+
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
 
     pub fn server_view_distance_limit(&self) -> Option<u32> { self.server_view_distance_limit }
@@ -2147,6 +2159,12 @@ impl Client {
         self.control_action(ControlAction::InventoryAction(InventoryAction::Collect(
             pos,
         )));
+    }
+
+    pub fn perform_dialogue(&mut self, target: EcsEntity, dialogue: rtsim::Dialogue) {
+        if let Some(target_uid) = self.state.read_component_copied(target) {
+            self.control_event(ControlEvent::Dialogue(target_uid, dialogue));
+        }
     }
 
     pub fn change_ability(&mut self, slot: usize, new_ability: comp::ability::AuxiliaryAbility) {

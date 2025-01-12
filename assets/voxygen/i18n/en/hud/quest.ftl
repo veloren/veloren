@@ -5,3 +5,5 @@ hud-quest-desc-kill = Could you help me kill
 hud-quest-reward = I will reward you with:
 hud-quest-accept = Accept
 hud-quest-decline = Decline
+
+hud-dialogue = Dialogue

@@ -22,9 +22,10 @@ use tracing::warn;
 use vek::{Vec2, Vec3};
 
 use self::interaction::{
-    handle_inbox_cancel_interactions, handle_inbox_finished_trade, handle_inbox_talk,
-    handle_inbox_trade_accepted, handle_inbox_trade_invite, handle_inbox_update_pending_trade,
-    increment_timer_deltatime, process_inbox_interaction, process_inbox_sound_and_hurt,
+    handle_inbox_cancel_interactions, handle_inbox_dialogue, handle_inbox_finished_trade,
+    handle_inbox_talk, handle_inbox_trade_accepted, handle_inbox_trade_invite,
+    handle_inbox_update_pending_trade, increment_timer_deltatime, process_inbox_interaction,
+    process_inbox_sound_and_hurt,
 };
 
 use super::{
@@ -137,7 +138,7 @@ impl BehaviorTree {
         {
             let mut tree: Vec<BehaviorFn> = vec![increment_timer_deltatime];
             if agent.behavior.can(BehaviorCapability::SPEAK) {
-                tree.push(handle_inbox_talk);
+                tree.extend([handle_inbox_dialogue, handle_inbox_talk]);
             }
             tree.extend_from_slice(&[
                 handle_inbox_trade_invite,
@@ -641,7 +642,6 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                     bdata
                         .controller
                         .push_event(ControlEvent::Dialogue(*target_uid, dialogue));
-                    println!("HERE3!");
                 } else {
                     warn!("NPC dialogue sent to non-existent target entity");
                 }
