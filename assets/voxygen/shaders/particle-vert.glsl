@@ -102,6 +102,7 @@ const int SURPRISE_EGG = 61;
 const int FLAME_TORNADO = 62;
 const int POISON = 63;
 const int WATER_FOAM = 64;
+const int ENGINE_JET = 65;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -811,7 +812,7 @@ void main() {
             float fiery_sparks_color2 = 4 + 1 * rand2 + 4 * step(0.18, fract(tick.x*4));
             float fiery_sparks_color3 = 4 + 6 * step(0.18, fract(tick.x*4));
             attr = Attr(
-                spiral_motion(vec3(0, 0, 5), abs(rand0) + abs(rand1) * percent() * 4.0, percent(), 8.0 * abs(rand2), rand3),
+                spiral_motion(vec3(0, 0, 5), abs(rand0) + abs(rand1) * percent() * 4.0, percent(), 8.0 * abs(rand2), 0.0),
                 vec3((2.5 * (1 - slow_start(0.05)))),
                 vec4(fiery_sparks_color1, fiery_sparks_color2, fiery_sparks_color3, 0.5 + 0.5 * step(0.18, fract(tick.x*4))),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
@@ -879,8 +880,8 @@ void main() {
             float PC_spin =  floor(inst_dir.x);
             float refl = floor(inst_dir.y);
             float PC_size = floor(inst_dir.z);
-            //best is 0.4 - reflects some light but only part as 
-            f_reflect = refl * 0.1; 
+            //best is 0.4 - reflects some light but only part as
+            f_reflect = refl * 0.1;
             // modifies by + 5% to -15%, if color is less than 0.5 it will get from +10% to +25% to it's value
             float PC_rand_color_factor = rand0 * 0.05;
             float PC_R = inst_dir.x - PC_spin;
@@ -1067,6 +1068,19 @@ void main() {
                 vec3((1.5 * (1 - slow_start(0.2)))),
                 vec4(1.0, 1.0, 1.0, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case ENGINE_JET:
+            f_reflect = 0.0;
+            attr = Attr(
+                linear_motion(vec3(0), vec3(rand6 - 0.5, rand7 - 0.5, 3 + rand8 * 0.8)),
+                vec3((2.5 * (1 - slow_start(0.05)))) + percent(),
+                mix(
+                    mix(vec4(15, 8, 4, 1), vec4(12, 4, 0.0, 1), percent()),
+                    vec4(0.1, 0.1, 0.1, 1),
+                    pow(percent(), 0.05)
+                ),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 3 + 3 * rand9)
             );
             break;
         default:

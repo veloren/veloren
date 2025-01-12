@@ -11,10 +11,12 @@ use client::Client;
 use common::{
     comp::{Body, CharacterState, PhysicsState, Pos, Scale, Vel},
     resources::DeltaTime,
+    states,
     terrain::{BlockKind, TerrainChunk},
 };
 use common_state::State;
 use hashbrown::HashMap;
+use rand::prelude::*;
 use specs::{Entity as EcsEntity, Join, LendJoin, WorldExt};
 use std::time::{Duration, Instant};
 use vek::*;
@@ -217,7 +219,16 @@ impl MovementEventMapper {
         // Match all other Movemement and Action states
         match (previous_state.event.clone(), character_state) {
             (_, CharacterState::Climb { .. }) => SfxEvent::Climb,
-            (_, CharacterState::Glide { .. }) => SfxEvent::Glide,
+            (_, CharacterState::Glide(glide))
+                if matches!(glide.booster, Some(states::glide::Boost::Forward(_))) =>
+            {
+                if thread_rng().gen_bool(0.5) {
+                    SfxEvent::FlameThrower
+                } else {
+                    SfxEvent::Idle
+                }
+            },
+            (_, CharacterState::Glide(_)) => SfxEvent::Glide,
             _ => SfxEvent::Idle,
         }
     }

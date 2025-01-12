@@ -199,8 +199,9 @@ impl<'a, const N: usize> ModelEntryRef<'a, N> {
     }
 }
 
-struct FigureMgrStates {
-    character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
+#[derive(Default)]
+pub struct FigureMgrStates {
+    pub character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_small_states: HashMap<EcsEntity, FigureState<QuadrupedSmallSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
     quadruped_low_states: HashMap<EcsEntity, FigureState<QuadrupedLowSkeleton>>,
@@ -224,32 +225,6 @@ struct FigureMgrStates {
 }
 
 impl FigureMgrStates {
-    pub fn default() -> Self {
-        Self {
-            character_states: HashMap::new(),
-            quadruped_small_states: HashMap::new(),
-            quadruped_medium_states: HashMap::new(),
-            quadruped_low_states: HashMap::new(),
-            bird_medium_states: HashMap::new(),
-            fish_medium_states: HashMap::new(),
-            theropod_states: HashMap::new(),
-            dragon_states: HashMap::new(),
-            bird_large_states: HashMap::new(),
-            fish_small_states: HashMap::new(),
-            biped_large_states: HashMap::new(),
-            biped_small_states: HashMap::new(),
-            golem_states: HashMap::new(),
-            object_states: HashMap::new(),
-            item_drop_states: HashMap::new(),
-            ship_states: HashMap::new(),
-            volume_states: HashMap::new(),
-            arthropod_states: HashMap::new(),
-            crustacean_states: HashMap::new(),
-            #[cfg(feature = "plugins")]
-            plugin_states: HashMap::new(),
-        }
-    }
-
     fn get_mut<'a, Q>(&'a mut self, body: &Body, entity: &Q) -> Option<&'a mut FigureStateMeta>
     where
         EcsEntity: Borrow<Q>,
@@ -574,7 +549,7 @@ pub struct FigureMgr {
     crustacean_model_cache: FigureModelCache<CrustaceanSkeleton>,
     #[cfg(feature = "plugins")]
     plugin_model_cache: FigureModelCache<PluginSkeleton>,
-    states: FigureMgrStates,
+    pub states: FigureMgrStates,
 }
 
 impl FigureMgr {
@@ -7677,8 +7652,8 @@ pub struct FigureStateMeta {
     viewpoint_offset: Option<anim::vek::Vec3<f32>>,
     heads: Vec<anim::vek::Vec3<f32>>,
     tail: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
-    main_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
-    off_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    pub main_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    pub off_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     // Animation to be applied to rider of this entity
     mount_transform: anim::vek::Transform<f32, f32, f32>,
     // Contains the position of this figure or if it is a rider it will contain the mount's
