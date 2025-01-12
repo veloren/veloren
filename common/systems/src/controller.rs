@@ -1,7 +1,6 @@
 use common::{
     comp::{
-        Body, BuffChange, CharacterActivity, Collider, ControlEvent, Controller, Health, Pos,
-        Scale,
+        Body, BuffChange, Collider, ControlEvent, Controller, Health, Pos, Scale,
         ability::Stance,
         agent::{Sound, SoundKind},
     },
@@ -59,29 +58,18 @@ pub struct ReadData<'a> {
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    type SystemData = (
-        ReadData<'a>,
-        WriteStorage<'a, Controller>,
-        WriteStorage<'a, CharacterActivity>,
-    );
+    type SystemData = (ReadData<'a>, WriteStorage<'a, Controller>);
 
     const NAME: &'static str = "controller";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(
-        _job: &mut Job<Self>,
-        (read_data, mut controllers, mut character_activity): Self::SystemData,
-    ) {
+    fn run(_job: &mut Job<Self>, (read_data, mut controllers): Self::SystemData) {
         let mut emitters = read_data.events.get_emitters();
 
-        (
-            &read_data.entities,
-            &mut controllers,
-            &mut character_activity,
-        )
+        (&read_data.entities, &mut controllers)
             .lend_join()
-            .for_each(|(entity, controller, mut character_activity)| {
+            .for_each(|(entity, controller)| {
                 // Sanitize inputs to avoid clients sending bad data
                 controller.inputs.sanitize();
 
@@ -216,7 +204,6 @@ impl<'a> System<'a> for Sys {
                             } else {
                                 warn!("Control event Dialogue sent to non-existent target entity");
                             }
-                            character_activity.dialogue = Some(dialogue);
                         },
                     }
                 }

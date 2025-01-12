@@ -172,22 +172,6 @@ impl Widget for Quest<'_> {
             .color(Color::Rgba(0.79, 1.09, 1.09, 0.0))
             .set(state.ids.scrollbar, ui);
 
-        // Quest Text
-
-        // // Introduction
-        // Text::new(
-        //     &self
-        //         .localized_strings
-        //         .get_msg_ctx("hud-quest-intro", &i18n::fluent_args! {
-        //             "playername" => self.stats.name.to_string(),
-        //         }),
-        // )
-        // .top_left_with_margins_on(state.ids.content_align, tweak!(0.0), tweak!(2.0))
-        // .font_id(self.fonts.cyri.conrod_id)
-        // .font_size(self.fonts.cyri.scale(tweak!(20)))
-        // .color(TEXT_COLOR)
-        // .set(state.ids.intro_txt, ui);
-
         enum QuestType {
             FetchQuest,
             // KillQuest,
@@ -197,48 +181,28 @@ impl Widget for Quest<'_> {
 
         let quest_type = QuestType::FetchQuest;
 
-        let q_desc0 = match &self.dialogue {
-            rtsim::Dialogue::Question { msg, .. } => self.localized_strings.get_content(msg),
-            rtsim::Dialogue::Response { msg, .. } => self.localized_strings.get_content(msg),
+        let msg_text = match &self.dialogue.kind {
+            rtsim::DialogueKind::Start | rtsim::DialogueKind::End => None,
+            rtsim::DialogueKind::Statement(msg) => Some(self.localized_strings.get_content(msg)),
+            rtsim::DialogueKind::Question { msg, .. } => {
+                Some(self.localized_strings.get_content(msg))
+            },
+            rtsim::DialogueKind::Response { msg, .. } => {
+                Some(self.localized_strings.get_content(msg))
+            },
         };
 
-        Text::new(&q_desc0)
-            .top_left_with_margins_on(state.ids.content_align, tweak!(0.0), tweak!(4.0))
-            .w(350.0)
-            // .top_left_with_margins_on(state.ids.intro_txt, tweak!(40.0), tweak!(0.0))
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(20)))
-            .color(TEXT_COLOR)
-            .set(state.ids.desc_txt_0, ui);
+        if let Some(msg_text) = msg_text {
+            Text::new(&msg_text)
+                .top_left_with_margins_on(state.ids.content_align, tweak!(0.0), tweak!(4.0))
+                .w(350.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(tweak!(20)))
+                .color(TEXT_COLOR)
+                .set(state.ids.desc_txt_0, ui);
+        }
 
-        // // Objective(s)
-        // let objective_amount = 20.0;
-        // let objective_name = "Flower";
-        // let objective_txt = format!("{}x {}", objective_amount, objective_name);
-
-        // Text::new(&objective_txt)
-        //     .down_from(state.ids.desc_txt_0, tweak!(10.0))
-        //     .font_id(self.fonts.cyri.conrod_id)
-        //     .font_size(self.fonts.cyri.scale(tweak!(20)))
-        //     .color(TEXT_VELORITE)
-        //     .set(state.ids.objective_text, ui);
-
-        // Text::new(&self.localized_strings.get_msg("hud-quest-reward"))
-        //     .down_from(state.ids.objective_text, tweak!(30.0))
-        //     .font_id(self.fonts.cyri.conrod_id)
-        //     .font_size(self.fonts.cyri.scale(tweak!(20)))
-        //     .color(TEXT_COLOR)
-        //     .set(state.ids.quest_option_txt, ui);
-
-        // insert reward item data here
-        // [amount, item_desc]
-
-        if let rtsim::Dialogue::Question {
-            id: question_id,
-            options,
-            ..
-        } = &self.dialogue
-        {
+        if let rtsim::DialogueKind::Question { options, tag, .. } = &self.dialogue.kind {
             if state.ids.quest_options_frames.len() < options.len() {
                 state.update(|s| {
                     s.ids
@@ -274,10 +238,13 @@ impl Widget for Quest<'_> {
                 };
                 let button = button.set(state.ids.quest_options_frames[i], ui);
                 if button.was_clicked() {
-                    event = Some(Event::Dialogue(self.sender, rtsim::Dialogue::Response {
-                        id: *question_id,
-                        msg: option_content.clone(),
-                        option_id: *option_id,
+                    event = Some(Event::Dialogue(self.sender, rtsim::Dialogue {
+                        id: self.dialogue.id,
+                        kind: rtsim::DialogueKind::Response {
+                            tag: *tag,
+                            msg: option_content.clone(),
+                            option_id: *option_id,
+                        },
                     }));
                 }
 
@@ -287,55 +254,8 @@ impl Widget for Quest<'_> {
                     .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                     .font_size(self.fonts.cyri.scale(tweak!(18)))
                     .set(state.ids.quest_rewards_txts[i], ui);
-                // // Item image
-                // Image::new(animate_by_pulse(
-                //     &self
-                //         .item_imgs
-                //         .img_ids_or_not_found_img(ItemKey::Simple(item.1.
-                // to_string())),     self.pulse,
-                // ))
-                // .w_h(38.0, 38.0)
-                // .middle_of(state.ids.quest_options_frames[i])
-                // .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                // .set(state.ids.quest_options_icons[i], ui);
             }
         }
-
-        // // Accept/Decline Buttons
-
-        // if Button::image(self.imgs.button)
-        //     .bottom_left_with_margins_on(state.ids.content_align, tweak!(5.0),
-        // tweak!(5.0))     .w_h(tweak!(120.0), tweak!(50.0))
-        //     .hover_image(self.imgs.button_hover)
-        //     .press_image(self.imgs.button_press)
-        //     .label(&self.localized_strings.get_msg("hud-quest-accept"))
-        //     .label_y(conrod_core::position::Relative::Scalar(3.0))
-        //     .label_color(TEXT_COLOR)
-        //     .label_font_size(self.fonts.cyri.scale(20))
-        //     .label_font_id(self.fonts.cyri.conrod_id)
-        //     .image_color(HP_COLOR)
-        //     .set(state.ids.accept_btn, ui)
-        //     .was_clicked()
-        // {
-        //     event = Some(Event::Close);
-        // };
-
-        // if Button::image(self.imgs.button)
-        //     .bottom_right_with_margins_on(state.ids.content_align, tweak!(5.0),
-        // tweak!(5.0))     .w_h(tweak!(120.0), tweak!(50.0))
-        //     .hover_image(self.imgs.button_hover)
-        //     .press_image(self.imgs.button_press)
-        //     .label(&self.localized_strings.get_msg("hud-quest-decline"))
-        //     .label_y(conrod_core::position::Relative::Scalar(3.0))
-        //     .label_color(TEXT_COLOR)
-        //     .label_font_size(self.fonts.cyri.scale(20))
-        //     .label_font_id(self.fonts.cyri.conrod_id)
-        //     .image_color(TEXT_DULL_RED_COLOR)
-        //     .set(state.ids.decline_btn, ui)
-        //     .was_clicked()
-        // {
-        //     event = Some(Event::Close);
-        // };
 
         event
     }

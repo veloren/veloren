@@ -4583,8 +4583,28 @@ impl Hud {
     }
 
     pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue) {
-        self.show.quest(true);
-        self.current_dialogue = Some((sender, dialogue));
+        match &dialogue.kind {
+            rtsim::DialogueKind::End => {
+                if self
+                    .current_dialogue
+                    .take_if(|(old_sender, _)| *old_sender == sender)
+                    .is_some()
+                {
+                    self.show.quest(false);
+                }
+            },
+            _ => {
+                if !self.show.quest
+                    || self
+                        .current_dialogue
+                        .as_ref()
+                        .map_or(true, |(old_sender, _)| *old_sender == sender)
+                {
+                    self.show.quest(true);
+                    self.current_dialogue = Some((sender, dialogue));
+                }
+            },
+        }
     }
 
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }

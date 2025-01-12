@@ -1,3 +1,5 @@
+pub mod dialogue;
+
 use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use crate::{
@@ -9,7 +11,7 @@ use crate::{
     },
     data::{
         ReportKind, Sentiment, Sites,
-        npc::{Brain, PathData, SimulationMode},
+        npc::{Brain, DialogueSession, PathData, SimulationMode},
     },
     event::OnTick,
 };
@@ -21,7 +23,10 @@ use common::{
         dialogue::Subject,
     },
     path::Path,
-    rtsim::{Actor, ChunkResource, Dialogue, NpcInput, PersonalityTrait, Profession, Role, SiteId},
+    rtsim::{
+        Actor, ChunkResource, Dialogue, DialogueKind, NpcInput, PersonalityTrait, Profession, Role,
+        SiteId,
+    },
     spiral::Spiral2d,
     store::Id,
     terrain::{CoordinateConversions, TerrainChunkSize, sprite},
@@ -45,6 +50,8 @@ use world::{
     },
     util::NEIGHBORS,
 };
+
+use self::dialogue::do_dialogue;
 
 /// How many ticks should pass between running NPC AI.
 /// Note that this only applies to simulated NPCs: loaded NPCs have their AI
@@ -634,58 +641,94 @@ fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Action<
         .map(|_, _| ())
 }
 
-fn wait_for_response<S: State>(question_id: u64) -> impl Action<S, u16> {
-    until(move |ctx, _| {
-        let mut response = None;
-        ctx.inbox.retain(|input| match input {
-            // TODO: Check response ID
-            NpcInput::Dialogue(sender, Dialogue::Response { id, option_id, .. })
-                if question_id == *id =>
-            {
-                response = Some(*option_id);
-                false
-            },
-            _ => true,
-        });
-        match response {
-            // TODO: Should be 'engage target in conversation'
-            None => ControlFlow::Continue(idle().boxed()),
-            Some(option_id) => ControlFlow::Break(option_id),
+fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
+    now(move |ctx, _| {
+        if ctx.sentiments.toward(tgt).is(Sentiment::RIVAL) {
+            just(move |ctx, _| {
+                ctx.controller
+                    .say(tgt, Content::localized("npc-speech-reject_rival"))
+            })
+            .boxed()
+        } else if matches!(tgt, Actor::Character(_)) {
+            //if matches!(ctx.npc.profession(), Some(Profession::Adventurer(_))) {
+            do_dialogue(tgt, |session| {
+                session
+                    .ask_question(Content::localized("npc-question-general"), [
+                        (0, Content::localized("dialogue-question-site")),
+                        (1, Content::localized("dialogue-question-self")),
+                    ])
+                    .and_then(move |resp| match resp {
+                        0 => now(move |ctx, _| {
+                            if let Some(current_site) = ctx.npc.current_site
+                                && let Some(current_site) = ctx.state.data().sites.get(current_site)
+                                && let Some(site_name) = current_site
+                                    .world_site
+                                    .map(|ws| ctx.index.sites.get(ws).name().to_string())
+                            {
+                                session.say_statement(Content::localized_with_args(
+                                    "npc-info-current_site",
+                                    [("site", Content::Plain(site_name))],
+                                ))
+                            } else {
+                                session.say_statement(Content::localized("npc-info-unknown"))
+                            }
+                        })
+                        .boxed(),
+                        _ => now(move |ctx, _| {
+                            let job = ctx
+                                .npc
+                                .profession()
+                                .map(|p| match p {
+                                    Profession::Farmer => "npc-info-role_farmer",
+                                    Profession::Hunter => "npc-info-role_hunter",
+                                    Profession::Merchant => "npc-info-role_merchant",
+                                    Profession::Guard => "npc-info-role_guard",
+                                    Profession::Adventurer(_) => "npc-info-role_adventurer",
+                                    Profession::Blacksmith => "npc-info-role_blacksmith",
+                                    Profession::Chef => "npc-info-role_chef",
+                                    Profession::Alchemist => "npc-info-role_alchemist",
+                                    Profession::Pirate => "npc-info-role_pirate",
+                                    Profession::Cultist => "npc-info-role_cultist",
+                                    Profession::Herbalist => "npc-info-role_herbalist",
+                                    Profession::Captain => "npc-info-role_captain",
+                                })
+                                .map(|p| {
+                                    Content::localized_with_args("npc-info-role", [(
+                                        "role",
+                                        Content::localized(p),
+                                    )])
+                                })
+                                .unwrap_or_else(|| Content::localized("npc-info-role_none"));
+
+                            let home = if let Some(home_site) = ctx.npc.home
+                                && let Some(home_site) = ctx.state.data().sites.get(home_site)
+                                && let Some(site_name) = home_site
+                                    .world_site
+                                    .map(|ws| ctx.index.sites.get(ws).name().to_string())
+                            {
+                                Content::localized_with_args("npc-info-self_home", [(
+                                    "site",
+                                    Content::Plain(site_name),
+                                )])
+                            } else {
+                                Content::localized("npc-info-self_homeless")
+                            };
+
+                            session.say_statement(job).then(session.say_statement(home))
+                        })
+                        .boxed(),
+                    })
+            })
+            .boxed()
+        } else {
+            smalltalk_to(tgt, None).boxed()
         }
     })
 }
 
-fn dialogue<S: State>(tgt: Actor) -> impl Action<S> {
-    just(move |ctx, _| {
-        ctx.controller
-            .question(tgt, Content::Plain("Hello, how are you?".to_string()), [
-                (0, Content::Plain("I'm good!".to_string())),
-                (1, Content::Plain("Terrible".to_string())),
-                (2, Content::Plain("You're on thin ice, buddy".to_string())),
-            ])
-    })
-    .and_then(wait_for_response)
-    .and_then(move |option_id| {
-        just(move |ctx, _| match option_id {
-            0 => ctx
-                .controller
-                .say(tgt, Content::Plain("Great!".to_string())),
-            1 => ctx.controller.say(
-                tgt,
-                Content::Plain("Oh dear, I'm sorry to hear that.".to_string()),
-            ),
-            _ => ctx
-                .controller
-                .say(tgt, Content::Plain("Woah, chill!".to_string())),
-        })
-    })
-}
-
-fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
+fn smalltalk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
     now(move |ctx, _| {
-        if true {
-            dialogue(tgt).boxed()
-        } else if matches!(tgt, Actor::Npc(_)) && ctx.rng.gen_bool(0.2) {
+        if matches!(tgt, Actor::Npc(_)) && ctx.rng.gen_bool(0.2) {
             // Cut off the conversation sometimes to avoid infinite conversations (but only
             // if the target is an NPC!) TODO: Don't special case this, have
             // some sort of 'bored of conversation' system
@@ -796,7 +839,7 @@ fn socialize() -> impl Action<EveryRange> {
                 .nearby(Some(ctx.npc_id), ctx.npc.wpos, 8.0)
                 .choose(&mut ctx.rng)
             {
-                return talk_to(other, None)
+                return smalltalk_to(other, None)
                     // After talking, wait for a while
                     .then(idle().repeat().stop_if(timeout(4.0)))
                     .map(|_, _| ())

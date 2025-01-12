@@ -9,8 +9,8 @@ use common::{
     comp,
     grid::Grid,
     rtsim::{
-        Actor, ChunkResource, Dialogue, FactionId, NpcAction, NpcActivity, NpcInput, Personality,
-        ReportId, Role, SiteId,
+        Actor, ChunkResource, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction,
+        NpcActivity, NpcInput, Personality, ReportId, Role, SiteId,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -23,7 +23,6 @@ use slotmap::HopSlotMap;
 use std::{
     collections::VecDeque,
     ops::{Deref, DerefMut},
-    sync::atomic::{AtomicU64, Ordering},
 };
 use tracing::error;
 use vek::*;
@@ -94,28 +93,76 @@ impl Controller {
 
     pub fn set_new_home(&mut self, new_home: SiteId) { self.new_home = Some(new_home); }
 
-    /// Ask a question, with various possible answers. Returns the dialogue ID.
-    pub fn question(
-        &mut self,
-        target: impl Into<Actor>,
-        msg: comp::Content,
-        options: impl IntoIterator<Item = (u16, comp::Content)>,
-    ) -> u64 {
+    /// Start a new dialogue.
+    pub fn dialogue_start(&mut self, target: impl Into<Actor>) -> DialogueSession {
         let target = target.into();
 
-        // Also, say the message
-        self.say(target, msg.clone());
+        let session = DialogueSession {
+            target,
+            id: DialogueId(thread_rng().gen()),
+        };
 
-        static ID_GENERATOR: AtomicU64 = AtomicU64::new(0);
-        let id = ID_GENERATOR.fetch_add(1, Ordering::Relaxed);
-        self.actions
-            .push(NpcAction::Dialogue(target, Dialogue::Question {
-                id,
-                msg,
-                options: options.into_iter().collect(),
-            }));
-        id
+        self.actions.push(NpcAction::Dialogue(target, Dialogue {
+            id: session.id,
+            kind: DialogueKind::Start,
+        }));
+
+        session
     }
+
+    /// End an existing dialogue.
+    pub fn dialogue_end(&mut self, session: DialogueSession) {
+        self.actions
+            .push(NpcAction::Dialogue(session.target, Dialogue {
+                id: session.id,
+                kind: DialogueKind::End,
+            }));
+    }
+
+    /// Ask a question, with various possible answers. Returns the dialogue tag,
+    /// used for identifying the answer.
+    pub fn dialogue_question(
+        &mut self,
+        mut session: DialogueSession,
+        msg: comp::Content,
+        options: impl IntoIterator<Item = (u16, comp::Content)>,
+    ) -> u32 {
+        // Also, say the message
+        self.say(session.target, msg.clone());
+
+        let tag = thread_rng().gen();
+
+        self.actions
+            .push(NpcAction::Dialogue(session.target, Dialogue {
+                id: session.id,
+                kind: DialogueKind::Question {
+                    tag,
+                    msg,
+                    options: options.into_iter().collect(),
+                },
+            }));
+
+        tag
+    }
+
+    /// Provide a statement as part of a dialogue.
+    pub fn dialogue_statement(&mut self, mut session: DialogueSession, msg: comp::Content) {
+        // Also, say the message
+        self.say(session.target, msg.clone());
+
+        self.actions
+            .push(NpcAction::Dialogue(session.target, Dialogue {
+                id: session.id,
+                kind: DialogueKind::Statement(msg),
+            }));
+    }
+}
+
+// Represents an ongoing dialogue with another actor.
+#[derive(Copy, Clone)]
+pub struct DialogueSession {
+    pub target: Actor,
+    pub id: DialogueId,
 }
 
 pub struct Brain {

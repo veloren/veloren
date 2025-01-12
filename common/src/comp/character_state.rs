@@ -7,7 +7,6 @@ use crate::{
     event::{self, EmitExt, LocalEvent},
     event_emitters,
     resources::Time,
-    rtsim,
     states::{
         self,
         behavior::{CharacterBehavior, JoinData},
@@ -1137,8 +1136,6 @@ pub struct CharacterActivity {
     /// If true, the owner has set this pet to stay at a fixed location and
     /// to not engage in combat
     pub is_pet_staying: bool,
-    /// Whether a character is currently engaging in dialogue, and what dialogue
-    pub dialogue: Option<rtsim::Dialogue>,
 }
 
 impl Component for CharacterActivity {

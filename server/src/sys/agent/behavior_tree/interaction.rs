@@ -72,12 +72,7 @@ pub fn increment_timer_deltatime(bdata: &mut BehaviorData) -> bool {
 
 pub fn handle_inbox_dialogue(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
-        agent,
-        agent_data,
-        read_data,
-        emitters,
-        controller,
-        ..
+        agent, read_data, ..
     } = bdata;
 
     if !matches!(agent.inbox.front(), Some(AgentEvent::Dialogue(_, _))) {

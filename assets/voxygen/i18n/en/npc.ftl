@@ -292,6 +292,44 @@ npc-speech-dist_near_to = very close
 
 npc-speech-arena = Let's sit over there!
 
+## NPC dialogue
+
+npc-question-general =
+    .a0 = What can I do for you?
+    .a1 = G'day. What's the matter?
+    .a2 = Hello there, what can I help you with?
+
+npc-info-current_site =
+    .a0 = This is { $site }.
+    .a1 = You're in { $site }.
+npc-info-self_home =
+    .a0 = I live in { $site }.
+    .a1 = My home is { $site }.
+npc-info-self_homeless =
+    .a0 = I don't have a home.
+    .a1 = I've nowhere to call home.
+npc-info-role =
+    .a0 = I'm a { $role }.
+    .a1 = I work as a { $role }.
+    .a2 = I'm a { $role } by trade.
+npc-info-role_none =
+    .a0 = I'm a free spirit.
+npc-info-role_farmer = farmer
+npc-info-role_hunter = hunter
+npc-info-role_merchant = merchant
+npc-info-role_guard = guard
+npc-info-role_adventurer = adventurer
+npc-info-role_blacksmith = blacksmith
+npc-info-role_chef = chef
+npc-info-role_alchemist = alchemist
+npc-info-role_pirate = pirate
+npc-info-role_cultist = cultist
+npc-info-role_herbalist = herbalist
+npc-info-role_captain = captain
+npc-info-unknown =
+    .a0 = I don't know.
+    .a1 = I'm not sure.
+
 ## NPC reactions
 
 npc-speech-witness_murder =
@@ -329,3 +367,8 @@ npc-speech-night =
 npc-speech-thank_you =
     .a0 = Thanks!
     .a1 = Thank you
+
+npc-speech-reject_rival =
+    .a0 = You're not welcome here.
+    .a1 = Sorry, I don't want to talk to you.
+    .a2 = You should leave.

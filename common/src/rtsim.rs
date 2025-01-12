@@ -265,18 +265,30 @@ pub enum NpcAction {
     Dialogue(Actor, Dialogue),
 }
 
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DialogueId(pub u64);
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum Dialogue {
+pub struct Dialogue {
+    pub id: DialogueId,
+    pub kind: DialogueKind,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum DialogueKind {
+    Start,
+    End,
+    Statement(Content),
     Question {
         // Used to uniquely track each question/response
-        id: u64,
+        tag: u32,
         msg: Content,
         // Response options for the target (option_id, content)
         options: Vec<(u16, Content)>,
     },
     Response {
         // Used to uniquely track each question/response
-        id: u64,
+        tag: u32,
         msg: Content,
         option_id: u16,
     },
