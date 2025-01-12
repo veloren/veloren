@@ -123,7 +123,7 @@ impl Controller {
     /// used for identifying the answer.
     pub fn dialogue_question(
         &mut self,
-        mut session: DialogueSession,
+        session: DialogueSession,
         msg: comp::Content,
         options: impl IntoIterator<Item = (u16, comp::Content)>,
     ) -> u32 {
@@ -146,7 +146,7 @@ impl Controller {
     }
 
     /// Provide a statement as part of a dialogue.
-    pub fn dialogue_statement(&mut self, mut session: DialogueSession, msg: comp::Content) {
+    pub fn dialogue_statement(&mut self, session: DialogueSession, msg: comp::Content) {
         // Also, say the message
         self.say(session.target, msg.clone());
 
