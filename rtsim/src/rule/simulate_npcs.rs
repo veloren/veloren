@@ -223,6 +223,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                 match action {
                     NpcAction::Say(_, _) => {}, // Currently, just swallow interactions
                     NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
+                    NpcAction::Dialogue(_, _) => {},
                 }
             }
 

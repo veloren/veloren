@@ -14,7 +14,7 @@ use crate::{
     mounting::VolumePos,
     outcome::Outcome,
     resources::Secs,
-    rtsim::RtSimEntity,
+    rtsim::{self, RtSimEntity},
     terrain::SpriteKind,
     trade::{TradeAction, TradeId},
     uid::Uid,
@@ -281,6 +281,8 @@ pub struct LandOnGroundEvent {
 pub struct SetLanternEvent(pub EcsEntity, pub bool);
 
 pub struct NpcInteractEvent(pub EcsEntity, pub EcsEntity, pub Subject);
+
+pub struct DialogueEvent(pub EcsEntity, pub EcsEntity, pub rtsim::Dialogue);
 
 pub struct InviteResponseEvent(pub EcsEntity, pub InviteResponse);
 
@@ -568,6 +570,7 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<LandOnGroundEvent>::default());
     ecs.insert(EventBus::<SetLanternEvent>::default());
     ecs.insert(EventBus::<NpcInteractEvent>::default());
+    ecs.insert(EventBus::<DialogueEvent>::default());
     ecs.insert(EventBus::<InviteResponseEvent>::default());
     ecs.insert(EventBus::<InitiateInviteEvent>::default());
     ecs.insert(EventBus::<ProcessTradeActionEvent>::default());

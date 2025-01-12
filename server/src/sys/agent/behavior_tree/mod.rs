@@ -18,6 +18,7 @@ use common::{
 use rand::{Rng, prelude::ThreadRng, thread_rng};
 use server_agent::data::AgentEmitters;
 use specs::Entity as EcsEntity;
+use tracing::warn;
 use vek::{Vec2, Vec3};
 
 use self::interaction::{
@@ -631,6 +632,18 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                         bdata.read_data.positions.get(target).map(|p| p.0),
                     ));
                     bdata.agent.awareness.set_maximally_aware();
+                }
+            },
+            NpcAction::Dialogue(target, dialogue) => {
+                if let Some(target) = bdata.read_data.lookup_actor(target)
+                    && let Some(target_uid) = bdata.read_data.uids.get(target)
+                {
+                    bdata
+                        .controller
+                        .push_event(ControlEvent::Dialogue(*target_uid, dialogue));
+                    println!("HERE3!");
+                } else {
+                    warn!("NPC dialogue sent to non-existent target entity");
                 }
             },
         }

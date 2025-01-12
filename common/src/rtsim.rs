@@ -262,7 +262,29 @@ pub enum NpcAction {
     Say(Option<Actor>, Content),
     /// Attack the given target
     Attack(Actor),
+    Dialogue(Actor, Dialogue),
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Dialogue {
+    Question {
+        // Used to uniquely track each question/response
+        id: u64,
+        msg: Content,
+        // Response options for the target
+        options: Vec<(u16, Content)>,
+    },
+}
+
+impl core::cmp::PartialEq for Dialogue {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Question { id, .. }, Self::Question { id: other, .. }) => id == other,
+            // _ => false,
+        }
+    }
+}
+impl core::cmp::Eq for Dialogue {}
 
 // Represents a message passed back to rtsim from an agent's brain
 #[derive(Clone, Debug)]

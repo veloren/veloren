@@ -628,13 +628,22 @@ fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Action<
         .map(|_, _| ())
 }
 
-fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> + Clone {
+fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
     now(move |ctx, _| {
-        if matches!(tgt, Actor::Npc(_)) && ctx.rng.gen_bool(0.2) {
+        if true {
+            just(move |ctx, _| {
+                ctx.controller
+                    .dialogue(tgt, Content::Plain("HELLO!".to_string()), [
+                        (0, Content::Plain("Go away!".to_string())),
+                        (1, Content::Plain("Who are you?".to_string())),
+                    ]);
+            })
+            .boxed()
+        } else if matches!(tgt, Actor::Npc(_)) && ctx.rng.gen_bool(0.2) {
             // Cut off the conversation sometimes to avoid infinite conversations (but only
             // if the target is an NPC!) TODO: Don't special case this, have
             // some sort of 'bored of conversation' system
-            idle().l()
+            idle().boxed()
         } else {
             // Mention nearby sites
             let comment = if ctx.rng.gen_bool(0.3)
@@ -712,12 +721,12 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> + 
                 .repeat()
                 .stop_if(timeout(wait))
                 .then(just(move |ctx, _| ctx.controller.say(tgt, comment.clone())))
-                .r()
+                .boxed()
         }
     })
 }
 
-fn socialize() -> impl Action<EveryRange> + Clone {
+fn socialize() -> impl Action<EveryRange> {
     now(move |ctx, socialize: &mut EveryRange| {
         // Skip most socialising actions if we're not loaded
         if matches!(ctx.npc.mode, SimulationMode::Loaded)
@@ -1039,7 +1048,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
 
                     let action = casual(travel_to_point(tavern.door_wpos.xy().as_() + 0.5, 0.8).then(choose(move |ctx, (last_action, _)| {
                             let action = [0, 1, 2].into_iter().filter(|i| *last_action != Some(*i)).choose(&mut ctx.rng).expect("We have at least 2 elements");
-                            let socialize = socialize().map_state(|(_, timer)| timer).repeat();
+                            let socialize = || socialize().map_state(|(_, timer)| timer).repeat();
                             match action {
                                 // Go and dance on a stage.
                                 0 => {
@@ -1056,7 +1065,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                                     casual(
                                         now(move |ctx, (last_action, _)| {
                                             *last_action = Some(action);
-                                            goto(chair_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(just(move |ctx, _| ctx.controller.do_sit(None, Some(chair_pos)))).then(socialize.clone().stop_if(timeout(ctx.rng.gen_range(30.0..60.0)))).map(|_, _| ())
+                                            goto(chair_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(just(move |ctx, _| ctx.controller.do_sit(None, Some(chair_pos)))).then(socialize().stop_if(timeout(ctx.rng.gen_range(30.0..60.0)))).map(|_, _| ())
                                         })
                                     )
                                 },
@@ -1065,7 +1074,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                                     casual(
                                         now(move |ctx, (last_action, _)| {
                                             *last_action = Some(action);
-                                            goto(bar_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(socialize.clone().stop_if(timeout(ctx.rng.gen_range(10.0..25.0)))).map(|_, _| ())
+                                            goto(bar_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(socialize().stop_if(timeout(ctx.rng.gen_range(10.0..25.0)))).map(|_, _| ())
                                         })
                                     )
                                 },

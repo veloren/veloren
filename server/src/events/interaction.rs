@@ -2,6 +2,7 @@ use std::{f32::consts::PI, ops::Mul};
 
 use common_state::{BlockChange, ScheduledBlockChange};
 use specs::{DispatcherBuilder, Join, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use tracing::warn;
 use vek::*;
 
 use common::{
@@ -16,8 +17,9 @@ use common::{
     },
     consts::{MAX_INTERACT_RANGE, MAX_NPCINTERACT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     event::{
-        CreateItemDropEvent, CreateSpriteEvent, EventBus, MineBlockEvent, NpcInteractEvent,
-        SetLanternEvent, SetPetStayEvent, SoundEvent, TamePetEvent, ToggleSpriteLightEvent,
+        CreateItemDropEvent, CreateSpriteEvent, DialogueEvent, EventBus, MineBlockEvent,
+        NpcInteractEvent, SetLanternEvent, SetPetStayEvent, SoundEvent, TamePetEvent,
+        ToggleSpriteLightEvent,
     },
     link::Is,
     mounting::Mount,
@@ -29,7 +31,7 @@ use common::{
     vol::ReadVol,
 };
 
-use crate::{Server, Time};
+use crate::{Server, ServerGeneral, Time, client::Client};
 
 use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
@@ -41,6 +43,7 @@ use super::{ServerEvent, event_dispatch, mounting::within_mounting_range};
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<SetLanternEvent>(builder, &[]);
     event_dispatch::<NpcInteractEvent>(builder, &[]);
+    event_dispatch::<DialogueEvent>(builder, &[]);
     event_dispatch::<SetPetStayEvent>(builder, &[]);
     event_dispatch::<MineBlockEvent>(builder, &[]);
     event_dispatch::<SoundEvent>(builder, &[]);
@@ -124,6 +127,53 @@ impl ServerEvent for NpcInteractEvent {
                     agent
                         .inbox
                         .push_back(AgentEvent::Talk(*interactor_uid, subject));
+                }
+            }
+        }
+    }
+}
+
+impl ServerEvent for DialogueEvent {
+    type SystemData<'a> = (
+        ReadStorage<'a, Uid>,
+        ReadStorage<'a, comp::Pos>,
+        ReadStorage<'a, Client>,
+        WriteStorage<'a, comp::Agent>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (uids, positions, clients, mut agents): Self::SystemData<'_>,
+    ) {
+        for DialogueEvent(interactor, target, dialogue) in events {
+            let within_range = {
+                positions.get(interactor).zip(positions.get(target)).map_or(
+                    false,
+                    |(interactor_pos, target_pos)| {
+                        interactor_pos.0.distance_squared(target_pos.0)
+                            <= MAX_NPCINTERACT_RANGE.powi(2)
+                    },
+                )
+            };
+
+            if within_range {
+                // Send to agent, if target is an agent, or the client
+                if let Some(agent) = agents.get_mut(target)
+                    && agent.target.is_none()
+                    && let Some(interactor_uid) = uids.get(interactor)
+                {
+                    agent
+                        .inbox
+                        .push_back(AgentEvent::Dialogue(*interactor_uid, dialogue));
+                } else if let Some(client) = clients.get(target)
+                    && let Some(interactor_uid) = uids.get(interactor)
+                {
+                    client.send_fallible(ServerGeneral::Dialogue(*interactor_uid, dialogue));
+                    println!("HERE!");
+                } else {
+                    warn!(
+                        "Dialogue event terminated due to entity not having receiving capability"
+                    );
                 }
             }
         }

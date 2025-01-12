@@ -4,7 +4,7 @@ use crate::{
         quadruped_medium, quadruped_small, ship,
     },
     path::Chaser,
-    rtsim::{NpcInput, RtSimController},
+    rtsim::{self, NpcInput, RtSimController},
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
@@ -488,6 +488,7 @@ pub enum AgentEvent {
     ),
     ServerSound(Sound),
     Hurt,
+    Dialogue(Uid, rtsim::Dialogue),
 }
 
 #[derive(Copy, Clone, Debug)]

@@ -37,6 +37,7 @@ use common::{
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
     resources::{GameMode, PlayerEntity, Time, TimeOfDay},
+    rtsim,
     shared_server_config::ServerConstants,
     spiral::Spiral2d,
     terrain::{
@@ -121,6 +122,7 @@ pub enum Event {
     StartSpectate(Vec3<f32>),
     SpectatePosition(Vec3<f32>),
     PluginDataReceived(Vec<u8>),
+    Dialogue(Uid, rtsim::Dialogue),
 }
 
 #[derive(Debug)]
@@ -2845,6 +2847,9 @@ impl Client {
                 self.update_available_recipes();
 
                 frontend_events.push(Event::InventoryUpdated(events));
+            },
+            ServerGeneral::Dialogue(sender, dialogue) => {
+                frontend_events.push(Event::Dialogue(sender, dialogue));
             },
             ServerGeneral::SetViewDistance(vd) => {
                 self.view_distance = Some(vd);

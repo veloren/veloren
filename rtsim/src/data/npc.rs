@@ -9,8 +9,8 @@ use common::{
     comp,
     grid::Grid,
     rtsim::{
-        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, NpcInput, Personality, ReportId,
-        Role, SiteId,
+        Actor, ChunkResource, Dialogue, FactionId, NpcAction, NpcActivity, NpcInput, Personality,
+        ReportId, Role, SiteId,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -23,6 +23,7 @@ use slotmap::HopSlotMap;
 use std::{
     collections::VecDeque,
     ops::{Deref, DerefMut},
+    sync::atomic::{AtomicU64, Ordering},
 };
 use tracing::error;
 use vek::*;
@@ -92,6 +93,29 @@ impl Controller {
     }
 
     pub fn set_new_home(&mut self, new_home: SiteId) { self.new_home = Some(new_home); }
+
+    /// Ask a question, with various possible answers. Returns the dialogue ID.
+    pub fn dialogue(
+        &mut self,
+        target: impl Into<Actor>,
+        msg: comp::Content,
+        options: impl IntoIterator<Item = (u16, comp::Content)>,
+    ) -> u64 {
+        let target = target.into();
+
+        // Also, say the message
+        self.say(target, msg.clone());
+
+        static ID_GENERATOR: AtomicU64 = AtomicU64::new(0);
+        let id = ID_GENERATOR.fetch_add(1, Ordering::Relaxed);
+        self.actions
+            .push(NpcAction::Dialogue(target, Dialogue::Question {
+                id,
+                msg,
+                options: options.into_iter().collect(),
+            }));
+        id
+    }
 }
 
 pub struct Brain {

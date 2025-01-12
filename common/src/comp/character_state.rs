@@ -7,6 +7,7 @@ use crate::{
     event::{self, EmitExt, LocalEvent},
     event_emitters,
     resources::Time,
+    rtsim,
     states::{
         self,
         behavior::{CharacterBehavior, JoinData},
@@ -94,7 +95,7 @@ impl From<&JoinData<'_>> for StateUpdate {
             character: data.character.clone(),
             queued_inputs: BTreeMap::new(),
             removed_inputs: Vec::new(),
-            character_activity: *data.character_activity,
+            character_activity: data.character_activity.clone(),
         }
     }
 }
@@ -1124,7 +1125,7 @@ impl Component for CharacterState {
 /// might include markers indicating that they're available for
 /// trade/interaction, more details about their stance or appearance, facial
 /// expression, etc.
-#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CharacterActivity {
     /// `None` means that the look direction should be derived from the
     /// orientation
@@ -1136,6 +1137,8 @@ pub struct CharacterActivity {
     /// If true, the owner has set this pet to stay at a fixed location and
     /// to not engage in combat
     pub is_pet_staying: bool,
+    /// Whether a character is currently engaging in dialogue, and what dialogue
+    pub dialogue: Option<rtsim::Dialogue>,
 }
 
 impl Component for CharacterActivity {

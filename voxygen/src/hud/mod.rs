@@ -110,6 +110,7 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBookManifest,
     resources::{Secs, Time},
+    rtsim,
     slowjob::SlowJobPool,
     terrain::{Block, SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
@@ -4569,6 +4570,14 @@ impl Hud {
 
     pub fn new_loot_message(&mut self, item: LootMessage) {
         self.new_loot_messages.push_back(item);
+    }
+
+    pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue) {
+        println!("Received dialogue!!!");
+        // self.show.dialogue(true);
+        // if !state {
+        //     slot_manager.idle();
+        // }
     }
 
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }

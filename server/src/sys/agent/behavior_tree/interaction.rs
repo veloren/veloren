@@ -634,6 +634,13 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                 );
             },
             AgentEvent::ServerSound(_) | AgentEvent::Hurt => return false,
+            AgentEvent::Dialogue(sender, dialogue) => {
+                if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
+                    todo!()
+                    // rtsim_outbox.push_back(NpcInput::Interaction(actor,
+                    // subject));
+                }
+            },
         };
 
         agent.inbox.pop_front();
