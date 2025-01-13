@@ -22,6 +22,7 @@ pub struct AirshipDock {
     base: i32,
     height: i32,
     pub docking_positions: Vec<Vec3<i32>>,
+    pub door_dir: Vec2<i32>,
     campfire_pos: Vec3<i32>,
 }
 
@@ -65,6 +66,7 @@ impl AirshipDock {
             base,
             height,
             docking_positions,
+            door_dir,
             campfire_pos,
         }
     }
@@ -749,13 +751,14 @@ impl Structure for AirshipDock {
         // dock
         for dock_pos in &self.docking_positions {
             painter.rotated_sprite_with_cfg(
-                *dock_pos,
+                *dock_pos - self.door_dir.yx(),
                 SpriteKind::Sign,
                 Dir::from_vec2(dock_pos.xy() - self.center).sprite_ori(),
                 SpriteCfg {
-                unlock: None,
-                content: Some(Content::localized("common-signs-airship_dock")),
-            });
+                    unlock: None,
+                    content: Some(Content::localized("common-signs-airship_dock")),
+                },
+            );
         }
     }
 }
