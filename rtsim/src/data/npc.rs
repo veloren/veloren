@@ -65,6 +65,8 @@ pub struct Controller {
 impl Controller {
     pub fn do_idle(&mut self) { self.activity = None; }
 
+    pub fn do_talk(&mut self, tgt: Actor) { self.activity = Some(NpcActivity::Talk(tgt)); }
+
     pub fn do_goto(&mut self, wpos: Vec3<f32>, speed_factor: f32) {
         self.activity = Some(NpcActivity::Goto(wpos, speed_factor));
     }
@@ -127,9 +129,6 @@ impl Controller {
         msg: comp::Content,
         options: impl IntoIterator<Item = (u16, comp::Content)>,
     ) -> u32 {
-        // Also, say the message
-        self.say(session.target, msg.clone());
-
         let tag = thread_rng().gen();
 
         self.actions
@@ -147,9 +146,6 @@ impl Controller {
 
     /// Provide a statement as part of a dialogue.
     pub fn dialogue_statement(&mut self, session: DialogueSession, msg: comp::Content) {
-        // Also, say the message
-        self.say(session.target, msg.clone());
-
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {
                 id: session.id,

@@ -2134,7 +2134,9 @@ impl Client {
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
 
     /// Send a chat message to the server.
-    pub fn send_chat(&mut self, message: String) { self.send_msg(ClientGeneral::ChatMsg(message)); }
+    pub fn send_chat(&mut self, message: String) {
+        self.send_msg(ClientGeneral::ChatMsg(comp::Content::Plain(message)));
+    }
 
     /// Send a command to the server.
     pub fn send_command(&mut self, name: String, args: Vec<String>) {
@@ -2163,6 +2165,10 @@ impl Client {
 
     pub fn perform_dialogue(&mut self, target: EcsEntity, dialogue: rtsim::Dialogue) {
         if let Some(target_uid) = self.state.read_component_copied(target) {
+            // TODO: Add a way to do send-only chat
+            // if let Some(msg) = dialogue.message().cloned() {
+            //     self.send_msg(ClientGeneral::ChatMsg(msg));
+            // }
             self.control_event(ControlEvent::Dialogue(target_uid, dialogue));
         }
     }

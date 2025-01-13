@@ -179,26 +179,55 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
             })
             .boxed()
         } else if matches!(tgt, Actor::Character(_)) {
-            //if matches!(ctx.npc.profession(), Some(Profession::Adventurer(_))) {
-            do_dialogue(tgt, |session| {
+            let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));
+
+            do_dialogue(tgt, move |session| {
                 session
                     .ask_question(Content::localized("npc-question-general"), [
-                        (0, Content::localized("dialogue-question-site")),
-                        (1, Content::localized("dialogue-question-self")),
+                        Some((0, Content::localized("dialogue-question-site"))),
+                        Some((1, Content::localized("dialogue-question-self"))),
+                        can_be_hired.then(|| (2, Content::localized("dialogue-question-hire"))),
+                        Some((3, Content::localized("dialogue-question-sentiment"))),
                     ])
                     .and_then(move |resp| match resp {
                         0 => now(move |ctx, _| {
                             if let Some(site_name) = util::site_name(ctx, ctx.npc.current_site) {
-                                session.say_statement(Content::localized_with_args(
-                                    "npc-info-current_site",
-                                    [("site", Content::Plain(site_name))],
-                                ))
+                                let mut action = session
+                                    .say_statement(Content::localized_with_args(
+                                        "npc-info-current_site",
+                                        [("site", Content::Plain(site_name))],
+                                    ))
+                                    .boxed();
+
+                                if let Some(current_site) = ctx.npc.current_site
+                                    && let Some(current_site) =
+                                        ctx.state.data().sites.get(current_site)
+                                {
+                                    for mention_site in &current_site.nearby_sites_by_size {
+                                        if ctx.rng.gen_bool(0.5)
+                                            && let Some(content) =
+                                                tell_site_content(ctx, *mention_site)
+                                        {
+                                            action =
+                                                action.then(session.say_statement(content)).boxed();
+                                        }
+                                    }
+                                }
+
+                                action
                             } else {
-                                session.say_statement(Content::localized("npc-info-unknown"))
+                                session
+                                    .say_statement(Content::localized("npc-info-unknown"))
+                                    .boxed()
                             }
                         })
                         .boxed(),
-                        _ => now(move |ctx, _| {
+                        1 => now(move |ctx, _| {
+                            let name = Content::localized_with_args("npc-info-self_name", [(
+                                "name",
+                                Content::Plain(ctx.npc.get_name()),
+                            )]);
+
                             let job = ctx
                                 .npc
                                 .profession()
@@ -233,9 +262,50 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                                 Content::localized("npc-info-self_homeless")
                             };
 
-                            session.say_statement(job).then(session.say_statement(home))
+                            session
+                                .say_statement(name)
+                                .then(session.say_statement(job))
+                                .then(session.say_statement(home))
                         })
                         .boxed(),
+                        2 if can_be_hired => now(move |ctx, _| {
+                            if false && ctx.npc.rng(38792).gen_bool(0.25) {
+                                session
+                                    .say_statement(Content::localized("npc-response-accept_hire"))
+                            } else {
+                                session
+                                    .say_statement(Content::localized("npc-response-decline_hire"))
+                            }
+                        })
+                        .boxed(),
+                        3 => session
+                            .ask_question(Content::Plain("...".to_string()), [Some((
+                                0,
+                                Content::localized("dialogue-me"),
+                            ))])
+                            .boxed()
+                            .and_then(move |resp| match resp {
+                                0 => now(move |ctx, _| {
+                                    if ctx.sentiments.toward(tgt).is(Sentiment::ALLY) {
+                                        session.say_statement(Content::localized(
+                                            "npc-response-like_you",
+                                        ))
+                                    } else if ctx.sentiments.toward(tgt).is(Sentiment::RIVAL) {
+                                        session.say_statement(Content::localized(
+                                            "npc-response-dislike_you",
+                                        ))
+                                    } else {
+                                        session.say_statement(Content::localized(
+                                            "npc-response-ambivalent_you",
+                                        ))
+                                    }
+                                })
+                                .boxed(),
+                                _ => idle().boxed(),
+                            })
+                            .boxed(),
+                        // All other options
+                        _ => idle().boxed(),
                     })
             })
             .boxed()
@@ -243,6 +313,27 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
             smalltalk_to(tgt, None).boxed()
         }
     })
+}
+
+fn tell_site_content(ctx: &NpcCtx, site: SiteId) -> Option<Content> {
+    if let Some(world_site) = ctx.state.data().sites.get(site)
+        && let Some(site_name) = util::site_name(ctx, site)
+    {
+        Some(Content::localized_with_args("npc-speech-tell_site", [
+            ("site", Content::Plain(site_name)),
+            (
+                "dir",
+                Direction::from_dir(world_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc(),
+            ),
+            (
+                "dist",
+                Distance::from_length(world_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
+                    .localize_npc(),
+            ),
+        ]))
+    } else {
+        None
+    }
 }
 
 fn smalltalk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
@@ -258,24 +349,9 @@ fn smalltalk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<
                 && let Some(current_site) = ctx.npc.current_site
                 && let Some(current_site) = ctx.state.data().sites.get(current_site)
                 && let Some(mention_site) = current_site.nearby_sites_by_size.choose(&mut ctx.rng)
-                && let Some(world_site) = ctx.state.data().sites.get(*mention_site)
-                && let Some(site_name) = util::site_name(ctx, *mention_site)
+                && let Some(content) = tell_site_content(ctx, *mention_site)
             {
-                Content::localized_with_args("npc-speech-tell_site", [
-                    ("site", Content::Plain(site_name)),
-                    (
-                        "dir",
-                        Direction::from_dir(world_site.wpos.as_() - ctx.npc.wpos.xy())
-                            .localize_npc(),
-                    ),
-                    (
-                        "dist",
-                        Distance::from_length(
-                            world_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32
-                        )
-                        .localize_npc(),
-                    ),
-                ])
+                content
             // Mention current site
             } else if ctx.rng.gen_bool(0.3)
                 && let Some(current_site) = ctx.npc.current_site

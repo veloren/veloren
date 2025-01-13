@@ -480,20 +480,19 @@ impl<
     fn reset(&mut self) { self.1 = None; }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R1> {
-        match &mut self.1 {
-            Some(x) => match x.tick(ctx, state) {
-                ControlFlow::Continue(()) => ControlFlow::Continue(()),
-                ControlFlow::Break(_) => {
-                    self.1 = None;
-                    ControlFlow::Continue(())
-                },
-            },
+        let action = match &mut self.1 {
+            Some(action) => action,
             None => match (self.0)(ctx, state) {
-                ControlFlow::Continue(x) => {
-                    self.1 = Some(x);
-                    ControlFlow::Continue(())
-                },
-                ControlFlow::Break(b) => ControlFlow::Break(b),
+                ControlFlow::Continue(action) => self.1.insert(action),
+                ControlFlow::Break(b) => return ControlFlow::Break(b),
+            },
+        };
+
+        match action.tick(ctx, state) {
+            ControlFlow::Continue(()) => ControlFlow::Continue(()),
+            ControlFlow::Break(_) => {
+                self.1 = None;
+                ControlFlow::Continue(())
             },
         }
     }

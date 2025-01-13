@@ -642,6 +642,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                     bdata
                         .controller
                         .push_event(ControlEvent::Dialogue(*target_uid, dialogue));
+                    bdata.controller.push_utterance(UtteranceKind::Greeting);
                 } else {
                     warn!("NPC dialogue sent to non-existent target entity");
                 }

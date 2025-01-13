@@ -1,10 +1,11 @@
 use common::{
     comp::{
         Body, BuffChange, Collider, ControlEvent, Controller, Health, Pos, Scale,
+        UnresolvedChatMsg,
         ability::Stance,
         agent::{Sound, SoundKind},
     },
-    event::{self, EmitExt},
+    event::{self, ChatEvent, EmitExt},
     event_emitters,
     interaction::Interaction,
     terrain::TerrainGrid,
@@ -37,6 +38,7 @@ event_emitters! {
         buff: event::BuffEvent,
         start_interaction: event::StartInteractionEvent,
         kill: event::KillEvent,
+        chat: event::ChatEvent,
     }
 }
 
@@ -67,9 +69,9 @@ impl<'a> System<'a> for Sys {
     fn run(_job: &mut Job<Self>, (read_data, mut controllers): Self::SystemData) {
         let mut emitters = read_data.events.get_emitters();
 
-        (&read_data.entities, &mut controllers)
+        (&read_data.entities, &read_data.uids, &mut controllers)
             .lend_join()
-            .for_each(|(entity, controller)| {
+            .for_each(|(entity, uid, controller)| {
                 // Sanitize inputs to avoid clients sending bad data
                 controller.inputs.sanitize();
 
@@ -195,6 +197,9 @@ impl<'a> System<'a> for Sys {
                             }
                         },
                         ControlEvent::Dialogue(target, dialogue) => {
+                            if let Some(msg) = dialogue.message().cloned() {
+                                emitters.emit(ChatEvent(UnresolvedChatMsg::npc(*uid, msg)));
+                            }
                             if let Some(target) = read_data.id_maps.uid_entity(target) {
                                 emitters.emit(event::DialogueEvent(
                                     entity,

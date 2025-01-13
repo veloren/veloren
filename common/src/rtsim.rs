@@ -250,6 +250,7 @@ pub enum NpcActivity {
     Dance(Option<Dir>),
     Cheer(Option<Dir>),
     Sit(Option<Dir>, Option<Vec3<i32>>),
+    Talk(Actor),
 }
 
 /// Represents event-like actions that rtsim NPCs can perform to interact with
@@ -272,6 +273,17 @@ pub struct DialogueId(pub u64);
 pub struct Dialogue {
     pub id: DialogueId,
     pub kind: DialogueKind,
+}
+
+impl Dialogue {
+    pub fn message(&self) -> Option<&Content> {
+        match &self.kind {
+            DialogueKind::Start | DialogueKind::End => None,
+            DialogueKind::Statement(msg)
+            | DialogueKind::Question { msg, .. }
+            | DialogueKind::Response { msg, .. } => Some(msg),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -117,7 +117,7 @@ pub enum ClientGeneral {
         key: Vec2<i32>,
     },
     //Always possible
-    ChatMsg(String),
+    ChatMsg(comp::Content),
     Command(String, Vec<String>),
     Terminate,
     RequestPlayerPhysics {

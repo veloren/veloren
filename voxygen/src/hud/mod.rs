@@ -3656,7 +3656,6 @@ impl Hud {
                     tooltip_manager,
                     stats,
                     &self.item_imgs,
-                    self.pulse,
                     *sender,
                     dialogue,
                 )

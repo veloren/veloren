@@ -302,6 +302,10 @@ npc-question-general =
 npc-info-current_site =
     .a0 = This is { $site }.
     .a1 = You're in { $site }.
+npc-info-self_name =
+    .a0 = My name is { $name }.
+    .a1 = They call me { $name }.
+    .a2 = { $name }'s the name.
 npc-info-self_home =
     .a0 = I live in { $site }.
     .a1 = My home is { $site }.
@@ -329,6 +333,24 @@ npc-info-role_captain = captain
 npc-info-unknown =
     .a0 = I don't know.
     .a1 = I'm not sure.
+
+npc-response-accept_hire =
+    .a0 = Sounds like a deal to me.
+    .a1 = I'm interested...
+npc-response-decline_hire =
+    .a0 = Sorry, I don't have time right now.
+    .a1 = No thanks, sorry.
+
+npc-response-like_you =
+    .a0 = I like you!
+    .a1 = You seem like a good friend.
+    .a1 = I think you're friendly.
+npc-response-ambivalent_you =
+    .a0 = You seem fine.
+    .a1 = I don't have any strong feelings, really.
+npc-response-dislike_you =
+    .a0 = I don't like you much.
+    .a1 = You don't seem very nice.
 
 ## NPC reactions
 

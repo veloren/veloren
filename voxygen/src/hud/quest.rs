@@ -1,10 +1,7 @@
 use client::{Client, EcsEntity};
-use common::{
-    comp::{Stats, inventory::item::item_key::ItemKey},
-    rtsim,
-};
+use common::{comp::Stats, rtsim};
 use conrod_core::{
-    Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
+    Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids,
 };
@@ -14,9 +11,9 @@ use crate::ui::{TooltipManager, fonts::Fonts};
 use inline_tweak::*;
 
 use super::{
-    HP_COLOR, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{ItemImgs, animate_by_pulse},
+    item_imgs::ItemImgs,
 };
 
 pub struct State {
@@ -58,7 +55,6 @@ pub struct Quest<'a> {
     _tooltip_manager: &'a mut TooltipManager,
     stats: &'a Stats,
     item_imgs: &'a ItemImgs,
-    pulse: f32,
     sender: EcsEntity,
     dialogue: &'a rtsim::Dialogue,
 
@@ -77,7 +73,6 @@ impl<'a> Quest<'a> {
         _tooltip_manager: &'a mut TooltipManager,
         stats: &'a Stats,
         item_imgs: &'a ItemImgs,
-        pulse: f32,
         sender: EcsEntity,
         dialogue: &'a rtsim::Dialogue,
     ) -> Self {
@@ -91,7 +86,6 @@ impl<'a> Quest<'a> {
             _tooltip_manager,
             stats,
             item_imgs,
-            pulse,
             sender,
             dialogue,
             common: widget::CommonBuilder::default(),
@@ -172,14 +166,7 @@ impl Widget for Quest<'_> {
             .color(Color::Rgba(0.79, 1.09, 1.09, 0.0))
             .set(state.ids.scrollbar, ui);
 
-        enum QuestType {
-            FetchQuest,
-            // KillQuest,
-        }
-
         // Define type of quest to change introduction text
-
-        let quest_type = QuestType::FetchQuest;
 
         let msg_text = match &self.dialogue.kind {
             rtsim::DialogueKind::Start | rtsim::DialogueKind::End => None,
@@ -195,7 +182,7 @@ impl Widget for Quest<'_> {
         if let Some(msg_text) = msg_text {
             Text::new(&msg_text)
                 .top_left_with_margins_on(state.ids.content_align, tweak!(0.0), tweak!(4.0))
-                .w(350.0)
+                .w(250.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(tweak!(20)))
                 .color(TEXT_COLOR)

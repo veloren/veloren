@@ -1,5 +1,9 @@
 use super::*;
 
+pub fn talk<S: State>(tgt: Actor) -> impl Action<S> + Clone {
+    just(move |ctx, _| ctx.controller.do_talk(tgt)).debug(|| "talking")
+}
+
 pub fn do_dialogue<S: State, A: Action<S>>(
     tgt: Actor,
     f: impl Fn(DialogueSession) -> A + Send + Sync + 'static,
@@ -16,15 +20,17 @@ pub fn do_dialogue<S: State, A: Action<S>>(
 }
 
 impl DialogueSession {
-    pub fn ask_question<S: State>(
+    pub fn ask_question<S: State, O: Into<Option<(u16, Content)>>>(
         self,
         question: Content,
-        options: impl IntoIterator<Item = (u16, Content)> + Clone + Send + Sync + 'static,
+        options: impl IntoIterator<Item = O> + Clone + Send + Sync + 'static,
     ) -> impl Action<S, u16> {
         now(move |ctx, _| {
-            let q_tag = ctx
-                .controller
-                .dialogue_question(self, question.clone(), options.clone());
+            let q_tag = ctx.controller.dialogue_question(
+                self,
+                question.clone(),
+                options.clone().into_iter().flat_map(Into::into),
+            );
             until(move |ctx, _| {
                 let mut response = None;
                 ctx.inbox.retain(|input| {
@@ -41,7 +47,7 @@ impl DialogueSession {
                 });
                 match response {
                     // TODO: Should be 'engage target in conversation'
-                    None => ControlFlow::Continue(idle().boxed()),
+                    None => ControlFlow::Continue(talk(self.target).boxed()),
                     Some(option_id) => ControlFlow::Break(option_id),
                 }
             })
@@ -52,7 +58,10 @@ impl DialogueSession {
         now(move |ctx, _| {
             ctx.controller.dialogue_statement(self, stmt.clone());
             // Wait for a while after making the statement so others can read it
-            idle().repeat().stop_if(timeout(4.0)).map(|_, _| ())
+            talk(self.target)
+                .repeat()
+                .stop_if(timeout(2.5))
+                .map(|_, _| ())
         })
     }
 }

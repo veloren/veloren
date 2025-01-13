@@ -44,11 +44,7 @@ impl Sys {
                         const CHAT_MODE_DEFAULT: &ChatMode = &ChatMode::default();
                         let mode = chat_modes.get(entity).unwrap_or(CHAT_MODE_DEFAULT);
                         // Try sending the chat message
-                        match mode.to_msg(
-                            *from,
-                            Content::Plain(message),
-                            groups.get(entity).copied(),
-                        ) {
+                        match mode.to_msg(*from, message, groups.get(entity).copied()) {
                             Ok(message) => {
                                 emitters.emit(event::ChatEvent(message));
                             },
