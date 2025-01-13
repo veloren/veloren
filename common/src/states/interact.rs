@@ -21,8 +21,8 @@ use vek::Vec3;
 pub struct StaticData {
     /// Buildup to sprite interaction
     pub buildup_duration: Duration,
-    /// Duration of sprite interaction
-    pub use_duration: Duration,
+    /// Duration of sprite interaction, `None` means indefinite until cancelled
+    pub use_duration: Option<Duration>,
     /// Recovery after sprite interaction
     pub recover_duration: Duration,
     /// The kind of interaction.
@@ -86,7 +86,11 @@ impl CharacterBehavior for Data {
 
             let ori_dir = Dir::from_unnormalized(Vec3::from((interact_pos - data.pos.0).xy()));
             handle_orientation(data, &mut update, 1.0, ori_dir);
-            handle_move(data, &mut update, 0.0);
+            handle_move(
+                data,
+                &mut update,
+                self.static_data.interact.movement().unwrap_or(0.0),
+            );
 
             match self.stage_section {
                 StageSection::Buildup => {
@@ -104,7 +108,11 @@ impl CharacterBehavior for Data {
                     }
                 },
                 StageSection::Action => {
-                    if self.timer < self.static_data.use_duration {
+                    if self
+                        .static_data
+                        .use_duration
+                        .map_or(true, |use_duration| self.timer < use_duration)
+                    {
                         // sprite interaction
                         if let CharacterState::Interact(c) = &mut update.character {
                             c.timer = tick_attack_or_default(data, self.timer, None);
@@ -218,17 +226,33 @@ pub enum InteractKind {
     },
 }
 
+impl InteractKind {
+    pub fn movement(&self) -> Option<f32> {
+        match self {
+            Self::Invalid | Self::Sprite { .. } => None,
+            Self::Entity { kind, .. } => kind.movement(),
+        }
+    }
+}
+
 impl crate::interaction::InteractionKind {
-    pub fn durations(&self) -> (Duration, Duration, Duration) {
+    pub fn movement(&self) -> Option<f32> {
+        match self {
+            Self::HelpDowned => Some(0.1),
+            Self::Pet => Some(0.7),
+        }
+    }
+
+    pub fn durations(&self) -> (Duration, Option<Duration>, Duration) {
         match self {
             Self::HelpDowned => (
                 Duration::from_secs_f32(0.5),
-                Duration::from_secs_f32(4.0),
+                Some(Duration::from_secs_f32(4.0)),
                 Duration::from_secs_f32(0.5),
             ),
             Self::Pet => (
                 Duration::from_secs_f32(0.0),
-                Duration::from_secs_f32(3.0),
+                None,
                 Duration::from_secs_f32(0.0),
             ),
         }

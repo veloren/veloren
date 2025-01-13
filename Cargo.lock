@@ -7982,6 +7982,7 @@ dependencies = [
  "sha2",
  "shaderc",
  "slab",
+ "smallvec",
  "specs",
  "strum",
  "tokio",

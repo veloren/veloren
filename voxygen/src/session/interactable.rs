@@ -1,30 +1,37 @@
-use ordered_float::OrderedFloat;
+use std::{cmp::Reverse, collections::HashMap};
+
+use smallvec::SmallVec;
 use specs::{Join, LendJoin, ReadStorage, WorldExt};
 use vek::*;
 
-use super::{
-    find_shortest_distance,
-    target::{self, Target, MAX_TARGET_RANGE},
-};
+use super::target::{self, Target};
 use client::Client;
 use common::{
-    comp,
-    comp::{ship::figuredata::VOXEL_COLLIDER_MANIFEST, tool::ToolKind, Collider, Content},
-    consts::{MAX_INTERACT_RANGE, MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE, TELEPORTER_RADIUS},
+    comp::{
+        self, pet, ship::figuredata::VOXEL_COLLIDER_MANIFEST, tool::ToolKind, Alignment, Collider,
+        Content,
+    },
+    consts::{
+        self, MAX_INTERACT_RANGE, MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE, TELEPORTER_RADIUS,
+    },
     link::Is,
-    mounting::{Mount, Rider, VolumePos, VolumeRider},
+    mounting::{Mount, Volume, VolumePos, VolumeRider},
+    states::utils::can_perform_pet,
     terrain::{Block, TerrainGrid, UnlockKind},
     uid::{IdMaps, Uid},
-    util::find_dist::{Cube, Cylinder, FindDist},
+    util::find_dist::{Cylinder, FindDist},
     vol::ReadVol,
     CachedSpatialGrid,
 };
 use common_base::span;
 
 use crate::{
+    game_input::GameInput,
     hud::CraftingTab,
     scene::{terrain::Interaction, Scene},
 };
+
+pub type InteractableInputMap = HashMap<GameInput, (f32, Interactable)>;
 
 #[derive(Clone, Debug)]
 pub enum BlockInteraction {
@@ -39,33 +46,58 @@ pub enum BlockInteraction {
     LightToggle(bool),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub enum Interactable {
-    Block(Block, VolumePos, BlockInteraction),
-    Entity(specs::Entity),
+    Block {
+        block: Block,
+        volume_pos: VolumePos,
+        interaction: BlockInteraction,
+    },
+    Entity {
+        entity: specs::Entity,
+        interaction: EntityInteraction,
+    },
 }
 
-impl Interactable {
-    pub fn entity(&self) -> Option<specs::Entity> {
-        match self {
-            Self::Entity(e) => Some(*e),
-            Self::Block(_, _, _) => None,
-        }
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum InteractableTarget {
+    Entity(specs::Entity),
+    Block(VolumePos),
+}
 
+#[derive(Debug, Clone, Default)]
+pub struct Interactables {
+    pub block: SmallVec<[(Block, VolumePos, BlockInteraction, f32); 4]>,
+    pub entities: SmallVec<[(EntityInteraction, specs::Entity, f32); 6]>,
+}
+
+/// The type of interaction an entity has
+#[derive(Debug, Clone, Copy, PartialEq, Eq, enum_map::Enum)]
+pub enum EntityInteraction {
+    HelpDowned,
+    PickupItem,
+    ActivatePortal,
+    Pet,
+    CampfireSit,
+    Trade,
+    StayFollow,
+    Mount,
+}
+
+impl BlockInteraction {
     fn from_block_pos(
         terrain: &TerrainGrid,
         id_maps: &IdMaps,
         colliders: &ReadStorage<Collider>,
         volume_pos: VolumePos,
         interaction: Interaction,
-    ) -> Option<Self> {
+    ) -> Option<(Block, VolumePos, Self)> {
         let block = volume_pos.get_block(terrain, id_maps, colliders)?;
         let block_interaction = match interaction {
             Interaction::Collect => {
                 // Check if this is an unlockable sprite
                 let unlock = match volume_pos.kind {
-                    common::mounting::Volume::Terrain => block.get_sprite().and_then(|sprite| {
+                    Volume::Terrain => block.get_sprite().and_then(|sprite| {
                         let chunk = terrain.pos_chunk(volume_pos.pos)?;
                         let sprite_chunk_pos = TerrainGrid::chunk_offs(volume_pos.pos);
                         let sprite_cfg = chunk.meta().sprite_cfg_at(sprite_chunk_pos);
@@ -81,7 +113,7 @@ impl Interactable {
                             None
                         }
                     }),
-                    common::mounting::Volume::Entity(_) => None,
+                    Volume::Entity(_) => None,
                 };
 
                 if let Some(unlock) = unlock {
@@ -108,272 +140,486 @@ impl Interactable {
             Interaction::Mount => BlockInteraction::Mount,
             Interaction::LightToggle(enable) => BlockInteraction::LightToggle(enable),
         };
-        Some(Self::Block(block, volume_pos, block_interaction))
+
+        Some((block, volume_pos, block_interaction))
+    }
+
+    pub fn game_input(&self) -> GameInput {
+        match self {
+            BlockInteraction::Collect
+            | BlockInteraction::Read(_)
+            | BlockInteraction::LightToggle(_)
+            | BlockInteraction::Unlock(_) => GameInput::Interact,
+            BlockInteraction::Craft(_) => GameInput::Crafting,
+            BlockInteraction::Mine(_) => GameInput::Primary,
+            BlockInteraction::Mount => GameInput::Mount,
+        }
+    }
+
+    pub fn range(&self) -> f32 {
+        match self {
+            BlockInteraction::Collect
+            | BlockInteraction::Unlock(_)
+            | BlockInteraction::Mine(_)
+            | BlockInteraction::Craft(_) => consts::MAX_PICKUP_RANGE,
+            BlockInteraction::Mount => consts::MAX_MOUNT_RANGE,
+            BlockInteraction::LightToggle(_) | BlockInteraction::Read(_) => {
+                consts::MAX_INTERACT_RANGE
+            },
+        }
     }
 }
 
-/// Select interactable to highlight, display interaction text for, and to
-/// interact with if the interact key is pressed
-/// Selected in the following order:
-/// 1) Targeted items, in order of nearest under cursor:
-///
-///    a) entity (if within range)
-///    b) collectable
-///    c) can be mined, and is a mine sprite (Air) not a weak rock.
-///
-/// 2) outside of targeted cam ray
-///
-///    -> closest of nearest interactable entity/block
-pub(super) fn select_interactable(
+#[derive(Debug)]
+pub enum GetInteractablesError {
+    ClientMissingPosition,
+    ClientMissingUid,
+}
+
+/// Scan for any nearby interactables, including further ones if directly
+/// targetted.
+pub(super) fn get_interactables(
     client: &Client,
     collect_target: Option<Target<target::Collectable>>,
     entity_target: Option<Target<target::Entity>>,
     mine_target: Option<Target<target::Mine>>,
-    viewpoint_entity: specs::Entity,
     scene: &Scene,
-) -> Option<Interactable> {
+) -> Result<Interactables, GetInteractablesError> {
     span!(_guard, "select_interactable");
     use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 
-    let nearest_dist = find_shortest_distance(&[
-        mine_target.map(|t| t.distance),
-        entity_target.map(|t| t.distance),
-        collect_target.map(|t| t.distance),
-    ]);
+    let ecs = client.state().ecs();
+    let id_maps = ecs.read_resource::<IdMaps>();
+    let player_entity = client.entity();
+    let positions = ecs.read_storage::<comp::Pos>();
+    let player_pos = positions
+        .get(player_entity)
+        .ok_or(GetInteractablesError::ClientMissingPosition)?
+        .0;
 
-    let terrain = client.state().terrain();
+    let uids = ecs.read_storage::<Uid>();
+    let healths = ecs.read_storage::<comp::Health>();
+    let scales = ecs.read_storage::<comp::Scale>();
+    let colliders = ecs.read_storage::<comp::Collider>();
+    let char_states = ecs.read_storage::<comp::CharacterState>();
+    let is_mounts = ecs.read_storage::<Is<Mount>>();
+    let bodies = ecs.read_storage::<comp::Body>();
+    let items = ecs.read_storage::<comp::PickupItem>();
+    let alignments = ecs.read_storage::<comp::Alignment>();
+    let is_volume_rider = ecs.read_storage::<Is<VolumeRider>>();
 
-    if let Some(interactable) = entity_target
-        .and_then(|t| {
-            if t.distance < MAX_TARGET_RANGE && Some(t.distance) == nearest_dist {
-                let entity = t.kind.0;
-                Some(Interactable::Entity(entity))
+    let player_char_state = char_states.get(player_entity);
+    let player_cylinder = Cylinder::from_components(
+        player_pos,
+        scales.get(player_entity).copied(),
+        colliders.get(player_entity),
+        player_char_state,
+    );
+    let player_body = bodies.get(player_entity);
+    let Some(player_uid) = uids.get(player_entity).copied() else {
+        tracing::error!("Client has no Uid component! Not scanning for any interactables.");
+        return Err(GetInteractablesError::ClientMissingUid);
+    };
+
+    let spacial_grid = ecs.read_resource::<CachedSpatialGrid>();
+
+    let entities = ecs.entities();
+    let mut entity_data = (
+        &entities,
+        !&is_mounts,
+        &uids,
+        &positions,
+        &bodies,
+        scales.maybe(),
+        colliders.maybe(),
+        char_states.maybe(),
+        healths.maybe(),
+        alignments.maybe(),
+        items.mask().maybe(),
+    )
+        .lend_join();
+
+    let interactable_entities = spacial_grid
+        .0
+        .in_circle_aabr(player_pos.xy(), MAX_PICKUP_RANGE)
+        .chain(entity_target.map(|t| t.kind.0))
+        .filter(|&entity| entity != player_entity)
+        .filter_map(|entity| entity_data.get(entity, &entities))
+        .flat_map(
+            |(
+                entity,
+                _,
+                uid,
+                pos,
+                body,
+                scale,
+                collider,
+                char_state,
+                health,
+                alignment,
+                has_item,
+            )| {
+                // Interactions using [`GameInput::Interact`]
+                let interaction = if comp::is_downed(health, char_state) {
+                    Some(EntityInteraction::HelpDowned)
+                } else if has_item.is_some() {
+                    Some(EntityInteraction::PickupItem)
+                } else if body.is_portal()
+                    && pos.0.distance_squared(player_pos) <= TELEPORTER_RADIUS.powi(2)
+                {
+                    Some(EntityInteraction::ActivatePortal)
+                } else if alignment.is_some_and(|alignment| {
+                    can_perform_pet(comp::Pos(player_pos), *pos, *alignment)
+                }) {
+                    Some(EntityInteraction::Pet)
+                } else {
+                    None
+                };
+
+                // Interaction using [`GameInput::Sit`]
+                let sit = body.is_campfire().then_some(EntityInteraction::CampfireSit);
+
+                // Interaction using [`GameInput::Trade`]
+                // TODO: Remove this once we have a better way do determine whether an entity
+                // can be traded with not based on alignment.
+                let trade = (!comp::is_downed(health, char_state)
+                    && alignment.is_some_and(|alignment| match alignment {
+                        Alignment::Npc => true,
+                        Alignment::Owned(other_uid) => other_uid == uid || player_uid == *other_uid,
+                        _ => false,
+                    }))
+                .then_some(EntityInteraction::Trade);
+
+                // Interaction using [`GameInput::Mount`]
+                let mount = (pet::is_mountable(body, player_body) && !client.is_riding())
+                    .then_some(EntityInteraction::Mount);
+
+                // Interaction using [`GameInput::StayFollow`]
+                let stayfollow = alignment
+                    .filter(|alignment| {
+                        matches!(alignment,
+                            Alignment::Owned(other_uid) if player_uid == *other_uid)
+                    })
+                    .map(|_| EntityInteraction::StayFollow);
+
+                // Roughly filter out entities farther than interaction distance
+                let cylinder =
+                    Cylinder::from_components(pos.0, scale.copied(), collider, char_state);
+                let min_distance = player_cylinder.min_distance(cylinder);
+
+                Some(
+                    interaction
+                        .into_iter()
+                        .chain(sit)
+                        .chain(trade)
+                        .chain(mount)
+                        .chain(stayfollow)
+                        .filter_map(move |interaction| {
+                            (min_distance <= interaction.range()).then_some((
+                                interaction,
+                                entity,
+                                min_distance,
+                            ))
+                        }),
+                )
+            },
+        )
+        .flatten()
+        .collect::<SmallVec<_>>();
+
+    // Only search as far as closest interactable entity
+    let player_chunk = player_pos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
+        (e.floor() as i32).div_euclid(sz as i32)
+    });
+    let scene_terrain = scene.terrain();
+
+    let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+
+    let volumes_data = (
+        &entities,
+        &ecs.read_storage::<Uid>(),
+        &ecs.read_storage::<comp::Body>(),
+        &ecs.read_storage::<crate::ecs::comp::Interpolated>(),
+        &ecs.read_storage::<comp::Collider>(),
+    );
+
+    let mut volumes_data = volumes_data.lend_join();
+
+    let volume_interactables = spacial_grid
+        .0
+        .in_circle_aabr(player_pos.xy(), MAX_PICKUP_RANGE)
+        .filter(|&e| e != player_entity) // skip the player's entity
+        .filter_map(|e| volumes_data.get(e, &entities))
+        .filter_map(|(entity, uid, body, interpolated, collider)| {
+            let vol = collider.get_vol(&voxel_colliders_manifest)?;
+            let (blocks_of_interest, offset) =
+                scene
+                    .figure_mgr()
+                    .get_blocks_of_interest(entity, body, Some(collider))?;
+
+            let mat = Mat4::from(interpolated.ori.to_quat()).translated_3d(interpolated.pos)
+                * Mat4::translation_3d(offset);
+
+            let p = mat.inverted().mul_point(player_pos);
+            let aabb = Aabb {
+                min: Vec3::zero(),
+                max: vol.volume().sz.as_(),
+            };
+            if aabb.contains_point(p) || aabb.distance_to_point(p) < MAX_PICKUP_RANGE {
+                Some(blocks_of_interest.interactables.iter().map(
+                    move |(block_offset, interaction)| {
+                        let wpos = mat.mul_point(block_offset.as_() + 0.5);
+                        (wpos, VolumePos::entity(*block_offset, *uid), interaction)
+                    },
+                ))
             } else {
                 None
             }
         })
-        .or_else(|| {
-            collect_target.and_then(|t| {
-                if Some(t.distance) == nearest_dist {
-                    terrain.get(t.position_int()).ok().map(|&b| {
-                        Interactable::Block(
-                            b,
-                            VolumePos::terrain(t.position_int()),
-                            BlockInteraction::Collect,
+        .flatten();
+
+    let terrain = client.state().terrain();
+
+    let mine_interactable = mine_target.and_then(|target| {
+        let block = terrain.get(target.position_int()).ok()?;
+        // Handling edge detection. sometimes the casting (in Target mod) returns a
+        // position which is actually empty, which we do not want labeled as an
+        // interactable. We are only returning the mineable air
+        // elements (e.g. minerals). The mineable weakrock are used
+        // in the terrain selected_pos, but is not an interactable.
+        if let Some(mine_tool) = block.mine_tool()
+            && block.is_fluid()
+        {
+            Some((
+                *block,
+                VolumePos::terrain(target.position_int()),
+                BlockInteraction::Mine(mine_tool),
+                target.position,
+            ))
+        } else {
+            None
+        }
+    });
+
+    let collect_interactable = collect_target.and_then(|target| {
+        terrain.get(target.position_int()).ok().map(|block| {
+            (
+                *block,
+                VolumePos::terrain(target.position_int()),
+                BlockInteraction::Collect,
+                target.position,
+            )
+        })
+    });
+
+    let nearby_interactable_blocks = Spiral2d::new()
+        // TODO: this formula for the number to take was guessed
+        // Note: assumes RECT_SIZE.x == RECT_SIZE.y
+        .take(
+            ((MAX_PICKUP_RANGE / TerrainChunk::RECT_SIZE.x as f32).ceil() as usize * 2 + 1).pow(2),
+        )
+        .flat_map(|offset| {
+            let chunk_pos = player_chunk + offset;
+            let chunk_voxel_pos =
+                Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
+            scene_terrain
+                .get(chunk_pos)
+                .map(|data| (data, chunk_voxel_pos))
+        })
+        // TODO: maybe we could make this more efficient by putting the
+        // interactables is some sort of spatial structure
+        .flat_map(|(chunk_data, chunk_pos)| {
+            chunk_data
+                .blocks_of_interest
+                .interactables
+                .iter()
+                .map(move |(block_offset, interaction)| (chunk_pos + block_offset, interaction))
+                .map(|(pos, interaction)| {
+                    (pos.as_::<f32>() + 0.5, VolumePos::terrain(pos), interaction)
+                })
+        })
+        .chain(volume_interactables)
+        .filter(|(wpos, volume_pos, interaction)| match interaction {
+            Interaction::Mount => {
+                !is_volume_rider.contains(player_entity)
+                    && wpos.distance_squared(player_pos) < MAX_SPRITE_MOUNT_RANGE.powi(2)
+                    // TODO: Use shared volume riders component here
+                    && (volume_pos.is_entity()
+                        || !is_volume_rider
+                            .join()
+                            .any(|is_volume_rider| is_volume_rider.pos == *volume_pos))
+            },
+            Interaction::LightToggle(_) => {
+                wpos.distance_squared(player_pos) < MAX_INTERACT_RANGE.powi(2)
+            },
+            _ => true,
+        })
+        .filter_map(|(wpos, volume_pos, interaction)| {
+            BlockInteraction::from_block_pos(&terrain, &id_maps, &colliders, volume_pos, *interaction)
+                .map(|(block, vpos, interaction)|
+                    (block, vpos, interaction, wpos))
+        });
+
+    let interactable_blocks = mine_interactable
+        .into_iter()
+        .chain(collect_interactable)
+        .chain(nearby_interactable_blocks)
+        .filter_map(|(block, vpos, interaction, wpos)| {
+            let distance = wpos.distance_squared(player_pos);
+
+            (distance <= interaction.range().powi(2)).then_some((
+                block,
+                vpos,
+                interaction,
+                distance,
+            ))
+        })
+        .collect::<SmallVec<_>>();
+
+    Ok(Interactables {
+        entities: interactable_entities,
+        block: interactable_blocks,
+    })
+}
+
+impl Interactables {
+    pub fn input_map(
+        &self,
+        entity_target: Option<Target<target::Entity>>,
+        mine_target: Option<Target<target::Mine>>,
+        collect_target: Option<Target<target::Collectable>>,
+    ) -> InteractableInputMap {
+        // Helper to check if an interactable is directly targetted by the player, and
+        // should thus be prioritized over non-directly targetted ones.
+        let is_direct_target = |interactable: &Interactable| match interactable {
+            Interactable::Block {
+                volume_pos,
+                interaction,
+                ..
+            } => {
+                matches!(
+                    (collect_target, volume_pos, interaction),
+                    (Some(target), VolumePos { kind: Volume::Terrain, pos }, BlockInteraction::Mine(_))
+                        if target.position_int() == *pos)
+                    || matches!(
+                            (mine_target, volume_pos, interaction),
+                            (Some(target), VolumePos { kind: Volume::Terrain, pos }, BlockInteraction::Collect)
+                                if target.position_int() == *pos)
+            },
+            Interactable::Entity { entity, .. } => {
+                entity_target.is_some_and(|target| target.kind.0 == *entity)
+            },
+        };
+
+        self.entities
+            .iter()
+            .map(|(interaction, entity, distance)| {
+                (distance.powi(2), Interactable::Entity {
+                    entity: *entity,
+                    interaction: *interaction,
+                })
+            })
+            .chain(
+                self.block
+                    .iter()
+                    .map(|(block, vpos, interaction, distance)| {
+                        (*distance, Interactable::Block {
+                            block: *block,
+                            volume_pos: *vpos,
+                            interaction: interaction.clone(),
+                        })
+                    }),
+            )
+            .fold(HashMap::new(), |mut map, (distance, interaction)| {
+                let input = interaction.game_input();
+
+                if map
+                    .get(&input)
+                    .map_or(true, |(other_distance, other_interaction)| {
+                        (
+                            // Prioritize direct targets
+                            is_direct_target(other_interaction),
+                            other_interaction.priority(),
+                            Reverse(*other_distance),
+                        ) < (
+                            is_direct_target(&interaction),
+                            interaction.priority(),
+                            Reverse(distance),
                         )
                     })
-                } else {
-                    None
+                {
+                    map.insert(input, (distance, interaction));
                 }
+
+                map
             })
-        })
-        .or_else(|| {
-            mine_target.and_then(|t| {
-                if Some(t.distance) == nearest_dist {
-                    terrain.get(t.position_int()).ok().and_then(|&b| {
-                        // Handling edge detection. sometimes the casting (in Target mod) returns a
-                        // position which is actually empty, which we do not want labeled as an
-                        // interactable. We are only returning the mineable air
-                        // elements (e.g. minerals). The mineable weakrock are used
-                        // in the terrain selected_pos, but is not an interactable.
-                        if let Some(mine_tool) = b.mine_tool()
-                            && b.is_air()
-                        {
-                            Some(Interactable::Block(
-                                b,
-                                VolumePos::terrain(t.position_int()),
-                                BlockInteraction::Mine(mine_tool),
-                            ))
-                        } else {
-                            None
-                        }
-                    })
-                } else {
-                    None
-                }
-            })
-        })
-    {
-        Some(interactable)
-    } else {
-        // If there are no directly targeted interactables select the closest one if any
-        // are in range
-        let ecs = client.state().ecs();
-        let player_entity = client.entity();
-        let positions = ecs.read_storage::<comp::Pos>();
-        let player_pos = positions.get(player_entity)?.0;
+    }
+}
 
-        let uids = ecs.read_storage::<Uid>();
-        let scales = ecs.read_storage::<comp::Scale>();
-        let colliders = ecs.read_storage::<comp::Collider>();
-        let char_states = ecs.read_storage::<comp::CharacterState>();
-        let is_mounts = ecs.read_storage::<Is<Mount>>();
-        let is_riders = ecs.read_storage::<Is<Rider>>();
-        let bodies = ecs.read_storage::<comp::Body>();
-        let items = ecs.read_storage::<comp::PickupItem>();
-        let stats = ecs.read_storage::<comp::Stats>();
+impl Interactable {
+    pub fn game_input(&self) -> GameInput {
+        match self {
+            Interactable::Block { interaction, .. } => interaction.game_input(),
+            Interactable::Entity { interaction, .. } => interaction.game_input(),
+        }
+    }
 
-        let player_char_state = char_states.get(player_entity);
-        let player_cylinder = Cylinder::from_components(
-            player_pos,
-            scales.get(player_entity).copied(),
-            colliders.get(player_entity),
-            player_char_state,
-        );
+    pub fn target(&self) -> InteractableTarget {
+        match self {
+            Self::Block { volume_pos, .. } => InteractableTarget::Block(*volume_pos),
+            Self::Entity { entity, .. } => InteractableTarget::Entity(*entity),
+        }
+    }
 
-        let spacial_grid = ecs.read_resource::<CachedSpatialGrid>();
+    /// Priorities for different interactions. Note: Priorities are grouped by
+    /// GameInput
+    #[rustfmt::skip]
+    pub fn priority(&self) -> usize {
+        match self {
+            // GameInput::Interact
+            Self::Entity { interaction: EntityInteraction::ActivatePortal, .. }  => 4,
+            Self::Entity { interaction: EntityInteraction::PickupItem, .. }      => 3,
+            Self::Block  { interaction: BlockInteraction::Collect, .. }          => 3,
+            Self::Entity { interaction: EntityInteraction::HelpDowned, .. }      => 2,
+            Self::Block  { interaction: BlockInteraction::Unlock(_), .. }        => 1,
+            Self::Block  { interaction: BlockInteraction::Read(_), .. }          => 1,
+            Self::Block  { interaction: BlockInteraction::LightToggle(_), .. }   => 1,
+            Self::Entity { interaction: EntityInteraction::Pet, .. }             => 0,
 
-        let entities = ecs.entities();
-        let mut entity_data = (
-            &entities,
-            &positions,
-            &bodies,
-            scales.maybe(),
-            colliders.maybe(),
-            char_states.maybe(),
-            !&is_mounts,
-            is_riders.maybe(),
-            (stats.mask() | items.mask()).maybe(),
-        )
-            .lend_join();
+            // GameInput::Mount
+            Self::Entity { interaction: EntityInteraction::Mount, .. }           => 1,
+            Self::Block  { interaction: BlockInteraction::Mount, .. }            => 0,
 
-        let closest_interactable_entity = spacial_grid.0.in_circle_aabr(player_pos.xy(), MAX_PICKUP_RANGE)
-            .filter(|&e| e != player_entity) // skip the player's entity
-            .filter_map(|e| entity_data.get(e, &entities))
-            .filter_map(|(e, p, b, s, c, cs, _, is_rider, has_stats_or_item)| {
-                // Note, if this becomes expensive to compute do it after the distance check!
-                //
-                // The entities that can be interacted with:
-                // * Sitting at campfires (Body::is_campfire)
-                // * Talking/trading with npcs (note hud code uses Alignment but I can't bring
-                //   myself to write more code on that depends on having this on the client so
-                //   we just check for presence of Stats component for now, it is okay to have
-                //   some false positives here as long as it doesn't frequently prevent us from
-                //   interacting with actual interactable entities that are closer by)
-                // * Dropped items that can be picked up (Item component)
-                // * Are not riding the player
-                let not_riding_player = is_rider
-                    .map_or(true, |is_rider| Some(&is_rider.mount) != uids.get(viewpoint_entity));
-                let is_interactable = (b.is_campfire() || (b.is_portal() && (p.0.distance_squared(player_pos) <= TELEPORTER_RADIUS.powi(2))) || has_stats_or_item.is_some()) && not_riding_player;
-                if !is_interactable {
-                    return None;
-                };
+            // These interactions have dedicated keybinds already, no need to prioritize them
+            Self::Block  { interaction: BlockInteraction::Craft(_), .. }         => 0,
+            Self::Block  { interaction: BlockInteraction::Mine(_), .. }          => 0,
+            Self::Entity { interaction: EntityInteraction::StayFollow, .. }      => 0,
+            Self::Entity { interaction: EntityInteraction::Trade, .. }           => 0,
+            Self::Entity { interaction: EntityInteraction::CampfireSit, .. }     => 0,
+        }
+    }
+}
 
-                let cylinder = Cylinder::from_components(p.0, s.copied(), c, cs);
-                // Roughly filter out entities farther than interaction distance
-                if player_cylinder.approx_in_range(cylinder, MAX_PICKUP_RANGE) {
-                    Some((e, player_cylinder.min_distance(cylinder)))
-                } else {
-                    None
-                }
-            })
-            .min_by_key(|(_, dist)| OrderedFloat(*dist));
+impl EntityInteraction {
+    pub fn game_input(&self) -> GameInput {
+        match self {
+            EntityInteraction::HelpDowned
+            | EntityInteraction::PickupItem
+            | EntityInteraction::ActivatePortal
+            | EntityInteraction::Pet
+            | EntityInteraction::StayFollow => GameInput::Interact,
+            EntityInteraction::Trade => GameInput::Trade,
+            EntityInteraction::Mount => GameInput::Mount,
+            EntityInteraction::CampfireSit => GameInput::Sit,
+        }
+    }
 
-        // Only search as far as closest interactable entity
-        let search_dist = closest_interactable_entity.map_or(MAX_PICKUP_RANGE, |(_, dist)| dist);
-        let player_chunk = player_pos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
-            (e.floor() as i32).div_euclid(sz as i32)
-        });
-        let scene_terrain = scene.terrain();
-
-        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
-
-        let volumes_data = (
-            &entities,
-            &ecs.read_storage::<Uid>(),
-            &ecs.read_storage::<comp::Body>(),
-            &ecs.read_storage::<crate::ecs::comp::Interpolated>(),
-            &ecs.read_storage::<comp::Collider>(),
-        );
-
-        let mut volumes_data = volumes_data.lend_join();
-
-        let volumes = spacial_grid.0.in_circle_aabr(player_pos.xy(), search_dist)
-            .filter(|&e| e != player_entity) // skip the player's entity
-            .filter_map(|e| volumes_data.get(e, &entities))
-            .filter_map(|(entity, uid, body, interpolated, collider)| {
-                let vol = collider.get_vol(&voxel_colliders_manifest)?;
-                let (blocks_of_interest, offset) =
-                    scene
-                        .figure_mgr()
-                        .get_blocks_of_interest(entity, body, Some(collider))?;
-
-                let mat = Mat4::from(interpolated.ori.to_quat()).translated_3d(interpolated.pos)
-                    * Mat4::translation_3d(offset);
-
-                let p = mat.inverted().mul_point(player_pos);
-                let aabb = Aabb {
-                    min: Vec3::zero(),
-                    max: vol.volume().sz.as_(),
-                };
-                if aabb.contains_point(p) || aabb.distance_to_point(p) < search_dist {
-                    Some(blocks_of_interest.interactables.iter().map(
-                        move |(block_offset, interaction)| {
-                            let wpos = mat.mul_point(block_offset.as_() + 0.5);
-                            (wpos, VolumePos::entity(*block_offset, *uid), interaction)
-                        },
-                    ))
-                } else {
-                    None
-                }
-            })
-            .flatten();
-
-        let is_volume_rider = ecs.read_storage::<Is<VolumeRider>>();
-        // Find closest interactable block
-        // TODO: consider doing this one first?
-        let closest_interactable_block_pos = Spiral2d::new()
-            // TODO: this formula for the number to take was guessed
-            // Note: assumes RECT_SIZE.x == RECT_SIZE.y
-            .take(((search_dist / TerrainChunk::RECT_SIZE.x as f32).ceil() as usize * 2 + 1).pow(2))
-            .flat_map(|offset| {
-                let chunk_pos = player_chunk + offset;
-                let chunk_voxel_pos =
-                        Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
-                scene_terrain.get(chunk_pos).map(|data| (data, chunk_voxel_pos))
-            })
-            // TODO: maybe we could make this more efficient by putting the
-            // interactables is some sort of spatial structure
-            .flat_map(|(chunk_data, chunk_pos)| {
-                chunk_data
-                    .blocks_of_interest
-                    .interactables
-                    .iter()
-                    .map(move |(block_offset, interaction)| (chunk_pos + block_offset, interaction))
-                    .map(|(pos, interaction)| {
-                        (pos.as_::<f32>() + 0.5, VolumePos::terrain(pos), interaction)
-                    })
-            })
-            .chain(volumes)
-            .filter(|(wpos, volume_pos, interaction)| {
-                match interaction {
-                    Interaction::Mount => !is_volume_rider.contains(player_entity)
-                        && wpos.distance_squared(player_pos) < MAX_SPRITE_MOUNT_RANGE.powi(2)
-                        // TODO: Use shared volume riders component here
-                        && !is_volume_rider.join().any(|is_volume_rider| is_volume_rider.pos == *volume_pos),
-                    Interaction::LightToggle(_) => wpos.distance_squared(player_pos) < MAX_INTERACT_RANGE.powi(2),
-                    _ => true,
-                }
-            })
-            .min_by_key(|(wpos, _, _)| OrderedFloat(wpos.distance_squared(player_pos)));
-
-        // Return the closest of the 2 closest
-        closest_interactable_block_pos
-            .filter(|(wpos, _, _)| {
-                player_cylinder.min_distance(Cube {
-                    min: *wpos,
-                    side_length: 1.0,
-                }) < search_dist
-            })
-            .and_then(|(_, block_pos, interaction)| {
-                Interactable::from_block_pos(
-                    &terrain,
-                    &ecs.read_resource::<IdMaps>(),
-                    &ecs.read_storage(),
-                    block_pos,
-                    *interaction,
-                )
-            })
-            .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
+    pub fn range(&self) -> f32 {
+        match self {
+            Self::Trade => consts::MAX_TRADE_RANGE,
+            Self::Mount => consts::MAX_MOUNT_RANGE,
+            Self::PickupItem => consts::MAX_PICKUP_RANGE,
+            _ => consts::MAX_INTERACT_RANGE,
+        }
     }
 }

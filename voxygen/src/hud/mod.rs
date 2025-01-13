@@ -70,7 +70,7 @@ use crate::{
     render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
-        interactable::{BlockInteraction, Interactable},
+        interactable::{self, BlockInteraction, Interactable},
         settings_change::{
             Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
         },
@@ -4985,7 +4985,7 @@ impl Hud {
         camera: &Camera,
         dt: Duration,
         info: HudInfo,
-        interactable: Option<&Interactable>,
+        interactable_map: &HashMap<interactable::InteractableTarget, Vec<interactable::Interactable>>,
     ) -> Vec<Event> {
         span!(_guard, "maintain", "Hud::maintain");
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
