@@ -1947,7 +1947,7 @@ impl FigureMgr {
                             )
                         }
                     },
-                    CharacterState::Talk => anim::character::TalkAnimation::update_skeleton(
+                    CharacterState::Talk(_) => anim::character::TalkAnimation::update_skeleton(
                         &target_base,
                         (
                             active_tool_kind,

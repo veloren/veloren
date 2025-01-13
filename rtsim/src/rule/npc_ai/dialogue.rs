@@ -11,9 +11,27 @@ pub fn do_dialogue<S: State, A: Action<S>>(
     now(move |ctx, _| {
         let session = ctx.controller.dialogue_start(tgt);
         f(session)
-            // TODO: Stop conversation if player walks away
-            // .stop_if(||)
+            // If an end dialogue message is received, stop the dialogue
+            .stop_if(move |ctx: &mut NpcCtx| {
+                let mut stop = false;
+                ctx.inbox.retain(|input| {
+                    if let NpcInput::Dialogue(_, dialogue) = input
+                        && dialogue.id == session.id
+                        && let DialogueKind::End = dialogue.kind
+                    {
+                        stop = true;
+                        false
+                    } else {
+                        true
+                    }
+                });
+                stop
+            })
+            // If all else fails, add a timeout to dialogues
+            // TODO: Only timeout if no messages have been received recently
+            .stop_if(timeout(60.0))
             .then(just(move |ctx, _| {
+                ctx.controller.do_idle();
                 ctx.controller.dialogue_end(session);
             }))
     })
@@ -47,11 +65,13 @@ impl DialogueSession {
                 });
                 match response {
                     // TODO: Should be 'engage target in conversation'
-                    None => ControlFlow::Continue(talk(self.target).boxed()),
+                    None => ControlFlow::Continue(talk(self.target)),
                     Some(option_id) => ControlFlow::Break(option_id),
                 }
             })
         })
+            // Add some thinking time after hearing a response
+            .and_then(move |option_id| talk(self.target).repeat().stop_if(timeout(0.5)).map(move |_, _| option_id))
     }
 
     pub fn say_statement<S: State>(self, stmt: Content) -> impl Action<S> {

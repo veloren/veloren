@@ -357,17 +357,20 @@ fn do_idle_tree(bdata: &mut BehaviorData) -> bool { BehaviorTree::idle().run(bda
 /// If target is dead, forget them
 fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
-        if let Some(tgt_health) = bdata.read_data.healths.get(target) {
-            // If target is dead, forget them
-            if tgt_health.is_dead {
-                /*
-                if let Some(tgt_stats) = bdata.rtsim_entity.and(bdata.read_data.stats.get(target)) {
-                    bdata.agent.forget_enemy(&tgt_stats.name);
-                }
-                */
-                bdata.agent.target = None;
-                return true;
+        // If target is dead or no longer exists, forget them
+        if bdata
+            .read_data
+            .healths
+            .get(target)
+            .map_or(true, |tgt_health| tgt_health.is_dead)
+        {
+            /*
+            if let Some(tgt_stats) = bdata.rtsim_entity.and(bdata.read_data.stats.get(target)) {
+                bdata.agent.forget_enemy(&tgt_stats.name);
             }
+            */
+            bdata.agent.target = None;
+            return true;
         }
     }
     false

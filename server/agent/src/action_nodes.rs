@@ -458,15 +458,7 @@ impl AgentData<'_> {
                     if agent.target.is_none()
                         && let Some(target) = read_data.lookup_actor(target)
                     {
-                        agent.target = Some(Target::new(
-                            target,
-                            false,
-                            read_data.time.0,
-                            false,
-                            read_data.positions.get(target).map(|p| p.0),
-                        ));
                         // We're always aware of someone we're talking to
-                        agent.awareness.set_maximally_aware();
                         controller.push_action(ControlAction::Stand);
                         self.look_toward(controller, read_data, target);
                         controller.push_action(ControlAction::Talk);

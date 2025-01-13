@@ -3642,11 +3642,12 @@ impl Hud {
         }
         // Quest Window
         let stats = client.state().ecs().read_storage::<comp::Stats>();
+        let mut dialogue_open = false;
         if self.show.quest {
             if let Some(stats) = stats.get(entity)
                 && let Some((sender, dialogue)) = &self.current_dialogue
             {
-                match Quest::new(
+                dialogue_open = match Quest::new(
                     &self.show,
                     client,
                     &self.imgs,
@@ -3662,7 +3663,8 @@ impl Hud {
                 .set(self.ids.quest_window, ui_widgets)
                 {
                     Some(quest::Event::Dialogue(target, dialogue)) => {
-                        events.push(Event::Dialogue(target, dialogue))
+                        events.push(Event::Dialogue(target, dialogue));
+                        true
                     },
                     Some(quest::Event::Close) => {
                         self.show.quest(false);
@@ -3672,10 +3674,18 @@ impl Hud {
                         } else {
                             self.force_ungrab = true
                         };
+                        false
                     },
-                    None => {},
-                }
+                    None => true,
+                };
             }
+        }
+
+        if !dialogue_open && let Some((sender, dialogue)) = self.current_dialogue.take() {
+            events.push(Event::Dialogue(sender, rtsim::Dialogue {
+                id: dialogue.id,
+                kind: rtsim::DialogueKind::End,
+            }));
         }
 
         // Social Window

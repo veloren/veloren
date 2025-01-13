@@ -172,7 +172,7 @@ fn idle<S: State>() -> impl Action<S> + Clone {
 
 fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
     now(move |ctx, _| {
-        if ctx.sentiments.toward(tgt).is(Sentiment::RIVAL) {
+        if ctx.sentiments.toward(tgt).is(Sentiment::ENEMY) {
             just(move |ctx, _| {
                 ctx.controller
                     .say(tgt, Content::localized("npc-speech-reject_rival"))
@@ -1004,12 +1004,13 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                             // This should be changed in the future.
                             if !matches!(killer, Actor::Npc(_)) {
                                 // TODO: Don't hard-code sentiment change
-                                let mut change = -0.7;
-                                if ctx.sentiments.toward(actor).is(Sentiment::ENEMY) {
+                                let change = if ctx.sentiments.toward(actor).is(Sentiment::ENEMY) {
                                     // Like the killer if we have negative sentiment towards the
                                     // killed.
-                                    change *= -1.0;
-                                }
+                                    0.25
+                                } else {
+                                    -0.75
+                                };
                                 ctx.sentiments
                                     .toward_mut(killer)
                                     .change_by(change, Sentiment::VILLAIN);
@@ -1056,7 +1057,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
                             // TODO: Don't hardcode sentiment change.
                             ctx.sentiments
                                 .toward_mut(thief)
-                                .change_by(-0.2, Sentiment::VILLAIN);
+                                .change_by(-0.2, Sentiment::ENEMY);
                             ctx.known_reports.insert(*report_id);
 
                             let phrase = if matches!(ctx.npc.profession(), Some(Profession::Farmer))

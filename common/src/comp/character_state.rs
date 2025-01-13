@@ -105,7 +105,7 @@ pub enum CharacterState {
     Climb(climb::Data),
     Sit,
     Dance,
-    Talk,
+    Talk(talk::Data),
     Glide(glide::Data),
     GlideWield(glide_wield::Data),
     /// A stunned state
@@ -229,7 +229,7 @@ impl CharacterState {
             CharacterState::Idle(_)
             | CharacterState::Sit
             | CharacterState::Dance
-            | CharacterState::Talk
+            | CharacterState::Talk(_)
             | CharacterState::Equipping(_)
             | CharacterState::Wielding(_)
             | CharacterState::GlideWield(_) => true,
@@ -354,7 +354,7 @@ impl CharacterState {
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::Wielding(_)
-                | CharacterState::Talk
+                | CharacterState::Talk(_)
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
@@ -370,7 +370,7 @@ impl CharacterState {
                 | CharacterState::Dance
                 | CharacterState::Glide(_)
                 | CharacterState::GlideWield(_)
-                | CharacterState::Talk
+                | CharacterState::Talk(_)
                 | CharacterState::Roll(_),
         )
     }
@@ -506,7 +506,7 @@ impl CharacterState {
             CharacterState::Idle(_)
                 | CharacterState::Sit
                 | CharacterState::Dance
-                | CharacterState::Talk
+                | CharacterState::Talk(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::Equipping(_)
@@ -555,7 +555,7 @@ impl CharacterState {
     pub fn behavior(&self, j: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         match &self {
             CharacterState::Idle(data) => data.behavior(j, output_events),
-            CharacterState::Talk => talk::Data.behavior(j, output_events),
+            CharacterState::Talk(data) => data.behavior(j, output_events),
             CharacterState::Climb(data) => data.behavior(j, output_events),
             CharacterState::Wallrun(data) => data.behavior(j, output_events),
             CharacterState::Glide(data) => data.behavior(j, output_events),
@@ -607,7 +607,7 @@ impl CharacterState {
     ) -> StateUpdate {
         match &self {
             CharacterState::Idle(data) => data.handle_event(j, output_events, action),
-            CharacterState::Talk => talk::Data.handle_event(j, output_events, action),
+            CharacterState::Talk(data) => data.handle_event(j, output_events, action),
             CharacterState::Climb(data) => data.handle_event(j, output_events, action),
             CharacterState::Wallrun(data) => data.handle_event(j, output_events, action),
             CharacterState::Glide(data) => data.handle_event(j, output_events, action),
@@ -668,7 +668,7 @@ impl CharacterState {
     pub fn ability_info(&self) -> Option<AbilityInfo> {
         match &self {
             CharacterState::Idle(_) => None,
-            CharacterState::Talk => None,
+            CharacterState::Talk(_) => None,
             CharacterState::Climb(_) => None,
             CharacterState::Wallrun(_) => None,
             CharacterState::Skate(_) => None,
@@ -715,7 +715,7 @@ impl CharacterState {
     pub fn stage_section(&self) -> Option<StageSection> {
         match &self {
             CharacterState::Idle(_) => None,
-            CharacterState::Talk => None,
+            CharacterState::Talk(_) => None,
             CharacterState::Climb(_) => None,
             CharacterState::Wallrun(_) => None,
             CharacterState::Skate(_) => None,
@@ -762,7 +762,7 @@ impl CharacterState {
     pub fn durations(&self) -> Option<DurationsInfo> {
         match &self {
             CharacterState::Idle(_) => None,
-            CharacterState::Talk => None,
+            CharacterState::Talk(_) => None,
             CharacterState::Climb(_) => None,
             CharacterState::Wallrun(_) => None,
             CharacterState::Skate(_) => None,
@@ -963,7 +963,7 @@ impl CharacterState {
         match &self {
             CharacterState::Idle(_) => None,
             CharacterState::Crawl => None,
-            CharacterState::Talk => None,
+            CharacterState::Talk(_) => None,
             CharacterState::Climb(_) => None,
             CharacterState::Wallrun(_) => None,
             CharacterState::Skate(_) => None,
@@ -1010,7 +1010,7 @@ impl CharacterState {
         match self {
             CharacterState::Idle(_) => None,
             CharacterState::Crawl => None,
-            CharacterState::Talk => None,
+            CharacterState::Talk(_) => None,
             CharacterState::Climb(_) => None,
             CharacterState::Wallrun(_) => None,
             CharacterState::Skate(_) => None,
