@@ -53,8 +53,8 @@ impl AirshipDock {
             0.0
         };
         let docking_positions = vec![
-            (center + (door_dir * 16)).with_z(height + 9),
-            (center - (door_dir * 21)).with_z(height + 9),
+            (center + (door_dir.yx() * 16)).with_z(height + 9),
+            (center - (door_dir.yx() * 21)).with_z(height + 9),
         ];
         let campfire_pos = (center - (door_dir * 10)).with_z(height + 9);
         Self {
@@ -748,7 +748,11 @@ impl Structure for AirshipDock {
         );
         // dock
         for dock_pos in &self.docking_positions {
-            painter.rotated_sprite_with_cfg(*dock_pos, SpriteKind::Sign, 2, SpriteCfg {
+            painter.rotated_sprite_with_cfg(
+                *dock_pos,
+                SpriteKind::Sign,
+                Dir::from_vec2(dock_pos.xy() - self.center).sprite_ori(),
+                SpriteCfg {
                 unlock: None,
                 content: Some(Content::localized("common-signs-airship_dock")),
             });

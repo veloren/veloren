@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Realignment of tree and entrance for Haniwa Catacomb sites.
 - Riders no longer lags behind mounts.
 - Can no longer ride while dead.
+- Realignment of airship dock signs in forest towns.
 
 ## [0.17.0] - 2024-12-28
 
