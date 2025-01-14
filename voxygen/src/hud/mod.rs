@@ -1500,6 +1500,7 @@ impl Hud {
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
+            let masses = ecs.read_storage::<comp::Mass>();
             let items = ecs.read_storage::<PickupItem>();
             let inventories = ecs.read_storage::<comp::Inventory>();
             let msm = ecs.read_resource::<MaterialStatManifest>();
@@ -2346,6 +2347,7 @@ impl Hud {
                 _,
                 scale,
                 body,
+                mass,
                 hpfl,
                 in_group,
                 dist_sqr,
@@ -2364,12 +2366,13 @@ impl Hud {
                 energy.maybe(),
                 scales.maybe(),
                 &bodies,
+                &masses,
                 &mut hp_floater_lists,
                 &uids,
                 &inventories,
                 char_activities.maybe(),
-                poises.maybe(),
                 (
+                    poises.maybe(),
                     alignments.maybe(),
                     is_mounts.maybe(),
                     is_riders.maybe(),
@@ -2394,12 +2397,12 @@ impl Hud {
                         energy,
                         scale,
                         body,
+                        mass,
                         hpfl,
                         uid,
                         inventory,
                         character_activity,
-                        poise,
-                        (alignment, is_mount, is_rider, stance, char_state),
+                        (poise, alignment, is_mount, is_rider, stance, char_state),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2471,6 +2474,7 @@ impl Hud {
                                 buffs,
                                 scale,
                                 body,
+                                mass,
                                 hpfl,
                                 in_group,
                                 dist_sqr,
@@ -2519,7 +2523,12 @@ impl Hud {
                                     i18n.get_msg("hud-trade").to_string(),
                                 ));
                                 if !client.is_riding()
-                                    && is_mountable(body, bodies.get(client.entity()))
+                                    && is_mountable(
+                                        body,
+                                        mass,
+                                        bodies.get(client.entity()),
+                                        masses.get(client.entity()),
+                                    )
                                 {
                                     options.push((
                                         GameInput::Mount,

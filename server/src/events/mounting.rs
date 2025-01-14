@@ -53,8 +53,14 @@ pub fn handle_mount(server: &mut Server, MountEvent(rider, mount): MountEvent) {
                 .ecs()
                 .read_storage()
                 .get(mount)
-                .map_or(false, |mount_body| {
-                    is_mountable(mount_body, state.ecs().read_storage().get(rider))
+                .zip(state.ecs().read_storage().get(mount))
+                .map_or(false, |(mount_body, mount_mass)| {
+                    is_mountable(
+                        mount_body,
+                        mount_mass,
+                        state.ecs().read_storage().get(rider),
+                        state.ecs().read_storage().get(rider),
+                    )
                 });
 
             let is_stay = state
