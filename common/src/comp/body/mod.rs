@@ -492,7 +492,7 @@ impl Body {
                 quadruped_small::Species::Gecko => 1.0,
                 quadruped_small::Species::Goat => 50.0,
                 quadruped_small::Species::Hare => 10.0,
-                quadruped_small::Species::Holladon => 60.0,
+                quadruped_small::Species::Holladon => 70.0,
                 quadruped_small::Species::Hyena => 70.0, // ~✅ (vaguely)
                 quadruped_small::Species::Jackalope => 10.0,
                 quadruped_small::Species::Pig => 20.0,
