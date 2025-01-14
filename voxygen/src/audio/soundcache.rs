@@ -164,7 +164,10 @@ impl assets::Asset for StreamedOggSound {
 }
 
 impl Loader<StreamedOggSound> for StreamedSoundLoader {
-    fn load(content: Cow<[u8]>, _ext: &str) -> Result<StreamedOggSound, common_assets::BoxedError> {
+    fn load(
+        content: Cow<[u8]>,
+        _ext: &str,
+    ) -> Result<StreamedOggSound, common::assets::BoxedError> {
         // Store the raw file contents to be streamed later
         Ok(StreamedOggSound(Arc::from(content.to_vec())))
     }
