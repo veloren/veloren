@@ -50,7 +50,7 @@ use common::{
     },
     interaction::InteractionKind,
     link::Is,
-    mounting::{Mount, Rider, VolumeRider, VolumeRiders},
+    mounting::{Mount, Rider, Volume, VolumeRider, VolumeRiders},
     resources::{DeltaTime, Time},
     slowjob::SlowJobPool,
     states::{equipping, idle, interact, utils::StageSection, wielding},
@@ -1179,6 +1179,7 @@ impl FigureMgr {
             collider,
             heads,
         } = *entity_data;
+
         let renderer = &mut *data.renderer;
         let tick = data.tick;
         let slow_jobs = data.slow_jobs;
@@ -1347,6 +1348,33 @@ impl FigureMgr {
                 let body = *read_data.bodies.get(mount)?;
                 let meta = self.states.get_mut(&body, &mount)?;
                 Some((meta.mount_transform, meta.mount_world_pos))
+            } else if let Some(is_volume_rider) = is_volume_rider
+                && matches!(is_volume_rider.pos.kind, Volume::Entity(_))
+            {
+                let (mut mat, _, block) = is_volume_rider.pos.get_block_and_transform(
+                    &read_data.terrain_grid,
+                    &read_data.id_maps,
+                    |e| read_data.interpolated.get(e).map(|i| (Pos(i.pos), i.ori)),
+                    &read_data.colliders,
+                )?;
+
+                let (mount_offset, _) = block.mount_offset()?;
+
+                let _ = if let Some(ori) = is_volume_rider.block.get_ori() {
+                    mat *= Mat4::identity()
+                        .translated_3d(mount_offset)
+                        .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
+                        .translated_3d(Vec3::new(0.5, 0.5, 0.0));
+                    ori
+                } else {
+                    mat *= Mat4::identity().translated_3d(mount_offset + Vec3::new(0.5, 0.5, 0.0));
+                    0
+                };
+
+                Some((
+                    anim::vek::Transform::default(),
+                    anim::vek::Vec3::from(mat.mul_point(Vec3::zero())),
+                ))
             } else {
                 None
             }
