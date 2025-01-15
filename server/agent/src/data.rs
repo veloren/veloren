@@ -24,7 +24,7 @@ use common::{
     mounting::{Mount, Rider, VolumeRider},
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
-    rtsim::{Actor, RtSimEntity},
+    rtsim::RtSimEntity,
     states::utils::{ForcedMovement, StageSection},
     terrain::TerrainGrid,
     uid::{IdMaps, Uid},

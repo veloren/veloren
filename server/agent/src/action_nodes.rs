@@ -189,7 +189,7 @@ impl AgentData<'_> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        emitters: &mut AgentEmitters,
+        _emitters: &mut AgentEmitters,
         rng: &mut impl Rng,
     ) {
         enum ActionTimers {
@@ -449,7 +449,6 @@ impl AgentData<'_> {
                             agent,
                             controller,
                             read_data,
-                            emitters,
                             AgentData::is_hunting_animal,
                         );
                     }
@@ -855,7 +854,6 @@ impl AgentData<'_> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        emitters: &mut AgentEmitters,
         is_enemy: fn(&Self, EcsEntity, &ReadData) -> bool,
     ) {
         enum ActionStateTimers {

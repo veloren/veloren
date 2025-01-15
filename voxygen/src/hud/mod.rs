@@ -3642,44 +3642,42 @@ impl Hud {
         }
         // Quest Window
         let stats = client.state().ecs().read_storage::<comp::Stats>();
-        let mut dialogue_open = false;
-        if self.show.quest {
-            if let Some(stats) = stats.get(entity)
-                && let Some((sender, dialogue)) = &self.current_dialogue
+        let dialogue_open = if self.show.quest
+            && let Some((sender, dialogue)) = &self.current_dialogue
+        {
+            match Quest::new(
+                &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+                i18n,
+                &self.rot_imgs,
+                tooltip_manager,
+                &self.item_imgs,
+                *sender,
+                dialogue,
+            )
+            .set(self.ids.quest_window, ui_widgets)
             {
-                dialogue_open = match Quest::new(
-                    &self.show,
-                    client,
-                    &self.imgs,
-                    &self.fonts,
-                    i18n,
-                    &self.rot_imgs,
-                    tooltip_manager,
-                    stats,
-                    &self.item_imgs,
-                    *sender,
-                    dialogue,
-                )
-                .set(self.ids.quest_window, ui_widgets)
-                {
-                    Some(quest::Event::Dialogue(target, dialogue)) => {
-                        events.push(Event::Dialogue(target, dialogue));
-                        true
-                    },
-                    Some(quest::Event::Close) => {
-                        self.show.quest(false);
-                        if !self.show.bag {
-                            self.show.want_grab = true;
-                            self.force_ungrab = false;
-                        } else {
-                            self.force_ungrab = true
-                        };
-                        false
-                    },
-                    None => true,
-                };
+                Some(quest::Event::Dialogue(target, dialogue)) => {
+                    events.push(Event::Dialogue(target, dialogue));
+                    true
+                },
+                Some(quest::Event::Close) => {
+                    self.show.quest(false);
+                    if !self.show.bag {
+                        self.show.want_grab = true;
+                        self.force_ungrab = false;
+                    } else {
+                        self.force_ungrab = true
+                    };
+                    false
+                },
+                None => true,
             }
-        }
+        } else {
+            false
+        };
 
         if !dialogue_open && let Some((sender, dialogue)) = self.current_dialogue.take() {
             events.push(Event::Dialogue(sender, rtsim::Dialogue {

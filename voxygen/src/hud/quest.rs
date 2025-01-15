@@ -1,5 +1,5 @@
 use client::{Client, EcsEntity};
-use common::{comp::Stats, rtsim};
+use common::rtsim;
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
@@ -53,7 +53,6 @@ pub struct Quest<'a> {
     localized_strings: &'a Localization,
     _rot_imgs: &'a ImgsRot,
     _tooltip_manager: &'a mut TooltipManager,
-    stats: &'a Stats,
     item_imgs: &'a ItemImgs,
     sender: EcsEntity,
     dialogue: &'a rtsim::Dialogue,
@@ -71,7 +70,6 @@ impl<'a> Quest<'a> {
         localized_strings: &'a Localization,
         _rot_imgs: &'a ImgsRot,
         _tooltip_manager: &'a mut TooltipManager,
-        stats: &'a Stats,
         item_imgs: &'a ItemImgs,
         sender: EcsEntity,
         dialogue: &'a rtsim::Dialogue,
@@ -84,7 +82,6 @@ impl<'a> Quest<'a> {
             fonts,
             localized_strings,
             _tooltip_manager,
-            stats,
             item_imgs,
             sender,
             dialogue,

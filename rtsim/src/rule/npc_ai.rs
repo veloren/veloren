@@ -1,3 +1,28 @@
+//! This rule is by far the most significant rule in rtsim to date and governs
+//! the behaviour of rtsim NPCs. It uses a novel combinator-based API to express
+//! long-running NPC actions in a manner that's halfway between [async/coroutine programming](https://en.wikipedia.org/wiki/Coroutine) and traditional
+//! [AI decision trees](https://en.wikipedia.org/wiki/Decision_tree).
+//!
+//! It may feel unintuitive when you first work with it, but trust us:
+//! expressing your AI behaviour in this way brings radical advantages and will
+//! simplify your code and make debugging exponentially easier.
+//!
+//! The fundamental abstraction is that of [`Action`]s. [`Action`]s, somewhat
+//! like [`core::future::Future`], represent a long-running behaviour performed
+//! by an NPC. See [`Action`] for a deeper explanation of actions and the
+//! methods that can be used to combine them together.
+//!
+//! NPC actions act upon the NPC's [`crate::data::npc::Controller`]. This type
+//! represent the immediate behavioural intentions of the NPC during simulation,
+//! such as by specifying a location to walk to, an action to perform, speech to
+//! say, or some persistent state to change (like the NPC's home site).
+//!
+//! After brain simulation has occurred, the resulting controller state is
+//! passed to either rtsim's internal NPC simulation rule
+//! ([`crate::rule::simulate_npcs`]) or, if the chunk the NPC is loaded, are
+//! passed to the Veloren server's agent system which attempts to act in
+//! accordance with it.
+
 pub mod dialogue;
 pub mod movement;
 pub mod util;
