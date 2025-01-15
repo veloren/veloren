@@ -37,6 +37,7 @@ macro_rules! synced_components {
             is_mount: IsMount,
             is_rider: IsRider,
             is_volume_rider: IsVolumeRider,
+            volume_riders: VolumeRiders,
             is_leader: IsLeader,
             is_follower: IsFollower,
             mass: Mass,
@@ -80,7 +81,7 @@ macro_rules! reexport_comps {
         mod inner {
             pub use common::comp::*;
             pub use body::parts::Heads;
-            pub use common::interaction::Interactors;
+            pub use common::{interaction::Interactors, mounting::VolumeRiders};
             use common::link::Is;
             use common::{
                 mounting::{Mount, Rider, VolumeRider},
@@ -203,6 +204,10 @@ impl NetSync for IsRider {
 }
 
 impl NetSync for IsVolumeRider {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for VolumeRiders {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

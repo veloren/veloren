@@ -20,12 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Axe balance tweaks.
+- Mountability now depends on mass, with the exception of ships and humanoids.
 
 ### Removed
 
 ### Fixed
 
 - Realignment of tree and entrance for Haniwa Catacomb sites.
+- Riders no longer lags behind mounts.
 
 ## [0.17.0] - 2024-12-28
 

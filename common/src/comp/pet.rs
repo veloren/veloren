@@ -1,7 +1,9 @@
-use crate::comp::{body::Body, phys::Mass, quadruped_medium, quadruped_small};
+use crate::comp::{body::Body, quadruped_medium};
 use crossbeam_utils::atomic::AtomicCell;
 use specs::Component;
 use std::{num::NonZeroU64, sync::Arc};
+
+use super::Mass;
 
 pub type PetId = AtomicCell<Option<NonZeroU64>>;
 
@@ -60,47 +62,20 @@ pub fn is_tameable(body: &Body) -> bool {
     }
 }
 
-pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
-    let is_light_enough =
-        |rider: Option<&Body>| -> bool { rider.map_or(false, |b| b.mass() <= Mass(500.0)) };
+pub fn is_mountable(
+    mount: &Body,
+    mount_mass: &Mass,
+    rider: Option<&Body>,
+    rider_mass: Option<&Mass>,
+) -> bool {
+    let is_light_enough = rider_mass.map_or(false, |r| r.0 / mount_mass.0 < 0.7);
 
     match mount {
-        Body::Humanoid(_) => matches!(rider, Some(Body::BirdMedium(_))),
-        Body::BipedLarge(_) => is_light_enough(rider),
-        Body::BirdLarge(_) => is_light_enough(rider),
-        Body::QuadrupedMedium(body) => match body.species {
-            quadruped_medium::Species::Alpaca
-            | quadruped_medium::Species::Antelope
-            | quadruped_medium::Species::Bear
-            | quadruped_medium::Species::Camel
-            | quadruped_medium::Species::Cattle
-            | quadruped_medium::Species::Deer
-            | quadruped_medium::Species::Donkey
-            | quadruped_medium::Species::Highland
-            | quadruped_medium::Species::Horse
-            | quadruped_medium::Species::Kelpie
-            | quadruped_medium::Species::Llama
-            | quadruped_medium::Species::Moose
-            | quadruped_medium::Species::Tuskram
-            | quadruped_medium::Species::Yak
-            | quadruped_medium::Species::Zebra
-            | quadruped_medium::Species::Grolgar
-            | quadruped_medium::Species::Wolf
-            | quadruped_medium::Species::Saber
-            | quadruped_medium::Species::Tiger => true,
-            quadruped_medium::Species::Mouflon => is_light_enough(rider),
-            _ => false,
-        },
-        Body::QuadrupedSmall(body) => match body.species {
-            quadruped_small::Species::Truffler => true,
-            quadruped_small::Species::Boar | quadruped_small::Species::Holladon => {
-                is_light_enough(rider)
-            },
-            _ => false,
-        },
-        Body::QuadrupedLow(_) => mount.mass() >= Mass(300.0) && is_light_enough(rider),
+        Body::Humanoid(_) => matches!(rider, Some(Body::BirdMedium(_))) && is_light_enough,
         Body::Ship(_) => true,
-        _ => false,
+        Body::Object(_) => false,
+        Body::ItemDrop(_) => false,
+        _ => is_light_enough,
     }
 }
 

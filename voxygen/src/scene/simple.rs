@@ -282,11 +282,7 @@ impl Scene {
 
         let hands = (active_tool_hand, second_tool_hand);
 
-        fn figure_params(
-            camera: &Camera,
-            dt: f32,
-            pos: Vec3<f32>,
-        ) -> FigureUpdateCommonParameters<'_> {
+        fn figure_params(dt: f32, pos: Vec3<f32>) -> FigureUpdateCommonParameters<'static> {
             FigureUpdateCommonParameters {
                 entity: None,
                 pos: pos.into(),
@@ -297,10 +293,7 @@ impl Scene {
                 tools: (None, None),
                 col: Rgba::broadcast(1.0),
                 dt,
-                _lpindex: 0,
-                _visible: true,
                 is_player: false,
-                _camera: camera,
                 terrain: None,
                 ground_vel: Vec3::zero(),
             }
@@ -310,7 +303,7 @@ impl Scene {
             let char_state = self.char_state.get_or_insert_with(|| {
                 FigureState::new(renderer, CharacterSkeleton::default(), body)
             });
-            let params = figure_params(&self.camera, scene_data.delta_time, self.char_pos);
+            let params = figure_params(scene_data.delta_time, self.char_pos);
             let tgt_skeleton = anim::character::IdleAnimation::update_skeleton(
                 char_state.skeleton_mut(),
                 (
@@ -353,7 +346,7 @@ impl Scene {
         let airship_state = self.airship_state.get_or_insert_with(|| {
             FigureState::new(renderer, ShipSkeleton::default(), airship_body)
         });
-        let params = figure_params(&self.camera, scene_data.delta_time, self.airship_pos);
+        let params = figure_params(scene_data.delta_time, self.airship_pos);
         let tgt_skeleton = anim::ship::IdleAnimation::update_skeleton(
             airship_state.skeleton_mut(),
             (

@@ -6,10 +6,10 @@ use crate::{
     uid::{IdMaps, Uid},
     vol::ReadVol,
 };
-use hashbrown::HashSet;
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{
-    storage::GenericWriteStorage, Component, DenseVecStorage, Entities, Entity, Read, ReadExpect,
+    storage::GenericWriteStorage, Component, Entities, Entity, FlaggedStorage, Read, ReadExpect,
     ReadStorage, Write, WriteStorage,
 };
 use vek::*;
@@ -65,6 +65,7 @@ impl Link for Mounting {
         Entities<'a>,
         ReadStorage<'a, comp::Health>,
         ReadStorage<'a, comp::Body>,
+        ReadStorage<'a, comp::Mass>,
         ReadStorage<'a, Is<Mount>>,
         ReadStorage<'a, Is<Rider>>,
         ReadStorage<'a, comp::CharacterState>,
@@ -118,7 +119,7 @@ impl Link for Mounting {
 
     fn persist(
         this: &LinkHandle<Self>,
-        (id_maps, entities, healths, bodies, is_mounts, is_riders, character_states): &mut Self::PersistData<'_>,
+        (id_maps, entities, healths, bodies, masses, is_mounts, is_riders, character_states): &mut Self::PersistData<'_>,
     ) -> bool {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
 
@@ -137,9 +138,12 @@ impl Link for Mounting {
                 && is_alive_and_well(rider)
                 && is_mounts.get(mount).is_some()
                 && is_riders.get(rider).is_some()
-                && bodies.get(mount).map_or(false, |mount_body| {
-                    is_mountable(mount_body, bodies.get(rider))
-                })
+                && bodies.get(mount).zip(masses.get(mount)).map_or(
+                    false,
+                    |(mount_body, mount_mass)| {
+                        is_mountable(mount_body, mount_mass, bodies.get(rider), masses.get(rider))
+                    },
+                )
                 && is_in_ridable_state
         } else {
             false
@@ -294,9 +298,9 @@ impl VolumePos {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct VolumeRiders {
-    riders: HashSet<Vec3<i32>>,
+    riders: HashMap<Vec3<i32>, LinkHandle<VolumeMounting>>,
 }
 
 impl VolumeRiders {
@@ -305,10 +309,14 @@ impl VolumeRiders {
         self.riders.clear();
         res
     }
+
+    pub fn iter_riders(&self) -> impl Iterator<Item = Uid> + '_ {
+        self.riders.values().map(|link| link.rider)
+    }
 }
 
 impl Component for VolumeRiders {
-    type Storage = DenseVecStorage<Self>;
+    type Storage = FlaggedStorage<Self>;
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -386,7 +394,7 @@ impl Link for VolumeMounting {
         };
         let rider = entity(this.rider).ok_or(MountingError::NoSuchEntity)?;
 
-        if !riders.riders.contains(&this.pos.pos)
+        if !riders.riders.contains_key(&this.pos.pos)
             && !is_volume_riders.contains(rider)
             && !is_volume_riders.contains(rider)
             && !is_riders.contains(rider)
@@ -399,7 +407,7 @@ impl Link for VolumeMounting {
 
             if block == this.block {
                 let _ = is_volume_riders.insert(rider, this.make_role());
-                riders.riders.insert(this.pos.pos);
+                riders.riders.insert(this.pos.pos, this.clone());
                 Ok(())
             } else {
                 Err(MountingError::NotMountable)
@@ -445,7 +453,7 @@ impl Link for VolumeMounting {
         let rider_exists = entity(this.rider).map_or(false, |rider| {
             is_volume_riders.contains(rider) && is_alive_and_well(rider)
         });
-        let mount_spot_exists = riders.riders.contains(&this.pos.pos);
+        let mount_spot_exists = riders.riders.contains_key(&this.pos.pos);
 
         let block_exists = this
             .pos

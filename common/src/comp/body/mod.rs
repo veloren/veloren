@@ -492,7 +492,7 @@ impl Body {
                 quadruped_small::Species::Gecko => 1.0,
                 quadruped_small::Species::Goat => 50.0,
                 quadruped_small::Species::Hare => 10.0,
-                quadruped_small::Species::Holladon => 60.0,
+                quadruped_small::Species::Holladon => 70.0,
                 quadruped_small::Species::Hyena => 70.0, // ~✅ (vaguely)
                 quadruped_small::Species::Jackalope => 10.0,
                 quadruped_small::Species::Pig => 20.0,
@@ -1472,6 +1472,7 @@ impl Body {
             Body::BipedLarge(_) => (self.dimensions() * Vec3::new(0.5, 0.0, 0.7)).into_array(),
             Body::BirdLarge(_) => (self.dimensions() * Vec3::new(0.0, 0.2, 0.7)).into_array(),
             Body::QuadrupedLow(_) => (self.dimensions() * Vec3::new(0.0, 0.15, 0.4)).into_array(),
+            Body::BirdMedium(_) => (self.dimensions() * Vec3::new(0.5, 0.0, 0.7)).into_array(),
             Body::QuadrupedMedium(quadruped_medium) => {
                 match (quadruped_medium.species, quadruped_medium.body_type) {
                     (quadruped_medium::Species::Grolgar, _) => [0.0, 0.5, 1.8],

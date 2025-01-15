@@ -50,8 +50,9 @@ use common::{
     },
     interaction::InteractionKind,
     link::Is,
-    mounting::{Rider, VolumeRider},
+    mounting::{Mount, Rider, Volume, VolumeRider, VolumeRiders},
     resources::{DeltaTime, Time},
+    slowjob::SlowJobPool,
     states::{equipping, idle, interact, utils::StageSection, wielding},
     terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
     uid::IdMaps,
@@ -68,7 +69,10 @@ use core::{
 };
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
-use specs::{Entity as EcsEntity, Join, LazyUpdate, LendJoin, WorldExt};
+use specs::{
+    shred, Entities, Entity as EcsEntity, Join, LazyUpdate, LendJoin, ReadExpect, ReadStorage,
+    SystemData, WorldExt,
+};
 use std::sync::Arc;
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
@@ -526,6 +530,185 @@ impl FigureMgrStates {
     }
 }
 
+#[derive(SystemData)]
+struct FigureReadData<'a> {
+    terrain_grid: ReadExpect<'a, TerrainGrid>,
+    id_maps: ReadExpect<'a, IdMaps>,
+    entities: Entities<'a>,
+    positions: ReadStorage<'a, Pos>,
+    controllers: ReadStorage<'a, Controller>,
+    interpolated: ReadStorage<'a, Interpolated>,
+    velocities: ReadStorage<'a, Vel>,
+    scales: ReadStorage<'a, Scale>,
+    bodies: ReadStorage<'a, Body>,
+    character_states: ReadStorage<'a, CharacterState>,
+    character_activitys: ReadStorage<'a, CharacterActivity>,
+    last_character_states: ReadStorage<'a, Last<CharacterState>>,
+    physics_states: ReadStorage<'a, PhysicsState>,
+    healths: ReadStorage<'a, Health>,
+    inventories: ReadStorage<'a, Inventory>,
+    pickup_items: ReadStorage<'a, PickupItem>,
+    light_emitters: ReadStorage<'a, LightEmitter>,
+    is_riders: ReadStorage<'a, Is<Rider>>,
+    is_mounts: ReadStorage<'a, Is<Mount>>,
+    is_volume_riders: ReadStorage<'a, Is<VolumeRider>>,
+    volume_riders: ReadStorage<'a, VolumeRiders>,
+    colliders: ReadStorage<'a, Collider>,
+    heads: ReadStorage<'a, Heads>,
+}
+
+struct FigureUpdateData<'a, CSS, COR> {
+    #[cfg(feature = "plugins")]
+    plugins: &'a mut common_state::plugin::PluginMgr,
+    scene_data: &'a SceneData<'a>,
+    terrain: Option<&'a Terrain>,
+    camera_mode: CameraMode,
+    can_shadow_sun: CSS,
+    can_occlude_rain: COR,
+    tick: u64,
+    time: f32,
+    renderer: &'a mut Renderer,
+    trail_mgr: &'a mut TrailMgr,
+    slow_jobs: &'a SlowJobPool,
+    update_buf: &'a mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
+    dt_lerp: f32,
+    dt: f32,
+    player_pos: anim::vek::Vec3<f32>,
+    view_distance: u32,
+    frustum: &'a treeculler::Frustum<f32>,
+    focus_pos: anim::vek::Vec3<f32>,
+}
+
+impl<'a> FigureReadData<'a> {
+    pub fn get_entity(&self, entity: EcsEntity) -> Option<FigureUpdateParams> {
+        Some(FigureUpdateParams {
+            entity,
+            pos: self.positions.get(entity)?,
+            controller: self.controllers.get(entity),
+            interpolated: self.interpolated.get(entity),
+            vel: self.velocities.get(entity)?,
+            scale: self.scales.get(entity),
+            body: self.bodies.get(entity)?,
+            character_state: self.character_states.get(entity),
+            character_activity: self.character_activitys.get(entity),
+            last_character_state: self.last_character_states.get(entity),
+            physics_state: self.physics_states.get(entity)?,
+            health: self.healths.get(entity),
+            inventory: self.inventories.get(entity),
+            pickup_item: self.pickup_items.get(entity),
+            light_emitter: self.light_emitters.get(entity),
+            is_rider: self.is_riders.get(entity),
+            is_mount: self.is_mounts.get(entity),
+            is_volume_rider: self.is_volume_riders.get(entity),
+            volume_riders: self.volume_riders.get(entity),
+            collider: self.colliders.get(entity),
+            heads: self.heads.get(entity),
+        })
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = FigureUpdateParams<'_>> {
+        (
+            &self.entities,
+            &self.positions,
+            self.controllers.maybe(),
+            self.interpolated.maybe(),
+            &self.velocities,
+            self.scales.maybe(),
+            &self.bodies,
+            self.character_states.maybe(),
+            self.character_activitys.maybe(),
+            self.last_character_states.maybe(),
+            &self.physics_states,
+            self.healths.maybe(),
+            self.inventories.maybe(),
+            self.pickup_items.maybe(),
+            (
+                self.light_emitters.maybe(),
+                self.is_riders.maybe(),
+                self.is_mounts.maybe(),
+                self.is_volume_riders.maybe(),
+                self.volume_riders.maybe(),
+                self.colliders.maybe(),
+                self.heads.maybe(),
+            ),
+        )
+            .join()
+            .map(
+                |(
+                    entity,
+                    pos,
+                    controller,
+                    interpolated,
+                    vel,
+                    scale,
+                    body,
+                    character_state,
+                    character_activity,
+                    last_character_state,
+                    physics_state,
+                    health,
+                    inventory,
+                    pickup_item,
+                    (
+                        light_emitter,
+                        is_rider,
+                        is_mount,
+                        is_volume_rider,
+                        volume_riders,
+                        collider,
+                        heads,
+                    ),
+                )| FigureUpdateParams {
+                    entity,
+                    pos,
+                    controller,
+                    interpolated,
+                    vel,
+                    scale,
+                    body,
+                    character_state,
+                    character_activity,
+                    last_character_state,
+                    physics_state,
+                    health,
+                    inventory,
+                    pickup_item,
+                    light_emitter,
+                    is_rider,
+                    is_mount,
+                    is_volume_rider,
+                    volume_riders,
+                    collider,
+                    heads,
+                },
+            )
+    }
+}
+
+struct FigureUpdateParams<'a> {
+    entity: EcsEntity,
+    pos: &'a Pos,
+    controller: Option<&'a Controller>,
+    interpolated: Option<&'a Interpolated>,
+    vel: &'a Vel,
+    scale: Option<&'a Scale>,
+    body: &'a Body,
+    character_state: Option<&'a CharacterState>,
+    character_activity: Option<&'a CharacterActivity>,
+    last_character_state: Option<&'a Last<CharacterState>>,
+    physics_state: &'a PhysicsState,
+    health: Option<&'a Health>,
+    inventory: Option<&'a Inventory>,
+    pickup_item: Option<&'a PickupItem>,
+    light_emitter: Option<&'a LightEmitter>,
+    is_rider: Option<&'a Is<Rider>>,
+    is_mount: Option<&'a Is<Mount>>,
+    is_volume_rider: Option<&'a Is<VolumeRider>>,
+    volume_riders: Option<&'a VolumeRiders>,
+    collider: Option<&'a Collider>,
+    heads: Option<&'a Heads>,
+}
+
 pub struct FigureMgr {
     atlas: FigureAtlas,
     model_cache: FigureModelCache,
@@ -852,109 +1035,83 @@ impl FigureMgr {
             )
         };
 
+        let read_data = ecs.system_data::<FigureReadData>();
+
         // Get player position.
-        let player_pos = ecs
-            .read_storage::<Pos>()
+        let player_pos = read_data
+            .positions
             .get(scene_data.viewpoint_entity)
             .map_or(anim::vek::Vec3::zero(), |pos| anim::vek::Vec3::from(pos.0));
         let visible_aabb = anim::vek::Aabb {
             min: player_pos - 2.0,
             max: player_pos + 2.0,
         };
-        let camera_mode = camera.get_mode();
-        let character_state_storage = state.read_storage::<CharacterState>();
         let slow_jobs = state.slow_job_pool();
-        let character_state = character_state_storage.get(scene_data.viewpoint_entity);
 
         let focus_pos = anim::vek::Vec3::<f32>::from(camera.get_focus_pos());
 
-        let mut update_buf = [Default::default(); anim::MAX_BONE_COUNT];
+        let mut data = FigureUpdateData {
+            #[cfg(feature = "plugins")]
+            plugins: &mut ecs.write_resource(),
+            scene_data,
+            terrain,
+            camera_mode: camera.get_mode(),
+            can_shadow_sun,
+            can_occlude_rain,
+            tick,
+            renderer,
+            trail_mgr,
+            slow_jobs: &slow_jobs,
+            time,
+            update_buf: &mut [Default::default(); anim::MAX_BONE_COUNT],
+            dt_lerp,
+            dt,
+            player_pos,
+            view_distance,
+            frustum,
+            focus_pos,
+        };
 
-        let id_maps = ecs.read_resource::<IdMaps>();
+        fn update_riders(
+            this: &mut FigureMgr,
+            mount_data: &FigureUpdateParams,
+            read_data: &FigureReadData,
+            data: &mut FigureUpdateData<
+                impl Fn((anim::vek::Vec3<f32>,), f32) -> bool,
+                impl Fn((anim::vek::Vec3<f32>,), f32) -> bool,
+            >,
+        ) {
+            if let Some(is_mount) = mount_data.is_mount
+                && let Some(rider) = read_data.id_maps.uid_entity(is_mount.rider)
+                && let Some(rider_data) = read_data.get_entity(rider)
+            {
+                this.maintain_entity(&rider_data, read_data, data);
+                update_riders(this, &rider_data, read_data, data);
+            }
+            if let Some(volume_riders) = mount_data.volume_riders {
+                for rider_data in volume_riders
+                    .iter_riders()
+                    .filter_map(|rider| read_data.id_maps.uid_entity(rider))
+                    .filter_map(|rider| read_data.get_entity(rider))
+                {
+                    this.maintain_entity(&rider_data, read_data, data);
+                    update_riders(this, &rider_data, read_data, data);
+                }
+            }
+        }
 
-        let bodies = ecs.read_storage::<Body>();
+        for (i, entity_data) in read_data.iter().enumerate() {
+            // Riders are updated root-mount
+            if entity_data.is_rider.is_some() || entity_data.is_volume_rider.is_some() {
+                continue;
+            }
 
-        let terrain_grid = ecs.read_resource::<TerrainGrid>();
+            let pos = entity_data
+                .interpolated
+                .map_or(anim::vek::Vec3::<f32>::from(entity_data.pos.0), |i| {
+                    anim::vek::Vec3::from(i.pos)
+                });
 
-        let positions = ecs.read_storage::<Pos>();
-
-        for (
-            i,
-            (
-                entity,
-                pos,
-                controller,
-                interpolated,
-                vel,
-                scale,
-                body,
-                character,
-                character_activity,
-                last_character,
-                physics,
-                health,
-                inventory,
-                item,
-                light_emitter,
-                (is_rider, is_volume_rider, collider, heads),
-            ),
-        ) in (
-            &ecs.entities(),
-            &positions,
-            ecs.read_storage::<Controller>().maybe(),
-            ecs.read_storage::<Interpolated>().maybe(),
-            &ecs.read_storage::<Vel>(),
-            ecs.read_storage::<Scale>().maybe(),
-            &ecs.read_storage::<Body>(),
-            ecs.read_storage::<CharacterState>().maybe(),
-            ecs.read_storage::<CharacterActivity>().maybe(),
-            ecs.read_storage::<Last<CharacterState>>().maybe(),
-            &ecs.read_storage::<PhysicsState>(),
-            ecs.read_storage::<Health>().maybe(),
-            ecs.read_storage::<Inventory>().maybe(),
-            ecs.read_storage::<PickupItem>().maybe(),
-            ecs.read_storage::<LightEmitter>().maybe(),
-            (
-                ecs.read_storage::<Is<Rider>>().maybe(),
-                ecs.read_storage::<Is<VolumeRider>>().maybe(),
-                ecs.read_storage::<Collider>().maybe(),
-                ecs.read_storage::<Heads>().maybe(),
-            ),
-        )
-            .join()
-            .enumerate()
-        {
-            // Velocity relative to the current ground
-            let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel)
-                / scale.map_or(1.0, |s| s.0);
-
-            // Priortise CharacterActivity as the source of the look direction
-            let look_dir = character_activity.and_then(|ca| ca.look_dir)
-                // Failing that, take the controller as the source of truth
-                .or_else(|| controller.map(|c| c.inputs.look_dir))
-                // If that still didn't work, fall back to the interpolation orientation
-                .or_else(|| interpolated.map(|i| i.ori.look_dir()))
-                .unwrap_or_default();
-            let is_viewpoint = scene_data.viewpoint_entity == entity;
-            let viewpoint_camera_mode = if is_viewpoint {
-                camera_mode
-            } else {
-                CameraMode::default()
-            };
-            let viewpoint_character_state = if is_viewpoint { character_state } else { None };
-
-            let (pos, ori) = interpolated
-                .map(|i| {
-                    (
-                        (anim::vek::Vec3::from(i.pos),),
-                        anim::vek::Quaternion::<f32>::from(i.ori),
-                    )
-                })
-                .unwrap_or((
-                    (anim::vek::Vec3::<f32>::from(pos.0),),
-                    anim::vek::Quaternion::<f32>::default(),
-                ));
-            let wall_dir = physics.on_wall.map(anim::vek::Vec3::from);
             // Maintaining figure data and sending new figure data to the GPU turns out to
             // be a very expensive operation. We want to avoid doing it as much
             // as possible, so we make the assumption that players don't care so
@@ -964,8 +1121,9 @@ impl FigureMgr {
             // interpolate motion
             const MIN_PERFECT_RATE_DIST: f32 = 100.0;
 
-            if (i as u64 + tick)
-                % ((((pos.0.distance_squared(focus_pos) / scale.map_or(1.0, |s| s.0)).powf(0.25)
+            if (i as u64 + data.tick)
+                % ((((pos.distance_squared(focus_pos) / entity_data.scale.map_or(1.0, |s| s.0))
+                    .powf(0.25)
                     - MIN_PERFECT_RATE_DIST.sqrt())
                 .max(0.0)
                     / 3.0) as u64)
@@ -975,75 +1133,162 @@ impl FigureMgr {
                 continue;
             }
 
-            // Check whether we could have been shadowing last frame.
-            let mut state = self.states.get_mut(body, &entity);
-            let can_shadow_prev = state
-                .as_mut()
-                .map(|state| state.can_shadow_sun())
-                .unwrap_or(false);
+            self.maintain_entity(&entity_data, &read_data, &mut data);
+            update_riders(self, &entity_data, &read_data, &mut data);
+        }
 
-            // Don't process figures outside the vd
-            let vd_frac = anim::vek::Vec2::from(pos.0 - player_pos)
-                .map2(
-                    anim::vek::Vec2::<u32>::from(TerrainChunk::RECT_SIZE),
-                    |d: f32, sz| d.abs() / sz as f32,
+        // Update lighting (lanterns) for figures
+        self.update_lighting(scene_data);
+
+        // Clear states that have deleted entities.
+        self.states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+
+        visible_aabb
+    }
+
+    fn maintain_entity(
+        &mut self,
+        entity_data: &FigureUpdateParams,
+        read_data: &FigureReadData,
+        data: &mut FigureUpdateData<
+            impl Fn((anim::vek::Vec3<f32>,), f32) -> bool,
+            impl Fn((anim::vek::Vec3<f32>,), f32) -> bool,
+        >,
+    ) {
+        let FigureUpdateParams {
+            entity,
+            pos,
+            controller,
+            interpolated,
+            vel,
+            scale,
+            body,
+            character_state: character,
+            character_activity,
+            last_character_state: last_character,
+            physics_state: physics,
+            health,
+            inventory,
+            pickup_item: item,
+            light_emitter,
+            is_rider,
+            is_mount: _,
+            is_volume_rider,
+            volume_riders: _,
+            collider,
+            heads,
+        } = *entity_data;
+
+        let renderer = &mut *data.renderer;
+        let tick = data.tick;
+        let slow_jobs = data.slow_jobs;
+        let dt = data.dt;
+        let time = data.time;
+        let dt_lerp = data.dt_lerp;
+        let update_buf = &mut *data.update_buf;
+
+        // Velocity relative to the current ground
+        let rel_vel =
+            anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel) / scale.map_or(1.0, |s| s.0);
+
+        // Priortise CharacterActivity as the source of the look direction
+        let look_dir = character_activity.and_then(|ca| ca.look_dir)
+                // Failing that, take the controller as the source of truth
+                .or_else(|| controller.map(|c| c.inputs.look_dir))
+                // If that still didn't work, fall back to the interpolation orientation
+                .or_else(|| interpolated.map(|i| i.ori.look_dir()))
+                .unwrap_or_default();
+        let is_viewpoint = data.scene_data.viewpoint_entity == entity;
+        let viewpoint_camera_mode = if is_viewpoint {
+            data.camera_mode
+        } else {
+            CameraMode::default()
+        };
+        let viewpoint_character_state = if is_viewpoint { character } else { None };
+
+        let (pos, ori) = interpolated
+            .map(|i| {
+                (
+                    (anim::vek::Vec3::from(i.pos),),
+                    anim::vek::Quaternion::<f32>::from(i.ori),
                 )
-                .magnitude()
-                / view_distance as f32;
+            })
+            .unwrap_or((
+                (anim::vek::Vec3::<f32>::from(pos.0),),
+                anim::vek::Quaternion::<f32>::default(),
+            ));
+        let wall_dir = physics.on_wall.map(anim::vek::Vec3::from);
 
-            // Keep from re-adding/removing entities on the border of the vd
-            if vd_frac > 1.2 {
-                self.states.remove(body, &entity);
-                continue;
-            } else if vd_frac > 1.0 {
-                state.as_mut().map(|state| state.visible = false);
-                // Keep processing if this might be a shadow caster.
-                // NOTE: Not worth to do for rain_occlusion, since that only happens in closeby
-                // chunks.
-                if !can_shadow_prev {
-                    continue;
-                }
+        // Check whether we could have been shadowing last frame.
+        let mut state = self.states.get_mut(body, &entity);
+        let can_shadow_prev = state
+            .as_mut()
+            .map(|state| state.can_shadow_sun())
+            .unwrap_or(false);
+
+        // Don't process figures outside the vd
+        let vd_frac = anim::vek::Vec2::from(pos.0 - data.player_pos)
+            .map2(
+                anim::vek::Vec2::<u32>::from(TerrainChunk::RECT_SIZE),
+                |d: f32, sz| d.abs() / sz as f32,
+            )
+            .magnitude()
+            / data.view_distance as f32;
+
+        // Keep from re-adding/removing entities on the border of the vd
+        if vd_frac > 1.2 {
+            self.states.remove(body, &entity);
+            return;
+        } else if vd_frac > 1.0 {
+            state.as_mut().map(|state| state.visible = false);
+            // Keep processing if this might be a shadow caster.
+            // NOTE: Not worth to do for rain_occlusion, since that only happens in closeby
+            // chunks.
+            if !can_shadow_prev {
+                return;
             }
+        }
 
-            // Don't display figures outside the frustum spectrum (this is important to do
-            // for any figure that potentially casts a shadow, since we use this
-            // to estimate bounds for shadow maps).  Currently, we don't do this before the
-            // update cull, so it's possible that faraway figures will not
-            // shadow correctly until their next update.  For now, we treat this
-            // as an acceptable tradeoff.
-            let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
-            let (in_frustum, lpindex) = if let Some(ref mut meta) = state {
-                let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
-                    .coherent_test_against_frustum(frustum, meta.lpindex);
-                let in_frustum = in_frustum
-                    || matches!(body, Body::Ship(_))
-                    || pos.0.distance_squared(focus_pos) < 32.0f32.powi(2);
-                meta.visible = in_frustum;
-                meta.lpindex = lpindex;
-                if in_frustum {
-                    /* // Update visible bounds.
-                    visible_aabb.expand_to_contain(Aabb {
-                        min: pos.0 - radius,
-                        max: pos.0 + radius,
-                    }); */
-                } else {
-                    // Check whether we can shadow.
-                    meta.can_shadow_sun = can_shadow_sun(pos, radius);
-                    meta.can_occlude_rain = can_occlude_rain(pos, radius);
-                }
-                (in_frustum, lpindex)
+        // Don't display figures outside the frustum spectrum (this is important to do
+        // for any figure that potentially casts a shadow, since we use this
+        // to estimate bounds for shadow maps).  Currently, we don't do this before the
+        // update cull, so it's possible that faraway figures will not
+        // shadow correctly until their next update.  For now, we treat this
+        // as an acceptable tradeoff.
+        let radius = scale.unwrap_or(&Scale(1.0)).0 * 2.0;
+        let (in_frustum, _lpindex) = if let Some(ref mut meta) = state {
+            let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
+                .coherent_test_against_frustum(data.frustum, meta.lpindex);
+            let in_frustum = in_frustum
+                || matches!(body, Body::Ship(_))
+                || pos.0.distance_squared(data.focus_pos) < 32.0f32.powi(2);
+            meta.visible = in_frustum;
+            meta.lpindex = lpindex;
+            if in_frustum {
+                /* // Update visible bounds.
+                visible_aabb.expand_to_contain(Aabb {
+                    min: pos.0 - radius,
+                    max: pos.0 + radius,
+                }); */
             } else {
-                (true, 0)
-            };
-
-            if !in_frustum {
-                continue;
+                // Check whether we can shadow.
+                meta.can_shadow_sun = (data.can_shadow_sun)(pos, radius);
+                meta.can_occlude_rain = (data.can_occlude_rain)(pos, radius);
             }
+            (in_frustum, lpindex)
+        } else {
+            (true, 0)
+        };
 
-            // Change in health as color!
-            let col = health
+        if !in_frustum {
+            return;
+        }
+
+        // Change in health as color!
+        let col = health
                 .map(|h| {
-                    let time = scene_data.state.ecs().read_resource::<Time>();
+                    let time = data.scene_data.state.ecs().read_resource::<Time>();
                     let time_since_health_change = time.0 - h.last_change.time.0;
                     Rgba::broadcast(1.0)
                         + Rgba::new(10.0, 10.0, 10.0, 0.0).map(|c| {
@@ -1052,226 +1297,210 @@ impl FigureMgr {
                 })
                 .unwrap_or_else(|| Rgba::broadcast(1.0))
             // Highlight targeted collectible entities
-            * if item.is_some() && scene_data.target_entity.map_or(false, |e| e == entity) {
+            * if item.is_some() && data.scene_data.target_entity.map_or(false, |e| e == entity) {
                 Rgba::new(1.5, 1.5, 1.5, 1.0)
             } else {
                 Rgba::one()
             };
 
-            let scale = scale.map(|s| s.0).unwrap_or(1.0);
+        let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
-            let mut state_animation_rate = 1.0;
+        let mut state_animation_rate = 1.0;
 
-            let tool_info = |equip_slot| {
-                inventory
-                    .and_then(|i| i.equipped(equip_slot))
-                    .map(|i| {
-                        if let ItemKind::Tool(tool) = &*i.kind() {
-                            (Some(tool.kind), Some(tool.hands), i.ability_spec())
+        let tool_info = |equip_slot| {
+            inventory
+                .and_then(|i| i.equipped(equip_slot))
+                .map(|i| {
+                    if let ItemKind::Tool(tool) = &*i.kind() {
+                        (Some(tool.kind), Some(tool.hands), i.ability_spec())
+                    } else {
+                        (None, None, None)
+                    }
+                })
+                .unwrap_or((None, None, None))
+        };
+
+        let (active_tool_kind, active_tool_hand, active_tool_spec) =
+            tool_info(EquipSlot::ActiveMainhand);
+        let active_tool_spec = active_tool_spec.as_deref();
+        let (second_tool_kind, second_tool_hand, second_tool_spec) =
+            tool_info(EquipSlot::ActiveOffhand);
+        let second_tool_spec = second_tool_spec.as_deref();
+        let hands = (active_tool_hand, second_tool_hand);
+
+        let ability_id = character.and_then(|c| {
+            c.ability_info()
+                .and_then(|a| a.ability)
+                .and_then(|a| a.ability_id(Some(c), inventory))
+        });
+
+        let move_dir = {
+            let ori = ori * *Dir::default();
+            let theta = vel.0.y.atan2(vel.0.x) - ori.y.atan2(ori.x);
+            anim::vek::Vec2::unit_y().rotated_z(theta)
+        };
+
+        // If a mount exists, get its animated mounting transform and its position
+        let mount_transform_pos = (|| -> Option<_> {
+            if let Some(is_rider) = is_rider {
+                let mount = is_rider.mount;
+                let mount = read_data.id_maps.uid_entity(mount)?;
+                let body = *read_data.bodies.get(mount)?;
+                let meta = self.states.get_mut(&body, &mount)?;
+                Some((meta.mount_transform, meta.mount_world_pos))
+            } else if let Some(is_volume_rider) = is_volume_rider
+                && matches!(is_volume_rider.pos.kind, Volume::Entity(_))
+            {
+                let (mut mat, _, block) = is_volume_rider.pos.get_block_and_transform(
+                    &read_data.terrain_grid,
+                    &read_data.id_maps,
+                    |e| read_data.interpolated.get(e).map(|i| (Pos(i.pos), i.ori)),
+                    &read_data.colliders,
+                )?;
+
+                let (mount_offset, _) = block.mount_offset()?;
+
+                let _ = if let Some(ori) = is_volume_rider.block.get_ori() {
+                    mat *= Mat4::identity()
+                        .translated_3d(mount_offset)
+                        .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
+                        .translated_3d(Vec3::new(0.5, 0.5, 0.0));
+                    ori
+                } else {
+                    mat *= Mat4::identity().translated_3d(mount_offset + Vec3::new(0.5, 0.5, 0.0));
+                    0
+                };
+
+                Some((
+                    anim::vek::Transform::default(),
+                    anim::vek::Vec3::from(mat.mul_point(Vec3::zero())),
+                ))
+            } else {
+                None
+            }
+        })();
+
+        let body = *body;
+
+        // Only use trail manager when trails are enabled
+        let trail_mgr = data
+            .scene_data
+            .weapon_trails_enabled
+            .then_some(&mut *data.trail_mgr);
+
+        let common_params = FigureUpdateCommonParameters {
+            entity: Some(entity),
+            pos: pos.0,
+            ori,
+            scale,
+            mount_transform_pos,
+            body: Some(body),
+            tools: (active_tool_kind, second_tool_kind),
+            col,
+            dt,
+            is_player: is_viewpoint,
+            terrain: data.terrain,
+            ground_vel: physics.ground_vel,
+        };
+
+        match body {
+            Body::Humanoid(body) => {
+                let (model, skeleton_attr) = self.model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let holding_lantern = inventory
+                    .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
+                    && light_emitter.is_some()
+                    && ((second_tool_hand.is_none()
+                        && matches!(active_tool_hand, Some(Hands::One)))
+                        || !character.map_or(false, |c| c.is_wield()))
+                    && !character.map_or(false, |c| c.is_using_hands())
+                    && physics.in_liquid().is_none()
+                    && is_volume_rider.map_or(true, |volume_rider| {
+                        !matches!(volume_rider.block.get_sprite(), Some(SpriteKind::Helm))
+                    });
+
+                let back_carry_offset = inventory
+                    .and_then(|i| i.equipped(EquipSlot::Armor(ArmorSlot::Back)))
+                    .and_then(|i| {
+                        if let ItemKind::Armor(armor) = i.kind().as_ref() {
+                            match &armor.kind {
+                                ArmorKind::Backpack => Some(4.0),
+                                ArmorKind::Back => Some(1.5),
+                                _ => None,
+                            }
                         } else {
-                            (None, None, None)
+                            None
                         }
                     })
-                    .unwrap_or((None, None, None))
-            };
+                    .unwrap_or(0.0);
 
-            let (active_tool_kind, active_tool_hand, active_tool_spec) =
-                tool_info(EquipSlot::ActiveMainhand);
-            let active_tool_spec = active_tool_spec.as_deref();
-            let (second_tool_kind, second_tool_hand, second_tool_spec) =
-                tool_info(EquipSlot::ActiveOffhand);
-            let second_tool_spec = second_tool_spec.as_deref();
-            let hands = (active_tool_hand, second_tool_hand);
+                let state = self
+                    .states
+                    .character_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(
+                            renderer,
+                            CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            body,
+                        )
+                    });
 
-            let ability_id = character.and_then(|c| {
-                c.ability_info()
-                    .and_then(|a| a.ability)
-                    .and_then(|a| a.ability_id(Some(c), inventory))
-            });
+                // Average velocity relative to the current ground
+                let rel_avg_vel = (state.avg_vel - physics.ground_vel) / scale;
 
-            let move_dir = {
-                let ori = ori * *Dir::default();
-                let theta = vel.0.y.atan2(vel.0.x) - ori.y.atan2(ori.x);
-                anim::vek::Vec2::unit_y().rotated_z(theta)
-            };
+                let orientation = ori * anim::vek::Vec3::<f32>::unit_y();
+                let last_ori = state.last_ori * anim::vek::Vec3::<f32>::unit_y();
 
-            // If a mount exists, get its animated mounting transform and its position
-            let mount_transform_pos = (|| -> Option<_> {
-                if let Some(is_rider) = is_rider {
-                    let mount = is_rider.mount;
-                    let mount = id_maps.uid_entity(mount)?;
-                    let body = *bodies.get(mount)?;
-                    let meta = self.states.get_mut(&body, &mount)?;
-                    Some((meta.mount_transform, meta.mount_world_pos))
-                } else {
-                    None
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
                 }
-            })();
 
-            let body = *body;
-
-            // Only use trail manager when trails are enabled
-            let trail_mgr = scene_data.weapon_trails_enabled.then_some(&mut *trail_mgr);
-
-            let common_params = FigureUpdateCommonParameters {
-                entity: Some(entity),
-                pos: pos.0,
-                ori,
-                scale,
-                mount_transform_pos,
-                body: Some(body),
-                tools: (active_tool_kind, second_tool_kind),
-                col,
-                dt,
-                _lpindex: lpindex,
-                _visible: in_frustum,
-                is_player: is_viewpoint,
-                _camera: camera,
-                terrain,
-                ground_vel: physics.ground_vel,
-            };
-
-            #[cfg(feature = "plugins")]
-            let mut plugins = ecs.write_resource::<common_state::plugin::PluginMgr>();
-
-            match body {
-                Body::Humanoid(body) => {
-                    let (model, skeleton_attr) = self.model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let holding_lantern = inventory
-                        .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
-                        && light_emitter.is_some()
-                        && ((second_tool_hand.is_none()
-                            && matches!(active_tool_hand, Some(Hands::One)))
-                            || !character.map_or(false, |c| c.is_wield()))
-                        && !character.map_or(false, |c| c.is_using_hands())
-                        && physics.in_liquid().is_none()
-                        && is_volume_rider.map_or(true, |volume_rider| {
-                            !matches!(volume_rider.block.get_sprite(), Some(SpriteKind::Helm))
-                        });
-
-                    let back_carry_offset = inventory
-                        .and_then(|i| i.equipped(EquipSlot::Armor(ArmorSlot::Back)))
-                        .and_then(|i| {
-                            if let ItemKind::Armor(armor) = i.kind().as_ref() {
-                                match &armor.kind {
-                                    ArmorKind::Backpack => Some(4.0),
-                                    ArmorKind::Back => Some(1.5),
-                                    _ => None,
-                                }
-                            } else {
-                                None
-                            }
-                        })
-                        .unwrap_or(0.0);
-
-                    let state = self
-                        .states
-                        .character_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(
-                                renderer,
-                                CharacterSkeleton::new(holding_lantern, back_carry_offset),
-                                body,
-                            )
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = (state.avg_vel - physics.ground_vel) / scale;
-
-                    let orientation = ori * anim::vek::Vec3::<f32>::unit_y();
-                    let last_ori = state.last_ori * anim::vek::Vec3::<f32>::unit_y();
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > 0.01, // Moving
-                        physics.in_liquid().is_some(),      // In water
-                        is_rider.is_some() || is_volume_rider.is_some(),
-                        physics.skating_active,
-                    ) {
-                        // Standing or Skating
-                        (true, false, false, false, _) | (_, _, false, false, true) => {
-                            anim::character::StandAnimation::update_skeleton(
-                                &CharacterSkeleton::new(holding_lantern, back_carry_offset),
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    hands,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // Running
-                        (true, true, false, false, _) => {
-                            anim::character::RunAnimation::update_skeleton(
-                                &CharacterSkeleton::new(holding_lantern, back_carry_offset),
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    hands,
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    wall_dir,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // In air
-                        (false, _, false, false, _) => {
-                            anim::character::JumpAnimation::update_skeleton(
-                                &CharacterSkeleton::new(holding_lantern, back_carry_offset),
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    hands,
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // Swim
-                        (_, _, true, false, _) => anim::character::SwimAnimation::update_skeleton(
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > 0.01, // Moving
+                    physics.in_liquid().is_some(),      // In water
+                    is_rider.is_some() || is_volume_rider.is_some(),
+                    physics.skating_active,
+                ) {
+                    // Standing or Skating
+                    (true, false, false, false, _) | (_, _, false, false, true) => {
+                        anim::character::StandAnimation::update_skeleton(
+                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                hands,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // Running
+                    (true, true, false, false, _) => {
+                        anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(holding_lantern, back_carry_offset),
                             (
                                 active_tool_kind,
@@ -1283,401 +1512,335 @@ impl FigureMgr {
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 rel_avg_vel,
+                                state.acc_vel,
+                                wall_dir,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // Mount
-                        (_, _, _, true, _) => anim::character::MountAnimation::update_skeleton(
+                        )
+                    },
+                    // In air
+                    (false, _, false, false, _) => {
+                        anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::new(holding_lantern, back_carry_offset),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
                                 hands,
-                                time,
                                 rel_vel,
-                                rel_avg_vel,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
+                        )
+                    },
+                    // Swim
+                    (_, _, true, false, _) => anim::character::SwimAnimation::update_skeleton(
+                        &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                        (
+                            active_tool_kind,
+                            second_tool_kind,
+                            hands,
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
                         ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::Roll(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let wield_status = s.was_wielded;
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::RollAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    hands,
-                                    wield_status,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    Some(s.stage_section),
-                                    s.prev_aimed_dir,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicMelee(_)
-                        | CharacterState::FinisherMelee(_)
-                        | CharacterState::DiveMelee(_)
-                        | CharacterState::SelfBuff(_)
-                        | CharacterState::ChargedRanged(_)
-                        | CharacterState::BasicRanged(_)
-                        | CharacterState::ChargedMelee(_)
-                        | CharacterState::DashMelee(_)
-                        | CharacterState::Shockwave(_)
-                        | CharacterState::BasicAura(_)
-                        | CharacterState::StaticAura(_)
-                        | CharacterState::BasicBeam(_)
-                        | CharacterState::BasicBlock(_)
-                        | CharacterState::RiposteMelee(_) => {
-                            let timer = character.timer();
-                            let stage_section = character.stage_section();
-                            let durations = character.durations();
-                            let progress = if let Some(((timer, stage_section), durations)) =
-                                timer.zip(stage_section).zip(durations)
-                            {
-                                let base_dur = match stage_section {
-                                    StageSection::Buildup => durations.buildup,
-                                    StageSection::Charge => {
-                                        if matches!(character, CharacterState::DashMelee(_)) {
-                                            None
-                                        } else {
-                                            durations.charge
-                                        }
-                                    },
-                                    StageSection::Movement => {
-                                        if matches!(character, CharacterState::DiveMelee(_)) {
-                                            None
-                                        } else {
-                                            durations.movement
-                                        }
-                                    },
-                                    StageSection::Action => {
-                                        if matches!(
-                                            character,
-                                            CharacterState::BasicBeam(_)
-                                                | CharacterState::BasicBlock(_)
-                                        ) {
-                                            None
-                                        } else {
-                                            durations.action
-                                        }
-                                    },
-                                    StageSection::Recover => durations.recover,
-                                };
-                                if let Some(base_dur) = base_dur {
-                                    timer.as_secs_f32() / base_dur.as_secs_f32()
-                                } else {
-                                    timer.as_secs_f32()
-                                }
-                            } else {
-                                0.0
-                            };
-                            // Only calculate when we need it
-                            let ground_dist = if matches!(character, CharacterState::DiveMelee(_)) {
-                                let convert_vec3 =
-                                    |vec3: anim::vek::Vec3<_>| Vec3::new(vec3.x, vec3.y, vec3.z);
-                                let dist = terrain_grid
-                                    .ray(convert_vec3(pos.0), convert_vec3(pos.0 + vel.0))
-                                    .until(Block::is_solid)
-                                    .cast()
-                                    .0
-                                    .powi(2)
-                                    / vel.0.magnitude_squared();
-                                Some(dist)
-                            } else {
-                                None
-                            };
-                            anim::character::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::character::BasicActionDependency {
-                                    ability_id,
-                                    hands,
-                                    stage_section,
-                                    ability_info: character.ability_info(),
-                                    velocity: rel_vel,
-                                    ground_dist,
-                                    last_ori,
-                                    orientation,
-                                    look_dir,
-                                },
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(_)
-                        | CharacterState::RepeaterRanged(_)
-                        | CharacterState::RapidMelee(_) => {
-                            let timer = character.timer();
-                            let stage_section = character.stage_section();
-                            let durations = character.durations();
-                            let progress = if let Some(((timer, stage_section), durations)) =
-                                timer.zip(stage_section).zip(durations)
-                            {
-                                let base_dur = match stage_section {
-                                    StageSection::Buildup => durations.buildup,
-                                    StageSection::Charge => durations.charge,
-                                    StageSection::Movement => durations.movement,
-                                    StageSection::Action => durations.action,
-                                    StageSection::Recover => durations.recover,
-                                };
-                                if let Some(base_dur) = base_dur {
-                                    timer.as_secs_f32() / base_dur.as_secs_f32()
-                                } else {
-                                    timer.as_secs_f32()
-                                }
-                            } else {
-                                0.0
-                            };
-
-                            let (current_action, max_actions) = match character {
-                                CharacterState::ComboMelee2(s) => (
-                                    (s.completed_strikes % s.static_data.strikes.len()) as u32,
-                                    Some(s.static_data.strikes.len() as u32),
-                                ),
-                                CharacterState::RepeaterRanged(s) => (s.projectiles_fired, None),
-                                CharacterState::RapidMelee(s) => {
-                                    (s.current_strike, s.static_data.max_strikes)
-                                },
-                                _ => (0, None),
-                            };
-
-                            anim::character::MultiAction::update_skeleton(
-                                &target_base,
-                                anim::character::MultiActionDependency {
-                                    ability_id,
-                                    stage_section,
-                                    ability_info: character.ability_info(),
-                                    current_action,
-                                    max_actions,
-                                    move_dir,
-                                    orientation,
-                                    look_dir,
-                                    velocity: rel_vel,
-                                },
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Idle(idle::Data {
-                            is_sneaking: true, ..
-                        }) => {
-                            anim::character::SneakAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Interact(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let interact_pos = match s.static_data.interact {
-                                interact::InteractKind::Invalid => pos.0,
-                                interact::InteractKind::Entity { target, .. } => id_maps
-                                    .uid_entity(target)
-                                    .and_then(|target| positions.get(target))
-                                    .map(|pos| anim::vek::Vec3::from(pos.0))
-                                    .unwrap_or(pos.0),
-                                interact::InteractKind::Sprite { pos, .. } => {
-                                    anim::vek::Vec3::from(pos.as_() + 0.5)
-                                },
-                            };
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.interact {
-                                interact::InteractKind::Entity {
-                                    kind: InteractionKind::Pet,
-                                    ..
-                                } => anim::character::PetAnimation::update_skeleton(
-                                    &target_base,
-                                    (pos.0, interact_pos, time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                ),
-                                _ => anim::character::CollectAnimation::update_skeleton(
-                                    &target_base,
-                                    (pos.0, time, Some(s.stage_section), interact_pos),
-                                    stage_progress,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                ),
-                            }
-                        },
-                        CharacterState::Boost(_) => {
-                            anim::character::BoostAnimation::update_skeleton(
-                                &target_base,
-                                (),
-                                0.5,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let wield_status = s.was_wielded;
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Stunned
-                                | PoiseState::Interrupted => {
-                                    anim::character::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            active_tool_kind,
-                                            second_tool_kind,
-                                            hands,
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                            wield_status,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                                PoiseState::Dazed | PoiseState::KnockedDown => {
-                                    anim::character::StaggeredAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            active_tool_kind,
-                                            second_tool_kind,
-                                            hands,
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                            wield_status,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        CharacterState::UseItem(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let item_kind = s.static_data.item_kind;
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => stage_time,
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::character::ConsumeAnimation::update_skeleton(
-                                &target_base,
-                                (time, Some(s.stage_section), Some(item_kind)),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Equipping(equipping::Data { is_sneaking, .. }) => {
-                            if *is_sneaking {
-                                anim::character::SneakEquipAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        active_tool_kind,
-                                        rel_vel,
-                                        // TODO: Update to use the quaternion.
-                                        ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            } else {
-                                anim::character::EquipAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        active_tool_kind,
-                                        second_tool_kind,
-                                        rel_vel.magnitude(),
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
-                        },
-                        CharacterState::Talk => anim::character::TalkAnimation::update_skeleton(
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Mount
+                    (_, _, _, true, _) => anim::character::MountAnimation::update_skeleton(
+                        &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                        (
+                            active_tool_kind,
+                            second_tool_kind,
+                            hands,
+                            time,
+                            rel_vel,
+                            rel_avg_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::Roll(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let wield_status = s.was_wielded;
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Movement => {
+                                stage_time / s.static_data.movement_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::character::RollAnimation::update_skeleton(
                             &target_base,
                             (
                                 active_tool_kind,
                                 second_tool_kind,
-                                rel_vel.magnitude(),
+                                hands,
+                                wield_status,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
+                                Some(s.stage_section),
+                                s.prev_aimed_dir,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicMelee(_)
+                    | CharacterState::FinisherMelee(_)
+                    | CharacterState::DiveMelee(_)
+                    | CharacterState::SelfBuff(_)
+                    | CharacterState::ChargedRanged(_)
+                    | CharacterState::BasicRanged(_)
+                    | CharacterState::ChargedMelee(_)
+                    | CharacterState::DashMelee(_)
+                    | CharacterState::Shockwave(_)
+                    | CharacterState::BasicAura(_)
+                    | CharacterState::StaticAura(_)
+                    | CharacterState::BasicBeam(_)
+                    | CharacterState::BasicBlock(_)
+                    | CharacterState::RiposteMelee(_) => {
+                        let timer = character.timer();
+                        let stage_section = character.stage_section();
+                        let durations = character.durations();
+                        let progress = if let Some(((timer, stage_section), durations)) =
+                            timer.zip(stage_section).zip(durations)
+                        {
+                            let base_dur = match stage_section {
+                                StageSection::Buildup => durations.buildup,
+                                StageSection::Charge => {
+                                    if matches!(character, CharacterState::DashMelee(_)) {
+                                        None
+                                    } else {
+                                        durations.charge
+                                    }
+                                },
+                                StageSection::Movement => {
+                                    if matches!(character, CharacterState::DiveMelee(_)) {
+                                        None
+                                    } else {
+                                        durations.movement
+                                    }
+                                },
+                                StageSection::Action => {
+                                    if matches!(
+                                        character,
+                                        CharacterState::BasicBeam(_)
+                                            | CharacterState::BasicBlock(_)
+                                    ) {
+                                        None
+                                    } else {
+                                        durations.action
+                                    }
+                                },
+                                StageSection::Recover => durations.recover,
+                            };
+                            if let Some(base_dur) = base_dur {
+                                timer.as_secs_f32() / base_dur.as_secs_f32()
+                            } else {
+                                timer.as_secs_f32()
+                            }
+                        } else {
+                            0.0
+                        };
+                        // Only calculate when we need it
+                        let ground_dist = if matches!(character, CharacterState::DiveMelee(_)) {
+                            let convert_vec3 =
+                                |vec3: anim::vek::Vec3<_>| Vec3::new(vec3.x, vec3.y, vec3.z);
+                            let dist = read_data
+                                .terrain_grid
+                                .ray(convert_vec3(pos.0), convert_vec3(pos.0 + vel.0))
+                                .until(Block::is_solid)
+                                .cast()
+                                .0
+                                .powi(2)
+                                / vel.0.magnitude_squared();
+                            Some(dist)
+                        } else {
+                            None
+                        };
+                        anim::character::BasicAction::update_skeleton(
+                            &target_base,
+                            anim::character::BasicActionDependency {
+                                ability_id,
+                                hands,
+                                stage_section,
+                                ability_info: character.ability_info(),
+                                velocity: rel_vel,
+                                ground_dist,
+                                last_ori,
+                                orientation,
                                 look_dir,
+                            },
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::ComboMelee2(_)
+                    | CharacterState::RepeaterRanged(_)
+                    | CharacterState::RapidMelee(_) => {
+                        let timer = character.timer();
+                        let stage_section = character.stage_section();
+                        let durations = character.durations();
+                        let progress = if let Some(((timer, stage_section), durations)) =
+                            timer.zip(stage_section).zip(durations)
+                        {
+                            let base_dur = match stage_section {
+                                StageSection::Buildup => durations.buildup,
+                                StageSection::Charge => durations.charge,
+                                StageSection::Movement => durations.movement,
+                                StageSection::Action => durations.action,
+                                StageSection::Recover => durations.recover,
+                            };
+                            if let Some(base_dur) = base_dur {
+                                timer.as_secs_f32() / base_dur.as_secs_f32()
+                            } else {
+                                timer.as_secs_f32()
+                            }
+                        } else {
+                            0.0
+                        };
+
+                        let (current_action, max_actions) = match character {
+                            CharacterState::ComboMelee2(s) => (
+                                (s.completed_strikes % s.static_data.strikes.len()) as u32,
+                                Some(s.static_data.strikes.len() as u32),
+                            ),
+                            CharacterState::RepeaterRanged(s) => (s.projectiles_fired, None),
+                            CharacterState::RapidMelee(s) => {
+                                (s.current_strike, s.static_data.max_strikes)
+                            },
+                            _ => (0, None),
+                        };
+
+                        anim::character::MultiAction::update_skeleton(
+                            &target_base,
+                            anim::character::MultiActionDependency {
+                                ability_id,
+                                stage_section,
+                                ability_info: character.ability_info(),
+                                current_action,
+                                max_actions,
+                                move_dir,
+                                orientation,
+                                look_dir,
+                                velocity: rel_vel,
+                            },
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Idle(idle::Data {
+                        is_sneaking: true, ..
+                    }) => {
+                        anim::character::SneakAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        CharacterState::Wielding(wielding::Data { is_sneaking, .. }) => {
-                            if physics.in_liquid().is_some() {
-                                anim::character::SwimWieldAnimation::update_skeleton(
+                        )
+                    },
+                    CharacterState::Interact(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let interact_pos = match s.static_data.interact {
+                            interact::InteractKind::Invalid => pos.0,
+                            interact::InteractKind::Entity { target, .. } => read_data
+                                .id_maps
+                                .uid_entity(target)
+                                .and_then(|target| read_data.positions.get(target))
+                                .map(|pos| anim::vek::Vec3::from(pos.0))
+                                .unwrap_or(pos.0),
+                            interact::InteractKind::Sprite { pos, .. } => {
+                                anim::vek::Vec3::from(pos.as_() + 0.5)
+                            },
+                        };
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => s.timer.as_secs_f32(),
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.interact {
+                            interact::InteractKind::Entity {
+                                kind: InteractionKind::Pet,
+                                ..
+                            } => anim::character::PetAnimation::update_skeleton(
+                                &target_base,
+                                (pos.0, interact_pos, time),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            ),
+                            _ => anim::character::CollectAnimation::update_skeleton(
+                                &target_base,
+                                (pos.0, time, Some(s.stage_section), interact_pos),
+                                stage_progress,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            ),
+                        }
+                    },
+                    CharacterState::Boost(_) => anim::character::BoostAnimation::update_skeleton(
+                        &target_base,
+                        (),
+                        0.5,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let wield_status = s.was_wielded;
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal | PoiseState::Stunned | PoiseState::Interrupted => {
+                                anim::character::StunnedAnimation::update_skeleton(
                                     &target_base,
                                     (
                                         active_tool_kind,
@@ -1685,86 +1848,62 @@ impl FigureMgr {
                                         hands,
                                         rel_vel.magnitude(),
                                         time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                        wield_status,
                                     ),
-                                    state.state_time,
+                                    stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
                                 )
-                            } else if *is_sneaking {
-                                anim::character::SneakWieldAnimation::update_skeleton(
+                            },
+                            PoiseState::Dazed | PoiseState::KnockedDown => {
+                                anim::character::StaggeredAnimation::update_skeleton(
                                     &target_base,
                                     (
-                                        (active_tool_kind, active_tool_spec),
+                                        active_tool_kind,
                                         second_tool_kind,
                                         hands,
-                                        rel_vel,
-                                        // TODO: Update to use the quaternion.
-                                        ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        rel_vel.magnitude(),
                                         time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                        wield_status,
                                     ),
-                                    state.state_time,
+                                    stage_progress,
                                     &mut state_animation_rate,
                                     skeleton_attr,
                                 )
-                            } else {
-                                anim::character::WieldAnimation::update_skeleton(
-                                    &target_base,
-                                    (
-                                        (active_tool_kind, active_tool_spec),
-                                        second_tool_kind,
-                                        hands,
-                                        // TODO: Update to use the quaternion.
-                                        ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                        look_dir,
-                                        rel_vel,
-                                        time,
-                                    ),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                )
-                            }
-                        },
-                        CharacterState::Glide(data) => {
-                            anim::character::GlidingAnimation::update_skeleton(
-                                &target_base,
-                                (rel_vel, ori, data.ori.into(), time, state.acc_vel),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Climb { .. } => {
-                            anim::character::ClimbAnimation::update_skeleton(
+                            },
+                        }
+                    },
+                    CharacterState::UseItem(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let item_kind = s.static_data.item_kind;
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => stage_time,
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::character::ConsumeAnimation::update_skeleton(
+                            &target_base,
+                            (time, Some(s.stage_section), Some(item_kind)),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Equipping(equipping::Data { is_sneaking, .. }) => {
+                        if *is_sneaking {
+                            anim::character::SneakEquipAnimation::update_skeleton(
                                 &target_base,
                                 (
                                     active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Sit { .. } => {
-                            anim::character::SitAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, second_tool_kind, time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Crawl { .. } => {
-                            anim::character::CrawlAnimation::update_skeleton(
-                                &target_base,
-                                (
                                     rel_vel,
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -1775,426 +1914,525 @@ impl FigureMgr {
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
-                        },
-                        CharacterState::GlideWield(data) => {
-                            anim::character::GlideWieldAnimation::update_skeleton(
+                        } else {
+                            anim::character::EquipAnimation::update_skeleton(
                                 &target_base,
-                                (ori, data.ori.into()),
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    rel_vel.magnitude(),
+                                    time,
+                                ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
-                        },
-                        CharacterState::Wallrun(data) => {
-                            anim::character::WallrunAnimation::update_skeleton(
+                        }
+                    },
+                    CharacterState::Talk => anim::character::TalkAnimation::update_skeleton(
+                        &target_base,
+                        (
+                            active_tool_kind,
+                            second_tool_kind,
+                            rel_vel.magnitude(),
+                            time,
+                            look_dir,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    CharacterState::Wielding(wielding::Data { is_sneaking, .. }) => {
+                        if physics.in_liquid().is_some() {
+                            anim::character::SwimWieldAnimation::update_skeleton(
+                                &target_base,
+                                (
+                                    active_tool_kind,
+                                    second_tool_kind,
+                                    hands,
+                                    rel_vel.magnitude(),
+                                    time,
+                                ),
+                                state.state_time,
+                                &mut state_animation_rate,
+                                skeleton_attr,
+                            )
+                        } else if *is_sneaking {
+                            anim::character::SneakWieldAnimation::update_skeleton(
                                 &target_base,
                                 (
                                     (active_tool_kind, active_tool_spec),
                                     second_tool_kind,
                                     hands,
+                                    rel_vel,
+                                    // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.acc_vel,
-                                    wall_dir,
-                                    data.was_wielded,
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    time,
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
-                        },
-                        CharacterState::Dance { .. } => {
-                            anim::character::DanceAnimation::update_skeleton(
-                                &target_base,
-                                (active_tool_kind, second_tool_kind, time),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Music(s) => {
-                            anim::character::MusicAnimation::update_skeleton(
+                        } else {
+                            anim::character::WieldAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    (active_tool_kind, active_tool_spec),
+                                    second_tool_kind,
                                     hands,
-                                    (Some(s.static_data.ability_info), time),
+                                    // TODO: Update to use the quaternion.
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    look_dir,
                                     rel_vel,
-                                    ability_id,
+                                    time,
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
                             )
-                        },
-                        _ => {
-                            if let Some(sprite) = is_volume_rider
-                                .and_then(|is_volume_rider| is_volume_rider.block.get_sprite())
-                            {
-                                match sprite {
-                                    SpriteKind::Helm => {
-                                        anim::character::SteerAnimation::update_skeleton(
-                                            &target_base,
-                                            (
-                                                active_tool_kind,
-                                                second_tool_kind,
-                                                character_activity
-                                                    .map(|a| a.steer_dir)
-                                                    .unwrap_or(0.0),
-                                                time,
-                                            ),
-                                            state.state_time,
-                                            &mut state_animation_rate,
-                                            skeleton_attr,
-                                        )
-                                    },
-                                    SpriteKind::Bed
-                                    | SpriteKind::Bedroll
-                                    | SpriteKind::BedrollSnow
-                                    | SpriteKind::BedrollPirate => {
-                                        anim::character::SleepAnimation::update_skeleton(
-                                            &target_base,
-                                            (active_tool_kind, second_tool_kind, time),
-                                            state.state_time,
-                                            &mut state_animation_rate,
-                                            skeleton_attr,
-                                        )
-                                    },
-                                    _ => anim::character::SitAnimation::update_skeleton(
+                        }
+                    },
+                    CharacterState::Glide(data) => {
+                        anim::character::GlidingAnimation::update_skeleton(
+                            &target_base,
+                            (rel_vel, ori, data.ori.into(), time, state.acc_vel),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Climb { .. } => {
+                        anim::character::ClimbAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Sit { .. } => anim::character::SitAnimation::update_skeleton(
+                        &target_base,
+                        (active_tool_kind, second_tool_kind, time),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    CharacterState::Crawl { .. } => {
+                        anim::character::CrawlAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::GlideWield(data) => {
+                        anim::character::GlideWieldAnimation::update_skeleton(
+                            &target_base,
+                            (ori, data.ori.into()),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Wallrun(data) => {
+                        anim::character::WallrunAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                (active_tool_kind, active_tool_spec),
+                                second_tool_kind,
+                                hands,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.acc_vel,
+                                wall_dir,
+                                data.was_wielded,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Dance { .. } => {
+                        anim::character::DanceAnimation::update_skeleton(
+                            &target_base,
+                            (active_tool_kind, second_tool_kind, time),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Music(s) => anim::character::MusicAnimation::update_skeleton(
+                        &target_base,
+                        (
+                            hands,
+                            (Some(s.static_data.ability_info), time),
+                            rel_vel,
+                            ability_id,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    _ => {
+                        if let Some(sprite) = is_volume_rider
+                            .and_then(|is_volume_rider| is_volume_rider.block.get_sprite())
+                        {
+                            match sprite {
+                                SpriteKind::Helm => {
+                                    anim::character::SteerAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            active_tool_kind,
+                                            second_tool_kind,
+                                            character_activity.map(|a| a.steer_dir).unwrap_or(0.0),
+                                            time,
+                                        ),
+                                        state.state_time,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                                SpriteKind::Bed
+                                | SpriteKind::Bedroll
+                                | SpriteKind::BedrollSnow
+                                | SpriteKind::BedrollPirate => {
+                                    anim::character::SleepAnimation::update_skeleton(
                                         &target_base,
                                         (active_tool_kind, second_tool_kind, time),
                                         state.state_time,
                                         &mut state_animation_rate,
                                         skeleton_attr,
-                                    ),
-                                }
-                            } else {
-                                target_base
-                            }
-                        },
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::QuadrupedSmall(body) => {
-                    let (model, skeleton_attr) =
-                        self.quadruped_small_model_cache.get_or_create_model(
-                            renderer,
-                            &mut self.atlas,
-                            body,
-                            inventory,
-                            (),
-                            tick,
-                            viewpoint_camera_mode,
-                            viewpoint_character_state,
-                            &slow_jobs,
-                            None,
-                        );
-
-                    let state = self
-                        .states
-                        .quadruped_small_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedSmallSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => {
-                            anim::quadruped_small::IdleAnimation::update_skeleton(
-                                &QuadrupedSmallSkeleton::default(),
-                                time,
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // Running
-                        (true, true, false) => {
-                            anim::quadruped_small::RunAnimation::update_skeleton(
-                                &QuadrupedSmallSkeleton::default(),
-                                (
-                                    rel_vel.magnitude(),
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // Swimming
-                        (_, _, true) => anim::quadruped_small::RunAnimation::update_skeleton(
-                            &QuadrupedSmallSkeleton::default(),
-                            (
-                                rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::quadruped_small::RunAnimation::update_skeleton(
-                            &QuadrupedSmallSkeleton::default(),
-                            (
-                                rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-                            anim::quadruped_small::AlphaAnimation::update_skeleton(
-                                &target_base,
-                                (time, s.stage_section, state.state_time),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::quadruped_small::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                    current_strike,
-                                    time,
-                                    state.state_time,
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Interrupted
-                                | PoiseState::Stunned
-                                | PoiseState::Dazed
-                                | PoiseState::KnockedDown => {
-                                    anim::quadruped_small::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
                                     )
                                 },
-                            }
-                        },
-                        CharacterState::Sit { .. } => {
-                            anim::quadruped_small::FeedAnimation::update_skeleton(
-                                &target_base,
-                                time,
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => stage_time,
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_small::ShockwaveAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
+                                _ => anim::character::SitAnimation::update_skeleton(
+                                    &target_base,
+                                    (active_tool_kind, second_tool_kind, time),
                                     state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
                                 ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
+                            }
+                        } else {
+                            target_base
+                        }
+                    },
+                };
 
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::QuadrupedMedium(body) => {
-                    let (model, skeleton_attr) =
-                        self.quadruped_medium_model_cache.get_or_create_model(
-                            renderer,
-                            &mut self.atlas,
-                            body,
-                            inventory,
-                            (),
-                            tick,
-                            viewpoint_camera_mode,
-                            viewpoint_character_state,
-                            &slow_jobs,
-                            None,
-                        );
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, data.dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::QuadrupedSmall(body) => {
+                let (model, skeleton_attr) = self.quadruped_small_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    data.tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
 
-                    let state = self
-                        .states
-                        .quadruped_medium_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedMediumSkeleton::default(), body)
-                        });
+                let state = self
+                    .states
+                    .quadruped_small_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, QuadrupedSmallSkeleton::default(), body)
+                    });
 
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
 
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
 
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
 
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > 0.25, // Moving
-                        physics.in_liquid().is_some(),      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => {
-                            anim::quadruped_medium::IdleAnimation::update_skeleton(
-                                &QuadrupedMediumSkeleton::default(),
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::quadruped_small::IdleAnimation::update_skeleton(
+                        &QuadrupedSmallSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => {
+                        anim::quadruped_small::RunAnimation::update_skeleton(
+                            &QuadrupedSmallSkeleton::default(),
+                            (
+                                rel_vel.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // Swimming
+                    (_, _, true) => anim::quadruped_small::RunAnimation::update_skeleton(
+                        &QuadrupedSmallSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::quadruped_small::RunAnimation::update_skeleton(
+                        &QuadrupedSmallSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::BasicMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::quadruped_small::AlphaAnimation::update_skeleton(
+                            &target_base,
+                            (time, s.stage_section, state.state_time),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::quadruped_small::ComboAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                Some(s.stage_section),
+                                Some(s.static_data.ability_info),
+                                current_strike,
                                 time,
                                 state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // Running
-                        (true, true, false) => {
-                            anim::quadruped_medium::RunAnimation::update_skeleton(
-                                &QuadrupedMediumSkeleton::default(),
-                                (
-                                    rel_vel.magnitude(),
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                ),
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal
+                            | PoiseState::Interrupted
+                            | PoiseState::Stunned
+                            | PoiseState::Dazed
+                            | PoiseState::KnockedDown => {
+                                anim::quadruped_small::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        rel_vel.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    CharacterState::Sit { .. } => {
+                        anim::quadruped_small::FeedAnimation::update_skeleton(
+                            &target_base,
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Shockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => stage_time,
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_small::ShockwaveAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel.magnitude(),
+                                time,
+                                Some(s.stage_section),
                                 state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        //Swimming
-                        (_, _, true) => anim::quadruped_medium::RunAnimation::update_skeleton(
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::QuadrupedMedium(body) => {
+                let (model, skeleton_attr) = self.quadruped_medium_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .quadruped_medium_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, QuadrupedMediumSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > 0.25, // Moving
+                    physics.in_liquid().is_some(),      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::quadruped_medium::IdleAnimation::update_skeleton(
+                        &QuadrupedMediumSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => {
+                        anim::quadruped_medium::RunAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::default(),
                             (
                                 rel_vel.magnitude(),
@@ -2208,2874 +2446,1195 @@ impl FigureMgr {
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
+                        )
+                    },
+                    //Swimming
+                    (_, _, true) => anim::quadruped_medium::RunAnimation::update_skeleton(
+                        &QuadrupedMediumSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
                         ),
-                        // In air
-                        (false, _, false) => {
-                            anim::quadruped_medium::JumpAnimation::update_skeleton(
-                                &QuadrupedMediumSkeleton::default(),
-                                (time, rel_vel, rel_avg_vel),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                    };
-                    let target_bones = match &character {
-                        CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::quadruped_medium::JumpAnimation::update_skeleton(
+                        &QuadrupedMediumSkeleton::default(),
+                        (time, rel_vel, rel_avg_vel),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::BasicMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
 
-                                _ => 0.0,
-                            };
-                            anim::quadruped_medium::HoofAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => stage_time,
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_medium::DashAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => stage_time,
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_medium::ShockwaveAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::LeapMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_medium::LeapMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::quadruped_medium::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    s.stage_section,
-                                    current_strike,
-                                    rel_vel.magnitude(),
-                                    time,
-                                    state.state_time,
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Stunned
-                                | PoiseState::Interrupted => {
-                                    anim::quadruped_medium::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                                PoiseState::Dazed | PoiseState::KnockedDown => {
-                                    anim::quadruped_medium::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        CharacterState::Sit { .. } => {
-                            anim::quadruped_medium::FeedAnimation::update_skeleton(
-                                &target_base,
-                                time,
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::QuadrupedLow(body) => {
-                    let (model, skeleton_attr) =
-                        self.quadruped_low_model_cache.get_or_create_model(
-                            renderer,
-                            &mut self.atlas,
-                            body,
-                            inventory,
-                            (),
-                            tick,
-                            viewpoint_camera_mode,
-                            viewpoint_character_state,
-                            &slow_jobs,
-                            None,
-                        );
-
-                    let state = self
-                        .states
-                        .quadruped_low_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, QuadrupedLowSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let heads = heads
-                        .and_then(|heads| {
-                            let res = heads.heads().try_into().ok();
-
-                            if res.is_none() {
-                                tracing::error!(
-                                    "Server sent another amount of heads than 3 for a \
-                                     QuadrupedLow body"
-                                );
-                            }
-                            res
-                        })
-                        .unwrap_or([
-                            HeadState::Attached,
-                            HeadState::Attached,
-                            HeadState::Attached,
-                        ]);
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => {
-                            anim::quadruped_low::IdleAnimation::update_skeleton(
-                                &QuadrupedLowSkeleton::default(),
-                                (time, heads),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // Running
-                        (true, true, false) => anim::quadruped_low::RunAnimation::update_skeleton(
-                            &QuadrupedLowSkeleton::default(),
+                            _ => 0.0,
+                        };
+                        anim::quadruped_medium::HoofAnimation::update_skeleton(
+                            &target_base,
                             (
                                 rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                                heads,
+                                Some(s.stage_section),
+                                state.state_time,
                             ),
-                            state.state_time,
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // Swimming
-                        (_, _, true) => anim::quadruped_low::RunAnimation::update_skeleton(
-                            &QuadrupedLowSkeleton::default(),
+                        )
+                    },
+                    CharacterState::DashMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => stage_time,
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_medium::DashAnimation::update_skeleton(
+                            &target_base,
                             (
                                 rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                                heads,
+                                Some(s.stage_section),
+                                state.state_time,
                             ),
-                            state.state_time,
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::quadruped_low::RunAnimation::update_skeleton(
-                            &QuadrupedLowSkeleton::default(),
+                        )
+                    },
+                    CharacterState::Shockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => stage_time,
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_medium::ShockwaveAnimation::update_skeleton(
+                            &target_base,
                             (
                                 rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                                heads,
+                                Some(s.stage_section),
+                                state.state_time,
                             ),
-                            state.state_time,
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                        )
+                    },
+                    CharacterState::LeapMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Movement => {
+                                stage_time / s.static_data.movement_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_medium::LeapMeleeAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel.magnitude(),
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (ability_id, rel_vel.magnitude(), time, Some(s.stage_section)),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => stage_time,
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::ShockwaveAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::SpriteSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::SpriteSummonAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::BetaAnimation::update_skeleton(
-                                &target_base,
-                                (rel_vel.magnitude(), time, s.stage_section, state.state_time),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-
-                        CharacterState::ChargedMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    if let Some((dur, _)) = s.static_data.buildup_strike {
-                                        stage_time / dur.as_secs_f32()
-                                    } else {
-                                        stage_time
-                                    }
-                                },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::TailwhipAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Stunned
-                                | PoiseState::Interrupted => {
-                                    anim::quadruped_low::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                                PoiseState::Dazed | PoiseState::KnockedDown => {
-                                    anim::quadruped_low::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::quadruped_low::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    s.stage_section,
-                                    current_strike,
-                                    time,
-                                    state.state_time,
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::BreatheAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => stage_time,
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::DashAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    heads,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::LeapShockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::quadruped_low::LeapShockAnimation::update_skeleton(
-                                &target_base,
-                                (ability_id, rel_vel, time, Some(s.stage_section), heads),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::BirdMedium(body) => {
-                    let (model, skeleton_attr) = self.bird_medium_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self
-                        .states
-                        .bird_medium_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, BirdMediumSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                        is_rider.is_some() || is_volume_rider.is_some(),
-                    ) {
-                        // Standing
-                        (true, false, false, _) => {
-                            anim::bird_medium::IdleAnimation::update_skeleton(
-                                &BirdMediumSkeleton::default(),
+                        anim::quadruped_medium::ComboAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                s.stage_section,
+                                current_strike,
+                                rel_vel.magnitude(),
                                 time,
                                 state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // Running
-                        (true, true, false, false) => {
-                            anim::bird_medium::RunAnimation::update_skeleton(
-                                &BirdMediumSkeleton::default(),
-                                (
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // In air
-                        (false, _, false, false) => {
-                            anim::bird_medium::FlyAnimation::update_skeleton(
-                                &BirdMediumSkeleton::default(),
-                                (
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // Swim
-                        (_, true, _, false) => anim::bird_medium::SwimAnimation::update_skeleton(
-                            &BirdMediumSkeleton::default(),
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal | PoiseState::Stunned | PoiseState::Interrupted => {
+                                anim::quadruped_medium::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        rel_vel.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                            PoiseState::Dazed | PoiseState::KnockedDown => {
+                                anim::quadruped_medium::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        rel_vel.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    CharacterState::Sit { .. } => {
+                        anim::quadruped_medium::FeedAnimation::update_skeleton(
+                            &target_base,
                             time,
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // TODO!
-                        _ => anim::bird_medium::IdleAnimation::update_skeleton(
-                            &BirdMediumSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::Sit { .. } => {
-                            anim::bird_medium::FeedAnimation::update_skeleton(
-                                &target_base,
-                                time,
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_medium::BreatheAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel,
-                                    time,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    look_dir,
-                                    physics.on_ground.is_some(),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_medium::AlphaAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    Some(s.stage_section),
-                                    time,
-                                    state.state_time,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    physics.on_ground.is_some(),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                        )
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::QuadrupedLow(body) => {
+                let (model, skeleton_attr) = self.quadruped_low_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    data.tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
 
-                                _ => 0.0,
-                            };
-                            anim::bird_medium::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    look_dir,
-                                    physics.on_ground.is_some(),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_medium::ShockwaveAnimation::update_skeleton(
-                                &target_base,
-                                (Some(s.stage_section), physics.on_ground.is_some()),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::bird_medium::SummonAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    look_dir,
-                                    physics.on_ground.is_some(),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_medium::DashAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    time,
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Interrupted
-                                | PoiseState::Stunned
-                                | PoiseState::Dazed
-                                | PoiseState::KnockedDown => {
-                                    anim::bird_medium::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (time, Some(s.stage_section), state.state_time),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::FishMedium(body) => {
-                    let (model, skeleton_attr) = self.fish_medium_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self
-                        .states
-                        .fish_medium_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, FishMediumSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Idle
-                        (_, false, _) => anim::fish_medium::IdleAnimation::update_skeleton(
-                            &FishMediumSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Swim
-                        (_, true, _) => anim::fish_medium::SwimAnimation::update_skeleton(
-                            &FishMediumSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::BipedSmall(body) => {
-                    let (model, skeleton_attr) = self.biped_small_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self
-                        .states
-                        .biped_small_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, BipedSmallSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Idle
-                        (true, false, false) => anim::biped_small::IdleAnimation::update_skeleton(
-                            &BipedSmallSkeleton::default(),
-                            (
-                                rel_vel,
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Run
-                        (true, true, _) => anim::biped_small::RunAnimation::update_skeleton(
-                            &BipedSmallSkeleton::default(),
-                            (
-                                rel_vel,
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Jump
-                        (false, _, false) => anim::biped_small::RunAnimation::update_skeleton(
-                            &BipedSmallSkeleton::default(),
-                            (
-                                rel_vel,
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Swim
-                        (false, _, true) => anim::biped_small::RunAnimation::update_skeleton(
-                            &BipedSmallSkeleton::default(),
-                            (
-                                rel_vel,
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        _ => anim::biped_small::IdleAnimation::update_skeleton(
-                            &BipedSmallSkeleton::default(),
-                            (
-                                rel_vel,
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-
-                    let target_bones = match &character {
-                        CharacterState::Wielding { .. } => {
-                            anim::biped_small::WieldAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    (active_tool_kind, active_tool_spec),
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_small::DashAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::biped_small::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    s.stage_section,
-                                    current_strike,
-                                    rel_vel,
-                                    time,
-                                    state.state_time,
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let wield_status = s.was_wielded;
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Interrupted
-                                | PoiseState::Stunned
-                                | PoiseState::Dazed
-                                | PoiseState::KnockedDown => {
-                                    anim::biped_small::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            active_tool_kind,
-                                            rel_vel,
-                                            ori * anim::vek::Vec3::<f32>::unit_y(),
-                                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                            time,
-                                            state.avg_vel,
-                                            state.acc_vel,
-                                            wield_status,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        CharacterState::ChargedRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-                            anim::biped_small::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RepeaterRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-                            anim::biped_small::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-                            anim::biped_small::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_small::BeamAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    active_tool_kind,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_small::AlphaAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    active_tool_kind,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::LeapMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_small::LeapAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_small::ShockwaveAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::SpriteSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_small::SpriteSummonAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_small::SummonAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    active_tool_kind,
-                                    rel_vel,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBlock(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => stage_time,
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_small::BlockAnimation::update_skeleton(
-                                &target_base,
-                                (ability_id, s.stage_section),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RapidMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::biped_small::RapidMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    s.stage_section,
-                                    (s.current_strike, s.static_data.max_strikes),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RiposteMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    let recover_duration = if s.whiffed {
-                                        s.static_data.whiffed_recover_duration.as_secs_f32()
-                                    } else {
-                                        s.static_data.recover_duration.as_secs_f32()
-                                    };
-                                    stage_time / recover_duration
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::biped_small::RiposteMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (ability_id, s.stage_section),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::Dragon(body) => {
-                    let (model, skeleton_attr) = self.dragon_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self.states.dragon_states.entry(entity).or_insert_with(|| {
-                        FigureState::new(renderer, DragonSkeleton::default(), body)
+                let state = self
+                    .states
+                    .quadruped_low_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, QuadrupedLowSkeleton::default(), body)
                     });
 
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
 
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
 
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
 
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => anim::dragon::IdleAnimation::update_skeleton(
-                            &DragonSkeleton::default(),
+                let heads = heads
+                    .and_then(|heads| {
+                        let res = heads.heads().try_into().ok();
+
+                        if res.is_none() {
+                            tracing::error!(
+                                "Server sent another amount of heads than 3 for a QuadrupedLow \
+                                 body"
+                            );
+                        }
+                        res
+                    })
+                    .unwrap_or([
+                        HeadState::Attached,
+                        HeadState::Attached,
+                        HeadState::Attached,
+                    ]);
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::quadruped_low::IdleAnimation::update_skeleton(
+                        &QuadrupedLowSkeleton::default(),
+                        (time, heads),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => anim::quadruped_low::RunAnimation::update_skeleton(
+                        &QuadrupedLowSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                             time,
-                            state.state_time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                            heads,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Swimming
+                    (_, _, true) => anim::quadruped_low::RunAnimation::update_skeleton(
+                        &QuadrupedLowSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                            heads,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::quadruped_low::RunAnimation::update_skeleton(
+                        &QuadrupedLowSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                            heads,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::BasicRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::quadruped_low::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (ability_id, rel_vel.magnitude(), time, Some(s.stage_section)),
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // Running
-                        (true, true, false) => anim::dragon::RunAnimation::update_skeleton(
-                            &DragonSkeleton::default(),
+                        )
+                    },
+                    CharacterState::Shockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => stage_time,
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_low::ShockwaveAnimation::update_skeleton(
+                            &target_base,
                             (
                                 rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
-                                rel_avg_vel,
+                                Some(s.stage_section),
+                                state.state_time,
                             ),
-                            state.state_time,
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::dragon::FlyAnimation::update_skeleton(
-                            &DragonSkeleton::default(),
-                            (rel_vel.magnitude(), time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // TODO!
-                        _ => anim::dragon::IdleAnimation::update_skeleton(
-                            &DragonSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::Theropod(body) => {
-                    let (model, skeleton_attr) = self.theropod_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self
-                        .states
-                        .theropod_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, TheropodSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => anim::theropod::IdleAnimation::update_skeleton(
-                            &TheropodSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Running
-                        (true, true, false) => anim::theropod::RunAnimation::update_skeleton(
-                            &TheropodSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::theropod::JumpAnimation::update_skeleton(
-                            &TheropodSkeleton::default(),
+                        )
+                    },
+                    CharacterState::SpriteSummon(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_low::SpriteSummonAnimation::update_skeleton(
+                            &target_base,
                             (
                                 rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
-                                rel_avg_vel,
+                                Some(s.stage_section),
+                                state.state_time,
                             ),
-                            state.state_time,
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        _ => anim::theropod::IdleAnimation::update_skeleton(
-                            &TheropodSkeleton::default(),
-                            time,
-                            state.state_time,
+                        )
+                    },
+                    CharacterState::BasicMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::quadruped_low::BetaAnimation::update_skeleton(
+                            &target_base,
+                            (rel_vel.magnitude(), time, s.stage_section, state.state_time),
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                        )
+                    },
 
-                            anim::theropod::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    s.stage_section,
-                                    current_strike,
-                                    time,
-                                    state.state_time,
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::theropod::DashAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
+                    CharacterState::ChargedMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
 
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::Arthropod(body) => {
-                    let (model, skeleton_attr) = self.arthropod_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self
-                        .states
-                        .arthropod_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, ArthropodSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => anim::arthropod::IdleAnimation::update_skeleton(
-                            &ArthropodSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Running
-                        (true, true, false) => anim::arthropod::RunAnimation::update_skeleton(
-                            &ArthropodSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::arthropod::JumpAnimation::update_skeleton(
-                            &ArthropodSkeleton::default(),
-                            (
-                                rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        _ => anim::arthropod::IdleAnimation::update_skeleton(
-                            &ArthropodSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::BasicRanged(_)
-                        | CharacterState::DashMelee(_)
-                        | CharacterState::LeapMelee(_)
-                        | CharacterState::LeapShockwave(_)
-                        | CharacterState::SpriteSummon(_) => {
-                            let timer = character.timer();
-                            let stage_section = character.stage_section();
-                            let durations = character.durations();
-                            let progress = if let Some(((timer, stage_section), durations)) =
-                                timer.zip(stage_section).zip(durations)
-                            {
-                                let base_dur = match stage_section {
-                                    StageSection::Buildup => durations.buildup,
-                                    StageSection::Charge => durations.charge,
-                                    StageSection::Movement => durations.movement,
-                                    StageSection::Action => durations.action,
-                                    StageSection::Recover => durations.recover,
-                                };
-                                if let Some(base_dur) = base_dur {
-                                    timer.as_secs_f32() / base_dur.as_secs_f32()
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                if let Some((dur, _)) = s.static_data.buildup_strike {
+                                    stage_time / dur.as_secs_f32()
                                 } else {
-                                    timer.as_secs_f32()
+                                    stage_time
                                 }
-                            } else {
-                                0.0
-                            };
+                            },
+                            StageSection::Charge => {
+                                stage_time / s.static_data.charge_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
 
-                            anim::arthropod::BasicAction::update_skeleton(
-                                &target_base,
-                                anim::arthropod::BasicActionDependency {
-                                    ability_id,
-                                    stage_section,
-                                    global_time: time,
-                                    timer: state.state_time,
-                                },
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(_) => {
-                            let timer = character.timer();
-                            let stage_section = character.stage_section();
-                            let durations = character.durations();
-                            let progress = if let Some(((timer, stage_section), durations)) =
-                                timer.zip(stage_section).zip(durations)
-                            {
-                                let base_dur = match stage_section {
-                                    StageSection::Buildup => durations.buildup,
-                                    StageSection::Charge => durations.charge,
-                                    StageSection::Movement => durations.movement,
-                                    StageSection::Action => durations.action,
-                                    StageSection::Recover => durations.recover,
-                                };
-                                if let Some(base_dur) = base_dur {
-                                    timer.as_secs_f32() / base_dur.as_secs_f32()
-                                } else {
-                                    timer.as_secs_f32()
-                                }
-                            } else {
-                                0.0
-                            };
-
-                            let (current_action, max_actions) = match character {
-                                CharacterState::ComboMelee2(s) => (
-                                    (s.completed_strikes % s.static_data.strikes.len()) as u32,
-                                    Some(s.static_data.strikes.len() as u32),
-                                ),
-                                _ => (0, None),
-                            };
-
-                            anim::arthropod::MultiAction::update_skeleton(
-                                &target_base,
-                                anim::arthropod::MultiActionDependency {
-                                    ability_id,
-                                    stage_section,
-                                    current_action,
-                                    max_actions,
-                                    global_time: time,
-                                    timer: state.state_time,
-                                },
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Interrupted
-                                | PoiseState::Stunned
-                                | PoiseState::Dazed
-                                | PoiseState::KnockedDown => {
-                                    anim::arthropod::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::Crustacean(body) => {
-                    let (model, skeleton_attr) = self.crustacean_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self
-                        .states
-                        .crustacean_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, CrustaceanSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => anim::crustacean::IdleAnimation::update_skeleton(
-                            &CrustaceanSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Running
-                        (true, true, false) => anim::crustacean::RunAnimation::update_skeleton(
-                            &CrustaceanSkeleton::default(),
+                            _ => 0.0,
+                        };
+                        anim::quadruped_low::TailwhipAnimation::update_skeleton(
+                            &target_base,
                             (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::crustacean::JumpAnimation::update_skeleton(
-                            &CrustaceanSkeleton::default(),
-                            (
+                                ability_id,
                                 rel_vel.magnitude(),
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
-                                rel_avg_vel,
+                                Some(s.stage_section),
+                                state.state_time,
                             ),
-                            state.state_time,
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        //Swimming
-                        (_, _, true) => anim::crustacean::SwimAnimation::update_skeleton(
-                            &CrustaceanSkeleton::default(),
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal | PoiseState::Stunned | PoiseState::Interrupted => {
+                                anim::quadruped_low::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        rel_vel.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                            PoiseState::Dazed | PoiseState::KnockedDown => {
+                                anim::quadruped_low::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        rel_vel.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::quadruped_low::ComboAnimation::update_skeleton(
+                            &target_base,
                             (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::crustacean::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                    current_strike,
-                                    time,
-                                    rel_avg_vel,
-                                    state.state_time,
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::LeapMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.movement_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::crustacean::LeapMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    rel_vel.magnitude(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::crustacean::SummonAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    look_dir,
-                                    physics.on_ground.is_some(),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RiposteMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    let recover_duration = if s.whiffed {
-                                        s.static_data.whiffed_recover_duration.as_secs_f32()
-                                    } else {
-                                        s.static_data.recover_duration.as_secs_f32()
-                                    };
-                                    stage_time / recover_duration
-                                },
-                                _ => 0.0,
-                            };
-                            anim::crustacean::RiposteMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (ability_id, s.stage_section),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Interrupted
-                                | PoiseState::Stunned
-                                | PoiseState::Dazed
-                                | PoiseState::KnockedDown => {
-                                    anim::crustacean::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(s.stage_section),
-                                            state.state_time,
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::BirdLarge(body) => {
-                    let (model, skeleton_attr) = self.bird_large_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self
-                        .states
-                        .bird_large_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, BirdLargeSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => anim::bird_large::IdleAnimation::update_skeleton(
-                            &BirdLargeSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Running
-                        (true, true, false) => anim::bird_large::RunAnimation::update_skeleton(
-                            &BirdLargeSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                rel_avg_vel,
-                                state.acc_vel,
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::bird_large::FlyAnimation::update_skeleton(
-                            &BirdLargeSkeleton::default(),
-                            (
-                                rel_vel,
-                                // TODO: Update to use the quaternion.
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // Swim
-                        (_, true, _) => anim::bird_large::SwimAnimation::update_skeleton(
-                            &BirdLargeSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        // TODO!
-                        _ => anim::bird_large::IdleAnimation::update_skeleton(
-                            &BirdLargeSkeleton::default(),
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::Sit { .. } => {
-                            anim::bird_large::FeedAnimation::update_skeleton(
-                                &target_base,
+                                ability_id,
+                                s.stage_section,
+                                current_strike,
                                 time,
                                 state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_large::BreatheAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel,
-                                    time,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    look_dir,
-                                    physics.on_ground.is_some(),
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicBeam(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => s.timer.as_secs_f32(),
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_low::BreatheAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel.magnitude(),
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::DashMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => stage_time,
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_low::DashAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                rel_vel.magnitude(),
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                                heads,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::LeapShockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Movement => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::quadruped_low::LeapShockAnimation::update_skeleton(
+                            &target_base,
+                            (ability_id, rel_vel, time, Some(s.stage_section), heads),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
 
-                            anim::bird_large::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    Some(s.stage_section),
-                                    current_strike,
-                                    time,
-                                    state.state_time,
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    physics.on_ground.is_some(),
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::BirdMedium(body) => {
+                let (model, skeleton_attr) = self.bird_medium_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
+                let state = self
+                    .states
+                    .bird_medium_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, BirdMediumSkeleton::default(), body)
+                    });
 
-                                _ => 0.0,
-                            };
-                            anim::bird_large::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    look_dir,
-                                    physics.on_ground.is_some(),
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RepeaterRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
 
-                                _ => 0.0,
-                            };
-                            anim::bird_large::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    look_dir,
-                                    physics.on_ground.is_some(),
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_large::ShockwaveAnimation::update_skeleton(
-                                &target_base,
-                                (Some(s.stage_section), physics.on_ground.is_some()),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicAura(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_large::AuraAnimation::update_skeleton(
-                                &target_base,
-                                (Some(s.stage_section), physics.on_ground.is_some()),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::SelfBuff(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_large::SelfBuffAnimation::update_skeleton(
-                                &target_base,
-                                (Some(s.stage_section), physics.on_ground.is_some()),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
 
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::bird_large::SummonAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    time,
-                                    Some(s.stage_section),
-                                    state.state_time,
-                                    look_dir,
-                                    physics.on_ground.is_some(),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::bird_large::DashAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.acc_vel,
-                                    Some(s.stage_section),
-                                    time,
-                                    state.state_time,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Interrupted
-                                | PoiseState::Stunned
-                                | PoiseState::Dazed
-                                | PoiseState::KnockedDown => {
-                                    anim::bird_large::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (time, Some(s.stage_section), state.state_time),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::FishSmall(body) => {
-                    let (model, skeleton_attr) = self.fish_small_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self
-                        .states
-                        .fish_small_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, FishSmallSkeleton::default(), body)
-                        });
-
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Idle
-                        (_, false, _) => anim::fish_small::IdleAnimation::update_skeleton(
-                            &FishSmallSkeleton::default(),
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                    is_rider.is_some() || is_volume_rider.is_some(),
+                ) {
+                    // Standing
+                    (true, false, false, _) => anim::bird_medium::IdleAnimation::update_skeleton(
+                        &BirdMediumSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false, false) => {
+                        anim::bird_medium::RunAnimation::update_skeleton(
+                            &BirdMediumSkeleton::default(),
                             (
                                 rel_vel,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                time,
                                 rel_avg_vel,
+                                state.acc_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // Swim
-                        (_, true, _) => anim::fish_small::SwimAnimation::update_skeleton(
-                            &FishSmallSkeleton::default(),
+                        )
+                    },
+                    // In air
+                    (false, _, false, false) => {
+                        anim::bird_medium::FlyAnimation::update_skeleton(
+                            &BirdMediumSkeleton::default(),
                             (
                                 rel_vel,
                                 // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // Swim
+                    (_, true, _, false) => anim::bird_medium::SwimAnimation::update_skeleton(
+                        &BirdMediumSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // TODO!
+                    _ => anim::bird_medium::IdleAnimation::update_skeleton(
+                        &BirdMediumSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::Sit { .. } => {
+                        anim::bird_medium::FeedAnimation::update_skeleton(
+                            &target_base,
+                            time,
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicBeam(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => s.timer.as_secs_f32(),
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_medium::BreatheAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel,
+                                time,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                Some(s.stage_section),
+                                state.state_time,
+                                look_dir,
+                                physics.on_ground.is_some(),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_medium::AlphaAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                Some(s.stage_section),
+                                time,
+                                state.state_time,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                physics.on_ground.is_some(),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::bird_medium::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                                look_dir,
+                                physics.on_ground.is_some(),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Shockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_medium::ShockwaveAnimation::update_skeleton(
+                            &target_base,
+                            (Some(s.stage_section), physics.on_ground.is_some()),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicSummon(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::bird_medium::SummonAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                                look_dir,
+                                physics.on_ground.is_some(),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::DashMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => {
+                                stage_time / s.static_data.charge_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_medium::DashAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.acc_vel,
+                                Some(s.stage_section),
+                                time,
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal
+                            | PoiseState::Interrupted
+                            | PoiseState::Stunned
+                            | PoiseState::Dazed
+                            | PoiseState::KnockedDown => {
+                                anim::bird_medium::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (time, Some(s.stage_section), state.state_time),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::FishMedium(body) => {
+                let (model, skeleton_attr) = self.fish_medium_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .fish_medium_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, FishMediumSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Idle
+                    (_, false, _) => anim::fish_medium::IdleAnimation::update_skeleton(
+                        &FishMediumSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Swim
+                    (_, true, _) => anim::fish_medium::SwimAnimation::update_skeleton(
+                        &FishMediumSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::BipedSmall(body) => {
+                let (model, skeleton_attr) = self.biped_small_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .biped_small_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, BipedSmallSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Idle
+                    (true, false, false) => anim::biped_small::IdleAnimation::update_skeleton(
+                        &BipedSmallSkeleton::default(),
+                        (
+                            rel_vel,
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Run
+                    (true, true, _) => anim::biped_small::RunAnimation::update_skeleton(
+                        &BipedSmallSkeleton::default(),
+                        (
+                            rel_vel,
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Jump
+                    (false, _, false) => anim::biped_small::RunAnimation::update_skeleton(
+                        &BipedSmallSkeleton::default(),
+                        (
+                            rel_vel,
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Swim
+                    (false, _, true) => anim::biped_small::RunAnimation::update_skeleton(
+                        &BipedSmallSkeleton::default(),
+                        (
+                            rel_vel,
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    _ => anim::biped_small::IdleAnimation::update_skeleton(
+                        &BipedSmallSkeleton::default(),
+                        (
+                            rel_vel,
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+
+                let target_bones = match &character {
+                    CharacterState::Wielding { .. } => {
+                        anim::biped_small::WieldAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                (active_tool_kind, active_tool_spec),
+                                rel_vel,
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
@@ -5085,1011 +3644,2871 @@ impl FigureMgr {
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                    };
+                        )
+                    },
+                    CharacterState::DashMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => {
+                                stage_time / s.static_data.charge_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_small::DashAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                rel_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                                Some(s.stage_section),
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
 
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::BipedLarge(body) => {
-                    let (model, skeleton_attr) = self.biped_large_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
+                        anim::biped_small::ComboAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                s.stage_section,
+                                current_strike,
+                                rel_vel,
+                                time,
+                                state.state_time,
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let wield_status = s.was_wielded;
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal
+                            | PoiseState::Interrupted
+                            | PoiseState::Stunned
+                            | PoiseState::Dazed
+                            | PoiseState::KnockedDown => {
+                                anim::biped_small::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        rel_vel,
+                                        ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        time,
+                                        state.avg_vel,
+                                        state.acc_vel,
+                                        wield_status,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    CharacterState::ChargedRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
 
-                    let state = self
-                        .states
-                        .biped_large_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, BipedLargeSkeleton::default(), body)
-                        });
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
 
-                    // Average velocity relative to the current ground
-                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
+                            _ => 0.0,
+                        };
+                        anim::biped_small::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                rel_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                                Some(s.stage_section),
+                                state.state_time,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::RepeaterRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
 
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
 
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
+                            _ => 0.0,
+                        };
+                        anim::biped_small::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                rel_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                                Some(s.stage_section),
+                                state.state_time,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
 
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Running
-                        (true, true, false) => anim::biped_large::RunAnimation::update_skeleton(
-                            &BipedLargeSkeleton::default(),
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::biped_small::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                rel_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                                Some(s.stage_section),
+                                state.state_time,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicBeam(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => s.timer.as_secs_f32(),
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_small::BeamAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                active_tool_kind,
+                                rel_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                                Some(s.stage_section),
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_small::AlphaAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                active_tool_kind,
+                                rel_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                                Some(s.stage_section),
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::LeapMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Movement => {
+                                stage_time / s.static_data.movement_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_small::LeapAnimation::update_skeleton(
+                            &target_base,
                             (
                                 active_tool_kind,
                                 second_tool_kind,
                                 rel_vel,
-                                // TODO: Update to use the quaternion.
+                                time,
+                                Some(s.stage_section),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Shockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_small::ShockwaveAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                rel_vel,
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
                                 rel_avg_vel,
                                 state.acc_vel,
+                                Some(s.stage_section),
+                                state.state_time,
                             ),
-                            state.state_time,
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::biped_large::JumpAnimation::update_skeleton(
-                            &BipedLargeSkeleton::default(),
-                            (active_tool_kind, second_tool_kind, time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        _ => anim::biped_large::IdleAnimation::update_skeleton(
-                            &BipedLargeSkeleton::default(),
-                            (active_tool_kind, second_tool_kind, time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::Equipping { .. } => {
-                            anim::biped_large::EquipAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel.magnitude(),
-                                    time,
-                                ),
+                        )
+                    },
+                    CharacterState::SpriteSummon(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_small::SpriteSummonAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                rel_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                                Some(s.stage_section),
                                 state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Wielding { .. } => {
-                            anim::biped_large::WieldAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    (active_tool_kind, active_tool_spec),
-                                    (second_tool_kind, second_tool_spec),
-                                    rel_vel,
-                                    time,
-                                    state.acc_vel,
-                                ),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicSummon(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_small::SummonAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                active_tool_kind,
+                                rel_vel,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                                Some(s.stage_section),
                                 state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ChargedMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicBlock(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => stage_time,
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_small::BlockAnimation::update_skeleton(
+                            &target_base,
+                            (ability_id, s.stage_section),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::RapidMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    if let Some((dur, _)) = s.static_data.buildup_strike {
-                                        stage_time / dur.as_secs_f32()
-                                    } else {
-                                        stage_time
-                                    }
-                                },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                        anim::biped_small::RapidMeleeAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                s.stage_section,
+                                (s.current_strike, s.static_data.max_strikes),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::RiposteMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                let recover_duration = if s.whiffed {
+                                    s.static_data.whiffed_recover_duration.as_secs_f32()
+                                } else {
+                                    s.static_data.recover_duration.as_secs_f32()
+                                };
+                                stage_time / recover_duration
+                            },
+                            _ => 0.0,
+                        };
 
-                            anim::biped_large::ChargeMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::SelfBuff(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                        anim::biped_small::RiposteMeleeAnimation::update_skeleton(
+                            &target_base,
+                            (ability_id, s.stage_section),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::Dragon(body) => {
+                let (model, skeleton_attr) = self.dragon_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
 
-                            anim::biped_large::SelfBuffAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    (active_tool_kind, active_tool_spec),
-                                    (second_tool_kind, second_tool_spec),
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::biped_large::AlphaAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                    state.state_time,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::biped_large::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                    current_strike,
-                                    move_dir,
-                                    rel_vel,
-                                    state.acc_vel,
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-
-                            anim::biped_large::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Stunned(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            match s.static_data.poise_state {
-                                PoiseState::Normal
-                                | PoiseState::Interrupted
-                                | PoiseState::Stunned
-                                | PoiseState::Dazed
-                                | PoiseState::KnockedDown => {
-                                    anim::biped_large::StunnedAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            (active_tool_kind, active_tool_spec),
-                                            rel_vel,
-                                            state.acc_vel,
-                                            Some(s.stage_section),
-                                        ),
-                                        stage_progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                            }
-                        },
-                        CharacterState::Blink(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-
-                            anim::biped_large::BlinkAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ChargedRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-
-                            anim::biped_large::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    rel_vel,
-                                    // TODO: Update to use the quaternion.
-                                    ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::DashMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Charge => {
-                                    stage_time / s.static_data.charge_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_large::DashAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::RapidMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::biped_large::RapidMeleeAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::biped_large::SummonAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::LeapMelee(s) => {
-                            let stage_progress = match active_tool_kind {
-                                Some(ToolKind::Axe | ToolKind::Hammer) => {
-                                    let stage_time = s.timer.as_secs_f32();
-                                    match s.stage_section {
-                                        StageSection::Buildup => {
-                                            stage_time
-                                                / s.static_data.buildup_duration.as_secs_f32()
-                                        },
-                                        StageSection::Movement => {
-                                            stage_time
-                                                / s.static_data.movement_duration.as_secs_f32()
-                                        },
-                                        StageSection::Action => {
-                                            stage_time / s.static_data.swing_duration.as_secs_f32()
-                                        },
-                                        StageSection::Recover => {
-                                            stage_time
-                                                / s.static_data.recover_duration.as_secs_f32()
-                                        },
-                                        _ => 0.0,
-                                    }
-                                },
-                                _ => state.state_time,
-                            };
-
-                            anim::biped_large::LeapAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::LeapShockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Movement => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::biped_large::LeapShockAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel,
-                                    time,
-                                    Some(s.stage_section),
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_large::ShockwaveAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    time,
-                                    rel_vel.magnitude(),
-                                    Some(s.stage_section),
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_large::BeamAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    time,
-                                    rel_vel,
-                                    Some(s.stage_section),
-                                    state.acc_vel,
-                                    state.state_time,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::SpriteSummon(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.cast_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::biped_large::SpriteSummonAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    (second_tool_kind, second_tool_spec),
-                                    time,
-                                    rel_vel.magnitude(),
-                                    Some(s.stage_section),
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::Golem(body) => {
-                    let (model, skeleton_attr) = self.golem_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self.states.golem_states.entry(entity).or_insert_with(|| {
-                        FigureState::new(renderer, GolemSkeleton::default(), body)
+                let state =
+                    self.states.dragon_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, DragonSkeleton::default(), body)
                     });
 
-                    // Average velocity relative to the current ground
-                    let _rel_avg_vel = state.avg_vel - physics.ground_vel;
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
 
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => continue,
-                    };
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
 
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
 
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => anim::golem::IdleAnimation::update_skeleton(
-                            &GolemSkeleton::default(),
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::dragon::IdleAnimation::update_skeleton(
+                        &DragonSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => anim::dragon::RunAnimation::update_skeleton(
+                        &DragonSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                             time,
-                            state.state_time,
+                            rel_avg_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::dragon::FlyAnimation::update_skeleton(
+                        &DragonSkeleton::default(),
+                        (rel_vel.magnitude(), time),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // TODO!
+                    _ => anim::dragon::IdleAnimation::update_skeleton(
+                        &DragonSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::Theropod(body) => {
+                let (model, skeleton_attr) = self.theropod_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .theropod_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, TheropodSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::theropod::IdleAnimation::update_skeleton(
+                        &TheropodSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => anim::theropod::RunAnimation::update_skeleton(
+                        &TheropodSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::theropod::JumpAnimation::update_skeleton(
+                        &TheropodSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    _ => anim::theropod::IdleAnimation::update_skeleton(
+                        &TheropodSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::theropod::ComboAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                s.stage_section,
+                                current_strike,
+                                time,
+                                state.state_time,
+                            ),
+                            progress,
                             &mut state_animation_rate,
                             skeleton_attr,
+                        )
+                    },
+                    CharacterState::DashMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => {
+                                stage_time / s.static_data.charge_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::theropod::DashAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel.magnitude(),
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::Arthropod(body) => {
+                let (model, skeleton_attr) = self.arthropod_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .arthropod_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, ArthropodSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::arthropod::IdleAnimation::update_skeleton(
+                        &ArthropodSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => anim::arthropod::RunAnimation::update_skeleton(
+                        &ArthropodSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
                         ),
-                        // Running
-                        (true, true, false) => anim::golem::RunAnimation::update_skeleton(
-                            &GolemSkeleton::default(),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::arthropod::JumpAnimation::update_skeleton(
+                        &ArthropodSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    _ => anim::arthropod::IdleAnimation::update_skeleton(
+                        &ArthropodSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::BasicRanged(_)
+                    | CharacterState::DashMelee(_)
+                    | CharacterState::LeapMelee(_)
+                    | CharacterState::LeapShockwave(_)
+                    | CharacterState::SpriteSummon(_) => {
+                        let timer = character.timer();
+                        let stage_section = character.stage_section();
+                        let durations = character.durations();
+                        let progress = if let Some(((timer, stage_section), durations)) =
+                            timer.zip(stage_section).zip(durations)
+                        {
+                            let base_dur = match stage_section {
+                                StageSection::Buildup => durations.buildup,
+                                StageSection::Charge => durations.charge,
+                                StageSection::Movement => durations.movement,
+                                StageSection::Action => durations.action,
+                                StageSection::Recover => durations.recover,
+                            };
+                            if let Some(base_dur) = base_dur {
+                                timer.as_secs_f32() / base_dur.as_secs_f32()
+                            } else {
+                                timer.as_secs_f32()
+                            }
+                        } else {
+                            0.0
+                        };
+
+                        anim::arthropod::BasicAction::update_skeleton(
+                            &target_base,
+                            anim::arthropod::BasicActionDependency {
+                                ability_id,
+                                stage_section,
+                                global_time: time,
+                                timer: state.state_time,
+                            },
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::ComboMelee2(_) => {
+                        let timer = character.timer();
+                        let stage_section = character.stage_section();
+                        let durations = character.durations();
+                        let progress = if let Some(((timer, stage_section), durations)) =
+                            timer.zip(stage_section).zip(durations)
+                        {
+                            let base_dur = match stage_section {
+                                StageSection::Buildup => durations.buildup,
+                                StageSection::Charge => durations.charge,
+                                StageSection::Movement => durations.movement,
+                                StageSection::Action => durations.action,
+                                StageSection::Recover => durations.recover,
+                            };
+                            if let Some(base_dur) = base_dur {
+                                timer.as_secs_f32() / base_dur.as_secs_f32()
+                            } else {
+                                timer.as_secs_f32()
+                            }
+                        } else {
+                            0.0
+                        };
+
+                        let (current_action, max_actions) = match character {
+                            CharacterState::ComboMelee2(s) => (
+                                (s.completed_strikes % s.static_data.strikes.len()) as u32,
+                                Some(s.static_data.strikes.len() as u32),
+                            ),
+                            _ => (0, None),
+                        };
+
+                        anim::arthropod::MultiAction::update_skeleton(
+                            &target_base,
+                            anim::arthropod::MultiActionDependency {
+                                ability_id,
+                                stage_section,
+                                current_action,
+                                max_actions,
+                                global_time: time,
+                                timer: state.state_time,
+                            },
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal
+                            | PoiseState::Interrupted
+                            | PoiseState::Stunned
+                            | PoiseState::Dazed
+                            | PoiseState::KnockedDown => {
+                                anim::arthropod::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        rel_vel.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::Crustacean(body) => {
+                let (model, skeleton_attr) = self.crustacean_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .crustacean_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, CrustaceanSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::crustacean::IdleAnimation::update_skeleton(
+                        &CrustaceanSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => anim::crustacean::RunAnimation::update_skeleton(
+                        &CrustaceanSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::crustacean::JumpAnimation::update_skeleton(
+                        &CrustaceanSkeleton::default(),
+                        (
+                            rel_vel.magnitude(),
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    //Swimming
+                    (_, _, true) => anim::crustacean::SwimAnimation::update_skeleton(
+                        &CrustaceanSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::crustacean::ComboAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                Some(s.stage_section),
+                                Some(s.static_data.ability_info),
+                                current_strike,
+                                time,
+                                rel_avg_vel,
+                                state.state_time,
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::LeapMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Movement => {
+                                stage_time / s.static_data.movement_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::crustacean::LeapMeleeAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                rel_vel.magnitude(),
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicSummon(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::crustacean::SummonAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                                look_dir,
+                                physics.on_ground.is_some(),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::RiposteMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                let recover_duration = if s.whiffed {
+                                    s.static_data.whiffed_recover_duration.as_secs_f32()
+                                } else {
+                                    s.static_data.recover_duration.as_secs_f32()
+                                };
+                                stage_time / recover_duration
+                            },
+                            _ => 0.0,
+                        };
+                        anim::crustacean::RiposteMeleeAnimation::update_skeleton(
+                            &target_base,
+                            (ability_id, s.stage_section),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal
+                            | PoiseState::Interrupted
+                            | PoiseState::Stunned
+                            | PoiseState::Dazed
+                            | PoiseState::KnockedDown => {
+                                anim::crustacean::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        rel_vel.magnitude(),
+                                        time,
+                                        Some(s.stage_section),
+                                        state.state_time,
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::BirdLarge(body) => {
+                let (model, skeleton_attr) = self.bird_large_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .bird_large_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, BirdLargeSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::bird_large::IdleAnimation::update_skeleton(
+                        &BirdLargeSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => anim::bird_large::RunAnimation::update_skeleton(
+                        &BirdLargeSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::bird_large::FlyAnimation::update_skeleton(
+                        &BirdLargeSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Swim
+                    (_, true, _) => anim::bird_large::SwimAnimation::update_skeleton(
+                        &BirdLargeSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // TODO!
+                    _ => anim::bird_large::IdleAnimation::update_skeleton(
+                        &BirdLargeSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::Sit { .. } => anim::bird_large::FeedAnimation::update_skeleton(
+                        &target_base,
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    CharacterState::BasicBeam(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => s.timer.as_secs_f32(),
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_large::BreatheAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel,
+                                time,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                Some(s.stage_section),
+                                state.state_time,
+                                look_dir,
+                                physics.on_ground.is_some(),
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::bird_large::ComboAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                Some(s.stage_section),
+                                current_strike,
+                                time,
+                                state.state_time,
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                physics.on_ground.is_some(),
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::bird_large::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                                look_dir,
+                                physics.on_ground.is_some(),
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::RepeaterRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::bird_large::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                                look_dir,
+                                physics.on_ground.is_some(),
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Shockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_large::ShockwaveAnimation::update_skeleton(
+                            &target_base,
+                            (Some(s.stage_section), physics.on_ground.is_some()),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicAura(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_large::AuraAnimation::update_skeleton(
+                            &target_base,
+                            (Some(s.stage_section), physics.on_ground.is_some()),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::SelfBuff(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_large::SelfBuffAnimation::update_skeleton(
+                            &target_base,
+                            (Some(s.stage_section), physics.on_ground.is_some()),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicSummon(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::bird_large::SummonAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                time,
+                                Some(s.stage_section),
+                                state.state_time,
+                                look_dir,
+                                physics.on_ground.is_some(),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::DashMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => {
+                                stage_time / s.static_data.charge_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::bird_large::DashAnimation::update_skeleton(
+                            &target_base,
                             (
                                 rel_vel,
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.acc_vel,
+                                Some(s.stage_section),
+                                time,
+                                state.state_time,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal
+                            | PoiseState::Interrupted
+                            | PoiseState::Stunned
+                            | PoiseState::Dazed
+                            | PoiseState::KnockedDown => {
+                                anim::bird_large::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (time, Some(s.stage_section), state.state_time),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::FishSmall(body) => {
+                let (model, skeleton_attr) = self.fish_small_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .fish_small_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, FishSmallSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Idle
+                    (_, false, _) => anim::fish_small::IdleAnimation::update_skeleton(
+                        &FishSmallSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Swim
+                    (_, true, _) => anim::fish_small::SwimAnimation::update_skeleton(
+                        &FishSmallSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::BipedLarge(body) => {
+                let (model, skeleton_attr) = self.biped_large_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state = self
+                    .states
+                    .biped_large_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, BipedLargeSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Running
+                    (true, true, false) => anim::biped_large::RunAnimation::update_skeleton(
+                        &BipedLargeSkeleton::default(),
+                        (
+                            active_tool_kind,
+                            second_tool_kind,
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            rel_avg_vel,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::biped_large::JumpAnimation::update_skeleton(
+                        &BipedLargeSkeleton::default(),
+                        (active_tool_kind, second_tool_kind, time),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    _ => anim::biped_large::IdleAnimation::update_skeleton(
+                        &BipedLargeSkeleton::default(),
+                        (active_tool_kind, second_tool_kind, time),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::Equipping { .. } => {
+                        anim::biped_large::EquipAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                rel_vel.magnitude(),
+                                time,
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Wielding { .. } => {
+                        anim::biped_large::WieldAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                (active_tool_kind, active_tool_spec),
+                                (second_tool_kind, second_tool_spec),
+                                rel_vel,
                                 time,
                                 state.acc_vel,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        // In air
-                        (false, _, false) => anim::golem::RunAnimation::update_skeleton(
-                            &GolemSkeleton::default(),
+                        )
+                    },
+                    CharacterState::ChargedMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                if let Some((dur, _)) = s.static_data.buildup_strike {
+                                    stage_time / dur.as_secs_f32()
+                                } else {
+                                    stage_time
+                                }
+                            },
+                            StageSection::Charge => {
+                                stage_time / s.static_data.charge_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::ChargeMeleeAnimation::update_skeleton(
+                            &target_base,
                             (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
                                 rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::SelfBuff(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::SelfBuffAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                (active_tool_kind, active_tool_spec),
+                                (second_tool_kind, second_tool_spec),
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::AlphaAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                                state.state_time,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::ComboAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                Some(s.stage_section),
+                                Some(s.static_data.ability_info),
+                                current_strike,
+                                move_dir,
+                                rel_vel,
+                                state.acc_vel,
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                 time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Stunned(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        match s.static_data.poise_state {
+                            PoiseState::Normal
+                            | PoiseState::Interrupted
+                            | PoiseState::Stunned
+                            | PoiseState::Dazed
+                            | PoiseState::KnockedDown => {
+                                anim::biped_large::StunnedAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        (active_tool_kind, active_tool_spec),
+                                        rel_vel,
+                                        state.acc_vel,
+                                        Some(s.stage_section),
+                                    ),
+                                    stage_progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            },
+                        }
+                    },
+                    CharacterState::Blink(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::BlinkAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
                                 state.acc_vel,
                             ),
-                            state.state_time,
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
+                        )
+                    },
+                    CharacterState::ChargedRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
 
-                        _ => anim::golem::IdleAnimation::update_skeleton(
-                            &GolemSkeleton::default(),
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::DashMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Charge => {
+                                stage_time / s.static_data.charge_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_large::DashAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::RapidMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::RapidMeleeAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicSummon(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::SummonAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::LeapMelee(s) => {
+                        let stage_progress = match active_tool_kind {
+                            Some(ToolKind::Axe | ToolKind::Hammer) => {
+                                let stage_time = s.timer.as_secs_f32();
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        stage_time / s.static_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Movement => {
+                                        stage_time / s.static_data.movement_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        stage_time / s.static_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        stage_time / s.static_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            },
+                            _ => state.state_time,
+                        };
+
+                        anim::biped_large::LeapAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::LeapShockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Movement => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::LeapShockAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                rel_vel,
+                                time,
+                                Some(s.stage_section),
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Shockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_large::ShockwaveAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                time,
+                                rel_vel.magnitude(),
+                                Some(s.stage_section),
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicBeam(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => s.timer.as_secs_f32(),
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_large::BeamAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                time,
+                                rel_vel,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                                state.state_time,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::SpriteSummon(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.cast_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::biped_large::SpriteSummonAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                time,
+                                rel_vel.magnitude(),
+                                Some(s.stage_section),
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::Golem(body) => {
+                let (model, skeleton_attr) = self.golem_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
+
+                let state =
+                    self.states.golem_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, GolemSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let _rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => return,
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::golem::IdleAnimation::update_skeleton(
+                        &GolemSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // Running
+                    (true, true, false) => anim::golem::RunAnimation::update_skeleton(
+                        &GolemSkeleton::default(),
+                        (
+                            rel_vel,
+                            // TODO: Update to use the quaternion.
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                             time,
-                            state.state_time,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    // In air
+                    (false, _, false) => anim::golem::RunAnimation::update_skeleton(
+                        &GolemSkeleton::default(),
+                        (
+                            rel_vel,
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            time,
+                            state.acc_vel,
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+
+                    _ => anim::golem::IdleAnimation::update_skeleton(
+                        &GolemSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+                let target_bones = match &character {
+                    CharacterState::BasicRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+
+                        anim::golem::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                Some(s.stage_section),
+                                time,
+                                state.state_time,
+                                look_dir,
+                                ability_id,
+                            ),
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                    };
-                    let target_bones = match &character {
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                        )
+                    },
+                    CharacterState::BasicBeam(s) => {
+                        let stage_time = s.timer.as_secs_f32();
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => s.timer.as_secs_f32(),
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
 
-                                _ => 0.0,
-                            };
+                            _ => 0.0,
+                        };
 
-                            anim::golem::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    Some(s.stage_section),
-                                    time,
-                                    state.state_time,
-                                    look_dir,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                        anim::golem::BeamAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                Some(s.stage_section),
+                                time,
+                                state.state_time,
+                                look_dir,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::BasicMelee(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
+                        anim::golem::AlphaAnimation::update_skeleton(
+                            &target_base,
+                            (Some(s.stage_section), time, state.state_time, ability_id),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::ComboMelee2(s) => {
+                        let timer = s.timer.as_secs_f32();
+                        let current_strike = s.completed_strikes % s.static_data.strikes.len();
+                        let strike_data = s.static_data.strikes[current_strike];
+                        let progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                timer / strike_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                timer / strike_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                timer / strike_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
 
-                                _ => 0.0,
-                            };
+                        anim::golem::ComboAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                ability_id,
+                                Some(s.stage_section),
+                                Some(s.static_data.ability_info),
+                                current_strike,
+                                move_dir,
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Shockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::golem::ShockwaveAnimation::update_skeleton(
+                            &target_base,
+                            (Some(s.stage_section), rel_vel.magnitude(), time),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
 
-                            anim::golem::BeamAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    Some(s.stage_section),
-                                    time,
-                                    state.state_time,
-                                    look_dir,
-                                    ability_id,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicMelee(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::Object(body) => {
+                let (model, skeleton_attr) = self.object_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    None,
+                );
 
-                            anim::golem::AlphaAnimation::update_skeleton(
-                                &target_base,
-                                (Some(s.stage_section), time, state.state_time, ability_id),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::ComboMelee2(s) => {
-                            let timer = s.timer.as_secs_f32();
-                            let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                            let strike_data = s.static_data.strikes[current_strike];
-                            let progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    timer / strike_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    timer / strike_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    timer / strike_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-
-                            anim::golem::ComboAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    ability_id,
-                                    Some(s.stage_section),
-                                    Some(s.static_data.ability_info),
-                                    current_strike,
-                                    move_dir,
-                                ),
-                                progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::Shockwave(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => {
-                                    stage_time / s.static_data.swing_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::golem::ShockwaveAnimation::update_skeleton(
-                                &target_base,
-                                (Some(s.stage_section), rel_vel.magnitude(), time),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::Object(body) => {
-                    let (model, skeleton_attr) = self.object_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.atlas,
-                        body,
-                        inventory,
-                        (),
-                        tick,
-                        viewpoint_camera_mode,
-                        viewpoint_character_state,
-                        &slow_jobs,
-                        None,
-                    );
-
-                    let state = self.states.object_states.entry(entity).or_insert_with(|| {
+                let state =
+                    self.states.object_states.entry(entity).or_insert_with(|| {
                         FigureState::new(renderer, ObjectSkeleton::default(), body)
                     });
 
-                    // Average velocity relative to the current ground
-                    let _rel_avg_vel = state.avg_vel - physics.ground_vel;
+                // Average velocity relative to the current ground
+                let _rel_avg_vel = state.avg_vel - physics.ground_vel;
 
-                    let idlestate = CharacterState::Idle(idle::Data::default());
-                    let last = Last(idlestate.clone());
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => (&idlestate, &last),
-                    };
+                let idlestate = CharacterState::Idle(idle::Data::default());
+                let last = Last(idlestate.clone());
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => (&idlestate, &last),
+                };
 
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
 
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => anim::object::IdleAnimation::update_skeleton(
-                            &ObjectSkeleton::default(),
-                            (active_tool_kind, second_tool_kind, time),
-                            state.state_time,
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::object::IdleAnimation::update_skeleton(
+                        &ObjectSkeleton::default(),
+                        (active_tool_kind, second_tool_kind, time),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    _ => anim::object::IdleAnimation::update_skeleton(
+                        &ObjectSkeleton::default(),
+                        (active_tool_kind, second_tool_kind, time),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+
+                let target_bones = match &character {
+                    CharacterState::BasicRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::object::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                Some(s.stage_section),
+                                body,
+                            ),
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
-                        _ => anim::object::IdleAnimation::update_skeleton(
-                            &ObjectSkeleton::default(),
-                            (active_tool_kind, second_tool_kind, time),
-                            state.state_time,
+                        )
+                    },
+                    CharacterState::BasicBeam(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => s.timer.as_secs_f32(),
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+                        anim::object::BeamAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                Some(s.stage_section),
+                                body,
+                            ),
+                            stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
-                        ),
+                        )
+                    },
+                    // TODO!
+                    _ => target_base,
+                };
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::ItemDrop(body) => {
+                let item_key = item.map(|item| ItemKey::from(item.item()));
+                let (model, skeleton_attr) = self.item_drop_model_cache.get_or_create_model(
+                    renderer,
+                    &mut self.atlas,
+                    body,
+                    inventory,
+                    (),
+                    tick,
+                    viewpoint_camera_mode,
+                    viewpoint_character_state,
+                    slow_jobs,
+                    item_key,
+                );
+
+                let state = self
+                    .states
+                    .item_drop_states
+                    .entry(entity)
+                    .or_insert_with(|| {
+                        FigureState::new(renderer, ItemDropSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let _rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let idle_state = CharacterState::Idle(idle::Data::default());
+                let last = Last(idle_state.clone());
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => (&idle_state, &last),
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_bones = anim::item_drop::IdleAnimation::update_skeleton(
+                    &ItemDropSkeleton::default(),
+                    time,
+                    state.state_time,
+                    &mut state_animation_rate,
+                    skeleton_attr,
+                );
+
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::Ship(body) => {
+                let Some(terrain) = data.terrain else {
+                    return;
+                };
+                let (model, skeleton_attr) = if let Some(Collider::Volume(vol)) = collider {
+                    let vk = VolumeKey {
+                        entity,
+                        mut_count: vol.mut_count,
                     };
+                    let (model, _skeleton_attr) =
+                        self.volume_model_cache.get_or_create_terrain_model(
+                            renderer,
+                            &mut self.atlas,
+                            vk,
+                            Arc::clone(vol),
+                            tick,
+                            slow_jobs,
+                            &terrain.sprite_render_state,
+                        );
 
-                    let target_bones = match &character {
-                        CharacterState::BasicRanged(s) => {
-                            let stage_time = s.timer.as_secs_f32();
+                    let state = self
+                        .states
+                        .volume_states
+                        .entry(entity)
+                        .or_insert_with(|| FigureState::new(renderer, vk, vk));
 
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-
-                                _ => 0.0,
-                            };
-                            anim::object::ShootAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    Some(s.stage_section),
-                                    body,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        CharacterState::BasicBeam(s) => {
-                            let stage_time = s.timer.as_secs_f32();
-                            let stage_progress = match s.stage_section {
-                                StageSection::Buildup => {
-                                    stage_time / s.static_data.buildup_duration.as_secs_f32()
-                                },
-                                StageSection::Action => s.timer.as_secs_f32(),
-                                StageSection::Recover => {
-                                    stage_time / s.static_data.recover_duration.as_secs_f32()
-                                },
-                                _ => 0.0,
-                            };
-                            anim::object::BeamAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    Some(s.stage_section),
-                                    body,
-                                ),
-                                stage_progress,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
-                        },
-                        // TODO!
-                        _ => target_base,
-                    };
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
                         trail_mgr,
-                        &mut update_buf,
+                        update_buf,
                         &common_params,
                         state_animation_rate,
                         model,
-                        body,
+                        vk,
                     );
-                },
-                Body::ItemDrop(body) => {
-                    let item_key = item.map(|item| ItemKey::from(item.item()));
-                    let (model, skeleton_attr) = self.item_drop_model_cache.get_or_create_model(
+                    return;
+                } else if body.manifest_entry().is_some() {
+                    self.ship_model_cache.get_or_create_terrain_model(
+                        renderer,
+                        &mut self.atlas,
+                        body,
+                        (),
+                        tick,
+                        slow_jobs,
+                        &terrain.sprite_render_state,
+                    )
+                } else {
+                    // No way to determine model (this is okay, we might just not have received
+                    // the `Collider` for the entity yet. Wait until the
+                    // next tick.
+                    return;
+                };
+
+                let state =
+                    self.states.ship_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, ShipSkeleton::default(), body)
+                    });
+
+                // Average velocity relative to the current ground
+                let _rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                let idlestate = CharacterState::Idle(idle::Data::default());
+                let last = Last(idlestate.clone());
+                let (character, last_character) = match (character, last_character) {
+                    (Some(c), Some(l)) => (c, l),
+                    _ => (&idlestate, &last),
+                };
+
+                if !character.same_variant(&last_character.0) {
+                    state.state_time = 0.0;
+                }
+
+                let target_base = match (
+                    physics.on_ground.is_some(),
+                    rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
+                    physics.in_liquid().is_some(),                      // In water
+                ) {
+                    // Standing
+                    (true, false, false) => anim::ship::IdleAnimation::update_skeleton(
+                        &ShipSkeleton::default(),
+                        (
+                            active_tool_kind,
+                            second_tool_kind,
+                            time,
+                            state.acc_vel,
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                    _ => anim::ship::IdleAnimation::update_skeleton(
+                        &ShipSkeleton::default(),
+                        (
+                            active_tool_kind,
+                            second_tool_kind,
+                            time,
+                            state.acc_vel,
+                            ori * anim::vek::Vec3::<f32>::unit_y(),
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                        ),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
+                };
+
+                let target_bones = target_base;
+                state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                state.update(
+                    renderer,
+                    trail_mgr,
+                    update_buf,
+                    &common_params,
+                    state_animation_rate,
+                    model,
+                    body,
+                );
+            },
+            Body::Plugin(body) => {
+                #[cfg(feature = "plugins")]
+                {
+                    let (model, _skeleton_attr) = self.plugin_model_cache.get_or_create_model(
                         renderer,
                         &mut self.atlas,
                         body,
@@ -6098,20 +6517,16 @@ impl FigureMgr {
                         tick,
                         viewpoint_camera_mode,
                         viewpoint_character_state,
-                        &slow_jobs,
-                        item_key,
+                        slow_jobs,
+                        None,
                     );
 
-                    let state = self
-                        .states
-                        .item_drop_states
-                        .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, ItemDropSkeleton::default(), body)
-                        });
+                    let state = self.states.plugin_states.entry(entity).or_insert_with(|| {
+                        FigureState::new(renderer, PluginSkeleton::default(), body)
+                    });
 
                     // Average velocity relative to the current ground
-                    let _rel_avg_vel = state.avg_vel - physics.ground_vel;
+                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
 
                     let idle_state = CharacterState::Idle(idle::Data::default());
                     let last = Last(idle_state.clone());
@@ -6124,244 +6539,62 @@ impl FigureMgr {
                         state.state_time = 0.0;
                     }
 
-                    let target_bones = anim::item_drop::IdleAnimation::update_skeleton(
-                        &ItemDropSkeleton::default(),
-                        time,
-                        state.state_time,
-                        &mut state_animation_rate,
-                        skeleton_attr,
-                    );
-
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::Ship(body) => {
-                    let Some(terrain) = terrain else {
-                        continue;
+                    let char_state = match character {
+                        CharacterState::BasicMelee(_) => {
+                            common_state::plugin::module::CharacterState::Melee
+                        },
+                        CharacterState::Sit { .. } => {
+                            common_state::plugin::module::CharacterState::Feed
+                        },
+                        CharacterState::Stunned(_) => {
+                            common_state::plugin::module::CharacterState::Stunned
+                        },
+                        _ if physics.on_ground.is_none() => {
+                            common_state::plugin::module::CharacterState::Jump
+                        },
+                        _ if physics.in_liquid().is_some() => {
+                            common_state::plugin::module::CharacterState::Swim
+                        },
+                        _ if rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR => {
+                            common_state::plugin::module::CharacterState::Run
+                        },
+                        _ => common_state::plugin::module::CharacterState::Idle,
                     };
-                    let (model, skeleton_attr) = if let Some(Collider::Volume(vol)) = collider {
-                        let vk = VolumeKey {
-                            entity,
-                            mut_count: vol.mut_count,
+
+                    if let Some(bodyobj) = data.plugins.create_body("lizard") {
+                        let dep = common_state::plugin::module::Dependency {
+                            velocity: state.avg_vel.into_tuple(),
+                            ori: ori.into_vec4().into_tuple(),
+                            last_ori: state.last_ori.into_vec4().into_tuple(),
+                            global_time: time,
+                            avg_vel: rel_avg_vel.into_tuple(),
+                            state: char_state,
                         };
-                        let (model, _skeleton_attr) =
-                            self.volume_model_cache.get_or_create_terrain_model(
-                                renderer,
-                                &mut self.atlas,
-                                vk,
-                                Arc::clone(vol),
-                                tick,
-                                &slow_jobs,
-                                &terrain.sprite_render_state,
+
+                        if let Some(target_bones) =
+                            data.plugins.update_skeleton(&bodyobj, &dep, time)
+                        {
+                            state.skeleton = Lerp::lerp(
+                                &state.skeleton,
+                                &PluginSkeleton::from_module(target_bones),
+                                dt_lerp,
                             );
-
-                        let state = self
-                            .states
-                            .volume_states
-                            .entry(entity)
-                            .or_insert_with(|| FigureState::new(renderer, vk, vk));
-
-                        state.update(
-                            renderer,
-                            trail_mgr,
-                            &mut update_buf,
-                            &common_params,
-                            state_animation_rate,
-                            model,
-                            vk,
-                        );
-                        continue;
-                    } else if body.manifest_entry().is_some() {
-                        self.ship_model_cache.get_or_create_terrain_model(
-                            renderer,
-                            &mut self.atlas,
-                            body,
-                            (),
-                            tick,
-                            &slow_jobs,
-                            &terrain.sprite_render_state,
-                        )
-                    } else {
-                        // No way to determine model (this is okay, we might just not have received
-                        // the `Collider` for the entity yet. Wait until the
-                        // next tick.
-                        continue;
-                    };
-
-                    let state = self.states.ship_states.entry(entity).or_insert_with(|| {
-                        FigureState::new(renderer, ShipSkeleton::default(), body)
-                    });
-
-                    // Average velocity relative to the current ground
-                    let _rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                    let idlestate = CharacterState::Idle(idle::Data::default());
-                    let last = Last(idlestate.clone());
-                    let (character, last_character) = match (character, last_character) {
-                        (Some(c), Some(l)) => (c, l),
-                        _ => (&idlestate, &last),
-                    };
-
-                    if !character.same_variant(&last_character.0) {
-                        state.state_time = 0.0;
-                    }
-
-                    let target_base = match (
-                        physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
-                    ) {
-                        // Standing
-                        (true, false, false) => anim::ship::IdleAnimation::update_skeleton(
-                            &ShipSkeleton::default(),
-                            (
-                                active_tool_kind,
-                                second_tool_kind,
-                                time,
-                                state.acc_vel,
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                        _ => anim::ship::IdleAnimation::update_skeleton(
-                            &ShipSkeleton::default(),
-                            (
-                                active_tool_kind,
-                                second_tool_kind,
-                                time,
-                                state.acc_vel,
-                                ori * anim::vek::Vec3::<f32>::unit_y(),
-                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                            ),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        ),
-                    };
-
-                    let target_bones = target_base;
-                    state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
-                    state.update(
-                        renderer,
-                        trail_mgr,
-                        &mut update_buf,
-                        &common_params,
-                        state_animation_rate,
-                        model,
-                        body,
-                    );
-                },
-                Body::Plugin(body) => {
-                    #[cfg(feature = "plugins")]
-                    {
-                        let (model, _skeleton_attr) = self.plugin_model_cache.get_or_create_model(
-                            renderer,
-                            &mut self.atlas,
-                            body,
-                            inventory,
-                            (),
-                            tick,
-                            viewpoint_camera_mode,
-                            viewpoint_character_state,
-                            &slow_jobs,
-                            None,
-                        );
-
-                        let state = self.states.plugin_states.entry(entity).or_insert_with(|| {
-                            FigureState::new(renderer, PluginSkeleton::default(), body)
-                        });
-
-                        // Average velocity relative to the current ground
-                        let rel_avg_vel = state.avg_vel - physics.ground_vel;
-
-                        let idle_state = CharacterState::Idle(idle::Data::default());
-                        let last = Last(idle_state.clone());
-                        let (character, last_character) = match (character, last_character) {
-                            (Some(c), Some(l)) => (c, l),
-                            _ => (&idle_state, &last),
-                        };
-
-                        if !character.same_variant(&last_character.0) {
-                            state.state_time = 0.0;
-                        }
-
-                        let char_state = match character {
-                            CharacterState::BasicMelee(_) => {
-                                common_state::plugin::module::CharacterState::Melee
-                            },
-                            CharacterState::Sit { .. } => {
-                                common_state::plugin::module::CharacterState::Feed
-                            },
-                            CharacterState::Stunned(_) => {
-                                common_state::plugin::module::CharacterState::Stunned
-                            },
-                            _ if physics.on_ground.is_none() => {
-                                common_state::plugin::module::CharacterState::Jump
-                            },
-                            _ if physics.in_liquid().is_some() => {
-                                common_state::plugin::module::CharacterState::Swim
-                            },
-                            _ if rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR => {
-                                common_state::plugin::module::CharacterState::Run
-                            },
-                            _ => common_state::plugin::module::CharacterState::Idle,
-                        };
-
-                        if let Some(bodyobj) = plugins.create_body("lizard") {
-                            let dep = common_state::plugin::module::Dependency {
-                                velocity: state.avg_vel.into_tuple(),
-                                ori: ori.into_vec4().into_tuple(),
-                                last_ori: state.last_ori.into_vec4().into_tuple(),
-                                global_time: time,
-                                avg_vel: rel_avg_vel.into_tuple(),
-                                state: char_state,
-                            };
-
-                            if let Some(target_bones) =
-                                plugins.update_skeleton(&bodyobj, &dep, time)
-                            {
-                                state.skeleton = Lerp::lerp(
-                                    &state.skeleton,
-                                    &PluginSkeleton::from_module(target_bones),
-                                    dt_lerp,
-                                );
-                                state.update(
-                                    renderer,
-                                    trail_mgr,
-                                    &mut update_buf,
-                                    &common_params,
-                                    state_animation_rate,
-                                    model,
-                                    body,
-                                );
-                            }
+                            state.update(
+                                renderer,
+                                trail_mgr,
+                                update_buf,
+                                &common_params,
+                                state_animation_rate,
+                                model,
+                                body,
+                            );
                         }
                     }
-                    #[cfg(not(feature = "plugins"))]
-                    let _ = body;
-                },
-            }
+                }
+                #[cfg(not(feature = "plugins"))]
+                let _ = body;
+            },
         }
-
-        // Update lighting (lanterns) for figures
-        self.update_lighting(scene_data);
-
-        // Clear states that have deleted entities.
-        self.states
-            .retain(|entity, _| ecs.entities().is_alive(*entity));
-
-        visible_aabb
     }
 
     fn render_shadow_mapping<'a>(
@@ -7718,13 +7951,7 @@ pub struct FigureUpdateCommonParameters<'a> {
     pub tools: (Option<ToolKind>, Option<ToolKind>),
     pub col: Rgba<f32>,
     pub dt: f32,
-    // TODO: evaluate unused variable
-    pub _lpindex: u8,
-    // TODO: evaluate unused variable
-    pub _visible: bool,
     pub is_player: bool,
-    // TODO: evaluate unused variable
-    pub _camera: &'a Camera,
     pub terrain: Option<&'a Terrain>,
     pub ground_vel: Vec3<f32>,
 }
@@ -7810,10 +8037,7 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
             tools,
             col,
             dt,
-            _lpindex,
-            _visible,
             is_player,
-            _camera,
             terrain,
             ground_vel,
         }: &FigureUpdateCommonParameters,

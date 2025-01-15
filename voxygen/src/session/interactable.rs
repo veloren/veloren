@@ -349,6 +349,7 @@ pub(super) fn select_interactable(
                 match interaction {
                     Interaction::Mount => !is_volume_rider.contains(player_entity)
                         && wpos.distance_squared(player_pos) < MAX_SPRITE_MOUNT_RANGE.powi(2)
+                        // TODO: Use shared volume riders component here
                         && !is_volume_rider.join().any(|is_volume_rider| is_volume_rider.pos == *volume_pos),
                     Interaction::LightToggle(_) => wpos.distance_squared(player_pos) < MAX_INTERACT_RANGE.powi(2),
                     _ => true,
