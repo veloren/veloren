@@ -50,15 +50,18 @@ impl Skeleton for FishMediumSkeleton {
             make_bone(chest_front_mat * Mat4::<f32>::from(self.fin_l)),
             make_bone(chest_front_mat * Mat4::<f32>::from(self.fin_r)),
         ];
+
+        let (mount_bone_mat, mount_bone_ori) = (head_mat, self.head.orientation);
+        let mount_position = mount_bone_mat.mul_point(mount_point(&body));
+        let mount_orientation = mount_bone_ori;
+
         Offsets {
             viewpoint: Some((head_mat * Vec4::new(0.0, 5.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::FishMedium(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             ..Default::default()
         }
@@ -140,4 +143,13 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::fish_medium::Species::*;
+    match (body.species, body.body_type) {
+        (Marlin, _) => (0.0, 0.5, 3.0),
+        (Icepike, _) => (0.0, 0.5, 4.0),
+    }
+    .into()
 }

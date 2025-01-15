@@ -6,7 +6,7 @@ pub mod run;
 pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
-use common::comp::{self};
+use common::comp;
 use core::convert::TryFrom;
 
 pub type Body = comp::dragon::Body;
@@ -71,16 +71,29 @@ impl Skeleton for DragonSkeleton {
             make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_br)),
         ];
+
+        let mount_position = chest_front_mat.mul_point(mount_point(&body));
+        let mount_orientation = self.chest_front.orientation;
+
         Offsets {
             viewpoint: Some((head_upper_mat * Vec4::new(0.0, 8.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::Dragon(body).mount_offset().into_tuple().into(),
+                position: mount_position,
+                orientation: mount_orientation,
                 ..Default::default()
             },
             ..Default::default()
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::dragon::Species::*;
+    match (body.species, body.body_type) {
+        (Reddragon, _) => (0.0, 0.5, 5.5),
+    }
+    .into()
 }
 
 pub struct SkeletonAttr {

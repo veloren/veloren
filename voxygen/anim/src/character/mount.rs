@@ -89,7 +89,9 @@ impl Animation for MountAnimation {
         next.head.orientation = Quaternion::rotation_z(head_look.x + tilt * -2.0)
             * Quaternion::rotation_x((0.35 + head_look.y + tilt.abs() * 1.2).abs());
 
-        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
+        // Don't offset the chest when mounting, we don't want the position while
+        // mounting to change with scale.
+        next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 * 0.5);
         next.chest.orientation =
             Quaternion::rotation_x(-0.4 + tilt.abs() * -1.5 - bob * speed * 0.0)
                 * Quaternion::rotation_y(tilt * 2.0);
@@ -118,10 +120,18 @@ impl Animation for MountAnimation {
         next.hand_r.orientation =
             Quaternion::rotation_x(PI * 0.4) * Quaternion::rotation_z(PI / 2.0 - 1.0);
 
-        next.foot_l.position = Vec3::new(-s_a.foot.0 - 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
+        next.foot_l.position = Vec3::new(
+            -s_a.foot.0 - 2.0,
+            4.0 + s_a.foot.1,
+            s_a.foot.2 - s_a.chest.1 * 0.5,
+        );
         next.foot_l.orientation = Quaternion::rotation_x(0.5) * Quaternion::rotation_y(0.5);
 
-        next.foot_r.position = Vec3::new(s_a.foot.0 + 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
+        next.foot_r.position = Vec3::new(
+            s_a.foot.0 + 2.0,
+            4.0 + s_a.foot.1,
+            s_a.foot.2 - s_a.chest.1 * 0.5,
+        );
         next.foot_r.orientation = Quaternion::rotation_x(0.5) * Quaternion::rotation_y(-0.5);
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);

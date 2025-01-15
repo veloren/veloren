@@ -90,15 +90,17 @@ impl Skeleton for BipedSmallSkeleton {
             make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
         ];
+
+        let (mount_mat, mount_orientation) = (chest_mat, self.chest.orientation);
+        let mount_position = mount_mat.mul_point(mount_point(&body));
+
         Offsets {
             viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::BipedSmall(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             ..Default::default()
         }
@@ -631,4 +633,42 @@ pub fn biped_small_wield_bow(
 
     next.control.orientation =
         Quaternion::rotation_x(-0.3 + 0.5 * speednorm) * Quaternion::rotation_y(0.5 * speednorm);
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::biped_small::Species::*;
+    // TODO: Come up with a way to position rider
+    match (body.species, body.body_type) {
+        (Gnome, _) => (0.0, 0.0, 0.0),
+        (Sahagin, _) => (0.0, 0.0, 0.0),
+        (Adlet, _) => (0.0, 0.0, 0.0),
+        (Gnarling, _) => (0.0, 0.0, 0.0),
+        (Mandragora, _) => (0.0, 0.0, 0.0),
+        (Kappa, _) => (0.0, 0.0, 0.0),
+        (Cactid, _) => (0.0, 0.0, 0.0),
+        (Gnoll, _) => (0.0, 0.0, 0.0),
+        (Haniwa, _) => (0.0, 0.0, 0.0),
+        (Myrmidon, _) => (0.0, 0.0, 0.0),
+        (Husk, _) => (0.0, 0.0, 0.0),
+        (Boreal, _) => (0.0, 0.0, 0.0),
+        (Bushly, _) => (0.0, 0.0, 0.0),
+        (Irrwurz, _) => (0.0, 0.0, 0.0),
+        (IronDwarf, _) => (0.0, 0.0, 0.0),
+        (Flamekeeper, _) => (0.0, 0.0, 0.0),
+        (ShamanicSpirit, _) => (0.0, 0.0, 0.0),
+        (Jiangshi, _) => (0.0, 0.0, 0.0),
+        (TreasureEgg, _) => (0.0, 0.0, 0.0),
+        (GnarlingChieftain, _) => (0.0, 0.0, 0.0),
+        (BloodmoonHeiress, _) => (0.0, 0.0, 0.0),
+        (Bloodservant, _) => (0.0, 0.0, 0.0),
+        (Harlequin, _) => (0.0, 0.0, 0.0),
+        (GoblinThug, _) => (0.0, 0.0, 0.0),
+        (GoblinChucker, _) => (0.0, 0.0, 0.0),
+        (GoblinRuffian, _) => (0.0, 0.0, 0.0),
+        (GreenLegoom, _) => (0.0, 0.0, 0.0),
+        (OchreLegoom, _) => (0.0, 0.0, 0.0),
+        (PurpleLegoom, _) => (0.0, 0.0, 0.0),
+        (RedLegoom, _) => (0.0, 0.0, 0.0),
+    }
+    .into()
 }

@@ -1481,11 +1481,13 @@ impl FigureMgr {
                     state.state_time = 0.0;
                 }
 
+                let is_riding = is_rider.is_some() || is_volume_rider.is_some();
+
                 let target_base = match (
                     physics.on_ground.is_some(),
                     rel_vel.magnitude_squared() > 0.01, // Moving
                     physics.in_liquid().is_some(),      // In water
-                    is_rider.is_some() || is_volume_rider.is_some(),
+                    is_riding,
                     physics.skating_active,
                 ) {
                     // Standing or Skating

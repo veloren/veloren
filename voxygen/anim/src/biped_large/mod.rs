@@ -132,19 +132,26 @@ impl Skeleton for BipedLargeSkeleton {
             make_bone(upper_torso_mat * control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
 
-        // Offset from the mounted bone's origin.
-        // Note: This could be its own bone if we need to animate it independently.
-        let mount_position = (arm_control_r
-            * Mat4::<f32>::from(self.shoulder_r)
-            * Vec4::from_point(mount_point(&body)))
-        .homogenized()
-        .xyz();
+        use comp::biped_large::Species::*;
         // NOTE: We apply the ori from base_mat externally so we don't need to worry
         // about it here for now.
-        let mount_orientation = self.torso.orientation
-            * self.upper_torso.orientation
-            * self.arm_control_r.orientation
-            * self.shoulder_r.orientation;
+        let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
+            (Dullahan | Occultsaurok | Mightysaurok | Slysaurok | Tidalwarrior, _) => (
+                upper_torso_mat,
+                self.torso.orientation * self.upper_torso.orientation,
+            ),
+            _ => (
+                arm_control_r * Mat4::<f32>::from(self.shoulder_r),
+                self.torso.orientation
+                    * self.upper_torso.orientation
+                    * self.arm_control_r.orientation
+                    * self.shoulder_r.orientation,
+            ),
+        };
+
+        // Offset from the mounted bone's origin.
+        // Note: This could be its own bone if we need to animate it independently.
+        let mount_position = mount_mat.mul_point(mount_point(&body));
 
         Offsets {
             viewpoint: Some((jaw_mat * Vec4::new(0.0, 4.0, 0.0, 1.0)).xyz()),
@@ -700,42 +707,43 @@ impl<'a> From<&'a Body> for SkeletonAttr {
 }
 
 fn mount_point(body: &Body) -> Vec3<f32> {
-    use comp::biped_large::Species::*;
+    use comp::biped_large::{BodyType::*, Species::*};
     match (body.species, body.body_type) {
-        (Ogre, _) => (0.0, 3.0, 1.0),
+        (Ogre, Female) => (0.5, 0.0, 0.5),
+        (Ogre, Male) => (-1.0, -3.0, 2.5),
         (Cyclops, _) => (0.0, 3.0, 1.0),
-        (Wendigo, _) => (0.0, 0.0, -1.0),
-        (Cavetroll, _) => (0.0, 1.0, 2.0),
-        (Mountaintroll, _) => (0.0, 4.0, 2.0),
-        (Swamptroll, _) => (0.0, 0.0, 3.0),
-        (Dullahan, _) => (0.0, 0.0, 3.0),
-        (Werewolf, _) => (-1.0, 0.0, 0.0),
-        (Occultsaurok, _) => (0.0, 0.0, -1.0),
-        (Mightysaurok, _) => (0.0, 0.0, -1.0),
-        (Slysaurok, _) => (0.0, 0.0, -1.0),
-        (Mindflayer, _) => (1.0, 1.0, 1.0),
-        (Minotaur, _) => (0.0, 2.0, 0.0),
-        (Tidalwarrior, _) => (-4.5, 0.0, 5.0),
-        (Yeti, _) => (0.0, 2.0, 3.0),
-        (Harvester, _) => (0.0, 1.5, 2.0),
-        (Blueoni, _) => (0.0, 1.0, 3.0),
-        (Redoni, _) => (0.0, 1.0, 3.0),
-        (Cultistwarlord, _) => (-2.5, 2.0, -1.5),
-        (Cultistwarlock, _) => (0.0, 1.5, 1.0),
-        (Huskbrute, _) => (0.0, 3.0, 3.0),
-        (Tursus, _) => (0.0, 2.0, 3.0),
-        (Gigasfrost, _) => (1.0, 2.0, 4.0),
-        (AdletElder, _) => (0.0, 0.0, -1.0),
-        (SeaBishop, _) => (0.0, 0.0, -1.0),
-        (HaniwaGeneral, _) => (0.0, 0.0, -1.0),
-        (TerracottaBesieger, _) => (0.0, 0.0, -1.0),
-        (TerracottaDemolisher, _) => (0.0, 0.0, -1.0),
-        (TerracottaPunisher, _) => (0.0, 0.0, -1.0),
-        (TerracottaPursuer, _) => (0.0, 0.0, -1.0),
-        (Cursekeeper, _) => (0.0, 0.0, -1.0),
-        (Forgemaster, _) => (1.0, 2.0, 4.0),
-        (Strigoi, _) => (0.0, 0.0, -1.0),
-        (Executioner, _) => (0.0, 0.0, -1.0),
+        (Wendigo, _) => (0.0, -1.5, 0.5),
+        (Cavetroll, _) => (0.0, 1.0, 4.0),
+        (Mountaintroll, _) => (0.0, 3.5, 2.5),
+        (Swamptroll, _) => (0.0, 0.0, 3.5),
+        (Dullahan, _) => (0.0, -3.0, 4.0),
+        (Werewolf, _) => (-0.5, 0.0, 0.0),
+        (Occultsaurok, _) => (0.0, -1.0, 5.0),
+        (Mightysaurok, _) => (0.0, -1.0, 4.0),
+        (Slysaurok, _) => (0.0, -1.0, 4.0),
+        (Mindflayer, _) => (1.0, 1.5, 1.0),
+        (Minotaur, _) => (0.0, 1.0, 1.5),
+        (Tidalwarrior, _) => (0.0, -2.0, 10.5),
+        (Yeti, _) => (0.0, 2.0, 4.5),
+        (Harvester, _) => (0.5, 2.0, 2.0),
+        (Blueoni, _) => (0.5, 1.0, 4.0),
+        (Redoni, _) => (0.5, 1.0, 4.0),
+        (Cultistwarlord, _) => (-2.5, 3.0, 0.0),
+        (Cultistwarlock, _) => (0.0, 2.0, 2.0),
+        (Huskbrute, _) => (0.0, 1.0, 4.0),
+        (Tursus, _) => (0.0, 2.0, 4.0),
+        (Gigasfrost, _) => (1.0, 2.0, 4.5),
+        (AdletElder, _) => (1.0, 0.0, -1.0),
+        (SeaBishop, _) => (0.0, 0.0, 1.0),
+        (HaniwaGeneral, _) => (0.0, 0.0, 0.0),
+        (TerracottaBesieger, _) => (-1.5, -4.5, 4.0),
+        (TerracottaDemolisher, _) => (-0.5, -3.5, -1.0),
+        (TerracottaPunisher, _) => (-0.5, -3.5, -1.0),
+        (TerracottaPursuer, _) => (-0.5, -3.5, -1.0),
+        (Cursekeeper, _) => (0.5, 0.0, -1.0),
+        (Forgemaster, _) => (1.0, 2.0, 5.0),
+        (Strigoi, _) => (0.0, 0.0, 2.0),
+        (Executioner, _) => (0.0, 0.0, 0.0),
     }
     .into()
 }
