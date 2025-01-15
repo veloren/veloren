@@ -1101,8 +1101,17 @@ impl FigureMgr {
         }
 
         for (i, entity_data) in read_data.iter().enumerate() {
-            // Riders are updated root-mount
-            if entity_data.is_rider.is_some() || entity_data.is_volume_rider.is_some() {
+            // Riders are updated by root-mount, as long as it is loaded.
+            if entity_data
+                .is_rider
+                .is_some_and(|is_rider| read_data.id_maps.uid_entity(is_rider.mount).is_some())
+                || entity_data
+                    .is_volume_rider
+                    .is_some_and(|is_volume_rider| match is_volume_rider.pos.kind {
+                        Volume::Terrain => false,
+                        Volume::Entity(uid) => read_data.id_maps.uid_entity(uid).is_some(),
+                    })
+            {
                 continue;
             }
 
