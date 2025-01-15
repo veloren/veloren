@@ -1,4 +1,7 @@
-use crate::{character::CharacterId, rtsim::RtSimEntity};
+use crate::{
+    character::CharacterId,
+    rtsim::{Actor, RtSimEntity},
+};
 use core::hash::Hash;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -72,6 +75,13 @@ impl IdMaps {
     /// Given a `RtSimEntity` retrieve the corresponding `Entity`.
     pub fn rtsim_entity(&self, id: RtSimEntity) -> Option<Entity> {
         self.rtsim_to_ecs.get(&id).copied()
+    }
+
+    pub fn actor_entity(&self, actor: Actor) -> Option<Entity> {
+        match actor {
+            Actor::Character(character_id) => self.character_entity(character_id),
+            Actor::Npc(npc_id) => self.rtsim_entity(RtSimEntity(npc_id)),
+        }
     }
 
     /// Removes mappings for the provided Id(s).

@@ -123,8 +123,7 @@ impl Rule for NpcAi {
                     .for_each(|(npc_id, controller, inbox, sentiments, known_reports, brain)| {
                         let npc = &data.npcs[*npc_id];
 
-                        // Reset look_dir
-                        controller.look_dir = None;
+                        controller.reset();
 
                         brain.action.tick(&mut NpcCtx {
                             state: ctx.state,
@@ -144,6 +143,7 @@ impl Rule for NpcAi {
                                 simulated_dt
                             },
                             rng: ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>()),
+                            system_data: &*ctx.system_data,
                         }, &mut ());
 
                         // If an input wasn't processed by the brain, we no longer have a use for it
@@ -190,7 +190,7 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                         Some((3, Content::localized("dialogue-question-sentiment"))),
                     ])
                     .and_then(move |resp| match resp {
-                        0 => now(move |ctx, _| {
+                        Some(0) => now(move |ctx, _| {
                             if let Some(site_name) = util::site_name(ctx, ctx.npc.current_site) {
                                 let mut action = session
                                     .say_statement(Content::localized_with_args(
@@ -222,7 +222,7 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                             }
                         })
                         .boxed(),
-                        1 => now(move |ctx, _| {
+                        Some(1) => now(move |ctx, _| {
                             let name = Content::localized_with_args("npc-info-self_name", [(
                                 "name",
                                 Content::Plain(ctx.npc.get_name()),
@@ -268,24 +268,30 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                                 .then(session.say_statement(home))
                         })
                         .boxed(),
-                        2 if can_be_hired => now(move |ctx, _| {
-                            if false && ctx.npc.rng(38792).gen_bool(0.25) {
+                        Some(2) if can_be_hired => now(move |ctx, _| {
+                            if ctx.npc.rng(38792).gen_bool(0.5) {
                                 session
                                     .say_statement(Content::localized("npc-response-accept_hire"))
+                                    .then(now(move |ctx, _| {
+                                        ctx.controller.dialogue_end(session);
+                                        hired_adventurer(tgt)
+                                    }))
+                                    .boxed()
                             } else {
                                 session
                                     .say_statement(Content::localized("npc-response-decline_hire"))
+                                    .boxed()
                             }
                         })
                         .boxed(),
-                        3 => session
+                        Some(3) => session
                             .ask_question(Content::Plain("...".to_string()), [Some((
                                 0,
                                 Content::localized("dialogue-me"),
                             ))])
                             .boxed()
                             .and_then(move |resp| match resp {
-                                0 => now(move |ctx, _| {
+                                Some(0) => now(move |ctx, _| {
                                     if ctx.sentiments.toward(tgt).is(Sentiment::ALLY) {
                                         session.say_statement(Content::localized(
                                             "npc-response-like_you",
@@ -484,6 +490,14 @@ fn adventure() -> impl Action<DefaultState> {
         }
     })
     .debug(move || "adventure")
+}
+
+fn hired_adventurer<S: State>(tgt: Actor) -> impl Action<S> {
+    follow(tgt, 5.0)
+        .stop_if(timeout(60.0))
+        .then(do_dialogue(tgt, |session| {
+            session.say_statement(Content::localized("npc-dialogue-finish_hire"))
+        }))
 }
 
 fn gather_ingredients<S: State>() -> impl Action<S> {
@@ -885,26 +899,21 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
     .debug(move || format!("villager at site {:?}", visiting_site))
 }
 
-/*
-fn follow(npc: NpcId, distance: f32) -> impl Action {
-    const STEP_DIST: f32 = 1.0;
-    now(move |ctx| {
-        if let Some(npc) = ctx.state.data().npcs.get(npc) {
-            let d = npc.wpos.xy() - ctx.npc.wpos.xy();
-            let len = d.magnitude();
-            let dir = d / len;
-            let wpos = ctx.npc.wpos.xy() + dir * STEP_DIST.min(len - distance);
-            goto_2d(wpos, 1.0, distance).boxed()
+fn follow<S: State>(actor: Actor, distance: f32) -> impl Action<S> {
+    now(move |ctx, _| {
+        if let Some(wpos) = util::locate_actor(ctx, actor)
+            && wpos.xy().distance_squared(ctx.npc.wpos.xy()) > distance.powi(2)
+        {
+            goto(wpos, 1.0, distance).boxed()
         } else {
             // The npc we're trying to follow doesn't exist.
             finish().boxed()
         }
     })
     .repeat()
-    .debug(move || format!("Following npc({npc:?})"))
-    .map(|_| {})
+    .debug(move || format!("Following actor {actor:?}"))
+    .map(|_, _| ())
 }
-*/
 
 fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
     // Travel between different towns in a straight line

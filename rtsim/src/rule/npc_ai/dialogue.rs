@@ -27,9 +27,6 @@ pub fn do_dialogue<S: State, A: Action<S>>(
                 });
                 stop
             })
-            // If all else fails, add a timeout to dialogues
-            // TODO: Only timeout if no messages have been received recently
-            .stop_if(timeout(60.0))
             .then(just(move |ctx, _| {
                 ctx.controller.do_idle();
                 ctx.controller.dialogue_end(session);
@@ -42,7 +39,7 @@ impl DialogueSession {
         self,
         question: Content,
         options: impl IntoIterator<Item = O> + Clone + Send + Sync + 'static,
-    ) -> impl Action<S, u16> {
+    ) -> impl Action<S, Option<u16>> {
         now(move |ctx, _| {
             let q_tag = ctx.controller.dialogue_question(
                 self,
@@ -72,6 +69,9 @@ impl DialogueSession {
         })
             // Add some thinking time after hearing a response
             .and_then(move |option_id| talk(self.target).repeat().stop_if(timeout(0.5)).map(move |_, _| option_id))
+            // If all else fails, add a timeout to dialogues
+            // TODO: Only timeout if no messages have been received recently
+            .stop_if(timeout(60.0))
     }
 
     pub fn say_statement<S: State>(self, stmt: Content) -> impl Action<S> {

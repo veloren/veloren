@@ -456,7 +456,7 @@ impl AgentData<'_> {
                 },
                 Some(NpcActivity::Talk(target)) => {
                     if agent.target.is_none()
-                        && let Some(target) = read_data.lookup_actor(target)
+                        && let Some(target) = read_data.id_maps.actor_entity(target)
                     {
                         // We're always aware of someone we're talking to
                         controller.push_action(ControlAction::Stand);
@@ -872,37 +872,10 @@ impl AgentData<'_> {
             .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
             .collect_vec();
 
-        let can_ambush = |entity: EcsEntity, read_data: &ReadData| {
-            let self_different_from_entity =
-                || read_data.uids.get(entity).is_some_and(|eu| eu != self.uid);
-            if agent.rtsim_controller.personality.will_ambush()
-                && self_different_from_entity()
-                && !self.passive_towards(entity, read_data)
-            {
-                let surrounding_humanoids = entities_nearby
-                    .iter()
-                    .filter(|e| read_data.bodies.get(**e).is_some_and(|b| b.is_humanoid()))
-                    .collect_vec();
-                surrounding_humanoids.len() == 2
-                    && surrounding_humanoids.iter().any(|e| **e == entity)
-            } else {
-                false
-            }
-        };
-
         let get_pos = |entity| read_data.positions.get(entity);
         let get_enemy = |(entity, attack_target): (EcsEntity, bool)| {
             if attack_target {
                 if is_enemy(self, entity, read_data) {
-                    Some((entity, true))
-                } else if can_ambush(entity, read_data) {
-                    controller.clone().push_utterance(UtteranceKind::Ambush);
-                    self.chat_npc_if_allowed_to_speak(
-                        Content::localized("npc-speech-ambush"),
-                        agent,
-                        emitters,
-                    );
-                    aggro_on = true;
                     Some((entity, true))
                 } else if self.should_defend(entity, read_data) {
                     if let Some(attacker) = get_attacker(entity, read_data) {

@@ -10,12 +10,15 @@ use crate::{
     },
 };
 use common::{
+    comp,
     resources::{Time, TimeOfDay},
     rtsim::NpcInput,
+    uid::IdMaps,
 };
 use hashbrown::HashSet;
 use itertools::Either;
 use rand_chacha::ChaChaRng;
+use specs::{Read, ReadStorage, SystemData, shred};
 use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow};
 use world::{IndexRef, World};
 
@@ -55,7 +58,7 @@ impl<T> std::ops::DerefMut for Resettable<T> {
 /// The context provided to an [`Action`] while it is being performed. It should
 /// be possible to access any and all important information about the game world
 /// through this struct.
-pub struct NpcCtx<'a> {
+pub struct NpcCtx<'a, 'd> {
     pub state: &'a RtState,
     pub world: &'a World,
     pub index: IndexRef<'a>,
@@ -73,6 +76,13 @@ pub struct NpcCtx<'a> {
     /// The delta time since this npcs ai was last ran.
     pub dt: f32,
     pub rng: ChaChaRng,
+    pub system_data: &'a NpcSystemData<'d>,
+}
+
+#[derive(SystemData)]
+pub struct NpcSystemData<'a> {
+    pub positions: ReadStorage<'a, comp::Pos>,
+    pub id_maps: Read<'a, IdMaps>,
 }
 
 /// A trait that describes 'actions': long-running tasks performed by rtsim

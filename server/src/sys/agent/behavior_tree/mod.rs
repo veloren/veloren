@@ -599,7 +599,9 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
             NpcAction::Say(target, msg) => {
                 if bdata.agent.allowed_to_speak() {
                     // Aim the speech toward a target
-                    if let Some(target) = target.and_then(|tgt| bdata.read_data.lookup_actor(tgt)) {
+                    if let Some(target) =
+                        target.and_then(|tgt| bdata.read_data.id_maps.actor_entity(tgt))
+                    {
                         bdata.agent.target = Some(Target::new(
                             target,
                             false,
@@ -627,7 +629,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                 }
             },
             NpcAction::Attack(target) => {
-                if let Some(target) = bdata.read_data.lookup_actor(target) {
+                if let Some(target) = bdata.read_data.id_maps.actor_entity(target) {
                     bdata.agent.target = Some(Target::new(
                         target,
                         true,
@@ -639,7 +641,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                 }
             },
             NpcAction::Dialogue(target, dialogue) => {
-                if let Some(target) = bdata.read_data.lookup_actor(target)
+                if let Some(target) = bdata.read_data.id_maps.actor_entity(target)
                     && let Some(target_uid) = bdata.read_data.uids.get(target)
                 {
                     bdata

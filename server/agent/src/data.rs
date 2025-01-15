@@ -438,15 +438,6 @@ pub struct ReadData<'a> {
     pub ability_map: ReadExpect<'a, AbilityMap>,
 }
 
-impl ReadData<'_> {
-    pub fn lookup_actor(&self, actor: Actor) -> Option<EcsEntity> {
-        match actor {
-            Actor::Character(character_id) => self.id_maps.character_entity(character_id),
-            Actor::Npc(npc_id) => self.id_maps.rtsim_entity(RtSimEntity(npc_id)),
-        }
-    }
-}
-
 pub enum Path {
     Full,
     Separate,

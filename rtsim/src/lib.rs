@@ -28,7 +28,14 @@ pub struct RtState {
 }
 
 type RuleState<R> = AtomicRefCell<R>;
-type EventHandlersOf<E> = Vec<Box<dyn Fn(&RtState, &World, IndexRef, &E) + Send + Sync + 'static>>;
+type EventHandlersOf<E> = Vec<
+    Box<
+        dyn Fn(&RtState, &World, IndexRef, &E, &mut <E as Event>::SystemData<'_>)
+            + Send
+            + Sync
+            + 'static,
+    >,
+>;
 
 impl RtState {
     pub fn new(data: Data) -> Self {
@@ -93,13 +100,14 @@ impl RtState {
         self.event_handlers
             .entry::<EventHandlersOf<E>>()
             .or_default()
-            .push(Box::new(move |state, world, index, event| {
+            .push(Box::new(move |state, world, index, event, system_data| {
                 (f.borrow_mut())(EventCtx {
                     state,
                     rule: &mut state.rule_mut(),
                     event,
                     world,
                     index,
+                    system_data,
                 })
             }));
     }
@@ -146,16 +154,25 @@ impl RtState {
             .borrow_mut()
     }
 
-    pub fn emit<E: Event>(&mut self, e: E, world: &World, index: IndexRef) {
+    pub fn emit<E: Event>(
+        &mut self,
+        e: E,
+        system_data: &mut E::SystemData<'_>,
+        world: &World,
+        index: IndexRef,
+    ) {
         // TODO: Queue these events up and handle them on a regular rtsim tick instead
         // of executing their handlers immediately.
         if let Some(handlers) = self.event_handlers.get::<EventHandlersOf<E>>() {
-            handlers.iter().for_each(|f| f(self, world, index, &e));
+            handlers
+                .iter()
+                .for_each(|f| f(self, world, index, &e, system_data));
         }
     }
 
     pub fn tick(
         &mut self,
+        system_data: &mut <OnTick as Event>::SystemData<'_>,
         world: &World,
         index: IndexRef,
         time_of_day: TimeOfDay,
@@ -174,6 +191,6 @@ impl RtState {
             time,
             dt,
         };
-        self.emit(event, world, index);
+        self.emit(event, system_data, world, index);
     }
 }

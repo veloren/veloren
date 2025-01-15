@@ -7870,6 +7870,7 @@ dependencies = [
  "rmp-serde",
  "serde",
  "slotmap",
+ "specs",
  "tracing",
  "vek 0.17.1",
  "veloren-common",

@@ -36,6 +36,15 @@ impl CharacterBehavior for Data {
         update
     }
 
+    fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+
+        // Refresh timer
+        update.character = CharacterState::Talk(Self::default());
+
+        update
+    }
+
     fn manipulate_loadout(
         &self,
         data: &JoinData,

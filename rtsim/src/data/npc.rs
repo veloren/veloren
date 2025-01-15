@@ -63,6 +63,13 @@ pub struct Controller {
 }
 
 impl Controller {
+    // Reset the controller to a neutral state before the start of the next brain
+    // tick.
+    pub fn reset(&mut self) {
+        self.activity = None;
+        self.look_dir = None;
+    }
+
     pub fn do_idle(&mut self) { self.activity = None; }
 
     pub fn do_talk(&mut self, tgt: Actor) { self.activity = Some(NpcActivity::Talk(tgt)); }
