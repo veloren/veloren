@@ -1,5 +1,5 @@
 use client::{Client, EcsEntity};
-use common::rtsim;
+use common::{comp::ItemKey, rtsim};
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
@@ -11,7 +11,7 @@ use crate::ui::{TooltipManager, fonts::Fonts};
 use inline_tweak::*;
 
 use super::{
-    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, animate_by_pulse,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
 };
@@ -34,10 +34,11 @@ widget_ids! {
         intro_txt,
         desc_txt_0,
         quest_objectives[],
-        quest_option_txt,
+        quest_response_txt,
         objective_text,
-        quest_options_frames[],
-        quest_options_icons[],
+        quest_responses_frames[],
+        quest_responses_btn[],
+        quest_responses_icons[],
         quest_rewards_txts[],
         accept_btn,
         decline_btn,
@@ -55,7 +56,8 @@ pub struct Quest<'a> {
     _tooltip_manager: &'a mut TooltipManager,
     item_imgs: &'a ItemImgs,
     sender: EcsEntity,
-    dialogue: &'a rtsim::Dialogue,
+    dialogue: &'a rtsim::Dialogue<true>,
+    pulse: f32,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -72,7 +74,8 @@ impl<'a> Quest<'a> {
         _tooltip_manager: &'a mut TooltipManager,
         item_imgs: &'a ItemImgs,
         sender: EcsEntity,
-        dialogue: &'a rtsim::Dialogue,
+        dialogue: &'a rtsim::Dialogue<true>,
+        pulse: f32,
     ) -> Self {
         Self {
             _show,
@@ -85,6 +88,7 @@ impl<'a> Quest<'a> {
             item_imgs,
             sender,
             dialogue,
+            pulse,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -171,8 +175,8 @@ impl Widget for Quest<'_> {
             rtsim::DialogueKind::Question { msg, .. } => {
                 Some(self.localized_strings.get_content(msg))
             },
-            rtsim::DialogueKind::Response { msg, .. } => {
-                Some(self.localized_strings.get_content(msg))
+            rtsim::DialogueKind::Response { response, .. } => {
+                Some(self.localized_strings.get_content(&response.msg))
             },
         };
 
@@ -186,54 +190,80 @@ impl Widget for Quest<'_> {
                 .set(state.ids.desc_txt_0, ui);
         }
 
-        if let rtsim::DialogueKind::Question { options, tag, .. } = &self.dialogue.kind {
-            if state.ids.quest_options_frames.len() < options.len() {
+        if let rtsim::DialogueKind::Question { responses, tag, .. } = &self.dialogue.kind {
+            if state.ids.quest_responses_frames.len() < responses.len() {
                 state.update(|s| {
                     s.ids
-                        .quest_options_frames
-                        .resize(options.len(), &mut ui.widget_id_generator())
+                        .quest_responses_frames
+                        .resize(responses.len(), &mut ui.widget_id_generator())
                 })
             };
-            if state.ids.quest_options_icons.len() < options.len() {
+            if state.ids.quest_responses_icons.len() < responses.len() {
                 state.update(|s| {
                     s.ids
-                        .quest_options_icons
-                        .resize(options.len(), &mut ui.widget_id_generator())
+                        .quest_responses_icons
+                        .resize(responses.len(), &mut ui.widget_id_generator())
                 })
             };
-            if state.ids.quest_rewards_txts.len() < options.len() {
+            if state.ids.quest_rewards_txts.len() < responses.len() {
                 state.update(|s| {
                     s.ids
                         .quest_rewards_txts
-                        .resize(options.len(), &mut ui.widget_id_generator())
+                        .resize(responses.len(), &mut ui.widget_id_generator())
+                })
+            };
+            if state.ids.quest_responses_btn.len() < responses.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_responses_btn
+                        .resize(responses.len(), &mut ui.widget_id_generator())
                 })
             };
 
-            for (i, (option_id, option_content)) in options.iter().enumerate() {
+            for (i, (response_id, response)) in responses.iter().enumerate() {
+                let frame = Image::new(self.imgs.button).w_h(25.0, 25.0);
+                let frame = if i == 0 {
+                    frame.down_from(state.ids.desc_txt_0, tweak!(10.0))
+                } else {
+                    frame.down_from(state.ids.quest_responses_frames[i - 1], tweak!(10.0))
+                };
+                frame.set(state.ids.quest_responses_frames[i], ui);
+
                 // Slot BG
-                let button = Button::image(self.imgs.button)
+                if Button::image(self.imgs.button)
                     .w_h(40.0, 40.0)
                     .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press);
-                let button = if i == 0 {
-                    button.down_from(state.ids.desc_txt_0, tweak!(10.0))
-                } else {
-                    button.down_from(state.ids.quest_options_frames[i - 1], tweak!(5.0))
-                };
-                let button = button.set(state.ids.quest_options_frames[i], ui);
-                if button.was_clicked() {
+                    .press_image(self.imgs.button_press)
+                    .middle_of(state.ids.quest_responses_frames[i])
+                    .set(state.ids.quest_responses_btn[i], ui)
+                    .was_clicked()
+                {
                     event = Some(Event::Dialogue(self.sender, rtsim::Dialogue {
                         id: self.dialogue.id,
                         kind: rtsim::DialogueKind::Response {
                             tag: *tag,
-                            msg: option_content.clone(),
-                            option_id: *option_id,
+                            response: response.clone(),
+                            response_id: *response_id,
                         },
                     }));
                 }
 
-                Text::new(&self.localized_strings.get_content(option_content))
-                    .right_from(state.ids.quest_options_frames[i], tweak!(10.0))
+                // Item image
+                if let Some((item, _amount)) = &response.given_item {
+                    Image::new(animate_by_pulse(
+                        &self
+                            .item_imgs
+                            .img_ids_or_not_found_img(ItemKey::from(&**item)),
+                        self.pulse,
+                    ))
+                    .middle_of(state.ids.quest_responses_btn[i])
+                    .w_h(20.0, 20.0)
+                    .graphics_for(state.ids.quest_responses_btn[i])
+                    .set(state.ids.quest_responses_icons[i], ui);
+                }
+
+                Text::new(&self.localized_strings.get_content(&response.msg))
+                    .right_from(state.ids.quest_responses_frames[i], tweak!(10.0))
                     .font_id(self.fonts.cyri.conrod_id)
                     .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                     .font_size(self.fonts.cyri.scale(tweak!(18)))

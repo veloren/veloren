@@ -1300,7 +1300,7 @@ pub struct Hud {
     map_drag: Vec2<f64>,
     force_chat: bool,
     clear_chat: bool,
-    current_dialogue: Option<(EcsEntity, rtsim::Dialogue)>,
+    current_dialogue: Option<(EcsEntity, rtsim::Dialogue<true>)>,
 }
 
 impl Hud {
@@ -3656,6 +3656,7 @@ impl Hud {
                 &self.item_imgs,
                 *sender,
                 dialogue,
+                self.pulse,
             )
             .set(self.ids.quest_window, ui_widgets)
             {
@@ -4589,7 +4590,7 @@ impl Hud {
         self.new_loot_messages.push_back(item);
     }
 
-    pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue) {
+    pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue<true>) {
         match &dialogue.kind {
             rtsim::DialogueKind::End => {
                 if self

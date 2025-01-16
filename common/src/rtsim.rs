@@ -3,12 +3,16 @@
 // `Agent`). When possible, this should be moved to the `rtsim`
 // module in `server`.
 
-use crate::{character::CharacterId, comp::dialogue::Subject, util::Dir};
+use crate::{
+    character::CharacterId,
+    comp::{dialogue::Subject, inventory::item::ItemDef},
+    util::Dir,
+};
 use common_i18n::Content;
 use rand::{Rng, seq::IteratorRandom};
 use serde::{Deserialize, Serialize};
 use specs::Component;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, sync::Arc};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
@@ -269,21 +273,28 @@ pub enum NpcAction {
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DialogueId(pub u64);
 
+// `IS_VALIDATED` denotes whether the server has validated this dialogue as
+// fulfilled. For example, a dialogue could promise to give the receiver items
+// from their inventory.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Dialogue {
+pub struct Dialogue<const IS_VALIDATED: bool = false> {
     pub id: DialogueId,
     pub kind: DialogueKind,
 }
+impl<const IS_VALIDATED: bool> core::cmp::Eq for Dialogue<IS_VALIDATED> {}
 
-impl Dialogue {
+impl<const IS_VALIDATED: bool> Dialogue<IS_VALIDATED> {
     pub fn message(&self) -> Option<&Content> {
         match &self.kind {
             DialogueKind::Start | DialogueKind::End => None,
-            DialogueKind::Statement(msg)
-            | DialogueKind::Question { msg, .. }
-            | DialogueKind::Response { msg, .. } => Some(msg),
+            DialogueKind::Statement(msg) | DialogueKind::Question { msg, .. } => Some(msg),
+            DialogueKind::Response { response, .. } => Some(&response.msg),
         }
     }
+}
+
+impl Dialogue<false> {
+    pub fn into_validated_unchecked(self) -> Dialogue<true> { Dialogue { ..self } }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -295,25 +306,38 @@ pub enum DialogueKind {
         // Used to uniquely track each question/response
         tag: u32,
         msg: Content,
-        // Response options for the target (option_id, content)
-        options: Vec<(u16, Content)>,
+        // Response options for the target (response_id, content)
+        responses: Vec<(u16, Response)>,
     },
     Response {
         // Used to uniquely track each question/response
         tag: u32,
-        msg: Content,
-        option_id: u16,
+        response: Response,
+        response_id: u16,
     },
 }
 
-impl core::cmp::Eq for Dialogue {}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Response {
+    pub msg: Content,
+    pub given_item: Option<(Arc<ItemDef>, u32)>,
+}
+
+impl From<Content> for Response {
+    fn from(msg: Content) -> Self {
+        Self {
+            msg,
+            given_item: None,
+        }
+    }
+}
 
 // Represents a message passed back to rtsim from an agent's brain
 #[derive(Clone, Debug)]
 pub enum NpcInput {
     Report(ReportId),
     Interaction(Actor, Subject),
-    Dialogue(Actor, Dialogue),
+    Dialogue(Actor, Dialogue<true>),
 }
 
 // Note: the `serde(name = "...")` is to minimise the length of field

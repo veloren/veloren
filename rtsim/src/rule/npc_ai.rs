@@ -27,7 +27,7 @@ pub mod dialogue;
 pub mod movement;
 pub mod util;
 
-use std::{collections::VecDeque, hash::BuildHasherDefault};
+use std::{collections::VecDeque, hash::BuildHasherDefault, sync::Arc};
 
 use crate::{
     RtState, Rule, RuleError,
@@ -43,15 +43,18 @@ use crate::{
     event::OnTick,
 };
 use common::{
+    assets::AssetExt,
     astar::{Astar, PathResult},
     comp::{
         self, Content, bird_large,
         compass::{Direction, Distance},
         dialogue::Subject,
+        item::ItemDef,
     },
     path::Path,
     rtsim::{
-        Actor, ChunkResource, DialogueKind, NpcInput, PersonalityTrait, Profession, Role, SiteId,
+        Actor, ChunkResource, DialogueKind, NpcInput, PersonalityTrait, Profession, Response, Role,
+        SiteId,
     },
     spiral::Spiral2d,
     store::Id,
@@ -205,14 +208,27 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
             .boxed()
         } else if matches!(tgt, Actor::Character(_)) {
             let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));
-
             do_dialogue(tgt, move |session| {
                 session
                     .ask_question(Content::localized("npc-question-general"), [
-                        Some((0, Content::localized("dialogue-question-site"))),
-                        Some((1, Content::localized("dialogue-question-self"))),
-                        can_be_hired.then(|| (2, Content::localized("dialogue-question-hire"))),
-                        Some((3, Content::localized("dialogue-question-sentiment"))),
+                        Some((
+                            0,
+                            Response::from(Content::localized("dialogue-question-site")),
+                        )),
+                        Some((
+                            1,
+                            Response::from(Content::localized("dialogue-question-self")),
+                        )),
+                        can_be_hired.then(|| {
+                            (
+                                2,
+                                Response::from(Content::localized("dialogue-question-hire")),
+                            )
+                        }),
+                        Some((
+                            3,
+                            Response::from(Content::localized("dialogue-question-sentiment")),
+                        )),
                     ])
                     .and_then(move |resp| match resp {
                         Some(0) => now(move |ctx, _| {
@@ -293,14 +309,38 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                                 .then(session.say_statement(home))
                         })
                         .boxed(),
-                        Some(2) if can_be_hired => now(move |ctx, _| {
+                        Some(2) => now(move |ctx, _| {
                             if ctx.npc.rng(38792).gen_bool(0.5) {
                                 session
-                                    .say_statement(Content::localized("npc-response-accept_hire"))
-                                    .then(now(move |ctx, _| {
-                                        ctx.controller.dialogue_end(session);
-                                        hired_adventurer(tgt)
-                                    }))
+                                    .ask_question(Content::localized("npc-response-hire_price"), [
+                                        (0, Response {
+                                            msg: Content::localized("dialogue-accept"),
+                                            given_item: Some((
+                                                Arc::<ItemDef>::load_cloned(
+                                                    "common.items.utility.coins",
+                                                )
+                                                .unwrap(),
+                                                100,
+                                            )),
+                                        }),
+                                        (1, Response::from(Content::localized("dialogue-no"))),
+                                    ])
+                                    .and_then(move |resp| match resp {
+                                        Some(0) => session
+                                            .say_statement(Content::localized(
+                                                "npc-response-accept_hire",
+                                            ))
+                                            .then(now(move |ctx, _| {
+                                                ctx.controller.dialogue_end(session);
+                                                hired_adventurer(tgt)
+                                            }))
+                                            .boxed(),
+                                        _ => session
+                                            .say_statement(Content::localized(
+                                                "npc-response-no_problem",
+                                            ))
+                                            .boxed(),
+                                    })
                                     .boxed()
                             } else {
                                 session

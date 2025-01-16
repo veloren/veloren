@@ -694,6 +694,77 @@ impl Inventory {
             .sum()
     }
 
+    /// Determine whether the inventory has space to contain the given item, of
+    /// the given amount.
+    pub fn has_space_for(&self, item_def: &ItemDef, amount: u32) -> bool {
+        let free_spaces = self
+            .slots()
+            .map(|i| {
+                if let Some(item) = i {
+                    if item.is_same_item_def(item_def) {
+                        0
+                    } else {
+                        // Invariant amount <= max_amount *should* take care of this, but let's be
+                        // safe
+                        item.max_amount().saturating_sub(item.amount()) as u64
+                    }
+                } else {
+                    // A free slot can hold all of the items!
+                    // TODO: This should be capped according to the `max_amount` of the item def,
+                    // but item defs don't currently present this information.
+                    amount as u64
+                }
+            })
+            .sum::<u64>();
+        free_spaces >= amount as u64
+    }
+
+    /// Remove the given amount of the given item from the inventory.
+    ///
+    /// The returned items will have arbitrary amounts, but their sum will be <=
+    /// amount.
+    ///
+    /// If the inventory does not contain sufficient items, `Err(())` will be
+    /// returned.
+    pub fn remove_item_amount(
+        &mut self,
+        item_def: &ItemDef,
+        amount: u32,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Result<Vec<Item>, ()> {
+        let mut amount = amount as u64;
+        if self.item_count(item_def) >= amount {
+            let mut removed_items = Vec::new();
+            for slot in self.slots_mut() {
+                return if amount == 0 {
+                    // We've collected enough
+                    Ok(removed_items)
+                } else if let Some(item) = slot {
+                    if amount < item.amount() as u64 {
+                        // Remove just the amount we need to finish off
+                        // Note: Unwrap is fine, we've already checked that amount > 0
+                        // Note: Cast is fine, we know the requested amount is valid because it's
+                        // less than the existing amount
+                        removed_items
+                            .push(item.take_amount(ability_map, msm, amount as u32).unwrap());
+                        Ok(removed_items)
+                    } else {
+                        // Take the whole item and keep going
+                        amount -= item.amount() as u64;
+                        removed_items.push(slot.take().unwrap());
+                        continue;
+                    }
+                } else {
+                    continue;
+                };
+            }
+            Ok(removed_items)
+        } else {
+            Err(())
+        }
+    }
+
     /// Adds a new item to the first empty slot of the inventory. Returns the
     /// item again in an Err if no free slot was found, otherwise returns a
     /// reference to the item.

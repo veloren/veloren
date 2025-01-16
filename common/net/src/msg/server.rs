@@ -181,7 +181,7 @@ pub enum ServerGeneral {
     /// from an ingame state
     ExitInGameSuccess,
     InventoryUpdate(comp::Inventory, Vec<comp::InventoryUpdateEvent>),
-    Dialogue(Uid, rtsim::Dialogue),
+    Dialogue(Uid, rtsim::Dialogue<true>),
     /// NOTE: The client can infer that entity view distance will be at most the
     /// terrain view distance that we send here (and if lower it won't be
     /// modified). So we just need to send the terrain VD back to the client

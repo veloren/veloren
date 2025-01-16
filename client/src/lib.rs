@@ -122,7 +122,7 @@ pub enum Event {
     StartSpectate(Vec3<f32>),
     SpectatePosition(Vec3<f32>),
     PluginDataReceived(Vec<u8>),
-    Dialogue(Uid, rtsim::Dialogue),
+    Dialogue(Uid, rtsim::Dialogue<true>),
 }
 
 #[derive(Debug)]

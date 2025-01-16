@@ -10,7 +10,7 @@ use common::{
     grid::Grid,
     rtsim::{
         Actor, ChunkResource, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction,
-        NpcActivity, NpcInput, Personality, ReportId, Role, SiteId,
+        NpcActivity, NpcInput, Personality, ReportId, Response, Role, SiteId,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -134,7 +134,7 @@ impl Controller {
         &mut self,
         session: DialogueSession,
         msg: comp::Content,
-        options: impl IntoIterator<Item = (u16, comp::Content)>,
+        responses: impl IntoIterator<Item = (u16, Response)>,
     ) -> u32 {
         let tag = thread_rng().gen();
 
@@ -144,7 +144,7 @@ impl Controller {
                 kind: DialogueKind::Question {
                     tag,
                     msg,
-                    options: options.into_iter().collect(),
+                    responses: responses.into_iter().collect(),
                 },
             }));
 

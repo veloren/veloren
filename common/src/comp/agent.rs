@@ -488,7 +488,7 @@ pub enum AgentEvent {
     ),
     ServerSound(Sound),
     Hurt,
-    Dialogue(Uid, rtsim::Dialogue),
+    Dialogue(Uid, rtsim::Dialogue<true>),
 }
 
 #[derive(Copy, Clone, Debug)]
