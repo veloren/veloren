@@ -116,12 +116,12 @@ impl<'a> System<'a> for Sys {
         }
 
         // Since physics state isn't updated while riding we set it to default.
-        for (physics_state, _is_rider) in (&mut physics_states, &is_riders).join() {
+        for (physics_state, _) in (&mut physics_states, is_riders.mask()).join() {
             if physics_state.in_fluid.is_some() {
                 *physics_state = PhysicsState::default();
             }
         }
-        for (physics_state, _is_volume_rider) in (&mut physics_states, &is_volume_riders).join() {
+        for (physics_state, _) in (&mut physics_states, is_volume_riders.mask()).join() {
             if physics_state.in_fluid.is_some() {
                 *physics_state = PhysicsState::default();
             }
