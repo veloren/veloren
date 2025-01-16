@@ -1,0 +1,28 @@
+RapidRanged(
+    energy_cost: 0,
+    buildup_duration: 0.3,
+    shoot_duration: 0.2,
+    recover_duration: 0.5,
+    options: (
+        max_projectiles: Some(25),
+    ),
+    projectile: (
+        kind: Pointed,
+        attack: Some((
+            damage: 5,
+            energy: 4,
+            buff: Some((
+                kind: Bleeding,
+                dur_secs: 10,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            )),
+            without_combo: true,
+        )),
+    ),
+    projectile_body: Object(Arrow),
+    projectile_speed: 50.0,
+    meta: (
+        init_event: Some(EnterStance(None)),
+    ),
+)

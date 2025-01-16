@@ -1493,7 +1493,7 @@ impl AgentData<'_> {
                     ),
                 )
             },
-            CharacterState::RepeaterRanged(c) => {
+            CharacterState::RapidRanged(c) => {
                 let projectile_speed = c.static_data.projectile_speed;
                 aim_projectile(
                     projectile_speed,

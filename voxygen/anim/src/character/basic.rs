@@ -1650,6 +1650,12 @@ impl Animation for BasicAction {
                 next.hand_l.position += Vec3::new(2.0, -2.0, -1.0) * move1;
                 next.hand_l.orientation.rotate_z(move1 * 0.4);
             },
+            Some("common.abilities.bow.barrage") => {
+                bow_start(&mut next, s_a);
+
+                next.hand_l.position += Vec3::new(4.0, -6.0, -6.0) * move1;
+                next.hand_l.orientation.rotate_z(move1 * 2.0);
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================

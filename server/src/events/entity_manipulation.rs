@@ -2017,6 +2017,7 @@ impl ServerEvent for BonkEvent {
                                             blockable: true,
                                             attack_effect: None,
                                             damage_effect: None,
+                                            without_combo: false,
                                         }),
                                         scaled: None,
                                     }

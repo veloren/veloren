@@ -633,6 +633,9 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.broadhead" => imgs.bow_broadhead,
         "common.abilities.bow.foothold" => imgs.bow_foothold,
         "common.abilities.bow.snare_shot" => imgs.bow_snare_shot,
+        "common.abilities.bow.barrage" => imgs.bow_barrage,
+        "common.abilities.bow.barrage_shot" => imgs.bow_barrage,
+        "veloren.core.pseudo_abilities.bow.barrage" => imgs.bow_barrage,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

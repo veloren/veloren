@@ -1,31 +1,8 @@
-ChargedRanged(
+Simple(
     energy_cost: 0,
-    energy_drain: 0,
-    idle_drain: 0,
-    projectile: (
-        kind: Pointed,
-        attack: Some((
-            damage: 2,
-            energy: 2,
-            buff: Some((
-                kind: Bleeding,
-                dur_secs: 10,
-                strength: DamageFraction(0.1),
-                chance: 0.1,
-            )),
-        )),
-        scaled: Some((
-            damage: 12,
-            knockback: Some(12),
-            energy: 14,
-        )),
+    combo_cost: 5,
+    buildup_duration: 0.1,
+    meta: (
+        init_event: Some(EnterStance(Bow(Barrage))),
     ),
-    buildup_duration: 0.25,
-    charge_duration: 1.0,
-    recover_duration: 0.4,
-    projectile_body: Object(Arrow),
-    projectile_light: None,
-    initial_projectile_speed: 50.0,
-    scaled_projectile_speed: 200.0,
-    move_speed: 0.6,
 )

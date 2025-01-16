@@ -4,7 +4,7 @@ use common::{
         self, CharacterState, Combo, Energy, Health, Inventory, Poise, Stats, StatsModifier,
         item::MaterialStatManifest,
     },
-    event::{DestroyEvent, DownedEvent, EmitExt},
+    event::{ChangeStanceEvent, DestroyEvent, DownedEvent, EmitExt},
     event_emitters,
     resources::{DeltaTime, Time},
 };
@@ -19,6 +19,7 @@ event_emitters! {
     struct Events[Emitters] {
         destroy: DestroyEvent,
         downed: DownedEvent,
+        change_stance: ChangeStanceEvent,
     }
 }
 
@@ -142,7 +143,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Music(_)
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
-                | CharacterState::RepeaterRanged(_)
+                | CharacterState::RapidRanged(_)
                 | CharacterState::Throw(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::Explosion(_)
@@ -159,7 +160,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::RapidMelee(_)
                 | CharacterState::StaticAura(_)
                 | CharacterState::Roll(_)
-                | CharacterState::LeapRanged(_) => {
+                | CharacterState::LeapRanged(_)
+                | CharacterState::Simple(_) => {
                     if energy.needs_regen_rate_reset() {
                         energy.reset_regen_rate();
                     }

@@ -1,10 +1,18 @@
-RepeaterRanged(
+RapidRanged(
     energy_cost: 0.0,
     buildup_duration: 0.2,
     shoot_duration: 0.3,
     recover_duration: 0.5,
-    max_speed: 8.0,
-    half_speed_at: 5,
+    options: (
+        speed_ramp: Some((
+            max_bonus: 8.0,
+            half_speed_at: 5,
+        )),
+        offset: Some((
+            radius: 30,
+            height: 20,
+        )),
+    ),
     projectile: (
         kind: Explosive(
             radius: 12,
@@ -35,9 +43,5 @@ RepeaterRanged(
         animated: true,
     )),
     projectile_speed: 0.0,
-    properties_of_aoe: Some(ProjectileOffset(
-        radius: 30,
-        height: 20,
-    )),
     specifier: Some(FireRainPhoenix),
 )

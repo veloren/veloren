@@ -1,6 +1,7 @@
 use super::{
     super::{Animation, vek::*},
-    CharacterSkeleton, SkeletonAttr, dual_wield_start, hammer_start, twist_back, twist_forward,
+    CharacterSkeleton, SkeletonAttr, bow_draw, bow_start, dual_wield_start, hammer_start,
+    twist_back, twist_forward,
 };
 use common::{
     states::utils::{AbilityInfo, HandInfo, StageSection},
@@ -1531,6 +1532,13 @@ impl Animation for MultiAction {
                 // ==================================
                 //                BOW
                 // ==================================
+                Some("common.abilities.bow.barrage_shot") => {
+                    bow_start(&mut next, s_a);
+                    bow_draw(&mut next, move1, d.look_dir.z);
+
+                    let movedraw = (move2base * 2.0).min(1.0);
+                    next.hand_l.position += Vec3::new(0.0, movedraw * -5.0, 0.0);
+                },
                 // ==================================
                 //              SHIELD
                 // ==================================

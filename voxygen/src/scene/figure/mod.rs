@@ -1723,7 +1723,8 @@ impl FigureMgr {
                     | CharacterState::BasicBeam(_)
                     | CharacterState::BasicBlock(_)
                     | CharacterState::RiposteMelee(_)
-                    | CharacterState::LeapRanged(_) => {
+                    | CharacterState::LeapRanged(_)
+                    | CharacterState::Simple(_) => {
                         let timer = character.timer();
                         let stage_section = character.stage_section();
                         let durations = character.durations();
@@ -1787,7 +1788,7 @@ impl FigureMgr {
                         )
                     },
                     CharacterState::ComboMelee2(_)
-                    | CharacterState::RepeaterRanged(_)
+                    | CharacterState::RapidRanged(_)
                     | CharacterState::RapidMelee(_) => {
                         let timer = character.timer();
                         let stage_section = character.stage_section();
@@ -1816,7 +1817,7 @@ impl FigureMgr {
                                 (s.completed_strikes % s.static_data.strikes.len()) as u32,
                                 Some(s.static_data.strikes.len() as u32),
                             ),
-                            CharacterState::RepeaterRanged(s) => (s.projectiles_fired, None),
+                            CharacterState::RapidRanged(s) => (s.projectiles_fired, None),
                             CharacterState::RapidMelee(s) => {
                                 (s.current_strike, s.static_data.max_strikes)
                             },
@@ -3872,7 +3873,7 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
-                    CharacterState::RepeaterRanged(s) => {
+                    CharacterState::RapidRanged(s) => {
                         let stage_time = s.timer.as_secs_f32();
 
                         let stage_progress = match s.stage_section {
@@ -5174,7 +5175,7 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
-                    CharacterState::RepeaterRanged(s) => {
+                    CharacterState::RapidRanged(s) => {
                         let stage_time = s.timer.as_secs_f32();
 
                         let stage_progress = match s.stage_section {
@@ -5730,7 +5731,7 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
-                    CharacterState::RepeaterRanged(s) => {
+                    CharacterState::RapidRanged(s) => {
                         let stage_time = s.timer.as_secs_f32();
 
                         let stage_progress = match s.stage_section {

@@ -1654,10 +1654,10 @@ impl ParticleMgr {
                         }
                     }
                 },
-                CharacterState::RepeaterRanged(repeater) => {
+                CharacterState::RapidRanged(repeater) => {
                     if let Some(specifier) = repeater.static_data.specifier {
                         match specifier {
-                            states::repeater_ranged::FrontendSpecifier::FireRainPhoenix => {
+                            states::rapid_ranged::FrontendSpecifier::FireRainPhoenix => {
                                 // base, dark clouds
                                 self.particles.resize_with(
                                     self.particles.len()
@@ -1669,8 +1669,9 @@ impl ParticleMgr {
                                             let theta = rng.random::<f32>() * TAU;
                                             let radius = repeater
                                                 .static_data
-                                                .properties_of_aoe
-                                                .map(|aoe| aoe.radius)
+                                                .options
+                                                .offset
+                                                .map(|offset| offset.radius)
                                                 .unwrap_or_default()
                                                 * rng.random::<f32>().sqrt();
                                             let x = radius * theta.sin();
@@ -1680,8 +1681,9 @@ impl ParticleMgr {
                                         let pos1 = rand_pos.with_z(
                                             repeater
                                                 .static_data
-                                                .properties_of_aoe
-                                                .map(|aoe| aoe.height)
+                                                .options
+                                                .offset
+                                                .map(|offset| offset.height)
                                                 .unwrap_or_default()
                                                 + interpolated.pos.z
                                                 + 2.0 * rng.random::<f32>(),
@@ -1706,8 +1708,9 @@ impl ParticleMgr {
                                             let theta = rng.random::<f32>() * TAU;
                                             let radius = repeater
                                                 .static_data
-                                                .properties_of_aoe
-                                                .map(|aoe| aoe.radius)
+                                                .options
+                                                .offset
+                                                .map(|offset| offset.radius)
                                                 .unwrap_or_default()
                                                 * rng.random::<f32>().sqrt();
                                             let x = radius * theta.sin();
@@ -1717,8 +1720,9 @@ impl ParticleMgr {
                                         let pos1 = rand_pos.with_z(
                                             repeater
                                                 .static_data
-                                                .properties_of_aoe
-                                                .map(|aoe| aoe.height)
+                                                .options
+                                                .offset
+                                                .map(|offset| offset.height)
                                                 .unwrap_or_default()
                                                 + interpolated.pos.z
                                                 + 1.5 * rng.random::<f32>(),

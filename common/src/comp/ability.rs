@@ -683,7 +683,7 @@ pub enum CharacterAbilityType {
     Music(StageSection),
     Shockwave,
     BasicBeam,
-    RepeaterRanged,
+    RapidRanged,
     BasicAura,
     SelfBuff,
     Other,
@@ -708,7 +708,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             CharacterState::Shockwave(_) => Self::Shockwave,
             CharacterState::BasicBeam(_) => Self::BasicBeam,
-            CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
+            CharacterState::RapidRanged(_) => Self::RapidRanged,
             CharacterState::BasicAura(_) => Self::BasicAura,
             CharacterState::SelfBuff(_) => Self::SelfBuff,
             CharacterState::Music(data) => Self::Music(data.stage_section),
@@ -737,7 +737,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::Throw(_)
             | CharacterState::LeapExplosionShockwave(_)
             | CharacterState::Explosion(_)
-            | CharacterState::LeapRanged(_) => Self::Other,
+            | CharacterState::LeapRanged(_)
+            | CharacterState::Simple(_) => Self::Other,
         }
     }
 }
@@ -808,19 +809,17 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
-    RepeaterRanged {
+    RapidRanged {
         energy_cost: f32,
         buildup_duration: f32,
         shoot_duration: f32,
         recover_duration: f32,
-        max_speed: f32,
-        half_speed_at: u32,
+        options: rapid_ranged::Options,
         projectile: ProjectileConstructor,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
-        properties_of_aoe: Option<repeater_ranged::ProjectileOffset>,
-        specifier: Option<repeater_ranged::FrontendSpecifier>,
+        specifier: Option<rapid_ranged::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1264,6 +1263,13 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    Simple {
+        energy_cost: f32,
+        combo_cost: u32,
+        buildup_duration: f32,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -1345,7 +1351,7 @@ impl CharacterAbility {
                     update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 // Consumes energy within state, so value only checked before entering state
-                CharacterAbility::RepeaterRanged { energy_cost, .. } => {
+                CharacterAbility::RapidRanged { energy_cost, .. } => {
                     update.energy.current() >= *energy_cost
                 },
                 CharacterAbility::LeapExplosionShockwave { energy_cost, .. }
@@ -1374,6 +1380,11 @@ impl CharacterAbility {
                     ..
                 }
                 | CharacterAbility::SelfBuff {
+                    energy_cost,
+                    combo_cost: minimum_combo,
+                    ..
+                }
+                | CharacterAbility::Simple {
                     energy_cost,
                     combo_cost: minimum_combo,
                     ..
@@ -1499,18 +1510,16 @@ impl CharacterAbility {
                 *projectile_speed *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
-            RepeaterRanged {
+            RapidRanged {
                 ref mut energy_cost,
                 ref mut buildup_duration,
                 ref mut shoot_duration,
                 ref mut recover_duration,
-                max_speed: _,
-                half_speed_at: _,
+                options: _,
                 ref mut projectile,
                 projectile_body: _,
                 projectile_light: _,
                 ref mut projectile_speed,
-                properties_of_aoe: _,
                 specifier: _,
                 meta: _,
             } => {
@@ -2131,6 +2140,15 @@ impl CharacterAbility {
                 *projectile = projectile.adjusted_by_stats(stats);
                 *projectile_speed *= stats.range;
             },
+            Simple {
+                ref mut energy_cost,
+                combo_cost: _,
+                ref mut buildup_duration,
+                meta: _,
+            } => {
+                *energy_cost /= stats.energy_efficiency;
+                *buildup_duration /= stats.speed;
+            },
         }
         self
     }
@@ -2140,7 +2158,7 @@ impl CharacterAbility {
         match self {
             BasicMelee { energy_cost, .. }
             | BasicRanged { energy_cost, .. }
-            | RepeaterRanged { energy_cost, .. }
+            | RapidRanged { energy_cost, .. }
             | DashMelee { energy_cost, .. }
             | Roll { energy_cost, .. }
             | LeapExplosionShockwave { energy_cost, .. }
@@ -2164,7 +2182,8 @@ impl CharacterAbility {
             | RapidMelee { energy_cost, .. }
             | StaticAura { energy_cost, .. }
             | RegrowHead { energy_cost, .. }
-            | LeapRanged { energy_cost, .. } => *energy_cost,
+            | LeapRanged { energy_cost, .. }
+            | Simple { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -2205,6 +2224,9 @@ impl CharacterAbility {
             }
             | SelfBuff {
                 combo_cost: combo, ..
+            }
+            | Simple {
+                combo_cost: combo, ..
             } => *combo,
             Shockwave {
                 minimum_combo: combo,
@@ -2212,7 +2234,7 @@ impl CharacterAbility {
             } => combo.unwrap_or(0),
             BasicMelee { .. }
             | BasicRanged { .. }
-            | RepeaterRanged { .. }
+            | RapidRanged { .. }
             | DashMelee { .. }
             | Roll { .. }
             | LeapExplosionShockwave { .. }
@@ -2246,7 +2268,7 @@ impl CharacterAbility {
         match self {
             BasicMelee { meta, .. }
             | BasicRanged { meta, .. }
-            | RepeaterRanged { meta, .. }
+            | RapidRanged { meta, .. }
             | DashMelee { meta, .. }
             | Roll { meta, .. }
             | LeapExplosionShockwave { meta, .. }
@@ -2275,7 +2297,8 @@ impl CharacterAbility {
             | Transform { meta, .. }
             | StaticAura { meta, .. }
             | RegrowHead { meta, .. }
-            | LeapRanged { meta, .. } => *meta,
+            | LeapRanged { meta, .. }
+            | Simple { meta, .. } => *meta,
         }
     }
 
@@ -2888,35 +2911,30 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
-            CharacterAbility::RepeaterRanged {
+            CharacterAbility::RapidRanged {
                 energy_cost,
                 buildup_duration,
                 shoot_duration,
                 recover_duration,
-                max_speed,
-                half_speed_at,
+                options,
                 projectile,
                 projectile_body,
                 projectile_light,
                 projectile_speed,
-                properties_of_aoe,
                 specifier,
                 meta: _,
-            } => CharacterState::RepeaterRanged(repeater_ranged::Data {
-                static_data: repeater_ranged::StaticData {
+            } => CharacterState::RapidRanged(rapid_ranged::Data {
+                static_data: rapid_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     shoot_duration: Duration::from_secs_f32(*shoot_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     energy_cost: *energy_cost,
-                    // 1.0 is subtracted as 1.0 is added in state file
-                    max_speed: *max_speed - 1.0,
-                    half_speed_at: *half_speed_at,
+                    options: *options,
                     projectile: *projectile,
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     projectile_speed: *projectile_speed,
                     ability_info,
-                    properties_of_aoe: *properties_of_aoe,
                     specifier: *specifier,
                 },
                 timer: Duration::default(),
@@ -3481,6 +3499,19 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 melee_done: false,
                 ranged_done: false,
             }),
+            CharacterAbility::Simple {
+                energy_cost: _,
+                combo_cost: _,
+                buildup_duration,
+                meta: _,
+            } => CharacterState::Simple(simple::Data {
+                static_data: simple::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
         })
     }
 }
@@ -3566,6 +3597,15 @@ pub enum SwordStance {
     Agile,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
+pub enum BowStance {
+    Barrage,
+    PiercingGale,
+    Hawkstrike,
+    Fusillade,
+    DeathValley,
+}
+
 bitflags::bitflags! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
     // If more are ever needed, first check if any not used anymore, as some were only used in intermediary stages so may be free
@@ -3592,6 +3632,7 @@ pub enum Stance {
     #[default]
     None,
     Sword(SwordStance),
+    Bow(BowStance),
 }
 
 impl Stance {
@@ -3608,6 +3649,13 @@ impl Stance {
             Stance::Sword(SwordStance::Cleaving) => {
                 "veloren.core.pseudo_abilities.sword.cleaving_stance"
             },
+            Stance::Bow(BowStance::Barrage) => "veloren.core.pseudo_abilities.bow.barrage",
+            Stance::Bow(BowStance::PiercingGale) => {
+                "veloren.core.pseudo_abilities.bow.piercing_gale"
+            },
+            Stance::Bow(BowStance::Hawkstrike) => "veloren.core.pseudo_abilities.bow.hawkstrike",
+            Stance::Bow(BowStance::Fusillade) => "veloren.core.pseudo_abilities.bow.fusillade",
+            Stance::Bow(BowStance::DeathValley) => "veloren.core.pseudo_abilities.bow.death_Valley",
             Stance::None => "veloren.core.pseudo_abilities.no_stance",
         }
     }

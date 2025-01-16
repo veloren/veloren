@@ -465,3 +465,9 @@ common-abilities-bow-foothold = Foothold
 common-abilities-bow-snare_shot = Snare Shot
     .desc =
         Your next arrow will pin the target where they are.
+common-abilities-bow-barrage = Barrage
+    .desc =
+        Replace your broadhead arrow with a bandolier of smaller arrows to quickly barrage at your foes.
+common-abilities-bow-barrage_shot = Barrage
+    .desc =
+        Quickly fire a number of smaller arrows to barrage your enemies with an unending stream of arrows.

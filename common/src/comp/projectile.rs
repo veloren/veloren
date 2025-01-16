@@ -96,6 +96,8 @@ pub struct ProjectileAttack {
     pub blockable: bool,
     pub damage_effect: Option<CombatEffect>,
     pub attack_effect: Option<(CombatEffect, CombatRequirement)>,
+    #[serde(default)]
+    pub without_combo: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -214,8 +216,11 @@ impl ProjectileConstructor {
                 .with_stat_adjustments(entity_stats)
                 .with_damage(damage)
                 .with_precision(precision_mult)
-                .with_blockable(a.blockable)
-                .with_combo_increment();
+                .with_blockable(a.blockable);
+
+            if !a.without_combo {
+                attack = attack.with_combo_increment();
+            }
 
             if let Some(poise) = poise {
                 attack = attack.with_effect(poise);

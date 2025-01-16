@@ -330,6 +330,7 @@ image_ids! {
         bow_broadhead: "voxygen.element.skills.bow.broadhead",
         bow_foothold: "voxygen.element.skills.bow.foothold",
         bow_snare_shot: "voxygen.element.skills.bow.snare_shot",
+        bow_barrage: "voxygen.element.skills.bow.barrage",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

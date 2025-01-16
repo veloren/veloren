@@ -26,10 +26,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Energy cost per projectile
     pub energy_cost: f32,
-    /// Max speed that can be reached
-    pub max_speed: f32,
-    /// Projectiles required to reach half of max speed
-    pub half_speed_at: u32,
+    pub options: Options,
     /// Projectile options
     pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
@@ -37,18 +34,28 @@ pub struct StaticData {
     pub projectile_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    /// Whether ablity should be casted from above as aoe or shoot projectiles
-    /// as normal
-    pub properties_of_aoe: Option<ProjectileOffset>,
     /// Used to specify the attack to the frontend
     pub specifier: Option<FrontendSpecifier>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ProjectileOffset {
-    /// Radius of AOE
+pub struct Options {
+    pub speed_ramp: Option<RampOptions>,
+    pub max_projectiles: Option<u32>,
+    pub offset: Option<OffsetOptions>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct RampOptions {
+    /// Max bonus to speed that can be reached
+    pub max_bonus: f32,
+    /// Projectiles required to reach half of max speed
+    pub half_speed_at: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct OffsetOptions {
     pub radius: f32,
-    /// Height of shooting point for AOE's projectiles
     pub height: f32,
 }
 
@@ -77,13 +84,13 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Buildup to attack
-                    update.character = CharacterState::RepeaterRanged(Data {
+                    update.character = CharacterState::RapidRanged(Data {
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });
                 } else {
                     // Transition to shoot
-                    update.character = CharacterState::RepeaterRanged(Data {
+                    update.character = CharacterState::RapidRanged(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Action,
                         ..*self
@@ -93,7 +100,7 @@ impl CharacterBehavior for Data {
             StageSection::Action => {
                 if self.timer < self.static_data.shoot_duration {
                     // Draw projectile
-                    update.character = CharacterState::RepeaterRanged(Data {
+                    update.character = CharacterState::RapidRanged(Data {
                         timer: self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0 * self.speed))
@@ -102,34 +109,32 @@ impl CharacterBehavior for Data {
                     });
                 } else if input_is_pressed(data, self.static_data.ability_info.input)
                     && update.energy.current() >= self.static_data.energy_cost
+                    && self
+                        .static_data
+                        .options
+                        .max_projectiles
+                        .is_none_or(|max| self.projectiles_fired < max)
                 {
                     // Fire if input is pressed still
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     // Gets offsets
-                    let pos: Pos = self.static_data.properties_of_aoe.as_ref().map_or_else(
-                        || {
-                            // Default position
-                            let body_offsets = data.body.projectile_offsets(
-                                update.ori.look_vec(),
-                                data.scale.map_or(1.0, |s| s.0),
-                            );
-                            Pos(data.pos.0 + body_offsets)
-                        },
-                        |aoe_data| {
-                            // Position calculated from aoe_data
-                            let rand_pos = {
-                                let mut rng = rng();
-                                let theta = rng.random::<f32>() * TAU;
-                                let radius = aoe_data.radius * rng.random::<f32>().sqrt();
-                                let x = radius * theta.sin();
-                                let y = radius * theta.cos();
-                                vek::Vec2::new(x, y)
-                            };
-                            Pos(data.pos.0 + rand_pos.with_z(aoe_data.height))
-                        },
-                    );
+                    let offset = if let Some(offset) = self.static_data.options.offset {
+                        let mut rng = rng();
+                        let theta = rng.random::<f32>() * TAU;
+                        let radius = offset.radius * rng.random::<f32>().sqrt();
+                        let x = radius * theta.sin();
+                        let y = radius * theta.cos();
+                        let z = offset.height;
+                        vek::Vec3::new(x, y, z)
+                    } else {
+                        data.body.projectile_offsets(
+                            update.ori.look_vec(),
+                            data.scale.map_or(1.0, |s| s.0),
+                        )
+                    };
+                    let pos = Pos(data.pos.0 + offset);
 
-                    let direction: Dir = if self.static_data.properties_of_aoe.is_some() {
+                    let direction: Dir = if self.static_data.projectile_speed < 1.0 {
                         Dir::down()
                     } else {
                         data.inputs.look_dir
@@ -158,14 +163,17 @@ impl CharacterBehavior for Data {
                         reset_rate: false,
                     });
 
-                    // Sets new speed of shoot. Scales based off of the number of projectiles fired.
-                    let new_speed = 1.0
-                        + self.projectiles_fired as f32
-                            / (self.static_data.half_speed_at as f32
-                                + self.projectiles_fired as f32)
-                            * self.static_data.max_speed;
+                    // Sets new speed of shoot. Scales based off of the number of projectiles fired
+                    // if there is a speed ramp.
+                    let new_speed = if let Some(speed_ramp) = self.static_data.options.speed_ramp {
+                        1.0 + self.projectiles_fired as f32
+                            / (speed_ramp.half_speed_at as f32 + self.projectiles_fired as f32)
+                            * speed_ramp.max_bonus
+                    } else {
+                        1.0
+                    };
 
-                    update.character = CharacterState::RepeaterRanged(Data {
+                    update.character = CharacterState::RapidRanged(Data {
                         timer: Duration::default(),
                         speed: new_speed,
                         projectiles_fired: self.projectiles_fired + 1,
@@ -173,7 +181,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Transition to recover
-                    update.character = CharacterState::RepeaterRanged(Data {
+                    update.character = CharacterState::RapidRanged(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
                         ..*self
@@ -183,7 +191,7 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recover from attack
-                    update.character = CharacterState::RepeaterRanged(Data {
+                    update.character = CharacterState::RapidRanged(Data {
                         timer: tick_attack_or_default(
                             data,
                             self.timer,
