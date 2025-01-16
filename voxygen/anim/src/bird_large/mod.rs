@@ -102,11 +102,14 @@ impl Skeleton for BirdLargeSkeleton {
             make_bone(foot_r_mat),
         ];
 
+        use comp::bird_large::Species::*;
         // NOTE: We apply the ori from base_mat externally so we don't need to worry
         // about it here for now.
         let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
-            (comp::body::bird_large::Species::SeaWyvern, _) => (chest_mat, self.chest.orientation),
-            _ => (neck_mat, self.neck.orientation),
+            (SeaWyvern | FlameWyvern | Phoenix | Cockatrice, _) => {
+                (chest_mat, self.chest.orientation)
+            },
+            _ => (neck_mat, self.chest.orientation * self.neck.orientation),
         };
 
         // Offset from the mounted bone's origin.
@@ -324,10 +327,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
 fn mount_point(body: &Body) -> Vec3<f32> {
     use comp::bird_large::Species::*;
     match (body.species, body.body_type) {
-        (Phoenix, _) => (0.0, -2.0, 13.0),
-        (Cockatrice, _) => (0.0, 0.0, 8.0),
+        (Phoenix, _) => (0.0, 0.5, 7.5),
+        (Cockatrice, _) => (0.0, 5.0, 6.5),
         (Roc, _) => (0.0, 5.5, 6.5),
-        (FlameWyvern, _) => (0.0, -1.5, 7.5),
+        (FlameWyvern, _) => (0.0, 9.5, 7.0),
         (CloudWyvern, _) => (0.0, -0.5, 6.5),
         (FrostWyvern, _) => (0.0, 0.5, 6.0),
         (SeaWyvern, _) => (0.0, 8.0, 7.0),
