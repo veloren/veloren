@@ -1569,23 +1569,66 @@ impl FigureMgr {
                         skeleton_attr,
                     ),
                     // Mount
-                    (_, _, _, true, _) => anim::character::MountAnimation::update_skeleton(
-                        &CharacterSkeleton::new(holding_lantern, back_carry_offset),
-                        (
-                            active_tool_kind,
-                            second_tool_kind,
-                            hands,
-                            time,
-                            rel_vel,
-                            rel_avg_vel,
-                            // TODO: Update to use the quaternion.
-                            ori * anim::vek::Vec3::<f32>::unit_y(),
-                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                        ),
-                        state.state_time,
-                        &mut state_animation_rate,
-                        skeleton_attr,
-                    ),
+                    (_, _, _, true, _) => {
+                        let base = anim::character::MountAnimation::update_skeleton(
+                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                hands,
+                                time,
+                                rel_vel,
+                                rel_avg_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            ),
+                            state.state_time,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        );
+                        if let Some(is_volume_rider) = is_volume_rider
+                            && let Some(sprite) = is_volume_rider.block.get_sprite()
+                        {
+                            match sprite {
+                                SpriteKind::Helm => {
+                                    anim::character::SteerAnimation::update_skeleton(
+                                        &base,
+                                        (
+                                            active_tool_kind,
+                                            second_tool_kind,
+                                            character_activity.map(|a| a.steer_dir).unwrap_or(0.0),
+                                            time,
+                                        ),
+                                        state.state_time,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                                SpriteKind::Bed
+                                | SpriteKind::Bedroll
+                                | SpriteKind::BedrollSnow
+                                | SpriteKind::BedrollPirate => {
+                                    anim::character::SleepAnimation::update_skeleton(
+                                        &base,
+                                        (active_tool_kind, second_tool_kind, time),
+                                        state.state_time,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                                _ => anim::character::SitAnimation::update_skeleton(
+                                    &base,
+                                    (active_tool_kind, second_tool_kind, time),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                ),
+                            }
+                        } else {
+                            base
+                        }
+                    },
                 };
                 let target_bones = match &character {
                     CharacterState::Roll(s) => {
@@ -1707,6 +1750,7 @@ impl FigureMgr {
                                 last_ori,
                                 orientation,
                                 look_dir,
+                                is_riding,
                             },
                             progress,
                             &mut state_animation_rate,
@@ -1762,6 +1806,7 @@ impl FigureMgr {
                                 orientation,
                                 look_dir,
                                 velocity: rel_vel,
+                                is_riding,
                             },
                             progress,
                             &mut state_animation_rate,
@@ -1823,7 +1868,7 @@ impl FigureMgr {
                             ),
                             _ => anim::character::CollectAnimation::update_skeleton(
                                 &target_base,
-                                (pos.0, time, Some(s.stage_section), interact_pos),
+                                (pos.0, time, Some(s.stage_section), interact_pos, is_riding),
                                 stage_progress,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -1997,6 +2042,7 @@ impl FigureMgr {
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     look_dir,
                                     rel_vel,
+                                    is_riding,
                                     time,
                                 ),
                                 state.state_time,
@@ -2099,49 +2145,7 @@ impl FigureMgr {
                         &mut state_animation_rate,
                         skeleton_attr,
                     ),
-                    _ => {
-                        if let Some(sprite) = is_volume_rider
-                            .and_then(|is_volume_rider| is_volume_rider.block.get_sprite())
-                        {
-                            match sprite {
-                                SpriteKind::Helm => {
-                                    anim::character::SteerAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            active_tool_kind,
-                                            second_tool_kind,
-                                            character_activity.map(|a| a.steer_dir).unwrap_or(0.0),
-                                            time,
-                                        ),
-                                        state.state_time,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                                SpriteKind::Bed
-                                | SpriteKind::Bedroll
-                                | SpriteKind::BedrollSnow
-                                | SpriteKind::BedrollPirate => {
-                                    anim::character::SleepAnimation::update_skeleton(
-                                        &target_base,
-                                        (active_tool_kind, second_tool_kind, time),
-                                        state.state_time,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    )
-                                },
-                                _ => anim::character::SitAnimation::update_skeleton(
-                                    &target_base,
-                                    (active_tool_kind, second_tool_kind, time),
-                                    state.state_time,
-                                    &mut state_animation_rate,
-                                    skeleton_attr,
-                                ),
-                            }
-                        } else {
-                            target_base
-                        }
-                    },
+                    _ => target_base,
                 };
 
                 state.skeleton = Lerp::lerp(&state.skeleton, &target_bones, data.dt_lerp);

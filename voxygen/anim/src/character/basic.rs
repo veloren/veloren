@@ -22,6 +22,7 @@ pub struct BasicActionDependency<'a> {
     pub last_ori: Vec3<f32>,
     pub orientation: Vec3<f32>,
     pub look_dir: Dir,
+    pub is_riding: bool,
 }
 
 impl Animation for BasicAction {
@@ -92,13 +93,15 @@ impl Animation for BasicAction {
                     next.belt.orientation = Quaternion::rotation_x(move1 * 0.15);
                     next.shorts.orientation = Quaternion::rotation_x(move1 * 0.25);
 
-                    next.foot_l.position =
-                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * 2.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_z(move1 * -0.5);
+                    if !d.is_riding {
+                        next.foot_l.position =
+                            Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * 2.0, s_a.foot.2);
+                        next.foot_l.orientation = Quaternion::rotation_z(move1 * -0.5);
 
-                    next.foot_r.position =
-                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                        next.foot_r.position =
+                            Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
+                        next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                    }
                 }
 
                 match d.hands {
@@ -471,10 +474,12 @@ impl Animation for BasicAction {
                 next.control.orientation =
                     Quaternion::rotation_x(s_a.sc.3) * Quaternion::rotation_z(move2 * -PI / 4.0);
 
-                next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
-                next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
-                next.foot_l.orientation = Quaternion::identity();
-                next.foot_r.orientation = Quaternion::identity();
+                if !d.is_riding {
+                    next.foot_l.position = Vec3::new(-s_a.foot.0, s_a.foot.1, s_a.foot.2);
+                    next.foot_r.position = Vec3::new(s_a.foot.0, s_a.foot.1, s_a.foot.2);
+                    next.foot_l.orientation = Quaternion::identity();
+                    next.foot_r.orientation = Quaternion::identity();
+                }
 
                 next.foot_r.position +=
                     Vec3::new(0.0, move1 * 4.0, (1.0 - (move1 - 0.5) * 2.0) * 2.0);
@@ -667,13 +672,15 @@ impl Animation for BasicAction {
                     next.belt.orientation = Quaternion::rotation_x(move1 * 0.15);
                     next.shorts.orientation = Quaternion::rotation_x(move1 * 0.25);
 
-                    next.foot_l.position =
-                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * 2.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_z(move1 * -0.5);
+                    if !d.is_riding {
+                        next.foot_l.position =
+                            Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * 2.0, s_a.foot.2);
+                        next.foot_l.orientation = Quaternion::rotation_z(move1 * -0.5);
 
-                    next.foot_r.position =
-                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                        next.foot_r.position =
+                            Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
+                        next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                    }
                 }
 
                 match d.hands {
@@ -1170,13 +1177,15 @@ impl Animation for BasicAction {
                     next.belt.orientation = Quaternion::rotation_x(move1 * 0.15);
                     next.shorts.orientation = Quaternion::rotation_x(move1 * 0.25);
 
-                    next.foot_l.position =
-                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * 2.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_z(move1 * -0.5);
+                    if !d.is_riding {
+                        next.foot_l.position =
+                            Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * 2.0, s_a.foot.2);
+                        next.foot_l.orientation = Quaternion::rotation_z(move1 * -0.5);
 
-                    next.foot_r.position =
-                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                        next.foot_r.position =
+                            Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
+                        next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                    }
                 }
 
                 match d.hands {
@@ -1664,14 +1673,17 @@ impl Animation for BasicAction {
                     next.head.orientation =
                         Quaternion::rotation_z(move1 * -0.5 + (move2 * 16.0).sin() * 0.05);
 
-                    next.foot_l.position =
-                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
-                    next.foot_l.orientation =
-                        Quaternion::rotation_x(move1 * -0.5) * Quaternion::rotation_z(move1 * 0.5);
+                    if !d.is_riding {
+                        next.foot_l.position =
+                            Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
+                        next.foot_l.orientation = Quaternion::rotation_x(move1 * -0.5)
+                            * Quaternion::rotation_z(move1 * 0.5);
 
-                    next.foot_r.position =
-                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * 4.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_z(move1 * 0.5);
+                        next.foot_r.position =
+                            Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * 4.0, s_a.foot.2);
+                        next.foot_r.orientation = Quaternion::rotation_z(move1 * 0.5);
+                    }
+
                     next.chest.orientation =
                         Quaternion::rotation_x(move1 * -0.2 + (move2 * 8.0).sin() * 0.05)
                             * Quaternion::rotation_z(move1 * 0.5);
@@ -1732,7 +1744,7 @@ impl Animation for BasicAction {
                 next.shorts.orientation = Quaternion::rotation_x((move2 * 0.3) * (1.0 - move3))
                     * Quaternion::rotation_z((twist + move2 * -0.8) * (1.0 - move3));
 
-                if d.velocity.magnitude() < 0.5 {
+                if d.velocity.magnitude() < 0.5 && !d.is_riding {
                     next.foot_l.position = Vec3::new(
                         -s_a.foot.0,
                         s_a.foot.1 + move1 * -7.0 + move2 * 7.0,
@@ -1863,14 +1875,17 @@ impl Animation for BasicAction {
                     next.head.orientation =
                         Quaternion::rotation_z(move1 * -0.5 + (move2 * 16.0).sin() * 0.05);
 
-                    next.foot_l.position =
-                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
-                    next.foot_l.orientation =
-                        Quaternion::rotation_x(move1 * -0.5) * Quaternion::rotation_z(move1 * 0.5);
+                    if !d.is_riding {
+                        next.foot_l.position =
+                            Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * -3.0, s_a.foot.2);
+                        next.foot_l.orientation = Quaternion::rotation_x(move1 * -0.5)
+                            * Quaternion::rotation_z(move1 * 0.5);
 
-                    next.foot_r.position =
-                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * 4.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_z(move1 * 0.5);
+                        next.foot_r.position =
+                            Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * 4.0, s_a.foot.2);
+                        next.foot_r.orientation = Quaternion::rotation_z(move1 * 0.5);
+                    }
+
                     next.chest.orientation =
                         Quaternion::rotation_x(move1 * -0.2 + (move2 * 8.0).sin() * 0.05)
                             * Quaternion::rotation_z(move1 * 0.5);
@@ -1933,7 +1948,7 @@ impl Animation for BasicAction {
                 next.shorts.orientation = Quaternion::rotation_x((move2 * 0.3) * (1.0 - move3))
                     * Quaternion::rotation_z((twist + move2 * -0.8) * (1.0 - move3));
 
-                if d.velocity.magnitude() < 0.5 {
+                if d.velocity.magnitude() < 0.5 && !d.is_riding {
                     next.foot_l.position = Vec3::new(
                         -s_a.foot.0,
                         s_a.foot.1 + move1 * -7.0 + move2 * 7.0,
@@ -1973,13 +1988,15 @@ impl Animation for BasicAction {
                     next.belt.orientation = Quaternion::rotation_x(move1 * 0.15);
                     next.shorts.orientation = Quaternion::rotation_x(move1 * 0.25);
 
-                    next.foot_l.position =
-                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * 2.0, s_a.foot.2);
-                    next.foot_l.orientation = Quaternion::rotation_z(move1 * -0.5);
+                    if !d.is_riding {
+                        next.foot_l.position =
+                            Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * 2.0, s_a.foot.2);
+                        next.foot_l.orientation = Quaternion::rotation_z(move1 * -0.5);
 
-                    next.foot_r.position =
-                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
-                    next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                        next.foot_r.position =
+                            Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
+                        next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.5);
+                    }
                 }
 
                 if let Some(info) = d.ability_info {
