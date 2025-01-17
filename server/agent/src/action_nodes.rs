@@ -98,7 +98,7 @@ impl AgentData<'_> {
         read_data: &ReadData,
         path: Path,
         speed_multiplier: Option<f32>,
-    ) -> bool {
+    ) -> Option<Vec3<f32>> {
         self.dismount(controller, read_data);
 
         let partial_path_tgt_pos = |pos_difference: Vec3<f32>| {
@@ -143,6 +143,19 @@ impl AgentData<'_> {
             Path::Partial => partial_path_tgt_pos(pos_difference),
         };
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
+
+        let in_loaded_chunk = |pos: Vec3<f32>| {
+            read_data
+                .terrain
+                .contains_key(read_data.terrain.pos_key(pos.map(|e| e.floor() as i32)))
+        };
+
+        // If current position lies inside a loaded chunk, we need to plan routes using
+        // voxel info. If target happens to be in an unloaded chunk,
+        // we need to make our way to the current chunk border, and
+        // then reroute if needed.
+        let is_target_loaded = in_loaded_chunk(pathing_pos);
+
         if let Some((bearing, speed)) = agent.chaser.chase(
             &*read_data.terrain,
             self.pos.0,
@@ -150,13 +163,14 @@ impl AgentData<'_> {
             pathing_pos,
             TraversalConfig {
                 min_tgt_dist: 0.25,
+                is_target_loaded,
                 ..self.traversal_config
             },
         ) {
             self.traverse(controller, bearing, speed * speed_multiplier);
-            true
+            Some(bearing)
         } else {
-            false
+            None
         }
     }
 
@@ -268,39 +282,14 @@ impl AgentData<'_> {
                         controller.push_cancel_input(InputKind::Fly)
                     }
 
-                    let chase_tgt = if self.traversal_config.can_fly {
-                        read_data.terrain.try_find_space(travel_to.as_())
-                    } else {
-                        read_data.terrain.try_find_ground(travel_to.as_())
-                    }
-                    .map(|pos| pos.as_())
-                    .unwrap_or(travel_to);
-
-                    let in_loaded_chunk = |pos: Vec3<f32>| {
-                        read_data
-                            .terrain
-                            .contains_key(read_data.terrain.pos_key(pos.map(|e| e.floor() as i32)))
-                    };
-
-                    // If current position lies inside a loaded chunk, we need to plan routes using
-                    // voxel info. If target happens to be in an unloaded chunk,
-                    // we need to make our way to the current chunk border, and
-                    // then reroute if needed.
-                    let is_target_loaded = in_loaded_chunk(chase_tgt);
-
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*read_data.terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        chase_tgt,
-                        TraversalConfig {
-                            min_tgt_dist: self.traversal_config.min_tgt_dist * 1.25,
-                            is_target_loaded,
-                            ..self.traversal_config
-                        },
+                    if let Some(bearing) = self.path_toward_target(
+                        agent,
+                        controller,
+                        travel_to,
+                        read_data,
+                        Path::Full,
+                        Some(speed_factor),
                     ) {
-                        self.traverse(controller, bearing, speed.min(speed_factor));
-
                         let height_offset = bearing.z
                             + if self.traversal_config.can_fly {
                                 // NOTE: costs 4 us (imbris)

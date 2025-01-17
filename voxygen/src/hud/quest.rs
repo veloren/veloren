@@ -39,6 +39,7 @@ widget_ids! {
         quest_responses_frames[],
         quest_responses_btn[],
         quest_responses_icons[],
+        quest_responses_amounts[],
         quest_rewards_txts[],
         accept_btn,
         decline_btn,
@@ -205,6 +206,13 @@ impl Widget for Quest<'_> {
                         .resize(responses.len(), &mut ui.widget_id_generator())
                 })
             };
+            if state.ids.quest_responses_amounts.len() < responses.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_responses_amounts
+                        .resize(responses.len(), &mut ui.widget_id_generator())
+                })
+            };
             if state.ids.quest_rewards_txts.len() < responses.len() {
                 state.update(|s| {
                     s.ids
@@ -221,7 +229,7 @@ impl Widget for Quest<'_> {
             };
 
             for (i, (response_id, response)) in responses.iter().enumerate() {
-                let frame = Image::new(self.imgs.button).w_h(25.0, 25.0);
+                let frame = Image::new(self.imgs.button).w_h(40.0, 40.0);
                 let frame = if i == 0 {
                     frame.down_from(state.ids.desc_txt_0, tweak!(10.0))
                 } else {
@@ -260,6 +268,16 @@ impl Widget for Quest<'_> {
                     .w_h(20.0, 20.0)
                     .graphics_for(state.ids.quest_responses_btn[i])
                     .set(state.ids.quest_responses_icons[i], ui);
+
+                    if *amount > 0 {
+                        Text::new(&format!("x{amount}"))
+                            .mid_bottom_with_margin_on(state.ids.quest_responses_frames[i], 3.0)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(self.fonts.cyri.scale(12))
+                            .color(TEXT_COLOR)
+                            .wrap_by_word()
+                            .set(state.ids.quest_responses_amounts[i], ui);
+                    }
                 }
 
                 Text::new(&self.localized_strings.get_content(&response.msg))

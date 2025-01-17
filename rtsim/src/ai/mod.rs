@@ -13,12 +13,13 @@ use common::{
     comp,
     resources::{Time, TimeOfDay},
     rtsim::NpcInput,
+    shared_server_config::ServerConstants,
     uid::IdMaps,
 };
 use hashbrown::HashSet;
 use itertools::Either;
 use rand_chacha::ChaChaRng;
-use specs::{Read, ReadStorage, SystemData, shred};
+use specs::{Read, ReadExpect, ReadStorage, SystemData, shred};
 use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow};
 use world::{IndexRef, World};
 
@@ -83,6 +84,7 @@ pub struct NpcCtx<'a, 'd> {
 pub struct NpcSystemData<'a> {
     pub positions: ReadStorage<'a, comp::Pos>,
     pub id_maps: Read<'a, IdMaps>,
+    pub server_constants: ReadExpect<'a, ServerConstants>,
 }
 
 /// A trait that describes 'actions': long-running tasks performed by rtsim

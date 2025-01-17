@@ -16,3 +16,14 @@ pub fn locate_actor(ctx: &NpcCtx, actor: Actor) -> Option<Vec3<f32>> {
             .map(|p| p.0),
     }
 }
+
+pub fn actor_exists(ctx: &NpcCtx, actor: Actor) -> bool {
+    match actor {
+        Actor::Npc(npc_id) => ctx.state.data().npcs.contains_key(npc_id),
+        Actor::Character(character_id) => ctx
+            .system_data
+            .id_maps
+            .character_entity(character_id)
+            .is_some(),
+    }
+}

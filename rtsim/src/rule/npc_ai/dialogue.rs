@@ -93,13 +93,14 @@ impl DialogueSession {
     }
 
     pub fn say_statement<S: State>(self, stmt: Content) -> impl Action<S> {
-        talk(self.target)
+        now(move |ctx, _| {
+            ctx.controller.dialogue_statement(self, stmt.clone());
+            idle()
+        })
+        .then(talk(self.target)
             .repeat()
             // Wait for a while before making the statement to allow other dialogue to be read
-            .stop_if(timeout(2.5))
-            .then(now(move |ctx, _| {
-                ctx.controller.dialogue_statement(self, stmt.clone());
-                idle()
-            }))
+            .stop_if(timeout(2.5)))
+        .map(|_, _| ())
     }
 }

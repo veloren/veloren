@@ -7,10 +7,15 @@ dialogue-question-self =
     .a1 = Tell me about yourself
 dialogue-question-hire =
     .a0 = Can I hire you?
-    .a1 = I can offer you work for coin
+    .a1 = I can offer you work.
 dialogue-question-sentiment =
     .a0 = How do you feel about...
     .a1 = What do you think about...
+dialogue-cancel_hire = I want to stop hiring you.
 dialogue-me = Me
-dialogue-accept = Accept
-dialogue-no = No
+dialogue-buy_hire_days = { $days ->
+    [1] A day
+    [7] A week
+    *[other] { $days } days
+}
+dialogue-cancel_interaction = I've changed my mind.

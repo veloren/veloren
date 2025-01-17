@@ -46,7 +46,7 @@ use common::{
     assets::AssetExt,
     astar::{Astar, PathResult},
     comp::{
-        self, Content, bird_large,
+        self, Content, LocalizationArg, bird_large,
         compass::{Direction, Distance},
         dialogue::Subject,
         item::ItemDef,
@@ -82,7 +82,9 @@ use world::{
 
 use self::{
     dialogue::do_dialogue,
-    movement::{goto, goto_2d, goto_2d_flying, travel_to_point, travel_to_site},
+    movement::{
+        follow_actor, goto, goto_2d, goto_2d_flying, goto_actor, travel_to_point, travel_to_site,
+    },
 };
 
 /// How many ticks should pass between running NPC AI.
@@ -208,6 +210,7 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
             .boxed()
         } else if matches!(tgt, Actor::Character(_)) {
             let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));
+            let is_hired_by_tgt = ctx.npc.hiring.map_or(false, |(a, _)| a == tgt);
             do_dialogue(tgt, move |session| {
                 session
                     .ask_question(Content::localized("npc-question-general"), [
@@ -229,6 +232,12 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                             3,
                             Response::from(Content::localized("dialogue-question-sentiment")),
                         )),
+                        is_hired_by_tgt.then(|| {
+                            (
+                                4,
+                                Response::from(Content::localized("dialogue-cancel_hire")),
+                            )
+                        }),
                     ])
                     .and_then(move |resp| match resp {
                         Some(0) => now(move |ctx, _| {
@@ -310,11 +319,24 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                         })
                         .boxed(),
                         Some(2) => now(move |ctx, _| {
-                            if ctx.npc.rng(38792).gen_bool(0.5) {
+                            if is_hired_by_tgt {
                                 session
-                                    .ask_question(Content::localized("npc-response-hire_price"), [
-                                        (0, Response {
-                                            msg: Content::localized("dialogue-accept"),
+                                    .say_statement(Content::localized("npc-response-already_hired"))
+                                    .boxed()
+                            } else if ctx.npc.hiring.is_none() && ctx.npc.rng(38792).gen_bool(0.5) {
+                                session
+                                    .ask_question(Content::localized("npc-response-hire_time"), [
+                                        (
+                                            0,
+                                            Response::from(Content::localized(
+                                                "dialogue-cancel_interaction",
+                                            )),
+                                        ),
+                                        (1, Response {
+                                            msg: Content::localized_with_args(
+                                                "dialogue-buy_hire_days",
+                                                [("days", LocalizationArg::Nat(1))],
+                                            ),
                                             given_item: Some((
                                                 Arc::<ItemDef>::load_cloned(
                                                     "common.items.utility.coins",
@@ -323,16 +345,33 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                                                 100,
                                             )),
                                         }),
-                                        (1, Response::from(Content::localized("dialogue-no"))),
+                                        (7, Response {
+                                            msg: Content::localized_with_args(
+                                                "dialogue-buy_hire_days",
+                                                [("days", LocalizationArg::Nat(7))],
+                                            ),
+                                            given_item: Some((
+                                                Arc::<ItemDef>::load_cloned(
+                                                    "common.items.utility.coins",
+                                                )
+                                                .unwrap(),
+                                                500,
+                                            )),
+                                        }),
                                     ])
                                     .and_then(move |resp| match resp {
-                                        Some(0) => session
+                                        Some(days @ 1..) => session
                                             .say_statement(Content::localized(
                                                 "npc-response-accept_hire",
                                             ))
-                                            .then(now(move |ctx, _| {
-                                                ctx.controller.dialogue_end(session);
-                                                hired_adventurer(tgt)
+                                            .then(just(move |ctx, _| {
+                                                ctx.controller.set_newly_hired(
+                                                    tgt,
+                                                    ctx.time.add_days(
+                                                        days as f64,
+                                                        &ctx.system_data.server_constants,
+                                                    ),
+                                                );
                                             }))
                                             .boxed(),
                                         _ => session
@@ -374,6 +413,10 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                                 .boxed(),
                                 _ => idle().boxed(),
                             })
+                            .boxed(),
+                        Some(4) => session
+                            .say_statement(Content::localized("npc-dialogue-hire_cancelled"))
+                            .then(just(move |ctx, _| ctx.controller.end_hiring()))
                             .boxed(),
                         // All other options
                         _ => idle().boxed(),
@@ -557,12 +600,12 @@ fn adventure() -> impl Action<DefaultState> {
     .debug(move || "adventure")
 }
 
-fn hired_adventurer<S: State>(tgt: Actor) -> impl Action<S> {
-    follow(tgt, 5.0)
-        .stop_if(timeout(60.0))
-        .then(do_dialogue(tgt, |session| {
-            session.say_statement(Content::localized("npc-dialogue-finish_hire"))
-        }))
+fn hired<S: State>(tgt: Actor) -> impl Action<S> {
+    follow_actor(tgt, 5.0)
+        // Stop following if we're no longer hired
+        .stop_if(move |ctx: &mut NpcCtx| ctx.npc.hiring.map_or(true, |(a, _)| a != tgt))
+        .debug(move|| format!("hired by {tgt:?}"))
+        .map(|_, _| ())
 }
 
 fn gather_ingredients<S: State>() -> impl Action<S> {
@@ -964,22 +1007,6 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
     .debug(move || format!("villager at site {:?}", visiting_site))
 }
 
-fn follow<S: State>(actor: Actor, distance: f32) -> impl Action<S> {
-    now(move |ctx, _| {
-        if let Some(wpos) = util::locate_actor(ctx, actor)
-            && wpos.xy().distance_squared(ctx.npc.wpos.xy()) > distance.powi(2)
-        {
-            goto(wpos, 1.0, distance).boxed()
-        } else {
-            // The npc we're trying to follow doesn't exist.
-            finish().boxed()
-        }
-    })
-    .repeat()
-    .debug(move || format!("Following actor {actor:?}"))
-    .map(|_, _| ())
-}
-
 fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
     // Travel between different towns in a straight line
     now(move |ctx, _| {
@@ -1195,6 +1222,32 @@ fn react_to_events<S: State>(ctx: &mut NpcCtx, _: &mut S) -> Option<impl Action<
 
 fn humanoid() -> impl Action<DefaultState> {
     choose(|ctx, _| {
+        // End hiring for various reasons
+        if let Some((tgt, expires)) = ctx.npc.hiring {
+            // Hiring period has expired
+            if ctx.time > expires {
+                ctx.controller.end_hiring();
+                // If the actor exists, tell them that the hiring is over
+                if util::actor_exists(ctx, tgt) {
+                    return important(goto_actor(tgt, 2.0).then(do_dialogue(tgt, |session| {
+                        session.say_statement(Content::localized("npc-dialogue-hire_expired"))
+                    })));
+                }
+            }
+
+            if ctx.sentiments.toward(tgt).is(Sentiment::RIVAL) {
+                ctx.controller.end_hiring();
+                // If the actor exists, tell them that the hiring is over
+                if util::actor_exists(ctx, tgt) {
+                    return important(goto_actor(tgt, 2.0).then(do_dialogue(tgt, |session| {
+                        session.say_statement(Content::localized(
+                            "npc-dialogue-hire_cancelled_unhappy",
+                        ))
+                    })));
+                }
+            }
+        }
+
         if let Some(riding) = &ctx.state.data().npcs.mounts.get_mount_link(ctx.npc_id) {
             if riding.is_steering {
                 if let Some(vehicle) = ctx.state.data().npcs.get(riding.mount) {
@@ -1216,6 +1269,10 @@ fn humanoid() -> impl Action<DefaultState> {
                     socialize().map_state(|state: &mut DefaultState| &mut state.socialize_timer),
                 )
             }
+        } else if let Some((tgt, expires)) = ctx.npc.hiring
+            && util::actor_exists(ctx, tgt)
+        {
+            important(hired(tgt).interrupt_with(react_to_events))
         } else {
             let action = if matches!(
                 ctx.npc.profession(),

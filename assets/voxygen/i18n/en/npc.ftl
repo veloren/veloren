@@ -334,16 +334,19 @@ npc-info-unknown =
     .a0 = I don't know.
     .a1 = I'm not sure.
 
-npc-response-hire_price = Are you happy to accept the payment?
+npc-response-hire_time = How long do you want to hire me for?
 npc-response-accept_hire =
     .a0 = Let's go!
     .a1 = I'm ready, lead on!
 npc-response-decline_hire =
     .a0 = Sorry, I don't have time right now.
     .a1 = No thanks, sorry.
-npc-dialogue-finish_hire =
-    .a0 = I think it's time for me to head on. See you around!
-    .a1 = I'm going to go my own way now. Goodbye!
+npc-response-already_hired = Don't be silly, you've already hired me!
+npc-dialogue-hire_cancelled = That's fine, see you later!
+npc-dialogue-hire_expired =
+    .a0 = It's time for me to leave your service. See you around!
+    .a1 = My service has ended, I'm going to go my own way now. Goodbye!
+npc-dialogue-hire_cancelled_unhappy = I can't continue working for you in good conscience. Goodbye.
 npc-response-no_problem = No problem! See you later.
 
 npc-response-like_you =

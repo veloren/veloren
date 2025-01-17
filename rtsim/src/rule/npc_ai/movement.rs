@@ -209,6 +209,43 @@ pub fn goto<S: State>(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> imp
     .map(|_, _| {})
 }
 
+pub fn follow_actor<S: State>(actor: Actor, distance: f32) -> impl Action<S> {
+    // const STEP_DIST: f32 = 30.0;
+    just(move |ctx, _| {
+        if let Some(tgt_wpos) = util::locate_actor(ctx, actor)
+            && let dist_sqr = tgt_wpos.xy().distance_squared(ctx.npc.wpos.xy())
+            && dist_sqr > distance.powi(2)
+        {
+            // // Don't try to path too far in one go
+            // let tgt_wpos = if dist_sqr > STEP_DIST.powi(2) {
+            //     let tgt_wpos_2d = ctx.npc.wpos.xy() + (tgt_wpos -
+            // ctx.npc.wpos).xy().normalized() * STEP_DIST;     tgt_wpos_2d.
+            // with_z(ctx.world.sim().get_surface_alt_approx(tgt_wpos_2d.as_()))
+            // } else {
+            //     tgt_wpos
+            // };
+            ctx.controller.do_goto(tgt_wpos, 1.0);
+        } else {
+            ctx.controller.do_idle();
+        }
+    })
+    .repeat()
+    .debug(move || format!("Following actor {actor:?}"))
+    .map(|_, _| ())
+}
+
+pub fn goto_actor<S: State>(actor: Actor, distance: f32) -> impl Action<S> {
+    follow_actor(actor, distance)
+        .stop_if(move |ctx: &mut NpcCtx| {
+            if let Some(wpos) = util::locate_actor(ctx, actor) {
+                wpos.xy().distance_squared(ctx.npc.wpos.xy()) < distance.powi(2)
+            } else {
+                false
+            }
+        })
+        .map(|_, _| ())
+}
+
 /// Try to walk fly a 3D position following the terrain altitude at an offset
 /// without caring for obstacles.
 fn goto_flying<S: State>(

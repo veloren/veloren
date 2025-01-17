@@ -323,5 +323,10 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
             }
             npc.home = Some(new_home);
         }
+
+        // Set hired status if required (I'm a poet and I didn't know it)
+        if let Some(hiring) = npc.controller.hiring.take() {
+            npc.hiring = hiring;
+        }
     }
 }

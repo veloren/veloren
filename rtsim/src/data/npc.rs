@@ -8,6 +8,7 @@ use common::{
     character::CharacterId,
     comp,
     grid::Grid,
+    resources::Time,
     rtsim::{
         Actor, ChunkResource, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction,
         NpcActivity, NpcInput, Personality, ReportId, Response, Role, SiteId,
@@ -60,6 +61,7 @@ pub struct Controller {
     pub activity: Option<NpcActivity>,
     pub new_home: Option<SiteId>,
     pub look_dir: Option<Dir>,
+    pub hiring: Option<Option<(Actor, Time)>>,
 }
 
 impl Controller {
@@ -101,6 +103,12 @@ impl Controller {
     }
 
     pub fn set_new_home(&mut self, new_home: SiteId) { self.new_home = Some(new_home); }
+
+    pub fn set_newly_hired(&mut self, actor: Actor, expires: Time) {
+        self.hiring = Some(Some((actor, expires)));
+    }
+
+    pub fn end_hiring(&mut self) { self.hiring = Some(None); }
 
     /// Start a new dialogue.
     pub fn dialogue_start(&mut self, target: impl Into<Actor>) -> DialogueSession {
@@ -196,6 +204,11 @@ pub struct Npc {
     #[serde(default)]
     pub sentiments: Sentiments,
 
+    // An NPC can temporarily become a hired hand
+    // (hiring_actor, termination_time)
+    #[serde(default)]
+    pub hiring: Option<(Actor, Time)>,
+
     // Unpersisted state
     #[serde(skip)]
     pub chunk_pos: Option<Vec2<i32>>,
@@ -233,6 +246,7 @@ impl Clone for Npc {
             body: self.body,
             personality: self.personality,
             sentiments: self.sentiments.clone(),
+            hiring: self.hiring,
             // Not persisted
             chunk_pos: None,
             current_site: Default::default(),
@@ -258,6 +272,7 @@ impl Npc {
             body,
             personality: Default::default(),
             sentiments: Default::default(),
+            hiring: None,
             role,
             home: None,
             faction: None,
