@@ -224,7 +224,10 @@ pub fn follow_actor<S: State>(actor: Actor, distance: f32) -> impl Action<S> {
             // } else {
             //     tgt_wpos
             // };
-            ctx.controller.do_goto(tgt_wpos, 1.0);
+            ctx.controller.do_goto(
+                tgt_wpos,
+                ((dist_sqr.sqrt() - distance) * 0.2).clamp(0.25, 1.0),
+            );
         } else {
             ctx.controller.do_idle();
         }

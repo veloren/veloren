@@ -266,6 +266,8 @@ impl AgentData<'_> {
                         controller.push_event(ControlEvent::Unmount);
                     }
 
+                    agent.bearing = Vec2::zero();
+
                     // If it has an rtsim destination and can fly, then it should.
                     // If it is flying and bumps something above it, then it should move down.
                     if self.traversal_config.can_fly
