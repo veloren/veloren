@@ -10,6 +10,8 @@ pub mod terrain;
 pub mod tether;
 pub mod trail;
 
+use std::collections::HashSet;
+
 pub use self::{
     camera::{Camera, CameraMode},
     debug::{Debug, DebugShape, DebugShapeId},
@@ -32,7 +34,7 @@ use crate::{
         GlobalsBindGroup, Light, Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals,
         Renderer, Shadow, ShadowLocals, SkyboxVertex,
     },
-    session::{interactable, PlayerDebugLines},
+    session::PlayerDebugLines,
     settings::Settings,
     window::{AnalogGameInput, Event},
 };
@@ -137,8 +139,7 @@ pub struct SceneData<'a> {
     pub state: &'a State,
     pub viewpoint_entity: specs::Entity,
     pub mutable_viewpoint: bool,
-    pub target_entities:
-        &'a HashMap<interactable::InteractableTarget, Vec<interactable::Interactable>>,
+    pub target_entities: &'a HashSet<specs::Entity>,
     pub loaded_distance: f32,
     pub terrain_view_distance: u32, // not used currently
     pub entity_view_distance: u32,

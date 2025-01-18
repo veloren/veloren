@@ -1306,7 +1306,7 @@ impl FigureMgr {
                 })
                 .unwrap_or_else(|| Rgba::broadcast(1.0))
             // Highlight targeted collectible entities
-            * if item.is_some() && data.scene_data.target_entity.map_or(false, |e| e == entity) {
+            * if item.is_some() && data.scene_data.target_entities.contains(&entity) {
                 Rgba::new(1.5, 1.5, 1.5, 1.0)
             } else {
                 Rgba::one()

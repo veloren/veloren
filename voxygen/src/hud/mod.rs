@@ -70,7 +70,9 @@ use crate::{
     render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
-        interactable::{self, BlockInteraction, Interactable},
+        interactable::{
+            self, BlockInteraction, EntityInteraction, Interactable, InteractableTarget,
+        },
         settings_change::{
             Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
         },
@@ -102,7 +104,6 @@ use common::{
             ItemDefinitionIdOwned, ItemDesc, ItemI18n, MaterialStatManifest, Quality,
         },
         loot_owner::LootOwnerKind,
-        pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
         BuffData, BuffKind, Content, Health, Item, MapMarkerChange, PickupItem, PresenceKind,
     },
@@ -111,7 +112,7 @@ use common::{
     mounting::{Mount, Rider, VolumePos},
     outcome::Outcome,
     recipe::RecipeBookManifest,
-    resources::{ProgramTime, Secs, Time},
+    resources::{Secs, Time},
     slowjob::SlowJobPool,
     terrain::{SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
@@ -1466,7 +1467,7 @@ impl Hud {
         dt: Duration,
         info: HudInfo,
         camera: &Camera,
-        interactable: Option<&Interactable>,
+        interactables: &HashMap<interactable::InteractableTarget, Vec<&interactable::Interactable>>,
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
@@ -1500,19 +1501,16 @@ impl Hud {
             let interpolated = ecs.read_storage::<vcomp::Interpolated>();
             let scales = ecs.read_storage::<comp::Scale>();
             let bodies = ecs.read_storage::<comp::Body>();
-            let masses = ecs.read_storage::<comp::Mass>();
             let items = ecs.read_storage::<PickupItem>();
             let inventories = ecs.read_storage::<comp::Inventory>();
             let msm = ecs.read_resource::<MaterialStatManifest>();
             let entities = ecs.entities();
             let me = info.viewpoint_entity;
             let poises = ecs.read_storage::<comp::Poise>();
-            let alignments = ecs.read_storage::<comp::Alignment>();
             let is_mounts = ecs.read_storage::<Is<Mount>>();
             let is_riders = ecs.read_storage::<Is<Rider>>();
             let stances = ecs.read_storage::<comp::Stance>();
             let char_activities = ecs.read_storage::<comp::CharacterActivity>();
-            let char_states = ecs.read_storage::<comp::CharacterState>();
             let time = ecs.read_resource::<Time>();
 
             // Check if there was a persistence load error of the skillset, and if so
@@ -2003,7 +2001,7 @@ impl Hud {
 
             let make_overitem =
                 |item: &PickupItem, pos, distance, properties, fonts, interaction_options| {
-                    let quality = get_quality_col(item.item());
+                    let quality = get_quality_col(item.quality());
 
                     // Item
                     overitem::Overitem::new(
@@ -2043,7 +2041,7 @@ impl Hud {
                     pos.0 + Vec3::unit_z() * 1.2,
                     distance,
                     overitem::OveritemProperties {
-                        active: interactable.and_then(|i| i.entity()) == Some(entity),
+                        active: interactables.contains_key(&InteractableTarget::Entity(entity)),
                         pickup_failed_pulse: self.failed_entity_pickups.get(&entity).cloned(),
                     },
                     &self.fonts,
@@ -2056,18 +2054,33 @@ impl Hud {
                 .set(overitem_id, ui_widgets);
             }
 
-            // Render overtime for an interactable block
-            if let Some(Interactable::Block(block, pos, interaction)) = interactable
-                && let Some((mat, _, _)) = pos.get_block_and_transform(
-                    &ecs.read_resource(),
-                    &ecs.read_resource(),
-                    |e| {
-                        ecs.read_storage::<vcomp::Interpolated>()
-                            .get(e)
-                            .map(|interpolated| (comp::Pos(interpolated.pos), interpolated.ori))
-                    },
-                    &ecs.read_storage(),
-                )
+            // Render overtime for a interactable blocks
+            for (mat, pos, interactions, block) in
+                interactables.iter().filter_map(|(key, interactions)| {
+                    if let InteractableTarget::Block(pos) = key {
+                        let block = interactions.iter().find_map(|interaction| {
+                            if let Interactable::Block { block, .. } = interaction {
+                                Some(*block)
+                            } else {
+                                None
+                            }
+                        })?;
+
+                        pos.get_block_and_transform(
+                            &ecs.read_resource(),
+                            &ecs.read_resource(),
+                            |e| {
+                                ecs.read_storage::<vcomp::Interpolated>().get(e).map(
+                                    |interpolated| (comp::Pos(interpolated.pos), interpolated.ori),
+                                )
+                            },
+                            &ecs.read_storage(),
+                        )
+                        .map(|(mat, _, _)| (mat, *pos, interactions, block))
+                    } else {
+                        None
+                    }
+                })
             {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
@@ -2076,27 +2089,28 @@ impl Hud {
 
                 let overitem_properties = overitem::OveritemProperties {
                     active: true,
-                    pickup_failed_pulse: self.failed_block_pickups.get(pos).cloned(),
+                    pickup_failed_pulse: self.failed_block_pickups.get(&pos).cloned(),
                 };
 
                 let pos = mat.mul_point(Vec3::broadcast(0.5));
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
-                let interaction_text = |collect_default, color| match interaction {
-                    BlockInteraction::Collect => {
-                        vec![(
-                            Some(GameInput::Interact),
-                            i18n.get_msg(collect_default).to_string(),
-                            color,
-                        )]
-                    },
-                    BlockInteraction::Craft(_) => {
-                        vec![(
-                            Some(GameInput::Interact),
-                            i18n.get_msg("hud-use").to_string(),
-                            color,
-                        )]
-                    },
+                let interaction_text = |interaction: &BlockInteraction| match interaction {
+                    BlockInteraction::Collect { steal } => (
+                        Some(GameInput::Interact),
+                        i18n.get_msg(if *steal { "hud-steal" } else { "hud-collect" })
+                            .to_string(),
+                        if *steal {
+                            overitem::NEGATIVE_TEXT_COLOR
+                        } else {
+                            overitem::TEXT_COLOR
+                        },
+                    ),
+                    BlockInteraction::Craft(_) => (
+                        Some(GameInput::Interact),
+                        i18n.get_msg("hud-use").to_string(),
+                        overitem::TEXT_COLOR,
+                    ),
                     BlockInteraction::Unlock(kind) => {
                         let item_name = |item_id: &ItemDefinitionIdOwned| {
                             // TODO: get ItemKey and use it with i18n?
@@ -2110,7 +2124,7 @@ impl Hud {
                                 .unwrap_or_else(|| "modular item".to_string())
                         };
 
-                        vec![(
+                        (
                             Some(GameInput::Interact),
                             match kind {
                                 UnlockKind::Free => i18n.get_msg("hud-open").to_string(),
@@ -2125,46 +2139,36 @@ impl Hud {
                                     })
                                     .to_string(),
                             },
-                            color,
-                        )]
+                            overitem::TEXT_COLOR,
+                        )
                     },
                     BlockInteraction::Mine(mine_tool) => {
                         match (mine_tool, &info.active_mine_tool) {
-                            (ToolKind::Pick, Some(ToolKind::Pick)) => {
-                                vec![(
-                                    Some(GameInput::Primary),
-                                    i18n.get_msg("hud-mine").to_string(),
-                                    color,
-                                )]
-                            },
-                            (ToolKind::Pick, _) => {
-                                vec![(
-                                    None,
-                                    i18n.get_msg("hud-mine-needs_pickaxe").to_string(),
-                                    color,
-                                )]
-                            },
-                            (ToolKind::Shovel, Some(ToolKind::Shovel)) => {
-                                vec![(
-                                    Some(GameInput::Primary),
-                                    i18n.get_msg("hud-dig").to_string(),
-                                    color,
-                                )]
-                            },
-                            (ToolKind::Shovel, _) => {
-                                vec![(
-                                    None,
-                                    i18n.get_msg("hud-mine-needs_shovel").to_string(),
-                                    color,
-                                )]
-                            },
-                            _ => {
-                                vec![(
-                                    None,
-                                    i18n.get_msg("hud-mine-needs_unhandled_case").to_string(),
-                                    color,
-                                )]
-                            },
+                            (ToolKind::Pick, Some(ToolKind::Pick)) => (
+                                Some(GameInput::Primary),
+                                i18n.get_msg("hud-mine").to_string(),
+                                overitem::TEXT_COLOR,
+                            ),
+                            (ToolKind::Pick, _) => (
+                                None,
+                                i18n.get_msg("hud-mine-needs_pickaxe").to_string(),
+                                overitem::TEXT_COLOR,
+                            ),
+                            (ToolKind::Shovel, Some(ToolKind::Shovel)) => (
+                                Some(GameInput::Primary),
+                                i18n.get_msg("hud-dig").to_string(),
+                                overitem::TEXT_COLOR,
+                            ),
+                            (ToolKind::Shovel, _) => (
+                                None,
+                                i18n.get_msg("hud-mine-needs_shovel").to_string(),
+                                overitem::TEXT_COLOR,
+                            ),
+                            _ => (
+                                None,
+                                i18n.get_msg("hud-mine-needs_unhandled_case").to_string(),
+                                overitem::TEXT_COLOR,
+                            ),
                         }
                     },
                     BlockInteraction::Mount => {
@@ -2178,15 +2182,19 @@ impl Hud {
                             ) => "hud-lay",
                             _ => "hud-sit",
                         };
-                        vec![(Some(GameInput::Mount), i18n.get_msg(key).to_string(), color)]
+                        (
+                            Some(GameInput::Mount),
+                            i18n.get_msg(key).to_string(),
+                            overitem::TEXT_COLOR,
+                        )
                     },
-                    BlockInteraction::Read(_) => vec![(
+                    BlockInteraction::Read(_) => (
                         Some(GameInput::Interact),
                         i18n.get_msg("hud-read").to_string(),
-                        color,
-                    )],
+                        overitem::TEXT_COLOR,
+                    ),
                     // TODO: change to turn on/turn off?
-                    BlockInteraction::LightToggle(enable) => vec![(
+                    BlockInteraction::LightToggle(enable) => (
                         Some(GameInput::Interact),
                         i18n.get_msg(if *enable {
                             "hud-activate"
@@ -2194,72 +2202,48 @@ impl Hud {
                             "hud-deactivate"
                         })
                         .to_string(),
-                        color,
-                    )],
+                        overitem::TEXT_COLOR,
+                    ),
                 };
 
-                // This is only done once per frame, so it's not a performance issue
-                if let Some(desc) = block
-                    .get_sprite()
-                    .filter(|s| s.is_container())
-                    .and_then(|s| get_sprite_desc(s, i18n))
-                {
-                    let (text, color) = if block.is_owned() {
-                        ("hud-steal", overitem::NEGATIVE_TEXT_COLOR)
-                    } else {
-                        ("hud-open", overitem::TEXT_COLOR)
-                    };
-
-                    overitem::Overitem::new(
-                        desc,
-                        overitem::TEXT_COLOR,
-                        pos.distance_squared(player_pos),
-                        &self.fonts,
-                        i18n,
-                        &global_state.settings.controls,
-                        overitem_properties,
-                        self.pulse,
-                        &global_state.window.key_layout,
-                        interaction_text(text, color),
-                    )
-                    .x_y(0.0, 100.0)
-                    .position_ingame(over_pos)
-                    .set(overitem_id, ui_widgets);
-                }
                 // TODO: Handle this better. The items returned from `try_reclaim_from_block`
                 // are based on rng. We probably want some function to get only gauranteed items
                 // from `LootSpec`.
-                else if let Some((amount, mut item)) = Item::try_reclaim_from_block(*block)
-                    .into_iter()
-                    .flatten()
-                    .next()
-                {
-                    let (text, color) = if block.is_owned() {
-                        ("hud-steal", overitem::NEGATIVE_TEXT_COLOR)
-                    } else {
-                        ("hud-collect", overitem::TEXT_COLOR)
-                    };
-                    item.set_amount(amount.clamp(1, item.max_amount()))
-                        .expect("amount >= 1 and <= max_amount is always a valid amount");
-                    make_overitem(
-                        &PickupItem::new(item, ProgramTime(0.0)),
-                        over_pos,
-                        pos.distance_squared(player_pos),
-                        overitem_properties,
-                        &self.fonts,
-                        interaction_text(text, color),
+                let interactable_item =
+                    block
+                        .get_sprite()
+                        .filter(|s| !s.is_container())
+                        .and_then(|_| {
+                            Item::try_reclaim_from_block(block).and_then(|mut items| {
+                                debug_assert!(
+                                    items.len() <= 1,
+                                    "The amount of items returned from \
+                                     Item::try_reclam_from_block for non-container items must not \
+                                     be higher than one"
+                                );
+                                let (amount, mut item) = items.pop()?;
+                                item.set_amount(amount.clamp(1, item.max_amount())).expect(
+                                    "Setting an item amount between 1 and item.max_amount() must \
+                                     succeed",
+                                );
+                                Some(item)
+                            })
+                        });
+
+                if let Some(sprite) = block.get_sprite()
+                    && let (Some(desc), quality) = interactable_item.map_or_else(
+                        || (get_sprite_desc(sprite, i18n), overitem::TEXT_COLOR),
+                        |item| {
+                            (
+                                Some(util::describe(&item, i18n, &self.item_i18n).into()),
+                                get_quality_col(item.quality()),
+                            )
+                        },
                     )
-                    .set(overitem_id, ui_widgets);
-                } else if let Some(desc) = block.get_sprite().and_then(|s| get_sprite_desc(s, i18n))
                 {
-                    let (text, color) = if block.is_owned() {
-                        ("hud-steal", overitem::NEGATIVE_TEXT_COLOR)
-                    } else {
-                        ("hud-collect", overitem::TEXT_COLOR)
-                    };
                     overitem::Overitem::new(
                         desc,
-                        overitem::TEXT_COLOR,
+                        quality,
                         pos.distance_squared(player_pos),
                         &self.fonts,
                         i18n,
@@ -2267,71 +2251,81 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
-                        interaction_text(text, color),
+                        interactions
+                            .iter()
+                            .filter_map(|interaction| {
+                                if let Interactable::Block { interaction, .. } = interaction {
+                                    Some(interaction_text(interaction))
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect(),
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
                     .set(overitem_id, ui_widgets);
                 }
-            } else if let Some(Interactable::Entity(entity)) = interactable {
-                // show hud for campfires and portals
-                if let Some(body) = client
+            }
+
+            // show hud for campfires and portals
+            for (entity, interaction) in interactables.iter().filter_map(|(_, interactions)| {
+                interactions.iter().find_map(|interaction| {
+                    if let Interactable::Entity {
+                        entity,
+                        interaction:
+                            interaction @ (EntityInteraction::CampfireSit
+                            | EntityInteraction::ActivatePortal),
+                    } = interaction
+                    {
+                        Some((*entity, *interaction))
+                    } else {
+                        None
+                    }
+                })
+            }) {
+                let overitem_id = overitem_walker.next(
+                    &mut self.ids.overitems,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+
+                let overitem_properties = overitem::OveritemProperties {
+                    active: true,
+                    pickup_failed_pulse: None,
+                };
+                let pos = client
                     .state()
                     .ecs()
-                    .read_storage::<comp::Body>()
-                    .get(*entity)
-                    .filter(|b| b.is_campfire() || b.is_portal())
-                {
-                    let overitem_id = overitem_walker.next(
-                        &mut self.ids.overitems,
-                        &mut ui_widgets.widget_id_generator(),
-                    );
+                    .read_storage::<comp::Pos>()
+                    .get(entity)
+                    .map_or(Vec3::zero(), |e| e.0);
+                let over_pos = pos + Vec3::unit_z() * 1.5;
 
-                    let overitem_properties = overitem::OveritemProperties {
-                        active: true,
-                        pickup_failed_pulse: None,
-                    };
-                    let pos = client
-                        .state()
-                        .ecs()
-                        .read_storage::<comp::Pos>()
-                        .get(*entity)
-                        .map_or(Vec3::zero(), |e| e.0);
-                    let over_pos = pos + Vec3::unit_z() * 1.5;
+                let (name, interaction_text) = match interaction {
+                    EntityInteraction::CampfireSit => ("hud-crafting-campfire", "hud-sit"),
+                    EntityInteraction::ActivatePortal => ("hud-portal", "hud-activate"),
+                    _ => unreachable!(),
+                };
 
-                    overitem::Overitem::new(
-                        i18n.get_msg(if body.is_campfire() {
-                            "hud-crafting-campfire"
-                        } else if body.is_portal() {
-                            "hud-portal"
-                        } else {
-                            "hud-use"
-                        }),
+                overitem::Overitem::new(
+                    i18n.get_msg(name),
+                    overitem::TEXT_COLOR,
+                    pos.distance_squared(player_pos),
+                    &self.fonts,
+                    i18n,
+                    &global_state.settings.controls,
+                    overitem_properties,
+                    self.pulse,
+                    &global_state.window.key_layout,
+                    vec![(
+                        Some(interaction.game_input()),
+                        i18n.get_msg(interaction_text).to_string(),
                         overitem::TEXT_COLOR,
-                        pos.distance_squared(player_pos),
-                        &self.fonts,
-                        i18n,
-                        &global_state.settings.controls,
-                        overitem_properties,
-                        self.pulse,
-                        &global_state.window.key_layout,
-                        vec![(
-                            Some(GameInput::Interact),
-                            i18n.get_msg(if body.is_campfire() {
-                                "hud-sit"
-                            } else if body.is_portal() {
-                                "hud-activate"
-                            } else {
-                                "hud-use"
-                            })
-                            .to_string(),
-                            overitem::TEXT_COLOR,
-                        )],
-                    )
-                    .x_y(0.0, 100.0)
-                    .position_ingame(over_pos)
-                    .set(overitem_id, ui_widgets);
-                }
+                    )],
+                )
+                .x_y(0.0, 100.0)
+                .position_ingame(over_pos)
+                .set(overitem_id, ui_widgets);
             }
 
             let speech_bubbles = &self.speech_bubbles;
@@ -2347,14 +2341,9 @@ impl Hud {
                 _,
                 scale,
                 body,
-                mass,
                 hpfl,
                 in_group,
-                dist_sqr,
-                alignment,
-                is_mount,
                 character_activity,
-                character_state,
             ) in (
                 &entities,
                 &pos,
@@ -2366,19 +2355,12 @@ impl Hud {
                 energy.maybe(),
                 scales.maybe(),
                 &bodies,
-                &masses,
                 &mut hp_floater_lists,
                 &uids,
                 &inventories,
                 char_activities.maybe(),
-                (
-                    poises.maybe(),
-                    alignments.maybe(),
-                    is_mounts.maybe(),
-                    is_riders.maybe(),
-                    stances.maybe(),
-                    char_states.maybe(),
-                ),
+                poises.maybe(),
+                (is_mounts.maybe(), is_riders.maybe(), stances.maybe()),
             )
                 .join()
                 .filter(|t| {
@@ -2397,12 +2379,12 @@ impl Hud {
                         energy,
                         scale,
                         body,
-                        mass,
                         hpfl,
                         uid,
                         inventory,
                         character_activity,
-                        (poise, alignment, is_mount, is_rider, stance, char_state),
+                        poise,
+                        (is_mount, is_rider, stance),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -2474,14 +2456,9 @@ impl Hud {
                                 buffs,
                                 scale,
                                 body,
-                                mass,
                                 hpfl,
                                 in_group,
-                                dist_sqr,
-                                alignment,
-                                is_mount,
                                 character_activity,
-                                char_state,
                             )
                         })
                     },
@@ -2495,81 +2472,42 @@ impl Hud {
                 let height_offset = body.height() * scale.map_or(1.0, |s| s.0) + 0.5;
                 let ingame_pos = pos + Vec3::unit_z() * height_offset;
 
-                let mut interaction_options = match alignment {
-                    // TODO: Don't use `MAX_MOUNT_RANGE` here, add dedicated interaction range
-                    Some(comp::Alignment::Npc)
-                        if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2)
-                            && interactable.and_then(|i| i.entity()) == Some(entity) =>
-                    {
-                        let interact_text =
-                            if matches!(character_state, Some(comp::CharacterState::Crawl)) {
-                                "hud-help"
-                            } else {
-                                "hud-talk"
-                            };
-                        vec![
-                            (GameInput::Interact, i18n.get_msg(interact_text).to_string()),
-                            (GameInput::Trade, i18n.get_msg("hud-trade").to_string()),
-                        ]
-                    },
-                    Some(comp::Alignment::Owned(owner))
-                        if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
-                    {
-                        let mut options = Vec::new();
-                        if is_mount.is_none() {
-                            if Some(*owner) == client.uid() {
-                                options.push((
-                                    GameInput::Trade,
-                                    i18n.get_msg("hud-trade").to_string(),
-                                ));
-                                if !client.is_riding()
-                                    && is_mountable(
-                                        body,
-                                        mass,
-                                        bodies.get(client.entity()),
-                                        masses.get(client.entity()),
-                                    )
-                                {
-                                    options.push((
-                                        GameInput::Mount,
-                                        i18n.get_msg("hud-mount").to_string(),
-                                    ));
-                                }
+                let interaction_options = interactables
+                    .get(&InteractableTarget::Entity(entity))
+                    .map_or_else(Vec::new, |interactions| {
+                        interactions
+                            .iter()
+                            .filter_map(|interaction| {
+                                let Interactable::Entity {
+                                    interaction,
+                                    entity: _,
+                                } = interaction
+                                else {
+                                    return None;
+                                };
 
-                                let is_staying = character_activity
-                                    .map_or(false, |activity| activity.is_pet_staying);
+                                let message = match interaction {
+                                    EntityInteraction::HelpDowned => "hud-help",
+                                    EntityInteraction::Pet => "hud-pet",
+                                    EntityInteraction::Trade => "hud-trade",
+                                    EntityInteraction::Mount => "hud-mount",
+                                    EntityInteraction::Talk => "hud-talk",
+                                    EntityInteraction::StayFollow => {
+                                        let is_staying = character_activity
+                                            .map_or(false, |activity| activity.is_pet_staying);
 
-                                options.push((
-                                    GameInput::StayFollow,
-                                    i18n.get_msg(if is_staying {
-                                        "hud-follow"
-                                    } else {
-                                        "hud-stay"
-                                    })
-                                    .to_string(),
-                                ));
-                            }
+                                        if is_staying { "hud-follow" } else { "hud-stay" }
+                                    },
+                                    // Handled by overitem HUDs
+                                    EntityInteraction::PickupItem
+                                    | EntityInteraction::CampfireSit
+                                    | EntityInteraction::ActivatePortal => return None,
+                                };
 
-                            // Anyone can pet a tamed animal
-                            options
-                                .push((GameInput::Interact, i18n.get_msg("hud-pet").to_string()));
-                        }
-                        options
-                    },
-                    Some(comp::Alignment::Tame)
-                        if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
-                    {
-                        vec![(GameInput::Interact, i18n.get_msg("hud-pet").to_string())]
-                    },
-                    _ => Vec::new(),
-                };
-
-                if comp::is_downed(health, character_state) {
-                    let help_input = GameInput::Interact;
-                    interaction_options.retain(|opt| opt.0 != help_input);
-                    interaction_options
-                        .insert(0, (help_input, i18n.get_msg("hud-help").to_string()));
-                }
+                                Some((interaction.game_input(), i18n.get_msg(message).to_string()))
+                            })
+                            .collect()
+                    });
 
                 // Speech bubble, name, level, and hp bars
                 overhead::Overhead::new(
@@ -4985,7 +4923,10 @@ impl Hud {
         camera: &Camera,
         dt: Duration,
         info: HudInfo,
-        interactable_map: &HashMap<interactable::InteractableTarget, Vec<interactable::Interactable>>,
+        interactable_map: &HashMap<
+            interactable::InteractableTarget,
+            Vec<&interactable::Interactable>,
+        >,
     ) -> Vec<Event> {
         span!(_guard, "maintain", "Hud::maintain");
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
@@ -5054,7 +4995,7 @@ impl Hud {
             dt,
             info,
             camera,
-            interactable,
+            interactable_map,
         );
         let camera::Dependents {
             view_mat, proj_mat, ..
@@ -5280,8 +5221,8 @@ impl Hud {
     }
 }
 // Get item qualities of equipped items and assign a tooltip title/frame color
-pub fn get_quality_col<I: ItemDesc + ?Sized>(item: &I) -> Color {
-    match item.quality() {
+pub fn get_quality_col(quality: Quality) -> Color {
+    match quality {
         Quality::Low => QUALITY_LOW,
         Quality::Common => QUALITY_COMMON,
         Quality::Moderate => QUALITY_MODERATE,

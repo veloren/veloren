@@ -342,7 +342,7 @@ impl<'a> Widget for LootScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let quality_col = get_quality_col(&item);
+                let quality_col = get_quality_col(item.quality());
 
                 Image::new(self.imgs.pixel)
                     .color(Some(shade_color(quality_col.alpha(0.7))))

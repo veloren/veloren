@@ -55,7 +55,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use hashbrown::HashMap;
-use interactable::{get_interactables, BlockInteraction, Interactable, Interactables};
+use interactable::{get_interactables, BlockInteraction, EntityInteraction, Interactable};
 use settings_change::Language::ChangeLanguage;
 use target::targets_under_cursor;
 #[cfg(feature = "egui-ui")]
@@ -116,7 +116,7 @@ pub struct SessionState {
     pub(crate) target_entity: Option<specs::Entity>,
     pub(crate) selected_entity: Option<(specs::Entity, std::time::Instant)>,
     pub(crate) viewpoint_entity: Option<specs::Entity>,
-    interactables: Interactables,
+    interactables: interactable::Interactables,
     #[cfg(not(target_os = "macos"))]
     mumble_link: SharedLink,
     hitboxes: HashMap<specs::Entity, DebugShapeId>,
@@ -637,31 +637,27 @@ impl PlayState for SessionState {
                 mine_target,
                 &self.scene,
             ) {
-                Ok(interactables) => self.interactables = interactables,
+                Ok(input_map) => {
+                    let entities = input_map
+                        .values()
+                        .filter_map(|(_, interactable)| {
+                            if let Interactable::Entity { entity, .. } = interactable {
+                                Some(*entity)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<HashSet<_>>();
+                    self.interactables = interactable::Interactables {
+                        input_map,
+                        entities,
+                    };
+                },
                 Err(error) => {
-                    tracing::debug!(?error, "Getting interactables failed");
+                    tracing::trace!(?error, "Getting interactables failed");
                     self.interactables = Default::default()
                 },
             }
-
-            // interactions -> target map
-            let interactable_map =
-                self.interactables
-                    .input_map(entity_target, mine_target, collect_target);
-
-            // targets -> interactions map
-            let inverted_interactable_map = interactable_map.iter().fold(
-                HashMap::<interactable::InteractableTarget, Vec<Interactable>>::new(),
-                |mut map, (_input, (_, interactable))| {
-                    if let Some(interactions) = map.get_mut(&interactable.target()) {
-                        interactions.push(*interactable);
-                    } else {
-                        map.insert(interactable.target(), vec![*interactable]);
-                    }
-
-                    map
-                },
-            );
 
             drop(client);
 
@@ -959,18 +955,16 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 if client.is_riding() {
                                     client.unmount();
-                                } else {
-                                    if let Some((_, interactable)) =
-                                        interactable_map.get(&GameInput::Mount)
-                                    {
-                                        match interactable {
-                                            Interactable::Block { volume_pos, .. } => {
-                                                client.mount_volume(*volume_pos)
-                                            },
-                                            Interactable::Entity { entity, .. } => {
-                                                client.mount(*entity)
-                                            },
-                                        }
+                                } else if let Some((_, interactable)) =
+                                    self.interactables.input_map.get(&GameInput::Mount)
+                                {
+                                    match interactable {
+                                        Interactable::Block { volume_pos, .. } => {
+                                            client.mount_volume(*volume_pos)
+                                        },
+                                        Interactable::Entity { entity, .. } => {
+                                            client.mount(*entity)
+                                        },
                                     }
                                 }
                             },
@@ -1024,7 +1018,7 @@ impl PlayState for SessionState {
                                 if state {
                                     let mut client = self.client.borrow_mut();
                                     if let Some((_, interactable)) =
-                                        interactable_map.get(&GameInput::Interact)
+                                        self.interactables.input_map.get(&GameInput::Interact)
                                     {
                                         match interactable {
                                             Interactable::Block {
@@ -1034,7 +1028,7 @@ impl PlayState for SessionState {
                                                 ..
                                             } => {
                                                 match interaction {
-                                                    BlockInteraction::Collect
+                                                    BlockInteraction::Collect { .. }
                                                     | BlockInteraction::Unlock(_) => {
                                                         if block.is_collectible() {
                                                             match volume_pos.kind {
@@ -1092,22 +1086,26 @@ impl PlayState for SessionState {
                                             } => {
                                                 // NOTE: Keep this match exhaustive.
                                                 match interaction {
-                                                    interactable::EntityInteraction::HelpDowned => {
+                                                    EntityInteraction::HelpDowned => {
                                                         client.help_downed(*entity)
                                                     },
-                                                    interactable::EntityInteraction::PickupItem => {
+                                                    EntityInteraction::PickupItem => {
                                                         client.pick_up(*entity)
                                                     },
-                                                    interactable::EntityInteraction::ActivatePortal => {
+                                                    EntityInteraction::ActivatePortal => {
                                                         client.activate_portal(*entity)
-                                                    }
-                                                    interactable::EntityInteraction::Pet => {
+                                                    },
+                                                    EntityInteraction::Pet => {
                                                         client.do_pet(*entity)
                                                     },
-                                                    interactable::EntityInteraction::CampfireSit |
-                                                    interactable::EntityInteraction::Trade |
-                                                    interactable::EntityInteraction::StayFollow |
-                                                    interactable::EntityInteraction::Mount => {}
+                                                    EntityInteraction::Talk => client.npc_interact(
+                                                        *entity,
+                                                        comp::dialogue::Subject::Regular,
+                                                    ),
+                                                    EntityInteraction::CampfireSit
+                                                    | EntityInteraction::Trade
+                                                    | EntityInteraction::StayFollow
+                                                    | EntityInteraction::Mount => {},
                                                 }
                                             },
                                         }
@@ -1117,8 +1115,9 @@ impl PlayState for SessionState {
                             GameInput::Trade => {
                                 if state && controlling_char {
                                     if let Some((_, Interactable::Entity { entity, .. })) =
-                                        interactable_map.get(&GameInput::Trade)
+                                        self.interactables.input_map.get(&GameInput::Trade)
                                     {
+                                        let mut client = self.client.borrow_mut();
                                         if let Some(uid) =
                                             client.state().ecs().uid_from_entity(*entity)
                                         {
@@ -1605,6 +1604,8 @@ impl PlayState for SessionState {
                     active_channels: global_state.audio.get_num_active_channels(),
                 }
             });
+
+            let inverted_interactable_map = self.interactables.inverted_map();
 
             // Extract HUD events ensuring the client borrow gets dropped.
             let mut hud_events = self.hud.maintain(
@@ -2126,7 +2127,7 @@ impl PlayState for SessionState {
                     viewpoint_entity,
                     mutable_viewpoint: mutable_viewpoint || self.free_look,
                     // Only highlight if interactable
-                    target_entities: &inverted_interactable_map,
+                    target_entities: &self.interactables.entities,
                     loaded_distance: client.loaded_distance(),
                     terrain_view_distance: client.view_distance().unwrap_or(1),
                     entity_view_distance: client
@@ -2220,7 +2221,7 @@ impl PlayState for SessionState {
             viewpoint_entity,
             mutable_viewpoint,
             // Only highlight if interactable
-            target_entities: todo!(),
+            target_entities: &self.interactables.entities,
             loaded_distance: client.loaded_distance(),
             terrain_view_distance: client.view_distance().unwrap_or(1),
             entity_view_distance: client

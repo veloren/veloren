@@ -475,7 +475,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let item = self.item;
 
-        let quality = get_quality_col(item);
+        let quality = get_quality_col(item.quality());
 
         let item_kind = &*item.kind();
 

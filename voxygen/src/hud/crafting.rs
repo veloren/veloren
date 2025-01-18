@@ -890,7 +890,7 @@ impl<'a> Widget for Crafting<'a> {
             text.set(state.ids.recipe_list_labels[i], ui);
 
             // Sidebar color
-            let color::Hsla(h, s, l, _) = get_quality_col(recipe.output.0.as_ref()).to_hsl();
+            let color::Hsla(h, s, l, _) = get_quality_col(recipe.output.0.quality()).to_hsl();
             let val_multiplier = if is_craftable { 0.7 } else { 0.5 };
             // Apply conversion to hsv, multiply v by the desired amount, then revert to
             // hsl. Conversion formulae: https://en.wikipedia.org/wiki/HSL_and_HSV#Interconversion
