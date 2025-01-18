@@ -1627,7 +1627,7 @@ impl PlayState for SessionState {
                     selected_entity: self.selected_entity,
                     persistence_load_error: self.metadata.skill_set_persistence_load_error,
                 },
-                &inverted_interactable_map,
+                inverted_interactable_map,
             );
 
             // Maintain egui (debug interface)

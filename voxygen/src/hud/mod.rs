@@ -70,9 +70,7 @@ use crate::{
     render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
-        interactable::{
-            self, BlockInteraction, EntityInteraction, Interactable, InteractableTarget,
-        },
+        interactable::{self, BlockInteraction, EntityInteraction},
         settings_change::{
             Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
         },
@@ -114,7 +112,7 @@ use common::{
     recipe::RecipeBookManifest,
     resources::{Secs, Time},
     slowjob::SlowJobPool,
-    terrain::{SpriteKind, TerrainChunk, UnlockKind},
+    terrain::{Block, SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
     util::{srgba_to_linear, Dir},
@@ -1467,7 +1465,10 @@ impl Hud {
         dt: Duration,
         info: HudInfo,
         camera: &Camera,
-        interactables: &HashMap<interactable::InteractableTarget, Vec<&interactable::Interactable>>,
+        (entity_interactables, block_interactables): (
+            HashMap<specs::Entity, Vec<interactable::EntityInteraction>>,
+            HashMap<VolumePos, (Block, Vec<&interactable::BlockInteraction>)>,
+        ),
     ) -> Vec<Event> {
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
@@ -2041,7 +2042,7 @@ impl Hud {
                     pos.0 + Vec3::unit_z() * 1.2,
                     distance,
                     overitem::OveritemProperties {
-                        active: interactables.contains_key(&InteractableTarget::Entity(entity)),
+                        active: entity_interactables.contains_key(&entity),
                         pickup_failed_pulse: self.failed_entity_pickups.get(&entity).cloned(),
                     },
                     &self.fonts,
@@ -2056,31 +2057,24 @@ impl Hud {
 
             // Render overtime for a interactable blocks
             for (mat, pos, interactions, block) in
-                interactables.iter().filter_map(|(key, interactions)| {
-                    if let InteractableTarget::Block(pos) = key {
-                        let block = interactions.iter().find_map(|interaction| {
-                            if let Interactable::Block { block, .. } = interaction {
-                                Some(*block)
-                            } else {
-                                None
-                            }
-                        })?;
-
-                        pos.get_block_and_transform(
-                            &ecs.read_resource(),
-                            &ecs.read_resource(),
-                            |e| {
-                                ecs.read_storage::<vcomp::Interpolated>().get(e).map(
-                                    |interpolated| (comp::Pos(interpolated.pos), interpolated.ori),
-                                )
-                            },
-                            &ecs.read_storage(),
-                        )
-                        .map(|(mat, _, _)| (mat, *pos, interactions, block))
-                    } else {
-                        None
-                    }
-                })
+                block_interactables
+                    .iter()
+                    .filter_map(|(position, (block, interactions))| {
+                        position
+                            .get_block_and_transform(
+                                &ecs.read_resource(),
+                                &ecs.read_resource(),
+                                |e| {
+                                    ecs.read_storage::<vcomp::Interpolated>().get(e).map(
+                                        |interpolated| {
+                                            (comp::Pos(interpolated.pos), interpolated.ori)
+                                        },
+                                    )
+                                },
+                                &ecs.read_storage(),
+                            )
+                            .map(|(mat, _, _)| (mat, *position, interactions, *block))
+                    })
             {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
@@ -2253,13 +2247,7 @@ impl Hud {
                         &global_state.window.key_layout,
                         interactions
                             .iter()
-                            .filter_map(|interaction| {
-                                if let Interactable::Block { interaction, .. } = interaction {
-                                    Some(interaction_text(interaction))
-                                } else {
-                                    None
-                                }
-                            })
+                            .map(|interaction| interaction_text(interaction))
                             .collect(),
                     )
                     .x_y(0.0, 100.0)
@@ -2269,21 +2257,19 @@ impl Hud {
             }
 
             // show hud for campfires and portals
-            for (entity, interaction) in interactables.iter().filter_map(|(_, interactions)| {
-                interactions.iter().find_map(|interaction| {
-                    if let Interactable::Entity {
-                        entity,
-                        interaction:
-                            interaction @ (EntityInteraction::CampfireSit
-                            | EntityInteraction::ActivatePortal),
-                    } = interaction
-                    {
-                        Some((*entity, *interaction))
-                    } else {
-                        None
-                    }
-                })
-            }) {
+            for (entity, interaction) in
+                entity_interactables
+                    .iter()
+                    .filter_map(|(entity, interactions)| {
+                        interactions.iter().find_map(|interaction| {
+                            matches!(
+                                interaction,
+                                EntityInteraction::CampfireSit | EntityInteraction::ActivatePortal
+                            )
+                            .then_some((*entity, *interaction))
+                        })
+                    })
+            {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
@@ -2472,42 +2458,38 @@ impl Hud {
                 let height_offset = body.height() * scale.map_or(1.0, |s| s.0) + 0.5;
                 let ingame_pos = pos + Vec3::unit_z() * height_offset;
 
-                let interaction_options = interactables
-                    .get(&InteractableTarget::Entity(entity))
-                    .map_or_else(Vec::new, |interactions| {
-                        interactions
-                            .iter()
-                            .filter_map(|interaction| {
-                                let Interactable::Entity {
-                                    interaction,
-                                    entity: _,
-                                } = interaction
-                                else {
-                                    return None;
-                                };
+                let interaction_options =
+                    entity_interactables
+                        .get(&entity)
+                        .map_or_else(Vec::new, |interactions| {
+                            interactions
+                                .iter()
+                                .filter_map(|interaction| {
+                                    let message = match interaction {
+                                        EntityInteraction::HelpDowned => "hud-help",
+                                        EntityInteraction::Pet => "hud-pet",
+                                        EntityInteraction::Trade => "hud-trade",
+                                        EntityInteraction::Mount => "hud-mount",
+                                        EntityInteraction::Talk => "hud-talk",
+                                        EntityInteraction::StayFollow => {
+                                            let is_staying = character_activity
+                                                .map_or(false, |activity| activity.is_pet_staying);
 
-                                let message = match interaction {
-                                    EntityInteraction::HelpDowned => "hud-help",
-                                    EntityInteraction::Pet => "hud-pet",
-                                    EntityInteraction::Trade => "hud-trade",
-                                    EntityInteraction::Mount => "hud-mount",
-                                    EntityInteraction::Talk => "hud-talk",
-                                    EntityInteraction::StayFollow => {
-                                        let is_staying = character_activity
-                                            .map_or(false, |activity| activity.is_pet_staying);
+                                            if is_staying { "hud-follow" } else { "hud-stay" }
+                                        },
+                                        // Handled by overitem HUDs
+                                        EntityInteraction::PickupItem
+                                        | EntityInteraction::CampfireSit
+                                        | EntityInteraction::ActivatePortal => return None,
+                                    };
 
-                                        if is_staying { "hud-follow" } else { "hud-stay" }
-                                    },
-                                    // Handled by overitem HUDs
-                                    EntityInteraction::PickupItem
-                                    | EntityInteraction::CampfireSit
-                                    | EntityInteraction::ActivatePortal => return None,
-                                };
-
-                                Some((interaction.game_input(), i18n.get_msg(message).to_string()))
-                            })
-                            .collect()
-                    });
+                                    Some((
+                                        interaction.game_input(),
+                                        i18n.get_msg(message).to_string(),
+                                    ))
+                                })
+                                .collect()
+                        });
 
                 // Speech bubble, name, level, and hp bars
                 overhead::Overhead::new(
@@ -4923,10 +4905,10 @@ impl Hud {
         camera: &Camera,
         dt: Duration,
         info: HudInfo,
-        interactable_map: &HashMap<
-            interactable::InteractableTarget,
-            Vec<&interactable::Interactable>,
-        >,
+        interactable_map: (
+            HashMap<specs::Entity, Vec<interactable::EntityInteraction>>,
+            HashMap<VolumePos, (Block, Vec<&interactable::BlockInteraction>)>,
+        ),
     ) -> Vec<Event> {
         span!(_guard, "maintain", "Hud::maintain");
         // conrod eats tabs. Un-eat a tabstop so tab completion can work

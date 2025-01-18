@@ -18,7 +18,6 @@ use common::{
     states::utils::can_perform_pet,
     terrain::{Block, TerrainGrid, UnlockKind},
     uid::{IdMaps, Uid},
-    util::find_dist::{Cylinder, FindDist},
     vol::ReadVol,
     CachedSpatialGrid,
 };
@@ -34,7 +33,8 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct Interactables {
     pub input_map: HashMap<GameInput, (f32, Interactable)>,
-    /// Set of all nearby interactable entities, stored for fast access in scene
+    /// Set of all nearby interactable entities, stored separately for fast
+    /// access in scene
     pub entities: HashSet<specs::Entity>,
 }
 
@@ -62,12 +62,6 @@ pub enum Interactable {
         entity: specs::Entity,
         interaction: EntityInteraction,
     },
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum InteractableTarget {
-    Entity(specs::Entity),
-    Block(VolumePos),
 }
 
 /// The type of interaction an entity has
@@ -205,7 +199,6 @@ pub(super) fn get_interactables(
 
     let uids = ecs.read_storage::<Uid>();
     let healths = ecs.read_storage::<comp::Health>();
-    let scales = ecs.read_storage::<comp::Scale>();
     let colliders = ecs.read_storage::<comp::Collider>();
     let char_states = ecs.read_storage::<comp::CharacterState>();
     let is_mounts = ecs.read_storage::<Is<Mount>>();
@@ -215,13 +208,6 @@ pub(super) fn get_interactables(
     let alignments = ecs.read_storage::<comp::Alignment>();
     let is_volume_rider = ecs.read_storage::<Is<VolumeRider>>();
 
-    let player_char_state = char_states.get(player_entity);
-    let player_cylinder = Cylinder::from_components(
-        player_pos,
-        scales.get(player_entity).copied(),
-        colliders.get(player_entity),
-        player_char_state,
-    );
     let player_chunk = player_pos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
         (e.floor() as i32).div_euclid(sz as i32)
     });
@@ -242,8 +228,6 @@ pub(super) fn get_interactables(
         &positions,
         &bodies,
         &masses,
-        scales.maybe(),
-        colliders.maybe(),
         char_states.maybe(),
         healths.maybe(),
         alignments.maybe(),
@@ -258,20 +242,7 @@ pub(super) fn get_interactables(
         .filter(|&entity| entity != player_entity)
         .filter_map(|entity| entity_data.get(entity, &entities))
         .flat_map(
-            |(
-                entity,
-                _,
-                uid,
-                pos,
-                body,
-                mass,
-                scale,
-                collider,
-                char_state,
-                health,
-                alignment,
-                has_item,
-            )| {
+            |(entity, _, uid, pos, body, mass, char_state, health, alignment, has_item)| {
                 // If an entity is downed, the only allowed interaction is HelpDowned
                 let is_downed = comp::is_downed(health, char_state);
 
@@ -325,9 +296,7 @@ pub(super) fn get_interactables(
                     .map(|_| EntityInteraction::StayFollow);
 
                 // Roughly filter out entities farther than interaction distance
-                let cylinder =
-                    Cylinder::from_components(pos.0, scale.copied(), collider, char_state);
-                let min_distance = player_cylinder.min_distance(cylinder);
+                let distance_squared = player_pos.distance_squared(pos.0);
 
                 Some(
                     interaction
@@ -337,10 +306,10 @@ pub(super) fn get_interactables(
                         .chain(mount)
                         .chain(stayfollow)
                         .filter_map(move |interaction| {
-                            (min_distance <= interaction.range()).then_some((
+                            (distance_squared <= interaction.range().powi(2)).then_some((
                                 interaction,
                                 entity,
-                                min_distance,
+                                distance_squared,
                             ))
                         }),
                 )
@@ -567,13 +536,6 @@ impl Interactable {
         }
     }
 
-    pub fn target(&self) -> InteractableTarget {
-        match self {
-            Self::Block { volume_pos, .. } => InteractableTarget::Block(*volume_pos),
-            Self::Entity { entity, .. } => InteractableTarget::Entity(*entity),
-        }
-    }
-
     /// Priorities for different interactions. Note: Priorities are grouped by
     /// GameInput
     #[rustfmt::skip]
@@ -632,24 +594,48 @@ impl EntityInteraction {
 
 impl Interactables {
     /// Maps the interaction targets to all their available interactions
-    pub fn inverted_map(&self) -> HashMap<InteractableTarget, Vec<&Interactable>> {
-        let mut map = self.input_map.iter().fold(
-            HashMap::<InteractableTarget, Vec<&Interactable>>::new(),
-            |mut map, (_input, (_, interactable))| {
-                if let Some(interactions) = map.get_mut(&interactable.target()) {
-                    interactions.push(interactable);
-                } else {
-                    map.insert(interactable.target(), vec![interactable]);
+    pub fn inverted_map(
+        &self,
+    ) -> (
+        HashMap<specs::Entity, Vec<EntityInteraction>>,
+        HashMap<VolumePos, (Block, Vec<&BlockInteraction>)>,
+    ) {
+        let (mut entity_map, block_map) = self.input_map.iter().fold(
+            (HashMap::new(), HashMap::new()),
+            |(mut entity_map, mut block_map), (_input, (_, interactable))| {
+                match interactable {
+                    Interactable::Entity {
+                        entity,
+                        interaction,
+                    } => {
+                        entity_map
+                            .entry(*entity)
+                            .and_modify(|i: &mut Vec<_>| i.push(*interaction))
+                            .or_insert_with(|| vec![*interaction]);
+                    },
+                    Interactable::Block {
+                        block,
+                        volume_pos,
+                        interaction,
+                    } => {
+                        block_map
+                            .entry(*volume_pos)
+                            .and_modify(|(_, i): &mut (_, Vec<_>)| i.push(interaction))
+                            .or_insert_with(|| (*block, vec![interaction]));
+                    },
                 }
 
-                map
+                (entity_map, block_map)
             },
         );
 
-        for v in map.values_mut() {
+        // Ensure interactions are ordered in a stable way
+        // TODO: Once blocks can have more than one interaction, do the same for blocks
+        // here too
+        for v in entity_map.values_mut() {
             v.sort_unstable_by_key(|i| i.game_input())
         }
 
-        map
+        (entity_map, block_map)
     }
 }
