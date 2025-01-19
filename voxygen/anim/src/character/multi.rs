@@ -947,7 +947,8 @@ impl Animation for MultiAction {
                         next.foot_r.orientation.rotate_z(move1 * 1.2);
                     }
 
-                    next.control.orientation.rotate_y(move2_pre * -1.6);
+                    next.control.orientation.rotate_y(move2_pre * 1.75);
+                    next.control.orientation.rotate_z(move2 * 1.1);
                     next.control.position += Vec3::new(0.0, 0.0, move2_pre * 4.0);
                     next.torso.orientation.rotate_z(move2_no_pullback * TAU);
                     next.chest.orientation.rotate_x(move2 * -0.1);
