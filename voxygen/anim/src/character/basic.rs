@@ -17,8 +17,6 @@ pub struct BasicActionDependency<'a> {
     pub stage_section: Option<StageSection>,
     pub ability_info: Option<AbilityInfo>,
     pub velocity: Vec3<f32>,
-    // Optional so we can skip calculating this when it doesn't matter
-    pub ground_dist: Option<f32>,
     pub last_ori: Vec3<f32>,
     pub orientation: Vec3<f32>,
     pub look_dir: Dir,
@@ -331,17 +329,11 @@ impl Animation for BasicAction {
             },
             Some("common.abilities.sword.cleaving_earth_splitter") => {
                 legacy_initialize();
-                let ground_dist = d.ground_dist.map_or(0.0, |gd| gd.clamp(0.0, 0.5) * 2.0);
-                let ground_dist = if ground_dist.is_nan() {
-                    0.0
-                } else {
-                    ground_dist
-                };
 
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = movementbase.min(1.0).powi(2) * pullback;
-                let move1alt = (movementbase.min(1.5) / 1.5).powf(0.5);
-                let move2 = (1.0 - ground_dist).powi(2) * pullback;
+                let move1alt = movementbase.min(1.0).powf(0.5);
+                let move2 = move2base;
                 let move3 = move2base.powf(0.25) * pullback;
 
                 next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
@@ -1955,6 +1947,7 @@ impl Animation for BasicAction {
             //               SHIELD
             // ==================================
             Some("common.abilities.shield.basic_guard" | "common.abilities.shield.power_guard") => {
+                legacy_initialize();
                 let pullback = 1.0 - move3base.powi(4);
                 let move1 = move1base.powf(0.25) * pullback;
                 let move2 = (move2base * 10.0).sin();

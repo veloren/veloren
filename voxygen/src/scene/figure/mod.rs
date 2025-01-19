@@ -54,10 +54,10 @@ use common::{
     resources::{DeltaTime, Time},
     slowjob::SlowJobPool,
     states::{equipping, idle, interact, utils::StageSection, wielding},
-    terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
+    terrain::{SpriteKind, TerrainChunk, TerrainGrid},
     uid::IdMaps,
     util::Dir,
-    vol::{ReadVol, RectRasterableVol},
+    vol::RectRasterableVol,
 };
 use common_base::span;
 use common_state::State;
@@ -1677,22 +1677,7 @@ impl FigureMgr {
                         } else {
                             0.0
                         };
-                        // Only calculate when we need it
-                        let ground_dist = if matches!(character, CharacterState::DiveMelee(_)) {
-                            let convert_vec3 =
-                                |vec3: anim::vek::Vec3<_>| Vec3::new(vec3.x, vec3.y, vec3.z);
-                            let dist = read_data
-                                .terrain_grid
-                                .ray(convert_vec3(pos.0), convert_vec3(pos.0 + vel.0))
-                                .until(Block::is_solid)
-                                .cast()
-                                .0
-                                .powi(2)
-                                / vel.0.magnitude_squared();
-                            Some(dist)
-                        } else {
-                            None
-                        };
+
                         anim::character::BasicAction::update_skeleton(
                             &target_base,
                             anim::character::BasicActionDependency {
@@ -1701,7 +1686,6 @@ impl FigureMgr {
                                 stage_section,
                                 ability_info: character.ability_info(),
                                 velocity: rel_vel,
-                                ground_dist,
                                 last_ori,
                                 orientation,
                                 look_dir,
