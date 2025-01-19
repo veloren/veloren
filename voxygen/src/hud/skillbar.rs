@@ -771,7 +771,7 @@ impl<'a> Skillbar<'a> {
             .global_state
             .settings
             .controls
-            .get_binding(GameInput::Bag)
+            .get_binding(GameInput::Inventory)
         {
             self.create_new_button_with_shadow(
                 ui,

@@ -165,7 +165,7 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                     .push(GameInput::Map);
                 map.entry(settings.game_buttons.bag)
                     .or_default()
-                    .push(GameInput::Bag);
+                    .push(GameInput::Inventory);
                 map.entry(settings.game_buttons.social)
                     .or_default()
                     .push(GameInput::Social);
@@ -400,7 +400,7 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                     .push(GameInput::Map);
                 map.entry(settings.game_layer_buttons.bag)
                     .or_default()
-                    .push(GameInput::Bag);
+                    .push(GameInput::Inventory);
                 map.entry(settings.game_layer_buttons.social)
                     .or_default()
                     .push(GameInput::Social);

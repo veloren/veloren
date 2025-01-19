@@ -4864,7 +4864,7 @@ impl Hud {
                         self.show.toggle_map();
                         true
                     },
-                    GameInput::Bag if state => {
+                    GameInput::Inventory if state => {
                         let state = !self.show.bag;
                         Self::show_bag(&mut self.slot_manager, &mut self.show, state);
                         true
