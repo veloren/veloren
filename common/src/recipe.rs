@@ -257,7 +257,6 @@ impl Recipe {
 /// inputs. If items are missing, return the missing items, and how many
 /// are missing.
 // Note: Doc comment duplicated on two public functions that call this function
-#[allow(clippy::type_complexity)]
 fn inventory_contains_ingredients<'a, I: Iterator<Item = (&'a RecipeInput, u32)>>(
     ingredients: I,
     inv: &Inventory,
@@ -706,7 +705,6 @@ impl ComponentRecipe {
         }
     }
 
-    #[allow(clippy::type_complexity)]
     /// Determine whether the inventory contains the additional ingredients for
     /// a component recipe. If it does, return a vec of inventory slots that
     /// contain the ingredients needed, whose positions correspond to particular

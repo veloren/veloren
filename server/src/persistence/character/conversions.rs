@@ -789,7 +789,6 @@ pub fn convert_skill_set_from_database(
     SkillSet::load_from_database(skillless_skill_groups, deserialized_skills)
 }
 
-#[allow(clippy::type_complexity)]
 fn convert_skill_groups_from_database(
     skill_groups: &[SkillGroup],
 ) -> (

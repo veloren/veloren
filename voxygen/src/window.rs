@@ -549,7 +549,7 @@ impl Window {
         }
     }
 
-    #[allow(clippy::get_first)]
+    #[expect(clippy::get_first)]
     pub fn fetch_events(&mut self) -> Vec<Event> {
         span!(_guard, "fetch_events", "Window::fetch_events");
         // Refresh ui size (used when changing playstates)
@@ -687,7 +687,7 @@ impl Window {
                             .game_analog_button_map
                             .get(&AnalogButton::from((button, code)))
                         {
-                            #[allow(clippy::never_loop)]
+                            #[expect(clippy::never_loop)]
                             for action in actions {
                                 match *action {}
                             }
@@ -697,7 +697,7 @@ impl Window {
                             .menu_analog_button_map
                             .get(&AnalogButton::from((button, code)))
                         {
-                            #[allow(clippy::never_loop)]
+                            #[expect(clippy::never_loop)]
                             for action in actions {
                                 match *action {}
                             }

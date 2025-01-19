@@ -1,5 +1,5 @@
 #![feature(extract_if, let_chains)]
-#![allow(clippy::option_map_unit_fn)]
+#![expect(clippy::option_map_unit_fn)]
 
 mod aura;
 mod beam;

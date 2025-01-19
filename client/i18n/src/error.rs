@@ -40,12 +40,12 @@ fn unspan(src: &str, span: Range<usize>) -> Range<Pos> {
 #[derive(Debug)]
 pub enum ResourceErr {
     ParsingError {
-        #[allow(dead_code)] // false-positive
+        #[expect(dead_code)] // false-positive
         file: String,
-        #[allow(dead_code)] // false-positive
+        #[expect(dead_code)] // false-positive
         err: String,
     },
-    #[allow(dead_code)] // false-positive
+    #[expect(dead_code)] // false-positive
     BundleError(String),
 }
 

@@ -53,7 +53,7 @@ event_emitters! {
 }
 
 impl Sys {
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     fn handle_client_in_game_msg(
         emitters: &mut Emitters,
         entity: specs::Entity,
@@ -278,7 +278,6 @@ impl Sys {
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Events<'a>,

@@ -640,7 +640,6 @@ macro_rules! event_emitters {
             }
 
             impl<'a> $read_data<'a> {
-                #[allow(unused)]
                 pub fn get_emitters(&self) -> $emitters {
                     $emitters {
                         $($ev_ident: self.$ev_ident.as_ref().map(|e| e.emitter())),+
@@ -653,7 +652,7 @@ macro_rules! event_emitters {
             }
 
             impl<'a> $emitters<'a> {
-                #[allow(unused)]
+                #[expect(unused)]
                 pub fn append(&mut self, mut other: Self) {
                     $(
                         self.$ev_ident.as_mut().zip(other.$ev_ident).map(|(a, mut b)| a.append(&mut b.events));

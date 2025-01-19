@@ -117,7 +117,7 @@ mod v0 {
     impl TryFrom<Whitelist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
-        #[allow(clippy::useless_conversion)]
+        #[expect(clippy::useless_conversion)]
         fn try_from(mut value: Whitelist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Whitelist::migrate(value)

@@ -274,7 +274,7 @@ impl VoxelMinimap {
                 .as_();
             let column = self.chunk_minimaps.get(&(cpos + coff));
             // TODO: evaluate clippy, toolchain upgrade 2021-12-19
-            #[allow(clippy::unnecessary_lazy_evaluations)]
+            #[expect(clippy::unnecessary_lazy_evaluations)]
             column
                 .map(
                     |MinimapColumn {
@@ -341,7 +341,7 @@ impl VoxelMinimap {
                                 // ceiling is above the chunk, (e.g. so that forests with
                                 // differently-tall trees are handled properly)
                                 // TODO: evaluate clippy, toolchain upgrade 2021-12-19
-                                #[allow(clippy::unnecessary_lazy_evaluations)]
+                                #[expect(clippy::unnecessary_lazy_evaluations)]
                                 layers
                                     .get(
                                         (((pos.z as i32 - zlo).saturating_add(ceiling_offset))

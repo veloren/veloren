@@ -133,7 +133,7 @@ impl Segment {
 pub struct DynaUnionizer<V: FilledVox>(Vec<(Dyna<V, ()>, Vec3<i32>)>);
 
 impl<V: FilledVox + Copy> DynaUnionizer<V> {
-    #[allow(clippy::new_without_default)]
+    #[expect(clippy::new_without_default)]
     pub fn new() -> Self { DynaUnionizer(Vec::new()) }
 
     #[must_use]

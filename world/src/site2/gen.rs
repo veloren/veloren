@@ -27,7 +27,6 @@ use std::{
 };
 use vek::*;
 
-#[allow(dead_code)]
 pub enum Primitive {
     Empty, // Placeholder
 
@@ -1654,7 +1653,7 @@ pub fn aabr_with_z<T>(aabr: Aabr<T>, z: Range<T>) -> Aabb<T> {
     }
 }
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 /// Just the corners of an AABB, good for outlining stuff when debugging
 pub fn aabb_corners<F: FnMut(Primitive) -> Id<Primitive>>(
     prim: &mut F,

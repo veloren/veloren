@@ -217,7 +217,7 @@ impl Inventory {
                     )
                 },
                 Some(CustomOrder::Quality) => cmp = Ord::cmp(&b_quality, &a_quality),
-                #[allow(deprecated)]
+                #[expect(deprecated)]
                 Some(CustomOrder::Name) => cmp = Ord::cmp(&a.name(), &b.name()),
                 Some(CustomOrder::Tag) => {
                     cmp = Ord::cmp(
@@ -237,7 +237,7 @@ impl Inventory {
         let mut items: Vec<Item> = self.slots_mut().filter_map(mem::take).collect();
 
         items.sort_by(|a, b| match sort_order {
-            #[allow(deprecated)]
+            #[expect(deprecated)]
             InventorySortOrder::Name => Ord::cmp(&a.name(), &b.name()),
             // Quality is sorted in reverse since we want high quality items first
             InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),
@@ -823,7 +823,7 @@ impl Inventory {
     /// Unequip an item from slot and place into inventory. Will leave the item
     /// equipped if inventory has no slots available.
     #[must_use = "Returned items will be lost if not used"]
-    #[allow(clippy::needless_collect)] // This is a false positive, the collect is needed
+    #[expect(clippy::needless_collect)] // This is a false positive, the collect is needed
     pub fn unequip(
         &mut self,
         equip_slot: EquipSlot,

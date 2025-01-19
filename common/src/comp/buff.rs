@@ -1,4 +1,3 @@
-#![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
 use crate::{
     combat::{
         AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
@@ -570,7 +569,7 @@ impl BuffKind {
         source: BuffSource,
     ) -> BuffData {
         // TODO: Remove clippy allow after another buff needs this
-        #[allow(clippy::single_match)]
+        #[expect(clippy::single_match)]
         match self {
             BuffKind::Rooted => {
                 let source_mass = source_mass.map_or(50.0, |m| m.0 as f64);

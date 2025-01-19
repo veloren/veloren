@@ -537,7 +537,7 @@ pub fn make_food_bag(quantity: u32) -> Item {
 // We have many species so this function is long
 // Also we are using default tools for un-specified species so
 // it's fine to have wildcards
-#[allow(clippy::too_many_lines, clippy::match_wildcard_for_single_variants)]
+#[expect(clippy::too_many_lines, clippy::match_wildcard_for_single_variants)]
 fn default_main_tool(body: &Body) -> Item {
     let maybe_tool = match body {
         Body::Golem(golem) => match golem.species {

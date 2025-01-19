@@ -100,7 +100,7 @@ impl Animation for SelfBuffAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
         // TODO: Remove clippy allow when second species is added
-        #[allow(clippy::single_match)]
+        #[expect(clippy::single_match)]
         match active_tool_kind {
             Some(ToolKind::Axe | ToolKind::Hammer) => {
                 next.control_l.position = Vec3::new(-1.0, 2.0, 12.0);

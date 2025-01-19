@@ -1,4 +1,4 @@
-#[allow(deprecated)] use std::hash::SipHasher;
+#[expect(deprecated)] use std::hash::SipHasher;
 use std::{
     hash::{Hash, Hasher},
     io::{self, ErrorKind},
@@ -166,7 +166,7 @@ impl QueryServer {
 
         trace!(?request, "Received packet");
 
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         let real_p = {
             // Use SipHash-2-4 to compute the `p` value from a server specific
             // secret and the client's address.

@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![expect(dead_code)]
 
 mod econ;
 
@@ -958,7 +958,7 @@ impl Civs {
 
     pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.values() }
 
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn display_info(&self) {
         for (id, civ) in self.civs.iter() {
             println!("# Civilisation {:?}", id);

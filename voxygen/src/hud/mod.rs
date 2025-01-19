@@ -1,4 +1,4 @@
-#![allow(non_local_definitions)] // because of WidgetCommon derive
+#![expect(non_local_definitions)] // because of WidgetCommon derive
 mod animation;
 mod bag;
 mod buffs;
@@ -1457,7 +1457,7 @@ impl Hud {
             .set_prefix_switch_point(prefix_switch_point);
     }
 
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
+    #[expect(clippy::single_match)] // TODO: Pending review in #587
     fn update_layout(
         &mut self,
         client: &Client,

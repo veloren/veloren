@@ -51,7 +51,6 @@ struct Track {
     color: Option<Color>,
     // TODO: this is being set by users but we don't use it for anything here, figure out what it
     // is supposed to be used for
-    #[allow(dead_code)]
     breadth: Option<f32>,
     // Padding on the ends of the track constraining the slider to a smaller area.
     padding: (f32, f32),

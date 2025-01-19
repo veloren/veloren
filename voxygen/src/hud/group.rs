@@ -148,7 +148,6 @@ impl Widget for Group<'_> {
     //TODO: Disband groups when there's only one member in them
     //TODO: Always send health, energy, level and position of group members to the
     // client
-    #[allow(clippy::blocks_in_conditions)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Group::update");
         let widget::UpdateArgs { state, ui, .. } = args;

@@ -175,7 +175,7 @@ pub struct Crafting<'a> {
 }
 
 impl<'a> Crafting<'a> {
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
         info: &'a HudInfo,
@@ -772,7 +772,7 @@ impl Widget for Crafting<'_> {
                 !is_craftable,
                 !has_materials,
                 recipe.output.0.quality(),
-                #[allow(deprecated)]
+                #[expect(deprecated)]
                 recipe.output.0.name(),
             )
         });
@@ -2147,7 +2147,7 @@ impl Widget for Crafting<'_> {
                         .was_clicked()
                     {
                         events.push(Event::ChangeCraftingTab(CraftingTab::All));
-                        #[allow(deprecated)]
+                        #[expect(deprecated)]
                         events.push(Event::SearchRecipe(Some(item_def.name().to_string())));
                     }
                     // Item image

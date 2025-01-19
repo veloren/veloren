@@ -41,7 +41,7 @@ macro_rules! sprites {
 
             /// Note that this function assumes that the `BlockKind` of `block` permits sprite inhabitants
             /// (i.e: is unfilled).
-            #[allow(non_upper_case_globals)]
+            #[expect(non_upper_case_globals)]
             #[inline] pub(super) const fn from_block(block: Block) -> Option<Self> {
                 $(const $category_name: u8 = Category::$category_name as u8;)*
                 match block.sprite_category_byte() {
@@ -145,7 +145,7 @@ macro_rules! sprites {
 
             /// Note that this function assumes that the category of `self` matches that of the block data, but does
             /// not validate this.
-            #[allow(non_upper_case_globals)]
+            #[expect(non_upper_case_globals)]
             #[inline] pub(super) const fn from_block(block: Block) -> Option<Self> {
                 match block.sprite_category() {
                     None => None,
@@ -209,7 +209,6 @@ macro_rules! attributes {
         }
 
         $(
-            #[allow(clippy::all)]
             impl Attribute for $name {
                 const INDEX: usize = Attributes::$name as usize;
                 const BITS: u8 = $bits;

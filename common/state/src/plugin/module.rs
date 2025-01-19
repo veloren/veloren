@@ -168,7 +168,6 @@ pub struct PluginModule {
     ecs: Arc<EcsAccessManager>,
     plugin: PluginWrapper,
     store: Mutex<wasmtime::Store<WasiHostCtx>>,
-    #[allow(dead_code)]
     name: String,
 }
 

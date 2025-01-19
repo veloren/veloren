@@ -118,7 +118,6 @@ mod v0 {
     impl TryFrom<ServerDescription> for Final {
         type Error = <Final as EditableSetting>::Error;
 
-        #[allow(clippy::useless_conversion)]
         fn try_from(mut value: ServerDescription) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::ServerDescription::migrate(value)

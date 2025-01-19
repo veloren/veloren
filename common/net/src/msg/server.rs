@@ -62,7 +62,6 @@ pub struct ServerDescription {
 
 /// Reponse To ClientType
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(clippy::large_enum_variant)]
 pub enum ServerInit {
     GameSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,

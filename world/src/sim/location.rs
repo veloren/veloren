@@ -33,7 +33,7 @@ impl Location {
 
 #[derive(Clone, Debug)]
 pub struct Kingdom {
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     region_name: String,
 }
 

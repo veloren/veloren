@@ -435,7 +435,7 @@ fn insert_alias(_replace_you: bool, info: PlayerInfo, _localization: &Localizati
 
 #[cfg(test)]
 mod tests {
-    #[allow(unused)] use super::*;
+    #[expect(unused)] use super::*;
     use common::comp::{
         Content,
         inventory::item::{ItemDesc, ItemI18n, all_items_expect},

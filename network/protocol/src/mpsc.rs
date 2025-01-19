@@ -30,7 +30,7 @@ where
     D: UnreliableDrain<DataFormat = MpscMsg>,
 {
     drain: D,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     last: Instant,
     metrics: ProtocolMetricCache,
 }

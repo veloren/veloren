@@ -440,7 +440,7 @@ impl Client {
         auth_trusted: impl FnMut(&str) -> bool,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
-        #[cfg_attr(not(feature = "plugins"), allow(unused_variables))] config_dir: PathBuf,
+        #[cfg_attr(not(feature = "plugins"), expect(unused_variables))] config_dir: PathBuf,
         client_type: ClientType,
     ) -> Result<Self, Error> {
         let _ = rustls::crypto::ring::default_provider().install_default(); // needs to be initialized before usage
@@ -670,9 +670,9 @@ impl Client {
                 common_state::plugin::PluginMgr::from_asset_or_default(),
             );
 
-            #[cfg_attr(not(feature = "plugins"), allow(unused_mut))]
+            #[cfg_attr(not(feature = "plugins"), expect(unused_mut))]
             let mut missing_plugins: Vec<PluginHash> = Vec::new();
-            #[cfg_attr(not(feature = "plugins"), allow(unused_mut))]
+            #[cfg_attr(not(feature = "plugins"), expect(unused_mut))]
             let mut local_plugins: Vec<PathBuf> = Vec::new();
             #[cfg(feature = "plugins")]
             {
@@ -3269,7 +3269,7 @@ impl Client {
     /// running the client. This method is for use in testing a server with
     /// many clients connected.
     #[cfg(feature = "tick_network")]
-    #[allow(clippy::needless_collect)] // False positive
+    #[expect(clippy::needless_collect)] // False positive
     pub fn tick_network(&mut self, dt: Duration) -> Result<(), Error> {
         span!(_guard, "tick_network", "Client::tick_network");
         // Advance state time manually since we aren't calling `State::tick`

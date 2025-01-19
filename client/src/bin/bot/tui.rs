@@ -47,7 +47,7 @@ impl Tui {
         (Self { _handle: handle }, commands_r)
     }
 
-    #[allow(clippy::needless_pass_by_ref_mut)]
+    #[expect(clippy::needless_pass_by_ref_mut)]
     pub fn process_command(cmd: &str, command_s: &mut async_channel::Sender<Cmd>) -> bool {
         let matches = Command::new("veloren-botclient")
             .version(common::util::DISPLAY_VERSION_LONG.as_str())

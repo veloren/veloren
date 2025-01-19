@@ -15,14 +15,11 @@ use tracing_subscriber::EnvFilter;
 use veloren_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
 
 // sleep time when only internal rust calculations are done
-#[allow(dead_code)]
 pub const SLEEP_INTERNAL: Duration = Duration::from_millis(3000);
 // sleep time when we interact with the system, e.g. actually send TCP/UDP
 // package
-#[allow(dead_code)]
 pub const SLEEP_EXTERNAL: Duration = Duration::from_millis(5000);
 
-#[allow(dead_code)]
 pub fn setup(tracing: bool, sleep: u64) -> (u64, u64) {
     if sleep > 0 {
         thread::sleep(Duration::from_millis(sleep));
@@ -54,7 +51,6 @@ pub fn setup(tracing: bool, sleep: u64) -> (u64, u64) {
     (0, 0)
 }
 
-#[allow(dead_code)]
 pub fn network_participant_stream(
     addr: (ListenAddr, ConnectAddr),
 ) -> (
@@ -83,7 +79,6 @@ pub fn network_participant_stream(
     (runtime, n_a, p1_a, s1_a, n_b, p1_b, s1_b)
 }
 
-#[allow(dead_code)]
 pub fn tcp() -> (ListenAddr, ConnectAddr) {
     lazy_static! {
         static ref PORTS: AtomicU16 = AtomicU16::new(5000);

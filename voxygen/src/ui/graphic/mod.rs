@@ -214,7 +214,7 @@ impl TextureRequirements {
         }
     }
 
-    #[allow(clippy::wrong_self_convention)] // type is spiritually Copy
+    #[expect(clippy::wrong_self_convention)] // type is spiritually Copy
     fn to_key_and_tex_parameters(
         self,
         graphic_id: Id,
@@ -1048,7 +1048,6 @@ impl PremultiplyStrategy {
 /// Computes the fraction of 4 pixel chunks that are fully translucent or
 /// opaque. Returns `None` if no premultiplication is needed (i.e. all alpha
 /// values are 255).
-#[allow(clippy::unusual_byte_groupings)]
 fn fraction_shortcircuit_blocks(image: &RgbaImage) -> Option<f32> {
     let dims = image.dimensions();
     let pixel_count = dims.0 as usize * dims.1 as usize;

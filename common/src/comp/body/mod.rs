@@ -1324,12 +1324,12 @@ impl Body {
                 quadruped_small::Species::Axolotl | quadruped_small::Species::Gecko => 0.6,
                 _ => 1.0,
             },
-            #[allow(unreachable_patterns)] // TODO: Remove when more medium fish species are added
+            #[expect(unreachable_patterns)] // TODO: Remove when more medium fish species are added
             Body::FishMedium(b) => match b.species {
                 fish_medium::Species::Marlin | fish_medium::Species::Icepike => 0.6,
                 _ => 1.0,
             },
-            #[allow(unreachable_patterns)] // TODO: Remove when more small fish species are added
+            #[expect(unreachable_patterns)] // TODO: Remove when more small fish species are added
             Body::FishSmall(b) => match b.species {
                 fish_small::Species::Clownfish | fish_small::Species::Piranha => 0.6,
                 _ => 1.0,

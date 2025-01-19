@@ -361,7 +361,7 @@ impl SlowJobPool {
     }
 
     /// spawn a new slow job on a certain NAME IF it can run immediately
-    #[allow(clippy::result_unit_err)]
+    #[expect(clippy::result_unit_err)]
     pub fn try_run<F>(&self, name: &str, f: F) -> Result<SlowJob, ()>
     where
         F: FnOnce() + Send + Sync + 'static,

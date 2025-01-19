@@ -1,5 +1,3 @@
-#![allow(dead_code)] // TODO: Remove this when rtsim is fleshed out
-
 use super::*;
 use crate::sys::terrain::SpawnEntityData;
 use common::{

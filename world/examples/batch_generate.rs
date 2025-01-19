@@ -367,6 +367,7 @@ fn do_batch_generate(
     }
 }
 
+#[expect(clippy::literal_string_with_formatting_args)]
 fn progress_bar() -> ProgressBar {
     ProgressBar::new(100).with_style(
         ProgressStyle::with_template(

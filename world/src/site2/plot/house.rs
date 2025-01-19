@@ -49,7 +49,6 @@ impl House {
             max: site.tile_wpos(tile_aabr.max),
         };
 
-        #[allow(clippy::bool_to_int_with_if)]
         let front = match door_dir {
             dir if dir.y < 0 => Dir::NegY,
             dir if dir.x < 0 => Dir::NegX,

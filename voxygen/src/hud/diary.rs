@@ -237,7 +237,7 @@ impl Default for DiaryShow {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 impl<'a> Diary<'a> {
     pub fn new(
         show: &'a Show,

@@ -408,7 +408,7 @@ impl ItemKind {
             },
             ItemKind::Throwable { kind } => format!("Throwable: {:?}", kind),
             ItemKind::Utility { kind } => format!("Utility: {:?}", kind),
-            #[allow(deprecated)]
+            #[expect(deprecated)]
             ItemKind::Ingredient { descriptor } => format!("Ingredient: {}", descriptor),
             ItemKind::TagExamples { item_ids } => format!("TagExamples: {:?}", item_ids),
             ItemKind::RecipeGroup { .. } => String::from("Recipes:"),
@@ -844,7 +844,7 @@ impl ItemDef {
         tags: Vec<ItemTag>,
         slots: u16,
     ) -> Self {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         Self {
             item_definition_id,
             name: "test item name".to_owned(),
@@ -859,7 +859,7 @@ impl ItemDef {
 
     #[cfg(test)]
     pub fn create_test_itemdef_from_kind(kind: ItemKind) -> Self {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         Self {
             item_definition_id: "test.item".to_string(),
             name: "test item name".to_owned(),
@@ -918,7 +918,7 @@ impl assets::Compound for ItemDef {
         // TODO: This probably does not belong here
         let item_definition_id = specifier.replace('\\', ".");
 
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         Ok(ItemDef {
             item_definition_id,
             name: legacy_name,
@@ -1290,10 +1290,10 @@ impl Item {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
                 if self.components.is_empty() {
-                    #[allow(deprecated)]
+                    #[expect(deprecated)]
                     Cow::Borrowed(&item_def.name)
                 } else {
-                    #[allow(deprecated)]
+                    #[expect(deprecated)]
                     modular::modify_name(&item_def.name, self)
                 }
             },
@@ -1304,7 +1304,7 @@ impl Item {
     #[deprecated = "since item i18n"]
     pub fn description(&self) -> &str {
         match &self.item_base {
-            #[allow(deprecated)]
+            #[expect(deprecated)]
             ItemBase::Simple(item_def) => &item_def.description,
             // TODO: See if James wanted to make description, else leave with none
             ItemBase::Modular(_) => "",
@@ -1735,7 +1735,7 @@ pub trait ItemDesc {
     fn i18n(&self, i18n: &ItemI18n) -> (Content, Content) {
         let item_key: ItemKey = self.into();
 
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         i18n.item_text_opt(item_key).unwrap_or_else(|| {
             (
                 Content::Plain(self.name().to_string()),
@@ -1747,12 +1747,12 @@ pub trait ItemDesc {
 
 impl ItemDesc for Item {
     fn description(&self) -> &str {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         self.description()
     }
 
     fn name(&self) -> Cow<str> {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         self.name()
     }
 
@@ -1783,12 +1783,12 @@ impl ItemDesc for Item {
 
 impl ItemDesc for FrontendItem {
     fn description(&self) -> &str {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         self.0.description()
     }
 
     fn name(&self) -> Cow<str> {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         self.0.name()
     }
 
@@ -1819,12 +1819,12 @@ impl ItemDesc for FrontendItem {
 
 impl ItemDesc for ItemDef {
     fn description(&self) -> &str {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         &self.description
     }
 
     fn name(&self) -> Cow<str> {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         Cow::Borrowed(&self.name)
     }
 
@@ -1857,12 +1857,12 @@ impl ItemDesc for ItemDef {
 
 impl ItemDesc for PickupItem {
     fn description(&self) -> &str {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         self.item().description()
     }
 
     fn name(&self) -> Cow<str> {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         self.item().name()
     }
 
@@ -1909,12 +1909,12 @@ pub struct DurabilityMultiplier(pub f32);
 
 impl<T: ItemDesc + ?Sized> ItemDesc for &T {
     fn description(&self) -> &str {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         (*self).description()
     }
 
     fn name(&self) -> Cow<str> {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         (*self).name()
     }
 

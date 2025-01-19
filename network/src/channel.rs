@@ -28,7 +28,6 @@ use tokio::{
 };
 use tracing::{error, info, trace, warn};
 
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub(crate) enum Protocols {
     Tcp((TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>)),
@@ -606,7 +605,6 @@ pub struct QuicDrain {
 #[cfg(feature = "quic")]
 #[derive(Debug)]
 pub struct QuicSink {
-    #[allow(dead_code)]
     con: quinn::Connection,
     recvstreams_r: mpsc::UnboundedReceiver<QuicStream>,
     recvstreams_s: mpsc::UnboundedSender<QuicStream>,

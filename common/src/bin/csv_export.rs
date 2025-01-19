@@ -1,5 +1,5 @@
 #![deny(clippy::clone_on_ref_ptr)]
-#![allow(deprecated)] // since item i18n
+#![expect(deprecated)] // since item i18n
 
 use clap::Parser;
 use std::{

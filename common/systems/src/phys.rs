@@ -1654,7 +1654,7 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32), // effective collision cylinder
     terrain: &T,
@@ -2200,7 +2200,7 @@ struct ColliderData<'a> {
 }
 
 /// Returns whether interesction between entities occured
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 fn resolve_e2e_collision(
     // utility variables for our entity
     collision_registered: &mut bool,

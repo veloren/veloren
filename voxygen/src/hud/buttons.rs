@@ -78,7 +78,7 @@ pub struct State {
     ids: Ids,
 }
 
-#[allow(clippy::enum_variant_names)] //think about renaming to ToggleEvent
+#[expect(clippy::enum_variant_names)] //think about renaming to ToggleEvent
 pub enum Event {
     ToggleSettings,
     ToggleMap,

@@ -601,7 +601,7 @@ mod v1 {
     impl TryFrom<Banlist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
-        #[allow(clippy::useless_conversion)]
+        #[expect(clippy::useless_conversion)]
         fn try_from(mut value: Banlist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Banlist::migrate(value)
@@ -1530,7 +1530,7 @@ mod v2 {
                 // the per entry validation won't catch this)
                 //
                 // collapsible_if: more clear not to have side effects in the if condition
-                #[allow(clippy::collapsible_if)]
+                #[expect(clippy::collapsible_if)]
                 if let Some(uuid) = value.current.uuid_when_performed
                     && !value.current.is_expired(now)
                 {
@@ -1559,7 +1559,7 @@ mod v2 {
     /* impl TryFrom<Banlist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
-        #[allow(clippy::useless_conversion)]
+        #[expect(clippy::useless_conversion)]
         fn try_from(mut value: Banlist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Banlist::migrate(value).try_into().expect(MIGRATION_UPGRADE_GUARANTEE))

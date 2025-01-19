@@ -105,7 +105,6 @@ impl PlayState for MainMenuState {
         global_state.discord.enter_main_menu();
     }
 
-    #[allow(clippy::single_match)] // TODO: remove when event match has multiple arms
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
 
@@ -288,7 +287,7 @@ impl PlayState for MainMenuState {
                                 );
                                 self.init = InitState::None;
                             },
-                            #[cfg_attr(not(feature = "plugins"), allow(unused_variables))]
+                            #[cfg_attr(not(feature = "plugins"), expect(unused_variables))]
                             client::Event::PluginDataReceived(data) => {
                                 #[cfg(feature = "plugins")]
                                 {

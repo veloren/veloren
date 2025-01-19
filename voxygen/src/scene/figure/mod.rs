@@ -6868,7 +6868,6 @@ impl FigureMgr {
         }
     }
 
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn get_model_for_render(
         &self,
         tick: u64,

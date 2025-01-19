@@ -140,8 +140,6 @@ impl GnarlingFortification {
             [index, (index + 1) % outer_wall_corners.len()]
         };
 
-        // TODO: Figure out how to resolve the allow
-        #[allow(clippy::needless_collect)]
         let outer_wall_segments = outer_wall_corners
             .iter()
             .enumerate()

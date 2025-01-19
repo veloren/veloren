@@ -79,7 +79,6 @@ impl Animation for RapidMeleeAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
-        #[allow(clippy::single_match)]
         match active_tool_kind {
             Some(ToolKind::Staff) => {
                 next.head.orientation = Quaternion::rotation_x(move1 * -0.3 + move2 * 0.5);

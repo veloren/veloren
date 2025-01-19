@@ -2629,7 +2629,6 @@ impl AgentData<'_> {
         };
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn handle_circle_charge_attack(
         &self,
         agent: &mut Agent,
@@ -5197,7 +5196,7 @@ impl AgentData<'_> {
         // mid range (line of sight not needed for these 'suppressing' attacks)
         } else if attack_data.dist_sqrd < firebreath_range.powi(2) {
             // if using firebreath, keep going under full time limit
-            #[allow(clippy::if_same_then_else)]
+            #[expect(clippy::if_same_then_else)]
             if is_using_firebreath
                 && firebreath_timer < Duration::from_secs_f32(FIREBREATH_TIME_LIMIT)
             {
@@ -5278,7 +5277,6 @@ impl AgentData<'_> {
         const MINION_SUMMON_THRESHOLD: f32 = 1. / 8.;
         const FLASHFREEZE_RANGE: f32 = 30.;
 
-        #[allow(clippy::enum_variant_names)]
         enum ActionStateTimers {
             AttackChange,
             Bonk,

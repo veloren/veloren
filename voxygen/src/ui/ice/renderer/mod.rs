@@ -31,7 +31,7 @@ enum DrawKind {
     Plain,
 }
 
-#[allow(dead_code)] // TODO: remove once WorldPos is used
+#[expect(dead_code)] // TODO: remove once WorldPos is used
 enum DrawCommand {
     Draw { kind: DrawKind, verts: Range<u32> },
     Scissor(Aabr<u16>),

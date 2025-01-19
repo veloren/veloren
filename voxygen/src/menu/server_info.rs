@@ -161,7 +161,6 @@ impl PlayState for ServerInfoState {
         */
     }
 
-    #[allow(clippy::single_match)] // TODO: remove when event match has multiple arms
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<ServerInfoState as PlayState>::tick");
 
@@ -201,7 +200,7 @@ impl PlayState for ServerInfoState {
             &mut global_state.clipboard,
         );
 
-        #[allow(clippy::never_loop)] // TODO: Remove when more message types are added
+        #[expect(clippy::never_loop)] // TODO: Remove when more message types are added
         for message in messages {
             match message {
                 Message::Accept => {

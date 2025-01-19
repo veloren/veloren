@@ -1,4 +1,4 @@
-#![allow(clippy::branches_sharing_code)] // TODO: evaluate
+#![expect(clippy::branches_sharing_code)] // TODO: evaluate
 use common::{
     terrain::{
         CoordinateConversions, TerrainChunkSize,

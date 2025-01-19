@@ -1,11 +1,10 @@
-#![allow(incomplete_features)]
-#![allow(
+#![expect(
     clippy::option_map_unit_fn,
     clippy::blocks_in_conditions,
     clippy::identity_op,
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
-#![allow(clippy::branches_sharing_code)] // TODO: evaluate
+#![expect(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(option_zip, let_chains)]
 #![cfg_attr(feature = "simd", feature(portable_simd))]
@@ -351,7 +350,7 @@ impl World {
         tc.find_accessible_pos(spawn_wpos, ascending)
     }
 
-    #[allow(clippy::result_unit_err)]
+    #[expect(clippy::result_unit_err)]
     pub fn generate_chunk(
         &self,
         index: IndexRef,

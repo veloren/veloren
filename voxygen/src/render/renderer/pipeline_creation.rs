@@ -433,7 +433,7 @@ fn create_shader_module(
     //     .expect("Couldn't write shader out");
 
     // let label = [file_name, "\n\n", source].concat();
-    #[allow(unsafe_code)]
+    #[expect(unsafe_code)]
     Ok(unsafe {
         device.create_shader_module_unchecked(wgpu::ShaderModuleDescriptor {
             label: Some(file_name),

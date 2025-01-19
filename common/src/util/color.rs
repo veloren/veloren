@@ -2,7 +2,7 @@ use vek::{Mat3, Rgb, Rgba, Vec3};
 
 /// This function is optimized for speed over perfect accuracy
 #[inline(always)]
-#[allow(clippy::excessive_precision)]
+#[expect(clippy::excessive_precision)]
 pub fn srgb_to_linear_fast(col: Rgb<f32>) -> Rgb<f32> {
     col.map(|c| {
         if c <= 0.104 {
@@ -27,7 +27,7 @@ pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
 }
 
 #[inline(always)]
-#[allow(clippy::excessive_precision)]
+#[expect(clippy::excessive_precision)]
 pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
     col.map(|c| {
         if c <= 0.0060 {

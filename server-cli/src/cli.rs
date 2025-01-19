@@ -1,4 +1,4 @@
-#![allow(
+#![expect(
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
 

@@ -106,10 +106,10 @@ pub struct Stream {
     local_pid: Pid,
     remote_pid: Pid,
     sid: Sid,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     prio: Prio,
     promises: Promises,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     guaranteed_bandwidth: Bandwidth,
     send_closed: Arc<AtomicBool>,
     a2b_msg_s: crossbeam_channel::Sender<(Sid, Bytes)>,

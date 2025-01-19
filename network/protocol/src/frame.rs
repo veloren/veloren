@@ -276,7 +276,7 @@ impl ITFrame {
     }
 }
 
-#[allow(unused_variables)]
+#[expect(unused_variables)]
 impl PartialEq<ITFrame> for OTFrame {
     fn eq(&self, other: &ITFrame) -> bool {
         match self {

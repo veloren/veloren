@@ -26,7 +26,7 @@ pub struct World;
 pub struct IndexOwned;
 
 #[derive(Clone, Copy)]
-#[allow(dead_code)]
+#[expect(dead_code)]
 pub struct IndexRef<'a>(&'a IndexOwned);
 
 impl IndexOwned {

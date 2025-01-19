@@ -594,7 +594,7 @@ impl<'a> System<'a> for Sys {
 }
 
 // TODO: Globally disable this clippy lint
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 fn execute_effect(
     effect: &BuffEffect,
     buff_kind: BuffKind,

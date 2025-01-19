@@ -97,7 +97,7 @@ struct Shadow {
 /// Represent two states of the renderer:
 /// 1. Only interface pipelines created
 /// 2. All of the pipelines have been created
-#[allow(clippy::large_enum_variant)] // They are both pretty large
+#[expect(clippy::large_enum_variant)] // They are both pretty large
 enum State {
     // NOTE: this is used as a transient placeholder for moving things out of State temporarily
     Nothing,
@@ -236,7 +236,7 @@ impl Renderer {
 
         // This is unsafe because the window handle must be valid, if you find a way to
         // have an invalid winit::Window then you have bigger issues
-        #[allow(unsafe_code)]
+        #[expect(unsafe_code)]
         let surface =
             unsafe { instance.create_surface(window) }.expect("Failed to create a surface");
 

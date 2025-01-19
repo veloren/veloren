@@ -66,7 +66,7 @@ pub fn apply_trees_to(
     calendar: Option<&Calendar>,
 ) {
     // TODO: Get rid of this
-    #[allow(clippy::large_enum_variant)]
+    #[expect(clippy::large_enum_variant)]
     enum TreeModel {
         Structure(Structure),
         Procedural(ProceduralTree),

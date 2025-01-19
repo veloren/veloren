@@ -72,11 +72,8 @@ pub fn find_cached(base_dir: &Path, hash: &PluginHash) -> Result<PathBuf, std::i
 pub struct Plugin {
     data: PluginData,
     modules: Vec<PluginModule>,
-    #[allow(dead_code)]
     hash: PluginHash,
-    #[allow(dead_code)]
     path: PathBuf,
-    #[allow(dead_code)]
     data_buf: Vec<u8>,
 }
 

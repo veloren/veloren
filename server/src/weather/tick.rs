@@ -22,7 +22,7 @@ use super::{
 };
 
 enum WeatherJobState {
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     Working(SlowJob),
     Idle(WeatherSim),
     None,

@@ -2683,7 +2683,6 @@ impl Site {
         });
         let calendar = None;
 
-        #[allow(clippy::single_match)]
         match &tile.kind {
             TileKind::Plaza | TileKind::Path => {
                 let near_roads = CARDINALS.iter().filter_map(|rpos| {
@@ -2828,7 +2827,6 @@ impl Site {
 
             let tile = self.wpos_tile(wpos2d);
             let seed = tile.plot.map_or(0, |p| self.plot(p).seed);
-            #[allow(clippy::single_match)]
             match tile.kind {
                 TileKind::Field /*| TileKind::Road*/ => (-4..5).for_each(|z| canvas.map(
                     Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z),

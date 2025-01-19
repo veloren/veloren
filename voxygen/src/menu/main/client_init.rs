@@ -17,8 +17,7 @@ use tokio::runtime;
 use tracing::{trace, warn};
 
 #[derive(Debug)]
-#[allow(clippy::enum_variant_names)] //TODO: evaluate ClientError ends with Enum name
-#[allow(clippy::large_enum_variant)] // not a problem, its only send once
+#[expect(clippy::enum_variant_names)] //TODO: evaluate ClientError ends with Enum name
 pub enum Error {
     ClientError {
         error: ClientError,
@@ -28,7 +27,6 @@ pub enum Error {
     ServerNotFound,
 }
 
-#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 pub enum Msg {
     IsAuthTrusted(String),
     Done(Result<Client, Error>),
@@ -81,7 +79,6 @@ impl ClientInit {
                     break;
                 }
                 let mut mismatched_server_info = None;
-                #[allow(clippy::blocks_in_conditions)]
                 match Client::new(
                     connection_args.clone(),
                     Arc::clone(&runtime2),

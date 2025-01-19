@@ -104,7 +104,7 @@ impl ITMessage {
 /// msg.confirm(2);
 /// ```
 #[derive(Debug)]
-#[allow(dead_code)]
+#[expect(dead_code)]
 pub(crate) struct OUMessage {
     buffer: Arc<MessageBuffer>,
     send_index: u64, // 3 => 4200 (3*FRAME_DATA_SIZE)
@@ -116,7 +116,7 @@ pub(crate) struct OUMessage {
     missing_indices: VecDeque<u64>,
 }
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 impl OUMessage {
     pub(crate) const FRAME_DATA_SIZE: u64 = 1400;
 
@@ -136,7 +136,7 @@ impl OUMessage {
     }
 
     /// all has been send once, but might been resend due to failures.
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub(crate) fn initial_sent(&self) -> bool { self.send_index == self.max_index }
 
     pub fn get_header(&self) -> Frame {
@@ -160,7 +160,7 @@ impl OUMessage {
         }
     }
 
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub(crate) fn set_missing(&mut self, missing_header: bool, missing_indicies: VecDeque<u64>) {
         self.missing_header = missing_header;
         self.missing_indices = missing_indicies;

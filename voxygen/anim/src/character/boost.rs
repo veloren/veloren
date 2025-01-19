@@ -15,7 +15,6 @@ impl Animation for BoostAnimation {
     const UPDATE_FN: &'static [u8] = b"character_boost\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_boost")]
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         _dep: Self::Dependency<'_>,

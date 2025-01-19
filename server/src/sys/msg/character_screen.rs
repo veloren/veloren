@@ -41,7 +41,7 @@ event_emitters! {
 }
 
 impl Sys {
-    #[allow(clippy::too_many_arguments)] // Shhhh, go bother someone else clippy
+    #[cfg_attr(feature = "worldgen", expect(clippy::too_many_arguments))] // Shhhh, go bother someone else clippy
     fn handle_client_character_screen_msg(
         emitters: &mut Emitters,
         entity: specs::Entity,

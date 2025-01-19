@@ -33,7 +33,7 @@ pub type CharacterUpdateData = (
 
 pub type PetPersistenceData = (comp::Pet, comp::Body, comp::Stats);
 
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 enum CharacterUpdaterAction {
     BatchUpdate {
         batch_id: u64,

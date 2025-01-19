@@ -108,7 +108,6 @@ pub struct Overhead<'a> {
 }
 
 impl<'a> Overhead<'a> {
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
         info: Option<Info<'a>>,
         bubble: Option<&'a SpeechBubble>,

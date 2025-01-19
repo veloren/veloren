@@ -32,7 +32,7 @@ pub(crate) type S2bShutdownBparticipant = (Duration, oneshot::Sender<Result<(), 
 pub(crate) type B2sPrioStatistic = (Pid, u64, u64);
 
 #[derive(Debug)]
-#[allow(dead_code)]
+#[expect(dead_code)]
 struct ChannelInfo {
     cid: Cid,
     cid_string: String, //optimisationmetrics
@@ -41,9 +41,9 @@ struct ChannelInfo {
 
 #[derive(Debug)]
 struct StreamInfo {
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     prio: Prio,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     promises: Promises,
     send_closed: Arc<AtomicBool>,
     b2a_msg_recv_s: Mutex<async_channel::Sender<Bytes>>,
@@ -859,7 +859,7 @@ mod tests {
         )
     }
 
-    #[allow(clippy::needless_pass_by_ref_mut)]
+    #[expect(clippy::needless_pass_by_ref_mut)]
     async fn mock_mpsc(
         cid: Cid,
         _runtime: &Arc<Runtime>,

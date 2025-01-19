@@ -77,7 +77,7 @@ pub trait ModelEntryFuture<const N: usize> {
     type ModelEntry: ModelEntry;
 
     // TODO: is there a potential use for this?
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn into_done(self) -> Option<Self::ModelEntry>;
 
     fn get_done(&self) -> Option<&Self::ModelEntry>;
@@ -303,7 +303,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel>
 where
     Skel::Body: BodySpec + Eq + Hash,
 {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         // NOTE: It might be better to bubble this error up rather than panicking.
         let manifests = <Skel::Body as BodySpec>::load_spec().unwrap();
@@ -391,7 +390,6 @@ where
         > + Eq
         + Hash,
 {
-    #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_model<'c>(
         &'c mut self,
         renderer: &mut Renderer,
@@ -630,7 +628,6 @@ where
         > + Eq
         + Hash,
 {
-    #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_terrain_model<'c>(
         &'c mut self,
         renderer: &mut Renderer,

@@ -792,7 +792,7 @@ pub fn check_character_limit(
         WHERE   player_uuid = ?1",
     )?;
 
-    #[allow(clippy::needless_question_mark)]
+    #[expect(clippy::needless_question_mark)]
     let character_count: i64 = stmt.query_row([&uuid], |row| Ok(row.get(0)?))?;
     drop(stmt);
 
@@ -823,7 +823,7 @@ fn get_new_entity_ids(
         WHERE   name = 'entity'",
     )?;
 
-    #[allow(clippy::needless_question_mark)]
+    #[expect(clippy::needless_question_mark)]
     let next_entity_id = stmt.query_row([], |row| Ok(row.get(0)?))?;
     let max_entity_id = max(next_entity_id);
 
@@ -893,7 +893,7 @@ fn get_pseudo_container_id(
         AND     position = ?2",
     )?;
 
-    #[allow(clippy::needless_question_mark)]
+    #[expect(clippy::needless_question_mark)]
     let res = stmt.query_row(
         [
             character_id.0.to_string(),
@@ -1002,7 +1002,7 @@ fn get_pet_ids(
         WHERE   character_id = ?1
     ")?;
 
-    #[allow(clippy::needless_question_mark)]
+    #[expect(clippy::needless_question_mark)]
     let db_pets = stmt
         .query_map([&char_id.0], |row| Ok(row.get(0)?))?
         .map(|x| x.unwrap())
@@ -1046,7 +1046,6 @@ fn delete_pets(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn update(
     char_id: CharacterId,
     char_skill_set: comp::SkillSet,

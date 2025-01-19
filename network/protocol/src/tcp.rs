@@ -32,7 +32,7 @@ where
     notify_closing_streams: Vec<Sid>,
     pending_shutdown: bool,
     drain: D,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     last: Instant,
     metrics: ProtocolMetricCache,
 }

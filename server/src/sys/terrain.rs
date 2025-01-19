@@ -99,7 +99,6 @@ pub struct Data<'a> {
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = Data<'a>;
 
     const NAME: &'static str = "terrain";
@@ -131,7 +130,7 @@ impl<'a> System<'a> for Sys {
         // Also, send the chunk data to anybody that is close by.
         let mut new_chunks = Vec::new();
         'insert_terrain_chunks: while let Some((key, res)) = data.chunk_generator.recv_new_chunk() {
-            #[allow(unused_mut)]
+            #[cfg_attr(not(feature = "persistent_world"), expect(unused_mut))]
             let (mut chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
@@ -397,7 +396,6 @@ pub struct NpcData {
 /// from EntityInfo
 // TODO: better name?
 // TODO: if this is send around network, optimize the large_enum_variant
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum SpawnEntityData {
     Npc(NpcData),

@@ -213,7 +213,7 @@ struct ArmorVoxSpec {
 }
 
 #[derive(Deserialize)]
-#[allow(dead_code)]
+#[expect(dead_code)]
 enum ModularComponentSpec {
     /// item id, offset from origin to mount point
     Damage((String, [i32; 3])),
@@ -227,7 +227,7 @@ struct SidedArmorVoxSpec {
     left: ArmorVoxSpec,
     right: ArmorVoxSpec,
     /// FIXME: Either use this, or remove it.
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     color: Option<[u8; 3]>,
 }
 
@@ -995,7 +995,7 @@ impl HumArmorHeadSpec {
 
 impl HumArmorTabardSpec {
     /// FIXME: Either use this, or remove it.
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn mesh_tabard(
         &self,
         body: &Body,

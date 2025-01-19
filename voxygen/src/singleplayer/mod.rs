@@ -113,7 +113,6 @@ impl SingleplayerState {
 
             let builder = thread::Builder::new().name("singleplayer-server-thread".into());
             let runtime = Arc::clone(runtime);
-            #[allow(clippy::blocks_in_conditions)]
             let thread = builder
                 .spawn(move || {
                     trace!("starting singleplayer server thread");

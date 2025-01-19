@@ -1930,7 +1930,7 @@ impl CharacterAbility {
         }
     }
 
-    #[allow(clippy::bool_to_int_with_if)]
+    #[expect(clippy::bool_to_int_with_if)]
     pub fn combo_cost(&self) -> u32 {
         use CharacterAbility::*;
         match self {
@@ -2053,7 +2053,6 @@ impl CharacterAbility {
     }
 
     fn adjusted_by_bow_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
         use skills::{BowSkill::*, Skill::Bow};
 
         let projectile_speed_modifier = SKILL_MODIFIERS.bow_tree.universal.projectile_speed;
@@ -2145,7 +2144,6 @@ impl CharacterAbility {
     }
 
     fn adjusted_by_staff_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
         use skills::{Skill::Staff, StaffSkill::*};
 
         match self {
@@ -2214,7 +2212,6 @@ impl CharacterAbility {
     }
 
     fn adjusted_by_sceptre_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
         use skills::{SceptreSkill::*, Skill::Sceptre};
 
         match self {

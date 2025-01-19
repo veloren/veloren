@@ -8,7 +8,6 @@ use prometheus::{
 use std::collections::HashMap;
 use std::{error::Error, sync::Arc};
 
-#[allow(dead_code)]
 pub enum RemoveReason {
     Finished,
     Dropped,
@@ -74,7 +73,7 @@ pub struct ProtocolMetricCache {
     sdata_frames_b: GenericCounter<AtomicU64>,
     rdata_frames_t: GenericCounter<AtomicU64>,
     rdata_frames_b: GenericCounter<AtomicU64>,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     ping: GenericGauge<AtomicI64>,
 }
 
