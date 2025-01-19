@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Axe balance tweaks.
 - Mountability now depends on mass, with the exception of ships and humanoids.
 - Hammer skill icons.
+- Renamed 'Bag' control setting to 'Inventory' and changed default keybind to 'i'.
 
 ### Removed
 

@@ -151,7 +151,7 @@ impl ControlSettings {
             GameInput::Mount => Some(KeyMouse::Key(VirtualKeyCode::F)),
             GameInput::StayFollow => Some(KeyMouse::Key(VirtualKeyCode::V)),
             GameInput::Map => Some(KeyMouse::Key(VirtualKeyCode::M)),
-            GameInput::Bag => Some(KeyMouse::Key(VirtualKeyCode::B)),
+            GameInput::Inventory => Some(KeyMouse::Key(VirtualKeyCode::I)),
             GameInput::Trade => Some(KeyMouse::Key(VirtualKeyCode::T)),
             GameInput::Social => Some(KeyMouse::Key(VirtualKeyCode::O)),
             GameInput::Crafting => Some(KeyMouse::Key(VirtualKeyCode::C)),
@@ -202,7 +202,7 @@ impl ControlSettings {
             GameInput::MuteMusic => Some(KeyMouse::Key(VirtualKeyCode::F8)),
             GameInput::MuteSfx => None,
             GameInput::MuteAmbience => None,
-            GameInput::ToggleWalk => Some(KeyMouse::Key(VirtualKeyCode::I)),
+            GameInput::ToggleWalk => Some(KeyMouse::Key(VirtualKeyCode::B)),
         }
     }
 }

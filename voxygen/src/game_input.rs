@@ -93,8 +93,8 @@ pub enum GameInput {
     Escape,
     #[strum(serialize = "gameinput-map")]
     Map,
-    #[strum(serialize = "gameinput-bag")]
-    Bag,
+    #[strum(serialize = "gameinput-inventory")]
+    Inventory,
     #[strum(serialize = "gameinput-trade")]
     Trade,
     #[strum(serialize = "gameinput-social")]
