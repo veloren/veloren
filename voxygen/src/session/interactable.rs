@@ -281,7 +281,8 @@ pub(super) fn get_interactables(
                 .then_some(EntityInteraction::Trade);
 
                 // Interaction using [`GameInput::Mount`]
-                let mount = (pet::is_mountable(body, mass, player_body, player_mass)
+                let mount = (matches!(alignment, Some(Alignment::Owned(other_uid)) if player_uid == *other_uid)
+                    && pet::is_mountable(body, mass, player_body, player_mass)
                     && !is_downed
                     && !client.is_riding())
                 .then_some(EntityInteraction::Mount);

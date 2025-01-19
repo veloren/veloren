@@ -2055,7 +2055,7 @@ impl Hud {
                 .set(overitem_id, ui_widgets);
             }
 
-            // Render overtime for a interactable blocks
+            // Render overitem for interactable blocks
             for (mat, pos, interactions, block) in
                 block_interactables
                     .iter()

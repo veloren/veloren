@@ -208,6 +208,10 @@ impl CharacterBehavior for Data {
             handle_input(data, output_events, &mut update, InputKind::Roll);
         }
 
+        if handle_jump(data, output_events, &mut update, 1.0) {
+            end_ability(data, &mut update);
+        }
+
         update
     }
 }
