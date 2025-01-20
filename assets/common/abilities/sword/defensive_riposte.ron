@@ -7,7 +7,7 @@ RiposteMelee(
     block_strength: 2.1,
     melee_constructor: (
         kind: Slash(
-            damage: 18,
+            damage: 13,
             poise: 5,
             knockback: 0,
             energy_regen: 5,

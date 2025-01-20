@@ -4,12 +4,13 @@ ComboMelee2(
             melee_constructor: (
                 kind: Bash(
                     damage: 12,
-                    poise: 19,
+                    poise: 20,
                     knockback: 0,
                     energy_regen: 0,
                 ),
                 range: 1.5,
                 angle: 45.0,
+                attack_effect: Some((Poise(30), TargetBlocking)),
             ),
             buildup_duration: 0.3,
             swing_duration: 0.15,
@@ -18,7 +19,7 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 9,
+    energy_cost_per_strike: 8,
     meta: (
         init_event: Some(EnterStance(Sword(Heavy))),
     ),
