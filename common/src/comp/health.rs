@@ -260,6 +260,13 @@ pub fn is_downed(health: Option<&Health>, character_state: Option<&super::Charac
     }) && matches!(character_state, Some(super::CharacterState::Crawl))
 }
 
+pub fn is_downed_or_dead(
+    health: Option<&Health>,
+    character_state: Option<&super::CharacterState>,
+) -> bool {
+    health.map_or(false, |health| health.is_dead) || is_downed(health, character_state)
+}
+
 impl Component for Health {
     type Storage = DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
 }

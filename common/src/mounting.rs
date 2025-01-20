@@ -91,7 +91,7 @@ impl Link for Mounting {
         } else if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
             let is_alive_and_well = |entity| {
                 entities.is_alive(entity)
-                    && !comp::is_downed(healths.get(entity), character_states.get(entity))
+                    && !comp::is_downed_or_dead(healths.get(entity), character_states.get(entity))
             };
 
             // Ensure that neither mount or rider are already part of a mounting
@@ -126,7 +126,7 @@ impl Link for Mounting {
         if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
             let is_alive_and_well = |entity| {
                 entities.is_alive(entity)
-                    && !comp::is_downed(healths.get(entity), character_states.get(entity))
+                    && !comp::is_downed_or_dead(healths.get(entity), character_states.get(entity))
             };
 
             let is_in_ridable_state = character_states
@@ -382,7 +382,7 @@ impl Link for VolumeMounting {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
         let is_alive_and_well = |entity| {
             entities.is_alive(entity)
-                && !comp::is_downed(healths.get(entity), character_states.get(entity))
+                && !comp::is_downed_or_dead(healths.get(entity), character_states.get(entity))
         };
 
         let riders = match this.pos.kind {
@@ -434,7 +434,7 @@ impl Link for VolumeMounting {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
         let is_alive_and_well = |entity| {
             entities.is_alive(entity)
-                && !comp::is_downed(healths.get(entity), character_states.get(entity))
+                && !comp::is_downed_or_dead(healths.get(entity), character_states.get(entity))
         };
 
         let riders = match this.pos.kind {

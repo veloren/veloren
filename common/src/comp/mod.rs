@@ -111,4 +111,4 @@ pub use self::{
 };
 pub use common_i18n::{Content, LocalizationArg};
 
-pub use health::{is_downed, Health, HealthChange};
+pub use health::{is_downed, is_downed_or_dead, Health, HealthChange};
