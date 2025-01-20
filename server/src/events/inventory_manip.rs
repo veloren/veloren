@@ -154,8 +154,9 @@ impl ServerEvent for InventoryManipEvent {
                 continue;
             }
 
-            if comp::is_downed(data.healths.get(entity), data.character_states.get(entity)) {
-                // Can't manipulate the inventory while downed.
+            if comp::is_downed_or_dead(data.healths.get(entity), data.character_states.get(entity))
+            {
+                // Can't manipulate the inventory while downed or dead.
                 continue;
             }
 
@@ -168,11 +169,6 @@ impl ServerEvent for InventoryManipEvent {
                 );
                 continue;
             };
-            // Disallow inventory manipulation while dead
-            if data.healths.get(entity).map_or(false, |h| h.is_dead) {
-                debug!("Can't manipulate inventory; entity is dead");
-                continue;
-            }
             match manip {
                 comp::InventoryManip::Pickup(pickup_uid) => {
                     let item_entity = if let Some(item_entity) = data.id_maps.uid_entity(pickup_uid)
