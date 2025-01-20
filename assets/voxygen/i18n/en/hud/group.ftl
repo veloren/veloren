@@ -2,7 +2,7 @@ hud-group = Group
 
 hud-group-invite_to_join = [{ $name }] invited you to their group!
 hud-group-invite_to_trade = [{ $name }] would like to trade with you.
-hug-group-invite-accepted = { $target } accepted your group invite.
+hud-group-invite-accepted = { $target } accepted your group invite.
 hud-group-invite-declined = { $target } declined your group invite.
 hud-group-invite-timed_out= Group invite to { $target } timed out.
 

@@ -236,6 +236,8 @@ impl<E> VolumePos<E> {
             },
         })
     }
+
+    pub fn is_entity(&self) -> bool { matches!(self.kind, Volume::Entity(_)) }
 }
 
 impl VolumePos {

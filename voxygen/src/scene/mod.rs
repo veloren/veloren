@@ -10,6 +10,8 @@ pub mod terrain;
 pub mod tether;
 pub mod trail;
 
+use std::collections::HashSet;
+
 pub use self::{
     camera::{Camera, CameraMode},
     debug::{Debug, DebugShape, DebugShapeId},
@@ -21,7 +23,12 @@ pub use self::{
     trail::TrailMgr,
 };
 use crate::{
-    audio::{ambience, ambience::AmbienceMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
+    audio::{
+        ambience::{self, AmbienceMgr},
+        music::MusicMgr,
+        sfx::SfxMgr,
+        AudioFrontend,
+    },
     render::{
         create_skybox_mesh, CloudsLocals, Consts, CullingMode, Drawer, GlobalModel, Globals,
         GlobalsBindGroup, Light, Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals,
@@ -132,7 +139,7 @@ pub struct SceneData<'a> {
     pub state: &'a State,
     pub viewpoint_entity: specs::Entity,
     pub mutable_viewpoint: bool,
-    pub target_entity: Option<specs::Entity>,
+    pub target_entities: &'a HashSet<specs::Entity>,
     pub loaded_distance: f32,
     pub terrain_view_distance: u32, // not used currently
     pub entity_view_distance: u32,

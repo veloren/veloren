@@ -1155,7 +1155,8 @@ pub fn handle_manipulate_loadout(
                         update.character = CharacterState::Interact(interact::Data {
                             static_data: interact::StaticData {
                                 buildup_duration,
-                                use_duration,
+                                // Item interactions are never indefinite
+                                use_duration: Some(use_duration),
                                 recover_duration,
                                 interact: interact::InteractKind::Sprite {
                                     pos: sprite_pos,
@@ -1205,7 +1206,7 @@ pub fn handle_manipulate_loadout(
                 update.character = CharacterState::Interact(interact::Data {
                     static_data: interact::StaticData {
                         buildup_duration,
-                        use_duration,
+                        use_duration: Some(use_duration),
                         recover_duration,
                         interact: interact::InteractKind::Sprite {
                             pos: pos.pos,

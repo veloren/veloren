@@ -899,7 +899,7 @@ impl CharacterState {
             }),
             CharacterState::Interact(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
-                action: Some(data.static_data.use_duration),
+                action: data.static_data.use_duration,
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),
