@@ -15,7 +15,7 @@ DiveMelee(
         scaled: Some((
             kind: Slash(
                 damage: 8,
-                poise: 11,
+                poise: 12,
                 knockback: 0,
                 energy_regen: 0,
             ))),

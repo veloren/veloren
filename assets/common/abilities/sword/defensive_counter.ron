@@ -5,14 +5,14 @@ FinisherMelee(
     recover_duration: 0.6,
     melee_constructor: (
         kind: Slash(
-            damage: 30,
+            damage: 25,
             poise: 10,
             knockback: 0,
             energy_regen: 0,
         ),
         range: 3.0,
         angle: 15.0,
-        damage_effect: Some(BuffsVulnerable(2.0, Parried)),
+        damage_effect: Some(BuffsVulnerable(1.5, Parried)),
     ),
-    minimum_combo: 15,
+    minimum_combo: 10,
 )

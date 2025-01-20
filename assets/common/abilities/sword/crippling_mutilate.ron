@@ -11,11 +11,11 @@ RapidMelee(
         ),
         range: 4.0,
         angle: 15.0,
-        damage_effect: Some(BuffsVulnerable(1.0, Bleeding)),
+        damage_effect: Some(BuffsVulnerable(0.875, Bleeding)),
     ),
     energy_cost: 5,
     max_strikes: Some(4),
     move_modifier: 0.7,
     ori_modifier: 0.2,
-    minimum_combo: 12,
+    minimum_combo: 10,
 )

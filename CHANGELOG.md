@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hammer skill icons.
 - Renamed 'Bag' control setting to 'Inventory' and changed default keybind to 'i'.
 - Improved interaction HUD consistency and prioritize important interactions over others.
+- Sword balance tweaks.
 
 ### Removed
 

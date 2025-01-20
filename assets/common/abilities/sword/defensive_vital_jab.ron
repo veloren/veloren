@@ -10,7 +10,7 @@ ChargedMelee(
         ),
         scaled: Some((
             kind: Stab(
-                damage: 12,
+                damage: 10,
                 poise: 5,
                 knockback: 0,
                 energy_regen: 25,

@@ -6,7 +6,7 @@ ComboMelee2(
                     damage: 12,
                     poise: 5,
                     knockback: 0,
-                    energy_regen: 7,
+                    energy_regen: 4,
                 ),
                 range: 3.0,
                 angle: 45.0,
@@ -19,7 +19,7 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    energy_cost_per_strike: 15,
+    energy_cost_per_strike: 12,
     meta: (
         requirements: (stance: Some(Sword(Crippling))),
     ),

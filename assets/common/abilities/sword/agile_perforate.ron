@@ -3,8 +3,8 @@ RapidMelee(
     swing_duration: 0.2,
     recover_duration: 0.3,
     melee_constructor: (
-        kind: Slash(
-            damage: 2,
+        kind: Stab(
+            damage: 3,
             poise: 1,
             knockback: 0,
             energy_regen: 4,
