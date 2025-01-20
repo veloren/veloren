@@ -118,10 +118,12 @@ impl<'a> System<'a> for Sys {
         // Since physics state isn't updated while riding we set it to default.
         // TODO: Could this be done only once when the link is first created? Has to
         // happen on both server and client.
-        for (physics_state, _) in (&mut physics_states, is_riders.mask()).join() {
-            *physics_state = PhysicsState::default();
-        }
-        for (physics_state, _) in (&mut physics_states, is_volume_riders.mask()).join() {
+        for (physics_state, _) in (
+            &mut physics_states,
+            is_riders.mask() | is_volume_riders.mask(),
+        )
+            .join()
+        {
             *physics_state = PhysicsState::default();
         }
 
