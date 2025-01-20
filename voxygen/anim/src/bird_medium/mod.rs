@@ -76,6 +76,11 @@ impl Skeleton for BirdMediumSkeleton {
             make_bone(leg_r_mat),
         ];
         use common::comp::body::bird_medium::Species::*;
+
+        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
+        let mount_position = mount_bone_mat.mul_point(mount_point(&body));
+        let mount_orientation = mount_bone_ori;
+
         Offsets {
             viewpoint: match body.species {
                 Bat | BloodmoonBat | VampireBat => {
@@ -83,13 +88,10 @@ impl Skeleton for BirdMediumSkeleton {
                 },
                 _ => Some((head_mat * Vec4::new(0.0, 3.0, 2.0, 1.0)).xyz()),
             },
-            // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::BirdMedium(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             ..Default::default()
         }
@@ -305,4 +307,30 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::bird_medium::{BodyType::*, Species::*};
+    match (body.species, body.body_type) {
+        (SnowyOwl, _) => (0.0, -4.0, 2.0),
+        (HornedOwl, _) => (0.0, -4.0, 1.0),
+        (Duck, _) => (0.0, -3.0, 2.0),
+        (Cockatiel, _) => (0.0, -1.5, 1.5),
+        (Chicken, Female) => (0.0, -2.5, 2.5),
+        (Chicken, Male) => (0.0, -2.0, 2.5),
+        (Bat, _) => (0.0, 0.0, -1.5),
+        (Penguin, _) => (0.0, -2.5, 4.5),
+        (Goose, _) => (0.0, -1.0, 3.0),
+        (Peacock, _) => (0.0, -3.0, 2.5),
+        (Eagle, _) => (0.0, -4.0, 2.0),
+        (Parrot, _) => (0.0, -3.0, 1.5),
+        (Crow, _) => (0.0, -1.5, 2.0),
+        (Dodo, _) => (0.0, -4.0, 3.0),
+        (Parakeet, _) => (0.0, -1.5, 1.5),
+        (Puffin, _) => (0.0, -3.5, 1.0),
+        (Toucan, _) => (0.0, -2.0, 1.5),
+        (BloodmoonBat, _) => (0.0, 0.5, 3.5),
+        (VampireBat, _) => (0.0, 0.0, -1.5),
+    }
+    .into()
 }

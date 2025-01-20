@@ -102,13 +102,20 @@ impl Skeleton for BirdLargeSkeleton {
             make_bone(foot_r_mat),
         ];
 
-        // Offset from the mounted bone's origin.
-        let mount_position = (neck_mat * Vec4::from_point(mount_point(&body)))
-            .homogenized()
-            .xyz();
+        use comp::bird_large::Species::*;
         // NOTE: We apply the ori from base_mat externally so we don't need to worry
         // about it here for now.
-        let mount_orientation = self.neck.orientation;
+        let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
+            (SeaWyvern | FlameWyvern | Phoenix | Cockatrice, _) => {
+                (chest_mat, self.chest.orientation)
+            },
+            _ => (neck_mat, self.chest.orientation * self.neck.orientation),
+        };
+
+        // Offset from the mounted bone's origin.
+        let mount_position = (mount_mat * Vec4::from_point(mount_point(&body)))
+            .homogenized()
+            .xyz();
 
         Offsets {
             viewpoint: Some((head_mat * Vec4::new(0.0, 3.0, 6.0, 1.0)).xyz()),
@@ -320,14 +327,14 @@ impl<'a> From<&'a Body> for SkeletonAttr {
 fn mount_point(body: &Body) -> Vec3<f32> {
     use comp::bird_large::Species::*;
     match (body.species, body.body_type) {
-        (Phoenix, _) => (0.0, -2.0, 6.0),
-        (Cockatrice, _) => (0.0, 0.0, 6.0),
-        (Roc, _) => (0.0, 6.0, 3.0),
-        (FlameWyvern, _) => (0.0, 0.0, 2.5),
-        (FrostWyvern, _) => (0.0, 2.0, 3.0),
-        (CloudWyvern, _) => (0.0, 1.0, 3.0),
-        (SeaWyvern, _) => (0.0, -3.0, 4.0),
-        (WealdWyvern, _) => (0.0, 0.0, 5.0),
+        (Phoenix, _) => (0.0, 0.5, 7.5),
+        (Cockatrice, _) => (0.0, 5.0, 6.5),
+        (Roc, _) => (0.0, 5.5, 6.5),
+        (FlameWyvern, _) => (0.0, 9.5, 7.0),
+        (CloudWyvern, _) => (0.0, -0.5, 6.5),
+        (FrostWyvern, _) => (0.0, 0.5, 6.0),
+        (SeaWyvern, _) => (0.0, 8.0, 7.0),
+        (WealdWyvern, _) => (0.0, 0.0, 9.0),
     }
     .into()
 }

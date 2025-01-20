@@ -175,8 +175,12 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(_body: &Body) -> Vec3<f32> {
-    // TODO: mount points
-    //use comp::arthropod::{BodyType::*, Species::*};
-    (0.0, -6.0, 6.0).into()
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::crustacean::Species::*;
+    match (body.species, body.body_type) {
+        (Crab, _) => (0.0, -3.5, 6.0),
+        (SoldierCrab, _) => (0.0, -2.5, 8.0),
+        (Karkatha, _) => (0.0, -1.0, 32.0),
+    }
+    .into()
 }

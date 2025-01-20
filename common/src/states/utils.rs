@@ -1240,6 +1240,8 @@ pub fn attempt_glide_wield(
             .map(|depth| depth > 1.0)
             .unwrap_or(false)
         && data.body.is_humanoid()
+        && data.mount_data.is_none()
+        && data.volume_mount_data.is_none()
     {
         output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Glider {
             pos: data.pos.0,

@@ -3168,6 +3168,15 @@ fn handle_outcome(
             uid: uid_arg!().unwrap_or(target_uid),
             head: parse_or_default!(),
         },
+        "Splash" => Outcome::Splash {
+            vel: vec_arg!(),
+            pos: pos_arg!(),
+            mass: parse_or_default!(1.0),
+            kind: parse_or_default!(
+                comp::fluid_dynamics::LiquidKind::Water,
+                @|arg| comp::fluid_dynamics::LiquidKind::from_str(arg).ok()
+            ),
+        },
         _ => {
             return Err(Content::localized_with_args(
                 "command-outcome-invalid_outcome",

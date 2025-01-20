@@ -127,6 +127,7 @@ lazy_static! {
             dragon,
             golem,
             arthropod,
+            crustacean,
         );
 
         souls

@@ -296,8 +296,8 @@ pub struct PhysicsRead<'a> {
     immovables: ReadStorage<'a, Immovable>,
     masses: ReadStorage<'a, Mass>,
     colliders: ReadStorage<'a, Collider>,
-    is_ridings: ReadStorage<'a, Is<Rider>>,
-    is_volume_ridings: ReadStorage<'a, Is<VolumeRider>>,
+    is_riders: ReadStorage<'a, Is<Rider>>,
+    is_volume_riders: ReadStorage<'a, Is<VolumeRider>>,
     projectiles: ReadStorage<'a, Projectile>,
     character_states: ReadStorage<'a, CharacterState>,
     bodies: ReadStorage<'a, Body>,
@@ -515,8 +515,8 @@ impl<'a> PhysicsData<'a> {
             previous_phys_cache,
             &read.masses,
             &read.colliders,
-            read.is_ridings.maybe(),
-            read.is_volume_ridings.maybe(),
+            read.is_riders.maybe(),
+            read.is_volume_riders.maybe(),
             read.stickies.maybe(),
             read.immovables.maybe(),
             &mut write.physics_states,
@@ -540,8 +540,8 @@ impl<'a> PhysicsData<'a> {
                     previous_cache,
                     mass,
                     collider,
-                    is_riding,
-                    is_volume_riding,
+                    is_rider,
+                    is_volume_rider,
                     sticky,
                     immovable,
                     physics,
@@ -594,7 +594,7 @@ impl<'a> PhysicsData<'a> {
                                 mass,
                                 collider,
                                 read.character_states.get(entity),
-                                read.is_ridings.get(entity),
+                                read.is_riders.get(entity),
                             ))
                         })
                         .for_each(
@@ -606,7 +606,7 @@ impl<'a> PhysicsData<'a> {
                                 mass_other,
                                 collider_other,
                                 char_state_other_maybe,
-                                other_is_riding_maybe,
+                                other_is_rider_maybe,
                             )| {
                                 let collision_boundary = previous_cache.collision_boundary
                                     + previous_cache_other.collision_boundary;
@@ -674,9 +674,9 @@ impl<'a> PhysicsData<'a> {
                                             mass: *mass_other,
                                         },
                                         vel,
-                                        is_riding.is_some()
-                                            || is_volume_riding.is_some()
-                                            || other_is_riding_maybe.is_some(),
+                                        is_rider.is_some()
+                                            || is_volume_rider.is_some()
+                                            || other_is_rider_maybe.is_some(),
                                     );
                                 }
                             },
@@ -821,8 +821,8 @@ impl<'a> PhysicsData<'a> {
             write.physics_states.mask(),
             !&write.pos_vel_ori_defers, // This is the one we are adding
             write.previous_phys_cache.mask(),
-            !&read.is_ridings,
-            !&read.is_volume_ridings,
+            !&read.is_riders,
+            !&read.is_volume_riders,
         )
             .join()
             .map(|t| (t.0, *t.2, *t.3, *t.4))
@@ -854,8 +854,8 @@ impl<'a> PhysicsData<'a> {
             &read.masses,
             &read.densities,
             read.scales.maybe(),
-            !&read.is_ridings,
-            !&read.is_volume_ridings,
+            !&read.is_riders,
+            !&read.is_volume_riders,
         )
             .par_join()
             .for_each_init(
@@ -991,8 +991,8 @@ impl<'a> PhysicsData<'a> {
             &mut write.physics_states,
             &mut write.pos_vel_ori_defers,
             previous_phys_cache,
-            !&read.is_ridings,
-            !&read.is_volume_ridings,
+            !&read.is_riders,
+            !&read.is_volume_riders,
         )
             .par_join()
             .filter(|tuple| tuple.3.is_voxel() == terrain_like_entities)

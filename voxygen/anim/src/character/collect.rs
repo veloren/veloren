@@ -8,7 +8,7 @@ use std::f32::consts::PI;
 pub struct CollectAnimation;
 
 impl Animation for CollectAnimation {
-    type Dependency<'a> = (Vec3<f32>, f32, Option<StageSection>, Vec3<f32>);
+    type Dependency<'a> = (Vec3<f32>, f32, Option<StageSection>, Vec3<f32>, bool);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +17,7 @@ impl Animation for CollectAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_collect")]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (position, _global_time, stage_section, sprite_pos): Self::Dependency<'_>,
+        (position, _global_time, stage_section, sprite_pos, is_riding): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -84,19 +84,21 @@ impl Animation for CollectAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(move1_nosquat * 1.9 + upshift * 2.0)
             * Quaternion::rotation_y(move1_nosquat * 0.3 + move2 * 0.3);
 
-        next.foot_l.position = Vec3::new(
-            -s_a.foot.0,
-            s_a.foot.1 + move1 * 2.0 + upshift * -3.5,
-            s_a.foot.2 + upshift * 2.0,
-        );
-        next.foot_l.orientation = Quaternion::rotation_x(move1 * -0.2 + upshift * -2.2);
+        if !is_riding {
+            next.foot_l.position = Vec3::new(
+                -s_a.foot.0,
+                s_a.foot.1 + move1 * 2.0 + upshift * -3.5,
+                s_a.foot.2 + upshift * 2.0,
+            );
+            next.foot_l.orientation = Quaternion::rotation_x(move1 * -0.2 + upshift * -2.2);
 
-        next.foot_r.position = Vec3::new(
-            s_a.foot.0,
-            s_a.foot.1 + move1 * -4.0 + upshift * -0.5,
-            s_a.foot.2 + upshift * 2.0,
-        );
-        next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.8 + upshift * -1.2);
+            next.foot_r.position = Vec3::new(
+                s_a.foot.0,
+                s_a.foot.1 + move1 * -4.0 + upshift * -0.5,
+                s_a.foot.2 + upshift * 2.0,
+            );
+            next.foot_r.orientation = Quaternion::rotation_x(move1 * -0.8 + upshift * -1.2);
+        }
         next
     }
 }

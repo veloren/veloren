@@ -72,11 +72,12 @@ impl Skeleton for BipedSmallSkeleton {
         let control_l_mat = Mat4::<f32>::from(self.control_l);
         let control_r_mat = Mat4::<f32>::from(self.control_r);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
+        let tail_mat = pants_mat * Mat4::<f32>::from(self.tail);
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
             make_bone(chest_mat),
             make_bone(pants_mat),
-            make_bone(pants_mat * Mat4::<f32>::from(self.tail)),
+            make_bone(tail_mat),
             make_bone(control_mat * Mat4::<f32>::from(self.main)),
             make_bone(control_mat * control_l_mat * Mat4::<f32>::from(self.hand_l)),
             make_bone(
@@ -90,15 +91,31 @@ impl Skeleton for BipedSmallSkeleton {
             make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
         ];
+
+        use comp::biped_small::Species::*;
+        let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
+            (Sahagin | Mandragora | Kappa | Gnoll | Bushly | Irrwurz | TreasureEgg, _) => {
+                (chest_mat, self.chest.orientation)
+            },
+            (GoblinThug | GoblinChucker | GoblinRuffian, _) => (
+                chest_mat,
+                self.chest.orientation * Quaternion::rotation_x(0.7),
+            ),
+            (Myrmidon, _) => (
+                tail_mat,
+                self.chest.orientation * self.pants.orientation * self.tail.orientation,
+            ),
+            _ => (head_mat, self.chest.orientation * self.head.orientation),
+        };
+        let mount_position = mount_mat.mul_point(mount_point(&body));
+
         Offsets {
             viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::BipedSmall(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             ..Default::default()
         }
@@ -631,4 +648,42 @@ pub fn biped_small_wield_bow(
 
     next.control.orientation =
         Quaternion::rotation_x(-0.3 + 0.5 * speednorm) * Quaternion::rotation_y(0.5 * speednorm);
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::biped_small::Species::*;
+    // TODO: Come up with a way to position rider
+    match (body.species, body.body_type) {
+        (Gnome, _) => (0.0, -4.0, -1.0),
+        (Sahagin, _) => (0.0, 0.0, 5.0),
+        (Adlet, _) => (0.0, -4.0, 1.0),
+        (Gnarling, _) => (0.0, -4.0, 1.5),
+        (Mandragora, _) => (0.0, -3.5, 6.0),
+        (Kappa, _) => (0.0, -5.0, 1.0),
+        (Cactid, _) => (0.0, -2.5, -0.5),
+        (Gnoll, _) => (0.0, -4.0, 2.0),
+        (Haniwa, _) => (0.0, -6.0, 1.0),
+        (Myrmidon, _) => (0.0, -5.5, 1.5),
+        (Husk, _) => (0.0, -5.5, 1.5),
+        (Boreal, _) => (0.0, -4.5, 2.0),
+        (Bushly, _) => (0.0, -3.0, 16.0),
+        (Irrwurz, _) => (0.0, -4.0, 10.0),
+        (IronDwarf, _) => (0.0, -4.0, 4.5),
+        (Flamekeeper, _) => (0.0, -6.5, 7.0),
+        (ShamanicSpirit, _) => (0.0, 0.0, 6.5),
+        (Jiangshi, _) => (0.0, -1.5, 7.5),
+        (TreasureEgg, _) => (0.0, -3.5, 8.0),
+        (GnarlingChieftain, _) => (0.0, -4.0, 4.5),
+        (BloodmoonHeiress, _) => (0.0, -1.0, 14.0),
+        (Bloodservant, _) => (0.0, -1.5, 4.5),
+        (Harlequin, _) => (0.0, -3.0, 2.5),
+        (GoblinThug, _) => (0.0, -4.0, -3.0),
+        (GoblinChucker, _) => (0.0, -9.0, -3.0),
+        (GoblinRuffian, _) => (0.0, -4.0, -3.0),
+        (GreenLegoom, _) => (0.0, -4.5, 6.0),
+        (OchreLegoom, _) => (0.0, -4.5, 3.0),
+        (PurpleLegoom, _) => (0.0, -3.5, 7.5),
+        (RedLegoom, _) => (0.0, -3.5, 5.0),
+    }
+    .into()
 }

@@ -18,6 +18,7 @@ type WieldAnimationDependency<'a> = (
     Vec3<f32>,
     Dir,
     Vec3<f32>,
+    bool,
     f32,
 );
 impl Animation for WieldAnimation {
@@ -38,6 +39,7 @@ impl Animation for WieldAnimation {
             last_ori,
             look_dir,
             velocity,
+            is_riding,
             global_time,
         ): Self::Dependency<'_>,
         anim_time: f32,
@@ -90,7 +92,7 @@ impl Animation for WieldAnimation {
         next.second.position = Vec3::new(0.0, 0.0, 0.0);
         next.second.orientation = Quaternion::rotation_z(0.0);
 
-        let is_moving = speed > 0.2 && velocity.z == 0.0;
+        let is_moving = (speed > 0.2 && velocity.z == 0.0) || is_riding;
 
         if !is_moving {
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + u_slow * 0.1);

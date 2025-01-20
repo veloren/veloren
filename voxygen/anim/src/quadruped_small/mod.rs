@@ -61,9 +61,7 @@ impl Skeleton for QuadrupedSmallSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.tail)),
         ];
         let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
-        let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
-            .homogenized()
-            .xyz();
+        let mount_position = mount_bone_mat.mul_point(mount_point(&body));
         let mount_orientation = mount_bone_ori;
 
         Offsets {
@@ -418,39 +416,40 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         }
     }
 }
+
 fn mount_point(body: &Body) -> Vec3<f32> {
     use comp::quadruped_small::{BodyType::*, Species::*};
     match (body.species, body.body_type) {
-        (Pig, _) => (0.0, -2.0, -2.5),
-        (Fox, _) => (0.0, -4.0, -3.5),
-        (Sheep, _) => (0.0, -4.0, -3.5),
-        (Boar, _) => (0.0, -2.0, -3.5),
-        (Jackalope, _) => (0.0, -4.0, -3.5),
-        (Skunk, _) => (0.0, -4.0, -3.5),
-        (Cat, _) => (0.0, -5.0, -4.0),
-        (Batfox, _) => (0.0, -4.0, -3.0),
-        (Raccoon, _) => (0.0, -4.0, -2.5),
-        (Quokka, _) => (0.0, -3.0, -3.5),
-        (Holladon, _) => (0.0, -2.0, -2.5),
-        (Hyena, _) => (0.0, -4.0, -3.5),
-        (Rabbit, _) => (0.0, -4.0, -3.5),
-        (Truffler, _) => (0.0, -6.0, 6.5),
-        (Frog, _) => (0.0, -4.0, -4.5),
-        (Rat, _) => (0.0, 0.5, 3.3),
-        (Axolotl, _) => (0.0, -4.0, -4.5),
-        (Gecko, _) => (0.0, -4.0, -4.5),
-        (Turtle, _) => (0.0, -4.0, -4.5),
-        (Squirrel, _) => (0.0, -4.0, -4.5),
-        (Fungome, _) => (0.0, -4.0, -4.5),
-        (Porcupine, _) => (0.0, -4.0, -3.5),
-        (Beaver, _) => (0.0, -2.0, -3.5),
-        (Hare, Male) => (0.0, -4.0, -4.5),
-        (Hare, Female) => (0.0, -4.0, -4.5),
-        (Dog, _) => (0.0, -4.0, -2.5),
-        (Goat, _) => (0.0, -4.0, -3.5),
-        (Seal, _) => (0.0, -2.0, -2.5),
-        (TreantSapling, _) => (0.0, -4.0, -4.5),
-        (MossySnail, _) => (0.0, -4.0, -4.5),
+        (Pig, _) => (0.0, 1.0, 4.0),
+        (Fox, _) => (0.0, 0.0, 2.5),
+        (Sheep, _) => (0.0, -1.0, 3.5),
+        (Boar, _) => (0.0, -2.0, 3.5),
+        (Jackalope, _) => (0.0, -1.0, 3.5),
+        (Skunk, _) => (0.0, -1.0, 3.0),
+        (Cat, _) => (0.0, -1.0, 2.0),
+        (Batfox, _) => (0.0, 0.0, 3.0),
+        (Raccoon, _) => (0.0, 0.0, 3.5),
+        (Quokka, _) => (0.0, -1.0, 4.0),
+        (Goat, _) => (0.0, 0.0, 2.5),
+        (Holladon, _) => (0.0, -2.0, 2.0),
+        (Hyena, _) => (0.0, -4.0, 2.5),
+        (Rabbit, _) => (0.0, 0.0, 3.0),
+        (Truffler, _) => (0.0, -5.5, 10.0),
+        (Frog, _) => (0.0, 0.0, 3.0),
+        (Rat, _) => (0.0, 0.5, 3.5),
+        (Axolotl, _) => (0.0, -1.0, 1.5),
+        (Gecko, _) => (0.0, -1.0, 1.5),
+        (Turtle, _) => (0.0, -4.0, 3.0),
+        (Squirrel, _) => (0.0, 0.0, 2.5),
+        (Fungome, _) => (0.0, -4.0, 3.0),
+        (Porcupine, _) => (0.0, 7.0, 2.0),
+        (Beaver, _) => (0.0, 0.0, 4.0),
+        (Hare, Male) => (0.0, -2.0, 3.0),
+        (Hare, Female) => (0.0, -2.0, 2.0),
+        (Dog, _) => (0.0, -2.0, 2.5),
+        (Seal, _) => (0.0, 0.0, 3.0),
+        (TreantSapling, _) => (0.0, -4.0, 1.5),
+        (MossySnail, _) => (0.0, -2.0, 6.5),
     }
     .into()
 }
