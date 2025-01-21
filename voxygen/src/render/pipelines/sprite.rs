@@ -58,7 +58,7 @@ impl Vertex {
             //     | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
             //     | if meta { 1 } else { 0 } << 28
             //     | (norm_bits & 0x7) << 29,
-            pos_norm: (((pos.x as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32)
+            pos_norm: (((pos.x as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) // NOTE: temp hack, this doesn't need 8 bits
                 | ((((pos.y as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) << 8)
                 | ((((pos.z as i32 + VERT_EXTRA_NEG_Z).clamp(0, 1 << 12) as u32) & 0x0FFF) << 16)
                 | ((norm_bits & 0x7) << 29),

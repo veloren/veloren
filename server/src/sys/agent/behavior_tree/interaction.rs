@@ -560,6 +560,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                 if agent
                     .target
                     .zip(get_entity_by_id(*by, bdata.read_data))
+                    // In combat, speak to players that aren't the current target.
                     .is_some_and(|(target, speaker)| !target.hostile || target.target != speaker)
                 {
                     agent_data.chat_npc_if_allowed_to_speak(

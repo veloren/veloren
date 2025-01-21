@@ -1034,35 +1034,6 @@ impl Renderer {
         .unwrap_or_else(|| (Vec2::new(1, 1), Vec2::new(1, 1)))
     }
 
-    // TODO: Seamless is potentially the default with wgpu but we need further
-    // investigation into whether this is actually turned on for the OpenGL
-    // backend
-    //
-    // /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
-    // /// to find proof of this, but Direct3D 10 apparently does it by
-    // /// default, and 11 definitely does, so I assume it's natively supported
-    // /// by DirectX itself), OpenGL 3.2+, and Metal (done by default).  While
-    // /// there may be some GPUs that don't quite support it correctly, the
-    // /// impact is relatively small, so there is no reason not to enable it where
-    // /// available.
-    //fn enable_seamless_cube_maps() {
-    //todo!()
-    // unsafe {
-    //     // NOTE: Currently just fail silently rather than complain if the
-    // computer is on     // a version lower than 3.2, where
-    // seamless cubemaps were introduced.     if !device.get_info().
-    // is_version_supported(3, 2) {         return;
-    //     }
-    //     // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported
-    // by OpenGL 3.2+     // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
-    //     // enabling seamless cube maps should always be safe regardless
-    // of the state of     // the OpenGL context, so no further
-    // checks are needed.     device.with_gl(|gl| {
-    //         gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
-    //     });
-    // }
-    //}
-
     /// Start recording the frame
     /// When the returned `Drawer` is dropped the recorded draw calls will be
     /// submitted to the queue
