@@ -194,7 +194,7 @@ common-abilities-sword-heavy_sweep = Heavy Sweep
         Enters heavy stance.
 common-abilities-sword-heavy_pommel_strike = Pommel Strike
     .desc =
-        Concuss your foe with a blunt strike to the head.
+        Bash your foe with a blunt strike to the head, being more staggering if they're blocking.
         Enters heavy stance.
 common-abilities-sword-agile_quick_draw = Quick Draw
     .desc =
