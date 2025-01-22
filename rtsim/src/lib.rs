@@ -1,14 +1,4 @@
-#![feature(
-    never_type,
-    try_blocks,
-    trait_alias,
-    let_chains,
-    binary_heap_drain_sorted,
-    fn_traits,
-    unboxed_closures,
-    tuple_trait,
-    trait_upcasting
-)]
+#![feature(never_type, let_chains, binary_heap_drain_sorted, trait_upcasting)]
 
 pub mod ai;
 pub mod data;
