@@ -35,8 +35,8 @@ toml = { version = "0.8", optional = true }
 tar = { version = "0.4.37", optional = true }
 bincode = { workspace = true, optional = true }
 timer-queue = "0.1.0"
-wasmtime = { version = "26.0.1", optional = true , features = ["component-model", "async"] }
-wasmtime-wasi = { version = "26.0.1", optional = true }
+wasmtime = { version = "29.0.1", optional = true , features = ["component-model", "async"] }
+wasmtime-wasi = { version = "29.0.1", optional = true }
 async-trait = { workspace = true }
 bytes = "^1"
 futures = "0.3.30"

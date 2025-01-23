@@ -157,7 +157,7 @@ ordered-float = { version = "4.2", default-features = true }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
 vek = { version = "0.17.0", features = ["serde", "mint"] }
-itertools = { version = "0.13" }
+itertools = { version = "0.14" }
 
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.50" }
@@ -182,6 +182,7 @@ rustls = { version = "0.23", default-features = false, features = ["std"] }
 quinn = { version = "0.11" }
 
 noise = { version = "0.9", default-features = false }
+kiddo = "5"
 
 [patch.crates-io]
 # until next specs release
