@@ -3,7 +3,7 @@ pub mod skeleton;
 
 // Reexports
 pub use self::{
-    archetype::{house::House, keep::Keep, Archetype},
+    archetype::{Archetype, house::House, keep::Keep},
     skeleton::*,
 };
 

@@ -1,5 +1,5 @@
 use common::{
-    comp::{group::GroupManager, loot_owner::LootOwnerKind, LootOwner},
+    comp::{LootOwner, group::GroupManager, loot_owner::LootOwnerKind},
     uid::IdMaps,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -34,7 +34,7 @@ impl<'a> System<'a> for Sys {
                     || match loot_owner.owner() {
                         LootOwnerKind::Player(uid) => id_maps
                             .uid_entity(uid)
-                            .map_or(true, |entity| !entities.is_alive(entity)),
+                            .is_none_or(|entity| !entities.is_alive(entity)),
                         LootOwnerKind::Group(group) => {
                             // Special alignment groups (NPC and ENEMY) aren't tracked by the group
                             // manager, check them separately here

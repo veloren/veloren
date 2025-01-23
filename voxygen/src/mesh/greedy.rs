@@ -1,4 +1,4 @@
-use crate::render::{mesh::Quad, pipelines::AtlasData, Vertex};
+use crate::render::{Vertex, mesh::Quad, pipelines::AtlasData};
 use common_base::{prof_span, span};
 use vek::*;
 

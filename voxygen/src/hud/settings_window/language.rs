@@ -1,15 +1,15 @@
 use crate::{
-    hud::{img_ids::Imgs, TEXT_COLOR},
-    session::settings_change::{Language as LanguageChange, Language::*},
-    ui::{fonts::Fonts, ToggleButton},
     GlobalState,
+    hud::{TEXT_COLOR, img_ids::Imgs},
+    session::settings_change::{Language as LanguageChange, Language::*},
+    ui::{ToggleButton, fonts::Fonts},
 };
 use conrod_core::{
-    color,
+    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Rectangle, Scrollbar, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
-use i18n::{list_localizations, Localization};
+use i18n::{Localization, list_localizations};
 
 widget_ids! {
     struct Ids {
@@ -54,7 +54,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Language<'a> {
+impl Widget for Language<'_> {
     type Event = Vec<LanguageChange>;
     type State = State;
     type Style = ();

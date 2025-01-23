@@ -27,7 +27,7 @@ pub fn enum_from_index<E: Clone, I: GenericIndex<E, N>, const N: usize>(idx: I) 
 
 #[cfg(test)]
 mod tests {
-    use crate::util::map_array::{enum_from_index, index_from_enum, GenericIndex, NotFound};
+    use crate::util::map_array::{GenericIndex, NotFound, enum_from_index, index_from_enum};
     use std::{
         convert::{TryFrom, TryInto},
         ops::{Index, IndexMut},

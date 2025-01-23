@@ -1,10 +1,10 @@
 use crate::{
     combat::{self, CombatEffect},
     comp::{
+        Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
         ability::Amount,
         character_state::OutputEvents,
         object::Body::{GrenadeClay, LaserBeam, LaserBeamSmall},
-        Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
     },
     event::{LocalEvent, ShootEvent},
     outcome::Outcome,
@@ -14,7 +14,7 @@ use crate::{
     },
     util::Dir,
 };
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 

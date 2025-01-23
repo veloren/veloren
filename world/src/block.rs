@@ -1,14 +1,14 @@
 use crate::{
+    CONFIG, IndexRef,
     column::{ColumnGen, ColumnSample},
     util::{FastNoise, RandomField, Sampler, SmallCache},
-    IndexRef, CONFIG,
 };
 use common::{
     calendar::{Calendar, CalendarEvent},
     comp::item::ItemDefinitionIdOwned,
     terrain::{
-        structure::{self, StructureBlock},
         Block, BlockKind, SpriteCfg, SpriteKind, UnlockKind,
+        structure::{self, StructureBlock},
     },
 };
 use core::ops::{Div, Mul, Range};
@@ -160,7 +160,7 @@ pub struct ZCache<'a> {
     pub calendar: Option<&'a Calendar>,
 }
 
-impl<'a> ZCache<'a> {
+impl ZCache<'_> {
     pub fn get_z_limits(&self) -> (f32, f32) {
         let min = self.sample.alt
             - (self.sample.chaos.min(1.0) * 16.0)
@@ -283,11 +283,11 @@ pub fn block_from_structure(
         | StructureBlock::MapleLeaves
         | StructureBlock::CherryLeaves
         | StructureBlock::AutumnLeaves => {
-            if calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas))
+            if calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas))
                 && field.chance(pos + structure_pos, 0.025)
             {
                 Some(Block::new(BlockKind::GlowingWeakRock, Rgb::new(255, 0, 0)))
-            } else if calendar.map_or(false, |c| c.is_event(CalendarEvent::Halloween))
+            } else if calendar.is_some_and(|c| c.is_event(CalendarEvent::Halloween))
                 && (*sblock == StructureBlock::TemperateLeaves
                     || *sblock == StructureBlock::Chestnut
                     || *sblock == StructureBlock::CherryLeaves)

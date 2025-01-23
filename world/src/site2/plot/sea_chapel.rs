@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::{spiral_staircase, PrimitiveTransform},
-    util::{sampler::Sampler, RandomField, DIAGONALS, NEIGHBORS},
-    Land, CONFIG,
+    CONFIG, Land,
+    site2::gen::{PrimitiveTransform, spiral_staircase},
+    util::{DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler},
 };
 use common::{
     generation::EntityInfo,

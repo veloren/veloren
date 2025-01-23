@@ -1,16 +1,16 @@
 use super::{char_selection::CharSelectionState, dummy_scene::Scene};
 use crate::{
+    Direction, GlobalState, PlayState, PlayStateResult,
     menu::main::get_client_msg_error,
     render::{Drawer, GlobalsBindGroup},
     settings::Settings,
     ui::{
-        fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, load_font, style, widget, Element, IcedUi as Ui},
-        img_ids::ImageGraphic,
         Graphic,
+        fonts::IcedFonts as Fonts,
+        ice::{Element, IcedUi as Ui, component::neat_button, load_font, style, widget},
+        img_ids::ImageGraphic,
     },
     window::{self, Event},
-    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::ServerInfo;
 use common::{
@@ -21,8 +21,8 @@ use common_base::span;
 use common_net::msg::server::ServerDescription;
 use i18n::LocalizationHandle;
 use iced::{
-    button, scrollable, Align, Column, Container, HorizontalAlignment, Length, Row, Scrollable,
-    VerticalAlignment,
+    Align, Column, Container, HorizontalAlignment, Length, Row, Scrollable, VerticalAlignment,
+    button, scrollable,
 };
 use std::{
     collections::hash_map::DefaultHasher,
@@ -87,9 +87,8 @@ impl ServerInfoState {
         // If there are no rules, or we've already accepted these rules, we don't need
         // this state
         if (server_description.rules.is_none()
-            || server.map_or(false, |s| {
-                s.accepted_rules == Some(rules_hash(&server_description.rules))
-            }))
+            || server
+                .is_some_and(|s| s.accepted_rules == Some(rules_hash(&server_description.rules))))
             && !force_show
         {
             return Err(char_select);
@@ -107,7 +106,7 @@ impl ServerInfoState {
         )
         .unwrap();
 
-        let changed = server.map_or(false, |s| {
+        let changed = server.is_some_and(|s| {
             s.accepted_rules
                 .is_some_and(|accepted| accepted != rules_hash(&server_description.rules))
         });

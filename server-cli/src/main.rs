@@ -33,10 +33,10 @@ use common::{
 };
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use server::{persistence::DatabaseSettings, settings::Protocol, Event, Input, Server};
+use server::{Event, Input, Server, persistence::DatabaseSettings, settings::Protocol};
 use std::{
     io,
-    sync::{atomic::AtomicBool, Arc},
+    sync::{Arc, atomic::AtomicBool},
     time::{Duration, Instant},
 };
 use tokio::sync::Notify;

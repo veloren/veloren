@@ -1,10 +1,11 @@
 use super::{
-    img_ids::{Imgs, ImgsRot},
-    item_imgs::{animate_by_pulse, ItemImgs},
-    Position, PositionSpecifier, Show, BLACK, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR,
+    BLACK, CRITICAL_HP_COLOR, HP_COLOR, Position, PositionSpecifier, Show, TEXT_COLOR,
     UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
+    img_ids::{Imgs, ImgsRot},
+    item_imgs::{ItemImgs, animate_by_pulse},
 };
 use crate::{
+    GlobalState,
     game_input::GameInput,
     hud::{
         self,
@@ -12,38 +13,37 @@ use crate::{
         util,
     },
     ui::{
+        ImageFrame, Tooltip, TooltipManager, Tooltipable,
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
-        ImageFrame, Tooltip, TooltipManager, Tooltipable,
     },
-    GlobalState,
 };
 use client::{self, Client};
 use common::{
     combat,
     comp::{
-        self,
+        self, Body, CharacterState, Energy, Health, Inventory, Poise, Stats,
         ability::{Ability, ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT},
         inventory::{
             item::{
+                ItemI18n, ItemKind, MaterialStatManifest,
                 item_key::ItemKey,
                 tool::{AbilityContext, ToolKind},
-                ItemI18n, ItemKind, MaterialStatManifest,
             },
             slot::EquipSlot,
         },
         skills::{
-            self, AxeSkill, BowSkill, ClimbSkill, HammerSkill, MiningSkill, SceptreSkill, Skill,
-            StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
+            self, AxeSkill, BowSkill, ClimbSkill, HammerSkill, MiningSkill, SKILL_MODIFIERS,
+            SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill,
         },
         skillset::{SkillGroupKind, SkillSet},
-        Body, CharacterState, Energy, Health, Inventory, Poise, Stats,
     },
 };
 use conrod_core::{
-    color, image,
+    Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
+    image,
     widget::{self, Button, Image, Rectangle, State, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use std::borrow::Cow;
@@ -337,7 +337,7 @@ pub struct DiaryState {
     recipe_page: usize,
 }
 
-impl<'a> Widget for Diary<'a> {
+impl Widget for Diary<'_> {
     type Event = Vec<Event>;
     type State = DiaryState;
     type Style = ();
@@ -716,7 +716,7 @@ impl<'a> Widget for Diary<'a> {
                 if ui
                     .widget_input(state.ids.exp_bar_frame)
                     .mouse()
-                    .map_or(false, |m| m.is_over())
+                    .is_some_and(|m| m.is_over())
                 {
                     Text::new(&exp_txt)
                         .mid_top_with_margin_on(state.ids.exp_bar_frame, 47.0)
@@ -1065,7 +1065,7 @@ impl<'a> Widget for Diary<'a> {
                     .inventory
                     .equipped(EquipSlot::ActiveMainhand)
                     .zip(self.inventory.equipped(EquipSlot::ActiveOffhand))
-                    .map_or(false, |(a, b)| {
+                    .is_some_and(|(a, b)| {
                         if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) =
                             (&*a.kind(), &*b.kind())
                         {
@@ -1478,7 +1478,7 @@ enum SkillIcon<'a> {
     },
 }
 
-impl<'a> Diary<'a> {
+impl Diary<'_> {
     fn handle_general_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,

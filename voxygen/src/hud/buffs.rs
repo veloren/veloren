@@ -1,11 +1,11 @@
 use super::{
-    img_ids::{Imgs, ImgsRot},
     BUFF_COLOR, DEBUFF_COLOR, TEXT_COLOR,
+    img_ids::{Imgs, ImgsRot},
 };
 use crate::{
-    hud::{animation::animation_timer, BuffIcon, BuffIconKind, BuffPosition},
-    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
     GlobalState,
+    hud::{BuffIcon, BuffIconKind, BuffPosition, animation::animation_timer},
+    ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
 };
 use i18n::Localization;
 
@@ -14,10 +14,10 @@ use common::{
     resources::Time,
 };
 use conrod_core::{
-    color,
+    Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
     image::Id,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 
 widget_ids! {
@@ -100,7 +100,7 @@ pub enum Event {
 const MULTIPLICITY_COLOR: Color = TEXT_COLOR;
 const MULTIPLICITY_FONT_SIZE: u32 = 20;
 
-impl<'a> Widget for BuffsBar<'a> {
+impl Widget for BuffsBar<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();
@@ -242,7 +242,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     );
 
                     buff_widget
-                        .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                        .color(if current_duration.is_some_and(|cur| cur < 10.0) {
                             Some(pulsating_col)
                         } else {
                             Some(norm_col)
@@ -324,7 +324,7 @@ impl<'a> Widget for BuffsBar<'a> {
                     );
 
                     debuff_widget
-                        .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                        .color(if current_duration.is_some_and(|cur| cur < 10.0) {
                             Some(pulsating_col)
                         } else {
                             Some(norm_col)
@@ -422,7 +422,7 @@ impl<'a> Widget for BuffsBar<'a> {
                         0.0 + x as f64 * (42.0),
                     );
                     buff_widget
-                        .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                        .color(if current_duration.is_some_and(|cur| cur < 10.0) {
                             Some(pulsating_col)
                         } else {
                             Some(norm_col)
@@ -489,7 +489,7 @@ impl<'a> Widget for BuffsBar<'a> {
     }
 }
 
-impl<'a> BuffsBar<'a> {
+impl BuffsBar<'_> {
     fn get_duration_image(&self, duration_percentage: u32) -> Id {
         match duration_percentage as u64 {
             875..=1000 => self.imgs.nothing, // 8/8

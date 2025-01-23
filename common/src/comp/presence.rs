@@ -1,4 +1,4 @@
-use crate::{character::CharacterId, ViewDistances};
+use crate::{ViewDistances, character::CharacterId};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use std::time::{Duration, Instant};

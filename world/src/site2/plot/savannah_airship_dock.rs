@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::{place_circular_as_vec, spiral_staircase},
-    util::{RandomField, Sampler, CARDINALS, DIAGONALS},
     Land,
+    site2::gen::{place_circular_as_vec, spiral_staircase},
+    util::{CARDINALS, DIAGONALS, RandomField, Sampler},
 };
 use common::{
     comp::Content,

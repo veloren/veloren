@@ -1,5 +1,5 @@
-use common_assets::{walk_tree, Walk};
-use serde::{de::DeserializeOwned, Serialize};
+use common_assets::{Walk, walk_tree};
+use serde::{Serialize, de::DeserializeOwned};
 use std::{fs, io, io::Write, path::Path};
 
 // If you want to migrate assets.

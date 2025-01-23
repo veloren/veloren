@@ -1,17 +1,17 @@
 use crate::{
+    Canvas, CanvasInfo, ColumnSample,
     all::*,
     block::block_from_structure,
     column::ColumnGen,
     layer::cave::tunnel_bounds_at,
-    util::{gen_cache::StructureGenCache, RandomPerm, Sampler, UnitChooser},
-    Canvas, CanvasInfo, ColumnSample,
+    util::{RandomPerm, Sampler, UnitChooser, gen_cache::StructureGenCache},
 };
 use common::{
     assets::AssetHandle,
     calendar::{Calendar, CalendarEvent},
     terrain::{
-        structure::{Structure, StructureBlock, StructuresGroup},
         Block, BlockKind, SpriteKind,
+        structure::{Structure, StructureBlock, StructuresGroup},
     },
     vol::ReadVol,
 };
@@ -45,7 +45,7 @@ pub fn tree_valid_at(
         || col.spawn_rate < 0.9
         || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
         || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
-        || info.map_or(false, |info| {
+        || info.is_some_and(|info| {
             tunnel_bounds_at(wpos, &info, &info.land())
                 .any(|(_, z_range, _, _, _, _)| z_range.contains(&(col.alt as i32 - 2)))
         })
@@ -649,7 +649,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.3,
             proportionality: 1.0,
             inhabited: false,
-            hanging_sprites: if calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas)) {
+            hanging_sprites: if calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas)) {
                 &[(0.0001, SpriteKind::Beehive), (0.01, SpriteKind::Orb)]
             } else {
                 &[(0.0001, SpriteKind::Beehive)]

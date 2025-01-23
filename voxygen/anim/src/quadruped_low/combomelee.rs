@@ -1,6 +1,6 @@
 use super::{
-    super::{vek::*, Animation},
-    quadruped_low_alpha, quadruped_low_beta, QuadrupedLowSkeleton, SkeletonAttr,
+    super::{Animation, vek::*},
+    QuadrupedLowSkeleton, SkeletonAttr, quadruped_low_alpha, quadruped_low_beta,
 };
 use common::states::utils::StageSection;
 

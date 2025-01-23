@@ -1,8 +1,8 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents, fluid_dynamics::angle_of_attack, inventory::slot::EquipSlot,
-        CharacterState, Ori, StateUpdate, Vel,
+        CharacterState, Ori, StateUpdate, Vel, character_state::OutputEvents,
+        fluid_dynamics::angle_of_attack, inventory::slot::EquipSlot,
     },
     event::LocalEvent,
     outcome::Outcome,

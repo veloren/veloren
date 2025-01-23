@@ -3,18 +3,18 @@ use {crate::LIB, std::ffi::CStr};
 
 use super::*;
 use crate::{
+    CanvasInfo, ColumnSample,
     block::block_from_structure,
     column::ColInfo,
     site2::util::Dir,
     util::{RandomField, Sampler},
-    CanvasInfo, ColumnSample,
 };
 use common::{
     generation::EntityInfo,
     store::{Id, Store},
     terrain::{
-        structure::{Structure as PrefabStructure, StructureBlock},
         Block, BlockKind, SpriteCfg,
+        structure::{Structure as PrefabStructure, StructureBlock},
     },
     vol::ReadVol,
 };
@@ -1509,7 +1509,7 @@ pub trait PrimitiveTransform {
     fn repeat(self, offset: Vec3<i32>, count: u32) -> Self;
 }
 
-impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
+impl PrimitiveTransform for PrimitiveRef<'_> {
     fn translate(self, trans: Vec3<i32>) -> Self {
         self.painter.prim(Primitive::translate(self, trans))
     }
@@ -1532,7 +1532,7 @@ impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
     }
 }
 
-impl<'a, const N: usize> PrimitiveTransform for [PrimitiveRef<'a>; N] {
+impl<const N: usize> PrimitiveTransform for [PrimitiveRef<'_>; N] {
     fn translate(mut self, trans: Vec3<i32>) -> Self {
         for prim in &mut self {
             *prim = prim.translate(trans);

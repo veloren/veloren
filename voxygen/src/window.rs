@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     game_input::GameInput,
     render::Renderer,
-    settings::{gamepad::con_settings::LayerEntry, ControlSettings, Settings},
+    settings::{ControlSettings, Settings, gamepad::con_settings::LayerEntry},
     ui,
 };
 use common_base::span;

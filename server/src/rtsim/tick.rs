@@ -3,6 +3,7 @@
 use super::*;
 use crate::sys::terrain::SpawnEntityData;
 use common::{
+    LoadoutBuilder,
     calendar::Calendar,
     comp::{self, Body, Presence, PresenceKind},
     event::{CreateNpcEvent, CreateShipEvent, DeleteEvent, EventBus, NpcBuilder},
@@ -13,12 +14,11 @@ use common::{
     terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
     util::Dir,
-    LoadoutBuilder,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rtsim::data::{
-    npc::{Profession, SimulationMode},
     Npc, Sites,
+    npc::{Profession, SimulationMode},
 };
 use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
@@ -311,7 +311,7 @@ impl<'a> System<'a> for Sys {
         // Perform a save if required
         if rtsim
             .last_saved
-            .map_or(true, |ls| ls.elapsed() > Duration::from_secs(60))
+            .is_none_or(|ls| ls.elapsed() > Duration::from_secs(60))
         {
             // TODO: Use slow jobs
             let _ = slow_jobs;
@@ -367,7 +367,7 @@ impl<'a> System<'a> for Sys {
             let chunk = mount_npc.wpos.xy().as_::<i32>().wpos_to_cpos();
 
             if matches!(mount_npc.mode, SimulationMode::Simulated)
-                && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
+                && chunk_states.0.get(chunk).is_some_and(|c| c.is_some())
             {
                 mount_npc.mode = SimulationMode::Loaded;
 
@@ -422,7 +422,7 @@ impl<'a> System<'a> for Sys {
             // Load the NPC into the world if it's in a loaded chunk and is not already
             // loaded
             if matches!(npc.mode, SimulationMode::Simulated)
-                && chunk_states.0.get(chunk).map_or(false, |c| c.is_some())
+                && chunk_states.0.get(chunk).is_some_and(|c| c.is_some())
                 // Riding npcs will be spawned by the vehicle.
                 && data.npcs.mounts.get_mount_link(npc_id).is_none()
             {

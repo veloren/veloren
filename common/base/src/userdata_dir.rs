@@ -14,7 +14,6 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 /// "system" => system specific project data directory
 /// "executable" => <executable dir>/userdata
 /// Note: case insensitive
-
 /// Determines common user data directory used by veloren frontends
 /// The first specified in this list is used
 ///   1. The VELOREN_USERDATA environment variable

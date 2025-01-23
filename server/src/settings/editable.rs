@@ -1,6 +1,6 @@
 use atomicwrites::{AtomicFile, Error as AtomicError, OverwriteBehavior};
 use core::{convert::TryInto, fmt};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::{
     fs,
     io::{Seek, Write},

@@ -7,21 +7,21 @@ use self::{
 };
 use super::SpawnRules;
 use crate::{
+    IndexRef,
     column::ColumnSample,
     sim::WorldSim,
     site::namegen::NameGen,
     util::{RandomField, Sampler, StructureGen2d},
-    IndexRef,
 };
 use common::{
     astar::Astar,
     calendar::Calendar,
     comp::{
-        self, agent, bird_medium,
+        self, Item, agent, bird_medium,
         inventory::{
             loadout_builder::LoadoutBuilder, slot::ArmorSlot, trade_pricing::TradePricing,
         },
-        quadruped_small, Item,
+        quadruped_small,
     },
     generation::{ChunkSupplement, EntityInfo},
     path::Path,

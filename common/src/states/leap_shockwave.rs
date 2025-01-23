@@ -1,11 +1,12 @@
 use crate::{
+    Explosion, KnockbackDir, RadiusEffect,
     combat::{
         self, Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage,
         DamageKind, DamageSource, GroupTarget, Knockback,
     },
     comp::{
-        ability::Dodgeable, character_state::OutputEvents, item::Reagent, shockwave,
-        CharacterState, StateUpdate,
+        CharacterState, StateUpdate, ability::Dodgeable, character_state::OutputEvents,
+        item::Reagent, shockwave,
     },
     event::{ExplosionEvent, LocalEvent, ShockwaveEvent},
     outcome::Outcome,
@@ -13,7 +14,6 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
     },
-    Explosion, KnockbackDir, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

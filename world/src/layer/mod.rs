@@ -12,11 +12,11 @@ pub use self::{
 };
 
 use crate::{
+    Canvas, CanvasInfo, IndexRef,
     column::ColumnSample,
     config::CONFIG,
     sim,
     util::{FastNoise, RandomField, RandomPerm, Sampler},
-    Canvas, CanvasInfo, IndexRef,
 };
 use common::{
     assets::AssetExt,

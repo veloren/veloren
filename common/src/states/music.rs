@@ -1,5 +1,5 @@
 use crate::{
-    comp::{character_state::OutputEvents, controller::InputKind, CharacterState, StateUpdate},
+    comp::{CharacterState, StateUpdate, character_state::OutputEvents, controller::InputKind},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,

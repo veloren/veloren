@@ -8,7 +8,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_state::BlockChange;
 use hashbrown::HashMap;
 use specs::{
-    shred, Entities, Entity, Join, LendJoin, Read, ReadStorage, SystemData, Write, WriteStorage,
+    Entities, Entity, Join, LendJoin, Read, ReadStorage, SystemData, Write, WriteStorage, shred,
 };
 
 #[derive(SystemData)]

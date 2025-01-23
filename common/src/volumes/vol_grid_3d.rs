@@ -2,7 +2,7 @@ use crate::{
     vol::{BaseVol, RasterableVol, ReadVol, SampleVol, WriteVol},
     volumes::dyna::DynaError,
 };
-use hashbrown::{hash_map, HashMap};
+use hashbrown::{HashMap, hash_map};
 use std::{fmt::Debug, sync::Arc};
 use vek::*;
 

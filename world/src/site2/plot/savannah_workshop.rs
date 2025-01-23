@@ -1,11 +1,11 @@
 use super::*;
 use crate::{
-    util::{RandomField, Sampler, CARDINALS, DIAGONALS},
     Land,
+    util::{CARDINALS, DIAGONALS, RandomField, Sampler},
 };
 use common::{
     generation::SpecialEntity,
-    terrain::{sprite::Owned, BlockKind, SpriteKind},
+    terrain::{BlockKind, SpriteKind, sprite::Owned},
 };
 use rand::prelude::*;
 use std::{f32::consts::TAU, sync::Arc};

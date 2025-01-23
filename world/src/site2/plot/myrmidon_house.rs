@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::place_circular,
-    util::{RandomField, Sampler, CARDINALS, NEIGHBORS},
     Land,
+    site2::gen::place_circular,
+    util::{CARDINALS, NEIGHBORS, RandomField, Sampler},
 };
 use common::generation::EntityInfo;
 use rand::prelude::*;

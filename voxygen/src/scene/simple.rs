@@ -1,25 +1,25 @@
 use crate::{
+    Settings,
     render::{
-        create_skybox_mesh, pipelines::terrain::BoundLocals as BoundTerrainLocals, AltIndices,
-        Consts, FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, Model,
+        AltIndices, Consts, FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, Model,
         PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
-        SpriteGlobalsBindGroup,
+        SpriteGlobalsBindGroup, create_skybox_mesh,
+        pipelines::terrain::BoundLocals as BoundTerrainLocals,
     },
     scene::{
+        CloudsLocals, CullingMode, Lod, PostProcessLocals,
         camera::{self, Camera, CameraMode},
         figure::{FigureAtlas, FigureModelCache, FigureState, FigureUpdateCommonParameters},
         terrain::{SpriteRenderContext, SpriteRenderState},
-        CloudsLocals, CullingMode, Lod, PostProcessLocals,
     },
     window::{Event, PressState},
-    Settings,
 };
-use anim::{character::CharacterSkeleton, ship::ShipSkeleton, Animation};
+use anim::{Animation, character::CharacterSkeleton, ship::ShipSkeleton};
 use client::Client;
 use common::{
     comp::{
         humanoid,
-        inventory::{slot::EquipSlot, Inventory},
+        inventory::{Inventory, slot::EquipSlot},
         item::ItemKind,
         ship,
     },

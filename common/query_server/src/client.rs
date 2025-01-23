@@ -9,8 +9,8 @@ use tokio::{net::UdpSocket, time::timeout};
 use tracing::trace;
 
 use crate::proto::{
-    QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
-    ServerInfo, MAX_RESPONSE_SIZE,
+    MAX_RESPONSE_SIZE, QueryServerRequest, QueryServerResponse, RawQueryServerRequest,
+    RawQueryServerResponse, ServerInfo,
 };
 
 // This must be at least 2 for the client to get a value for the `p` field.

@@ -10,13 +10,13 @@
 //! [`AudioSettings`](../../settings/struct.AudioSettings.html)
 
 use kira::{
+    StartTime, Volume,
     effect::filter::{FilterBuilder, FilterHandle},
     manager::AudioManager,
     sound::PlaybackState,
     spatial::emitter::EmitterHandle,
     track::{TrackBuilder, TrackHandle, TrackId, TrackRoutes},
     tween::{Easing, Tween, Value},
-    StartTime, Volume,
 };
 use serde::Deserialize;
 use std::time::Duration;
@@ -172,7 +172,7 @@ impl MusicChannel {
     pub fn is_done(&self) -> bool {
         self.source
             .as_ref()
-            .map_or(true, |source| source.state() == PlaybackState::Stopped)
+            .is_none_or(|source| source.state() == PlaybackState::Stopped)
     }
 
     pub fn get_tag(&self) -> MusicChannelTag { self.tag }
@@ -355,7 +355,7 @@ impl SfxChannel {
     pub fn is_done(&self) -> bool {
         self.source
             .as_ref()
-            .map_or(true, |source| source.state() == PlaybackState::Stopped)
+            .is_none_or(|source| source.state() == PlaybackState::Stopped)
     }
 
     pub fn update(&mut self, pos: Vec3<f32>) {
@@ -419,6 +419,6 @@ impl UiChannel {
     pub fn is_done(&self) -> bool {
         self.source
             .as_ref()
-            .map_or(true, |source| source.state() == PlaybackState::Stopped)
+            .is_none_or(|source| source.state() == PlaybackState::Stopped)
     }
 }

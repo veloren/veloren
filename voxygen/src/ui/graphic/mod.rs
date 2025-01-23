@@ -9,8 +9,8 @@ use crate::{
 };
 use common::{figure::Segment, slowjob::SlowJobPool};
 use common_base::prof_span;
-use guillotiere::{size2, SimpleAtlasAllocator};
-use hashbrown::{hash_map::Entry, HashMap};
+use guillotiere::{SimpleAtlasAllocator, size2};
+use hashbrown::{HashMap, hash_map::Entry};
 use image::{DynamicImage, RgbaImage};
 use slab::Slab;
 use std::{borrow::Cow, hash::Hash, sync::Arc};

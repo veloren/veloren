@@ -447,7 +447,7 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
     }
 }
 
-impl<'a, V, S: VolSize, M> IntoPosIterator for &'a Chunk<V, S, M> {
+impl<V, S: VolSize, M> IntoPosIterator for &Chunk<V, S, M> {
     type IntoIter = ChunkPosIter<V, S, M>;
 
     fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {

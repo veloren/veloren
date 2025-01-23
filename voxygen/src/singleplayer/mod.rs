@@ -1,13 +1,13 @@
 use common::clock::Clock;
-use crossbeam_channel::{bounded, unbounded, Receiver, Sender, TryRecvError};
+use crossbeam_channel::{Receiver, Sender, TryRecvError, bounded, unbounded};
 use server::{
-    persistence::{DatabaseSettings, SqlLogMode},
     Error as ServerError, Event, Input, Server, ServerInitStage,
+    persistence::{DatabaseSettings, SqlLogMode},
 };
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     thread::{self, JoinHandle},
     time::Duration,

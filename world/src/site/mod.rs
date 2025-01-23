@@ -12,7 +12,7 @@ pub use self::{
 
 pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta, SiteKindMeta};
 
-use crate::{column::ColumnSample, site2, Canvas};
+use crate::{Canvas, column::ColumnSample, site2};
 use common::{calendar::Calendar, generation::ChunkSupplement, resources::TimeOfDay};
 use rand::Rng;
 use serde::Deserialize;

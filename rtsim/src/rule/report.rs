@@ -1,7 +1,7 @@
 use crate::{
-    data::{report::ReportKind, Report},
-    event::{EventCtx, OnDeath, OnTheft},
     RtState, Rule, RuleError,
+    data::{Report, report::ReportKind},
+    event::{EventCtx, OnDeath, OnTheft},
 };
 use common::rtsim::NpcInput;
 

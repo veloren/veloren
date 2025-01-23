@@ -1,17 +1,17 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
+    GlobalState,
     game_input::GameInput,
-    hud::{img_ids::Imgs, ERROR_COLOR, TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR},
+    hud::{ERROR_COLOR, TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR, img_ids::Imgs},
     session::settings_change::{Control as ControlChange, Control::*},
     ui::fonts::Fonts,
-    GlobalState,
 };
 use conrod_core::{
-    color,
+    Borderable, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::Relative,
     widget::{self, Button, Rectangle, Scrollbar, Text},
-    widget_ids, Borderable, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use strum::IntoEnumIterator;
@@ -59,7 +59,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Controls<'a> {
+impl Widget for Controls<'_> {
     type Event = Vec<ControlChange>;
     type State = State;
     type Style = ();

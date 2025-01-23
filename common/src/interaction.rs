@@ -3,8 +3,8 @@ use std::time::Duration;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{
-    storage::GenericWriteStorage, Component, DerefFlaggedStorage, Entities, Read, ReadStorage,
-    WriteStorage,
+    Component, DerefFlaggedStorage, Entities, Read, ReadStorage, WriteStorage,
+    storage::GenericWriteStorage,
 };
 
 use crate::{
@@ -66,7 +66,7 @@ pub enum InteractionError {
 pub fn can_help_downed(pos: Pos, target_pos: Pos, target_health: Option<&Health>) -> bool {
     let within_distance = pos.0.distance_squared(target_pos.0) <= MAX_INTERACT_RANGE.powi(2);
     let consumed_death_protection =
-        target_health.map_or(false, |health| health.has_consumed_death_protection());
+        target_health.is_some_and(|health| health.has_consumed_death_protection());
 
     within_distance && consumed_death_protection
 }
@@ -127,7 +127,7 @@ impl Link for Interaction {
             if !is_interactors.contains(interactor)
                 && character_states
                     .get(interactor)
-                    .map_or(true, |state| state.can_interact())
+                    .is_none_or(|state| state.can_interact())
                 && let Some(pos) = positions.get(interactor)
                 && let Some(target_pos) = positions.get(target)
                 && match this.kind {
@@ -192,7 +192,7 @@ impl Link for Interaction {
     ) -> bool {
         let entity = |uid: Uid| id_maps.uid_entity(uid);
         let is_alive =
-            |entity| entities.is_alive(entity) && healths.get(entity).map_or(true, |h| !h.is_dead);
+            |entity| entities.is_alive(entity) && healths.get(entity).is_none_or(|h| !h.is_dead);
 
         if let Some(interactor) = entity(this.interactor)
             && let Some(target) = entity(this.target)

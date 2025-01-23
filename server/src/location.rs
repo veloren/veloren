@@ -26,7 +26,7 @@ impl<'a> From<LocationError<'a>> for Content {
     }
 }
 
-impl<'a> fmt::Display for LocationError<'a> {
+impl fmt::Display for LocationError<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::InvalidName(name) => write!(

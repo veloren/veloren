@@ -145,8 +145,7 @@ pub(super) fn targets_under_cursor(
             let dist_sqr = pos.distance_squared(cam_pos);
             // We only care about interacting with entities that contain items,
             // or are not inanimate (to trade with), and are not riding the player.
-            let not_riding_player = is_rider
-                .map_or(true, |is_rider| Some(&is_rider.mount) != uids.get(viewpoint_entity));
+            let not_riding_player = is_rider.is_none_or(|is_rider| Some(&is_rider.mount) != uids.get(viewpoint_entity));
             if (i.is_some() || !matches!(b, comp::Body::Object(_))) && not_riding_player {
                 Some((e, pos, radius, dist_sqr))
             } else {
@@ -278,7 +277,7 @@ pub(super) fn ray_entities(
     let entity = nearby.iter().find_map(|(e, p, r, _, c)| {
         let nearest = seg_ray.projected_point(*p);
 
-        return match c {
+        match c {
             comp::Collider::CapsulePrism {
                 p0,
                 p1,
@@ -341,7 +340,7 @@ pub(super) fn ray_entities(
                 }
                 None
             },
-        };
+        }
     });
     entity
         .map(|(dist, e)| (dist, Some(e)))

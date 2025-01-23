@@ -1,5 +1,5 @@
 use iced::{
-    layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget,
+    Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget, layout,
 };
 use std::hash::Hash;
 
@@ -72,7 +72,7 @@ where
     }
 }
 
-impl<'a, M, R> Widget<M, R> for AspectRatioContainer<'a, M, R>
+impl<M, R> Widget<M, R> for AspectRatioContainer<'_, M, R>
 where
     R: Renderer,
 {

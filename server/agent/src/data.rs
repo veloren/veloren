@@ -1,21 +1,21 @@
 use crate::util::*;
 use common::{
     comp::{
-        ability::{Amount, CharacterAbility, BASE_ABILITY_LIMIT},
+        ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
+        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, Scale, SkillSet, Stance,
+        Stats, Vel,
+        ability::{Amount, BASE_ABILITY_LIMIT, CharacterAbility},
         body::parts::Heads,
         buff::{BuffKind, Buffs},
         character_state::AttackFilters,
         group,
         inventory::{
             item::{
-                tool::{AbilityMap, ToolKind},
                 ItemKind, MaterialStatManifest,
+                tool::{AbilityMap, ToolKind},
             },
             slot::EquipSlot,
         },
-        ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy, Health, Inventory,
-        LightEmitter, LootOwner, Ori, PhysicsState, Poise, Pos, Presence, Scale, SkillSet, Stance,
-        Stats, Vel,
     },
     consts::GRAVITY,
     event, event_emitters,
@@ -30,7 +30,7 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_base::dev_panic;
-use specs::{shred, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData};
+use specs::{Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData, shred};
 
 event_emitters! {
     pub struct AgentEvents[AgentEmitters] {
@@ -438,7 +438,7 @@ pub struct ReadData<'a> {
     pub ability_map: ReadExpect<'a, AbilityMap>,
 }
 
-impl<'a> ReadData<'a> {
+impl ReadData<'_> {
     pub fn lookup_actor(&self, actor: Actor) -> Option<EcsEntity> {
         match actor {
             Actor::Character(character_id) => self.id_maps.character_entity(character_id),
@@ -805,13 +805,13 @@ impl AbilityData {
             };
             agent_data
                 .combo
-                .map_or(false, |c| c.counter() >= combo + additional_combo)
+                .is_some_and(|c| c.counter() >= combo + additional_combo)
         };
         let attack_kind_check = |attacks: AttackFilters| {
             tgt_data
                 .char_state
                 .and_then(|cs| cs.attack_kind())
-                .map_or(false, |ak| attacks.applies(ak))
+                .is_some_and(|ak| attacks.applies(ak))
         };
         let ranged_check = |proj_speed| {
             let max_horiz_dist: f32 = {
@@ -870,9 +870,7 @@ impl AbilityData {
             } => {
                 energy_check(*energy)
                     && combo_check(*combo, *combo_scales)
-                    && agent_data
-                        .buffs
-                        .map_or(false, |buffs| !buffs.contains(*buff))
+                    && agent_data.buffs.is_some_and(|buffs| !buffs.contains(*buff))
             },
             DiveMelee {
                 range,
@@ -929,7 +927,7 @@ impl AbilityData {
             } => {
                 melee_check(*range, *angle, None)
                     && energy_check(*energy)
-                    && tgt_data.char_state.map_or(false, |cs| {
+                    && tgt_data.char_state.is_some_and(|cs| {
                         cs.is_melee_attack()
                             && matches!(
                                 cs.stage_section(),
@@ -952,7 +950,7 @@ impl AbilityData {
                     && tgt_data
                         .char_state
                         .and_then(|cs| cs.stage_section())
-                        .map_or(false, |ss| !matches!(ss, StageSection::Recover))
+                        .is_some_and(|ss| !matches!(ss, StageSection::Recover))
             },
             BasicRanged {
                 energy,

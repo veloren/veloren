@@ -16,7 +16,7 @@ impl RecipeBook {
         &'a self,
         recipe_key: &str,
         rbm: &'a RecipeBookManifest,
-    ) -> Option<&Recipe> {
+    ) -> Option<&'a Recipe> {
         if self.recipes.iter().any(|r| r == recipe_key) {
             rbm.get(recipe_key)
         } else {
@@ -35,7 +35,7 @@ impl RecipeBook {
     pub(super) fn get_available_iter<'a>(
         &'a self,
         rbm: &'a RecipeBookManifest,
-    ) -> impl Iterator<Item = (&String, &Recipe)> + '_ {
+    ) -> impl Iterator<Item = (&'a String, &'a Recipe)> + 'a {
         self.recipes
             .iter()
             .filter_map(|recipe: &String| rbm.get(recipe).map(|rbm_recipe| (recipe, rbm_recipe)))

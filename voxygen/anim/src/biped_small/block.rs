@@ -1,6 +1,6 @@
 use super::{
-    super::{vek::*, Animation},
-    biped_small_wield_sword, init_biped_small_alpha, BipedSmallSkeleton, SkeletonAttr,
+    super::{Animation, vek::*},
+    BipedSmallSkeleton, SkeletonAttr, biped_small_wield_sword, init_biped_small_alpha,
 };
 use common::states::utils::StageSection;
 

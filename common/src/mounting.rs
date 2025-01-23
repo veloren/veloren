@@ -9,8 +9,8 @@ use crate::{
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{
-    storage::GenericWriteStorage, Component, Entities, Entity, FlaggedStorage, Read, ReadExpect,
-    ReadStorage, Write, WriteStorage,
+    Component, Entities, Entity, FlaggedStorage, Read, ReadExpect, ReadStorage, Write,
+    WriteStorage, storage::GenericWriteStorage,
 };
 use vek::*;
 
@@ -131,15 +131,14 @@ impl Link for Mounting {
 
             let is_in_ridable_state = character_states
                 .get(mount)
-                .map_or(false, |cs| !matches!(cs, comp::CharacterState::Roll(_)));
+                .is_some_and(|cs| !matches!(cs, comp::CharacterState::Roll(_)));
 
             // Ensure that both entities are alive and that they continue to be linked
             is_alive_and_well(mount)
                 && is_alive_and_well(rider)
                 && is_mounts.get(mount).is_some()
                 && is_riders.get(rider).is_some()
-                && bodies.get(mount).zip(masses.get(mount)).map_or(
-                    false,
+                && bodies.get(mount).zip(masses.get(mount)).is_some_and(
                     |(mount_body, mount_mass)| {
                         is_mountable(mount_body, mount_mass, bodies.get(rider), masses.get(rider))
                     },
@@ -452,15 +451,14 @@ impl Link for VolumeMounting {
             },
         };
 
-        let rider_exists = entity(this.rider).map_or(false, |rider| {
-            is_volume_riders.contains(rider) && is_alive_and_well(rider)
-        });
+        let rider_exists = entity(this.rider)
+            .is_some_and(|rider| is_volume_riders.contains(rider) && is_alive_and_well(rider));
         let mount_spot_exists = riders.riders.contains_key(&this.pos.pos);
 
         let block_exists = this
             .pos
             .get_block(terrain_grid, id_maps, colliders)
-            .map_or(false, |block| block == this.block);
+            .is_some_and(|block| block == this.block);
 
         rider_exists && mount_spot_exists && block_exists
     }

@@ -5,7 +5,7 @@ pub mod run;
 // Reexports
 pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::comp;
 use core::convert::TryFrom;
 

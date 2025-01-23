@@ -3,8 +3,9 @@ use std::{cmp::Ordering, collections::VecDeque};
 use crate::{settings::Settings, ui::fonts::Fonts};
 use client::Client;
 use conrod_core::{
+    Colorable, Positionable, UiCell, Widget, WidgetCommon,
     widget::{self, Id, Rectangle, Text},
-    widget_ids, Colorable, Positionable, UiCell, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
@@ -148,7 +149,7 @@ impl SubtitleList {
                 .max_by(|(_, a), (_, b)| a.compare_priority(b, listener_pos))
             {
                 // We only display subtitles that are in range.
-                if s.position.map_or(true, |pos| {
+                if s.position.is_none_or(|pos| {
                     pos.distance_squared(listener_pos) < MAX_SUBTITLE_DIST * MAX_SUBTITLE_DIST
                 }) {
                     to_display += 1;
@@ -170,7 +171,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Subtitles<'a> {
+impl Widget for Subtitles<'_> {
     type Event = ();
     type State = State;
     type Style = ();
@@ -295,7 +296,7 @@ impl<'a> Widget for Subtitles<'a> {
                     .filter_map(|(localization, data)| {
                         let data = data.last()?;
                         data.position
-                            .map_or(true, |pos| {
+                            .is_none_or(|pos| {
                                 pos.distance_squared(listener_pos)
                                     < MAX_SUBTITLE_DIST * MAX_SUBTITLE_DIST
                             })

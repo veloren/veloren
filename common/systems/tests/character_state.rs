@@ -1,23 +1,23 @@
 #[cfg(test)]
 mod tests {
     use common::{
+        SkillSetBuilder,
         comp::{
-            item::MaterialStatManifest, tool::AbilityMap, CharacterActivity, CharacterState,
-            Controller, Energy, Ori, PhysicsState, Poise, Pos, Stats, Vel,
+            CharacterActivity, CharacterState, Controller, Energy, Ori, PhysicsState, Poise, Pos,
+            Stats, Vel, item::MaterialStatManifest, tool::AbilityMap,
         },
         resources::{DeltaTime, GameMode, Time},
         shared_server_config::ServerConstants,
         terrain::{MapSizeLg, TerrainChunk},
         uid::Uid,
         util::Dir,
-        SkillSetBuilder,
     };
     use common_ecs::dispatch;
     use common_state::State;
     use rand::thread_rng;
     use specs::{Builder, Entity, WorldExt};
     use std::{sync::Arc, time::Duration};
-    use vek::{approx::AbsDiffEq, Vec2, Vec3};
+    use vek::{Vec2, Vec3, approx::AbsDiffEq};
     use veloren_common_systems::character_behavior;
 
     const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =

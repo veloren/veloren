@@ -1,9 +1,9 @@
-use crate::persistence::{character_updater::CharacterUpdater, PersistedComponents};
+use crate::persistence::{PersistedComponents, character_updater::CharacterUpdater};
 use common::{
     character::CharacterId,
     comp::{
-        inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats,
-        Waypoint, BASE_ABILITY_LIMIT,
+        BASE_ABILITY_LIMIT, Body, Inventory, Item, SkillSet, Stats, Waypoint,
+        inventory::loadout_builder::LoadoutBuilder,
     },
 };
 use specs::{Entity, WriteExpect};

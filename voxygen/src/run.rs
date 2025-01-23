@@ -1,9 +1,9 @@
 use crate::{
+    Direction, GlobalState, PlayState, PlayStateResult,
     menu::main::MainMenuState,
     settings::get_fps,
     ui,
     window::{Event, EventLoop},
-    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use common_base::{prof_span, span};
 use std::{mem, time::Duration};
@@ -33,8 +33,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
 
         #[cfg(feature = "egui-ui")]
         {
-            let enabled_for_current_state =
-                states.last().map_or(false, |state| state.egui_enabled());
+            let enabled_for_current_state = states.last().is_some_and(|state| state.egui_enabled());
 
             // Only send events to the egui UI when it is being displayed.
             if enabled_for_current_state && global_state.settings.interface.egui_enabled() {

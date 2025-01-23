@@ -2,7 +2,7 @@ use crate::{comp::Alignment, uid::Uid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use slab::Slab;
-use specs::{storage::GenericReadStorage, Component, DerefFlaggedStorage, Join, LendJoin};
+use specs::{Component, DerefFlaggedStorage, Join, LendJoin, storage::GenericReadStorage};
 use std::iter;
 use tracing::{error, warn};
 
@@ -305,7 +305,7 @@ impl GroupManager {
         notifier: &mut impl FnMut(specs::Entity, ChangeNotification<specs::Entity>),
     ) {
         // Pets can't leave
-        if matches!(alignments.get(member), Some(Alignment::Owned(uid)) if uids.get(member).map_or(true, |u| u != uid))
+        if matches!(alignments.get(member), Some(Alignment::Owned(uid)) if uids.get(member) != Some(uid))
         {
             return;
         }
@@ -469,7 +469,7 @@ impl GroupManager {
             // is now only one member left.
             if let Some(info) = self.group_info_mut(group) {
                 // If not pet, decrement number of members
-                if !matches!(alignments.get(member), Some(Alignment::Owned(owner)) if uids.get(member).map_or(true, |uid| uid != owner))
+                if !matches!(alignments.get(member), Some(Alignment::Owned(owner)) if uids.get(member) != Some(owner))
                 {
                     if info.num_members > 0 {
                         info.num_members -= 1;

@@ -2,9 +2,9 @@
 
 use super::{super::skeleton::*, Archetype};
 use crate::{
+    IndexRef,
     site::BlockMask,
     util::{RandomField, Sampler},
-    IndexRef,
 };
 use common::{
     calendar::{Calendar, CalendarEvent},

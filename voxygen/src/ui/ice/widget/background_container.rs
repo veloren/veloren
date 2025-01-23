@@ -1,5 +1,5 @@
 use iced::{
-    layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget,
+    Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget, layout,
 };
 use std::hash::Hash;
 
@@ -135,7 +135,7 @@ where
     }
 }
 
-impl<'a, M, R, B> Widget<M, R> for BackgroundContainer<'a, M, R, B>
+impl<M, R, B> Widget<M, R> for BackgroundContainer<'_, M, R, B>
 where
     R: Renderer,
     B: Background<R>,

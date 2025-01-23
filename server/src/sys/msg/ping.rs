@@ -1,4 +1,4 @@
-use crate::{client::Client, Settings};
+use crate::{Settings, client::Client};
 use common::{
     event::{ClientDisconnectEvent, EventBus},
     resources::ProgramTime,

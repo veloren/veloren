@@ -109,7 +109,7 @@ impl IdMaps {
         ) -> Option<Entity> {
             if let Some(id) = id {
                 if let Some(e) = mapping.remove(&id) {
-                    if expected.map_or(false, |expected| e != expected) {
+                    if expected.is_some_and(|expected| e != expected) {
                         unexpected_entity::<ID>();
                     }
                     Some(e)

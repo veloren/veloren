@@ -1,6 +1,6 @@
 use common_net::msg::{ClientType, ServerGeneral, ServerMsg};
 use network::{ConnectAddr, Message, Participant, Stream, StreamError, StreamParams};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use specs::Component;
 use std::{net::SocketAddr, sync::atomic::AtomicBool};
 

@@ -1,13 +1,13 @@
 use crate::{
+    Tick,
     chunk_serialize::{ChunkSendEntry, SerializedChunk},
     client::Client,
     metrics::NetworkRequestMetrics,
-    Tick,
 };
 use common::{comp::Presence, event::EventBus, slowjob::SlowJobPool, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
-use hashbrown::{hash_map::Entry, HashMap};
+use hashbrown::{HashMap, hash_map::Entry};
 use network::StreamParams;
 use specs::{Entity, Read, ReadExpect, ReadStorage};
 use std::sync::Arc;

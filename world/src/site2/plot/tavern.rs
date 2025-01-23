@@ -9,15 +9,15 @@ use common::{
 use enum_map::EnumMap;
 use enumset::EnumSet;
 use hashbrown::HashSet;
-use rand::{seq::IteratorRandom, Rng};
+use rand::{Rng, seq::IteratorRandom};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
 use crate::{
-    site::namegen,
-    site2::{gen::PrimitiveTransform, Dir, Fill, Site, Structure},
-    util::RandomField,
     IndexRef, Land,
+    site::namegen,
+    site2::{Dir, Fill, Site, Structure, gen::PrimitiveTransform},
+    util::RandomField,
 };
 
 type Neighbor = Option<Id<Room>>;
@@ -1339,7 +1339,7 @@ impl Structure for Tavern {
                             let pos = dir
                                 .select_aabr_with(*aabr, aabr.center())
                                 .with_z(room.bounds.center().z + 1);
-                            if hanger_pos.map_or(false, |p| p.xy() != pos.xy()) {
+                            if hanger_pos.is_some_and(|p| p.xy() != pos.xy()) {
                                 painter.rotated_sprite(
                                     pos,
                                     SpriteKind::WallLampSmall,

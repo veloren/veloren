@@ -2,8 +2,8 @@ use crate::{
     assets::{self, AssetCombined, Concatenate},
     combat::GroupTarget,
     comp::{
-        self, aura::AuraKindVariant, buff::BuffKind, inventory::item::try_all_item_defs,
-        AdminRole as Role, Skill,
+        self, AdminRole as Role, Skill, aura::AuraKindVariant, buff::BuffKind,
+        inventory::item::try_all_item_defs,
     },
     generation::try_all_entity_configs,
     npc, outcome,

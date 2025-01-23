@@ -8,19 +8,19 @@ use bytes::Bytes;
 use futures_util::{FutureExt, StreamExt};
 use hashbrown::HashMap;
 use network_protocol::{
-    Bandwidth, Cid, Pid, Prio, Promises, ProtocolEvent, RecvProtocol, SendProtocol, Sid,
-    _internal::SortedVec,
+    _internal::SortedVec, Bandwidth, Cid, Pid, Prio, Promises, ProtocolEvent, RecvProtocol,
+    SendProtocol, Sid,
 };
 use std::{
     sync::{
-        atomic::{AtomicBool, AtomicI32, Ordering},
         Arc,
+        atomic::{AtomicBool, AtomicI32, Ordering},
     },
     time::{Duration, Instant},
 };
 use tokio::{
     select,
-    sync::{mpsc, oneshot, watch, Mutex, RwLock},
+    sync::{Mutex, RwLock, mpsc, oneshot, watch},
     task::JoinHandle,
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;

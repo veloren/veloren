@@ -2,8 +2,8 @@ use super::{diffusion, downhill, uphill};
 use crate::{config::CONFIG, util::RandomField};
 use common::{
     terrain::{
-        neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx, MapSizeLg, TerrainChunkSize,
-        NEIGHBOR_DELTA,
+        MapSizeLg, NEIGHBOR_DELTA, TerrainChunkSize, neighbors, uniform_idx_as_vec2,
+        vec2_as_uniform_idx,
     },
     vol::RectVolSize,
 };
@@ -753,7 +753,7 @@ fn erode(
     let dx = TerrainChunkSize::RECT_SIZE.x as f64;
     let dy = TerrainChunkSize::RECT_SIZE.y as f64;
 
-    #[rustfmt::skip]
+    // ```ignore
     // ε₀ and α are part of the soil production approximate
     // equation:
     //
@@ -799,9 +799,11 @@ fn erode(
     // the normal height H_i, while their square adds up to the vertical displacement (h_i - b_i).
     // If h and b have different slopes, this may not work completely correctly, but this is
     // probably fine as an approximation.
+    // ```
 
-    // Spatio-temporal variation in net precipitation rate ((m / year) / (m / year))  (ratio of
-    // precipitation rate at chunk relative to mean precipitation rate p₀).
+    // Spatio-temporal variation in net precipitation rate ((m / year) / (m / year))
+    // (ratio of precipitation rate at chunk relative to mean precipitation rate
+    // p₀).
     let p = 1.0;
     // Dimensionless multiplier for stream power erosion constant when land becomes
     // sediment.
@@ -1151,7 +1153,7 @@ fn erode(
             "(Done sediment transport computation, time={:?}ms).",
             start_time.elapsed().as_millis()
         );
-        #[rustfmt::skip]
+        // ```ignore
         // do ij=nn,1,-1
         //   ijk=stack(ij)
         //   ijr=rec(ijk)
@@ -1170,6 +1172,7 @@ fn erode(
         //     lake_sediment(ijk)=dh(ijk)
         //   endif
         // enddo
+        // ```
 
         let start_time = Instant::now();
         (

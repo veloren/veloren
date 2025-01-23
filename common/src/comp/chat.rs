@@ -1,5 +1,5 @@
 use crate::{
-    comp::{group::Group, BuffKind},
+    comp::{BuffKind, group::Group},
     uid::Uid,
 };
 use common_i18n::Content;

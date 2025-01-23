@@ -1,8 +1,8 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents, controller::InputKind, item::ItemDefinitionIdOwned,
-        slot::InvSlotId, CharacterState, InventoryManip, StateUpdate,
+        CharacterState, InventoryManip, StateUpdate, character_state::OutputEvents,
+        controller::InputKind, item::ItemDefinitionIdOwned, slot::InvSlotId,
     },
     consts::MAX_INTERACT_RANGE,
     event::{HelpDownedEvent, InventoryManipEvent, LocalEvent, ToggleSpriteLightEvent},
@@ -111,7 +111,7 @@ impl CharacterBehavior for Data {
                     if self
                         .static_data
                         .use_duration
-                        .map_or(true, |use_duration| self.timer < use_duration)
+                        .is_none_or(|use_duration| self.timer < use_duration)
                     {
                         // sprite interaction
                         if let CharacterState::Interact(c) = &mut update.character {
@@ -146,9 +146,7 @@ impl CharacterBehavior for Data {
                                 let has_item = data
                                     .inventory
                                     .and_then(|inv| inv.get(slot))
-                                    .map_or(false, |item| {
-                                        item.item_definition_id() == *item_def_id
-                                    });
+                                    .is_some_and(|item| item.item_definition_id() == *item_def_id);
 
                                 (has_item, has_item.then_some((slot, consume)))
                             });

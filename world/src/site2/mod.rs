@@ -4,20 +4,20 @@ pub mod plot;
 mod tile;
 pub mod util;
 
-use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TILE_SIZE};
+use self::tile::{HazardKind, KeepKind, RoofKind, TILE_SIZE, Tile, TileGrid};
 pub use self::{
-    gen::{aabr_with_z, Fill, Painter, Primitive, PrimitiveRef, Structure},
+    gen::{Fill, Painter, Primitive, PrimitiveRef, Structure, aabr_with_z},
     genstat::{GenStatPlotKind, GenStatSiteKind, SitesGenMeta},
-    plot::{foreach_plot, Plot, PlotKind},
+    plot::{Plot, PlotKind, foreach_plot},
     tile::TileKind,
     util::Dir,
 };
 use crate::{
+    Canvas, IndexRef, Land,
     config::CONFIG,
     sim::Path,
-    site::{namegen::NameGen, SpawnRules},
-    util::{attempt, DHashSet, Grid, CARDINALS, SQUARE_4, SQUARE_9},
-    Canvas, IndexRef, Land,
+    site::{SpawnRules, namegen::NameGen},
+    util::{CARDINALS, DHashSet, Grid, SQUARE_4, SQUARE_9, attempt},
 };
 use common::{
     astar::Astar,
@@ -2704,7 +2704,7 @@ impl Site {
                         .map(|aabr| aabr.distance_to_point(wpos2df))
                         .min_by_key(|d| (*d * 100.0) as i32);
 
-                    if dist.map_or(false, |d| d <= 1.5) {
+                    if dist.is_some_and(|d| d <= 1.5) {
                         let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
                         let sub_surface_color = canvas
                             .col(wpos2d)
@@ -3025,7 +3025,7 @@ impl Site {
                                 .plot
                                 .and_then(|p| self.plots[p].z_range())
                                 .zip(self.plots[plot].z_range())
-                                .map_or(false, |(a, b)| a.end > b.end)
+                                .is_some_and(|(a, b)| a.end > b.end)
                             {
                                 continue;
                             }
@@ -3119,7 +3119,7 @@ pub fn test_site() -> Site {
 fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
     if land
         .get_chunk_wpos(wpos)
-        .map_or(true, |c| c.river.near_water())
+        .is_none_or(|c| c.river.near_water())
     {
         Some(HazardKind::Water)
     } else {

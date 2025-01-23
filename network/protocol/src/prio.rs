@@ -2,7 +2,7 @@ use crate::{
     frame::OTFrame,
     message::OTMessage,
     metrics::{ProtocolMetricCache, RemoveReason},
-    types::{Bandwidth, Mid, Prio, Promises, Sid, HIGHEST_PRIO},
+    types::{Bandwidth, HIGHEST_PRIO, Mid, Prio, Promises, Sid},
 };
 use bytes::Bytes;
 use std::{

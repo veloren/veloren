@@ -1,8 +1,7 @@
 use super::{
-    armor,
-    tool::{self, AbilityMap, AbilitySpec, Hands, Tool},
     DurabilityMultiplier, Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, Material, Quality,
-    ToolKind,
+    ToolKind, armor,
+    tool::{self, AbilityMap, AbilitySpec, Hands, Tool},
 };
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
@@ -11,7 +10,7 @@ use crate::{
 use common_base::dev_panic;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use rand::{prelude::SliceRandom, Rng};
+use rand::{Rng, prelude::SliceRandom};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, sync::Arc};
 

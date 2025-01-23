@@ -12,14 +12,14 @@ use prometheus::Registry;
 use rand::Rng;
 use std::{
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicBool, AtomicU64, Ordering},
     },
     time::Duration,
 };
 use tokio::{
     io,
-    sync::{mpsc, oneshot, Mutex},
+    sync::{Mutex, mpsc, oneshot},
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;

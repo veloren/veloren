@@ -1,10 +1,10 @@
 use super::Event;
 use crate::{
-    client::Client, metrics::PlayerMetrics, persistence::character_updater::CharacterUpdater,
-    state_ext::StateExt, BattleModeBuffer, Server,
+    BattleModeBuffer, Server, client::Client, metrics::PlayerMetrics,
+    persistence::character_updater::CharacterUpdater, state_ext::StateExt,
 };
 use common::{
-    comp::{self, group, pet::is_tameable, Content, Presence, PresenceKind},
+    comp::{self, Content, Presence, PresenceKind, group, pet::is_tameable},
     event::{DeleteCharacterEvent, PossessEvent},
     resources::Time,
     uid::{IdMaps, Uid},
@@ -13,7 +13,7 @@ use common_base::span;
 use common_net::msg::{PlayerListUpdate, ServerGeneral};
 use common_state::State;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
-use tracing::{debug, error, trace, warn, Instrument};
+use tracing::{Instrument, debug, error, trace, warn};
 
 pub fn handle_character_delete(server: &mut Server, ev: DeleteCharacterEvent) {
     // Can't process a character delete for a player that has an in-game presence,
@@ -327,7 +327,7 @@ pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity 
                     && state
                         .read_storage::<comp::Health>()
                         .get(entity)
-                        .map_or(false, |health| health.is_dead)
+                        .is_some_and(|health| health.is_dead)
                 {
                     // Delete dead hardcore characters instead of persisting
                     character_updater
@@ -398,7 +398,7 @@ pub fn handle_possess(
 ) {
     use crate::presence::RegionSubscription;
     use common::{
-        comp::{inventory::slot::EquipSlot, item, slot::Slot, Inventory},
+        comp::{Inventory, inventory::slot::EquipSlot, item, slot::Slot},
         region::RegionMap,
     };
     use common_net::sync::WorldSyncExt;

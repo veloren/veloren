@@ -1,6 +1,7 @@
 mod ui;
 
 use crate::{
+    Direction, GlobalState, PlayState, PlayStateResult,
     menu::{
         main::{get_client_msg_error, rand_bg_image_spec},
         server_info::ServerInfoState,
@@ -10,7 +11,6 @@ use crate::{
     session::SessionState,
     settings::Settings,
     window::Event as WinEvent,
-    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
 use common::{comp, event::UpdateCharacterMetadata, resources::DeltaTime};

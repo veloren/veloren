@@ -1,8 +1,8 @@
 use crate::{
     combat,
     comp::{
-        character_state::OutputEvents, tool::ToolKind, CharacterState, MeleeConstructor,
-        StateUpdate,
+        CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents,
+        tool::ToolKind,
     },
     event::LocalEvent,
     outcome::Outcome,

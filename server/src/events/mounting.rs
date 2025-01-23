@@ -14,7 +14,7 @@ use specs::WorldExt;
 
 #[cfg(feature = "worldgen")]
 use crate::rtsim::RtSim;
-use crate::{state_ext::StateExt, Server};
+use crate::{Server, state_ext::StateExt};
 
 pub fn within_mounting_range(
     player_position: Option<&comp::Pos>,
@@ -54,7 +54,7 @@ pub fn handle_mount(server: &mut Server, MountEvent(rider, mount): MountEvent) {
                 .read_storage()
                 .get(mount)
                 .zip(state.ecs().read_storage().get(mount))
-                .map_or(false, |(mount_body, mount_mass)| {
+                .is_some_and(|(mount_body, mount_mass)| {
                     is_mountable(
                         mount_body,
                         mount_mass,
@@ -107,7 +107,7 @@ pub fn handle_mount_volume(
         let mount_pos = (mat * mount_offset.0.with_w(1.0)).xyz();
         let within_range = {
             let positions = state.ecs().read_storage::<comp::Pos>();
-            positions.get(rider).map_or(false, |pos| {
+            positions.get(rider).is_some_and(|pos| {
                 pos.0.distance_squared(mount_pos) < MAX_SPRITE_MOUNT_RANGE.powi(2)
             })
         };

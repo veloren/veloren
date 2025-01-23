@@ -3,10 +3,10 @@ use std::collections::HashSet;
 use common::{
     combat,
     comp::{
+        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Mass, Player, Pos, Stats,
         aura::{AuraChange, AuraKey, AuraKind, AuraTarget, EnteredAuras},
         buff::{Buff, BuffCategory, BuffChange, BuffSource, DestInfo},
         group::Group,
-        Alignment, Aura, Auras, BuffKind, Buffs, CharacterState, Health, Mass, Player, Pos, Stats,
     },
     event::{AuraEvent, BuffEvent, EmitExt},
     event_emitters,
@@ -14,7 +14,7 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{shred, Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData};
+use specs::{Entities, Entity as EcsEntity, Join, Read, ReadStorage, SystemData, shred};
 
 event_emitters! {
     struct Events[Emitters] {
@@ -104,7 +104,7 @@ impl<'a> System<'a> for Sys {
                                 .id_maps
                                 .uid_entity(uid)
                                 .and_then(|e| read_data.groups.get(e))
-                                .map_or(false, |owner_group| {
+                                .is_some_and(|owner_group| {
                                     Some(owner_group) == read_data.groups.get(target)
                                 })
                                 || *target_uid == uid
@@ -140,7 +140,7 @@ impl<'a> System<'a> for Sys {
                             if entered_auras
                                 .auras
                                 .get(aura.aura_kind.as_ref())
-                                .map_or(true, |auras| !auras.contains(&(*uid, key)))
+                                .is_none_or(|auras| !auras.contains(&(*uid, key)))
                             {
                                 emitters.emit(AuraEvent {
                                     entity: target,
@@ -213,7 +213,7 @@ fn activate_aura(
                         && (read_data
                             .char_states
                             .get(target)
-                            .map_or(false, CharacterState::is_sitting)
+                            .is_some_and(CharacterState::is_sitting)
                             || read_data
                                 .alignments
                                 .get(target)
@@ -223,7 +223,7 @@ fn activate_aura(
                                 })
                                 .and_then(|uid| read_data.id_maps.uid_entity(*uid))
                                 .and_then(|owner| read_data.char_states.get(owner))
-                                .map_or(false, CharacterState::is_sitting))
+                                .is_some_and(CharacterState::is_sitting))
                 },
                 // Add other specific buff conditions here
                 _ => true,

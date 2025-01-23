@@ -1,8 +1,8 @@
 use super::image_frame::ImageFrame;
 use conrod_core::{
-    builder_method, builder_methods, image, input::global::Global, position::Dimension, text,
-    widget, widget_ids, Color, Colorable, FontSize, Positionable, Sizeable, Ui, UiCell, Widget,
-    WidgetCommon, WidgetStyle,
+    Color, Colorable, FontSize, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon,
+    WidgetStyle, builder_method, builder_methods, image, input::global::Global,
+    position::Dimension, text, widget, widget_ids,
 };
 use std::time::{Duration, Instant};
 #[derive(Copy, Clone)]
@@ -168,7 +168,7 @@ pub struct Tooltipped<'a, W> {
     tooltip: &'a Tooltip<'a>,
     title_col: Color,
 }
-impl<'a, W: Widget> Tooltipped<'a, W> {
+impl<W: Widget> Tooltipped<'_, W> {
     pub fn tooltip_image(mut self, img_id: image::Id) -> Self {
         self.img_id = Some(img_id);
         self
@@ -309,20 +309,20 @@ impl<'a> Tooltip<'a> {
         }
     }
 
-    /// Align the text to the left of its bounding **Rect**'s *x* axis range.
-    //pub fn left_justify(self) -> Self {
-    //    self.justify(text::Justify::Left)
-    //}
+    // /// Align the text to the left of its bounding **Rect**'s *x* axis range.
+    // pub fn left_justify(self) -> Self {
+    //     self.justify(text::Justify::Left)
+    // }
 
-    /// Align the text to the middle of its bounding **Rect**'s *x* axis range.
-    //pub fn center_justify(self) -> Self {
-    //    self.justify(text::Justify::Center)
-    //}
+    // /// Align the text to the middle of its bounding **Rect**'s *x* axis range.
+    // pub fn center_justify(self) -> Self {
+    //     self.justify(text::Justify::Center)
+    // }
 
-    /// Align the text to the right of its bounding **Rect**'s *x* axis range.
-    //pub fn right_justify(self) -> Self {
-    //    self.justify(text::Justify::Right)
-    //}
+    // /// Align the text to the right of its bounding **Rect**'s *x* axis range.
+    // pub fn right_justify(self) -> Self {
+    //     self.justify(text::Justify::Right)
+    // }
 
     fn text_image_width(&self, total_width: f64) -> (f64, f64) {
         let inner_width = (total_width - H_PAD * 2.0).max(0.0);
@@ -356,7 +356,7 @@ impl<'a> Tooltip<'a> {
     }
 }
 
-impl<'a> Widget for Tooltip<'a> {
+impl Widget for Tooltip<'_> {
     type Event = ();
     type State = State;
     type Style = Style;
@@ -507,6 +507,6 @@ impl<'a> Widget for Tooltip<'a> {
     }
 }
 
-impl<'a> Colorable for Tooltip<'a> {
+impl Colorable for Tooltip<'_> {
     builder_method!(color { style.color = Some(Color) });
 }

@@ -3,8 +3,8 @@ use rustls::pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer};
 use std::{
     net::{Ipv4Addr, SocketAddr},
     sync::{
-        atomic::{AtomicU16, AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicU16, AtomicU64, Ordering},
     },
     thread,
     time::Duration,

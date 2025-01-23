@@ -1,20 +1,21 @@
 use common::{
     comp::{
+        Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind, CharacterState,
+        ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos, PresenceKind,
+        UtteranceKind,
         agent::{
-            AgentEvent, AwarenessState, Target, TimerAction, DEFAULT_INTERACTION_TIME,
-            TRADE_INTERACTION_TIME,
+            AgentEvent, AwarenessState, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME, Target,
+            TimerAction,
         },
         dialogue::Subject,
-        is_downed, Agent, Alignment, BehaviorCapability, BehaviorState, Body, BuffKind,
-        CharacterState, ControlAction, ControlEvent, Controller, InputKind, InventoryEvent, Pos,
-        PresenceKind, UtteranceKind,
+        is_downed,
     },
     consts::MAX_INTERACT_RANGE,
     interaction::InteractionKind,
     path::TraversalConfig,
     rtsim::{NpcAction, RtSimEntity},
 };
-use rand::{prelude::ThreadRng, thread_rng, Rng};
+use rand::{Rng, prelude::ThreadRng, thread_rng};
 use server_agent::data::AgentEmitters;
 use specs::Entity as EcsEntity;
 use vek::{Vec2, Vec3};
@@ -128,7 +129,7 @@ impl BehaviorTree {
     /// talk. If not, or if we are in combat, deny all talk and trade
     /// events.
     pub fn interaction(agent: &Agent) -> Self {
-        let is_in_combat = agent.target.map_or(false, |t| t.hostile);
+        let is_in_combat = agent.target.is_some_and(|t| t.hostile);
         if !is_in_combat
             && (agent.behavior.can(BehaviorCapability::SPEAK)
                 || agent.behavior.can(BehaviorCapability::TRADE))
@@ -247,10 +248,10 @@ fn react_if_on_fire(bdata: &mut BehaviorData) -> bool {
         .read_data
         .buffs
         .get(*bdata.agent_data.entity)
-        .map_or(false, |b| b.kinds[BuffKind::Burning].is_some());
+        .is_some_and(|b| b.kinds[BuffKind::Burning].is_some());
 
     if is_on_fire
-        && bdata.agent_data.body.map_or(false, |b| b.is_humanoid())
+        && bdata.agent_data.body.is_some_and(|b| b.is_humanoid())
         && bdata.agent_data.physics_state.on_ground.is_some()
         && bdata
             .rng
@@ -295,7 +296,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                         // Determine whether the new target should be a priority
                         // over the old one (i.e: because it's either close or
                         // because they attacked us).
-                        if bdata.agent.target.map_or(true, |target| {
+                        if bdata.agent.target.is_none_or(|target| {
                             bdata.agent_data.is_more_dangerous_than_target(
                                 attacker,
                                 target,
@@ -454,7 +455,7 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
         let wants_to_save = match (bdata.agent_data.alignment, bdata.read_data.alignments.get(target)) {
                         // Npcs generally do want to save players. Could have extra checks for
                         // sentiment in the future.
-                        (Some(Alignment::Npc), _) if bdata.read_data.presences.get(target).map_or(false, |presence| matches!(presence.kind, PresenceKind::Character(_))) => true,
+                        (Some(Alignment::Npc), _) if bdata.read_data.presences.get(target).is_some_and(|presence| matches!(presence.kind, PresenceKind::Character(_))) => true,
                         (Some(Alignment::Npc), Some(Alignment::Npc)) => true,
                         (Some(Alignment::Enemy), Some(Alignment::Enemy)) => true,
                         _ => false,
@@ -462,8 +463,7 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
                         // Check that anyone else isn't already saving them.
                         && bdata.read_data
                             .interactors
-                            .get(target)
-                            .map_or(true, |interactors| {
+                            .get(target).is_none_or(|interactors| {
                                 !interactors.has_interaction(InteractionKind::HelpDowned)
                             }) && bdata.agent_data.char_state.can_interact();
 
@@ -857,9 +857,10 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                 Some(val) => val.fraction(),
                 None => 1.0,
             };
-            let in_aggro_range = agent.psyche.aggro_dist.map_or(true, |ad| {
-                dist_sqrd < (ad * agent.psyche.aggro_range_multiplier).powi(2)
-            });
+            let in_aggro_range = agent
+                .psyche
+                .aggro_dist
+                .is_none_or(|ad| dist_sqrd < (ad * agent.psyche.aggro_range_multiplier).powi(2));
 
             if in_aggro_range {
                 *aggro_on = true;

@@ -1,13 +1,13 @@
 #[cfg(feature = "metrics")]
 use crate::metrics::RemoveReason;
 use crate::{
+    RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
     error::ProtocolError,
     event::ProtocolEvent,
     frame::InitFrame,
     handshake::{ReliableDrain, ReliableSink},
     metrics::ProtocolMetricCache,
     types::{Bandwidth, Promises},
-    RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
 use std::time::{Duration, Instant};
@@ -252,9 +252,9 @@ pub mod test_utils {
 #[cfg(test)]
 mod tests {
     use crate::{
+        InitProtocol,
         mpsc::test_utils::*,
         types::{Pid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2},
-        InitProtocol,
     };
 
     #[tokio::test]

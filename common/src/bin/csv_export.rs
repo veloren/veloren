@@ -13,10 +13,10 @@ use veloren_common::{
     comp::{
         self,
         item::{
+            DurabilityMultiplier, Item, MaterialStatManifest,
             armor::{ArmorKind, Protection},
             modular::{generate_weapon_primary_components, generate_weapons},
             tool::{Hands, Tool, ToolKind},
-            DurabilityMultiplier, Item, MaterialStatManifest,
         },
     },
     generation::{EntityConfig, EntityInfo},

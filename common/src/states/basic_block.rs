@@ -2,8 +2,8 @@ use super::utils::*;
 use crate::{
     combat::AttackSource,
     comp::{
-        character_state::{AttackFilters, OutputEvents},
         CharacterState, StateUpdate,
+        character_state::{AttackFilters, OutputEvents},
     },
     states::behavior::{CharacterBehavior, JoinData},
 };

@@ -1,19 +1,19 @@
 use client::Client;
-use common::comp::{inventory::item::item_key::ItemKey, Stats};
+use common::comp::{Stats, inventory::item::item_key::ItemKey};
 use conrod_core::{
-    color,
+    Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
-use crate::ui::{fonts::Fonts, TooltipManager};
+use crate::ui::{TooltipManager, fonts::Fonts};
 use inline_tweak::*;
 
 use super::{
+    HP_COLOR, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{animate_by_pulse, ItemImgs},
-    Show, HP_COLOR, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
+    item_imgs::{ItemImgs, animate_by_pulse},
 };
 
 pub struct State {
@@ -94,7 +94,7 @@ pub enum Event {
     Close,
 }
 
-impl<'a> Widget for Quest<'a> {
+impl Widget for Quest<'_> {
     type Event = Option<Event>;
     type State = State;
     type Style = ();

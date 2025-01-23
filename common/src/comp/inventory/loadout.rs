@@ -1,11 +1,11 @@
 use crate::{
     comp::{
-        inventory::{
-            item::{self, tool::Tool, Hands, ItemDefinitionIdOwned, ItemKind},
-            slot::{ArmorSlot, EquipSlot},
-            InvSlot,
-        },
         Item,
+        inventory::{
+            InvSlot,
+            item::{self, Hands, ItemDefinitionIdOwned, ItemKind, tool::Tool},
+            slot::{ArmorSlot, EquipSlot},
+        },
     },
     resources::Time,
 };
@@ -406,7 +406,7 @@ impl Loadout {
             return false;
         }
 
-        item_kind.map_or(true, |item| equip_slot.can_hold(item))
+        item_kind.is_none_or(|item| equip_slot.can_hold(item))
     }
 
     #[rustfmt::skip]
@@ -423,7 +423,7 @@ impl Loadout {
         // nothing is equipped in slot
         let valid_slot = |equip_slot| {
             self.equipped(equip_slot)
-                .map_or(true, |i| self.slot_can_hold(equip_slot, Some(&*i.kind())))
+                .is_none_or(|i| self.slot_can_hold(equip_slot, Some(&*i.kind())))
         };
 
         // If every weapon is currently in a valid slot, after this change they will
@@ -522,16 +522,16 @@ impl Loadout {
 mod tests {
     use crate::{
         comp::{
+            Item,
             inventory::{
                 item::{
-                    armor::{Armor, ArmorKind, Protection},
                     ItemKind,
+                    armor::{Armor, ArmorKind, Protection},
                 },
                 loadout::Loadout,
                 slot::{ArmorSlot, EquipSlot},
                 test_helpers::get_test_bag,
             },
-            Item,
         },
         resources::Time,
     };

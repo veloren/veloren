@@ -4,7 +4,7 @@
 
 use clap::Parser;
 use hashbrown::HashMap;
-use ron::ser::{to_string_pretty, PrettyConfig};
+use ron::ser::{PrettyConfig, to_string_pretty};
 use serde::Serialize;
 use std::{borrow::Cow, error::Error, fs::File, io::Write};
 
@@ -13,9 +13,9 @@ use veloren_common::{
     comp::{
         self,
         item::{
+            ItemDefinitionId, ItemKind, ItemTag, Quality,
             armor::{ArmorKind, Protection, StatsSource},
             tool::{AbilitySpec, Hands, Stats},
-            ItemDefinitionId, ItemKind, ItemTag, Quality,
         },
     },
 };

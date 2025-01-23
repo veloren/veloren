@@ -1,9 +1,9 @@
 use std::f32::consts::PI;
 
 use super::{
-    super::{vek::*, Animation},
-    biped_small_alpha_axe, biped_small_alpha_dagger, biped_small_alpha_spear,
-    biped_small_wield_spear, init_biped_small_alpha, BipedSmallSkeleton, SkeletonAttr,
+    super::{Animation, vek::*},
+    BipedSmallSkeleton, SkeletonAttr, biped_small_alpha_axe, biped_small_alpha_dagger,
+    biped_small_alpha_spear, biped_small_wield_spear, init_biped_small_alpha,
 };
 use common::states::utils::StageSection;
 

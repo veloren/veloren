@@ -1,6 +1,6 @@
 use common::comp::{
     self,
-    inventory::item::{item_key::ItemKey, Item},
+    inventory::item::{Item, item_key::ItemKey},
 };
 use serde::{Deserialize, Serialize};
 

@@ -1,6 +1,6 @@
 use super::SceneData;
 use crate::render::{DynamicModel, Mesh, Quad, Renderer, TrailDrawer, TrailVertex};
-use common::comp::{object, Body, Pos, Vel};
+use common::comp::{Body, Pos, Vel, object};
 use common_base::span;
 use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::collections::HashMap;

@@ -1,7 +1,8 @@
 use crate::persistence::{
+    ConnectionMode, DatabaseSettings, PersistedComponents,
     character::{load_character_data, load_character_list},
     error::PersistenceError,
-    establish_connection, ConnectionMode, DatabaseSettings, PersistedComponents,
+    establish_connection,
 };
 use common::{
     character::{CharacterId, CharacterItem},

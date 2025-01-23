@@ -1,8 +1,8 @@
 use crate::types::Sid;
 #[cfg(feature = "metrics")]
 use prometheus::{
-    core::{AtomicI64, AtomicU64, GenericCounter, GenericGauge},
     IntCounterVec, IntGaugeVec, Opts, Registry,
+    core::{AtomicI64, AtomicU64, GenericCounter, GenericGauge},
 };
 #[cfg(feature = "metrics")]
 use std::collections::HashMap;

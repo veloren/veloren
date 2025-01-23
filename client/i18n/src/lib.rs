@@ -6,7 +6,7 @@ use error::ResourceErr;
 #[cfg(any(feature = "bin", feature = "stat", test))]
 pub mod analysis;
 
-use fluent_bundle::{bundle::FluentBundle, FluentResource};
+use fluent_bundle::{FluentResource, bundle::FluentBundle};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use unic_langid::LanguageIdentifier;
 
@@ -17,14 +17,14 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, io};
 
 use assets::{
-    source::DirEntry, AssetExt, AssetHandle, AssetReadGuard, ReloadWatcher, SharedString,
+    AssetExt, AssetHandle, AssetReadGuard, ReloadWatcher, SharedString, source::DirEntry,
 };
 use common_assets as assets;
 use common_i18n::{Content, LocalizationArg};
 use tracing::warn;
 
 // Re-export for argument creation
-pub use fluent::{fluent_args, FluentValue};
+pub use fluent::{FluentValue, fluent_args};
 pub use fluent_bundle::FluentArgs;
 
 /// The reference language, aka the more up-to-date localization data.
@@ -339,7 +339,7 @@ impl LocalizationGuard {
         key: &str,
         seed: u16,
         args: &'a FluentArgs,
-    ) -> Option<Cow<str>> {
+    ) -> Option<Cow<'a, str>> {
         self.active
             .try_variation(key, seed, Some(args))
             .or_else(|| {
@@ -467,7 +467,12 @@ impl LocalizationGuard {
     /// If the key is not present in the localization object
     /// then the key itself is returned.
     // Read more in the issue on get_variation at Gitlab
-    pub fn get_variation_ctx<'a>(&'a self, key: &str, seed: u16, args: &'a FluentArgs) -> Cow<str> {
+    pub fn get_variation_ctx<'a>(
+        &'a self,
+        key: &str,
+        seed: u16,
+        args: &'a FluentArgs,
+    ) -> Cow<'a, str> {
         self.try_variation_ctx(key, seed, args)
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
     }

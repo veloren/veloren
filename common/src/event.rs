@@ -1,12 +1,12 @@
 use crate::{
+    Explosion,
     character::CharacterId,
     combat::{AttackSource, DeathEffects},
     comp::{
-        self,
+        self, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
         agent::Sound,
         dialogue::Subject,
         invite::{InviteKind, InviteResponse},
-        DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
     },
     generation::{EntityInfo, SpecialEntity},
     interaction::Interaction,
@@ -19,7 +19,6 @@ use crate::{
     trade::{TradeAction, TradeId},
     uid::Uid,
     util::Dir,
-    Explosion,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Entity as EcsEntity, World};
@@ -516,7 +515,7 @@ pub struct Emitter<'a, E> {
     pub events: VecDeque<E>,
 }
 
-impl<'a, E> Emitter<'a, E> {
+impl<E> Emitter<'_, E> {
     pub fn emit(&mut self, event: E) { self.events.push_back(event); }
 
     pub fn emit_many(&mut self, events: impl IntoIterator<Item = E>) { self.events.extend(events); }
@@ -527,7 +526,7 @@ impl<'a, E> Emitter<'a, E> {
     pub fn append_vec(&mut self, vec: Vec<E>) { self.events.extend(vec) }
 }
 
-impl<'a, E> Drop for Emitter<'a, E> {
+impl<E> Drop for Emitter<'_, E> {
     fn drop(&mut self) {
         if !self.events.is_empty() {
             self.bus.queue.lock().unwrap().append(&mut self.events);

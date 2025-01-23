@@ -19,7 +19,7 @@ pub struct Searcher<'a> {
 }
 
 #[allow(dead_code)]
-impl<'a> Searcher<'a> {
+impl Searcher<'_> {
     /// Attempt to find a path between two chunks on the map.
     pub fn search(self, _a: Vec2<i32>, _b: Vec2<i32>) -> Option<Path<i32>> {
         // TODO: implement this function

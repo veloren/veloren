@@ -10,7 +10,7 @@ use crate::{
     client::Client,
     sys::{loot, pets},
 };
-use common_ecs::{dispatch, System};
+use common_ecs::{System, dispatch};
 use serde::de::DeserializeOwned;
 use specs::DispatcherBuilder;
 

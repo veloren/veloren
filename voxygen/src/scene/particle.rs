@@ -1,19 +1,19 @@
-use super::{terrain::BlocksOfInterest, FigureMgr, SceneData, Terrain};
+use super::{FigureMgr, SceneData, Terrain, terrain::BlocksOfInterest};
 use crate::{
     ecs::comp::Interpolated,
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
     render::{
-        pipelines::particle::ParticleMode, Instances, Light, Model, ParticleDrawer,
-        ParticleInstance, ParticleVertex, Renderer,
+        Instances, Light, Model, ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
+        pipelines::particle::ParticleMode,
     },
     scene::terrain::FireplaceType,
 };
 use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
-        self, ability::Dodgeable, aura, beam, body, buff, item::Reagent, object, shockwave, Beam,
-        Body, CharacterActivity, CharacterState, Fluid, Inventory, Ori, PhysicsState, Pos, Scale,
-        Shockwave, Vel,
+        self, Beam, Body, CharacterActivity, CharacterState, Fluid, Inventory, Ori, PhysicsState,
+        Pos, Scale, Shockwave, Vel, ability::Dodgeable, aura, beam, body, buff, item::Reagent,
+        object, shockwave,
     },
     figure::Segment,
     outcome::Outcome,
@@ -2080,7 +2080,7 @@ impl ParticleMgr {
                         kind: buff::BuffKind::Frozen,
                         ..
                     } => {
-                        let is_new_aura = aura.data.duration.map_or(true, |max_dur| {
+                        let is_new_aura = aura.data.duration.is_none_or(|max_dur| {
                             let rem_dur = aura.end_time.map_or(time, |e| e.0) - time;
                             rem_dur > max_dur.0 * 0.9
                         });
@@ -2374,7 +2374,7 @@ impl ParticleMgr {
             PositionsAndDirs(&'a [(Vec3<i32>, Vec3<f32>)]),
         }
 
-        impl<'a> BlockParticleSlice<'a> {
+        impl BlockParticleSlice<'_> {
             fn len(&self) -> usize {
                 match self {
                     Self::Positions(blocks) => blocks.len(),

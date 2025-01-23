@@ -1,11 +1,11 @@
 use crate::{
-    sim::{SimChunk, WorldSim},
-    util::{seed_expan, Sampler, UnitChooser},
     Canvas,
+    sim::{SimChunk, WorldSim},
+    util::{Sampler, UnitChooser, seed_expan},
 };
 use common::{
     generation::EntityInfo,
-    spot::{SpotCondition, SpotProperties, RON_SPOT_PROPERTIES},
+    spot::{RON_SPOT_PROPERTIES, SpotCondition, SpotProperties},
     terrain::{BiomeKind, Structure, TerrainChunkSize},
     vol::RectVolSize,
 };

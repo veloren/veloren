@@ -1,14 +1,14 @@
 use std::sync::{Arc, Mutex};
 
 use super::{
+    CommandResults,
     errors::PluginModuleError,
     memory_manager::{EcsAccessManager, EcsWorld},
-    CommandResults,
 };
 use hashbrown::{HashMap, HashSet};
 use wasmtime::{
-    component::{Component, Linker},
     Config, Engine, Store,
+    component::{Component, Linker},
 };
 use wasmtime_wasi::WasiView;
 

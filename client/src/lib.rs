@@ -18,18 +18,17 @@ use byteorder::{ByteOrder, LittleEndian};
 use common::{
     character::{CharacterId, CharacterItem},
     comp::{
-        self,
+        self, AdminRole, CharacterState, ChatMode, ControlAction, ControlEvent, Controller,
+        ControllerInputs, GroupManip, Hardcore, InputKind, InventoryAction, InventoryEvent,
+        InventoryUpdateEvent, MapMarkerChange, PresenceKind, UtteranceKind,
         chat::KillSource,
         controller::CraftEvent,
         dialogue::Subject,
         group,
-        inventory::item::{modular, tool, ItemKind},
+        inventory::item::{ItemKind, modular, tool},
         invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::{EquipSlot, InvSlotId, Slot},
-        AdminRole, CharacterState, ChatMode, ControlAction, ControlEvent, Controller,
-        ControllerInputs, GroupManip, Hardcore, InputKind, InventoryAction, InventoryEvent,
-        InventoryUpdateEvent, MapMarkerChange, PresenceKind, UtteranceKind,
     },
     event::{EventBus, LocalEvent, PluginHash, UpdateCharacterMetadata},
     grid::Grid,
@@ -42,8 +41,8 @@ use common::{
     shared_server_config::ServerConstants,
     spiral::Spiral2d,
     terrain::{
-        block::Block, map::MapConfig, neighbors, BiomeKind, CoordinateConversions, SiteKindMeta,
-        SpriteKind, TerrainChunk, TerrainChunkSize, TerrainGrid,
+        BiomeKind, CoordinateConversions, SiteKindMeta, SpriteKind, TerrainChunk, TerrainChunkSize,
+        TerrainGrid, block::Block, map::MapConfig, neighbors,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{IdMaps, Uid},
@@ -54,25 +53,25 @@ use common::{
 use common_base::{prof_span, span};
 use common_net::{
     msg::{
-        server::ServerDescription,
-        world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
         ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, DisconnectReason, InviteAnswer,
         Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
         ServerInit, ServerRegisterAnswer,
+        server::ServerDescription,
+        world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
     },
     sync::WorldSyncExt,
 };
 
 pub use common_net::msg::ClientType;
+use common_state::State;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
-use common_state::State;
 use common_systems::add_local_systems;
 use comp::BuffKind;
 use hashbrown::{HashMap, HashSet};
 use hickory_resolver::{
-    config::{ResolverConfig, ResolverOpts},
     AsyncResolver,
+    config::{ResolverConfig, ResolverOpts},
 };
 use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
@@ -1421,11 +1420,11 @@ impl Client {
         }
     }
 
-    pub fn is_dead(&self) -> bool { self.current::<comp::Health>().map_or(false, |h| h.is_dead) }
+    pub fn is_dead(&self) -> bool { self.current::<comp::Health>().is_some_and(|h| h.is_dead) }
 
     pub fn is_gliding(&self) -> bool {
         self.current::<CharacterState>()
-            .map_or(false, |cs| matches!(cs, CharacterState::Glide(_)))
+            .is_some_and(|cs| matches!(cs, CharacterState::Glide(_)))
     }
 
     pub fn split_swap_slots(&mut self, a: Slot, b: Slot) {
@@ -1539,7 +1538,7 @@ impl Client {
             let rbm = self.state.ecs().read_resource::<RecipeBookManifest>();
             let (can_craft, required_sprite) = inventory.can_craft_recipe(recipe, 1, &rbm);
             let has_sprite =
-                required_sprite.map_or(true, |s| Some(s) == craft_sprite.map(|(_, s)| s));
+                required_sprite.is_none_or(|s| Some(s) == craft_sprite.map(|(_, s)| s));
             (can_craft, has_sprite)
         } else {
             (false, false)
@@ -1566,7 +1565,7 @@ impl Client {
         self.inventories()
             .get(self.entity())
             .and_then(|inv| inv.get(slot))
-            .map_or(false, |item| item.is_salvageable())
+            .is_some_and(|item| item.is_salvageable())
     }
 
     /// Salvage the item in the given inventory slot. `salvage_pos` should be
@@ -1668,7 +1667,7 @@ impl Client {
         let is_repairable = {
             let inventories = self.inventories();
             let inventory = inventories.get(self.entity());
-            inventory.map_or(false, |inv| {
+            inventory.is_some_and(|inv| {
                 if let Some(item) = match item {
                     Slot::Equip(equip_slot) => inv.equipped(equip_slot),
                     Slot::Inventory(invslot) => inv.get(invslot),
@@ -1871,7 +1870,7 @@ impl Client {
     }
 
     pub fn respawn(&mut self) {
-        if self.current::<comp::Health>().map_or(false, |h| h.is_dead) {
+        if self.current::<comp::Health>().is_some_and(|h| h.is_dead) {
             // Hardcore characters cannot respawn, kick them to character selection
             if self.current::<Hardcore>().is_some() {
                 self.request_remove_character();
@@ -2260,7 +2259,7 @@ impl Client {
         // Check if the invite has timed out and remove if so
         if self
             .invite
-            .map_or(false, |(_, timeout, dur, _)| timeout.elapsed() > dur)
+            .is_some_and(|(_, timeout, dur, _)| timeout.elapsed() > dur)
         {
             self.invite = None;
         }
@@ -2470,7 +2469,7 @@ impl Client {
             // Request LoD zones that are in range
             if self
                 .lod_last_requested
-                .map_or(true, |i| i.elapsed() > Duration::from_secs(5))
+                .is_none_or(|i| i.elapsed() > Duration::from_secs(5))
             {
                 if let Some(rpos) = Spiral2d::new()
                     .take((1 + self.lod_distance.ceil() as i32 * 2).pow(2) as usize)

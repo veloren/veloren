@@ -1,10 +1,10 @@
 //! A widget for selecting a single value along some linear range.
 use conrod_core::{
-    builder_methods, image,
+    Color, Colorable, Positionable, Rect, Sizeable, Widget, WidgetCommon, builder_methods, image,
     position::Range,
     utils,
     widget::{self, Image},
-    widget_ids, Color, Colorable, Positionable, Rect, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use num::{Float, Integer, Num, NumCast};
 

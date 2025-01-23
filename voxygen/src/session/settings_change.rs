@@ -1,5 +1,6 @@
 use super::SessionState;
 use crate::{
+    GlobalState,
     controller::ControllerSettings,
     game_input::GameInput,
     hud::{
@@ -8,11 +9,10 @@ use crate::{
     },
     render::RenderMode,
     settings::{
-        audio::AudioVolume, AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings,
-        GameplaySettings, GraphicsSettings, InterfaceSettings,
+        AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings,
+        GraphicsSettings, InterfaceSettings, audio::AudioVolume,
     },
     window::{FullScreenSettings, Window},
-    GlobalState,
 };
 use i18n::{LanguageMetadata, LocalizationHandle};
 use std::rc::Rc;

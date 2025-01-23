@@ -1,45 +1,45 @@
 use crate::{
+    GlobalState,
     hud::default_water_color,
     render::UiDrawer,
     ui::{
-        self,
+        self, Graphic, GraphicId,
         fonts::IcedFonts as Fonts,
         ice::{
+            Element, IcedRenderer, IcedUi as Ui,
             component::{
                 neat_button,
                 tooltip::{self, WithTooltip},
             },
             style,
             widget::{
-                mouse_detector, AspectRatioContainer, BackgroundContainer, Image, MouseDetector,
-                Overlay, Padding, TooltipManager,
+                AspectRatioContainer, BackgroundContainer, Image, MouseDetector, Overlay, Padding,
+                TooltipManager, mouse_detector,
             },
-            Element, IcedRenderer, IcedUi as Ui,
         },
         img_ids::ImageGraphic,
-        Graphic, GraphicId,
     },
-    window, GlobalState,
+    window,
 };
 use client::{Client, ServerInfo};
 use common::{
+    LoadoutBuilder,
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER, MAX_NAME_LENGTH},
-    comp::{self, humanoid, inventory::slot::EquipSlot, Inventory, Item},
+    comp::{self, Inventory, Item, humanoid, inventory::slot::EquipSlot},
     resources::Time,
     terrain::TerrainChunkSize,
     vol::RectVolSize,
-    LoadoutBuilder,
 };
 use common_net::msg::world_msg::{SiteId, SiteInfo};
 use i18n::{Localization, LocalizationHandle};
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
 //use std::time::Duration;
 //use ui::ice::widget;
 use iced::{
-    button, scrollable, slider, text_input, Align, Button, Checkbox, Color, Column, Container,
-    HorizontalAlignment, Length, Row, Scrollable, Slider, Space, Text, TextInput,
+    Align, Button, Checkbox, Color, Column, Container, HorizontalAlignment, Length, Row,
+    Scrollable, Slider, Space, Text, TextInput, button, scrollable, slider, text_input,
 };
 use std::sync::Arc;
 use vek::{Rgba, Vec2};
@@ -161,6 +161,7 @@ pub enum Event {
     ShowRules,
 }
 
+#[allow(clippy::large_enum_variant)]
 enum Mode {
     Select {
         info_content: Option<InfoContent>,
@@ -496,7 +497,7 @@ impl Controls {
                             .character_list()
                             .characters
                             .iter()
-                            .any(|char| char.character.id.map_or(false, |id| id == character_id))
+                            .any(|char| char.character.id == Some(character_id))
                         {
                             self.selected = None;
                         }

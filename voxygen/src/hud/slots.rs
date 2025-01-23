@@ -7,15 +7,15 @@ use super::{
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::{
     comp::{
+        ActiveAbilities, Body, CharacterState, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
+        Stance, Stats,
         ability::{Ability, AbilityInput, AuxiliaryAbility},
         item::tool::{AbilityContext, ToolKind},
         slot::{InvSlotId, Slot},
-        ActiveAbilities, Body, CharacterState, Combo, Energy, Inventory, Item, ItemKey, SkillSet,
-        Stance, Stats,
     },
     recipe::ComponentRecipeBook,
 };
-use conrod_core::{image, Color};
+use conrod_core::{Color, image};
 use specs::Entity as EcsEntity;
 use std::fmt::{Debug, Formatter};
 

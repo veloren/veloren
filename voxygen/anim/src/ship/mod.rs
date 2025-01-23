@@ -3,7 +3,7 @@ pub mod idle;
 // Reexports
 pub use self::idle::IdleAnimation;
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
+use super::{FigureBoneData, Offsets, Skeleton, TrailSource, make_bone, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 

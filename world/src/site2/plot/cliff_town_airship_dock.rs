@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::util::gradient::WrapMode,
-    util::{RandomField, Sampler, DIAGONALS, LOCALITY, NEIGHBORS},
     Land,
+    site2::util::gradient::WrapMode,
+    util::{DIAGONALS, LOCALITY, NEIGHBORS, RandomField, Sampler},
 };
 use common::{
     comp::Content,

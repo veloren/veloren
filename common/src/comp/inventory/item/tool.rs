@@ -4,14 +4,14 @@
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
     comp::{
+        CharacterAbility, Combo, SkillSet,
         ability::Stance,
         inventory::{
+            Inventory,
             item::{DurabilityMultiplier, ItemKind},
             slot::EquipSlot,
-            Inventory,
         },
         skills::Skill,
-        CharacterAbility, Combo, SkillSet,
     },
 };
 use hashbrown::HashMap;
@@ -370,7 +370,7 @@ impl<T> AbilityKind<T> {
         let unlocked = |s: Option<Skill>, a| {
             // If there is a skill requirement and the skillset does not contain the
             // required skill, return None
-            s.map_or(true, |s| skillset.map_or(false, |ss| ss.has_skill(s)))
+            s.is_none_or(|s| skillset.is_some_and(|ss| ss.has_skill(s)))
                 .then_some(a)
         };
 
@@ -442,11 +442,11 @@ impl AbilityContext {
             combo,
         } = self;
         // Either stance not required or context is in the same stance
-        let stance_check = stance.map_or(true, |s| context.stance.map_or(false, |c_s| c_s == s));
+        let stance_check = stance.map_or(true, |s| context.stance == Some(s));
         // Either dual wield not required or context is dual wielding
         let dual_wield_check = !dual_wielding_same_kind || context.dual_wielding_same_kind;
         // Either no minimum combo needed or context has sufficient combo
-        let combo_check = combo.map_or(true, |c| context.combo.map_or(false, |c_c| c_c >= c));
+        let combo_check = combo.map_or(true, |c| context.combo.is_some_and(|c_c| c_c >= c));
 
         stance_check && dual_wield_check && combo_check
     }

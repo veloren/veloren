@@ -1,21 +1,21 @@
-use super::{Imgs, LoginInfo, Message, Showing, FILL_FRAC_ONE, FILL_FRAC_TWO};
+use super::{FILL_FRAC_ONE, FILL_FRAC_TWO, Imgs, LoginInfo, Message, Showing};
 use crate::ui::{
     fonts::IcedFonts as Fonts,
     ice::{
+        Element,
         component::neat_button,
         style,
         widget::{
-            compound_graphic::{CompoundGraphic, Graphic},
             AspectRatioContainer, BackgroundContainer, Image, Padding,
+            compound_graphic::{CompoundGraphic, Graphic},
         },
-        Element,
     },
 };
 
 use i18n::{LanguageMetadata, Localization};
 use iced::{
-    button, scrollable, text_input, Align, Button, Column, Container, Length, Row, Scrollable,
-    Space, Text, TextInput,
+    Align, Button, Column, Container, Length, Row, Scrollable, Space, Text, TextInput, button,
+    scrollable, text_input,
 };
 use vek::*;
 

@@ -1,8 +1,9 @@
-use super::{img_ids::Imgs, settings_window::SettingsTab, TEXT_COLOR};
+use super::{TEXT_COLOR, img_ids::Imgs, settings_window::SettingsTab};
 use crate::ui::fonts::Fonts;
 use conrod_core::{
+    Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
     widget::{self, Button, Image},
-    widget_ids, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
@@ -53,7 +54,7 @@ pub enum Event {
     Close,
 }
 
-impl<'a> Widget for EscMenu<'a> {
+impl Widget for EscMenu<'_> {
     type Event = Option<Event>;
     type State = State;
     type Style = ();

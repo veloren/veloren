@@ -1,9 +1,9 @@
 use crate::{
+    EditableSettings, Settings,
     client::Client,
     login_provider::{LoginProvider, PendingLogin},
     metrics::PlayerMetrics,
     sys::sentinel::TrackedStorages,
-    EditableSettings, Settings,
 };
 use common::{
     comp::{self, Admin, Player, Stats},
@@ -16,15 +16,15 @@ use common::{
 use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{
-    server::ServerDescription, CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo,
-    PlayerListUpdate, RegisterError, ServerGeneral, ServerInit, WorldMapMsg,
+    CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo, PlayerListUpdate, RegisterError,
+    ServerGeneral, ServerInit, WorldMapMsg, server::ServerDescription,
 };
-use hashbrown::{hash_map, HashMap};
+use hashbrown::{HashMap, hash_map};
 use itertools::Either;
 use rayon::prelude::*;
 use specs::{
-    shred, Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
-    WriteStorage,
+    Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
+    shred,
 };
 use tracing::{debug, info, trace, warn};
 

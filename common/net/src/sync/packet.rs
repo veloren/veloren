@@ -1,7 +1,7 @@
 use super::track::UpdateTracker;
 use common::{resources::Time, uid::Uid};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use specs::{storage::AccessMut, Component, Entity, Join, ReadStorage, World, WorldExt};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use specs::{Component, Entity, Join, ReadStorage, World, WorldExt, storage::AccessMut};
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Debug,

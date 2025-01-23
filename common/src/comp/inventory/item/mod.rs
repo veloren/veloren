@@ -24,7 +24,7 @@ use core::{
 use crossbeam_utils::atomic::AtomicCell;
 use hashbrown::{Equivalent, HashMap};
 use item_key::ItemKey;
-use serde::{de, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer, de};
 use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
 use strum::{EnumIter, EnumString, IntoEnumIterator, IntoStaticStr};
@@ -603,7 +603,7 @@ impl<'de> Deserialize<'de> for ItemBase {
     {
         struct ItemBaseStringVisitor;
 
-        impl<'de> de::Visitor<'de> for ItemBaseStringVisitor {
+        impl de::Visitor<'_> for ItemBaseStringVisitor {
             type Value = ItemBase;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -704,7 +704,7 @@ impl ItemDefinitionIdOwned {
     }
 }
 
-impl<'a> ItemDefinitionId<'a> {
+impl ItemDefinitionId<'_> {
     pub fn itemdef_id(&self) -> Option<&str> {
         match self {
             Self::Simple(id) => Some(id),
@@ -1907,7 +1907,7 @@ impl Component for PickupItem {
 #[derive(Copy, Clone, Debug)]
 pub struct DurabilityMultiplier(pub f32);
 
-impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
+impl<T: ItemDesc + ?Sized> ItemDesc for &T {
     fn description(&self) -> &str {
         #[allow(deprecated)]
         (*self).description()

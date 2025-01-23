@@ -1,6 +1,6 @@
 use crate::hud::CraftingTab;
 use common::{
-    terrain::{sprite, Block, BlockKind, SpriteKind},
+    terrain::{Block, BlockKind, SpriteKind, sprite},
     vol::ReadVol,
 };
 use common_base::span;

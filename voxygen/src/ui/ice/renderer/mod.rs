@@ -9,15 +9,15 @@ use primitive::Primitive;
 
 use super::{
     super::graphic::{self, Graphic, TexId},
+    Font, FontId, RawFont, Rotation,
     cache::Cache,
     widget::image,
-    Font, FontId, RawFont, Rotation,
 };
 use crate::{
     error::Error,
     render::{
-        create_ui_quad, create_ui_quad_vert_gradient, DynamicModel, Mesh, Renderer, UiBoundLocals,
-        UiDrawer, UiLocals, UiMode, UiVertex,
+        DynamicModel, Mesh, Renderer, UiBoundLocals, UiDrawer, UiLocals, UiMode, UiVertex,
+        create_ui_quad, create_ui_quad_vert_gradient,
     },
 };
 use common::{slowjob::SlowJobPool, util::srgba_to_linear};

@@ -1,4 +1,4 @@
-use super::super::{pipelines::shadow, texture::Texture, RenderError, ShadowMapMode};
+use super::super::{RenderError, ShadowMapMode, pipelines::shadow, texture::Texture};
 use vek::*;
 
 /// A type that holds shadow map data.  Since shadow mapping may not be

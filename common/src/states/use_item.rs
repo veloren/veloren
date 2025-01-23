@@ -1,6 +1,7 @@
 use super::utils::*;
 use crate::{
     comp::{
+        CharacterState, InventoryManip, StateUpdate,
         buff::{BuffChange, BuffKind},
         character_state::OutputEvents,
         controller::InputKind,
@@ -8,7 +9,6 @@ use crate::{
             item::{ConsumableKind, ItemKind},
             slot::{InvSlotId, Slot},
         },
-        CharacterState, InventoryManip, StateUpdate,
     },
     event::{BuffEvent, InventoryManipEvent},
     states::behavior::{CharacterBehavior, JoinData},
@@ -222,9 +222,7 @@ fn use_item(data: &JoinData, output_events: &mut OutputEvents, state: &Data) {
     let item_is_same = data
         .inventory
         .and_then(|inv| inv.get(state.static_data.inv_slot))
-        .map_or(false, |item| {
-            item.item_hash() == state.static_data.item_hash
-        });
+        .is_some_and(|item| item.item_hash() == state.static_data.item_hash);
     if item_is_same {
         // Create inventory manipulation event
         let inv_manip = InventoryManip::Use(Slot::Inventory(state.static_data.inv_slot));

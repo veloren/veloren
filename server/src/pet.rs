@@ -1,8 +1,8 @@
 use crate::{client::Client, events::shared::update_map_markers};
 use common::{
     comp::{
-        self, anchor::Anchor, group::GroupManager, Agent, Alignment, Behavior, BehaviorCapability,
-        Pet, TradingBehavior,
+        self, Agent, Alignment, Behavior, BehaviorCapability, Pet, TradingBehavior, anchor::Anchor,
+        group::GroupManager,
     },
     uid::Uid,
 };

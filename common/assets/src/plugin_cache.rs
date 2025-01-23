@@ -2,12 +2,12 @@ use std::{path::PathBuf, sync::RwLock};
 
 use crate::Concatenate;
 
-use super::{fs::FileSystem, ASSETS_PATH};
+use super::{ASSETS_PATH, fs::FileSystem};
 use assets_manager::{
+    AnyCache, AssetCache, BoxedError, Compound, Storable,
     asset::DirLoadable,
     hot_reloading::EventSender,
     source::{FileContent, Source, Tar},
-    AnyCache, AssetCache, BoxedError, Compound, Storable,
 };
 
 struct PluginEntry {

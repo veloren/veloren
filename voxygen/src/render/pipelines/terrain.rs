@@ -29,12 +29,13 @@ impl Vertex {
             5
         };
         Self {
-            pos_norm: ((pos.x as u32) & 0x003F) << 0
-                | ((pos.y as u32) & 0x003F) << 6
-                | (((pos + EXTRA_NEG_Z).z.clamp(0.0, (1 << 16) as f32) as u32) & 0xFFFF) << 12
-                | u32::from(meta) << 28
-                | (norm_bits & 0x7) << 29,
-            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) << 0 | ((atlas_pos.y as u32) & 0xFFFF) << 16,
+            pos_norm: (((pos.x as u32) & 0x003F) << 0)
+                | (((pos.y as u32) & 0x003F) << 6)
+                | ((((pos + EXTRA_NEG_Z).z.clamp(0.0, (1 << 16) as f32) as u32) & 0xFFFF) << 12)
+                | (u32::from(meta) << 28)
+                | ((norm_bits & 0x7) << 29),
+            atlas_pos: (((atlas_pos.x as u32) & 0xFFFF) << 0)
+                | (((atlas_pos.y as u32) & 0xFFFF) << 16),
         }
     }
 
@@ -55,8 +56,8 @@ impl Vertex {
                 .reduce_bitor()
                 | (((bone_idx & 0xF) as u32) << 27)
                 | (norm_bits << 31),
-            atlas_pos: ((atlas_pos.x as u32) & 0x7FFF) << 2
-                | ((atlas_pos.y as u32) & 0x7FFF) << 17
+            atlas_pos: (((atlas_pos.x as u32) & 0x7FFF) << 2)
+                | (((atlas_pos.y as u32) & 0x7FFF) << 17)
                 | axis_bits & 3,
         }
     }

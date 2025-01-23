@@ -1,6 +1,6 @@
 use super::{
-    sprite::{self, RelativeNeighborPosition},
     SpriteKind,
+    sprite::{self, RelativeNeighborPosition},
 };
 use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
@@ -471,7 +471,7 @@ impl Block {
         block_aabb: Aabb<f32>,
         move_dir: Vec3<f32>,
     ) -> bool {
-        self.get_sprite().map_or(true, |sprite| {
+        self.get_sprite().is_none_or(|sprite| {
             sprite.valid_collision_dir(entity_aabb, block_aabb, move_dir, self)
         })
     }
@@ -582,7 +582,7 @@ impl Block {
 
     pub fn is_controller(&self) -> bool {
         self.get_sprite()
-            .map_or(false, |sprite| sprite.is_controller())
+            .is_some_and(|sprite| sprite.is_controller())
     }
 
     #[inline]

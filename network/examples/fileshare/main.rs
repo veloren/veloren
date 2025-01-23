@@ -1,4 +1,3 @@
-#![feature(async_closure)]
 //!run with
 //! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run
 //! --profile=release -Z unstable-options  -- --trace=info --port 15006)

@@ -1,9 +1,9 @@
 use super::utils::*;
 use crate::{
     comp::{
+        CharacterState, InventoryAction, StateUpdate,
         character_state::OutputEvents,
         slot::{EquipSlot, Slot},
-        CharacterState, InventoryAction, StateUpdate,
     },
     states::{
         behavior::{CharacterBehavior, JoinData},

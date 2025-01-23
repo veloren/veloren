@@ -2,8 +2,8 @@ use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
-        bird_large, character_state::AttackFilters, controller::InputKind, humanoid,
-        quadruped_medium, quadruped_small, Body, CharacterState, Ori, PhysicsState,
+        Body, CharacterState, Ori, PhysicsState, bird_large, character_state::AttackFilters,
+        controller::InputKind, humanoid, quadruped_medium, quadruped_small,
     },
     states,
     terrain::{Block, BlockKind},

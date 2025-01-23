@@ -1,15 +1,15 @@
 use client::{
+    Client, ClientInitStage, ServerInfo,
     addr::ConnectionArgs,
     error::{Error as ClientError, NetworkConnectError, NetworkError},
-    Client, ClientInitStage, ServerInfo,
 };
 use common_net::msg::ClientType;
-use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
+use crossbeam_channel::{Receiver, Sender, TryRecvError, unbounded};
 use std::{
     path::Path,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };

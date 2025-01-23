@@ -1,21 +1,22 @@
-use crate::{cli, Message, Shutdown, LOG};
+use crate::{LOG, Message, Shutdown, cli};
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{
+    Terminal,
     backend::CrosstermBackend,
     layout::{Position, Rect},
     text::Text,
     widgets::{Block, Borders, Paragraph},
-    Terminal,
 };
 use std::{
     io,
     sync::{
+        Arc,
         atomic::{AtomicBool, Ordering},
-        mpsc, Arc,
+        mpsc,
     },
     time::Duration,
 };

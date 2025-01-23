@@ -1,7 +1,7 @@
 use super::{
+    EcsEntity,
     cache::{FigureKey, TerrainModelEntryFuture},
     load::{BodySpec, ShipBoneMeshes},
-    EcsEntity,
 };
 use common::{assets, comp::ship::figuredata::VoxelCollider};
 use std::{convert::TryFrom, sync::Arc};
@@ -12,7 +12,7 @@ pub struct VolumeKey {
     pub mut_count: usize,
 }
 
-impl<'a> From<&'a Self> for VolumeKey {
+impl From<&Self> for VolumeKey {
     fn from(this: &Self) -> Self { *this }
 }
 

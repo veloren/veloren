@@ -1,22 +1,23 @@
-#[cfg(not(feature = "worldgen"))]
-use crate::test_world::{IndexOwned, World};
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
+#[cfg(not(feature = "worldgen"))]
+use crate::test_world::{IndexOwned, World};
 use tracing::error;
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
 #[cfg(feature = "worldgen")] use crate::rtsim;
 use crate::{
-    chunk_generator::ChunkGenerator, chunk_serialize::ChunkSendEntry, client::Client,
-    presence::RepositionOnChunkLoad, settings::Settings, ChunkRequest, Tick,
+    ChunkRequest, Tick, chunk_generator::ChunkGenerator, chunk_serialize::ChunkSendEntry,
+    client::Client, presence::RepositionOnChunkLoad, settings::Settings,
 };
 use common::{
+    SkillSetBuilder,
     calendar::Calendar,
     combat::DeathEffects,
     comp::{
-        self, agent, biped_small, bird_medium, BehaviorCapability, ForceUpdate, Pos, Presence,
-        Waypoint,
+        self, BehaviorCapability, ForceUpdate, Pos, Presence, Waypoint, agent, biped_small,
+        bird_medium,
     },
     event::{CreateNpcEvent, CreateSpecialEntityEvent, EmitExt, EventBus, NpcBuilder},
     event_emitters,
@@ -26,7 +27,6 @@ use common::{
     slowjob::SlowJobPool,
     terrain::TerrainGrid,
     util::Dir,
-    SkillSetBuilder,
 };
 
 use common_ecs::{Job, Origin, Phase, System};
@@ -37,8 +37,8 @@ use core::cmp::Reverse;
 use itertools::Itertools;
 use rayon::{iter::Either, prelude::*};
 use specs::{
-    shred, storage::GenericReadStorage, Entities, Entity, Join, LendJoin, ParJoin, Read,
-    ReadExpect, ReadStorage, SystemData, Write, WriteExpect, WriteStorage,
+    Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write,
+    WriteExpect, WriteStorage, shred, storage::GenericReadStorage,
 };
 use std::{f32::consts::TAU, sync::Arc};
 use vek::*;

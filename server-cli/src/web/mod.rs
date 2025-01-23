@@ -1,8 +1,8 @@
 use crate::web::ui::api::UiRequestSender;
-use axum::{body::Bytes, extract::State, response::IntoResponse, routing::get, Router};
+use axum::{Router, body::Bytes, extract::State, response::IntoResponse, routing::get};
 use core::{future::Future, ops::Deref};
 use http_body_util::Full;
-use hyper::{header, http, StatusCode};
+use hyper::{StatusCode, header, http};
 use prometheus::{Registry, TextEncoder};
 use server::chat::ChatCache;
 use std::{future::IntoFuture, net::SocketAddr};

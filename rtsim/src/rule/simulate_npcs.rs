@@ -1,7 +1,7 @@
 use crate::{
-    data::{npc::SimulationMode, Npc},
-    event::{EventCtx, OnDeath, OnMountVolume, OnTick},
     RtState, Rule, RuleError,
+    data::{Npc, npc::SimulationMode},
+    event::{EventCtx, OnDeath, OnMountVolume, OnTick},
 };
 use common::{
     comp::{self, Body},
@@ -15,7 +15,7 @@ use rand_chacha::ChaChaRng;
 use slotmap::SecondaryMap;
 use tracing::{error, warn};
 use vek::{Clamp, Vec2};
-use world::{site::SiteKind, CONFIG};
+use world::{CONFIG, site::SiteKind};
 
 pub struct SimulateNpcs;
 
@@ -64,7 +64,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                         .filter(|(id, site)| {
                             // Don't respawn in the same town
                             Some(*id) != npc.home
-                                && site.world_site.map_or(false, |s| {
+                                && site.world_site.is_some_and(|s| {
                                     matches!(
                                         ctx.index.sites.get(s).kind,
                                         SiteKind::Refactor(_)
@@ -110,7 +110,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                             .iter()
                             .filter(|(id, site)| {
                                 Some(*id) != npc.home
-                                    && site.world_site.map_or(false, |s| {
+                                    && site.world_site.is_some_and(|s| {
                                         matches!(
                                             ctx.index.sites.get(s).kind,
                                             SiteKind::Terracotta(_)
@@ -150,7 +150,7 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
                                     .map(|sz| rng.gen_range(0..sz as i32))
                             })
                             .find(|pos| {
-                                ctx.world.sim().get(*pos).map_or(false, |c| {
+                                ctx.world.sim().get(*pos).is_some_and(|c| {
                                     !c.is_underwater() && (!is_gigas || c.temp < CONFIG.snow_temp)
                                 })
                             })
@@ -257,7 +257,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                                 ctx.world
                                     .sim()
                                     .get(chunk_pos)
-                                    .map_or(true, |f| f.river.river_kind.is_some())
+                                    .is_none_or(|f| f.river.river_kind.is_some())
                             },
                             _ => true,
                         };

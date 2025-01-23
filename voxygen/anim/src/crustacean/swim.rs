@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     CrustaceanSkeleton, SkeletonAttr,
 };
 use std::f32::consts::PI;

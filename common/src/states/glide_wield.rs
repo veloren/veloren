@@ -1,8 +1,8 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents, controller::InputKind, slot::EquipSlot, CharacterState,
-        InventoryAction, Ori, StateUpdate,
+        CharacterState, InventoryAction, Ori, StateUpdate, character_state::OutputEvents,
+        controller::InputKind, slot::EquipSlot,
     },
     event::LocalEvent,
     outcome::Outcome,
@@ -82,7 +82,7 @@ impl CharacterBehavior for Data {
                 .inventory
                 .and_then(|inv| inv.equipped(EquipSlot::Glider))
                 .is_some()
-                && data.physics.in_liquid().map_or(true, |depth| depth < 0.5)
+                && data.physics.in_liquid().is_none_or(|depth| depth < 0.5)
             {
                 CharacterState::GlideWield(Self {
                     // Glider tilt follows look dir

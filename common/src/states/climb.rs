@@ -1,8 +1,8 @@
 use crate::{
     comp::{
-        character_state::OutputEvents,
-        skills::{ClimbSkill::*, Skill, SKILL_MODIFIERS},
         CharacterState, Climb, InputKind, Ori, StateUpdate,
+        character_state::OutputEvents,
+        skills::{ClimbSkill::*, SKILL_MODIFIERS, Skill},
     },
     consts::GRAVITY,
     event::LocalEvent,

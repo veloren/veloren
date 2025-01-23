@@ -1,5 +1,5 @@
 use super::sentinel::{DeletedEntities, TrackedStorages, UpdateTrackers};
-use crate::{client::Client, presence::RegionSubscription, EditableSettings, Tick};
+use crate::{EditableSettings, Tick, client::Client, presence::RegionSubscription};
 use common::{
     calendar::Calendar,
     comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Presence, Vel},
@@ -474,7 +474,7 @@ fn should_sync_client_physics(
     is_rider: &ReadStorage<'_, Is<Rider>>,
     editable_settings: &EditableSettings,
 ) -> bool {
-    let server_authoritative_physics = players.get(entity).map_or(true, |player| {
+    let server_authoritative_physics = players.get(entity).is_none_or(|player| {
         player_physics_settings
             .settings
             .get(&player.uuid())
@@ -486,7 +486,7 @@ fn should_sync_client_physics(
     // Don't send client physics updates about itself unless force update is
     // set or the client is subject to
     // server-authoritative physics
-    force_updates.get(entity).map_or(false, |f| f.is_forced())
+    force_updates.get(entity).is_some_and(|f| f.is_forced())
         || server_authoritative_physics
         || is_rider.contains(entity)
 }

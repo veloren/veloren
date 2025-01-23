@@ -1,4 +1,4 @@
-use crate::persistence::{error::PersistenceError, VelorenConnection};
+use crate::persistence::{VelorenConnection, error::PersistenceError};
 use tracing::{debug, info};
 
 /// Performs a one-time migration from diesel to refinery migrations. Copies

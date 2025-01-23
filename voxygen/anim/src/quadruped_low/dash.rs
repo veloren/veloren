@@ -1,8 +1,8 @@
 use super::{
     super::{
+        Animation,
         util::{bounce, elastic},
         vek::*,
-        Animation,
     },
     QuadrupedLowSkeleton, SkeletonAttr,
 };

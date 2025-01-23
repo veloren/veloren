@@ -9,14 +9,14 @@ use common::{
     rtsim::{Actor, ChunkResource, NpcId, RtSimEntity, WorldSettings},
     terrain::{CoordinateConversions, SpriteKind},
 };
-use common_ecs::{dispatch, System};
+use common_ecs::{System, dispatch};
 use common_state::BlockDiff;
-use crossbeam_channel::{unbounded, Receiver, Sender};
+use crossbeam_channel::{Receiver, Sender, unbounded};
 use enum_map::EnumMap;
 use rtsim::{
-    data::{npc::SimulationMode, Data, ReadError},
-    event::{OnDeath, OnHealthChange, OnMountVolume, OnSetup, OnTheft},
     RtState,
+    data::{Data, ReadError, npc::SimulationMode},
+    event::{OnDeath, OnHealthChange, OnMountVolume, OnSetup, OnTheft},
 };
 use specs::DispatcherBuilder;
 use std::{

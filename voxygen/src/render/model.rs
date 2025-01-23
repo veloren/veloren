@@ -1,7 +1,7 @@
 use super::{
+    Vertex,
     buffer::{Buffer, DynamicBuffer},
     mesh::Mesh,
-    Vertex,
 };
 use std::ops::Range;
 

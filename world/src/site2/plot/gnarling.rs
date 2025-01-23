@@ -1,15 +1,15 @@
 use super::*;
 use crate::{
+    Land,
     assets::AssetHandle,
     site2::{gen::PrimitiveTransform, util::Dir},
-    util::{attempt, sampler::Sampler, RandomField},
-    Land,
+    util::{RandomField, attempt, sampler::Sampler},
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
     terrain::{Structure as PrefabStructure, StructuresGroup},
 };
-use kiddo::{float::kdtree::KdTree, SquaredEuclidean};
+use kiddo::{SquaredEuclidean, float::kdtree::KdTree};
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use std::collections::HashMap;
@@ -223,7 +223,7 @@ impl GnarlingFortification {
                 // Check that structure not in the water or too close to another structure
                 if land
                     .get_chunk_wpos(structure_center + origin)
-                    .map_or(false, |c| c.is_underwater())
+                    .is_some_and(|c| c.is_underwater())
                     || structure_locations.iter().any(|(kind, loc, _door_dir)| {
                         structure_center.distance_squared(loc.xy())
                             < structure_kind.required_separation(kind).pow(2)

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
+    comp::{CharacterState, StateUpdate, character_state::OutputEvents},
     event::TeleportToEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},

@@ -1,42 +1,43 @@
 use super::{
+    HudInfo, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
     get_quality_col,
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{animate_by_pulse, ItemImgs},
+    item_imgs::{ItemImgs, animate_by_pulse},
     slots::{CraftSlot, CraftSlotInfo, SlotManager},
-    util, HudInfo, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    util,
 };
 use crate::{
     settings::Settings,
     ui::{
-        fonts::Fonts,
-        slot::{ContentSize, SlotMaker},
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
+        fonts::Fonts,
+        slot::{ContentSize, SlotMaker},
     },
 };
 use client::{self, Client};
 use common::{
     assets::AssetExt,
     comp::inventory::{
+        Inventory,
         item::{
+            Item, ItemBase, ItemDef, ItemDesc, ItemI18n, ItemKind, ItemTag, MaterialStatManifest,
+            Quality, TagExampleInfo,
             item_key::ItemKey,
             modular::{self, ModularComponent},
             tool::{AbilityMap, ToolKind},
-            Item, ItemBase, ItemDef, ItemDesc, ItemI18n, ItemKind, ItemTag, MaterialStatManifest,
-            Quality, TagExampleInfo,
         },
         slot::{InvSlotId, Slot},
-        Inventory,
     },
     mounting::VolumePos,
     recipe::{ComponentKey, Recipe, RecipeBookManifest, RecipeInput},
     terrain::SpriteKind,
 };
 use conrod_core::{
-    color, image,
+    Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color, image,
     position::{Dimension, Place},
     widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use hashbrown::{HashMap, HashSet};
 use i18n::Localization;
@@ -323,7 +324,7 @@ impl SearchFilter {
     }
 }
 
-impl<'a> Widget for Crafting<'a> {
+impl Widget for Crafting<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();
@@ -726,8 +727,7 @@ impl<'a> Widget for Crafting<'a> {
                 let is_craftable =
                     self.client
                         .available_recipes()
-                        .get(name.as_str())
-                        .map_or(false, |cs| {
+                        .get(name.as_str()).is_some_and(|cs| {
                             cs.map_or(true, |cs| {
                                 Some(cs) == self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
                             })
@@ -1505,7 +1505,7 @@ impl<'a> Widget for Crafting<'a> {
                         self.client
                             .available_recipes()
                             .get(&recipe_name)
-                            .map_or(false, |cs| {
+                            .is_some_and(|cs| {
                                 cs.map_or(true, |cs| {
                                     Some(cs)
                                         == self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
@@ -1515,7 +1515,7 @@ impl<'a> Widget for Crafting<'a> {
                     )
                 },
                 RecipeKind::Repair => {
-                    if state.ids.craft_slots.len() < 1 {
+                    if state.ids.craft_slots.is_empty() {
                         state.update(|s| {
                             s.ids.craft_slots.resize(1, &mut ui.widget_id_generator());
                         });
@@ -1542,7 +1542,7 @@ impl<'a> Widget for Crafting<'a> {
                     let repair_slot = CraftSlot {
                         index: 0,
                         slot: self.show.crafting_fields.recipe_inputs.get(&0).copied(),
-                        requirement: |item, _, _| item.durability_lost().map_or(false, |d| d > 0),
+                        requirement: |item, _, _| item.durability_lost().is_some_and(|d| d > 0),
                         info: None,
                     };
 
@@ -1588,15 +1588,16 @@ impl<'a> Widget for Crafting<'a> {
                     let can_repair = |item: &Item| {
                         // Check that item needs to be repaired, and that inventory has sufficient
                         // materials to repair
-                        item.durability_lost().map_or(false, |d| d > 0)
-                            && self.client.repair_recipe_book().repair_recipe(item).map_or(
-                                false,
-                                |recipe| {
+                        item.durability_lost().is_some_and(|d| d > 0)
+                            && self
+                                .client
+                                .repair_recipe_book()
+                                .repair_recipe(item)
+                                .is_some_and(|recipe| {
                                     recipe
                                         .inventory_contains_ingredients(item, self.inventory)
                                         .is_ok()
-                                },
-                            )
+                                })
                     };
 
                     let can_perform = self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
@@ -1678,7 +1679,7 @@ impl<'a> Widget for Crafting<'a> {
                             });
                         self.inventory
                             .slots_with_id()
-                            .filter(|(_, item)| item.as_ref().map_or(false, can_repair))
+                            .filter(|(_, item)| item.as_ref().is_some_and(can_repair))
                             .for_each(|(slot, _)| {
                                 events.push(Event::RepairItem {
                                     slot: Slot::Inventory(slot),
@@ -1687,7 +1688,7 @@ impl<'a> Widget for Crafting<'a> {
                     }
 
                     let can_perform =
-                        repair_slot.item(self.inventory).map_or(false, can_repair) && can_perform;
+                        repair_slot.item(self.inventory).is_some_and(can_repair) && can_perform;
 
                     (repair_slot.slot, None, can_perform, true)
                 },

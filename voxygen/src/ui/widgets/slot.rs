@@ -1,11 +1,11 @@
 //! A widget for selecting a single value along some linear range.
 use crate::hud::animate_by_pulse;
 use conrod_core::{
-    builder_methods, image,
+    Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, builder_methods, image,
     input::{keyboard::ModifierKey, state::mouse},
     text::font,
     widget::{self, Image, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use vek::*;
 
@@ -49,7 +49,7 @@ pub struct SlotMaker<'a, C, I, S: SumSlot> {
     pub pulse: f32,
 }
 
-impl<'a, C, I, S> SlotMaker<'a, C, I, S>
+impl<C, I, S> SlotMaker<'_, C, I, S>
 where
     S: SumSlot,
 {
@@ -574,7 +574,7 @@ where
     }
 }
 
-impl<'a, K, C, I, S> Widget for Slot<'a, K, C, I, S>
+impl<K, C, I, S> Widget for Slot<'_, K, C, I, S>
 where
     K: SlotKey<C, I> + Into<S>,
     S: SumSlot,
@@ -712,11 +712,7 @@ where
 
         // Draw amount
         if let Some(amount) = amount {
-            let amount = match self
-                .slot_manager
-                .as_ref()
-                .map_or(true, |sm| sm.use_prefixes)
-            {
+            let amount = match self.slot_manager.as_ref().is_none_or(|sm| sm.use_prefixes) {
                 true => {
                     let threshold = amount
                         / (u32::pow(

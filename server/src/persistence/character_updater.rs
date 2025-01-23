@@ -2,12 +2,12 @@ use crate::comp;
 use common::character::CharacterId;
 
 use crate::persistence::{
+    ConnectionMode, DatabaseSettings, EditableComponents, PersistedComponents, VelorenConnection,
     character_loader::{
         CharacterScreenResponse, CharacterScreenResponseKind, CharacterUpdaterMessage,
     },
     error::PersistenceError,
-    establish_connection, ConnectionMode, DatabaseSettings, EditableComponents,
-    PersistedComponents, VelorenConnection,
+    establish_connection,
 };
 use crossbeam_channel::TryIter;
 use rusqlite::DropBehavior;
@@ -15,8 +15,8 @@ use specs::Entity;
 use std::{
     collections::HashMap,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc, RwLock,
+        atomic::{AtomicBool, Ordering},
     },
 };
 use tracing::{debug, error, info, trace, warn};

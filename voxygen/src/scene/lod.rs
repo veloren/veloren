@@ -1,10 +1,10 @@
 use crate::{
     render::{
-        pipelines::lod_terrain::{LodData, Vertex},
         CullingMode, FirstPassDrawer, Instances, LodObjectInstance, LodObjectVertex,
         LodTerrainVertex, Mesh, Model, Quad, Renderer, Tri,
+        pipelines::lod_terrain::{LodData, Vertex},
     },
-    scene::{camera, Camera},
+    scene::{Camera, camera},
     settings::Settings,
 };
 use client::Client;
@@ -17,7 +17,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use std::ops::Range;
-use treeculler::{BVol, Frustum, AABB};
+use treeculler::{AABB, BVol, Frustum};
 use vek::*;
 
 // For culling

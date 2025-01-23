@@ -3,7 +3,7 @@ use common::{
     util::{linear_to_srgba, srgb_to_linear_fast},
     vol::{FilledVox, IntoFullVolIterator, ReadVol, SizedVol},
 };
-use euc::{buffer::Buffer2d, rasterizer, Pipeline};
+use euc::{Pipeline, buffer::Buffer2d, rasterizer};
 use image::{DynamicImage, RgbaImage};
 use vek::*;
 

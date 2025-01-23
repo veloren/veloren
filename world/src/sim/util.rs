@@ -1,12 +1,12 @@
-use bitvec::prelude::{bitbox, BitBox};
+use bitvec::prelude::{BitBox, bitbox};
 use common::{
-    terrain::{neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx, MapSizeLg, TerrainChunkSize},
+    terrain::{MapSizeLg, TerrainChunkSize, neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx},
     vol::RectVolSize,
 };
 use common_base::prof_span;
 use noise::{
-    core::worley::*, math::vectors::*, permutationtable::PermutationTable, MultiFractal, NoiseFn,
-    Seedable,
+    MultiFractal, NoiseFn, Seedable, core::worley::*, math::vectors::*,
+    permutationtable::PermutationTable,
 };
 use num::Float;
 use rayon::prelude::*;

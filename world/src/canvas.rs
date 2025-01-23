@@ -1,18 +1,18 @@
 use crate::{
-    block::{block_from_structure, ZCache},
+    block::{ZCache, block_from_structure},
     column::{ColumnGen, ColumnSample},
     index::IndexRef,
     land::Land,
     layer::spot::Spot,
     sim::{SimChunk, WorldSim},
-    util::{seed_expan, Grid, Sampler},
+    util::{Grid, Sampler, seed_expan},
 };
 use common::{
     calendar::Calendar,
     generation::EntityInfo,
     terrain::{
-        structure::StructureBlock, Block, BlockKind, SpriteCfg, Structure, TerrainChunk,
-        TerrainChunkSize,
+        Block, BlockKind, SpriteCfg, Structure, TerrainChunk, TerrainChunkSize,
+        structure::StructureBlock,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };

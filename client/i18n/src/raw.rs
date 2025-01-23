@@ -1,6 +1,6 @@
 use crate::{
-    assets::{loader, StringLoader},
     Fonts, LanguageMetadata,
+    assets::{StringLoader, loader},
 };
 use serde::{Deserialize, Serialize};
 

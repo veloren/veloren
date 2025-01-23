@@ -4,11 +4,10 @@ use crate::{
         DamageKind, DamageSource, GroupTarget,
     },
     comp::{
-        beam,
+        Body, CharacterState, Ori, StateUpdate, beam,
         body::{biped_large, bird_large, golem},
         character_state::OutputEvents,
         object::Body::{Flamethrower, Lavathrower},
-        Body, CharacterState, Ori, StateUpdate,
     },
     event::LocalEvent,
     outcome::Outcome,

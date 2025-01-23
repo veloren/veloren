@@ -4,11 +4,11 @@ pub mod component;
 mod renderer;
 pub mod widget;
 
-pub use cache::{load_font, Font, FontId, RawFont};
+pub use cache::{Font, FontId, RawFont, load_font};
 pub use graphic::{Id, Rotation};
 pub use iced::Event;
 pub use iced_winit::conversion::window_event;
-pub use renderer::{style, IcedRenderer};
+pub use renderer::{IcedRenderer, style};
 
 use super::{
     graphic::{self, Graphic},
@@ -21,7 +21,7 @@ use crate::{
 };
 use common::slowjob::SlowJobPool;
 use common_base::span;
-use iced::{mouse, Cache, Size, UserInterface};
+use iced::{Cache, Size, UserInterface, mouse};
 use iced_winit::Clipboard;
 use vek::*;
 

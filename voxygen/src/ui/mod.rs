@@ -30,8 +30,8 @@ pub use widgets::{
 use crate::{
     error::Error,
     render::{
-        create_ui_quad, create_ui_tri, DynamicModel, Mesh, RenderError, Renderer, UiBoundLocals,
-        UiDrawer, UiLocals, UiMode, UiVertex,
+        DynamicModel, Mesh, RenderError, Renderer, UiBoundLocals, UiDrawer, UiLocals, UiMode,
+        UiVertex, create_ui_quad, create_ui_tri,
     },
     window::Window,
 };
@@ -41,14 +41,14 @@ use cache::Cache;
 use common::{slowjob::SlowJobPool, util::srgba_to_linear};
 use common_base::span;
 use conrod_core::{
+    Rect, Scalar, UiBuilder, UiCell,
     event::Input,
     graph::{self, Graph},
     image::{Id as ImageId, Map},
-    input::{touch::Touch, Motion, Widget},
+    input::{Motion, Widget, touch::Touch},
     render::{Primitive, PrimitiveKind},
     text::{self, font},
     widget::{self, id::Generator},
-    Rect, Scalar, UiBuilder, UiCell,
 };
 use core::{convert::TryInto, f64, ops::Range};
 use graphic::TexId;

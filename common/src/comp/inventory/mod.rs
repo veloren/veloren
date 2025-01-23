@@ -7,12 +7,14 @@ use tracing::{debug, trace, warn};
 use vek::Vec3;
 
 use crate::{
+    LoadoutBuilder,
     comp::{
+        Item,
         body::Body,
         inventory::{
             item::{
-                item_key::ItemKey, tool::AbilityMap, ItemDef, ItemDefinitionIdOwned, ItemKind,
-                MaterialStatManifest, TagExampleInfo,
+                ItemDef, ItemDefinitionIdOwned, ItemKind, MaterialStatManifest, TagExampleInfo,
+                item_key::ItemKey, tool::AbilityMap,
             },
             loadout::Loadout,
             recipe_book::RecipeBook,
@@ -20,13 +22,11 @@ use crate::{
         },
         loot_owner::LootOwnerKind,
         slot::{InvSlotId, SlotId},
-        Item,
     },
     recipe::{Recipe, RecipeBookManifest},
     resources::Time,
     terrain::SpriteKind,
     uid::Uid,
-    LoadoutBuilder,
 };
 
 use super::FrontendItem;
@@ -999,9 +999,10 @@ impl Inventory {
     /// removed.
     pub fn can_swap(&self, inv_slot_id: InvSlotId, equip_slot: EquipSlot) -> bool {
         // Check if loadout slot can hold item
-        if !self.get(inv_slot_id).map_or(true, |item| {
-            self.loadout.slot_can_hold(equip_slot, Some(&*item.kind()))
-        }) {
+        if !self
+            .get(inv_slot_id)
+            .is_none_or(|item| self.loadout.slot_can_hold(equip_slot, Some(&*item.kind())))
+        {
             trace!("can_swap = false, equip slot can't hold item");
             return false;
         }
@@ -1059,7 +1060,7 @@ impl Inventory {
         slots_mut.filter_map(|slot| slot.as_mut()).for_each(|item| {
             if item
                 .durability_lost()
-                .map_or(false, |dur| dur < Item::MAX_DURABILITY)
+                .is_some_and(|dur| dur < Item::MAX_DURABILITY)
                 && let Some((_unequip_time, count)) =
                     recently_unequipped_items.get_mut(&item.item_definition_id())
                 && *count > 0
@@ -1108,7 +1109,7 @@ impl Inventory {
     pub fn available_recipes_iter<'a>(
         &'a self,
         rbm: &'a RecipeBookManifest,
-    ) -> impl Iterator<Item = (&String, &Recipe)> + '_ {
+    ) -> impl Iterator<Item = (&'a String, &'a Recipe)> + 'a {
         self.recipe_book.get_available_iter(rbm)
     }
 
@@ -1118,7 +1119,7 @@ impl Inventory {
         &'a self,
         recipe_key: &str,
         rbm: &'a RecipeBookManifest,
-    ) -> Option<&Recipe> {
+    ) -> Option<&'a Recipe> {
         self.recipe_book.get(recipe_key, rbm)
     }
 

@@ -8,13 +8,13 @@ use fxhash::FxBuildHasher;
 #[cfg(feature = "rrt_pathfinding")]
 use hashbrown::HashMap;
 #[cfg(feature = "rrt_pathfinding")]
-use kiddo::{float::kdtree::KdTree, nearest_neighbour::NearestNeighbour, SquaredEuclidean}; /* For RRT paths (disabled for now) */
+use kiddo::{SquaredEuclidean, float::kdtree::KdTree, nearest_neighbour::NearestNeighbour}; /* For RRT paths (disabled for now) */
+use rand::{Rng, thread_rng};
 #[cfg(feature = "rrt_pathfinding")]
 use rand::{
     distributions::{Distribution, Uniform},
     prelude::IteratorRandom,
 };
-use rand::{thread_rng, Rng};
 #[cfg(feature = "rrt_pathfinding")]
 use std::f32::consts::PI;
 use std::iter::FromIterator;

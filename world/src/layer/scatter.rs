@@ -1,12 +1,12 @@
 use crate::{
+    CONFIG, Canvas,
     column::ColumnSample,
     sim::SimChunk,
-    util::{close, RandomField},
-    Canvas, CONFIG,
+    util::{RandomField, close},
 };
 use common::{
     calendar::{Calendar, CalendarEvent},
-    terrain::{sprite::SnowCovered, Block, BlockKind, SpriteKind},
+    terrain::{Block, BlockKind, SpriteKind, sprite::SnowCovered},
 };
 use noise::NoiseFn;
 use num::traits::Pow;
@@ -300,9 +300,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             kind: Pumpkin,
             water_mode: Ground,
             permit: |b| matches!(b, BlockKind::Grass),
-            f: if calendar.map_or(false, |calendar| {
-                calendar.is_event(CalendarEvent::Halloween)
-            }) {
+            f: if calendar.is_some_and(|calendar| calendar.is_event(CalendarEvent::Halloween)) {
                 |_, _| (0.1, Some((0.0003, 128.0, 0.1)))
             } else {
                 |_, col| {
@@ -1234,7 +1232,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             {
                 canvas.map_resource(Vec3::new(wpos2d.x, wpos2d.y, alt + solid_end), |block| {
                     let mut block = block.with_sprite(kind);
-                    if block.sprite_category().map_or(false, |category| category.has_attr::<SnowCovered>()) {
+                    if block.sprite_category().is_some_and(|category| category.has_attr::<SnowCovered>()) {
                         block = block.with_attr(SnowCovered(snow_covered)).expect("`Category::has_attr` should have ensured setting the attribute will succeed");
                     }
 

@@ -4,7 +4,7 @@ use common::{comp::Controller, resources::Time, shared_server_config::ServerCons
 use specs::WorldExt;
 use std::error::Error;
 use utils::{DT, DT_F64, EPSILON};
-use vek::{approx, Vec2, Vec3};
+use vek::{Vec2, Vec3, approx};
 
 #[test]
 fn simple_run() {

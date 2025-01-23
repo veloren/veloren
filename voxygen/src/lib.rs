@@ -9,7 +9,6 @@
 #![feature(
     extract_if,
     trait_alias,
-    option_get_or_insert_default,
     map_try_insert,
     slice_as_chunks,
     let_chains,
@@ -113,7 +112,7 @@ impl GlobalState {
     pub fn paused(&self) -> bool {
         self.singleplayer
             .as_running()
-            .map_or(false, Singleplayer::is_paused)
+            .is_some_and(Singleplayer::is_paused)
     }
 
     #[cfg(not(feature = "singleplayer"))]

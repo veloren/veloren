@@ -6,7 +6,7 @@ use vek::Vec2;
 use common_assets::AssetExt;
 use veloren_voxygen::{
     hud::item_imgs::{ImageSpec, ItemImagesSpec},
-    ui::{graphic::renderer::draw_vox, Graphic},
+    ui::{Graphic, graphic::renderer::draw_vox},
 };
 
 #[derive(Parser)]

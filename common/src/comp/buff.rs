@@ -4,7 +4,7 @@ use crate::{
         AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
         DamagedEffect, DeathEffect,
     },
-    comp::{aura::AuraKey, Mass, Stats},
+    comp::{Mass, Stats, aura::AuraKey},
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -13,7 +13,7 @@ use core::cmp::Ordering;
 use enum_map::{Enum, EnumMap};
 use itertools::Either;
 use serde::{Deserialize, Serialize};
-use slotmap::{new_key_type, SlotMap};
+use slotmap::{SlotMap, new_key_type};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
 use strum::EnumIter;
 
@@ -874,7 +874,7 @@ impl PartialOrd for Buff {
 }
 
 fn compare_end_time(a: Option<Time>, b: Option<Time>) -> bool {
-    a.map_or(true, |time_a| b.map_or(false, |time_b| time_a.0 > time_b.0))
+    a.is_none_or(|time_a| b.is_some_and(|time_b| time_a.0 > time_b.0))
 }
 
 impl PartialEq for Buff {
@@ -958,13 +958,13 @@ impl Buffs {
             self.kinds[kind].as_ref().and_then(|(keys, _)| {
                 keys.iter()
                     .find(|key| {
-                        self.buffs.get(**key).map_or(false, |other_buff| {
+                        self.buffs.get(**key).is_some_and(|other_buff| {
                             other_buff.data == buff.data
                                 && other_buff.cat_ids == buff.cat_ids
                                 && other_buff.source == buff.source
                                 && other_buff
                                     .end_time
-                                    .map_or(true, |end_time| end_time.0 >= buff.start_time.0)
+                                    .is_none_or(|end_time| end_time.0 >= buff.start_time.0)
                         })
                     })
                     .copied()

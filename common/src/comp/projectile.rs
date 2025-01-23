@@ -3,7 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
         DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
-    comp::item::{tool, Reagent},
+    comp::item::{Reagent, tool},
     explosion::{ColorPreset, Explosion, RadiusEffect},
     resources::Secs,
     uid::Uid,

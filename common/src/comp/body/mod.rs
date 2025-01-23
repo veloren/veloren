@@ -166,7 +166,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
 }
 
 /// Can only retrieve body metadata by direct index.
-impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMeta, SpeciesMeta> {
+impl<BodyMeta, SpeciesMeta> core::ops::Index<&Body> for AllBodies<BodyMeta, SpeciesMeta> {
     type Output = BodyMeta;
 
     #[inline]

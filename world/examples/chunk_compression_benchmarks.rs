@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 use common::{
     spiral::Spiral2d,
-    terrain::{chonk::Chonk, Block, BlockKind, SpriteKind},
+    terrain::{Block, BlockKind, SpriteKind, chonk::Chonk},
     vol::{IntoVolIterator, RectVolSize, SizedVol, WriteVol},
     volumes::{
         dyna::{Access, ColumnAccess, Dyna},
@@ -9,9 +9,9 @@ use common::{
     },
 };
 use common_net::msg::compression::{
-    image_from_bytes, image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking,
-    PackingFormula, QuadPngEncoding, TriPngEncoding, VoxelImageDecoding, VoxelImageEncoding,
-    WidePacking,
+    CompressedData, GridLtrPacking, PackingFormula, QuadPngEncoding, TriPngEncoding,
+    VoxelImageDecoding, VoxelImageEncoding, WidePacking, image_from_bytes, image_terrain_chonk,
+    image_terrain_volgrid,
 };
 use hashbrown::HashMap;
 use image::{ImageBuffer, ImageEncoder};
@@ -28,9 +28,9 @@ use std::{
 use tracing::{debug, trace};
 use vek::*;
 use veloren_world::{
-    civ::SiteKind,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     World,
+    civ::SiteKind,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
 
 fn lz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Vec<u8> {
@@ -55,7 +55,7 @@ fn unlz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Option<Vec<u8>> {
 
 #[allow(dead_code)]
 fn do_deflate_rle(data: &[u8]) -> Vec<u8> {
-    use deflate::{write::DeflateEncoder, CompressionOptions};
+    use deflate::{CompressionOptions, write::DeflateEncoder};
 
     let mut encoder = DeflateEncoder::new(Vec::new(), CompressionOptions::rle());
     encoder.write_all(data).expect("Write error!");
@@ -64,7 +64,7 @@ fn do_deflate_rle(data: &[u8]) -> Vec<u8> {
 
 // Separate function so that it shows up differently on the flamegraph
 fn do_deflate_flate2_zero(data: &[u8]) -> Vec<u8> {
-    use flate2::{write::DeflateEncoder, Compression};
+    use flate2::{Compression, write::DeflateEncoder};
 
     let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(0));
     encoder.write_all(data).expect("Write error!");
@@ -72,7 +72,7 @@ fn do_deflate_flate2_zero(data: &[u8]) -> Vec<u8> {
 }
 
 fn do_deflate_flate2<const LEVEL: u32>(data: &[u8]) -> Vec<u8> {
-    use flate2::{write::DeflateEncoder, Compression};
+    use flate2::{Compression, write::DeflateEncoder};
 
     let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(LEVEL));
     encoder.write_all(data).expect("Write error!");

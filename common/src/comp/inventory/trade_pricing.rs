@@ -9,7 +9,7 @@ use crate::{
         tool::AbilityMap,
     },
     lottery::LootSpec,
-    recipe::{complete_recipe_book, default_component_recipe_book, RecipeInput},
+    recipe::{RecipeInput, complete_recipe_book, default_component_recipe_book},
     trade::Good,
 };
 use assets::AssetReadGuard;
@@ -218,7 +218,7 @@ impl FreqEntries {
                 &AbilityMap::load().read(),
                 &MaterialStatManifest::load().read(),
             )
-            .map_or(false, |i| i.is_stackable());
+            .is_ok_and(|i| i.is_stackable());
             let new_mat_prob: FreqEntry = FreqEntry {
                 name: canonical_itemname.to_owned(),
                 freq: new_freq,
@@ -908,7 +908,7 @@ impl TradePricing {
         let msm = &MaterialStatManifest::load().read();
         while result.sort_by_price(&mut ordered_recipes) {
             ordered_recipes.retain(|recipe| {
-                if recipe.material_cost.map_or(false, |p| p < 1e-5) || recipe.amount == 0 {
+                if recipe.material_cost.is_some_and(|p| p < 1e-5) || recipe.amount == 0 {
                     // don't handle recipes which have no raw materials
                     false
                 } else if recipe.material_cost.is_some() {
@@ -920,14 +920,14 @@ impl TradePricing {
                                 .0
                                 .iter()
                                 .find(|item| item.name == *input)
-                                .map_or(false, |item| item.sell)
+                                .is_some_and(|item| item.sell)
                         });
                         let stackable = Item::new_from_item_definition_id(
                             recipe.output.as_ref(),
                             ability_map,
                             msm,
                         )
-                        .map_or(false, |i| i.is_stackable());
+                        .is_ok_and(|i| i.is_stackable());
                         let new_entry = PriceEntry {
                             name: recipe.output.clone(),
                             price: usage * (1.0 / (recipe.amount as f32 * Self::CRAFTING_FACTOR)),
@@ -1051,7 +1051,7 @@ impl TradePricing {
 
     #[cfg(test)]
     fn print_sorted(&self) {
-        use crate::comp::item::{armor, DurabilityMultiplier}; //, ItemKind, MaterialStatManifest};
+        use crate::comp::item::{DurabilityMultiplier, armor}; //, ItemKind, MaterialStatManifest};
 
         println!("Item, ForSale, Amount, Good, Quality, Deal, Unit,");
 
@@ -1152,8 +1152,8 @@ pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, ItemDefinitionIdOwned, f
 #[cfg(test)]
 mod tests {
     use crate::{comp::inventory::trade_pricing::TradePricing, trade::Good};
-    use tracing::{info, Level};
-    use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
+    use tracing::{Level, info};
+    use tracing_subscriber::{FmtSubscriber, filter::EnvFilter};
 
     fn init() {
         FmtSubscriber::builder()

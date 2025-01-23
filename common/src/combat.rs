@@ -1,19 +1,19 @@
 use crate::{
     comp::{
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, HealthChange,
+        Inventory, Mass, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
         ability::Capability,
         aura::{AuraKindVariant, EnteredAuras},
         buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource, DestInfo},
         inventory::{
             item::{
+                ItemDesc, ItemKind, MaterialStatManifest,
                 armor::Protection,
                 tool::{self, ToolKind},
-                ItemDesc, ItemKind, MaterialStatManifest,
             },
             slot::EquipSlot,
         },
         skillset::SkillGroupKind,
-        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, HealthChange,
-        Inventory, Mass, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
     },
     event::{
         BuffEvent, ComboChangeEvent, EmitExt, EnergyChangeEvent, EntityAttackedHookEvent,
@@ -328,7 +328,7 @@ impl Attack {
         for damage in self
             .damages
             .iter()
-            .filter(|d| allow_friendly_fire || d.target.map_or(true, |t| t == target_group))
+            .filter(|d| allow_friendly_fire || d.target.is_none_or(|t| t == target_group))
             .filter(|d| !avoid_damage(d))
         {
             let damage_instance = damage.instance + damage_instance_offset;
@@ -564,7 +564,7 @@ impl Attack {
                         CombatEffect::StageVulnerable(damage, section) => {
                             if target
                                 .char_state
-                                .map_or(false, |cs| cs.stage_section() == Some(*section))
+                                .is_some_and(|cs| cs.stage_section() == Some(*section))
                             {
                                 let change = {
                                     let mut change = change;
@@ -586,7 +586,7 @@ impl Attack {
                             }
                         },
                         CombatEffect::BuffsVulnerable(damage, buff) => {
-                            if target.buffs.map_or(false, |b| b.contains(*buff)) {
+                            if target.buffs.is_some_and(|b| b.contains(*buff)) {
                                 let change = {
                                     let mut change = change;
                                     change.amount *= damage;
@@ -599,7 +599,7 @@ impl Attack {
                             }
                         },
                         CombatEffect::StunnedVulnerable(damage) => {
-                            if target.char_state.map_or(false, |cs| cs.is_stunned()) {
+                            if target.char_state.is_some_and(|cs| cs.is_stunned()) {
                                 let change = {
                                     let mut change = change;
                                     change.amount *= damage;
@@ -639,7 +639,7 @@ impl Attack {
                     .iter()
                     .flat_map(|stats| stats.effects_on_attack.iter()),
             )
-            .filter(|e| allow_friendly_fire || e.target.map_or(true, |t| t == target_group))
+            .filter(|e| allow_friendly_fire || e.target.is_none_or(|t| t == target_group))
             .filter(|e| !avoid_effect(e))
         {
             let requirements_met = effect.requirements.iter().all(|req| match req {
@@ -686,10 +686,10 @@ impl Attack {
                     }
                 },
                 CombatRequirement::TargetHasBuff(buff) => {
-                    target.buffs.map_or(false, |buffs| buffs.contains(*buff))
+                    target.buffs.is_some_and(|buffs| buffs.contains(*buff))
                 },
                 CombatRequirement::TargetPoised => {
-                    target.char_state.map_or(false, |cs| cs.is_stunned())
+                    target.char_state.is_some_and(|cs| cs.is_stunned())
                 },
                 CombatRequirement::BehindTarget => {
                     if let Some(ori) = target.ori {
@@ -698,9 +698,9 @@ impl Attack {
                         false
                     }
                 },
-                CombatRequirement::TargetBlocking => target.char_state.map_or(false, |cs| {
-                    cs.is_block(attack_source) || cs.is_parry(attack_source)
-                }),
+                CombatRequirement::TargetBlocking => target
+                    .char_state
+                    .is_some_and(|cs| cs.is_block(attack_source) || cs.is_parry(attack_source)),
             });
             if requirements_met {
                 is_applied = true;
@@ -942,7 +942,7 @@ pub fn permit_pvp(
     // Return `true` if not players.
     attacker_info
         .zip(target_info)
-        .map_or(true, |(a, t)| a.may_harm(t))
+        .is_none_or(|(a, t)| a.may_harm(t))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -1342,9 +1342,7 @@ impl Knockback {
             let resistant = char_state
                 .and_then(|cs| cs.ability_info())
                 .map(|a| a.ability_meta)
-                .map_or(false, |a| {
-                    a.capabilities.contains(Capability::KNOCKBACK_RESISTANT)
-                });
+                .is_some_and(|a| a.capabilities.contains(Capability::KNOCKBACK_RESISTANT));
             if resistant { 0.5 } else { 1.0 }
         };
         // TEMP: 50.0 multiplication kept until source knockback values have been
@@ -1685,7 +1683,7 @@ pub fn perception_dist_multiplier_from_stealth(
     const SNEAK_MULTIPLIER: f32 = 0.7;
 
     let item_stealth_multiplier = stealth_multiplier_from_items(inventory, msm);
-    let is_sneaking = character_state.map_or(false, |state| state.is_stealthy());
+    let is_sneaking = character_state.is_some_and(|state| state.is_stealthy());
 
     let multiplier = item_stealth_multiplier * if is_sneaking { SNEAK_MULTIPLIER } else { 1.0 };
 

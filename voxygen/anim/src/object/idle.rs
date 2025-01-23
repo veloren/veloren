@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     ObjectSkeleton, SkeletonAttr,
 };
 use common::comp::item::ToolKind;

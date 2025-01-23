@@ -10,43 +10,43 @@ pub use volume::VolumeKey;
 use crate::{
     ecs::comp::Interpolated,
     render::{
-        pipelines::{
-            self,
-            terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
-            trail, AtlasData, AtlasTextures, FigureSpriteAtlasData,
-        },
         AltIndices, CullingMode, FigureBoneData, FigureDrawer, FigureLocals, FigureModel,
         FigureShadowDrawer, Instances, Mesh, Quad, RenderError, Renderer, SpriteDrawer,
         SpriteInstance, SubModel, TerrainVertex,
+        pipelines::{
+            self, AtlasData, AtlasTextures, FigureSpriteAtlasData,
+            terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
+            trail,
+        },
     },
     scene::{
+        RAIN_THRESHOLD, SceneData, TrailMgr,
         camera::{Camera, CameraMode, Dependents},
         math,
         terrain::Terrain,
-        SceneData, TrailMgr, RAIN_THRESHOLD,
     },
 };
 #[cfg(feature = "plugins")]
 use anim::plugin::PluginSkeleton;
 use anim::{
-    arthropod::ArthropodSkeleton, biped_large::BipedLargeSkeleton, biped_small::BipedSmallSkeleton,
-    bird_large::BirdLargeSkeleton, bird_medium::BirdMediumSkeleton, character::CharacterSkeleton,
-    crustacean::CrustaceanSkeleton, dragon::DragonSkeleton, fish_medium::FishMediumSkeleton,
-    fish_small::FishSmallSkeleton, golem::GolemSkeleton, item_drop::ItemDropSkeleton,
-    object::ObjectSkeleton, quadruped_low::QuadrupedLowSkeleton,
-    quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton,
-    ship::ShipSkeleton, theropod::TheropodSkeleton, Animation, Skeleton,
+    Animation, Skeleton, arthropod::ArthropodSkeleton, biped_large::BipedLargeSkeleton,
+    biped_small::BipedSmallSkeleton, bird_large::BirdLargeSkeleton,
+    bird_medium::BirdMediumSkeleton, character::CharacterSkeleton, crustacean::CrustaceanSkeleton,
+    dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
+    golem::GolemSkeleton, item_drop::ItemDropSkeleton, object::ObjectSkeleton,
+    quadruped_low::QuadrupedLowSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
+    quadruped_small::QuadrupedSmallSkeleton, ship::ShipSkeleton, theropod::TheropodSkeleton,
 };
 use common::{
     comp::{
-        body::parts::HeadState,
-        inventory::slot::EquipSlot,
-        item::{armor::ArmorKind, Hands, ItemKind, ToolKind},
-        ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
-        slot::ArmorSlot,
         Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, ItemKey,
         Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem, PoiseState, Pos,
         Scale, Vel,
+        body::parts::HeadState,
+        inventory::slot::EquipSlot,
+        item::{Hands, ItemKind, ToolKind, armor::ArmorKind},
+        ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
+        slot::ArmorSlot,
     },
     interaction::InteractionKind,
     link::Is,
@@ -70,8 +70,8 @@ use core::{
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use specs::{
-    shred, Entities, Entity as EcsEntity, Join, LazyUpdate, LendJoin, ReadExpect, ReadStorage,
-    SystemData, WorldExt,
+    Entities, Entity as EcsEntity, Join, LazyUpdate, LendJoin, ReadExpect, ReadStorage, SystemData,
+    WorldExt, shred,
 };
 use std::sync::Arc;
 use treeculler::{BVol, BoundingSphere};
@@ -579,7 +579,7 @@ struct FigureUpdateData<'a, CSS, COR> {
     focus_pos: anim::vek::Vec3<f32>,
 }
 
-impl<'a> FigureReadData<'a> {
+impl FigureReadData<'_> {
     pub fn get_entity(&self, entity: EcsEntity) -> Option<FigureUpdateParams> {
         Some(FigureUpdateParams {
             entity,
@@ -1213,7 +1213,7 @@ impl FigureMgr {
         let (pos, ori) = interpolated
             .map(|i| ((i.pos,), anim::vek::Quaternion::<f32>::from(i.ori)))
             .unwrap_or(((pos.0,), anim::vek::Quaternion::<f32>::default()));
-        let wall_dir = physics.on_wall.map(anim::vek::Vec3::from);
+        let wall_dir = physics.on_wall;
 
         // Check whether we could have been shadowing last frame.
         let mut state = self.states.get_mut(body, &entity);
@@ -1408,14 +1408,14 @@ impl FigureMgr {
                 );
 
                 let holding_lantern = inventory
-                    .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
+                    .is_some_and(|i| i.equipped(EquipSlot::Lantern).is_some())
                     && light_emitter.is_some()
                     && ((second_tool_hand.is_none()
                         && matches!(active_tool_hand, Some(Hands::One)))
-                        || !character.map_or(false, |c| c.is_wield()))
-                    && !character.map_or(false, |c| c.is_using_hands())
+                        || !character.is_some_and(|c| c.is_wield()))
+                    && !character.is_some_and(|c| c.is_using_hands())
                     && physics.in_liquid().is_none()
-                    && is_volume_rider.map_or(true, |volume_rider| {
+                    && is_volume_rider.is_none_or(|volume_rider| {
                         !matches!(volume_rider.block.get_sprite(), Some(SpriteKind::Helm))
                     });
 
@@ -6827,7 +6827,7 @@ impl FigureMgr {
         ) {
             let healths = state.read_storage::<Health>();
             let health = healths.get(viewpoint_entity);
-            if health.map_or(false, |h| h.is_dead) {
+            if health.is_some_and(|h| h.is_dead) {
                 return;
             }
 

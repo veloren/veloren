@@ -1,6 +1,6 @@
 use crate::render::{
-    pipelines::rope::{BoundLocals, Locals, Vertex},
     FirstPassDrawer, Mesh, Model, Quad, Renderer,
+    pipelines::rope::{BoundLocals, Locals, Vertex},
 };
 use client::Client;
 use common::{

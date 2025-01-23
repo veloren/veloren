@@ -1,19 +1,19 @@
-use super::{ScaleChange, RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
+use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH, ScaleChange};
 
 use crate::{
+    GlobalState,
     hud::{
-        img_ids::Imgs, BarNumbers, BuffPosition, CrosshairType, ShortcutNumbers, MENU_BG,
-        TEXT_COLOR,
+        BarNumbers, BuffPosition, CrosshairType, MENU_BG, ShortcutNumbers, TEXT_COLOR,
+        img_ids::Imgs,
     },
     session::settings_change::{Interface as InterfaceChange, Interface::*},
-    ui::{fonts::Fonts, ImageSlider, ScaleMode, ToggleButton},
-    GlobalState,
+    ui::{ImageSlider, ScaleMode, ToggleButton, fonts::Fonts},
 };
 use conrod_core::{
-    color,
+    Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::{Align, Relative},
     widget::{self, Button, DropDownList, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
@@ -141,7 +141,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Interface<'a> {
+impl Widget for Interface<'_> {
     type Event = Vec<InterfaceChange>;
     type State = State;
     type Style = ();

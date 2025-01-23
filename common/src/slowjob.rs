@@ -413,8 +413,8 @@ mod tests {
     use super::*;
     use std::{
         sync::{
-            atomic::{AtomicBool, AtomicU64, Ordering},
             Barrier,
+            atomic::{AtomicBool, AtomicU64, Ordering},
         },
         time::Duration,
     };

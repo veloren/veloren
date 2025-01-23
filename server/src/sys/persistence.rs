@@ -1,9 +1,9 @@
 use crate::{persistence::character_updater, sys::SysScheduler};
 use common::{
     comp::{
-        pet::{is_tameable, Pet},
         ActiveAbilities, Alignment, Body, Inventory, MapMarker, Presence, PresenceKind, SkillSet,
         Stats, Waypoint,
+        pet::{Pet, is_tameable},
     },
     uid::Uid,
 };

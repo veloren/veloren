@@ -1,6 +1,6 @@
 use super::{
-    neighbors, quadratic_nearest_point, river_spline_coeffs, uniform_idx_as_vec2,
-    vec2_as_uniform_idx, TerrainChunkSize, NEIGHBOR_DELTA, TERRAIN_CHUNK_BLOCKS_LG,
+    NEIGHBOR_DELTA, TERRAIN_CHUNK_BLOCKS_LG, TerrainChunkSize, neighbors, quadratic_nearest_point,
+    river_spline_coeffs, uniform_idx_as_vec2, vec2_as_uniform_idx,
 };
 use crate::vol::RectVolSize;
 use common_base::prof_span;
@@ -396,7 +396,7 @@ pub struct MapSample {
     pub connections: Option<[Option<Connection>; 8]>,
 }
 
-impl<'a> MapConfig<'a> {
+impl MapConfig<'_> {
     /// Constructs the configuration settings for an orthographic projection of
     /// a map from the top down, rendering (by default) the complete map to
     /// an image such that the chunk:pixel ratio is 1:1.

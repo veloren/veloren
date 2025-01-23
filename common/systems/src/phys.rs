@@ -1,10 +1,10 @@
 use common::{
     comp::{
-        body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
-        fluid_dynamics::{Fluid, LiquidKind, Wings},
-        inventory::item::armor::Friction,
         Body, CharacterState, Collider, Density, Immovable, Mass, Ori, PhysicsState, Pos,
         PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
+        body::ship::figuredata::{VOXEL_COLLIDER_MANIFEST, VoxelCollider},
+        fluid_dynamics::{Fluid, LiquidKind, Wings},
+        inventory::item::armor::Friction,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EmitExt, EventBus, LandOnGroundEvent},
@@ -14,7 +14,7 @@ use common::{
     outcome::Outcome,
     resources::{DeltaTime, GameMode, TimeOfDay},
     states,
-    terrain::{Block, BlockKind, CoordinateConversions, SiteKindMeta, TerrainGrid, NEIGHBOR_DELTA},
+    terrain::{Block, BlockKind, CoordinateConversions, NEIGHBOR_DELTA, SiteKindMeta, TerrainGrid},
     uid::Uid,
     util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
@@ -25,8 +25,8 @@ use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
 use itertools::Itertools;
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
-    Write, WriteExpect, WriteStorage,
+    Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write,
+    WriteExpect, WriteStorage, shred,
 };
 use std::ops::Range;
 use vek::*;
@@ -265,7 +265,7 @@ fn simulated_wind_vel(
 }
 
 fn calc_z_limit(char_state_maybe: Option<&CharacterState>, collider: &Collider) -> (f32, f32) {
-    let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge() || c_s.is_glide()) {
+    let modifier = if char_state_maybe.is_some_and(|c_s| c_s.is_dodge() || c_s.is_glide()) {
         0.5
     } else {
         1.0
@@ -326,7 +326,7 @@ pub struct PhysicsData<'a> {
     write: PhysicsWrite<'a>,
 }
 
-impl<'a> PhysicsData<'a> {
+impl PhysicsData<'_> {
     /// Add/reset physics state components
     fn reset(&mut self) {
         span!(_guard, "Add/reset physics state components");
@@ -1074,9 +1074,9 @@ impl<'a> PhysicsData<'a> {
 
                     let was_on_ground = physics_state.on_ground.is_some();
                     let block_snap =
-                        body.map_or(false, |b| !matches!(b, Body::Object(_) | Body::Ship(_)));
+                        body.is_some_and(|b| !matches!(b, Body::Object(_) | Body::Ship(_)));
                     let climbing =
-                        character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
+                        character_state.is_some_and(|cs| matches!(cs, CharacterState::Climb(_)));
 
                     let friction_factor = |vel: Vec3<f32>| {
                         if let Some(Body::Ship(ship)) = body
@@ -2070,7 +2070,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     if !vel.0.xy().is_approx_zero()
         && physics_state
             .on_ground
-            .map_or(false, |g| physics_state.footwear.can_skate_on(g.kind()))
+            .is_some_and(|g| physics_state.footwear.can_skate_on(g.kind()))
     {
         const DT_SCALE: f32 = 1.0; // other areas use 60.0???
         const POTENTIAL_TO_KINETIC: f32 = 8.0; // * 2.0 * GRAVITY;

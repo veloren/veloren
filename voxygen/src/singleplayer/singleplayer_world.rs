@@ -6,7 +6,7 @@ use std::{
 
 use common::{assets::ASSETS_PATH, consts::DAY_LENGTH_DEFAULT};
 use serde::{Deserialize, Serialize};
-use server::{FileOpts, GenOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED};
+use server::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, GenOpts};
 use tracing::error;
 
 pub struct SingleplayerWorld {
@@ -71,7 +71,7 @@ fn asset_path(asset: &str) -> PathBuf {
 }
 
 fn migrate_old_singleplayer(from: &Path, to: &Path) {
-    if fs::metadata(from).map_or(false, |meta| meta.is_dir()) {
+    if fs::metadata(from).is_ok_and(|meta| meta.is_dir()) {
         if let Err(e) = fs::rename(from, to) {
             error!("Failed to migrate singleplayer: {e}");
             return;
@@ -250,7 +250,7 @@ impl SingleplayerWorlds {
 }
 
 mod version {
-    use std::any::{type_name, Any};
+    use std::any::{Any, type_name};
 
     use serde::de::DeserializeOwned;
 

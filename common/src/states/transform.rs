@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use crate::{
-    comp::{item::Reagent, CharacterState, StateUpdate},
+    comp::{CharacterState, StateUpdate, item::Reagent},
     event::TransformEvent,
     generation::{EntityConfig, EntityInfo},
     states::utils::{end_ability, tick_attack_or_default},

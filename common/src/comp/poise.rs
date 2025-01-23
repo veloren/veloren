@@ -1,8 +1,8 @@
 use crate::{
-    combat::{compute_poise_resilience, DamageContributor, DamageSource},
+    combat::{DamageContributor, DamageSource, compute_poise_resilience},
     comp::{
-        self, ability::Capability, inventory::item::MaterialStatManifest, CharacterState,
-        Inventory, Stats,
+        self, CharacterState, Inventory, Stats, ability::Capability,
+        inventory::item::MaterialStatManifest,
     },
     resources::Time,
     states,
@@ -288,9 +288,7 @@ impl Poise {
             let resistant = char_state
                 .and_then(|cs| cs.ability_info())
                 .map(|a| a.ability_meta)
-                .map_or(false, |a| {
-                    a.capabilities.contains(Capability::POISE_RESISTANT)
-                });
+                .is_some_and(|a| a.capabilities.contains(Capability::POISE_RESISTANT));
             if resistant { 0.5 } else { 0.0 }
         };
         let from_stats = if let Some(stats) = stats {

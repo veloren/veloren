@@ -1,31 +1,30 @@
 use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use crate::{
+    RtState, Rule, RuleError,
     ai::{
-        casual, choose, finish, important, just, now,
-        predicate::{every_range, timeout, Chance, EveryRange, Predicate},
-        seq, until, Action, NpcCtx, State,
+        Action, NpcCtx, State, casual, choose, finish, important, just, now,
+        predicate::{Chance, EveryRange, Predicate, every_range, timeout},
+        seq, until,
     },
     data::{
-        npc::{Brain, PathData, SimulationMode},
         ReportKind, Sentiment, Sites,
+        npc::{Brain, PathData, SimulationMode},
     },
     event::OnTick,
-    RtState, Rule, RuleError,
 };
 use common::{
     astar::{Astar, PathResult},
     comp::{
-        self, bird_large,
+        self, Content, bird_large,
         compass::{Direction, Distance},
         dialogue::Subject,
-        Content,
     },
     path::Path,
     rtsim::{Actor, ChunkResource, NpcInput, PersonalityTrait, Profession, Role, SiteId},
     spiral::Spiral2d,
     store::Id,
-    terrain::{sprite, CoordinateConversions, TerrainChunkSize},
+    terrain::{CoordinateConversions, TerrainChunkSize, sprite},
     time::DayPeriod,
     util::Dir,
 };
@@ -36,15 +35,14 @@ use rand_chacha::ChaChaRng;
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 use vek::*;
 use world::{
+    IndexRef, World,
     civ::{self, Track},
     site::{Site as WorldSite, SiteKind},
     site2::{
-        self,
-        plot::{tavern, PlotKindMeta},
-        PlotKind, TileKind,
+        self, PlotKind, TileKind,
+        plot::{PlotKindMeta, tavern},
     },
     util::NEIGHBORS,
-    IndexRef, World,
 };
 
 /// How many ticks should pass between running NPC AI.
@@ -97,7 +95,7 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             |plot: Id<site2::Plot>, tile: Vec2<i32>| match site.plot(plot).kind().meta() {
                 Some(PlotKindMeta::House { door_tile }) => door_tile == tile,
                 Some(PlotKindMeta::Workshop { door_tile }) => {
-                    door_tile.map_or(true, |door_tile| door_tile == tile)
+                    door_tile.is_none_or(|door_tile| door_tile == tile)
                 },
                 _ => false,
             };
@@ -624,7 +622,7 @@ fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Action<
             finish().boxed()
         }
             // Stop the NPC early if we're near the site to prevent huddling around the centre
-            .stop_if(move |ctx: &mut NpcCtx| site_wpos.map_or(false, |site_wpos| ctx.npc.wpos.xy().distance_squared(site_wpos) < 16f32.powi(2)))
+            .stop_if(move |ctx: &mut NpcCtx| site_wpos.is_some_and(|site_wpos| ctx.npc.wpos.xy().distance_squared(site_wpos) < 16f32.powi(2)))
     })
         .debug(move || format!("travel_to_site {:?}", tgt_site))
         .map(|_, _| ())
@@ -773,7 +771,7 @@ fn adventure() -> impl Action<DefaultState> {
                             | SiteKind::CoastalTown(_)
                             | SiteKind::DesertCity(_)
                     ),
-                ) && ctx.npc.current_site.map_or(true, |cs| *site_id != cs)
+                ) && (ctx.npc.current_site != Some(*site_id))
                     && ctx.rng.gen_bool(0.25)
             })
             .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
@@ -829,7 +827,7 @@ fn find_forest(ctx: &mut NpcCtx) -> Option<Vec2<f32>> {
             ctx.world
                 .sim()
                 .get(*cpos)
-                .map_or(false, |c| c.tree_density > 0.75 && c.surface_veg > 0.5)
+                .is_some_and(|c| c.tree_density > 0.75 && c.surface_veg > 0.5)
         })
         .map(|chunk| TerrainChunkSize::center_wpos(chunk).as_())
 }
@@ -1278,7 +1276,7 @@ fn captain<S: State>() -> impl Action<S> {
                 ctx.world
                     .sim()
                     .get(*neighbor)
-                    .map_or(false, |c| c.river.river_kind.is_some())
+                    .is_some_and(|c| c.river.river_kind.is_some())
             })
             .choose(&mut ctx.rng)
         {
@@ -1478,8 +1476,7 @@ fn bird_large() -> impl Action<DefaultState> {
                 || ctx
                 .world
                 .sim()
-                .get(pos.as_().wpos_to_cpos())
-                .map_or(true, |c| {
+                .get(pos.as_().wpos_to_cpos()).is_none_or(|c| {
                     c.alt - c.water_alt < -120.0 && (c.river.is_ocean() || c.river.is_lake())
                 });
         if is_deep_water {
@@ -1491,8 +1488,7 @@ fn bird_large() -> impl Action<DefaultState> {
         let trees = ctx
             .world
             .sim()
-            .get(npc_pos.as_().wpos_to_cpos())
-            .map_or(false, |c| c.tree_density > 0.1);
+            .get(npc_pos.as_().wpos_to_cpos()).is_some_and(|c| c.tree_density > 0.1);
         let height_factor = if trees {
             2.0
         } else {
@@ -1503,14 +1499,14 @@ fn bird_large() -> impl Action<DefaultState> {
         // without destination site fly to next waypoint
         let mut dest_site = pos;
         if let Some(home) = ctx.npc.home {
-            let is_home = ctx.npc.current_site.map_or(false, |site| home == site);
+            let is_home = ctx.npc.current_site == Some(home);
             if is_home {
                 if let Some((id, _)) = data
                     .sites
                     .iter()
                     .filter(|(id, site)| {
                         *id != home
-                            && site.world_site.map_or(false, |site| {
+                            && site.world_site.is_some_and(|site| {
                             match ctx.npc.body {
                                 common::comp::Body::BirdLarge(b) => match b.species {
                                     bird_large::Species::Phoenix => matches!(&ctx.index.sites.get(site).kind,
@@ -1598,7 +1594,7 @@ fn monster() -> impl Action<DefaultState> {
             .world
             .sim()
             .get(pos.as_().wpos_to_cpos())
-            .map_or(true, |c| {
+            .is_none_or(|c| {
                 c.alt - c.water_alt < -10.0 && (c.river.is_ocean() || c.river.is_lake())
             });
         if !is_deep_water {

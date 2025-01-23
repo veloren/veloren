@@ -1,5 +1,5 @@
 use super::super::{super::widget::overlay, IcedRenderer, Primitive};
-use iced::{mouse::Interaction, Element, Layout, Point, Rectangle};
+use iced::{Element, Layout, Point, Rectangle, mouse::Interaction};
 
 impl overlay::Renderer for IcedRenderer {
     fn draw<M>(

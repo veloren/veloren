@@ -1,6 +1,6 @@
 #[cfg(not(feature = "worldgen"))]
 use crate::test_world::World;
-use crate::{chunk_serialize::ChunkSendEntry, client::Client, Settings};
+use crate::{Settings, chunk_serialize::ChunkSendEntry, client::Client};
 use common::{
     comp::{Pos, Presence},
     event::EventBus,

@@ -1,6 +1,6 @@
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
-use crate::{client::Client, EditableSettings, Settings};
+use crate::{EditableSettings, Settings, client::Client};
 use common::{
     comp::{
         Admin, AdminRole, Body, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori,
@@ -121,7 +121,7 @@ impl Sys {
                 {
                     // Skip respawn if client entity is alive
                     let skip_respawn = matches!(event, ControlEvent::Respawn)
-                        && healths.get(entity).map_or(true, |h| !h.is_dead);
+                        && healths.get(entity).is_none_or(|h| !h.is_dead);
 
                     if !skip_respawn {
                         controller.push_event(event);
@@ -143,14 +143,14 @@ impl Sys {
             } => {
                 if presence.kind.controlling_char()
                     && force_update
-                        .map_or(true, |force_update| force_update.counter() == force_counter)
-                    && healths.get(entity).map_or(true, |h| !h.is_dead)
+                        .is_none_or(|force_update| force_update.counter() == force_counter)
+                    && healths.get(entity).is_none_or(|h| !h.is_dead)
                     && is_rider.get(entity).is_none()
                     && is_volume_rider.get(entity).is_none()
                     && !server_physics_forced
                     && player_physics_setting
                         .as_ref()
-                        .map_or(true, |s| !s.server_authoritative_physics_optin())
+                        .is_none_or(|s| !s.server_authoritative_physics_optin())
                 {
                     *player_physics = Some((pos, vel, ori));
                 }
@@ -394,7 +394,7 @@ impl<'a> System<'a> for Sys {
                             .unwrap_or_default()
                     });
                     let mut new_player_physics_setting = old_player_physics_setting;
-                    let is_server_physics_forced = maybe_player.map_or(true, |p| editable_settings.server_physics_force_list.contains_key(&p.uuid()));
+                    let is_server_physics_forced = maybe_player.is_none_or(|p| editable_settings.server_physics_force_list.contains_key(&p.uuid()));
                     // If an `ExitInGame` message is received this is set to `None` allowing further
                     // ingame messages to be ignored.
                     let mut clearable_maybe_presence = maybe_presence.as_deref_mut();

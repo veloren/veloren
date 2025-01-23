@@ -1,4 +1,4 @@
-use super::{img_ids::Imgs, TEXT_COLOR, UI_HIGHLIGHT_0};
+use super::{TEXT_COLOR, UI_HIGHLIGHT_0, img_ids::Imgs};
 use crate::{
     game_input::GameInput,
     hud::{Event, PromptDialogSettings},
@@ -6,8 +6,9 @@ use crate::{
     ui::fonts::Fonts,
 };
 use conrod_core::{
+    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
     widget::{self, Button, Image, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::LocalizationHandle;
 use keyboard_keynames::key_layout::KeyLayout;
@@ -67,7 +68,7 @@ pub enum DialogOutcomeEvent {
     Negative(Option<Event>),
 }
 
-impl<'a> Widget for PromptDialog<'a> {
+impl Widget for PromptDialog<'_> {
     type Event = Option<DialogOutcomeEvent>;
     type State = State;
     type Style = ();
@@ -136,7 +137,7 @@ impl<'a> Widget for PromptDialog<'a> {
             || self
                 .prompt_dialog_settings
                 .outcome_via_keypress
-                .map_or(false, |outcome| outcome)
+                .is_some_and(|outcome| outcome)
         {
             // Primary use should be through pressing the key instead of clicking this
             event = Some(DialogOutcomeEvent::Affirmative(
@@ -173,7 +174,7 @@ impl<'a> Widget for PromptDialog<'a> {
                 || self
                     .prompt_dialog_settings
                     .outcome_via_keypress
-                    .map_or(false, |outcome| !outcome)
+                    .is_some_and(|outcome| !outcome)
             {
                 event = Some(DialogOutcomeEvent::Negative(
                     self.prompt_dialog_settings.negative_event.as_ref().cloned(),

@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
-    util::{RandomField, Sampler, DIAGONALS},
     Land,
+    util::{DIAGONALS, RandomField, Sampler},
 };
 use common::{
     comp::Content,

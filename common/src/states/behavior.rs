@@ -1,13 +1,12 @@
 use crate::{
     comp::{
-        self,
-        body::parts::Heads,
-        character_state::OutputEvents,
-        item::{tool::AbilityMap, MaterialStatManifest},
-        ActiveAbilities, Alignment, Beam, Body, CharacterActivity, CharacterState, Combo,
+        self, ActiveAbilities, Alignment, Beam, Body, CharacterActivity, CharacterState, Combo,
         ControlAction, Controller, ControllerInputs, Density, Energy, Health, InputAttr, InputKind,
         Inventory, InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, PreviousPhysCache, Scale,
         SkillSet, Stance, StateUpdate, Stats, Vel,
+        body::parts::Heads,
+        character_state::OutputEvents,
+        item::{MaterialStatManifest, tool::AbilityMap},
     },
     link::Is,
     mounting::{Rider, VolumeRider},
@@ -15,7 +14,7 @@ use crate::{
     terrain::TerrainGrid,
     uid::{IdMaps, Uid},
 };
-use specs::{storage::FlaggedAccessMut, Entity, LazyUpdate, Read, ReadStorage};
+use specs::{Entity, LazyUpdate, Read, ReadStorage, storage::FlaggedAccessMut};
 use vek::*;
 
 pub trait CharacterBehavior {

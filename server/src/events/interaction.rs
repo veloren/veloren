@@ -10,7 +10,7 @@ use common::{
         self,
         agent::{AgentEvent, Sound, SoundKind},
         inventory::slot::EquipSlot,
-        item::{flatten_counted_items, MaterialStatManifest},
+        item::{MaterialStatManifest, flatten_counted_items},
         loot_owner::LootOwnerKind,
         tool::AbilityMap,
     },
@@ -36,7 +36,7 @@ use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::Deserialize;
 
-use super::{event_dispatch, mounting::within_mounting_range, ServerEvent};
+use super::{ServerEvent, event_dispatch, mounting::within_mounting_range};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<SetLanternEvent>(builder, &[]);
@@ -62,14 +62,14 @@ impl ServerEvent for SetLanternEvent {
         for SetLanternEvent(entity, enable) in events {
             let lantern_exists = light_emitters
                 .get(entity)
-                .map_or(false, |light| light.strength > 0.0);
+                .is_some_and(|light| light.strength > 0.0);
 
             if lantern_exists != enable {
                 if !enable {
                     light_emitters.remove(entity);
                 }
                 // Only enable lantern if entity is alive
-                else if healths.get(entity).map_or(true, |h| !h.is_dead) {
+                else if healths.get(entity).is_none_or(|h| !h.is_dead) {
                     let lantern_info = inventories
                         .get(entity)
                         .and_then(|inventory| inventory.equipped(EquipSlot::Lantern))
@@ -110,7 +110,7 @@ impl ServerEvent for NpcInteractEvent {
                 positions
                     .get(interactor)
                     .zip(positions.get(npc_entity))
-                    .map_or(false, |(interactor_pos, npc_pos)| {
+                    .is_some_and(|(interactor_pos, npc_pos)| {
                         interactor_pos.0.distance_squared(npc_pos.0)
                             <= MAX_NPCINTERACT_RANGE.powi(2)
                     })
@@ -145,7 +145,7 @@ impl ServerEvent for SetPetStayEvent {
         (mut agents, mut character_activities, positions, alignments, is_mounts, uids): Self::SystemData<'_>,
     ) {
         for SetPetStayEvent(command_giver, pet, stay) in events {
-            let is_owner = uids.get(command_giver).map_or(false, |owner_uid| {
+            let is_owner = uids.get(command_giver).is_some_and(|owner_uid| {
                 matches!(
                     alignments.get(pet),
                     Some(comp::Alignment::Owned(pet_owner)) if *pet_owner == *owner_uid,
@@ -228,7 +228,7 @@ impl ServerEvent for MineBlockEvent {
             if block_change.can_set_block(ev.pos) {
                 let block = terrain.get(ev.pos).ok().copied();
                 if let Some(mut block) =
-                    block.filter(|b| b.mine_tool().map_or(false, |t| Some(t) == ev.tool))
+                    block.filter(|b| b.mine_tool().is_some_and(|t| Some(t) == ev.tool))
                 {
                     // Attempt to increase the resource's damage
                     let damage = if let Ok(damage) = block.get_attr::<terrain::sprite::Damage>() {
@@ -250,14 +250,14 @@ impl ServerEvent for MineBlockEvent {
                     // Maximum damage has reached, destroy the block
                     let is_broken = damage
                         .and_then(|damage| Some((sprite?.required_mine_damage(), damage)))
-                        .map_or(false, |(required_damage, damage)| {
-                            required_damage.map_or(true, |required| damage >= required)
+                        .is_some_and(|(required_damage, damage)| {
+                            required_damage.is_none_or(|required| damage >= required)
                         });
 
                     // Stage changes happen in damage interval of `mine_drop_intevral`
                     let stage_changed = damage
                         .and_then(|damage| Some((sprite?.mine_drop_interval(), damage)))
-                        .map_or(false, |(interval, damage)| damage % interval == 0);
+                        .is_some_and(|(interval, damage)| damage % interval == 0);
 
                     if (stage_changed || is_broken)
                         && let Some(items) = comp::Item::try_reclaim_from_block(block)
@@ -267,7 +267,7 @@ impl ServerEvent for MineBlockEvent {
                         let maybe_uid = uids.get(ev.entity).copied();
 
                         if let Some(mut skillset) = skill_sets.get_mut(ev.entity) {
-                            use common::comp::skills::{MiningSkill, Skill, SKILL_MODIFIERS};
+                            use common::comp::skills::{MiningSkill, SKILL_MODIFIERS, Skill};
 
                             if is_broken
                                 && let (Some(tool), Some(uid), exp_reward @ 1..) = (
@@ -454,7 +454,7 @@ impl ServerEvent for CreateSpriteEvent {
         for ev in events {
             if block_change.can_set_block(ev.pos) {
                 let block = terrain.get(ev.pos).ok().copied();
-                if block.map_or(false, |b| (*b).is_fluid()) {
+                if block.is_some_and(|b| (*b).is_fluid()) {
                     let old_block = block.unwrap_or_else(|| Block::air(SpriteKind::Empty));
                     let new_block = old_block.with_sprite(ev.sprite);
                     block_change.set(ev.pos, new_block);

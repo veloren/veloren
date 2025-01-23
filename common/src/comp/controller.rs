@@ -1,13 +1,12 @@
 use crate::{
     comp::{
-        ability,
+        BuffKind, ability,
         dialogue::Subject,
         inventory::{
             item::tool::ToolKind,
             slot::{EquipSlot, InvSlotId, Slot},
         },
         invite::{InviteKind, InviteResponse},
-        BuffKind,
     },
     mounting::VolumePos,
     trade::{TradeAction, TradeId},

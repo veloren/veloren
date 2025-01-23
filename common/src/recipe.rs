@@ -1,14 +1,13 @@
 use crate::{
     assets::{self, AssetExt, AssetHandle, CacheCombined, Concatenate},
     comp::{
+        Inventory, Item,
         inventory::slot::{InvSlotId, Slot},
         item::{
-            modular,
-            tool::{AbilityMap, ToolKind},
             ItemBase, ItemDef, ItemDefinitionId, ItemDefinitionIdOwned, ItemKind, ItemTag,
-            MaterialStatManifest,
+            MaterialStatManifest, modular,
+            tool::{AbilityMap, ToolKind},
         },
-        Inventory, Item,
     },
     terrain::SpriteKind,
 };
@@ -314,7 +313,7 @@ pub fn try_salvage(
     ability_map: &AbilityMap,
     msm: &MaterialStatManifest,
 ) -> Result<Vec<Item>, SalvageError> {
-    if inv.get(slot).map_or(false, |item| item.is_salvageable()) {
+    if inv.get(slot).is_some_and(|item| item.is_salvageable()) {
         let salvage_item = inv.get(slot).expect("Expected item to exist in inventory");
         let salvage_output: Vec<_> = salvage_item
             .salvage_output()
@@ -389,7 +388,7 @@ pub fn modular_weapon(
             // Checks that both components are of the same tool kind
             if tool_a == tool_b {
                 // Checks that if both components have a hand restriction, they are the same
-                let hands_check = hands_a.zip(*hands_b).map_or(true, |(a, b)| a == b);
+                let hands_check = hands_a.zip(*hands_b).is_none_or(|(a, b)| a == b);
                 if hands_check {
                     Ok(())
                 } else {
@@ -805,7 +804,7 @@ impl<'a> IntoIterator for &'a ComponentRecipe {
     }
 }
 
-impl<'a> ExactSizeIterator for ComponentRecipeInputsIterator<'a> {
+impl ExactSizeIterator for ComponentRecipeInputsIterator<'_> {
     fn len(&self) -> usize {
         self.material.is_some() as usize
             + self.modifier.is_some() as usize

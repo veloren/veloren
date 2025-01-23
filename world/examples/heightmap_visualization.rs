@@ -1,13 +1,13 @@
 use image::{
-    codecs::png::{CompressionType, FilterType, PngEncoder},
     ImageBuffer, ImageEncoder,
+    codecs::png::{CompressionType, FilterType, PngEncoder},
 };
 use rayon::ThreadPoolBuilder;
 use std::{fs::File, io::Write};
 use vek::*;
 use veloren_world::{
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     Land, World,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
 
 fn grey_from_scalar(lo: f32, hi: f32, x: f32) -> [u8; 3] {

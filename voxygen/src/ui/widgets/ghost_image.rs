@@ -1,10 +1,9 @@
 use conrod_core::{
-    image,
+    Widget, WidgetCommon, image,
     widget::{
         self,
         image::{State, Style},
     },
-    Widget, WidgetCommon,
 };
 
 /// This widget is like conrod's `Image` widget except it always returns false

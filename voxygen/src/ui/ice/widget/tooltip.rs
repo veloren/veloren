@@ -1,5 +1,5 @@
 use iced::{
-    layout, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget,
+    Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget, layout,
 };
 use std::{
     hash::Hash,
@@ -172,7 +172,7 @@ where
     }
 }
 
-impl<'a, M, R> Widget<M, R> for Tooltip<'a, M, R>
+impl<M, R> Widget<M, R> for Tooltip<'_, M, R>
 where
     R: Renderer,
 {
@@ -292,7 +292,7 @@ impl<'a, M, R: Renderer> Overlay<'a, M, R> {
     }
 }
 
-impl<'a, M, R> iced::Overlay<M, R> for Overlay<'a, M, R>
+impl<M, R> iced::Overlay<M, R> for Overlay<'_, M, R>
 where
     R: Renderer,
 {

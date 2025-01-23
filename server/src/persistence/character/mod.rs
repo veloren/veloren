@@ -10,6 +10,7 @@ use super::{error::PersistenceError, models::*};
 use crate::{
     comp::{self, Inventory},
     persistence::{
+        EditableComponents, PersistedComponents,
         character::conversions::{
             convert_active_abilities_from_database, convert_active_abilities_to_database,
             convert_body_from_database, convert_body_to_database_json,
@@ -23,7 +24,6 @@ use crate::{
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         character_updater::PetPersistenceData,
         error::PersistenceError::DatabaseError,
-        EditableComponents, PersistedComponents,
     },
 };
 use common::{
@@ -31,7 +31,7 @@ use common::{
     event::UpdateCharacterMetadata,
 };
 use core::ops::Range;
-use rusqlite::{types::Value, Connection, ToSql, Transaction};
+use rusqlite::{Connection, ToSql, Transaction, types::Value};
 use std::{num::NonZeroU64, rc::Rc};
 use tracing::{debug, error, trace, warn};
 
@@ -935,7 +935,7 @@ fn update_pets(
                     !pets.iter().any(|(pet, _, _)| {
                         pet.get_database_id()
                             .load()
-                            .map_or(false, |x| x.get() == **pet_id as u64)
+                            .is_some_and(|x| x.get() == **pet_id as u64)
                     })
                 })
                 .map(|x| Value::from(*x))

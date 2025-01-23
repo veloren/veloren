@@ -1,6 +1,6 @@
 //! Handles ambient non-positional sounds
 use crate::{
-    audio::{channel::AmbienceChannelTag, AudioFrontend},
+    audio::{AudioFrontend, channel::AmbienceChannelTag},
     scene::Camera,
 };
 use client::Client;

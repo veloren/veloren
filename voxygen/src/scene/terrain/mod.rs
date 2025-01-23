@@ -8,21 +8,22 @@ use crate::{
     mesh::{
         greedy::{GreedyMesh, SpriteAtlasAllocator},
         segment::generate_mesh_base_vol_sprite,
-        terrain::{generate_mesh, SUNLIGHT, SUNLIGHT_INV},
+        terrain::{SUNLIGHT, SUNLIGHT_INV, generate_mesh},
     },
     render::{
-        pipelines::{self, AtlasData, AtlasTextures},
         AltIndices, CullingMode, FigureSpriteAtlasData, FirstPassDrawer, FluidVertex, GlobalModel,
-        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteDrawer,
-        SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts, TerrainAtlasData,
-        TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
+        Instances, LodData, Mesh, Model, RenderError, Renderer, SPRITE_VERT_PAGE_SIZE,
+        SpriteDrawer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts,
+        TerrainAtlasData, TerrainLocals, TerrainShadowDrawer, TerrainVertex,
+        pipelines::{self, AtlasData, AtlasTextures},
     },
     scene::terrain::sprite::SpriteModelConfig,
 };
 
 use super::{
+    RAIN_THRESHOLD, SceneData,
     camera::{self, Camera},
-    math, SceneData, RAIN_THRESHOLD,
+    math,
 };
 use common::{
     assets::{AssetExt, DotVoxAsset},
@@ -38,11 +39,11 @@ use crossbeam_channel as channel;
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use std::sync::{
-    atomic::{AtomicU64, Ordering},
     Arc,
+    atomic::{AtomicU64, Ordering},
 };
 use tracing::warn;
-use treeculler::{BVol, Frustum, AABB};
+use treeculler::{AABB, BVol, Frustum};
 use vek::*;
 
 const SPRITE_SCALE: Vec3<f32> = Vec3::new(1.0 / 11.0, 1.0 / 11.0, 1.0 / 11.0);
@@ -238,7 +239,7 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
 }
 
 /// Function executed by worker threads dedicated to chunk meshing.
-
+///
 /// skip_remesh is either None (do the full remesh, including recomputing the
 /// light map), or Some((light_map, glow_map)).
 fn mesh_worker(
@@ -526,9 +527,10 @@ impl SpriteRenderContext {
                         offset.map(|e: f32| e.floor()) * lod_scale,
                     );
                     // Get the number of pages after the model was meshed
-                    let end_page_num =
-                        (sprite_mesh.vertices().len() + SPRITE_VERT_PAGE_SIZE as usize - 1)
-                            / SPRITE_VERT_PAGE_SIZE as usize;
+                    let end_page_num = sprite_mesh
+                        .vertices()
+                        .len()
+                        .div_ceil(SPRITE_VERT_PAGE_SIZE as usize);
                     // Fill the current last page up with degenerate verts
                     sprite_mesh.vertices_mut_vec().resize_with(
                         end_page_num * SPRITE_VERT_PAGE_SIZE as usize,

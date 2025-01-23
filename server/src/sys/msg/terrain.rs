@@ -1,6 +1,6 @@
 use crate::{
-    chunk_serialize::ChunkSendEntry, client::Client, lod::Lod, metrics::NetworkRequestMetrics,
-    ChunkRequest,
+    ChunkRequest, chunk_serialize::ChunkSendEntry, client::Client, lod::Lod,
+    metrics::NetworkRequestMetrics,
 };
 use common::{
     comp::{Pos, Presence},

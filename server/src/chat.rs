@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use common::{
     comp,
-    comp::{chat::KillType, ChatType, Content, Group, Player, UnresolvedChatMsg},
+    comp::{ChatType, Content, Group, Player, UnresolvedChatMsg, chat::KillType},
     uid::IdMaps,
     uuid::Uuid,
 };
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Join, World, WorldExt};
 use std::{collections::VecDeque, ops::Sub, sync::Arc, time::Duration};
 use tokio::sync::Mutex;
-use tracing::{info_span, Instrument};
+use tracing::{Instrument, info_span};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct PlayerInfo {

@@ -1,10 +1,10 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 
 use vek::*;
 use veloren_common::{
     terrain::{
-        block::{Block, BlockKind},
         SpriteKind, TerrainChunk, TerrainChunkMeta,
+        block::{Block, BlockKind},
     },
     vol::*,
 };

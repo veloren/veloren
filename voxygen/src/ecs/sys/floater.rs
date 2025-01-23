@@ -75,7 +75,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Clear floaters if newest floater is past show time
-            if hp_floater_list.floaters.last().map_or(false, |f| {
+            if hp_floater_list.floaters.last().is_some_and(|f| {
                 f.timer
                     > if Some(entity) != my_entity.0 {
                         HP_SHOWTIME

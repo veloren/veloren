@@ -1,15 +1,15 @@
 use common::{
     combat,
     comp::{
-        self, item::MaterialStatManifest, CharacterState, Combo, Energy, Health, Inventory, Poise,
-        Stats, StatsModifier,
+        self, CharacterState, Combo, Energy, Health, Inventory, Poise, Stats, StatsModifier,
+        item::MaterialStatManifest,
     },
     event::{DestroyEvent, DownedEvent, EmitExt},
     event_emitters,
     resources::{DeltaTime, Time},
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{shred, Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage};
+use specs::{Entities, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage, shred};
 
 const ENERGY_REGEN_ACCEL: f32 = 1.0;
 const SIT_ENERGY_REGEN_ACCEL: f32 = 2.5;

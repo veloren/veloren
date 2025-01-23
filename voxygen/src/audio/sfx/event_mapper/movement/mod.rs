@@ -3,9 +3,9 @@
 /// proportionate to the extity's size
 use super::EventMapper;
 use crate::{
-    audio::sfx::{SfxEvent, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
-    scene::{Camera, Terrain},
     AudioFrontend,
+    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
+    scene::{Camera, Terrain},
 };
 use client::Client;
 use common::{

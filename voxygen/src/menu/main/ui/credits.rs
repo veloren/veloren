@@ -3,11 +3,11 @@ use crate::{
     credits::Credits,
     ui::{
         fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, style, Element},
+        ice::{Element, component::neat_button, style},
     },
 };
 use i18n::Localization;
-use iced::{button, scrollable, Column, Container, HorizontalAlignment, Length, Scrollable, Space};
+use iced::{Column, Container, HorizontalAlignment, Length, Scrollable, Space, button, scrollable};
 
 /// Connecting screen for the main menu
 pub struct Screen {

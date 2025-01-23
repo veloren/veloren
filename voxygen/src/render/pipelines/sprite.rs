@@ -1,6 +1,6 @@
 use super::{
-    super::{buffer::Buffer, AaMode, GlobalsLayouts, Mesh, TerrainLayout, Vertex as VertexTrait},
-    lod_terrain, GlobalModel, Texture,
+    super::{AaMode, GlobalsLayouts, Mesh, TerrainLayout, Vertex as VertexTrait, buffer::Buffer},
+    GlobalModel, Texture, lod_terrain,
 };
 use bytemuck::{Pod, Zeroable};
 use std::mem;
@@ -58,11 +58,11 @@ impl Vertex {
             //     | (((pos + EXTRA_NEG_Z).z.max(0.0).min((1 << 16) as f32) as u32) & 0xFFFF) << 12
             //     | if meta { 1 } else { 0 } << 28
             //     | (norm_bits & 0x7) << 29,
-            pos_norm: (((pos.x as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) // NOTE: temp hack, this doesn't need 8 bits
-                | (((pos.y as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) << 8
-                | (((pos.z as i32 + VERT_EXTRA_NEG_Z).clamp(0, 1 << 12) as u32) & 0x0FFF) << 16
-                | (norm_bits & 0x7) << 29,
-            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | ((atlas_pos.y as u32) & 0xFFFF) << 16,
+            pos_norm: (((pos.x as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32)
+                | ((((pos.y as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) << 8)
+                | ((((pos.z as i32 + VERT_EXTRA_NEG_Z).clamp(0, 1 << 12) as u32) & 0x0FFF) << 16)
+                | ((norm_bits & 0x7) << 29),
+            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | (((atlas_pos.y as u32) & 0xFFFF) << 16),
         }
     }
 }
@@ -126,10 +126,10 @@ impl Instance {
             inst_mat2: mat_arr[2],
             inst_mat3: mat_arr[3],
             pos_ori_door: ((pos.x as u32) & 0x003F)
-                | ((pos.y as u32) & 0x003F) << 6
-                | (((pos.z + EXTRA_NEG_Z).clamp(0, 1 << 16) as u32) & 0xFFFF) << 12
-                | (u32::from(ori_bits) & 0x7) << 29
-                | (u32::from(is_door) & 1) << 28,
+                | (((pos.y as u32) & 0x003F) << 6)
+                | ((((pos.z + EXTRA_NEG_Z).clamp(0, 1 << 16) as u32) & 0xFFFF) << 12)
+                | ((u32::from(ori_bits) & 0x7) << 29)
+                | ((u32::from(is_door) & 1) << 28),
             inst_vert_page: vert_page,
             inst_light: light,
             inst_glow: glow,

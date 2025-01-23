@@ -1,8 +1,8 @@
 use common::{
     comp::{
+        Body, BuffChange, Collider, ControlEvent, Controller, Health, Pos, Scale,
         ability::Stance,
         agent::{Sound, SoundKind},
-        Body, BuffChange, Collider, ControlEvent, Controller, Health, Pos, Scale,
     },
     event::{self, EmitExt},
     event_emitters,
@@ -11,7 +11,7 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{shred, Entities, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage, shred};
 use vek::*;
 
 event_emitters! {
@@ -130,13 +130,13 @@ impl<'a> System<'a> for Sys {
                         if read_data
                             .healths
                             .get(entity)
-                            .map_or(false, |h| h.has_consumed_death_protection())
+                            .is_some_and(|h| h.has_consumed_death_protection())
                         {
                             emitters.emit(event::KillEvent { entity });
                         }
                     },
                     ControlEvent::Respawn => {
-                        if read_data.healths.get(entity).map_or(false, |h| h.is_dead) {
+                        if read_data.healths.get(entity).is_some_and(|h| h.is_dead) {
                             emitters.emit(event::RespawnEvent(entity));
                         }
                     },

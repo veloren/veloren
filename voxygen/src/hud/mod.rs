@@ -62,6 +62,7 @@ use subtitles::Subtitles;
 use trade::Trade;
 
 use crate::{
+    GlobalState,
     audio::ActiveChannels,
     cmd::get_player_uuid,
     ecs::comp::{self as vcomp, HpFloater, HpFloaterList},
@@ -77,33 +78,31 @@ use crate::{
     },
     settings::chat::ChatFilter,
     ui::{
+        Graphic, Ingameable, ScaleMode, Ui,
         fonts::Fonts,
         img_ids::Rotations,
         slot::{self, SlotKey},
-        Graphic, Ingameable, ScaleMode, Ui,
     },
     window::Event as WinEvent,
-    GlobalState,
 };
 use client::Client;
 use common::{
     combat,
     comp::{
-        self,
+        self, BuffData, BuffKind, Content, Health, Item, MapMarkerChange, PickupItem, PresenceKind,
         ability::{AuxiliaryAbility, Stance},
         fluid_dynamics,
         inventory::{
+            CollectFailedReason,
             slot::{InvSlotId, Slot},
             trade_pricing::TradePricing,
-            CollectFailedReason,
         },
         item::{
-            tool::{AbilityContext, ToolKind},
             ItemDefinitionIdOwned, ItemDesc, ItemI18n, MaterialStatManifest, Quality,
+            tool::{AbilityContext, ToolKind},
         },
         loot_owner::LootOwnerKind,
-        skillset::{skills::Skill, SkillGroupKind, SkillsPersistenceError},
-        BuffData, BuffKind, Content, Health, Item, MapMarkerChange, PickupItem, PresenceKind,
+        skillset::{SkillGroupKind, SkillsPersistenceError, skills::Skill},
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
@@ -115,18 +114,19 @@ use common::{
     terrain::{Block, SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
     uid::Uid,
-    util::{srgba_to_linear, Dir},
+    util::{Dir, srgba_to_linear},
     vol::RectRasterableVol,
 };
 use common_base::{prof_span, span};
 use common_net::{
-    msg::{world_msg::SiteId, Notification},
+    msg::{Notification, world_msg::SiteId},
     sync::WorldSyncExt,
 };
 use conrod_core::{
+    Color, Colorable, Labelable, Positionable, Sizeable, Widget,
     text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget_ids,
 };
 use hashbrown::{HashMap, HashSet};
 use i18n::Localization;
@@ -170,7 +170,8 @@ const DEBUFF_COLOR: Color = Color::Rgba(0.79, 0.19, 0.17, 1.0);
 
 // Item Quality Colors
 const QUALITY_LOW: Color = Color::Rgba(0.60, 0.60, 0.60, 1.0); // Grey - Trash, can be sold to vendors
-const QUALITY_COMMON: Color = Color::Rgba(0.79, 1.00, 1.00, 1.0); // Light blue - Crafting mats, food, starting equipment, quest items (like keys), rewards for easy quests
+const QUALITY_COMMON: Color = Color::Rgba(0.79, 1.00, 1.00, 1.0); // Light blue - Crafting mats, food, starting equipment, quest items (like
+// keys), rewards for easy quests
 const QUALITY_MODERATE: Color = Color::Rgba(0.06, 0.69, 0.12, 1.0); // Green - Quest Rewards, commonly looted items from NPCs
 const QUALITY_HIGH: Color = Color::Rgba(0.18, 0.32, 0.9, 1.0); // Blue - Dungeon rewards, boss loot, rewards for hard quests
 const QUALITY_EPIC: Color = Color::Rgba(0.58, 0.29, 0.93, 1.0); // Purple - Rewards for epic quests and very hard bosses
@@ -2351,7 +2352,7 @@ impl Hud {
                 .join()
                 .filter(|t| {
                     let health = t.5;
-                    !health.map_or(false, |h| h.is_dead)
+                    !health.is_some_and(|h| h.is_dead)
                 })
                 .filter_map(
                     |(
@@ -2385,19 +2386,19 @@ impl Hud {
                         // be hidden in some cases if it is at maximum
                         let display_overhead_info = !is_me
                             && (is_mount.is_none()
-                                || health.map_or(true, overhead::should_show_healthbar))
+                                || health.is_none_or(overhead::should_show_healthbar))
                             && is_rider
-                                .map_or(true, |is_rider| Some(&is_rider.mount) != uids.get(me))
-                            && (info.target_entity.map_or(false, |e| e == entity)
-                                || info.selected_entity.map_or(false, |s| s.0 == entity)
-                                || health.map_or(true, overhead::should_show_healthbar)
+                                .is_none_or(|is_rider| Some(&is_rider.mount) != uids.get(me))
+                            && ((info.target_entity == Some(entity))
+                                || info.selected_entity.is_some_and(|s| s.0 == entity)
+                                || health.is_none_or(overhead::should_show_healthbar)
                                 || in_group)
                             && dist_sqr
                                 < (if in_group {
                                     NAMETAG_GROUP_RANGE
                                 } else if hpfl
                                     .time_since_last_dmg_by_me
-                                    .map_or(false, |t| t < NAMETAG_DMG_TIME)
+                                    .is_some_and(|t| t < NAMETAG_DMG_TIME)
                                 {
                                     NAMETAG_DMG_RANGE
                                 } else {
@@ -2473,7 +2474,7 @@ impl Hud {
                                         EntityInteraction::Talk => "hud-talk",
                                         EntityInteraction::StayFollow => {
                                             let is_staying = character_activity
-                                                .map_or(false, |activity| activity.is_pet_staying);
+                                                .is_some_and(|activity| activity.is_pet_staying);
 
                                             if is_staying { "hud-follow" } else { "hud-stay" }
                                         },
@@ -4058,7 +4059,7 @@ impl Hud {
                             if inventories
                                 .get(info.viewpoint_entity)
                                 .and_then(|inv| inv.get(slot))
-                                .map_or(false, |item| {
+                                .is_some_and(|item| {
                                     (c.requirement)(item, client.component_recipe_book(), c.info)
                                 })
                             {
@@ -4073,7 +4074,7 @@ impl Hud {
                         if inventories
                             .get(client.entity())
                             .and_then(|inv| inv.equipped(e))
-                            .map_or(false, |item| {
+                            .is_some_and(|item| {
                                 (c.requirement)(item, client.component_recipe_book(), c.info)
                             })
                         {
@@ -4235,7 +4236,7 @@ impl Hud {
                                     // the item in the inventory
                                     if inv
                                         .equipped(comp::slot::EquipSlot::InactiveMainhand)
-                                        .map_or(false, |item| item.item_hash() == i)
+                                        .is_some_and(|item| item.item_hash() == i)
                                     {
                                         events.push(Event::SwapEquippedWeapons);
                                     } else if let Some(slot) = inv.get_slot_from_hash(i) {
@@ -4642,7 +4643,7 @@ impl Hud {
                                 // in the inventory
                                 if inv
                                     .equipped(comp::slot::EquipSlot::InactiveMainhand)
-                                    .map_or(false, |item| item.item_hash() == i)
+                                    .is_some_and(|item| item.item_hash() == i)
                                 {
                                     events.push(Event::SwapEquippedWeapons);
                                 } else if let Some(slot) = inv.get_slot_from_hash(i) {
@@ -4952,7 +4953,7 @@ impl Hud {
                                 },
                                 &client.state().read_storage(),
                             )
-                            .map_or(false, |(mat, _, block)| {
+                            .is_some_and(|(mat, _, block)| {
                                 block.get_sprite() == Some(*sprite)
                                     && mat.mul_point(Vec3::broadcast(0.5)).distance(player_pos)
                                         < MAX_PICKUP_RANGE
@@ -5051,7 +5052,7 @@ impl Hud {
                 let uids = ecs.read_storage::<Uid>();
                 let me = client.entity();
 
-                if uids.get(me).map_or(false, |me| *me == *uid) {
+                if uids.get(me).is_some_and(|me| *me == *uid) {
                     match self.floaters.exp_floaters.last_mut() {
                         Some(floater)
                             if floater.timer
@@ -5084,7 +5085,7 @@ impl Hud {
                 let uids = ecs.read_storage::<Uid>();
                 let me = client.entity();
 
-                if uids.get(me).map_or(false, |me| *me == *uid) {
+                if uids.get(me).is_some_and(|me| *me == *uid) {
                     self.floaters.skill_point_displays.push(SkillPointGain {
                         skill_tree: *skill_tree,
                         total_points: *total_points,
@@ -5097,7 +5098,7 @@ impl Hud {
                 let uids = ecs.read_storage::<Uid>();
                 let me = client.entity();
 
-                if uids.get(me).map_or(false, |me| *me == *uid) {
+                if uids.get(me).is_some_and(|me| *me == *uid) {
                     self.floaters.combo_floater = Some(ComboFloater {
                         combo: *combo,
                         timer: comp::combo::COMBO_DECAY_START,
@@ -5109,7 +5110,7 @@ impl Hud {
                 let uids = ecs.read_storage::<Uid>();
                 let me = client.entity();
 
-                if uids.get(me).map_or(false, |me| *me == *uid) {
+                if uids.get(me).is_some_and(|me| *me == *uid) {
                     self.floaters
                         .block_floaters
                         .push(BlockFloater { timer: 1.0 });
@@ -5124,12 +5125,12 @@ impl Hud {
 
                 if let Some(entity) = ecs.entity_from_uid(info.target) {
                     if let Some(floater_list) = hp_floater_lists.get_mut(entity) {
-                        let hit_me = my_uid.map_or(false, |&uid| {
+                        let hit_me = my_uid.is_some_and(|&uid| {
                             (info.target == uid) && global_state.settings.interface.sct_inc_dmg
                         });
                         if match info.by {
                             Some(by) => {
-                                let by_me = my_uid.map_or(false, |&uid| by.uid() == uid);
+                                let by_me = my_uid.is_some_and(|&uid| by.uid() == uid);
                                 // If the attack was by me also reset this timer
                                 if by_me {
                                     floater_list.time_since_last_dmg_by_me = Some(0.0);

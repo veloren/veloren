@@ -14,8 +14,8 @@ use movement::MovementEventMapper;
 
 use super::SfxTriggers;
 use crate::{
-    scene::{Camera, Terrain},
     AudioFrontend,
+    scene::{Camera, Terrain},
 };
 
 trait EventMapper {

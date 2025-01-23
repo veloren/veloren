@@ -1,5 +1,5 @@
 use crate::comp::skillset::{
-    SkillGroupKind, SkillPrerequisite, SKILL_GROUP_LOOKUP, SKILL_MAX_LEVEL, SKILL_PREREQUISITES,
+    SKILL_GROUP_LOOKUP, SKILL_MAX_LEVEL, SKILL_PREREQUISITES, SkillGroupKind, SkillPrerequisite,
 };
 use serde::{Deserialize, Serialize};
 

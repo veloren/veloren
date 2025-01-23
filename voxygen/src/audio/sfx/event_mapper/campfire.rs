@@ -1,15 +1,15 @@
 /// EventMapper::Campfire maps sfx to campfires
 use crate::{
-    audio::sfx::{SfxEvent, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
-    scene::{Camera, Terrain},
     AudioFrontend,
+    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
+    scene::{Camera, Terrain},
 };
 
 use super::EventMapper;
 
 use client::Client;
 use common::{
-    comp::{object, Body, Pos},
+    comp::{Body, Pos, object},
     terrain::TerrainChunk,
 };
 use common_state::State;

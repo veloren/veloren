@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use crate::{
     comp::inventory::{
-        item::ItemDefinitionIdOwned, slot::InvSlotId, trade_pricing::TradePricing, Inventory,
+        Inventory, item::ItemDefinitionIdOwned, slot::InvSlotId, trade_pricing::TradePricing,
     },
     terrain::BiomeKind,
     uid::Uid,

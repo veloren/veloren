@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
 use common::{
-    comp,
+    CachedSpatialGrid, comp,
     event::{DeleteEvent, EventBus},
     resources::ProgramTime,
-    CachedSpatialGrid,
 };
 use common_ecs::{Origin, Phase, System};
 use specs::{Entities, Entity, Join, LendJoin, Read, ReadStorage, WriteStorage};

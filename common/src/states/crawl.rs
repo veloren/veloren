@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
+    comp::{CharacterState, StateUpdate, character_state::OutputEvents},
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ pub struct Data;
 
 fn can_stand(data: &JoinData) -> bool {
     data.health
-        .map_or(true, |health| !health.has_consumed_death_protection())
+        .is_none_or(|health| !health.has_consumed_death_protection())
 }
 
 // NOTE: In the future we might want to allow using some items while downed, but

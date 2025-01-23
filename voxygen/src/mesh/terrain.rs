@@ -2,8 +2,8 @@
 
 use crate::{
     mesh::{
-        greedy::{self, GreedyConfig, GreedyMesh},
         MeshGen,
+        greedy::{self, GreedyConfig, GreedyMesh},
     },
     render::{AltIndices, FluidVertex, Mesh, TerrainAtlasData, TerrainVertex, Vertex},
     scene::terrain::{BlocksOfInterest, DEEP_ALT, SHALLOW_ALT},
@@ -99,11 +99,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                      vol: &mut CachedVolGrid2d<V>| {
         if *dest != OPAQUE {
             if *dest == UNKNOWN {
-                if vol
-                    .get(outer.min + pos)
-                    .ok()
-                    .map_or(false, |b| b.is_fluid())
-                {
+                if vol.get(outer.min + pos).ok().is_some_and(|b| b.is_fluid()) {
                     *dest = src.saturating_sub(1);
                     // Can't propagate further
                     if *dest > 1 {

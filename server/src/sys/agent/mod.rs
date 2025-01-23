@@ -9,8 +9,8 @@ use crate::sys::agent::{
 };
 use common::{
     comp::{
-        self, inventory::slot::EquipSlot, item::ItemDesc, Agent, Alignment, Body, CharacterState,
-        Controller, Health, InputKind, Scale,
+        self, Agent, Alignment, Body, CharacterState, Controller, Health, InputKind, Scale,
+        inventory::slot::EquipSlot, item::ItemDesc,
     },
     mounting::Volume,
     path::TraversalConfig,
@@ -158,9 +158,7 @@ impl<'a> System<'a> for Sys {
                     let glider_equipped = inventory
                         .equipped(EquipSlot::Glider)
                         .as_ref()
-                        .map_or(false, |item| {
-                            matches!(&*item.kind(), comp::item::ItemKind::Glider)
-                        });
+                        .is_some_and(|item| matches!(&*item.kind(), comp::item::ItemKind::Glider));
 
                     let is_gliding = matches!(
                         read_data.char_states.get(entity),
@@ -172,7 +170,7 @@ impl<'a> System<'a> for Sys {
                         if agent
                             .position_pid_controller
                             .as_ref()
-                            .map_or(false, |pid| (pid.kp, pid.ki, pid.kd) != (kp, ki, kd))
+                            .is_some_and(|pid| (pid.kp, pid.ki, pid.kd) != (kp, ki, kd))
                         {
                             agent.position_pid_controller = None;
                         }
@@ -198,8 +196,8 @@ impl<'a> System<'a> for Sys {
                         on_ground: physics_state.on_ground.is_some(),
                         in_liquid: physics_state.in_liquid().is_some(),
                         min_tgt_dist: scale * moving_body.map_or(1.0, |body| body.max_radius()),
-                        can_climb: moving_body.map_or(false, Body::can_climb),
-                        can_fly: moving_body.map_or(false, |b| b.fly_thrust().is_some()),
+                        can_climb: moving_body.is_some_and(Body::can_climb),
+                        can_fly: moving_body.is_some_and(|b| b.fly_thrust().is_some()),
                         is_target_loaded: true,
                     };
                     let health_fraction = health.map_or(1.0, Health::fraction);

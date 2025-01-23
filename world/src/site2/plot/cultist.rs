@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::{inscribed_polystar, place_circular},
-    util::{sampler::Sampler, RandomField, DIAGONALS},
     Land,
+    site2::gen::{inscribed_polystar, place_circular},
+    util::{DIAGONALS, RandomField, sampler::Sampler},
 };
 use common::{
     comp::misc::PortalData,

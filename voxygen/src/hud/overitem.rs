@@ -1,12 +1,12 @@
 use crate::{
     game_input::GameInput,
     settings::ControlSettings,
-    ui::{fonts::Fonts, Ingameable},
+    ui::{Ingameable, fonts::Fonts},
 };
 use conrod_core::{
-    color,
+    Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, RoundedRectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use std::borrow::Cow;
@@ -89,7 +89,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Ingameable for Overitem<'a> {
+impl Ingameable for Overitem<'_> {
     fn prim_count(&self) -> usize {
         // Number of conrod primitives contained in the overitem display.
         // TODO maybe this could be done automatically?
@@ -110,7 +110,7 @@ impl<'a> Ingameable for Overitem<'a> {
     }
 }
 
-impl<'a> Widget for Overitem<'a> {
+impl Widget for Overitem<'_> {
     type Event = ();
     type State = State;
     type Style = ();

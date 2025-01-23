@@ -1,8 +1,8 @@
-use crate::{make_bone, Offsets};
+use crate::{Offsets, make_bone};
 
 use super::{
-    vek::{Lerp, Mat4, Transform, Vec3, Vec4},
     Skeleton,
+    vek::{Lerp, Mat4, Transform, Vec3, Vec4},
 };
 use common::comp;
 // use vek::quaternion::repr_simd::Quaternion;

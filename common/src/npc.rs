@@ -1,6 +1,6 @@
 use crate::{
     assets::{AssetExt, AssetHandle},
-    comp::{self, body, AllBodies, Body},
+    comp::{self, AllBodies, Body, body},
 };
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;

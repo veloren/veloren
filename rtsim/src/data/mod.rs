@@ -15,8 +15,8 @@ pub use self::{
 };
 
 use common::resources::TimeOfDay;
-use enum_map::{enum_map, EnumArray, EnumMap};
-use serde::{de, ser, Deserialize, Serialize};
+use enum_map::{EnumArray, EnumMap, enum_map};
+use serde::{Deserialize, Serialize, de, ser};
 use std::{
     cmp::PartialEq,
     fmt,

@@ -1,12 +1,13 @@
 use common::{
+    GroupTarget,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass,
+        Melee, Ori, PhysicsState, Player, Pos, Scale, Stats,
         ability::Dodgeable,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         melee::MultiTarget,
-        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass,
-        Melee, Ori, PhysicsState, Player, Pos, Scale, Stats,
     },
     event::{self, EmitExt, EventBus},
     event_emitters,
@@ -14,14 +15,13 @@ use common::{
     resources::Time,
     terrain::TerrainGrid,
     uid::{IdMaps, Uid},
-    util::{find_dist::Cylinder, Dir},
+    util::{Dir, find_dist::Cylinder},
     vol::ReadVol,
-    GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use itertools::Itertools;
 use specs::{
-    shred, Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
+    Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage, shred,
 };
 use vek::*;
 
@@ -167,11 +167,11 @@ impl<'a> System<'a> for Sys {
                         .char_states
                         .get(target)
                         .and_then(|cs| cs.roll_attack_immunities())
-                        .map_or(false, |i| i.melee),
+                        .is_some_and(|i| i.melee),
                     Dodgeable::Jump => read_data
                         .physic_states
                         .get(target)
-                        .map_or(false, |ps| ps.on_ground.is_none()),
+                        .is_some_and(|ps| ps.on_ground.is_none()),
                     Dodgeable::No => false,
                 };
 

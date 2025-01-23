@@ -18,18 +18,18 @@ use shadow_map::{ShadowMap, ShadowMapRenderer};
 use self::{pipeline_creation::RainOcclusionPipelines, rain_occlusion_map::RainOcclusionMap};
 
 use super::{
+    AddressMode, FilterMode, OtherModes, PipelineModes, PresentMode, RenderError, RenderMode,
+    ShadowMapMode, ShadowMode, Vertex,
     buffer::Buffer,
     consts::Consts,
     instances::Instances,
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, bloom, clouds, debug, figure, postprocess, rain_occlusion, rope, shadow, sprite,
-        terrain, ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
+        GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup, blit, bloom, clouds, debug,
+        figure, postprocess, rain_occlusion, rope, shadow, sprite, terrain, ui,
     },
     texture::Texture,
-    AddressMode, FilterMode, OtherModes, PipelineModes, PresentMode, RenderError, RenderMode,
-    ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle, ReloadWatcher};
 use common_base::span;
@@ -691,7 +691,7 @@ impl Renderer {
             || self
                 .recreation_pending
                 .as_ref()
-                .map_or(false, |modes| modes != &pipeline_modes)
+                .is_some_and(|modes| modes != &pipeline_modes)
         {
             // Recreate pipelines with new modes
             self.recreate_pipelines(pipeline_modes);
@@ -1038,13 +1038,13 @@ impl Renderer {
     // investigation into whether this is actually turned on for the OpenGL
     // backend
     //
-    /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
-    /// to find proof of this, but Direct3D 10 apparently does it by
-    /// default, and 11 definitely does, so I assume it's natively supported
-    /// by DirectX itself), OpenGL 3.2+, and Metal (done by default).  While
-    /// there may be some GPUs that don't quite support it correctly, the
-    /// impact is relatively small, so there is no reason not to enable it where
-    /// available.
+    // /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
+    // /// to find proof of this, but Direct3D 10 apparently does it by
+    // /// default, and 11 definitely does, so I assume it's natively supported
+    // /// by DirectX itself), OpenGL 3.2+, and Metal (done by default).  While
+    // /// there may be some GPUs that don't quite support it correctly, the
+    // /// impact is relatively small, so there is no reason not to enable it where
+    // /// available.
     //fn enable_seamless_cube_maps() {
     //todo!()
     // unsafe {
@@ -1053,7 +1053,6 @@ impl Renderer {
     // seamless cubemaps were introduced.     if !device.get_info().
     // is_version_supported(3, 2) {         return;
     //     }
-
     //     // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported
     // by OpenGL 3.2+     // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
     //     // enabling seamless cube maps should always be safe regardless

@@ -14,8 +14,8 @@ use std::{
     io,
     net::SocketAddr,
     sync::{
-        atomic::{AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicU64, Ordering},
     },
     time::Duration,
 };
@@ -24,7 +24,7 @@ use tokio::{
     net,
     net::tcp::{OwnedReadHalf, OwnedWriteHalf},
     select,
-    sync::{mpsc, oneshot, Mutex},
+    sync::{Mutex, mpsc, oneshot},
 };
 use tracing::{error, info, trace, warn};
 

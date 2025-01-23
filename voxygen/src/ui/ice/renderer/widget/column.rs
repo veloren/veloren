@@ -1,5 +1,5 @@
 use super::super::{IcedRenderer, Primitive};
-use iced::{column, mouse, Element, Layout, Point, Rectangle};
+use iced::{Element, Layout, Point, Rectangle, column, mouse};
 
 impl column::Renderer for IcedRenderer {
     fn draw<M>(

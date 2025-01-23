@@ -29,7 +29,7 @@ pub mod util;
 // Reexports
 pub use crate::{
     canvas::{Canvas, CanvasInfo},
-    config::{Features, CONFIG},
+    config::{CONFIG, Features},
     land::Land,
     layer::PathLocals,
 };
@@ -61,9 +61,9 @@ use common::{
     vol::{ReadVol, RectVolSize, WriteVol},
 };
 use common_base::prof_span;
-use common_net::msg::{world_msg, WorldMapMsg};
+use common_net::msg::{WorldMapMsg, world_msg};
 use enum_map::EnumMap;
-use rand::{prelude::*, Rng};
+use rand::{Rng, prelude::*};
 use rand_chacha::ChaCha8Rng;
 use serde::Deserialize;
 use std::time::Duration;

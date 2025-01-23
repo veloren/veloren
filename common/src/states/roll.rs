@@ -1,8 +1,8 @@
 use crate::{
     comp::{
+        CharacterState, StateUpdate,
         buff::{BuffChange, BuffKind},
         character_state::{AttackFilters, OutputEvents},
-        CharacterState, StateUpdate,
     },
     event::BuffEvent,
     states::{

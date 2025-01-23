@@ -1,10 +1,10 @@
 /// this contains global housekeeping info during simulation
 use crate::{
-    site::{
-        economy::{Economy, DAYS_PER_MONTH, DAYS_PER_YEAR, INTER_SITE_TRADE},
-        SiteKind,
-    },
     Index,
+    site::{
+        SiteKind,
+        economy::{DAYS_PER_MONTH, DAYS_PER_YEAR, Economy, INTER_SITE_TRADE},
+    },
 };
 use rayon::prelude::*;
 use tracing::{debug, info};
@@ -286,7 +286,7 @@ mod tests {
     use crate::{sim, util::seed_expan};
     use common::{
         store::Id,
-        terrain::{site::SiteKindMeta, BiomeKind},
+        terrain::{BiomeKind, site::SiteKindMeta},
         trade::Good,
     };
     use hashbrown::HashMap;
@@ -294,8 +294,8 @@ mod tests {
     use rand_chacha::ChaChaRng;
     use serde::{Deserialize, Serialize};
     use std::convert::TryInto;
-    use tracing::{info, Dispatch, Level};
-    use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
+    use tracing::{Dispatch, Level, info};
+    use tracing_subscriber::{FmtSubscriber, filter::EnvFilter};
     use vek::Vec2;
 
     fn execute_with_tracing(level: Level, func: fn()) {

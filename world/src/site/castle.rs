@@ -1,15 +1,15 @@
 use super::SpawnRules;
 use crate::{
+    IndexRef,
     column::ColumnSample,
     sim::WorldSim,
     site::{
         namegen::NameGen,
         settlement::building::{
-            archetype::keep::{Attr, FlagColor, Keep as KeepArchetype, StoneColor},
             Archetype, Ori,
+            archetype::keep::{Attr, FlagColor, Keep as KeepArchetype, StoneColor},
         },
     },
-    IndexRef,
 };
 use common::{
     generation::ChunkSupplement,

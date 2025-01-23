@@ -13,19 +13,18 @@ use crate::{
 use common::{
     combat::perception_dist_multiplier_from_stealth,
     comp::{
-        self,
+        self, Agent, Alignment, Body, CharacterState, Content, ControlAction, ControlEvent,
+        Controller, HealthChange, InputKind, InventoryAction, Pos, PresenceKind, Scale,
+        UnresolvedChatMsg, UtteranceKind,
         ability::BASE_ABILITY_LIMIT,
         agent::{Sound, SoundKind, Target},
         inventory::slot::EquipSlot,
         item::{
-            tool::{AbilitySpec, ToolKind},
             ConsumableKind, Effects, Item, ItemDesc, ItemKind,
+            tool::{AbilitySpec, ToolKind},
         },
         item_drop,
         projectile::ProjectileConstructorKind,
-        Agent, Alignment, Body, CharacterState, Content, ControlAction, ControlEvent, Controller,
-        HealthChange, InputKind, InventoryAction, Pos, PresenceKind, Scale, UnresolvedChatMsg,
-        UtteranceKind,
     },
     consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
@@ -41,14 +40,14 @@ use common::{
     vol::ReadVol,
 };
 use itertools::Itertools;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use specs::Entity as EcsEntity;
 use vek::*;
 
 #[cfg(feature = "use-dyn-lib")]
 use {crate::LIB, std::ffi::CStr};
 
-impl<'a> AgentData<'a> {
+impl AgentData<'_> {
     ////////////////////////////////////////
     // Action Nodes
     ////////////////////////////////////////
@@ -164,7 +163,7 @@ impl<'a> AgentData<'a> {
     fn traverse(&self, controller: &mut Controller, bearing: Vec3<f32>, speed: f32) {
         controller.inputs.move_dir =
             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-        let climbing_out_of_water = self.physics_state.in_liquid().map_or(false, |h| h < 1.0)
+        let climbing_out_of_water = self.physics_state.in_liquid().is_some_and(|h| h < 1.0)
             && bearing.z > 0.0
             && self.physics_state.on_wall.is_some();
         self.jump_if(
@@ -207,9 +206,7 @@ impl<'a> AgentData<'a> {
             .inventory
             .equipped(EquipSlot::Lantern)
             .as_ref()
-            .map_or(false, |item| {
-                matches!(&*item.kind(), comp::item::ItemKind::Lantern(_))
-            });
+            .is_some_and(|item| matches!(&*item.kind(), comp::item::ItemKind::Lantern(_)));
         let lantern_turned_on = self.light_emitter.is_some();
         let day_period = DayPeriod::from(read_data.time_of_day.0);
         // Only emit event for agents that have a lantern equipped
@@ -250,7 +247,7 @@ impl<'a> AgentData<'a> {
                     if read_data
                         .is_volume_riders
                         .get(*self.entity)
-                        .map_or(false, |r| !r.is_steering_entity())
+                        .is_some_and(|r| !r.is_steering_entity())
                     {
                         controller.push_event(ControlEvent::Unmount);
                     }
@@ -362,7 +359,7 @@ impl<'a> AgentData<'a> {
                                             .until(|b: &Block| b.is_solid() || b.is_liquid())
                                             .cast()
                                             .1
-                                            .map_or(false, |b| b.is_some())
+                                            .is_ok_and(|b| b.is_some())
                                     }
                                 }
 
@@ -471,15 +468,11 @@ impl<'a> AgentData<'a> {
                 .interactors
                 .get(*self.entity)
                 .and_then(|interactors| interactors.get(*owner_uid?))
-                .map_or(false, |interaction| {
-                    matches!(interaction.kind, InteractionKind::Pet)
-                });
+                .is_some_and(|interaction| matches!(interaction.kind, InteractionKind::Pet));
 
             let is_in_range = owner
                 .and_then(|owner| read_data.positions.get(owner))
-                .map_or(false, |pos| {
-                    pos.0.distance_squared(self.pos.0) < MAX_MOUNT_RANGE.powi(2)
-                });
+                .is_some_and(|pos| pos.0.distance_squared(self.pos.0) < MAX_MOUNT_RANGE.powi(2));
 
             // Idle NPCs should try to jump on the shoulders of their owner, sometimes.
             if read_data.is_riders.contains(*self.entity) {
@@ -504,8 +497,8 @@ impl<'a> AgentData<'a> {
                     .inventory
                     .equipped(EquipSlot::ActiveMainhand)
                     .as_ref()
-                    .map_or(false, |item| {
-                        item.ability_spec().map_or(false, |a_s| match &*a_s {
+                    .is_some_and(|item| {
+                        item.ability_spec().is_some_and(|a_s| match &*a_s {
                             AbilitySpec::Custom(spec) => {
                                 matches!(
                                     spec.as_str(),
@@ -641,7 +634,7 @@ impl<'a> AgentData<'a> {
             || read_data
                 .is_volume_riders
                 .get(*self.entity)
-                .map_or(false, |r| !r.is_steering_entity())
+                .is_some_and(|r| !r.is_steering_entity())
         {
             controller.push_event(ControlEvent::Unmount);
         }
@@ -702,7 +695,7 @@ impl<'a> AgentData<'a> {
             || read_data
                 .is_volume_riders
                 .get(*self.entity)
-                .map_or(false, |r| !r.is_steering_entity())
+                .is_some_and(|r| !r.is_steering_entity())
         {
             controller.push_event(ControlEvent::Unmount);
         }
@@ -869,19 +862,15 @@ impl<'a> AgentData<'a> {
             .collect_vec();
 
         let can_ambush = |entity: EcsEntity, read_data: &ReadData| {
-            let self_different_from_entity = || {
-                read_data
-                    .uids
-                    .get(entity)
-                    .map_or(false, |eu| eu != self.uid)
-            };
+            let self_different_from_entity =
+                || read_data.uids.get(entity).is_some_and(|eu| eu != self.uid);
             if agent.rtsim_controller.personality.will_ambush()
                 && self_different_from_entity()
                 && !self.passive_towards(entity, read_data)
             {
                 let surrounding_humanoids = entities_nearby
                     .iter()
-                    .filter(|e| read_data.bodies.get(**e).map_or(false, |b| b.is_humanoid()))
+                    .filter(|e| read_data.bodies.get(**e).is_some_and(|b| b.is_humanoid()))
                     .collect_vec();
                 surrounding_humanoids.len() == 2
                     && surrounding_humanoids.iter().any(|e| **e == entity)
@@ -935,15 +924,13 @@ impl<'a> AgentData<'a> {
                 let attempt_pickup = wants_pickup
                     && read_data
                         .loot_owners
-                        .get(entity)
-                        .map_or(true, |loot_owner| {
+                        .get(entity).is_none_or(|loot_owner| {
                             !(is_humanoid
                                 && loot_owner.is_soft()
                                 // If we are hostile towards the owner, ignore their wish to not pick up the loot
                                 && loot_owner
                                     .uid()
-                                    .and_then(|uid| read_data.id_maps.uid_entity(uid))
-                                    .map_or(true, |entity| !is_enemy(self, entity, read_data)))
+                                    .and_then(|uid| read_data.id_maps.uid_entity(uid)).is_none_or(|entity| !is_enemy(self, entity, read_data)))
                                 && loot_owner.can_pickup(
                                     *self.uid,
                                     read_data.groups.get(entity),
@@ -960,9 +947,11 @@ impl<'a> AgentData<'a> {
                 }
             },
             _ => {
-                if read_data.healths.get(entity).map_or(false, |health| {
-                    !health.is_dead && !is_invulnerable(entity, read_data)
-                }) {
+                if read_data
+                    .healths
+                    .get(entity)
+                    .is_some_and(|health| !health.is_dead && !is_invulnerable(entity, read_data))
+                {
                     let needs_saving = comp::is_downed(
                         read_data.healths.get(entity),
                         read_data.char_states.get(entity),
@@ -971,7 +960,7 @@ impl<'a> AgentData<'a> {
                     let wants_to_save = match (self.alignment, read_data.alignments.get(entity)) {
                         // Npcs generally do want to save players. Could have extra checks for
                         // sentiment in the future.
-                        (Some(Alignment::Npc), _) if read_data.presences.get(entity).map_or(false, |presence| matches!(presence.kind, PresenceKind::Character(_))) => true,
+                        (Some(Alignment::Npc), _) if read_data.presences.get(entity).is_some_and(|presence| matches!(presence.kind, PresenceKind::Character(_))) => true,
                         (Some(Alignment::Npc), Some(Alignment::Npc)) => true,
                         (Some(Alignment::Enemy), Some(Alignment::Enemy)) => true,
                         _ => false,
@@ -979,8 +968,7 @@ impl<'a> AgentData<'a> {
                         // Check that anyone else isn't already saving them.
                         && read_data
                             .interactors
-                            .get(entity)
-                            .map_or(true, |interactors| {
+                            .get(entity).is_none_or(|interactors| {
                                 !interactors.has_interaction(InteractionKind::HelpDowned)
                             }) && self.char_state.can_interact();
 
@@ -1869,7 +1857,7 @@ impl<'a> AgentData<'a> {
             let is_village_guard = read_data
                 .stats
                 .get(*self.entity)
-                .map_or(false, |stats| stats.name == *"Guard".to_string());
+                .is_some_and(|stats| stats.name == *"Guard".to_string());
             let follows_threatening_sounds = has_enemy_alignment || is_village_guard;
 
             if sound_was_threatening && is_close {
@@ -2018,8 +2006,8 @@ impl<'a> AgentData<'a> {
         let entity_pos = read_data.positions.get(entity);
         let target_pos = read_data.positions.get(target.target);
 
-        entity_pos.map_or(false, |entity_pos| {
-            target_pos.map_or(true, |target_pos| {
+        entity_pos.is_some_and(|entity_pos| {
+            target_pos.is_none_or(|target_pos| {
                 // Fuzzy factor that makes it harder for players to cheese enemies by making
                 // them quickly flip aggro between two players.
                 // It does this by only switching aggro if the entity is closer to the enemy by
@@ -2032,7 +2020,7 @@ impl<'a> AgentData<'a> {
                     .alignments
                     .get(entity)
                     .zip(self.alignment)
-                    .map_or(false, |(entity, me)| me.hostile_towards(*entity));
+                    .is_some_and(|(entity, me)| me.hostile_towards(*entity));
 
                 // Consider entity more dangerous than target if entity is closer or if target
                 // had not triggered aggro.
@@ -2059,13 +2047,12 @@ impl<'a> AgentData<'a> {
     fn should_defend(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
         let entity_alignment = read_data.alignments.get(entity);
 
-        let we_are_friendly = entity_alignment.map_or(false, |entity_alignment| {
-            self.alignment.map_or(false, |alignment| {
-                !alignment.hostile_towards(*entity_alignment)
-            })
+        let we_are_friendly = entity_alignment.is_some_and(|entity_alignment| {
+            self.alignment
+                .is_some_and(|alignment| !alignment.hostile_towards(*entity_alignment))
         });
-        let we_share_species = read_data.bodies.get(entity).map_or(false, |entity_body| {
-            self.body.map_or(false, |body| {
+        let we_share_species = read_data.bodies.get(entity).is_some_and(|entity_body| {
+            self.body.is_some_and(|body| {
                 entity_body.is_same_species_as(body)
                     || (entity_body.is_humanoid() && body.is_humanoid())
             })
@@ -2123,7 +2110,7 @@ impl<'a> AgentData<'a> {
 
         let within_fov = (other_pos.0 - self.pos.0)
             .try_normalized()
-            .map_or(false, |v| v.dot(*controller.inputs.look_dir) > 0.15);
+            .is_some_and(|v| v.dot(*controller.inputs.look_dir) > 0.15);
 
         let other_body = read_data.bodies.get(other);
 
@@ -2219,7 +2206,7 @@ impl<'a> AgentData<'a> {
             || read_data
                 .is_volume_riders
                 .get(*self.entity)
-                .map_or(false, |r| !r.is_steering_entity())
+                .is_some_and(|r| !r.is_steering_entity())
         {
             controller.push_event(ControlEvent::Unmount);
         }

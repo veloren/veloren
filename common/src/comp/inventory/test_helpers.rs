@@ -1,11 +1,10 @@
 use crate::comp::{
+    Item,
     inventory::item::{
-        armor,
+        ItemBase, ItemDef, ItemKind, MaterialStatManifest, Quality, armor,
         armor::{ArmorKind, Protection},
         tool::AbilityMap,
-        ItemBase, ItemDef, ItemKind, MaterialStatManifest, Quality,
     },
-    Item,
 };
 use std::sync::Arc;
 

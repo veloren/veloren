@@ -1,16 +1,17 @@
 use super::{
-    img_ids::{Imgs, ImgsRot},
     BLACK, TEXT_COLOR,
+    img_ids::{Imgs, ImgsRot},
 };
 use crate::{
-    game_input::GameInput,
-    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
-    window::KeyMouse,
     GlobalState,
+    game_input::GameInput,
+    ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
+    window::KeyMouse,
 };
 use conrod_core::{
+    Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
     widget::{self, Button, Text, UpdateArgs},
-    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 widget_ids! {
@@ -85,7 +86,7 @@ pub enum Event {
     ToggleCrafting,
 }
 
-impl<'a> Widget for Buttons<'a> {
+impl Widget for Buttons<'_> {
     type Event = Option<Event>;
     type State = State;
     type Style = ();
@@ -256,7 +257,7 @@ impl<'a> Widget for Buttons<'a> {
     }
 }
 
-impl<'a> Buttons<'a> {
+impl Buttons<'_> {
     fn create_new_button_with_shadow(
         &self,
         ui: &mut UiCell,

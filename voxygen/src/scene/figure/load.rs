@@ -462,7 +462,12 @@ make_vox_spec!(
         // TODO: Add these.
         /* tabard: HumArmorTabardSpec = "voxygen.voxel.humanoid_armor_tabard_manifest", */
     },
-    |FigureKey { body, item_key: _, extra }, spec| {
+    |FigureKey {
+         body,
+         item_key: _,
+         extra,
+     },
+     spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
             third_person: None,
             tool: None,
@@ -489,60 +494,40 @@ make_vox_spec!(
                 spec.head.read().0.mesh_head(
                     body,
                     color,
-                    spec.armor_head.read().0.load_head(
-                        body,
-                        loadout.head.as_deref()
-                    ),
+                    spec.armor_head
+                        .read()
+                        .0
+                        .load_head(body, loadout.head.as_deref()),
                 )
             }),
             third_person.map(|loadout| {
-                spec.armor_chest.read().0.mesh_chest(
-                    body,
-                    color,
-                    loadout.chest.as_deref(),
-                )
+                spec.armor_chest
+                    .read()
+                    .0
+                    .mesh_chest(body, color, loadout.chest.as_deref())
             }),
             third_person.map(|loadout| {
-                spec.armor_belt.read().0.mesh_belt(
-                    body,
-                    color,
-                    loadout.belt.as_deref(),
-                )
+                spec.armor_belt
+                    .read()
+                    .0
+                    .mesh_belt(body, color, loadout.belt.as_deref())
             }),
             third_person.map(|loadout| {
-                spec.armor_back.read().0.mesh_back(
-                    body,
-                    color,
-                    loadout.back.as_deref(),
-                )
+                spec.armor_back
+                    .read()
+                    .0
+                    .mesh_back(body, color, loadout.back.as_deref())
             }),
             third_person.map(|loadout| {
-                spec.armor_pants.read().0.mesh_pants(
-                    body,
-                    color,
-                    loadout.pants.as_deref(),
-                )
+                spec.armor_pants
+                    .read()
+                    .0
+                    .mesh_pants(body, color, loadout.pants.as_deref())
             }),
-            Some(spec.armor_hand.read().0.mesh_left_hand(
-                body,
-                color,
-                hand,
-            )),
-            Some(spec.armor_hand.read().0.mesh_right_hand(
-                body,
-                color,
-                hand,
-            )),
-            Some(spec.armor_foot.read().0.mesh_left_foot(
-                body,
-                color,
-                foot,
-            )),
-            Some(spec.armor_foot.read().0.mesh_right_foot(
-                body,
-                color,
-                foot,
-            )),
+            Some(spec.armor_hand.read().0.mesh_left_hand(body, color, hand)),
+            Some(spec.armor_hand.read().0.mesh_right_hand(body, color, hand)),
+            Some(spec.armor_foot.read().0.mesh_left_foot(body, color, foot)),
+            Some(spec.armor_foot.read().0.mesh_right_foot(body, color, foot)),
             third_person.map(|loadout| {
                 spec.armor_shoulder.read().0.mesh_left_shoulder(
                     body,
@@ -557,28 +542,17 @@ make_vox_spec!(
                     loadout.shoulder.as_deref(),
                 )
             }),
-            Some(spec.armor_glider.read().0.mesh_glider(
-                body,
-                color,
-                glider,
-            )),
-            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
-                spec.main_weapon.read().0.mesh_main_weapon(
-                    tool,
-                    false,
-                )
-            }),
-            tool.and_then(|tool| tool.second.as_ref()).map(|tool| {
-                spec.main_weapon.read().0.mesh_main_weapon(
-                    tool,
-                    true,
-                )
-            }),
-            Some(spec.armor_lantern.read().0.mesh_lantern(
-                body,
-                color,
-                lantern,
-            )),
+            Some(spec.armor_glider.read().0.mesh_glider(body, color, glider)),
+            tool.and_then(|tool| tool.active.as_ref())
+                .map(|tool| spec.main_weapon.read().0.mesh_main_weapon(tool, false)),
+            tool.and_then(|tool| tool.second.as_ref())
+                .map(|tool| spec.main_weapon.read().0.mesh_main_weapon(tool, true)),
+            Some(
+                spec.armor_lantern
+                    .read()
+                    .0
+                    .mesh_lantern(body, color, lantern),
+            ),
             Some(mesh_hold()),
         ]
     },
@@ -1156,39 +1130,53 @@ make_vox_spec!(
         lateral: QuadrupedSmallLateralSpec = "voxygen.voxel.quadruped_small_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_chest(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_fl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_fr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_bl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_br(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_fl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_fr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_bl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_br(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail(body.species, body.body_type),
+            ),
             None,
             None,
             None,
@@ -1383,77 +1371,96 @@ make_vox_spec!(
         lateral: QuadrupedMediumLateralSpec = "voxygen.voxel.quadruped_medium_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
             third_person.map(|_| {
-                spec.central.read().0.mesh_neck(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_neck(body.species, body.body_type)
             }),
+            third_person.map(|_| spec.central.read().0.mesh_jaw(body.species, body.body_type)),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_torso_front(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_torso_back(body.species, body.body_type),
+            ),
             third_person.map(|_| {
-                spec.central.read().0.mesh_jaw(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_ears(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_tail(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_torso_front(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_torso_back(
-                body.species,
-                body.body_type,
-            )),
-            third_person.map(|_| {
-                spec.central.read().0.mesh_ears(
-                    body.species,
-                    body.body_type,
-                )
-            }),
-            Some(spec.lateral.read().0.mesh_leg_fl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_fr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_bl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_br(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_fl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_fr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_bl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_br(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_fl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_fr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_bl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_br(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_fl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_fr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_bl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_br(body.species, body.body_type),
+            ),
             None,
         ]
     }
@@ -1758,47 +1765,65 @@ make_vox_spec!(
         lateral: BirdMediumLateralSpec = "voxygen.voxel.bird_medium_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_chest(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_in_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_in_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_out_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_out_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_r(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_in_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_in_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_out_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_out_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_r(body.species, body.body_type),
+            ),
             None,
             None,
             None,
@@ -2018,65 +2043,84 @@ make_vox_spec!(
         lateral: TheropodLateralSpec = "voxygen.voxel.theropod_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
-            third_person.map(|_| {
-                spec.central.read().0.mesh_jaw(
-                    body.species,
-                    body.body_type,
-                )
-            }),
-            Some(spec.central.read().0.mesh_neck(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_chest_front(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_chest_back(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_front(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_back(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_hand_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_hand_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_r(
-                body.species,
-                body.body_type,
-            )),
+            third_person.map(|_| spec.central.read().0.mesh_jaw(body.species, body.body_type)),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_neck(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest_front(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest_back(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_front(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_back(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_hand_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_hand_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_r(body.species, body.body_type),
+            ),
             None,
             None,
             None,
@@ -2355,79 +2399,107 @@ make_vox_spec!(
         lateral: ArthropodLateralSpec = "voxygen.voxel.arthropod_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_chest(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest(body.species, body.body_type),
+            ),
             third_person.map(|_| {
-                spec.lateral.read().0.mesh_mandible_l(
-                    body.species,
-                    body.body_type,
-                )
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_mandible_l(body.species, body.body_type)
             }),
             third_person.map(|_| {
-                spec.lateral.read().0.mesh_mandible_r(
-                    body.species,
-                    body.body_type,
-                )
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_mandible_r(body.species, body.body_type)
             }),
-            Some(spec.lateral.read().0.mesh_wing_fl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_fr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_bl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_br(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_fl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_fr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_fcl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_fcr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_bcl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_bcr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_bl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_br(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_fl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_fr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_bl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_br(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_fl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_fr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_fcl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_fcr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_bcl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_bcr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_bl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_br(body.species, body.body_type),
+            ),
         ]
     },
 );
@@ -2759,71 +2831,101 @@ make_vox_spec!(
         lateral: CrustaceanLateralSpec = "voxygen.voxel.crustacean_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_chest(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_tail_f(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_b(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_arm_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_pincer_l0(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_pincer_l1(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_arm_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_pincer_r0(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_pincer_r1(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_fl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_cl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_bl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_fr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_cr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_br(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_f(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_b(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_arm_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_pincer_l0(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_pincer_l1(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_arm_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_pincer_r0(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_pincer_r1(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_fl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_cl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_bl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_fr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_cr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_br(body.species, body.body_type),
+            ),
             None,
         ]
     },
@@ -3171,39 +3273,48 @@ make_vox_spec!(
         lateral: FishMediumLateralSpec = "voxygen.voxel.fish_medium_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_jaw(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_chest_front(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_chest_back(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_fin_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_fin_r(
-                body.species,
-                body.body_type,
-            )),
+            Some(spec.central.read().0.mesh_jaw(body.species, body.body_type)),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest_front(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest_back(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_fin_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_fin_r(body.species, body.body_type),
+            ),
             None,
             None,
             None,
@@ -3382,27 +3493,35 @@ make_vox_spec!(
         lateral: FishSmallLateralSpec = "voxygen.voxel.fish_small_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_chest(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_tail(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_fin_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_fin_r(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_fin_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_fin_r(body.species, body.body_type),
+            ),
             None,
             None,
             None,
@@ -3523,7 +3642,12 @@ make_vox_spec!(
         armor_tail: BipedSmallArmorTailSpec = "voxygen.voxel.biped_small_armor_tail_manifest",
 
     },
-    |FigureKey { body: _, item_key: _, extra }, spec| {
+    |FigureKey {
+         body: _,
+         item_key: _,
+         extra,
+     },
+     spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
             third_person: None,
             tool: None,
@@ -3541,46 +3665,27 @@ make_vox_spec!(
         let hand = loadout.hand.as_deref();
         let foot = loadout.foot.as_deref();
 
-
         [
+            third_person.map(|loadout| spec.armor_head.read().0.mesh_head(loadout.head.as_deref())),
             third_person.map(|loadout| {
-                spec.armor_head.read().0.mesh_head(
-                    loadout.head.as_deref(),
-                )
-            }),
-            third_person.map(|loadout| {
-                spec.armor_chest.read().0.mesh_chest(
-                    loadout.chest.as_deref(),
-                )
+                spec.armor_chest
+                    .read()
+                    .0
+                    .mesh_chest(loadout.chest.as_deref())
             }),
             third_person.map(|loadout| {
-                spec.armor_pants.read().0.mesh_pants(
-                    loadout.pants.as_deref(),
-                )
+                spec.armor_pants
+                    .read()
+                    .0
+                    .mesh_pants(loadout.pants.as_deref())
             }),
-            third_person.map(|loadout| {
-                spec.armor_tail.read().0.mesh_tail(
-                    loadout.belt.as_deref(),
-                )
-            }),
-            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
-                spec.weapon.read().0.mesh_main(
-                    tool,
-                    false,
-                )
-            }),
-            Some(spec.armor_hand.read().0.mesh_left_hand(
-                hand,
-            )),
-            Some(spec.armor_hand.read().0.mesh_right_hand(
-                hand,
-            )),
-            Some(spec.armor_foot.read().0.mesh_left_foot(
-                foot,
-            )),
-            Some(spec.armor_foot.read().0.mesh_right_foot(
-                foot,
-            )),
+            third_person.map(|loadout| spec.armor_tail.read().0.mesh_tail(loadout.belt.as_deref())),
+            tool.and_then(|tool| tool.active.as_ref())
+                .map(|tool| spec.weapon.read().0.mesh_main(tool, false)),
+            Some(spec.armor_hand.read().0.mesh_left_hand(hand)),
+            Some(spec.armor_hand.read().0.mesh_right_hand(hand)),
+            Some(spec.armor_foot.read().0.mesh_left_foot(foot)),
+            Some(spec.armor_foot.read().0.mesh_right_foot(foot)),
             None,
             None,
             None,
@@ -3826,73 +3931,96 @@ make_vox_spec!(
         lateral: DragonLateralSpec = "voxygen.voxel.dragon_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head_upper(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head_upper(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_head_lower(
-                body.species,
-                body.body_type,
-            )),
-            third_person.map(|_| {
-                spec.central.read().0.mesh_jaw(
-                    body.species,
-                    body.body_type,
-                )
-            }),
-            Some(spec.central.read().0.mesh_chest_front(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_chest_rear(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_front(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_rear(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_in_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_in_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_out_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_out_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_fl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_fr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_bl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_br(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head_lower(body.species, body.body_type),
+            ),
+            third_person.map(|_| spec.central.read().0.mesh_jaw(body.species, body.body_type)),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest_front(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest_rear(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_front(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_rear(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_in_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_in_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_out_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_out_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_fl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_fr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_bl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_br(body.species, body.body_type),
+            ),
             None,
         ]
     },
@@ -4204,77 +4332,107 @@ make_vox_spec!(
         lateral: BirdLargeLateralSpec = "voxygen.voxel.bird_large_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
             third_person.map(|_| {
-                spec.central.read().0.mesh_beak(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_beak(body.species, body.body_type)
             }),
-            Some(spec.central.read().0.mesh_neck(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_chest(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_front(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_rear(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_in_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_in_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_mid_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_mid_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_out_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_wing_out_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_r(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_neck(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_front(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_rear(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_in_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_in_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_mid_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_mid_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_out_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_wing_out_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_r(body.species, body.body_type),
+            ),
         ]
     },
 );
@@ -4618,7 +4776,12 @@ make_vox_spec!(
         main: BipedLargeMainSpec = "voxygen.voxel.biped_weapon_manifest",
         second: BipedLargeSecondSpec = "voxygen.voxel.biped_weapon_manifest",
     },
-    |FigureKey { body, item_key: _, extra }, spec| {
+    |FigureKey {
+         body,
+         item_key: _,
+         extra,
+     },
+     spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
             third_person: None,
             tool: None,
@@ -4637,75 +4800,82 @@ make_vox_spec!(
         let tool = loadout.tool.as_ref();
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
+            third_person.map(|_| spec.central.read().0.mesh_jaw(body.species, body.body_type)),
             third_person.map(|_| {
-                spec.central.read().0.mesh_jaw(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_torso_upper(body.species, body.body_type)
             }),
-            third_person.map(|_| {
-                spec.central.read().0.mesh_torso_upper(
-                    body.species,
-                    body.body_type,
-                )
-            }),
-            Some(spec.central.read().0.mesh_torso_lower(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail(
-                body.species,
-                body.body_type,
-            )),
-            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
-                spec.main.read().0.mesh_main(
-                    tool,
-                    false,
-                )
-            }),
-            tool.and_then(|tool| tool.active.as_ref()).map(|tool| {
-                spec.second.read().0.mesh_second(
-                    tool,
-                    false,
-                )
-            }),
-            Some(spec.lateral.read().0.mesh_shoulder_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_shoulder_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_hand_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_hand_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_r(
-                body.species,
-                body.body_type,
-            )),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_torso_lower(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail(body.species, body.body_type),
+            ),
+            tool.and_then(|tool| tool.active.as_ref())
+                .map(|tool| spec.main.read().0.mesh_main(tool, false)),
+            tool.and_then(|tool| tool.active.as_ref())
+                .map(|tool| spec.second.read().0.mesh_second(tool, false)),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_shoulder_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_shoulder_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_hand_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_hand_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_r(body.species, body.body_type),
+            ),
             Some(mesh_hold()),
         ]
     },
@@ -5038,61 +5208,78 @@ make_vox_spec!(
         lateral: GolemLateralSpec = "voxygen.voxel.golem_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head(body.species, body.body_type)
             }),
-            third_person.map(|_| {
-                spec.central.read().0.mesh_jaw(
-                    body.species,
-                    body.body_type,
-                )
-            }),
-            Some(spec.central.read().0.mesh_torso_upper(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_torso_lower(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_shoulder_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_shoulder_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_hand_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_hand_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_leg_r(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_l(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_r(
-                body.species,
-                body.body_type,
-            )),
+            third_person.map(|_| spec.central.read().0.mesh_jaw(body.species, body.body_type)),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_torso_upper(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_torso_lower(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_shoulder_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_shoulder_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_hand_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_hand_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_leg_r(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_l(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_r(body.species, body.body_type),
+            ),
             None,
             None,
             None,
@@ -5357,79 +5544,102 @@ make_vox_spec!(
         lateral: QuadrupedLowLateralSpec = "voxygen.voxel.quadruped_low_lateral_manifest",
     },
     |FigureKey { body, extra, .. }, spec| {
-        let third_person = extra.as_ref().and_then(|loadout| loadout.third_person.as_ref());
+        let third_person = extra
+            .as_ref()
+            .and_then(|loadout| loadout.third_person.as_ref());
 
         [
             third_person.map(|_| {
-                spec.central.read().0.mesh_head_upper(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head_upper(body.species, body.body_type)
             }),
             third_person.map(|_| {
-                spec.central.read().0.mesh_head_lower(
-                    body.species,
-                    body.body_type,
-                )
+                spec.central
+                    .read()
+                    .0
+                    .mesh_head_lower(body.species, body.body_type)
             }),
-            third_person.map(|_| {
-                spec.central.read().0.mesh_jaw(
-                    body.species,
-                    body.body_type,
-                )
-            }),
-            Some(spec.lateral.read().0.mesh_left_head_upper(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_left_head_lower(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_left_jaw(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_right_head_upper(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_right_head_lower(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_right_jaw(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_chest(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_front(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.central.read().0.mesh_tail_rear(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_fl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_fr(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_bl(
-                body.species,
-                body.body_type,
-            )),
-            Some(spec.lateral.read().0.mesh_foot_br(
-                body.species,
-                body.body_type,
-            )),
+            third_person.map(|_| spec.central.read().0.mesh_jaw(body.species, body.body_type)),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_left_head_upper(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_left_head_lower(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_left_jaw(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_right_head_upper(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_right_head_lower(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_right_jaw(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_chest(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_front(body.species, body.body_type),
+            ),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_tail_rear(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_fl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_fr(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_bl(body.species, body.body_type),
+            ),
+            Some(
+                spec.lateral
+                    .read()
+                    .0
+                    .mesh_foot_br(body.species, body.body_type),
+            ),
         ]
     },
 );
@@ -5747,12 +5957,8 @@ make_vox_spec!(
     },
     |FigureKey { body, .. }, spec| {
         [
-            Some(spec.central.read().0.mesh_bone0(
-                body,
-            )),
-            Some(spec.central.read().0.mesh_bone1(
-                body,
-            )),
+            Some(spec.central.read().0.mesh_bone0(body)),
+            Some(spec.central.read().0.mesh_bone1(body)),
             None,
             None,
             None,
@@ -5843,9 +6049,14 @@ make_vox_spec!(
     struct ItemDropSpec {
         central: ItemDropCentralSpec = "voxygen.voxel.item_drop_manifest",
     },
-    | FigureKey { body, item_key, .. }, spec| {
+    |FigureKey { body, item_key, .. }, spec| {
         [
-            Some(spec.central.read().0.mesh_bone0(body, item_key.as_deref().unwrap_or(&ItemKey::Empty))),
+            Some(
+                spec.central
+                    .read()
+                    .0
+                    .mesh_bone0(body, item_key.as_deref().unwrap_or(&ItemKey::Empty)),
+            ),
             None,
             None,
             None,

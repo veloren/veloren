@@ -5,17 +5,17 @@ use super::{char_selection::CharSelectionState, dummy_scene::Scene, server_info:
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::SingleplayerState;
 use crate::{
+    Direction, GlobalState, PlayState, PlayStateResult,
     render::{Drawer, GlobalsBindGroup},
     session::SessionState,
     settings::Settings,
     window::Event,
-    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use chrono::{DateTime, Local, Utc};
 use client::{
+    Client, ClientInitStage, ServerInfo,
     addr::ConnectionArgs,
     error::{InitProtocolError, NetworkConnectError, NetworkError},
-    Client, ClientInitStage, ServerInfo,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{comp, event::UpdateCharacterMetadata};
@@ -23,7 +23,7 @@ use common_base::span;
 use common_net::msg::ClientType;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
-use i18n::{fluent_args, LocalizationGuard, LocalizationHandle};
+use i18n::{LocalizationGuard, LocalizationHandle, fluent_args};
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
 #[cfg(any(feature = "singleplayer", feature = "plugins"))]

@@ -1,8 +1,8 @@
 use crate::{
+    Canvas, Land,
     layer::tree::{ProceduralTree, TreeConfig},
     site::SpawnRules,
     util::{FastNoise, Sampler},
-    Canvas, Land,
 };
 use common::{
     generation::EntityInfo,
@@ -121,9 +121,9 @@ impl Tree {
                 if let Some(block) = block {
                     above = false;
                     canvas.set(wpos, block);
-                } else if last.map_or(false, |b: Block| {
-                    matches!(b.kind(), BlockKind::Leaves | BlockKind::Wood)
-                }) && dynamic_rng.gen_bool(0.0005)
+                } else if last
+                    .is_some_and(|b: Block| matches!(b.kind(), BlockKind::Leaves | BlockKind::Wood))
+                    && dynamic_rng.gen_bool(0.0005)
                 {
                     canvas.set(wpos, Block::air(SpriteKind::Beehive));
                 }

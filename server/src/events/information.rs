@@ -1,6 +1,6 @@
 use crate::client::Client;
 use common::event::RequestSiteInfoEvent;
-use common_net::msg::{world_msg::EconomyInfo, ServerGeneral};
+use common_net::msg::{ServerGeneral, world_msg::EconomyInfo};
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
 #[cfg(feature = "worldgen")]
@@ -10,7 +10,7 @@ use std::collections::HashMap;
 #[cfg(feature = "worldgen")]
 use world::IndexOwned;
 
-use super::{event_dispatch, ServerEvent};
+use super::{ServerEvent, event_dispatch};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<RequestSiteInfoEvent>(builder, &[]);

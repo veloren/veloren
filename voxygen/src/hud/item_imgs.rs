@@ -169,7 +169,7 @@ fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
 }
 
 fn graceful_load_segment_no_skin(specifier: &str, model_index: u32) -> Arc<Segment> {
-    use common::figure::{mat_cell::MatCell, MatSegment};
+    use common::figure::{MatSegment, mat_cell::MatCell};
     let mat_seg = MatSegment::from_vox_model_index(
         &graceful_load_vox(specifier).read().0,
         model_index as usize,

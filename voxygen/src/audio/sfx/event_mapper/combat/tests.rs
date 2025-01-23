@@ -2,8 +2,8 @@ use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
     comp::{
-        controller::InputKind, inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind,
-        melee, CharacterAbilityType, CharacterState, Item,
+        CharacterAbilityType, CharacterState, Item, controller::InputKind,
+        inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, melee,
     },
     states,
 };

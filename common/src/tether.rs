@@ -94,7 +94,7 @@ impl Link for Tethered {
 
         if let Some((leader, follower)) = entity(this.leader).zip(entity(this.follower)) {
             let is_alive = |entity| {
-                entities.is_alive(entity) && healths.get(entity).map_or(true, |h| !h.is_dead)
+                entities.is_alive(entity) && healths.get(entity).is_none_or(|h| !h.is_dead)
             };
 
             // Ensure that both entities are alive and that they continue to be linked

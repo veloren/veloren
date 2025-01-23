@@ -59,7 +59,7 @@ impl EditableSetting for ServerDescriptions {
 }
 
 mod legacy {
-    use super::{v0 as next, Final, MIGRATION_UPGRADE_GUARANTEE};
+    use super::{Final, MIGRATION_UPGRADE_GUARANTEE, v0 as next};
     use core::convert::TryInto;
     use serde::{Deserialize, Serialize};
 
@@ -87,7 +87,7 @@ mod legacy {
 /// for how to perform a migration for an old version; please use this as a
 /// reference when constructing new migrations.
 mod v0 {
-    use super::{legacy as prev, v1 as next, Final, MIGRATION_UPGRADE_GUARANTEE};
+    use super::{Final, MIGRATION_UPGRADE_GUARANTEE, legacy as prev, v1 as next};
     use crate::settings::editable::{EditableSetting, Version};
     use core::convert::{TryFrom, TryInto};
     use serde::{Deserialize, Serialize};
@@ -129,7 +129,7 @@ mod v0 {
 }
 
 mod v1 {
-    use super::{v0 as prev, Final};
+    use super::{Final, v0 as prev};
     use crate::settings::editable::{EditableSetting, Version};
     use core::ops::{Deref, DerefMut};
     use serde::{Deserialize, Serialize};
@@ -183,7 +183,7 @@ mod v1 {
 mod v2 {
     use std::collections::HashMap;
 
-    use super::{v1 as prev, Final};
+    use super::{Final, v1 as prev};
     use crate::settings::editable::{EditableSetting, Version};
     use serde::{Deserialize, Serialize};
 
