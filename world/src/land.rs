@@ -1,4 +1,4 @@
-use crate::{column::ColumnGen, sim, util::Sampler, ColumnSample, IndexRef};
+use crate::{ColumnSample, IndexRef, column::ColumnGen, sim, util::Sampler};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 

@@ -1,9 +1,9 @@
 use crate::{
+    CONFIG, Canvas, ColumnSample,
     util::{
-        gen_cache::StructureGenCache, seed_expan, RandomField, Sampler, StructureGen2d,
-        UnitChooser, NEIGHBORS, NEIGHBORS3,
+        NEIGHBORS, NEIGHBORS3, RandomField, Sampler, StructureGen2d, UnitChooser,
+        gen_cache::StructureGenCache, seed_expan,
     },
-    Canvas, ColumnSample, CONFIG,
 };
 use common::terrain::{Block, BlockKind};
 use ordered_float::NotNan;
@@ -30,7 +30,7 @@ pub fn apply_rocks_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
 
             const BASE_ROCK_DENSITY: f64 = 0.15;
             if rng.gen_bool((BASE_ROCK_DENSITY * col.rock_density as f64).clamped(0.0, 1.0))
-                && col.path.map_or(true, |(d, _, _, _)| d > 6.0)
+                && col.path.is_none_or(|(d, _, _, _)| d > 6.0)
             {
                 match (
                     (col.alt - CONFIG.sea_level) as i32,
@@ -306,8 +306,7 @@ impl RockKind {
                 (last_block.is_filled()
                     && NEIGHBORS
                         .iter()
-                        .map(|n| !is_filled(rpos + n.with_z(0)))
-                        .all(|b| b))
+                        .all(|n| !is_filled(rpos + n.with_z(0))))
                 {
                     Some(Block::new(
                         BlockKind::WeakRock,

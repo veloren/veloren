@@ -1,4 +1,4 @@
-use super::{seed_expan, Sampler};
+use super::{Sampler, seed_expan};
 use rand::RngCore;
 use vek::*;
 
@@ -82,7 +82,7 @@ impl RngCore for RandomPerm {
     fn next_u64(&mut self) -> u64 {
         let a = self.next_u32();
         let b = self.next_u32();
-        (a as u64) << 32 | b as u64
+        ((a as u64) << 32) | b as u64
     }
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {

@@ -1,14 +1,14 @@
 use std::{marker::PhantomData, sync::Arc};
 
-use crate::{state_ext::StateExt, Server};
+use crate::{Server, state_ext::StateExt};
 use common::event::{
     ChatEvent, ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent, CommandEvent,
     EventBus, ExitIngameEvent,
 };
 use common_base::span;
 use specs::{
-    shred::SendDispatcher, DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt,
-    WriteExpect,
+    DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt, WriteExpect,
+    shred::SendDispatcher,
 };
 
 use self::{
@@ -41,7 +41,7 @@ mod trade;
 /// Shared utilities used by other code **in this crate**
 pub(crate) mod shared {
     pub(crate) use super::{
-        entity_manipulation::{transform_entity, TransformEntityError},
+        entity_manipulation::{TransformEntityError, transform_entity},
         group_manip::update_map_markers,
         trade::cancel_trades_for,
     };

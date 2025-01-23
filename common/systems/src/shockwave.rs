@@ -1,11 +1,12 @@
 use common::{
+    GroupTarget,
     combat::{self, AttackOptions, AttackerInfo, TargetInfo},
     comp::{
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
+        PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
         ability::Dodgeable,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
-        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
-        PhysicsState, Player, Pos, Scale, Shockwave, ShockwaveHitEntities, Stats,
     },
     event::{
         BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, EnergyChangeEvent,
@@ -17,11 +18,10 @@ use common::{
     resources::{DeltaTime, Time},
     uid::{IdMaps, Uid},
     util::Dir,
-    GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rand::Rng;
-use specs::{shred, Entities, Join, LendJoin, Read, ReadStorage, SystemData, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadStorage, SystemData, WriteStorage, shred};
 use vek::*;
 
 event_emitters! {
@@ -202,7 +202,7 @@ impl<'a> System<'a> for Sys {
                 // Once we make shockwaves start out a little way out from the center, this can
                 // be removed.
                 let hit = entity != target
-                    && shockwave_owner.map_or(true, |owner| owner != target)
+                    && (shockwave_owner != Some(target))
                     && !health_b.is_dead
                     && (pos_b.0 - pos.0).magnitude() < frame_end_dist + rad_b
                     // Collision shapes
@@ -255,7 +255,7 @@ impl<'a> System<'a> for Sys {
                         .character_states
                         .get(target)
                         .and_then(|cs| cs.roll_attack_immunities())
-                        .map_or(false, |i| match shockwave.dodgeable {
+                        .is_some_and(|i| match shockwave.dodgeable {
                             Dodgeable::Roll => i.air_shockwaves,
                             Dodgeable::Jump => i.ground_shockwaves,
                             Dodgeable::No => false,

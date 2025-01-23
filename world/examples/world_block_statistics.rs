@@ -5,8 +5,8 @@ use common::{
 };
 use fallible_iterator::FallibleIterator;
 use fixed::{
-    types::{extra::U0, U32F0, U8F0},
     FixedU8,
+    types::{U8F0, U32F0, extra::U0},
 };
 use kiddo::{
     fixed::{distance::SquaredEuclidean, kdtree::KdTree},
@@ -14,8 +14,8 @@ use kiddo::{
 };
 use num_traits::identities::{One, Zero};
 use rayon::{
-    iter::{IntoParallelIterator, ParallelIterator},
     ThreadPoolBuilder,
+    iter::{IntoParallelIterator, ParallelIterator},
 };
 use rusqlite::{Connection, ToSql, Transaction, TransactionBehavior};
 //use serde::{Serialize, Deserialize};
@@ -32,8 +32,8 @@ use std::{
 };
 use vek::*;
 use veloren_world::{
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     World,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
 
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq /* , Serialize, Deserialize */)]

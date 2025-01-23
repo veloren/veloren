@@ -1,9 +1,8 @@
 use super::super::{super::FontId, IcedRenderer, Primitive};
 use glyph_brush::GlyphCruncher;
 use iced::{
-    mouse,
+    Color, Point, Rectangle, mouse,
     text_input::{self, cursor},
-    Color, Point, Rectangle,
 };
 
 const CURSOR_WIDTH: f32 = 2.0;

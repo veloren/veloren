@@ -1,22 +1,23 @@
-#[cfg(not(feature = "worldgen"))]
-use crate::test_world::{IndexOwned, World};
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
+#[cfg(not(feature = "worldgen"))]
+use crate::test_world::{IndexOwned, World};
 use tracing::error;
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
 #[cfg(feature = "worldgen")] use crate::rtsim;
 use crate::{
-    chunk_generator::ChunkGenerator, chunk_serialize::ChunkSendEntry, client::Client,
-    presence::RepositionOnChunkLoad, settings::Settings, ChunkRequest, Tick,
+    ChunkRequest, Tick, chunk_generator::ChunkGenerator, chunk_serialize::ChunkSendEntry,
+    client::Client, presence::RepositionOnChunkLoad, settings::Settings,
 };
 use common::{
+    SkillSetBuilder,
     calendar::Calendar,
     combat::DeathEffects,
     comp::{
-        self, agent, biped_small, bird_medium, BehaviorCapability, ForceUpdate, Pos, Presence,
-        Waypoint,
+        self, BehaviorCapability, ForceUpdate, Pos, Presence, Waypoint, agent, biped_small,
+        bird_medium,
     },
     event::{CreateNpcEvent, CreateSpecialEntityEvent, EmitExt, EventBus, NpcBuilder},
     event_emitters,
@@ -26,7 +27,6 @@ use common::{
     slowjob::SlowJobPool,
     terrain::TerrainGrid,
     util::Dir,
-    SkillSetBuilder,
 };
 
 use common_ecs::{Job, Origin, Phase, System};
@@ -37,8 +37,8 @@ use core::cmp::Reverse;
 use itertools::Itertools;
 use rayon::{iter::Either, prelude::*};
 use specs::{
-    shred, storage::GenericReadStorage, Entities, Entity, Join, LendJoin, ParJoin, Read,
-    ReadExpect, ReadStorage, SystemData, Write, WriteExpect, WriteStorage,
+    Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write,
+    WriteExpect, WriteStorage, shred, storage::GenericReadStorage,
 };
 use std::{f32::consts::TAU, sync::Arc};
 use vek::*;
@@ -99,7 +99,6 @@ pub struct Data<'a> {
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = Data<'a>;
 
     const NAME: &'static str = "terrain";
@@ -131,7 +130,7 @@ impl<'a> System<'a> for Sys {
         // Also, send the chunk data to anybody that is close by.
         let mut new_chunks = Vec::new();
         'insert_terrain_chunks: while let Some((key, res)) = data.chunk_generator.recv_new_chunk() {
-            #[allow(unused_mut)]
+            #[cfg_attr(not(feature = "persistent_world"), expect(unused_mut))]
             let (mut chunk, supplement) = match res {
                 Ok((chunk, supplement)) => (chunk, supplement),
                 Err(Some(entity)) => {
@@ -397,7 +396,6 @@ pub struct NpcData {
 /// from EntityInfo
 // TODO: better name?
 // TODO: if this is send around network, optimize the large_enum_variant
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum SpawnEntityData {
     Npc(NpcData),

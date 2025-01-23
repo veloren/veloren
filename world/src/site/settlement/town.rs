@@ -1,4 +1,4 @@
-use super::{GenCtx, AREA_SIZE};
+use super::{AREA_SIZE, GenCtx};
 use common::store::Store;
 use rand::prelude::*;
 use vek::*;

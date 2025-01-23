@@ -7,7 +7,7 @@ use std::{
 use tracing::warn;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[allow(clippy::upper_case_acronyms)]
+#[expect(clippy::upper_case_acronyms)]
 pub enum ShutdownSignal {
     SIGUSR1,
     SIGUSR2,

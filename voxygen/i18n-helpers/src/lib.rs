@@ -3,9 +3,9 @@ use std::borrow::Cow;
 
 use common::{
     comp::{
+        BuffKind, ChatMsg, ChatType, Content,
         body::Gender,
         chat::{KillSource, KillType},
-        BuffKind, ChatMsg, ChatType, Content,
     },
     uid::Uid,
 };
@@ -435,10 +435,10 @@ fn insert_alias(_replace_you: bool, info: PlayerInfo, _localization: &Localizati
 
 #[cfg(test)]
 mod tests {
-    #[allow(unused)] use super::*;
+    #[expect(unused)] use super::*;
     use common::comp::{
-        inventory::item::{all_items_expect, ItemDesc, ItemI18n},
         Content,
+        inventory::item::{ItemDesc, ItemI18n, all_items_expect},
     };
     use i18n::LocalizationHandle;
 

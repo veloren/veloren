@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::{runtime::Runtime, sync::Mutex};
 use veloren_network::{

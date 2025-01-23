@@ -2,7 +2,7 @@ use crate::api::{StreamError, StreamParams};
 use bytes::Bytes;
 #[cfg(feature = "compression")]
 use network_protocol::Promises;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::io;
 #[cfg(all(feature = "compression", debug_assertions))]
 use tracing::warn;

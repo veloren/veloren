@@ -1,9 +1,9 @@
 use std::{f32::consts::TAU, sync::Arc};
 
 use crate::{
-    site2::{gen::spiral_staircase, Dir, Fill, Painter, Site, Structure},
-    util::{RandomField, Sampler, CARDINALS, DIAGONALS},
     Land,
+    site2::{Dir, Fill, Painter, Site, Structure, gen::spiral_staircase},
+    util::{CARDINALS, DIAGONALS, RandomField, Sampler},
 };
 use common::{
     generation::{EntityInfo, SpecialEntity},

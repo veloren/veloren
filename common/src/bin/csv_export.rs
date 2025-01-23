@@ -1,5 +1,5 @@
 #![deny(clippy::clone_on_ref_ptr)]
-#![allow(deprecated)] // since item i18n
+#![expect(deprecated)] // since item i18n
 
 use clap::Parser;
 use std::{
@@ -13,10 +13,10 @@ use veloren_common::{
     comp::{
         self,
         item::{
+            DurabilityMultiplier, Item, MaterialStatManifest,
             armor::{ArmorKind, Protection},
             modular::{generate_weapon_primary_components, generate_weapons},
             tool::{Hands, Tool, ToolKind},
-            DurabilityMultiplier, Item, MaterialStatManifest,
         },
     },
     generation::{EntityConfig, EntityInfo},

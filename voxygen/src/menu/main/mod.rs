@@ -5,17 +5,17 @@ use super::{char_selection::CharSelectionState, dummy_scene::Scene, server_info:
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::SingleplayerState;
 use crate::{
+    Direction, GlobalState, PlayState, PlayStateResult,
     render::{Drawer, GlobalsBindGroup},
     session::SessionState,
     settings::Settings,
     window::Event,
-    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use chrono::{DateTime, Local, Utc};
 use client::{
+    Client, ClientInitStage, ServerInfo,
     addr::ConnectionArgs,
     error::{InitProtocolError, NetworkConnectError, NetworkError},
-    Client, ClientInitStage, ServerInfo,
 };
 use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
 use common::{comp, event::UpdateCharacterMetadata};
@@ -23,7 +23,7 @@ use common_base::span;
 use common_net::msg::ClientType;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
-use i18n::{fluent_args, LocalizationGuard, LocalizationHandle};
+use i18n::{LocalizationGuard, LocalizationHandle, fluent_args};
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
 #[cfg(any(feature = "singleplayer", feature = "plugins"))]
@@ -105,7 +105,6 @@ impl PlayState for MainMenuState {
         global_state.discord.enter_main_menu();
     }
 
-    #[allow(clippy::single_match)] // TODO: remove when event match has multiple arms
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
 
@@ -288,7 +287,7 @@ impl PlayState for MainMenuState {
                                 );
                                 self.init = InitState::None;
                             },
-                            #[cfg_attr(not(feature = "plugins"), allow(unused_variables))]
+                            #[cfg_attr(not(feature = "plugins"), expect(unused_variables))]
                             client::Event::PluginDataReceived(data) => {
                                 #[cfg(feature = "plugins")]
                                 {

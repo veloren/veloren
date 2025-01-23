@@ -1,7 +1,7 @@
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
 use hashbrown::HashSet;
-use rand::{seq::SliceRandom, Rng};
+use rand::{Rng, seq::SliceRandom};
 use vek::*;
 
 #[derive(Clone, Debug)]
@@ -33,7 +33,7 @@ impl Location {
 
 #[derive(Clone, Debug)]
 pub struct Kingdom {
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     region_name: String,
 }
 

@@ -71,7 +71,7 @@ impl<'a> System<'a> for Sys {
                             if !matches!(body, Some(Body::Humanoid(_))) {
                                 let actions = c
                                     .actions
-                                    .extract_if(|action| match action {
+                                    .extract_if(.., |action| match action {
                                         ControlAction::StartInput { input: i, .. }
                                         | ControlAction::CancelInput(i) => matches!(
                                             i,
@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
             let inputs = controllers.get_mut(entity).map(|c| {
                 let actions: Vec<_> = c
                     .actions
-                    .extract_if(|action| match action {
+                    .extract_if(.., |action| match action {
                         ControlAction::StartInput { input: i, .. }
                         | ControlAction::CancelInput(i) => {
                             matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll)

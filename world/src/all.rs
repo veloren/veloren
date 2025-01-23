@@ -1,6 +1,6 @@
 use crate::{
-    util::{math::close, sampler::Sampler},
     IndexRef,
+    util::{math::close, sampler::Sampler},
 };
 use common::terrain::structure::StructureBlock;
 use std::ops::Range;

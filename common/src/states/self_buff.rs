@@ -1,8 +1,8 @@
 use crate::{
     comp::{
+        CharacterState, StateUpdate,
         buff::{Buff, BuffCategory, BuffChange, BuffData, BuffKind, BuffSource, DestInfo},
         character_state::OutputEvents,
-        CharacterState, StateUpdate,
     },
     event::{BuffEvent, ComboChangeEvent, LocalEvent},
     outcome::Outcome,
@@ -95,7 +95,7 @@ impl CharacterBehavior for Data {
                         .static_data
                         .ability_info
                         .ability
-                        .map_or(false, |a| a.ability.is_from_wielded())
+                        .is_some_and(|a| a.ability.is_from_wielded())
                     {
                         vec![BuffCategory::RemoveOnLoadoutChange]
                     } else {

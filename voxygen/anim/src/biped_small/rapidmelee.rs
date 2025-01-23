@@ -1,6 +1,6 @@
 use super::{
-    super::Animation, biped_small_alpha_spear, biped_small_wield_spear, init_biped_small_alpha,
-    BipedSmallSkeleton, SkeletonAttr,
+    super::Animation, BipedSmallSkeleton, SkeletonAttr, biped_small_alpha_spear,
+    biped_small_wield_spear, init_biped_small_alpha,
 };
 use common::states::utils::StageSection;
 

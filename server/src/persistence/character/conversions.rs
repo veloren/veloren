@@ -10,17 +10,16 @@ use crate::persistence::{
 use common::{
     character::CharacterId,
     comp::{
-        body,
+        ActiveAbilities, Body as CompBody, Hardcore, Inventory, MapMarker, Stats, Waypoint, body,
         inventory::{
-            item::{tool::AbilityMap, Item as VelorenItem, MaterialStatManifest},
+            item::{Item as VelorenItem, MaterialStatManifest, tool::AbilityMap},
             loadout::{Loadout, LoadoutError},
             loadout_builder::LoadoutBuilder,
             recipe_book::RecipeBook,
             slot::InvSlotId,
         },
         item,
-        skillset::{self, skills::Skill, SkillGroupKind, SkillSet},
-        ActiveAbilities, Body as CompBody, Hardcore, Inventory, MapMarker, Stats, Waypoint,
+        skillset::{self, SkillGroupKind, SkillSet, skills::Skill},
     },
     resources::Time,
 };
@@ -790,7 +789,6 @@ pub fn convert_skill_set_from_database(
     SkillSet::load_from_database(skillless_skill_groups, deserialized_skills)
 }
 
-#[allow(clippy::type_complexity)]
 fn convert_skill_groups_from_database(
     skill_groups: &[SkillGroup],
 ) -> (

@@ -1,10 +1,11 @@
 use common::{
+    GroupTarget,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        agent::{Sound, SoundKind},
-        aura::EnteredAuras,
         Alignment, Beam, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory,
         Mass, Ori, Player, Pos, Scale, Stats,
+        agent::{Sound, SoundKind},
+        aura::EnteredAuras,
     },
     event::{self, EmitExt, EventBus},
     event_emitters,
@@ -13,13 +14,12 @@ use common::{
     terrain::TerrainGrid,
     uid::{IdMaps, Uid},
     vol::ReadVol,
-    GroupTarget,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rand::Rng;
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred, Entities, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
+    Entities, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage, shred,
 };
 use vek::*;
 
@@ -252,7 +252,7 @@ impl<'a> System<'a> for Sys {
                                 .character_states
                                 .get(target)
                                 .and_then(|cs| cs.roll_attack_immunities())
-                                .map_or(false, |i| i.beams);
+                                .is_some_and(|i| i.beams);
                             // PvP check
                             let permit_pvp = combat::permit_pvp(
                                 &read_data.alignments,

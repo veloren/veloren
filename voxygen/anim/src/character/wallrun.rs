@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{AbilitySpec, Hands, ToolKind};
@@ -85,7 +85,7 @@ impl Animation for WallrunAnimation {
 
         next.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15);
 
-        if wall.map_or(false, |e| e.y > 0.5) {
+        if wall.is_some_and(|e| e.y > 0.5) {
             let push = (1.0 - orientation.x.abs()).powi(2);
             let right_sub = -(orientation.x).min(0.0);
             let left_sub = (orientation.x).max(0.0);
@@ -113,7 +113,7 @@ impl Animation for WallrunAnimation {
             next.head.orientation = Quaternion::rotation_z(shortalt * 0.25)
                 * Quaternion::rotation_z(orientation.x / -2.0)
                 * Quaternion::rotation_x(-0.1);
-        } else if wall.map_or(false, |e| e.y < -0.5) {
+        } else if wall.is_some_and(|e| e.y < -0.5) {
             let push = (1.0 - orientation.x.abs()).powi(2);
             let right_sub = (orientation.x).max(0.0);
             let left_sub = -(orientation.x).min(0.0);
@@ -142,7 +142,7 @@ impl Animation for WallrunAnimation {
             next.head.orientation = Quaternion::rotation_z(shortalt * 0.25)
                 * Quaternion::rotation_z(orientation.x / 2.0)
                 * Quaternion::rotation_x(-0.1);
-        } else if wall.map_or(false, |e| e.x < -0.5) {
+        } else if wall.is_some_and(|e| e.x < -0.5) {
             let push = (1.0 - orientation.y.abs()).powi(2);
             let right_sub = -(orientation.y).min(0.0);
             let left_sub = (orientation.y).max(0.0);
@@ -170,7 +170,7 @@ impl Animation for WallrunAnimation {
             next.head.orientation = Quaternion::rotation_z(shortalt * 0.25)
                 * Quaternion::rotation_z(orientation.y / -2.0)
                 * Quaternion::rotation_x(-0.1);
-        } else if wall.map_or(false, |e| e.x > 0.5) {
+        } else if wall.is_some_and(|e| e.x > 0.5) {
             let push = (1.0 - orientation.y.abs()).powi(2);
             let right_sub = (orientation.y).max(0.0);
             let left_sub = -(orientation.y).min(0.0);

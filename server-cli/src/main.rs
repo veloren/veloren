@@ -33,10 +33,10 @@ use common::{
 };
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use server::{persistence::DatabaseSettings, settings::Protocol, Event, Input, Server};
+use server::{Event, Input, Server, persistence::DatabaseSettings, settings::Protocol};
 use std::{
     io,
-    sync::{atomic::AtomicBool, Arc},
+    sync::{Arc, atomic::AtomicBool},
     time::{Duration, Instant},
 };
 use tokio::sync::Notify;
@@ -208,7 +208,7 @@ fn main() -> io::Result<()> {
     let protocols_and_addresses = server_settings.gameserver_protocols.clone();
     let web_port = &settings.web_address.port();
     // Create server
-    #[cfg_attr(not(feature = "worldgen"), allow(unused_mut))]
+    #[cfg_attr(not(feature = "worldgen"), expect(unused_mut))]
     let mut server = Server::new(
         server_settings,
         editable_settings,

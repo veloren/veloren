@@ -7,15 +7,15 @@ use common::{
 use hashbrown::HashSet;
 use std::{
     sync::{
-        atomic::{AtomicU32, Ordering},
         Arc,
+        atomic::{AtomicU32, Ordering},
     },
     thread,
     time::{Duration, SystemTime},
 };
 use tokio::runtime::Runtime;
 use vek::*;
-use veloren_client::{addr::ConnectionArgs, Client, ClientType};
+use veloren_client::{Client, ClientType, addr::ConnectionArgs};
 
 const CHUNK_SIZE: f32 = TerrainChunkSize::RECT_SIZE.x as f32;
 

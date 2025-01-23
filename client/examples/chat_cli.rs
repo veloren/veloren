@@ -5,13 +5,13 @@ use client_i18n::LocalizationHandle;
 use common::{clock::Clock, comp};
 use std::{
     io,
-    sync::{mpsc, Arc},
+    sync::{Arc, mpsc},
     thread,
     time::Duration,
 };
 use tokio::runtime::Runtime;
 use tracing::{error, info};
-use veloren_client::{addr::ConnectionArgs, Client, ClientType, Event};
+use veloren_client::{Client, ClientType, Event, addr::ConnectionArgs};
 use voxygen_i18n_helpers::localize_chat_message;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.

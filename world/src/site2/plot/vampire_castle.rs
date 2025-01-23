@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::wall_staircase,
-    util::{sampler::Sampler, RandomField, CARDINALS, DIAGONALS, NEIGHBORS},
     Land,
+    site2::gen::wall_staircase,
+    util::{CARDINALS, DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler},
 };
 use common::{generation::EntityInfo, terrain::SpriteKind};
 use rand::prelude::*;

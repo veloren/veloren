@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::{spiral_staircase, PrimitiveTransform},
-    util::{RandomField, Sampler},
     Land,
+    site2::gen::{PrimitiveTransform, spiral_staircase},
+    util::{RandomField, Sampler},
 };
 use common::{
     comp::Content,

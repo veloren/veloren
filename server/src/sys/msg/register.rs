@@ -1,9 +1,9 @@
 use crate::{
+    EditableSettings, Settings,
     client::Client,
     login_provider::{LoginProvider, PendingLogin},
     metrics::PlayerMetrics,
     sys::sentinel::TrackedStorages,
-    EditableSettings, Settings,
 };
 use common::{
     comp::{self, Admin, Player, Stats},
@@ -16,25 +16,20 @@ use common::{
 use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{
-    server::ServerDescription, CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo,
-    PlayerListUpdate, RegisterError, ServerGeneral, ServerInit, WorldMapMsg,
+    CharacterInfo, ClientRegister, DisconnectReason, PlayerInfo, PlayerListUpdate, RegisterError,
+    ServerGeneral, ServerInit, WorldMapMsg, server::ServerDescription,
 };
-use hashbrown::{hash_map, HashMap};
+use hashbrown::{HashMap, hash_map};
 use itertools::Either;
 use rayon::prelude::*;
 use specs::{
-    shred, Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
-    WriteStorage,
+    Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
+    shred,
 };
 use tracing::{debug, info, trace, warn};
 
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
-
-#[cfg(feature = "plugins")]
-type ReadPlugin<'a> = Read<'a, PluginMgr>;
-#[cfg(not(feature = "plugins"))]
-type ReadPlugin<'a> = Option<Read<'a, ()>>;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -53,8 +48,8 @@ pub struct ReadData<'a> {
     recipe_book: ReadExpect<'a, common::recipe::RecipeBookManifest>,
     map: ReadExpect<'a, WorldMapMsg>,
     trackers: TrackedStorages<'a>,
-    #[allow(dead_code)]
-    plugin_mgr: ReadPlugin<'a>, // only used by plugins feature
+    #[cfg(feature = "plugins")]
+    plugin_mgr: Read<'a, PluginMgr>,
 }
 
 /// This system will handle new messages from clients

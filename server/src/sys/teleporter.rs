@@ -1,11 +1,11 @@
 use common::{
+    CachedSpatialGrid,
     comp::{Agent, Alignment, CharacterState, Object, Pos, Teleporting},
     consts::TELEPORTER_RADIUS,
     event::{EventBus, TeleportToPositionEvent},
     outcome::Outcome,
     resources::Time,
     uid::Uid,
-    CachedSpatialGrid,
 };
 use common_ecs::{Origin, Phase, System};
 use specs::{Entities, Join, LendJoin, Read, ReadStorage, WriteStorage};
@@ -65,8 +65,8 @@ impl<'a> System<'a> for Sys {
                 .0
                 .in_circle_aabr(pos.xy(), MAX_AGGRO_DIST)
                 .any(|agent_entity| {
-                    agent.get(agent_entity).map_or(false, |agent| {
-                        agent.target.map_or(false, |agent_target| {
+                    agent.get(agent_entity).is_some_and(|agent| {
+                        agent.target.is_some_and(|agent_target| {
                             agent_target.target == entity && agent_target.aggro_on
                         })
                     })
@@ -95,9 +95,8 @@ impl<'a> System<'a> for Sys {
                 continue;
             };
 
-            if portal_pos.map_or(true, |portal_pos| {
-                !in_portal_range(position.0, portal_pos.0)
-            }) || (*requires_no_aggro && check_aggro(entity, position.0))
+            if portal_pos.is_none_or(|portal_pos| !in_portal_range(position.0, portal_pos.0))
+                || (*requires_no_aggro && check_aggro(entity, position.0))
                 || !matches!(
                     character_state,
                     CharacterState::Idle(_)

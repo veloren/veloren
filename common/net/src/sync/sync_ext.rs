@@ -6,7 +6,7 @@ use common::{
     resources::PlayerEntity,
     uid::{IdMaps, Uid},
 };
-use specs::{world::Builder, WorldExt};
+use specs::{WorldExt, world::Builder};
 use tracing::error;
 
 pub trait WorldSyncExt {

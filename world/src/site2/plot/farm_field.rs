@@ -1,8 +1,8 @@
 use super::*;
 use crate::{ColumnSample, Land};
 use common::terrain::{
-    sprite::{Owned, RelativeNeighborPosition},
     Block, BlockKind, SpriteKind,
+    sprite::{Owned, RelativeNeighborPosition},
 };
 use rand::prelude::*;
 use strum::{EnumIter, IntoEnumIterator};

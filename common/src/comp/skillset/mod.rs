@@ -438,10 +438,10 @@ impl SkillSet {
         match skill.prerequisite_skills() {
             Some(SkillPrerequisite::All(skills)) => skills
                 .iter()
-                .all(|(s, l)| self.skill_level(*s).map_or(false, |l_b| l_b >= *l)),
+                .all(|(s, l)| self.skill_level(*s).is_ok_and(|l_b| l_b >= *l)),
             Some(SkillPrerequisite::Any(skills)) => skills
                 .iter()
-                .any(|(s, l)| self.skill_level(*s).map_or(false, |l_b| l_b >= *l)),
+                .any(|(s, l)| self.skill_level(*s).is_ok_and(|l_b| l_b >= *l)),
             None => true,
         }
     }

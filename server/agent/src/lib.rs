@@ -1,7 +1,4 @@
 #![feature(let_chains)]
-#![allow(
-    clippy::needless_pass_by_ref_mut //until we find a better way for specs
-)]
 
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");

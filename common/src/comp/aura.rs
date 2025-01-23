@@ -5,7 +5,7 @@ use crate::{
     uid::Uid,
 };
 use serde::{Deserialize, Serialize};
-use slotmap::{new_key_type, SlotMap};
+use slotmap::{SlotMap, new_key_type};
 use specs::{Component, DerefFlaggedStorage, VecStorage};
 use std::collections::{HashMap, HashSet};
 

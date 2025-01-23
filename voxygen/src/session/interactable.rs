@@ -6,9 +6,10 @@ use vek::*;
 use super::target::{self, Target};
 use client::Client;
 use common::{
+    CachedSpatialGrid,
     comp::{
-        self, pet, ship::figuredata::VOXEL_COLLIDER_MANIFEST, tool::ToolKind, Alignment, Collider,
-        Content,
+        self, Alignment, Collider, Content, pet, ship::figuredata::VOXEL_COLLIDER_MANIFEST,
+        tool::ToolKind,
     },
     consts::{
         self, MAX_INTERACT_RANGE, MAX_PICKUP_RANGE, MAX_SPRITE_MOUNT_RANGE, TELEPORTER_RADIUS,
@@ -18,7 +19,6 @@ use common::{
     states::utils::can_perform_pet,
     terrain::{Block, TerrainGrid, UnlockKind},
     uid::{IdMaps, Uid},
-    CachedSpatialGrid,
 };
 use common_base::span;
 use hashbrown::HashMap;
@@ -26,7 +26,7 @@ use hashbrown::HashMap;
 use crate::{
     game_input::GameInput,
     hud::CraftingTab,
-    scene::{terrain::Interaction, Scene},
+    scene::{Scene, terrain::Interaction},
 };
 
 #[derive(Debug, Default)]
@@ -474,7 +474,7 @@ pub(super) fn get_interactables(
 
             if map
                 .get(&input)
-                .map_or(true, |(other_distance, other_interaction)| {
+                .is_none_or(|(other_distance, other_interaction)| {
                     (
                         // Prioritize direct targets
                         is_direct_target(other_interaction),

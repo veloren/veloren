@@ -1,6 +1,6 @@
 use super::{
-    super::{vek::*, Animation},
-    dual_wield_start, hammer_start, twist_back, twist_forward, CharacterSkeleton, SkeletonAttr,
+    super::{Animation, vek::*},
+    CharacterSkeleton, SkeletonAttr, dual_wield_start, hammer_start, twist_back, twist_forward,
 };
 use common::{
     comp::item::Hands,

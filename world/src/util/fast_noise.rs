@@ -13,7 +13,7 @@ impl FastNoise {
         }
     }
 
-    #[allow(clippy::excessive_precision)] // TODO: Pending review in #587
+    #[expect(clippy::excessive_precision)] // TODO: Pending review in #587
     fn noise_at(&self, pos: Vec3<i32>) -> f32 {
         (self.noise.get(pos) & 4095) as f32 * 0.000244140625
     }
@@ -87,7 +87,7 @@ impl FastNoise2d {
         }
     }
 
-    #[allow(clippy::excessive_precision)] // TODO: Pending review in #587
+    #[expect(clippy::excessive_precision)] // TODO: Pending review in #587
     fn noise_at(&self, pos: Vec2<i32>) -> f32 {
         (self.noise.get(Vec3::new(pos.x, pos.y, 0)) & 4095) as f32 * 0.000244140625
     }

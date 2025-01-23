@@ -1,7 +1,7 @@
 use super::{
-    super::{vek::*, Animation},
-    biped_large_alpha_axe, biped_large_alpha_hammer, biped_large_alpha_sword,
-    init_biped_large_alpha, BipedLargeSkeleton, SkeletonAttr,
+    super::{Animation, vek::*},
+    BipedLargeSkeleton, SkeletonAttr, biped_large_alpha_axe, biped_large_alpha_hammer,
+    biped_large_alpha_sword, init_biped_large_alpha,
 };
 use common::{
     comp::item::tool::{AbilitySpec, ToolKind},

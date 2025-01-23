@@ -3,11 +3,11 @@ pub mod predicate;
 use predicate::Predicate;
 
 use crate::{
-    data::{
-        npc::{Controller, Npc, NpcId},
-        ReportId, Sentiments,
-    },
     RtState,
+    data::{
+        ReportId, Sentiments,
+        npc::{Controller, Npc, NpcId},
+    },
 };
 use common::{
     resources::{Time, TimeOfDay},

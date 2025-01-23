@@ -7,12 +7,12 @@ use common::{
     calendar::Calendar, generation::ChunkSupplement, resources::TimeOfDay, slowjob::SlowJobPool,
     terrain::TerrainChunk,
 };
-use hashbrown::{hash_map::Entry, HashMap};
+use hashbrown::{HashMap, hash_map::Entry};
 use rayon::iter::ParallelIterator;
 use specs::Entity as EcsEntity;
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
     Arc,
+    atomic::{AtomicBool, Ordering},
 };
 use vek::*;
 #[cfg(feature = "worldgen")]

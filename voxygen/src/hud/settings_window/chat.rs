@@ -1,17 +1,17 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
-    hud::{img_ids::Imgs, ChatTab, Show, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN},
+    GlobalState,
+    hud::{ChatTab, Show, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN, img_ids::Imgs},
     session::settings_change::{Chat as ChatChange, Chat::*},
     settings::chat::MAX_CHAT_TABS,
-    ui::{fonts::Fonts, ImageSlider, ToggleButton},
-    GlobalState,
+    ui::{ImageSlider, ToggleButton, fonts::Fonts},
 };
 use conrod_core::{
-    color,
+    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::Relative,
     widget::{self, Button, DropDownList, Image, Rectangle, Text, TextEdit},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use std::cmp::Ordering;
@@ -108,7 +108,7 @@ pub enum Event {
     ChatChange(ChatChange),
 }
 
-impl<'a> Widget for Chat<'a> {
+impl Widget for Chat<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();

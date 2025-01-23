@@ -1,6 +1,6 @@
 use crate::{
     assets::AssetExt,
-    comp::inventory::item::{modular, ItemDef, ItemDefinitionId, ItemDesc, ItemKind},
+    comp::inventory::item::{ItemDef, ItemDefinitionId, ItemDesc, ItemKind, modular},
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

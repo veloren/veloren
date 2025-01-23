@@ -1,4 +1,4 @@
-use crate::{data::Site, event::OnSetup, RtState, Rule, RuleError};
+use crate::{RtState, Rule, RuleError, data::Site, event::OnSetup};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::warn;
@@ -74,7 +74,7 @@ impl Rule for Migrate {
                         .iter()
                         .filter(|(_, site)| {
                             // TODO: This is a bit silly, but needs to wait on the removal of site1
-                            site.world_site.map_or(false, |ws| {
+                            site.world_site.is_some_and(|ws| {
                                 matches!(
                                     &ctx.index.sites.get(ws).kind,
                                     SiteKind::Refactor(_)

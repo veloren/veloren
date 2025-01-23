@@ -1,5 +1,5 @@
 // TODO: unused (I think?) consider slating for removal
-use iced::{layout, Element, Hasher, Layout, Length, Point, Rectangle, Size, Widget};
+use iced::{Element, Hasher, Layout, Length, Point, Rectangle, Size, Widget, layout};
 use std::hash::Hash;
 
 /// Stack up some widgets
@@ -14,7 +14,7 @@ where
     pub fn with_children(children: Vec<Element<'a, M, R>>) -> Self { Self { children } }
 }
 
-impl<'a, M, R> Widget<M, R> for Stack<'a, M, R>
+impl<M, R> Widget<M, R> for Stack<'_, M, R>
 where
     R: Renderer,
 {

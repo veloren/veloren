@@ -24,7 +24,7 @@ pub use self::{
     stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 use std::f32::consts::PI;

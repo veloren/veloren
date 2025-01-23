@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     QuadrupedLowSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;

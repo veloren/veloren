@@ -43,7 +43,7 @@ where
             })
             .flatten()
             .map(|offs| self.inner.get(pos + offs))
-            .find(|vox| vox.as_ref().map_or(false, |v| v.is_filled()))
+            .find(|vox| vox.as_ref().is_ok_and(|v| v.is_filled()))
             .unwrap_or_else(|| self.inner.get(pos))
     }
 }

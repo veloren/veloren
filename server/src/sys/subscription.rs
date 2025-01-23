@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{Ori, Pos, Presence, Vel},
-    region::{region_in_vd, regions_in_vd, Event as RegionEvent, RegionMap},
+    region::{Event as RegionEvent, RegionMap, region_in_vd, regions_in_vd},
     terrain::{CoordinateConversions, TerrainChunkSize},
     uid::Uid,
     vol::RectVolSize,
@@ -41,7 +41,6 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    #[allow(clippy::blocks_in_conditions)] // TODO: Pending review in #587
     fn run(
         _job: &mut Job<Self>,
         (

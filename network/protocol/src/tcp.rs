@@ -1,13 +1,13 @@
 use crate::{
+    RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
     error::ProtocolError,
     event::ProtocolEvent,
     frame::{ITFrame, InitFrame, OTFrame},
     handshake::{ReliableDrain, ReliableSink},
-    message::{ITMessage, ALLOC_BLOCK},
+    message::{ALLOC_BLOCK, ITMessage},
     metrics::{ProtocolMetricCache, RemoveReason},
     prio::PrioManager,
     types::{Bandwidth, Mid, Promises, Sid},
-    RecvProtocol, SendProtocol, UnreliableDrain, UnreliableSink,
 };
 use async_trait::async_trait;
 use bytes::BytesMut;
@@ -32,7 +32,7 @@ where
     notify_closing_streams: Vec<Sid>,
     pending_shutdown: bool,
     drain: D,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     last: Instant,
     metrics: ProtocolMetricCache,
 }
@@ -410,12 +410,12 @@ mod test_utils {
 #[cfg(test)]
 mod tests {
     use crate::{
+        InitProtocol, ProtocolEvent, RecvProtocol, SendProtocol,
         error::ProtocolError,
         frame::OTFrame,
         metrics::{ProtocolMetricCache, ProtocolMetrics, RemoveReason},
         tcp::test_utils::*,
-        types::{Pid, Promises, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2},
-        InitProtocol, ProtocolEvent, RecvProtocol, SendProtocol,
+        types::{Pid, Promises, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, Sid},
     };
     use bytes::{Bytes, BytesMut};
     use std::{sync::Arc, time::Duration};

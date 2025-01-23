@@ -1,4 +1,4 @@
-use super::{super::Animation, quadruped_low_beta, QuadrupedLowSkeleton, SkeletonAttr};
+use super::{super::Animation, QuadrupedLowSkeleton, SkeletonAttr, quadruped_low_beta};
 use common::states::utils::StageSection;
 //use std::ops::Rem;
 

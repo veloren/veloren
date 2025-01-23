@@ -30,10 +30,10 @@ use std::hash::Hash;
 
 use crate::{
     assets::{self, AssetExt},
-    comp::{inventory::item, Item},
+    comp::{Item, inventory::item},
 };
 use rand::prelude::*;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use tracing::warn;
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]

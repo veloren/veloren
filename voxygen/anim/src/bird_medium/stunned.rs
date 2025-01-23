@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     BirdMediumSkeleton, SkeletonAttr,
 };
 use common::states::utils::StageSection;

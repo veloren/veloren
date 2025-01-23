@@ -1,11 +1,11 @@
 use std::{
-    fs::{self, create_dir_all, File},
+    fs::{self, File, create_dir_all},
     io::Write,
     ops::RangeInclusive,
     path::{Path, PathBuf},
     sync::{
-        atomic::{AtomicUsize, Ordering},
         Arc,
+        atomic::{AtomicUsize, Ordering},
     },
 };
 
@@ -17,17 +17,17 @@ use common::{
         uniform_idx_as_vec2,
     },
 };
-use image::{codecs::png::PngEncoder, DynamicImage, GenericImage, ImageEncoder};
+use image::{DynamicImage, GenericImage, ImageEncoder, codecs::png::PngEncoder};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use rayon::ThreadPool;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, error, info, info_span, Level, Span};
+use tracing::{Level, Span, debug, error, info, info_span};
 use tracing_subscriber::EnvFilter;
 use vek::{Aabr, Rgb, Vec2};
 use veloren_world::{
-    sim::{get_horizon_map, sample_pos, sample_wpos, FileOpts, GenOpts, WorldOpts, WorldSimStage},
-    IndexOwned, World, WorldGenerateStage, CONFIG,
+    CONFIG, IndexOwned, World, WorldGenerateStage,
+    sim::{FileOpts, GenOpts, WorldOpts, WorldSimStage, get_horizon_map, sample_pos, sample_wpos},
 };
 
 #[derive(Parser)]
@@ -367,6 +367,7 @@ fn do_batch_generate(
     }
 }
 
+#[expect(clippy::literal_string_with_formatting_args)]
 fn progress_bar() -> ProgressBar {
     ProgressBar::new(100).with_style(
         ProgressStyle::with_template(

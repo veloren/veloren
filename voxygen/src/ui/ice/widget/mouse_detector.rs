@@ -1,6 +1,6 @@
 use iced::{
-    layout, mouse, Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size,
-    Widget,
+    Clipboard, Element, Event, Hasher, Layout, Length, Point, Rectangle, Size, Widget, layout,
+    mouse,
 };
 use std::hash::Hash;
 
@@ -29,7 +29,7 @@ impl<'a> MouseDetector<'a> {
     }
 }
 
-impl<'a, M, R> Widget<M, R> for MouseDetector<'a>
+impl<M, R> Widget<M, R> for MouseDetector<'_>
 where
     R: Renderer,
 {

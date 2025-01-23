@@ -1,4 +1,4 @@
-#![allow(non_local_definitions)] // necessary because of the Protocol derive macro
+#![expect(non_local_definitions)] // necessary because of the Protocol derive macro
 use protocol::Protocol;
 
 pub(crate) const VERSION: u16 = 0;
@@ -19,7 +19,6 @@ pub(crate) struct RawQueryServerRequest {
 #[derive(Protocol, Debug, Clone, Copy)]
 #[protocol(discriminant = "integer")]
 #[protocol(discriminator(u8))]
-#[allow(clippy::large_enum_variant)]
 pub enum QueryServerRequest {
     /// This requests exists mostly for backwards-compatibilty reasons. As the
     /// first message sent to the server should always be in the V0 version

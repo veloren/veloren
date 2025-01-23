@@ -1,8 +1,8 @@
 use super::*;
 use crate::comp::{
+    Item,
     inventory::{slot::ArmorSlot, test_helpers::get_test_bag},
     item::ItemDefinitionId,
-    Item,
 };
 use lazy_static::lazy_static;
 use std::borrow::Cow;

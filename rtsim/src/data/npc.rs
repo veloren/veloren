@@ -29,7 +29,7 @@ use vek::*;
 use world::{
     civ::Track,
     site::Site as WorldSite,
-    util::{RandomPerm, LOCALITY},
+    util::{LOCALITY, RandomPerm},
 };
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -530,7 +530,7 @@ impl Npcs {
                         .filter(move |npc| {
                             self.npcs
                                 .get(*npc)
-                                .map_or(false, |npc| npc.wpos.distance_squared(wpos) < r_sqr)
+                                .is_some_and(|npc| npc.wpos.distance_squared(wpos) < r_sqr)
                                 && Some(*npc) != this_npc
                         })
                         .map(Actor::Npc)

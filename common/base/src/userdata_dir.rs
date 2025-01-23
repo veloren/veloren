@@ -8,20 +8,23 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 // TODO: Ensure there are no NUL (\0) characters in userdata_dir (possible on
 // MacOS but not Windows or Linux) as SQLite requires the database path does not
 // include this character.
-/// # `VELOREN_USERDATA_STRATEGY` environment variable
-/// Read during compilation
-/// Useful to set when compiling for distribution
-/// "system" => system specific project data directory
-/// "executable" => <executable dir>/userdata
-/// Note: case insensitive
-
-/// Determines common user data directory used by veloren frontends
-/// The first specified in this list is used
+/// Determines common user data directory used by veloren frontends.
+///
+/// The first specified in this list is used.
 ///   1. The VELOREN_USERDATA environment variable
 ///   2. The VELOREN_USERDATA_STRATEGY environment variable
 ///   3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata
+///      depending on if a workspace if being used
 ///
-/// depending on if a    workspace if being used
+/// ### `VELOREN_USERDATA_STRATEGY` environment variable
+///
+/// Read during compilation and useful to set when compiling for distribution.
+///
+/// Available options are:
+/// * "system" => system specific project data directory
+/// * "executable" => <executable dir>/userdata
+///
+/// > **Note:** _case insensitive_
 pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str) -> PathBuf {
     // 1. The VELOREN_USERDATA environment variable
     std::env::var_os(VELOREN_USERDATA_ENV)

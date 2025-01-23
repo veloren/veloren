@@ -8,19 +8,19 @@ mod servers;
 mod world_selector;
 
 use crate::{
+    GlobalState,
     credits::Credits,
     render::UiDrawer,
     ui::{
-        self,
+        self, Graphic,
         fonts::IcedFonts as Fonts,
-        ice::{load_font, style, widget, Element, IcedUi as Ui},
+        ice::{Element, IcedUi as Ui, load_font, style, widget},
         img_ids::ImageGraphic,
-        Graphic,
     },
-    window, GlobalState,
+    window,
 };
 use i18n::{LanguageMetadata, LocalizationHandle};
-use iced::{text_input, Column, Container, HorizontalAlignment, Length, Row, Space};
+use iced::{Column, Container, HorizontalAlignment, Length, Row, Space, text_input};
 use keyboard_keynames::key_layout::KeyLayout;
 //ImageFrame, Tooltip,
 use crate::settings::Settings;

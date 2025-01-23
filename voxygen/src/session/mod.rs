@@ -13,13 +13,13 @@ use vek::*;
 
 use client::{self, Client};
 use common::{
+    CachedSpatialGrid,
     comp::{
-        self,
+        self, CharacterActivity, ChatType, Content, Fluid, InputKind, InventoryUpdateEvent, Pos,
+        PresenceKind, Stats, UtteranceKind, Vel,
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
-        item::{tool::ToolKind, ItemDesc},
-        CharacterActivity, ChatType, Content, Fluid, InputKind, InventoryUpdateEvent, Pos,
-        PresenceKind, Stats, UtteranceKind, Vel,
+        item::{ItemDesc, tool::ToolKind},
     },
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
@@ -31,12 +31,12 @@ use common::{
     trade::TradeResult,
     util::{Dir, Plane},
     vol::ReadVol,
-    CachedSpatialGrid,
 };
 use common_base::{prof_span, span};
 use common_net::{msg::server::InviteAnswer, sync::WorldSyncExt};
 
 use crate::{
+    Direction, GlobalState, PlayState, PlayStateResult,
     audio::sfx::SfxEvent,
     cmd::run_command,
     error::Error,
@@ -48,14 +48,13 @@ use crate::{
     key_state::KeyState,
     menu::{char_selection::CharSelectionState, main::get_client_msg_error},
     render::{Drawer, GlobalsBindGroup},
-    scene::{camera, CameraMode, DebugShapeId, Scene, SceneData},
+    scene::{CameraMode, DebugShapeId, Scene, SceneData, camera},
     session::target::ray_entities,
     settings::Settings,
     window::{AnalogGameInput, Event},
-    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use hashbrown::HashMap;
-use interactable::{get_interactables, BlockInteraction, EntityInteraction, Interactable};
+use interactable::{BlockInteraction, EntityInteraction, Interactable, get_interactables};
 use settings_change::Language::ChangeLanguage;
 use target::targets_under_cursor;
 #[cfg(feature = "egui-ui")]
@@ -1010,7 +1009,7 @@ impl PlayState for SessionState {
                                     let is_staying = client
                                         .state()
                                         .read_component_copied::<CharacterActivity>(pet_entity)
-                                        .map_or(false, |activity| activity.is_pet_staying);
+                                        .is_some_and(|activity| activity.is_pet_staying);
                                     client.set_pet_stay(pet_entity, !is_staying);
                                 }
                             },
@@ -1216,9 +1215,8 @@ impl PlayState for SessionState {
                                 let client = self.client.borrow();
                                 camera.next_mode(
                                     client.is_moderator(),
-                                    client.presence().map_or(true, |presence| {
-                                        presence != PresenceKind::Spectator
-                                    }) || self.viewpoint_entity.is_some(),
+                                    (client.presence() != Some(PresenceKind::Spectator))
+                                        || self.viewpoint_entity.is_some(),
                                 );
                             },
                             GameInput::Select => {
@@ -1299,7 +1297,7 @@ impl PlayState for SessionState {
                 }
             }
 
-            if self.viewpoint_entity.map_or(false, |entity| {
+            if self.viewpoint_entity.is_some_and(|entity| {
                 !self
                     .client
                     .borrow()
@@ -2278,7 +2276,8 @@ impl PlayState for SessionState {
             // Draw the UI to the screen
             if let Some(mut ui_drawer) = third_pass.draw_ui() {
                 self.hud.render(&mut ui_drawer);
-            }; // Note: this semicolon is needed for the third_pass borrow to be dropped before it's lifetime ends
+            }; // Note: this semicolon is needed for the third_pass borrow to be
+            // dropped before it's lifetime ends
         }
     }
 

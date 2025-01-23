@@ -1,6 +1,6 @@
 use super::{
-    super::{buffer::Buffer, AaMode, GlobalsLayouts, Mesh, TerrainLayout, Vertex as VertexTrait},
-    lod_terrain, GlobalModel, Texture,
+    super::{AaMode, GlobalsLayouts, Mesh, TerrainLayout, Vertex as VertexTrait, buffer::Buffer},
+    GlobalModel, Texture, lod_terrain,
 };
 use bytemuck::{Pod, Zeroable};
 use std::mem;
@@ -38,12 +38,12 @@ pub struct Vertex {
 
 impl Vertex {
     // NOTE: Limit to 16 (x) × 16 (y) × 32 (z).
-    #[allow(clippy::collapsible_else_if)]
+    #[expect(clippy::collapsible_else_if)]
     pub fn new(atlas_pos: Vec2<u16>, pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
         const VERT_EXTRA_NEG_XY: i32 = 128;
         const VERT_EXTRA_NEG_Z: i32 = 128; // NOTE: change if number of bits changes below, also we might not need this if meshing always produces positives values for sprites (I have no idea)
 
-        #[allow(clippy::bool_to_int_with_if)]
+        #[expect(clippy::bool_to_int_with_if)]
         let norm_bits = if norm.x != 0.0 {
             if norm.x < 0.0 { 0 } else { 1 }
         } else if norm.y != 0.0 {
@@ -59,10 +59,10 @@ impl Vertex {
             //     | if meta { 1 } else { 0 } << 28
             //     | (norm_bits & 0x7) << 29,
             pos_norm: (((pos.x as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) // NOTE: temp hack, this doesn't need 8 bits
-                | (((pos.y as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) << 8
-                | (((pos.z as i32 + VERT_EXTRA_NEG_Z).clamp(0, 1 << 12) as u32) & 0x0FFF) << 16
-                | (norm_bits & 0x7) << 29,
-            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | ((atlas_pos.y as u32) & 0xFFFF) << 16,
+                | ((((pos.y as i32 + VERT_EXTRA_NEG_XY) & 0x00FF) as u32) << 8)
+                | ((((pos.z as i32 + VERT_EXTRA_NEG_Z).clamp(0, 1 << 12) as u32) & 0x0FFF) << 16)
+                | ((norm_bits & 0x7) << 29),
+            atlas_pos: ((atlas_pos.x as u32) & 0xFFFF) | (((atlas_pos.y as u32) & 0xFFFF) << 16),
         }
     }
 }
@@ -126,10 +126,10 @@ impl Instance {
             inst_mat2: mat_arr[2],
             inst_mat3: mat_arr[3],
             pos_ori_door: ((pos.x as u32) & 0x003F)
-                | ((pos.y as u32) & 0x003F) << 6
-                | (((pos.z + EXTRA_NEG_Z).clamp(0, 1 << 16) as u32) & 0xFFFF) << 12
-                | (u32::from(ori_bits) & 0x7) << 29
-                | (u32::from(is_door) & 1) << 28,
+                | (((pos.y as u32) & 0x003F) << 6)
+                | ((((pos.z + EXTRA_NEG_Z).clamp(0, 1 << 16) as u32) & 0xFFFF) << 12)
+                | ((u32::from(ori_bits) & 0x7) << 29)
+                | ((u32::from(is_door) & 1) << 28),
             inst_vert_page: vert_page,
             inst_light: light,
             inst_glow: glow,

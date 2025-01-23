@@ -2,7 +2,7 @@ use crate::{
     frame::OTFrame,
     message::OTMessage,
     metrics::{ProtocolMetricCache, RemoveReason},
-    types::{Bandwidth, Mid, Prio, Promises, Sid, HIGHEST_PRIO},
+    types::{Bandwidth, HIGHEST_PRIO, Mid, Prio, Promises, Sid},
 };
 use bytes::Bytes;
 use std::{
@@ -14,7 +14,7 @@ use std::{
 struct StreamInfo {
     pub(crate) guaranteed_bandwidth: Bandwidth,
     pub(crate) prio: Prio,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub(crate) promises: Promises,
     pub(crate) messages: VecDeque<OTMessage>,
 }

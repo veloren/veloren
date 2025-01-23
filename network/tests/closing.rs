@@ -24,7 +24,7 @@ use std::{assert_matches::assert_matches, sync::Arc};
 use tokio::runtime::Runtime;
 use veloren_network::{Network, ParticipantError, ParticipantEvent, Pid, Promises, StreamError};
 mod helper;
-use helper::{network_participant_stream, tcp, SLEEP_EXTERNAL, SLEEP_INTERNAL};
+use helper::{SLEEP_EXTERNAL, SLEEP_INTERNAL, network_participant_stream, tcp};
 
 #[test]
 fn close_network() {

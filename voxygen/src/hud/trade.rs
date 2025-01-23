@@ -1,8 +1,8 @@
 use conrod_core::{
-    color,
+    Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     position::Relative,
     widget::{self, Button, Image, Rectangle, State as ConrodState, Text, TextEdit},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids,
 };
 use specs::Entity as EcsEntity;
 use vek::*;
@@ -10,8 +10,8 @@ use vek::*;
 use client::Client;
 use common::{
     comp::{
-        inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         Inventory, Stats,
+        inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
     },
     recipe::RecipeBookManifest,
     trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
@@ -21,23 +21,23 @@ use i18n::Localization;
 
 use crate::{
     hud::{
-        bag::{BackgroundIds, InventoryScroller},
         Event as HudEvent, PromptDialogSettings,
+        bag::{BackgroundIds, InventoryScroller},
     },
     ui::{
-        fonts::Fonts,
-        slot::{ContentSize, SlotMaker},
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
+        fonts::Fonts,
+        slot::{ContentSize, SlotMaker},
     },
 };
 
 use super::{
+    Hud, HudInfo, Show, TEXT_COLOR, TEXT_GRAY_COLOR, TradeAmountInput, UI_HIGHLIGHT_0, UI_MAIN,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{SlotKind, SlotManager, TradeSlot},
-    util, Hud, HudInfo, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0,
-    UI_MAIN,
+    util,
 };
 use std::borrow::Cow;
 
@@ -823,7 +823,7 @@ impl<'a> Trade<'a> {
     }
 }
 
-impl<'a> Widget for Trade<'a> {
+impl Widget for Trade<'_> {
     type Event = Option<TradeEvent>;
     type State = State;
     type Style = ();

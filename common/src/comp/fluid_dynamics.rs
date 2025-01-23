@@ -1,6 +1,6 @@
 use super::{
-    body::{object, Body},
     Density, Ori, Vel,
+    body::{Body, object},
 };
 use crate::{
     consts::{AIR_DENSITY, LAVA_DENSITY, WATER_DENSITY},

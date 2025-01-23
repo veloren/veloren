@@ -1,9 +1,9 @@
 use super::*;
 use crate::{
-    util::{RandomField, Sampler, CARDINALS, DIAGONALS},
     Land,
+    util::{CARDINALS, DIAGONALS, RandomField, Sampler},
 };
-use common::terrain::{sprite::Owned, BlockKind, SpriteKind};
+use common::terrain::{BlockKind, SpriteKind, sprite::Owned};
 use rand::prelude::*;
 use std::{f32::consts::TAU, sync::Arc};
 use vek::*;

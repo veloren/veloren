@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::runtime::Runtime;
 use veloren_network::{NetworkError, StreamError};
 mod helper;
-use helper::{mpsc, network_participant_stream, quic, tcp, udp, SLEEP_EXTERNAL, SLEEP_INTERNAL};
+use helper::{SLEEP_EXTERNAL, SLEEP_INTERNAL, mpsc, network_participant_stream, quic, tcp, udp};
 use std::io::ErrorKind;
 use veloren_network::{ConnectAddr, ListenAddr, Network, ParticipantEvent, Pid, Promises};
 

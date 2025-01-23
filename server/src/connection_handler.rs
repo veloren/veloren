@@ -1,5 +1,5 @@
 use crate::{Client, ClientType, ServerInfo};
-use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
+use crossbeam_channel::{Receiver, Sender, bounded, unbounded};
 use futures_util::future::FutureExt;
 use network::{Network, Participant, Promises};
 use std::time::Duration;

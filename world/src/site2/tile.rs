@@ -7,7 +7,7 @@ pub const TILE_SIZE: u32 = 6;
 pub const ZONE_SIZE: u32 = 16;
 pub const ZONE_RADIUS: u32 = 16;
 pub const TILE_RADIUS: u32 = ZONE_SIZE * ZONE_RADIUS;
-#[allow(dead_code)]
+#[expect(dead_code)]
 pub const MAX_BLOCK_RADIUS: u32 = TILE_SIZE * TILE_RADIUS;
 
 pub struct TileGrid {
@@ -142,7 +142,6 @@ impl TileGrid {
         }
     }
 
-    #[allow(dead_code)]
     pub fn grow_organic(
         &self,
         rng: &mut impl Rng,

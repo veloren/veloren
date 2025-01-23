@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
-    site2::{gen::PrimitiveTransform, util::Dir},
     Land,
+    site2::{gen::PrimitiveTransform, util::Dir},
 };
 use common::terrain::BlockKind;
 use rand::prelude::*;

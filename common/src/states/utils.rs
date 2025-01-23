@@ -1,6 +1,8 @@
 use crate::{
     astar::Astar,
     comp::{
+        Alignment, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction, Melee,
+        Pos, StateUpdate,
         ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
         buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource, DestInfo},
@@ -9,14 +11,13 @@ use crate::{
         crustacean, golem,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
         item::{
+            Hands, ItemKind, ToolKind,
             armor::Friction,
             tool::{self, AbilityContext},
-            Hands, ItemKind, ToolKind,
         },
         quadruped_low, quadruped_medium, quadruped_small, ship,
-        skills::{Skill, SwimSkill, SKILL_MODIFIERS},
-        theropod, Alignment, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction,
-        Melee, Pos, StateUpdate,
+        skills::{SKILL_MODIFIERS, Skill, SwimSkill},
+        theropod,
     },
     consts::{FRIC_GROUND, GRAVITY, MAX_MOUNT_RANGE, MAX_PICKUP_RANGE},
     event::{BuffEvent, ChangeStanceEvent, ComboChangeEvent, InventoryManipEvent, LocalEvent},
@@ -425,7 +426,7 @@ pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f3
         .map(|depth| depth / data.body.height());
 
     if input_is_pressed(data, InputKind::Fly)
-        && submersion.map_or(true, |sub| sub < 1.0)
+        && submersion.is_none_or(|sub| sub < 1.0)
         && (data.physics.on_ground.is_none() || data.body.jump_impulse().is_none())
         && data.body.fly_thrust().is_some()
     {
@@ -1045,7 +1046,7 @@ fn can_reach_block(
                     terrain
                         .get(*pos)
                         .ok()
-                        .map_or(false, |block| !block.is_filled())
+                        .is_some_and(|block| !block.is_filled())
                 })
         };
         // Pathing satisfied when it reaches the sprite position
@@ -1446,9 +1447,7 @@ pub fn handle_interrupts(
         .character
         .ability_info()
         .map(|info| info.ability_meta)
-        .map_or(false, |meta| {
-            meta.capabilities.contains(Capability::BLOCK_INTERRUPT)
-        });
+        .is_some_and(|meta| meta.capabilities.contains(Capability::BLOCK_INTERRUPT));
     if can_dodge && input_is_pressed(data, InputKind::Roll) {
         handle_ability(data, update, output_events, InputKind::Roll)
     } else if can_block && input_is_pressed(data, InputKind::Block) {

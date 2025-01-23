@@ -1,7 +1,7 @@
 use crate::{
+    HwStats, Tick, TickStart,
     chunk_generator::ChunkGenerator,
     metrics::{EcsSystemMetrics, JobMetrics, PhysicsMetrics, QueryServerMetrics, TickMetrics},
-    HwStats, Tick, TickStart,
 };
 use common::{resources::TimeOfDay, slowjob::SlowJobPool, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, SysMetrics, System};

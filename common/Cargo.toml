@@ -32,7 +32,7 @@ serde = { workspace = true, features = ["rc"] }
 
 # Util
 enum-map = { workspace = true, features = ["serde"] }
-vek = { workspace = true, features = ["repr_simd"] }
+vek = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true }
 itertools = { workspace = true }

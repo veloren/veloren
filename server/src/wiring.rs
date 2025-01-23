@@ -1,5 +1,5 @@
 use common::{
-    comp::{object, Body, LightEmitter, PhysicsState, Pos, ProjectileConstructor},
+    comp::{Body, LightEmitter, PhysicsState, Pos, ProjectileConstructor, object},
     event::{EmitExt, ShootEvent},
     terrain::{Block, TerrainChunkSize},
     util::Dir,
@@ -9,7 +9,7 @@ use common_state::BlockChange;
 use hashbrown::HashMap;
 use specs::{Component, DenseVecStorage, Entity};
 use tracing::warn;
-use vek::{num_traits::ToPrimitive, Rgb, Vec3};
+use vek::{Rgb, Vec3, num_traits::ToPrimitive};
 
 /// Represents a logical operation based on a `left` and `right` input. The
 /// available kinds of logical operations are enumerated by `LogicKind`.

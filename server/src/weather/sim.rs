@@ -1,7 +1,7 @@
 use common::{
     grid::Grid,
     resources::TimeOfDay,
-    weather::{Weather, WeatherGrid, CELL_SIZE, CHUNKS_PER_CELL},
+    weather::{CELL_SIZE, CHUNKS_PER_CELL, Weather, WeatherGrid},
 };
 use noise::{NoiseFn, Perlin, SuperSimplex, Turbulence};
 use vek::*;

@@ -24,15 +24,15 @@ pub use self::{
 };
 use crate::{
     audio::{
+        AudioFrontend,
         ambience::{self, AmbienceMgr},
         music::MusicMgr,
         sfx::SfxMgr,
-        AudioFrontend,
     },
     render::{
-        create_skybox_mesh, CloudsLocals, Consts, CullingMode, Drawer, GlobalModel, Globals,
-        GlobalsBindGroup, Light, Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals,
-        Renderer, Shadow, ShadowLocals, SkyboxVertex,
+        CloudsLocals, Consts, CullingMode, Drawer, GlobalModel, Globals, GlobalsBindGroup, Light,
+        Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals, Renderer, Shadow,
+        ShadowLocals, SkyboxVertex, create_skybox_mesh,
     },
     session::PlayerDebugLines,
     settings::Settings,
@@ -65,7 +65,8 @@ const ZOOM_CAP_ADMIN: f32 = 100000.0;
 // TODO: Don't hard-code this.
 const CURSOR_PAN_SCALE: f32 = 0.005;
 
-pub(crate) const MAX_LIGHT_COUNT: usize = 20; // 31 (total shadow_mats is limited to 128 with default max_uniform_buffer_binding_size)
+pub(crate) const MAX_LIGHT_COUNT: usize = 20; // 31 (total shadow_mats is limited to 128 with default
+// max_uniform_buffer_binding_size)
 pub(crate) const MAX_SHADOW_COUNT: usize = 24;
 pub(crate) const MAX_POINT_LIGHT_MATRICES_COUNT: usize = MAX_LIGHT_COUNT * 6 + 6;
 const NUM_DIRECTED_LIGHTS: usize = 1;
@@ -157,7 +158,7 @@ pub struct SceneData<'a> {
     pub interpolated_time_of_day: Option<f64>,
 }
 
-impl<'a> SceneData<'a> {
+impl SceneData<'_> {
     pub fn get_sun_dir(&self) -> Vec3<f32> {
         TimeOfDay::new(self.interpolated_time_of_day.unwrap_or(0.0)).get_sun_dir()
     }
@@ -612,7 +613,7 @@ impl Scene {
                 let viewpoint_rolling = ecs
                     .read_storage::<comp::CharacterState>()
                     .get(scene_data.viewpoint_entity)
-                    .map_or(false, |cs| cs.is_dodge());
+                    .is_some_and(|cs| cs.is_dodge());
 
                 let is_running = ecs
                     .read_storage::<comp::Vel>()
@@ -965,8 +966,8 @@ impl Scene {
         // to the translated ones we use when multiplying by the light space
         // matrix; this helps avoid precision loss during the
         // multiplication.
-        let look_at = math::Vec3::from(cam_pos);
-        let new_dir = math::Vec3::from(view_dir);
+        let look_at = cam_pos;
+        let new_dir = view_dir;
         let new_dir = new_dir.normalized();
         let up: math::Vec3<f32> = math::Vec3::unit_y();
 
@@ -1246,7 +1247,7 @@ impl Scene {
             let rain_dir_mat = Mat4::rotation_from_to_3d(-Vec3::unit_z(), rain_vel);
 
             let (shadow_mat, texture_mat) =
-                directed_mats(rain_view_mat, rain_vel.into(), &visible_occlusion_volume);
+                directed_mats(rain_view_mat, rain_vel, &visible_occlusion_volume);
 
             let rain_occlusion_locals = RainOcclusionLocals::new(
                 shadow_mat,
@@ -1273,7 +1274,7 @@ impl Scene {
             let point_shadow_aspect = point_shadow_res.x as f32 / point_shadow_res.y as f32;
             // Construct matrices to transform from world space to light space for the sun
             // and moon.
-            let directed_light_dir = math::Vec3::from(sun_dir);
+            let directed_light_dir = sun_dir;
 
             // We upload view matrices as well, to assist in linearizing vertex positions.
             // (only for directional lights, so far).
@@ -1382,9 +1383,8 @@ impl Scene {
             .state
             .terrain()
             .get_key(scene_data.state.terrain().pos_key(cam_pos.as_()))
-            .map_or(false, |c| {
-                cam_pos.z < c.meta().alt() - terrain::UNDERGROUND_ALT
-            }) {
+            .is_some_and(|c| cam_pos.z < c.meta().alt() - terrain::UNDERGROUND_ALT)
+        {
             CullingMode::Underground
         } else {
             CullingMode::Surface
@@ -1602,11 +1602,7 @@ impl Scene {
 
                         // If this shape no longer matches, remove the old one
                         if let Some(shape_id) = hitboxes.get(&entity) {
-                            if self
-                                .debug
-                                .get_shape(*shape_id)
-                                .map_or(false, |s| s != &shape)
-                            {
+                            if self.debug.get_shape(*shape_id).is_some_and(|s| s != &shape) {
                                 self.debug.remove_shape(*shape_id);
                                 hitboxes.remove(&entity);
                             }

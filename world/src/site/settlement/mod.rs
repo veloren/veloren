@@ -7,21 +7,21 @@ use self::{
 };
 use super::SpawnRules;
 use crate::{
+    IndexRef,
     column::ColumnSample,
     sim::WorldSim,
     site::namegen::NameGen,
     util::{RandomField, Sampler, StructureGen2d},
-    IndexRef,
 };
 use common::{
     astar::Astar,
     calendar::Calendar,
     comp::{
-        self, agent, bird_medium,
+        self, Item, agent, bird_medium,
         inventory::{
             loadout_builder::LoadoutBuilder, slot::ArmorSlot, trade_pricing::TradePricing,
         },
-        quadruped_small, Item,
+        quadruped_small,
     },
     generation::{ChunkSupplement, EntityInfo},
     path::Path,
@@ -60,13 +60,11 @@ pub struct Colors {
     pub plot_town: (u8, u8, u8),
 }
 
-#[allow(dead_code)]
 pub fn gradient(line: [Vec2<f32>; 2]) -> f32 {
     let r = (line[0].y - line[1].y) / (line[0].x - line[1].x);
     if r.is_nan() { 100000.0 } else { r }
 }
 
-#[allow(dead_code)]
 pub fn intersect(a: [Vec2<f32>; 2], b: [Vec2<f32>; 2]) -> Option<Vec2<f32>> {
     let ma = gradient(a);
     let mb = gradient(b);
@@ -84,7 +82,6 @@ pub fn intersect(a: [Vec2<f32>; 2], b: [Vec2<f32>; 2]) -> Option<Vec2<f32>> {
     }
 }
 
-#[allow(dead_code)]
 pub fn center_of(p: [Vec2<f32>; 3]) -> Vec2<f32> {
     let ma = -1.0 / gradient([p[0], p[1]]);
     let mb = -1.0 / gradient([p[1], p[2]]);
@@ -161,7 +158,7 @@ pub struct Settlement {
 }
 
 pub struct Farm {
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     base_tile: Vec2<i32>,
 }
 
@@ -1131,7 +1128,7 @@ fn sort_wares(bag: &mut [Item]) {
             )
         )
         // sort by name
-        .then(#[allow(deprecated)] Ord::cmp(&a.name(), &b.name()))
+        .then(#[expect(deprecated)] Ord::cmp(&a.name(), &b.name()))
     });
 }
 
@@ -1188,7 +1185,6 @@ const CARDINALS: [Vec2<i32>; 4] = [
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum WayKind {
     Path,
-    #[allow(dead_code)]
     Wall,
 }
 
@@ -1203,7 +1199,6 @@ impl WayKind {
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Tower {
-    #[allow(dead_code)]
     Wall,
 }
 
@@ -1309,7 +1304,6 @@ impl Land {
 
     pub fn tile_at(&self, pos: Vec2<i32>) -> Option<&Tile> { self.tiles.get(&pos) }
 
-    #[allow(dead_code)]
     pub fn tile_at_mut(&mut self, pos: Vec2<i32>) -> Option<&mut Tile> { self.tiles.get_mut(&pos) }
 
     pub fn plot(&self, id: Id<Plot>) -> &Plot { self.plots.get(id) }
@@ -1318,7 +1312,6 @@ impl Land {
         self.tiles.get(&pos).map(|tile| self.plots.get(tile.plot))
     }
 
-    #[allow(dead_code)]
     pub fn plot_at_mut(&mut self, pos: Vec2<i32>) -> Option<&mut Plot> {
         self.tiles
             .get(&pos)
@@ -1344,7 +1337,7 @@ impl Land {
             .find(|pos| match_fn(self.plot_at(*pos)))
     }
 
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn find_tile_dir(
         &self,
         origin: Vec2<i32>,

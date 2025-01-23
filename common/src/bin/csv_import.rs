@@ -1,10 +1,10 @@
-#![allow(deprecated)] // since item i18n
+#![expect(deprecated)] // since item i18n
 #![deny(clippy::clone_on_ref_ptr)]
-#![allow(clippy::expect_fun_call)] //TODO: evaluate to remove this and use `unwrap_or_else(panic!(...))` instead
+#![expect(clippy::expect_fun_call)] //TODO: evaluate to remove this and use `unwrap_or_else(panic!(...))` instead
 
 use clap::Parser;
 use hashbrown::HashMap;
-use ron::ser::{to_string_pretty, PrettyConfig};
+use ron::ser::{PrettyConfig, to_string_pretty};
 use serde::Serialize;
 use std::{borrow::Cow, error::Error, fs::File, io::Write};
 
@@ -13,9 +13,9 @@ use veloren_common::{
     comp::{
         self,
         item::{
+            ItemDefinitionId, ItemKind, ItemTag, Quality,
             armor::{ArmorKind, Protection, StatsSource},
             tool::{AbilitySpec, Hands, Stats},
-            ItemDefinitionId, ItemKind, ItemTag, Quality,
         },
     },
 };

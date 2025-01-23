@@ -1,20 +1,20 @@
 use super::img_ids;
 use common::{
     comp::{
+        BuffData, BuffKind,
         inventory::trade_pricing::TradePricing,
         item::{
-            armor::{Armor, ArmorKind, Protection},
-            tool::{Hands, Tool, ToolKind},
             Effects, Item, ItemDefinitionId, ItemDesc, ItemI18n, ItemKind, MaterialKind,
             MaterialStatManifest,
+            armor::{Armor, ArmorKind, Protection},
+            tool::{Hands, Tool, ToolKind},
         },
-        BuffData, BuffKind,
     },
     effect::Effect,
     trade::{Good, SitePrices},
 };
 use conrod_core::image;
-use i18n::{fluent_args, Localization};
+use i18n::{Localization, fluent_args};
 use std::{borrow::Cow, fmt::Write};
 
 pub fn price_desc<'a>(

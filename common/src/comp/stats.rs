@@ -7,7 +7,7 @@ use crate::combat::{AttackEffect, DamagedEffect, DeathEffect};
 use super::Body;
 
 #[derive(Debug)]
-#[allow(dead_code)] // TODO: remove once trade sim hits master
+#[expect(dead_code)] // TODO: remove once trade sim hits master
 pub enum StatChangeError {
     Underflow,
     Overflow,

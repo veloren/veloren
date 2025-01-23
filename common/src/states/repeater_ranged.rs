@@ -1,8 +1,8 @@
 use crate::{
     combat::{self, CombatEffect},
     comp::{
-        character_state::OutputEvents, Body, CharacterState, LightEmitter, Pos,
-        ProjectileConstructor, StateUpdate,
+        Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
+        character_state::OutputEvents,
     },
     event::{EnergyChangeEvent, ShootEvent},
     states::{
@@ -11,7 +11,7 @@ use crate::{
     },
     util::Dir,
 };
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use serde::{Deserialize, Serialize};
 use std::{f32::consts::TAU, time::Duration};
 

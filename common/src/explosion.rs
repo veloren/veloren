@@ -1,5 +1,5 @@
 use crate::{combat::Attack, comp::item::Reagent, effect::Effect};
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use serde::{Deserialize, Serialize};
 use vek::Rgb;
 

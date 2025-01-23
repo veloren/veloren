@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
 use crate::{
-    render::ExperimentalShader,
-    session::{settings_change::change_render_mode, SessionState},
     GlobalState,
+    render::ExperimentalShader,
+    session::{SessionState, settings_change::change_render_mode},
 };
 use client::Client;
 use common::{
@@ -318,7 +318,8 @@ pub fn run_command(
                 .client
                 .borrow_mut()
                 .send_command(cmd.keyword().into(), args);
-            Ok(None) // The server will provide a response when the command is run
+            Ok(None) // The server will provide a response when the command is
+            // run
         },
         ChatCommandKind::Client(cmd) => run_client_command(session_state, global_state, cmd, args),
     }
@@ -722,7 +723,7 @@ fn complete_command(part: &str, prefix: &str) -> Vec<String> {
 }
 
 pub fn complete(line: &str, client: &Client, cmd_prefix: &str) -> Vec<String> {
-    let word = if line.chars().last().map_or(true, char::is_whitespace) {
+    let word = if line.chars().last().is_none_or(char::is_whitespace) {
         ""
     } else {
         line.split_whitespace().last().unwrap_or("")

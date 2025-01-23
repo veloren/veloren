@@ -1,23 +1,24 @@
-#![allow(clippy::branches_sharing_code)] // TODO: evaluate
+#![expect(clippy::branches_sharing_code)] // TODO: evaluate
 use common::{
     terrain::{
+        CoordinateConversions, TerrainChunkSize,
         map::{MapConfig, MapDebug, MapSample},
-        uniform_idx_as_vec2, vec2_as_uniform_idx, CoordinateConversions, TerrainChunkSize,
+        uniform_idx_as_vec2, vec2_as_uniform_idx,
     },
     vol::RectVolSize,
 };
 use rayon::prelude::*;
 use std::{f64, io::Write, path::PathBuf, time::SystemTime};
-use tracing::{warn, Level};
+use tracing::{Level, warn};
 use tracing_subscriber::{
-    filter::{EnvFilter, LevelFilter},
     FmtSubscriber,
+    filter::{EnvFilter, LevelFilter},
 };
 use vek::*;
 use veloren_world::{
-    sim::{self, get_horizon_map, sample_pos, sample_wpos, WorldOpts, DEFAULT_WORLD_SEED},
+    CONFIG, ColumnSample, World,
+    sim::{self, DEFAULT_WORLD_SEED, WorldOpts, get_horizon_map, sample_pos, sample_wpos},
     util::Sampler,
-    ColumnSample, World, CONFIG,
 };
 
 const W: usize = 1024;

@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
-    util::{RandomField, Sampler},
     Land,
+    util::{RandomField, Sampler},
 };
 use common::terrain::{Block, BlockKind};
 use rand::prelude::*;

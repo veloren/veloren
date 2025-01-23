@@ -1,9 +1,9 @@
 use std::{fs, io};
 
 use assets_manager::{
+    BoxedError,
     hot_reloading::{EventSender, FsWatcherBuilder},
     source::{DirEntry, FileContent, FileSystem as RawFs, Source},
-    BoxedError,
 };
 
 /// Loads assets from the default path or `VELOREN_ASSETS_OVERRIDE` env if it is
@@ -88,7 +88,7 @@ impl Source for FileSystem {
     fn exists(&self, entry: DirEntry) -> bool {
         self.override_dir
             .as_ref()
-            .map_or(false, |dir| dir.exists(entry))
+            .is_some_and(|dir| dir.exists(entry))
             || self.default.exists(entry)
     }
 

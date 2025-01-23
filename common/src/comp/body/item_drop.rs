@@ -1,11 +1,11 @@
 use crate::{
     comp::{
+        Density, Mass, Ori,
         item::{
+            Item, ItemKind, Utility,
             armor::ArmorKind,
             tool::{Tool, ToolKind},
-            Item, ItemKind, Utility,
         },
-        Density, Mass, Ori,
     },
     consts::WATER_DENSITY,
     make_case_elim,

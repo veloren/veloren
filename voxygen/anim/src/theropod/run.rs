@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     SkeletonAttr, TheropodSkeleton,
 };
 use core::f32::consts::PI;

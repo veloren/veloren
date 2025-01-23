@@ -6,8 +6,8 @@ use discord_sdk::{
     activity::{ActivityArgs, ActivityBuilder},
 };
 use tokio::{
-    sync::mpsc::{unbounded_channel, UnboundedSender},
-    time::{interval, MissedTickBehavior},
+    sync::mpsc::{UnboundedSender, unbounded_channel},
+    time::{MissedTickBehavior, interval},
 };
 use tracing::{debug, info, warn};
 

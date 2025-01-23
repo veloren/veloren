@@ -1,6 +1,6 @@
 use crate::{
     assets::{self, AssetExt},
-    util::map_array::{enum_from_index, index_from_enum, GenericIndex, NotFound},
+    util::map_array::{GenericIndex, NotFound, enum_from_index, index_from_enum},
 };
 use common::{terrain::BiomeKind, trade::Good};
 use lazy_static::lazy_static;

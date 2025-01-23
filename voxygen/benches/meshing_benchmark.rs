@@ -2,11 +2,11 @@ use common::{
     terrain::{Block, SpriteKind, TerrainGrid},
     vol::SampleVol,
 };
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use std::sync::Arc;
 use vek::*;
 use veloren_voxygen::{mesh::terrain::generate_mesh, scene::terrain::BlocksOfInterest};
-use world::{sim, World};
+use world::{World, sim};
 
 const CENTER: Vec2<i32> = Vec2 { x: 512, y: 512 };
 const GEN_SIZE: i32 = 4;
@@ -146,7 +146,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     for x in 1..GEN_SIZE - 1 {
         for y in 1..GEN_SIZE - 1 {
             let (volume, range) = sample(Vec2::new(x, y));
-            meshing_benches.bench_function(&format!("Terrain mesh {}, {}", x, y), move |b| {
+            meshing_benches.bench_function(format!("Terrain mesh {}, {}", x, y), move |b| {
                 b.iter(|| {
                     generate_mesh(
                         black_box(&volume),

@@ -13,6 +13,7 @@ use channel::{
     UiChannel,
 };
 use kira::{
+    Volume,
     clock::{ClockHandle, ClockSpeed, ClockTime},
     effect::filter::{FilterBuilder, FilterHandle},
     manager::{AudioManager, AudioManagerSettings, DefaultBackend},
@@ -23,11 +24,10 @@ use kira::{
     },
     track::{TrackBuilder, TrackHandle},
     tween::{Easing, Tween, Value},
-    Volume,
 };
 use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
-use soundcache::{load_ogg, AnySoundData, AnySoundHandle};
+use soundcache::{AnySoundData, AnySoundHandle, load_ogg};
 use std::{collections::VecDeque, time::Duration};
 use tracing::{debug, error, warn};
 

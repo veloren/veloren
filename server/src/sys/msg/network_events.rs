@@ -1,4 +1,4 @@
-use crate::{client::Client, settings::banlist::NormalizedIpAddr, EditableSettings};
+use crate::{EditableSettings, client::Client, settings::banlist::NormalizedIpAddr};
 use common::{
     comp::Player,
     event::{ClientDisconnectEvent, EventBus},

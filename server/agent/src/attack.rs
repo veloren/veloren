@@ -6,12 +6,12 @@ use crate::{
 use common::{
     combat::{self, AttackSource},
     comp::{
-        ability::{ActiveAbilities, AuxiliaryAbility, Stance, SwordStance, BASE_ABILITY_LIMIT},
+        Ability, AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction,
+        ControlEvent, Controller, Fluid, InputKind,
+        ability::{ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT, Stance, SwordStance},
         buff::BuffKind,
         item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
-        Ability, AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction,
-        ControlEvent, Controller, Fluid, InputKind,
     },
     consts::GRAVITY,
     path::TraversalConfig,
@@ -24,7 +24,7 @@ use common::{
     util::Dir,
     vol::ReadVol,
 };
-use rand::{prelude::SliceRandom, Rng};
+use rand::{Rng, prelude::SliceRandom};
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
 use world::util::CARDINALS;
@@ -43,7 +43,7 @@ fn projectile_multi_angle(projectile_spread: f32, num_projectiles: u32) -> f32 {
 
 fn rng_from_span(rng: &mut impl Rng, span: [f32; 2]) -> f32 { rng.gen_range(span[0]..=span[1]) }
 
-impl<'a> AgentData<'a> {
+impl AgentData<'_> {
     // Intended for any agent that has one attack, that attack is a melee attack,
     // and the agent is able to freely walk around
     pub fn handle_simple_melee(
@@ -776,13 +776,13 @@ impl<'a> AgentData<'a> {
                 self.extract_ability(AbilityInput::Auxiliary(4)),
             ];
             let could_use_input = |input, desired_energy| match input {
-                InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                InputKind::Primary => primary.as_ref().is_some_and(|p| {
                     p.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
-                InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                     s.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
-                InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
                     let ability = self.active_abilities.get_ability(
                         AbilityInput::Auxiliary(x),
                         Some(self.inventory),
@@ -792,32 +792,32 @@ impl<'a> AgentData<'a> {
                     let additional_conditions = match ability {
                         Ability::MainWeaponAux(0) => self
                             .buffs
-                            .map_or(false, |buffs| !buffs.contains(BuffKind::ScornfulTaunt)),
+                            .is_some_and(|buffs| !buffs.contains(BuffKind::ScornfulTaunt)),
                         Ability::MainWeaponAux(2) => {
-                            tgt_data.char_state.map_or(false, |cs| cs.is_stunned())
+                            tgt_data.char_state.is_some_and(|cs| cs.is_stunned())
                         },
-                        Ability::MainWeaponAux(4) => tgt_data.ori.map_or(false, |ori| {
+                        Ability::MainWeaponAux(4) => tgt_data.ori.is_some_and(|ori| {
                             ori.look_vec().angle_between(tgt_data.pos.0 - self.pos.0)
                                 < combat::BEHIND_TARGET_ANGLE
                         }),
-                        Ability::MainWeaponAux(5) => tgt_data.char_state.map_or(false, |cs| {
+                        Ability::MainWeaponAux(5) => tgt_data.char_state.is_some_and(|cs| {
                             cs.is_block(AttackSource::Melee) || cs.is_parry(AttackSource::Melee)
                         }),
                         Ability::MainWeaponAux(7) => tgt_data
                             .buffs
-                            .map_or(false, |buffs| !buffs.contains(BuffKind::Staggered)),
+                            .is_some_and(|buffs| !buffs.contains(BuffKind::Staggered)),
                         Ability::MainWeaponAux(12) => tgt_data
                             .buffs
-                            .map_or(false, |buffs| !buffs.contains(BuffKind::Rooted)),
+                            .is_some_and(|buffs| !buffs.contains(BuffKind::Rooted)),
                         Ability::MainWeaponAux(13) => tgt_data
                             .buffs
-                            .map_or(false, |buffs| !buffs.contains(BuffKind::Winded)),
+                            .is_some_and(|buffs| !buffs.contains(BuffKind::Winded)),
                         Ability::MainWeaponAux(14) => tgt_data
                             .buffs
-                            .map_or(false, |buffs| !buffs.contains(BuffKind::Concussion)),
+                            .is_some_and(|buffs| !buffs.contains(BuffKind::Concussion)),
                         Ability::MainWeaponAux(15) => self
                             .buffs
-                            .map_or(false, |buffs| !buffs.contains(BuffKind::ProtectingWard)),
+                            .is_some_and(|buffs| !buffs.contains(BuffKind::ProtectingWard)),
                         _ => true,
                     };
                     a.could_use(attack_data, self, tgt_data, read_data, desired_energy)
@@ -834,7 +834,7 @@ impl<'a> AgentData<'a> {
                         .durations()
                         .and_then(|durs| durs.charge)
                         .zip(self.char_state.timer())
-                        .map_or(false, |(dur, timer)| timer > dur);
+                        .is_some_and(|(dur, timer)| timer > dur);
                     if !(charging && charged) {
                         *next_input = Some(InputKind::Secondary);
                     }
@@ -1223,13 +1223,13 @@ impl<'a> AgentData<'a> {
                 self.extract_ability(AbilityInput::Auxiliary(4)),
             ];
             let could_use_input = |input, desired_energy| match input {
-                InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                InputKind::Primary => primary.as_ref().is_some_and(|p| {
                     p.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
-                InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                     s.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
-                InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
                     a.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
                 _ => false,
@@ -1243,7 +1243,7 @@ impl<'a> AgentData<'a> {
                         .durations()
                         .and_then(|durs| durs.charge)
                         .zip(self.char_state.timer())
-                        .map_or(false, |(dur, timer)| timer > dur);
+                        .is_some_and(|(dur, timer)| timer > dur);
                     if !(charging && charged) {
                         *next_input = Some(InputKind::Secondary);
                     }
@@ -1948,13 +1948,13 @@ impl<'a> AgentData<'a> {
                 self.extract_ability(AbilityInput::Auxiliary(4)),
             ];
             let could_use_input = |input, desired_energy| match input {
-                InputKind::Primary => primary.as_ref().map_or(false, |p| {
+                InputKind::Primary => primary.as_ref().is_some_and(|p| {
                     p.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
-                InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+                InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                     s.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
-                InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+                InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
                     a.could_use(attack_data, self, tgt_data, read_data, desired_energy)
                 }),
                 _ => false,
@@ -1968,7 +1968,7 @@ impl<'a> AgentData<'a> {
                         .durations()
                         .and_then(|durs| durs.charge)
                         .zip(self.char_state.timer())
-                        .map_or(false, |(dur, timer)| timer > dur);
+                        .is_some_and(|(dur, timer)| timer > dur);
                     if !(charging && charged) {
                         *next_input = Some(InputKind::Secondary);
                     }
@@ -2251,7 +2251,7 @@ impl<'a> AgentData<'a> {
             _ => 20.0_f32,
         };
         let shockwave_cost = shockwave.energy_cost();
-        if self.body.map_or(false, |b| b.is_humanoid())
+        if self.body.is_some_and(|b| b.is_humanoid())
             && attack_data.in_min_range()
             && self.energy.current()
                 > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
@@ -2354,7 +2354,7 @@ impl<'a> AgentData<'a> {
                 }
             }
             // Sometimes try to roll
-            if self.body.map_or(false, |b| b.is_humanoid())
+            if self.body.is_some_and(|b| b.is_humanoid())
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && !matches!(self.char_state, CharacterState::Shockwave(_))
                 && rng.gen::<f32>() < 0.02
@@ -2408,7 +2408,7 @@ impl<'a> AgentData<'a> {
                 && read_data
                     .combos
                     .get(*self.entity)
-                    .map_or(false, |c| c.counter() >= DESIRED_COMBO_LEVEL)
+                    .is_some_and(|c| c.counter() >= DESIRED_COMBO_LEVEL)
                 && !read_data.buffs.get(*self.entity).iter().any(|buff| {
                     buff.iter_kind(BuffKind::Regeneration)
                         .peekable()
@@ -2438,7 +2438,7 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Primary);
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
-            if self.body.map_or(false, |b| b.is_humanoid())
+            if self.body.is_some_and(|b| b.is_humanoid())
                 && self.energy.current()
                     > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
@@ -2629,7 +2629,6 @@ impl<'a> AgentData<'a> {
         };
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn handle_circle_charge_attack(
         &self,
         agent: &mut Agent,
@@ -5197,7 +5196,7 @@ impl<'a> AgentData<'a> {
         // mid range (line of sight not needed for these 'suppressing' attacks)
         } else if attack_data.dist_sqrd < firebreath_range.powi(2) {
             // if using firebreath, keep going under full time limit
-            #[allow(clippy::if_same_then_else)]
+            #[expect(clippy::if_same_then_else)]
             if is_using_firebreath
                 && firebreath_timer < Duration::from_secs_f32(FIREBREATH_TIME_LIMIT)
             {
@@ -5278,7 +5277,6 @@ impl<'a> AgentData<'a> {
         const MINION_SUMMON_THRESHOLD: f32 = 1. / 8.;
         const FLASHFREEZE_RANGE: f32 = 30.;
 
-        #[allow(clippy::enum_variant_names)]
         enum ActionStateTimers {
             AttackChange,
             Bonk,
@@ -5402,9 +5400,7 @@ impl<'a> AgentData<'a> {
 
                 if matches!(self.char_state, CharacterState::BasicMelee(c)
                     if matches!(c.stage_section, StageSection::Recover) &&
-                    c.static_data.ability_info.ability.map_or(false,
-                        |meta| matches!(meta.ability, Ability::MainWeaponAux(6))
-                    )
+                    c.static_data.ability_info.ability.is_some_and(|meta| matches!(meta.ability, Ability::MainWeaponAux(6)))
                 ) {
                     agent.combat_state.timers[ActionStateTimers::Bonk as usize] =
                         rng.gen_range(0.0..3.0);
@@ -5705,7 +5701,7 @@ impl<'a> AgentData<'a> {
                 && read_data
                     .combos
                     .get(*self.entity)
-                    .map_or(false, |c| c.counter() >= DESIRED_COMBO_LEVEL)
+                    .is_some_and(|c| c.counter() >= DESIRED_COMBO_LEVEL)
                 && !read_data.buffs.get(*self.entity).iter().any(|buff| {
                     buff.iter_kind(BuffKind::Regeneration)
                         .peekable()
@@ -5735,7 +5731,7 @@ impl<'a> AgentData<'a> {
                 controller.push_basic_input(InputKind::Primary);
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
-            if self.body.map_or(false, |b| b.is_humanoid())
+            if self.body.is_some_and(|b| b.is_humanoid())
                 && self.energy.current()
                     > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicAura(c) if !matches!(c.stage_section, StageSection::Recover))
@@ -6292,7 +6288,7 @@ impl<'a> AgentData<'a> {
         if !agent.combat_state.conditions[ActionStateConditions::ConditionHasScreamed as usize] {
             // If mandragora is still "sleeping" and hasn't screamed yet, do nothing until
             // target in range or until it's taken damage
-            if self.health.map_or(false, |h| {
+            if self.health.is_some_and(|h| {
                 h.current()
                     < agent.combat_state.counters
                         [ActionStateFCounters::FCounterHealthThreshold as usize]
@@ -6808,7 +6804,7 @@ impl<'a> AgentData<'a> {
         let primary = self.extract_ability(AbilityInput::Primary);
         let secondary = self.extract_ability(AbilityInput::Secondary);
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -6817,7 +6813,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+            InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                 s.could_use(
                     attack_data,
                     self,
@@ -6876,7 +6872,7 @@ impl<'a> AgentData<'a> {
         let primary = self.extract_ability(AbilityInput::Primary);
         let secondary = self.extract_ability(AbilityInput::Secondary);
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -6885,7 +6881,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+            InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                 s.could_use(
                     attack_data,
                     self,
@@ -6933,7 +6929,7 @@ impl<'a> AgentData<'a> {
         }
         let primary = self.extract_ability(AbilityInput::Primary);
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -6987,7 +6983,7 @@ impl<'a> AgentData<'a> {
             self.extract_ability(AbilityInput::Auxiliary(1)),
         ];
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -6996,7 +6992,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+            InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                 s.could_use(
                     attack_data,
                     self,
@@ -7005,7 +7001,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+            InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
                 a.could_use(
                     attack_data,
                     self,
@@ -7073,7 +7069,7 @@ impl<'a> AgentData<'a> {
             self.extract_ability(AbilityInput::Auxiliary(1)),
         ];
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -7082,7 +7078,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+            InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                 s.could_use(
                     attack_data,
                     self,
@@ -7091,7 +7087,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+            InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
                 a.could_use(
                     attack_data,
                     self,
@@ -7118,7 +7114,7 @@ impl<'a> AgentData<'a> {
                 if self
                     .char_state
                     .timer()
-                    .map_or(false, |t| t.as_secs_f32() < 3.0)
+                    .is_some_and(|t| t.as_secs_f32() < 3.0)
                     && could_use_input(input)
                 {
                     controller.push_basic_input(input);
@@ -7237,7 +7233,7 @@ impl<'a> AgentData<'a> {
             _ => false,
         };
 
-        let has_heads = self.heads.map_or(true, |heads| heads.amount() > 0);
+        let has_heads = self.heads.is_none_or(|heads| heads.amount() > 0);
 
         let move_forwards = if !continued_attack {
             if could_use_input(InputKind::Ability(1))
@@ -7245,7 +7241,7 @@ impl<'a> AgentData<'a> {
                 && (agent.combat_state.timers[ActionStateTimers::RegrowHeadNoDamage as usize] > 5.0
                     || agent.combat_state.timers[ActionStateTimers::RegrowHeadNoAttack as usize]
                         > 6.0)
-                && self.heads.map_or(false, |heads| heads.amount_missing() > 0)
+                && self.heads.is_some_and(|heads| heads.amount_missing() > 0)
             {
                 controller.push_basic_input(InputKind::Ability(2));
                 false
@@ -7312,7 +7308,7 @@ impl<'a> AgentData<'a> {
             self.extract_ability(AbilityInput::Auxiliary(4)),
         ];
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -7321,7 +7317,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+            InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                 s.could_use(
                     attack_data,
                     self,
@@ -7330,7 +7326,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+            InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
                 a.could_use(
                     attack_data,
                     self,
@@ -7627,7 +7623,7 @@ impl<'a> AgentData<'a> {
         let primary = self.extract_ability(AbilityInput::Primary);
         let secondary = self.extract_ability(AbilityInput::Secondary);
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -7636,7 +7632,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+            InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                 s.could_use(
                     attack_data,
                     self,
@@ -7708,7 +7704,7 @@ impl<'a> AgentData<'a> {
         let secondary = self.extract_ability(AbilityInput::Secondary);
         let abilities = [self.extract_ability(AbilityInput::Auxiliary(0))];
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -7717,7 +7713,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+            InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                 s.could_use(
                     attack_data,
                     self,
@@ -7726,7 +7722,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+            InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
                 a.could_use(
                     attack_data,
                     self,
@@ -7853,7 +7849,7 @@ impl<'a> AgentData<'a> {
         let secondary = self.extract_ability(AbilityInput::Secondary);
         let abilities = [self.extract_ability(AbilityInput::Auxiliary(0))];
         let could_use_input = |input| match input {
-            InputKind::Primary => primary.as_ref().map_or(false, |p| {
+            InputKind::Primary => primary.as_ref().is_some_and(|p| {
                 p.could_use(
                     attack_data,
                     self,
@@ -7862,7 +7858,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Secondary => secondary.as_ref().map_or(false, |s| {
+            InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
                 s.could_use(
                     attack_data,
                     self,
@@ -7871,7 +7867,7 @@ impl<'a> AgentData<'a> {
                     AbilityPreferences::default(),
                 )
             }),
-            InputKind::Ability(x) => abilities[x].as_ref().map_or(false, |a| {
+            InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
                 a.could_use(
                     attack_data,
                     self,

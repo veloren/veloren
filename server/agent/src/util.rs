@@ -1,11 +1,11 @@
 use crate::data::{AbilityData, ActionMode, AgentData, AttackData, Path, ReadData, TargetData};
 use common::{
     comp::{
+        Agent, Alignment, Body, Controller, InputKind, Pos, Scale,
         ability::AbilityInput,
         agent::Psyche,
         buff::BuffKind,
-        item::{tool::AbilityContext, ItemDesc, ItemTag},
-        Agent, Alignment, Body, Controller, InputKind, Pos, Scale,
+        item::{ItemDesc, ItemTag, tool::AbilityContext},
     },
     consts::GRAVITY,
     terrain::Block,
@@ -24,7 +24,7 @@ pub fn is_dead_or_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool 
 
 pub fn is_dead(entity: EcsEntity, read_data: &ReadData) -> bool {
     let health = read_data.healths.get(entity);
-    health.map_or(false, |a| a.is_dead)
+    health.is_some_and(|a| a.is_dead)
 }
 
 // FIXME: The logic that is used in this function and throughout the code
@@ -32,7 +32,7 @@ pub fn is_dead(entity: EcsEntity, read_data: &ReadData) -> bool {
 pub fn is_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
     let buffs = read_data.buffs.get(entity);
 
-    buffs.map_or(false, |b| b.kinds[BuffKind::Invulnerability].is_some())
+    buffs.is_some_and(|b| b.kinds[BuffKind::Invulnerability].is_some())
 }
 
 /// Gets alignment of owner if alignment given is `Owned`.
@@ -123,14 +123,14 @@ pub fn entity_looks_like_cultist(entity: EcsEntity, read_data: &ReadData) -> boo
 
 // FIXME: `Alignment::Npc` doesn't necessarily mean villager.
 pub fn is_villager(alignment: Option<&Alignment>) -> bool {
-    alignment.map_or(false, |alignment| matches!(alignment, Alignment::Npc))
+    alignment.is_some_and(|alignment| matches!(alignment, Alignment::Npc))
 }
 
 pub fn is_village_guard(entity: EcsEntity, read_data: &ReadData) -> bool {
     read_data
         .stats
         .get(entity)
-        .map_or(false, |stats| stats.name == "Guard")
+        .is_some_and(|stats| stats.name == "Guard")
 }
 
 pub fn are_our_owners_hostile(
@@ -138,8 +138,8 @@ pub fn are_our_owners_hostile(
     their_alignment: Option<&Alignment>,
     read_data: &ReadData,
 ) -> bool {
-    try_owner_alignment(our_alignment, read_data).map_or(false, |our_owners_alignment| {
-        try_owner_alignment(their_alignment, read_data).map_or(false, |their_owners_alignment| {
+    try_owner_alignment(our_alignment, read_data).is_some_and(|our_owners_alignment| {
+        try_owner_alignment(their_alignment, read_data).is_some_and(|their_owners_alignment| {
             our_owners_alignment.hostile_towards(*their_owners_alignment)
         })
     })
@@ -179,16 +179,13 @@ pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadDa
 }
 
 pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
-    read_data
-        .inventories
-        .get(entity)
-        .map_or(false, |inventory| {
-            inventory
-                .equipped_items()
-                .filter(|item| item.tags().contains(&ItemTag::Cultist))
-                .count()
-                > 2
-        })
+    read_data.inventories.get(entity).is_some_and(|inventory| {
+        inventory
+            .equipped_items()
+            .filter(|item| item.tags().contains(&ItemTag::Cultist))
+            .count()
+            > 2
+    })
 }
 
 pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {
@@ -200,12 +197,12 @@ pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity
         .and_then(|damage_contributor| get_entity_by_id(damage_contributor.uid(), read_data))
 }
 
-impl<'a> AgentData<'a> {
+impl AgentData<'_> {
     pub fn has_buff(&self, read_data: &ReadData, buff: BuffKind) -> bool {
         read_data
             .buffs
             .get(*self.entity)
-            .map_or(false, |b| b.kinds[buff].is_some())
+            .is_some_and(|b| b.kinds[buff].is_some())
     }
 
     pub fn extract_ability(&self, input: AbilityInput) -> Option<AbilityData> {
@@ -360,7 +357,7 @@ pub fn handle_attack_aggression(
                         controller.push_basic_input(InputKind::Roll);
                         agent.combat_state.conditions[condition_rolling_breakthrough_index] = false;
                     }
-                    if tgt_data.char_state.map_or(false, |cs| cs.is_melee_attack()) {
+                    if tgt_data.char_state.is_some_and(|cs| cs.is_melee_attack()) {
                         controller.push_basic_input(InputKind::Block);
                     }
                 } else {

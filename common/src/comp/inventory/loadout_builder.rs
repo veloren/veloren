@@ -2,18 +2,18 @@ use crate::{
     assets::{self, AssetExt},
     calendar::{Calendar, CalendarEvent},
     comp::{
-        arthropod, biped_large, biped_small, bird_large, bird_medium, crustacean, golem,
+        Body, arthropod, biped_large, biped_small, bird_large, bird_medium, crustacean, golem,
         inventory::{
             loadout::Loadout,
             slot::{ArmorSlot, EquipSlot},
         },
         item::{self, Item},
-        object, quadruped_low, quadruped_medium, quadruped_small, theropod, Body,
+        object, quadruped_low, quadruped_medium, quadruped_small, theropod,
     },
     resources::{Time, TimeOfDay},
     trade::SiteInformation,
 };
-use rand::{self, distributions::WeightedError, seq::SliceRandom, Rng};
+use rand::{self, Rng, distributions::WeightedError, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 use tracing::warn;
@@ -417,9 +417,8 @@ impl LoadoutSpec {
             }
         }
 
-        match &self.inherit {
-            Some(base) => validate_base(base, history)?,
-            None => (),
+        if let Some(base) = &self.inherit {
+            validate_base(base, history)?
         }
 
         self.validate_entries()
@@ -538,7 +537,7 @@ pub fn make_food_bag(quantity: u32) -> Item {
 // We have many species so this function is long
 // Also we are using default tools for un-specified species so
 // it's fine to have wildcards
-#[allow(clippy::too_many_lines, clippy::match_wildcard_for_single_variants)]
+#[expect(clippy::too_many_lines, clippy::match_wildcard_for_single_variants)]
 fn default_main_tool(body: &Body) -> Item {
     let maybe_tool = match body {
         Body::Golem(golem) => match golem.species {
@@ -1046,7 +1045,7 @@ fn default_main_tool(body: &Body) -> Item {
 /// `ItemConfig`
 ///
 /// ```
-/// use veloren_common::{comp::Item, LoadoutBuilder};
+/// use veloren_common::{LoadoutBuilder, comp::Item};
 ///
 /// // Build a loadout with character starter defaults
 /// // and a specific sword with default sword abilities
@@ -1480,7 +1479,7 @@ impl LoadoutBuilder {
         // Panic if item doesn't correspond to slot
         assert!(
             item.as_ref()
-                .map_or(true, |item| equip_slot.can_hold(&item.kind()))
+                .is_none_or(|item| equip_slot.can_hold(&item.kind()))
         );
 
         // TODO: What if `with_equipment` is used twice for the same slot. Or defaults

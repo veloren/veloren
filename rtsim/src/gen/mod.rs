@@ -3,10 +3,10 @@ pub mod name;
 pub mod site;
 
 use crate::data::{
+    CURRENT_VERSION, Data, Nature,
     faction::Faction,
     npc::{Npc, Npcs, Profession},
     site::Site,
-    Data, Nature, CURRENT_VERSION,
 };
 use common::{
     comp::{self, Body},
@@ -19,9 +19,9 @@ use rand::prelude::*;
 use tracing::info;
 use vek::*;
 use world::{
+    CONFIG, IndexRef, World,
     site::SiteKind,
-    site2::{plot::PlotKindMeta, PlotKind},
-    IndexRef, World, CONFIG,
+    site2::{PlotKind, plot::PlotKindMeta},
 };
 
 impl Data {

@@ -68,7 +68,7 @@ pub fn is_mountable(
     rider: Option<&Body>,
     rider_mass: Option<&Mass>,
 ) -> bool {
-    let is_light_enough = rider_mass.map_or(false, |r| r.0 / mount_mass.0 < 0.7);
+    let is_light_enough = rider_mass.is_some_and(|r| r.0 / mount_mass.0 < 0.7);
 
     match mount {
         Body::Humanoid(_) => matches!(rider, Some(Body::BirdMedium(_))) && is_light_enough,

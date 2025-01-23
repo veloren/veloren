@@ -1,9 +1,9 @@
 use crate::{
     combat::GroupTarget,
     comp::{
+        CharacterState, StateUpdate,
         aura::{AuraBuffConstructor, AuraTarget, Auras},
         character_state::OutputEvents,
-        CharacterState, StateUpdate,
     },
     event::CreateAuraEntityEvent,
     resources::Secs,

@@ -16,7 +16,7 @@ pub use self::{
     shockwave::ShockwaveAnimation, stunned::StunnedAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::{
     comp::{self},
     states::utils::StageSection,

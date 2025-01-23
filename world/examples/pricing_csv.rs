@@ -8,9 +8,9 @@ use std::error::Error;
 use strum::IntoEnumIterator;
 use vek::Vec2;
 use veloren_world::{
-    index::Index,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     World,
+    index::Index,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
 
 fn good_pricing_csv(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {

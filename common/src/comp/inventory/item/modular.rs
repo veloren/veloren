@@ -1,8 +1,7 @@
 use super::{
-    armor,
-    tool::{self, AbilityMap, AbilitySpec, Hands, Tool},
     DurabilityMultiplier, Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, Material, Quality,
-    ToolKind,
+    ToolKind, armor,
+    tool::{self, AbilityMap, AbilitySpec, Hands, Tool},
 };
 use crate::{
     assets::{self, Asset, AssetExt, AssetHandle},
@@ -11,7 +10,7 @@ use crate::{
 use common_base::dev_panic;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use rand::{prelude::SliceRandom, Rng};
+use rand::{Rng, prelude::SliceRandom};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, sync::Arc};
 
@@ -155,11 +154,11 @@ impl ModularBase {
                                 .components()
                                 .iter()
                                 .find_map(|mat| match mat.kind() {
-                                    #[allow(deprecated)]
+                                    #[expect(deprecated)]
                                     Cow::Owned(ItemKind::Ingredient { descriptor, .. }) => {
                                         Some(Cow::Owned(descriptor))
                                     },
-                                    #[allow(deprecated)]
+                                    #[expect(deprecated)]
                                     Cow::Borrowed(ItemKind::Ingredient { descriptor, .. }) => {
                                         Some(Cow::Borrowed(descriptor.as_str()))
                                     },
@@ -586,7 +585,7 @@ pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
             .components()
             .iter()
             .find_map(|comp| match &*comp.kind() {
-                #[allow(deprecated)]
+                #[expect(deprecated)]
                 ItemKind::Ingredient { descriptor, .. } => Some(descriptor.to_owned()),
                 _ => None,
             })

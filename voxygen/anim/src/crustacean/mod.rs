@@ -18,7 +18,7 @@ pub use self::{
 
 use common::comp::{self};
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 
 pub type Body = comp::crustacean::Body;
 

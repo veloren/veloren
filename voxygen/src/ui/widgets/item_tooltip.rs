@@ -1,26 +1,26 @@
 use super::image_frame::ImageFrame;
 use crate::hud::{
-    get_quality_col,
+    HudInfo, get_quality_col,
     img_ids::Imgs,
-    item_imgs::{animate_by_pulse, ItemImgs},
-    util, HudInfo,
+    item_imgs::{ItemImgs, animate_by_pulse},
+    util,
 };
 use client::Client;
 use common::{
     comp::{
-        item::{
-            armor::Protection, item_key::ItemKey, modular::ModularComponent, Item, ItemDesc,
-            ItemI18n, ItemKind, ItemTag, MaterialStatManifest, Quality,
-        },
         Energy, Inventory,
+        item::{
+            Item, ItemDesc, ItemI18n, ItemKind, ItemTag, MaterialStatManifest, Quality,
+            armor::Protection, item_key::ItemKey, modular::ModularComponent,
+        },
     },
     recipe::RecipeBookManifest,
     trade::SitePrices,
 };
 use conrod_core::{
-    builder_method, builder_methods, image, input::global::Global, position::Dimension, text,
-    widget, widget_ids, Color, Colorable, FontSize, Positionable, Scalar, Sizeable, Ui, UiCell,
-    Widget, WidgetCommon, WidgetStyle,
+    Color, Colorable, FontSize, Positionable, Scalar, Sizeable, Ui, UiCell, Widget, WidgetCommon,
+    WidgetStyle, builder_method, builder_methods, image, input::global::Global,
+    position::Dimension, text, widget, widget_ids,
 };
 use i18n::Localization;
 use lazy_static::lazy_static;
@@ -203,7 +203,7 @@ pub struct ItemTooltipped<'a, W, I> {
     tooltip: &'a ItemTooltip<'a>,
 }
 
-impl<'a, W: Widget, I: Iterator> ItemTooltipped<'a, W, I> {
+impl<W: Widget, I: Iterator> ItemTooltipped<'_, W, I> {
     pub fn tooltip_image(mut self, img_id: image::Id) -> Self {
         self.img_id = Some(img_id);
         self
@@ -395,20 +395,20 @@ impl<'a> ItemTooltip<'a> {
         }
     }
 
-    /// Align the text to the left of its bounding **Rect**'s *x* axis range.
-    //pub fn left_justify(self) -> Self {
-    //    self.justify(text::Justify::Left)
-    //}
+    // /// Align the text to the left of its bounding **Rect**'s *x* axis range.
+    // pub fn left_justify(self) -> Self {
+    //     self.justify(text::Justify::Left)
+    // }
 
-    /// Align the text to the middle of its bounding **Rect**'s *x* axis range.
-    //pub fn center_justify(self) -> Self {
-    //    self.justify(text::Justify::Center)
-    //}
+    // // Align the text to the middle of its bounding **Rect**'s *x* axis range.
+    // pub fn center_justify(self) -> Self {
+    //     self.justify(text::Justify::Center)
+    // }
 
-    /// Align the text to the right of its bounding **Rect**'s *x* axis range.
-    //pub fn right_justify(self) -> Self {
-    //    self.justify(text::Justify::Right)
-    //}
+    // /// Align the text to the right of its bounding **Rect**'s *x* axis range.
+    // pub fn right_justify(self) -> Self {
+    //     self.justify(text::Justify::Right)
+    // }
 
     fn text_image_width(&self, total_width: f64) -> (f64, f64) {
         let inner_width = (total_width - H_PAD * 2.0).max(0.0);
@@ -442,7 +442,7 @@ impl<'a> ItemTooltip<'a> {
     }
 }
 
-impl<'a> Widget for ItemTooltip<'a> {
+impl Widget for ItemTooltip<'_> {
     type Event = ();
     type State = State;
     type Style = Style;
@@ -1386,6 +1386,6 @@ impl<'a> Widget for ItemTooltip<'a> {
     }
 }
 
-impl<'a> Colorable for ItemTooltip<'a> {
+impl Colorable for ItemTooltip<'_> {
     builder_method!(color { style.color = Some(Color) });
 }

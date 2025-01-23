@@ -1,5 +1,5 @@
 use super::*;
-use crate::{util::NEIGHBORS, Land};
+use crate::{Land, util::NEIGHBORS};
 use rand::prelude::*;
 use std::ops::{Add, Div, Mul};
 use vek::*;
@@ -150,7 +150,7 @@ impl Structure for Citadel {
                         .grid
                         .get(pos + dir)
                         .and_then(Option::as_ref)
-                        .map_or(true, |near| near.alt < cell.alt)
+                        .is_none_or(|near| near.alt < cell.alt)
                     {
                         let offset = wpos + CELL_SIZE / 2 + dir * CELL_SIZE / 2;
                         let rad = dir.map(|e| if e == 0 { CELL_SIZE / 2 + 1 } else { 1 });

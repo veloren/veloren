@@ -1,4 +1,4 @@
-use conrod_core::{widget, Position, Sizeable, Ui, UiCell, Widget, WidgetCommon};
+use conrod_core::{Position, Sizeable, Ui, UiCell, Widget, WidgetCommon, widget};
 use vek::*;
 
 #[derive(Clone, WidgetCommon)]
@@ -33,7 +33,7 @@ impl<S> PrimitiveMarker for widget::Oval<S> {}
 impl<I> PrimitiveMarker for widget::Polygon<I> {}
 impl PrimitiveMarker for widget::Rectangle {}
 impl<S, I> PrimitiveMarker for widget::Triangles<S, I> {}
-impl<'a> PrimitiveMarker for widget::Text<'a> {}
+impl PrimitiveMarker for widget::Text<'_> {}
 
 impl<P> Ingameable for P
 where

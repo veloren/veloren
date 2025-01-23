@@ -1,9 +1,9 @@
 use super::*;
 use crate::{
-    assets::AssetHandle,
-    site2::gen::{place_circular, place_circular_as_vec, PrimitiveTransform},
-    util::{sampler::Sampler, RandomField, DIAGONALS, LOCALITY, NEIGHBORS},
     Land,
+    assets::AssetHandle,
+    site2::gen::{PrimitiveTransform, place_circular, place_circular_as_vec},
+    util::{DIAGONALS, LOCALITY, NEIGHBORS, RandomField, sampler::Sampler},
 };
 use common::{
     generation::EntityInfo,

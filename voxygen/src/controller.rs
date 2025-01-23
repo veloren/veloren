@@ -4,7 +4,7 @@
 use crate::{
     game_input::GameInput, settings::gamepad::con_settings::LayerEntry, window::MenuInput,
 };
-use gilrs::{ev::Code as GilCode, Axis as GilAxis, Button as GilButton};
+use gilrs::{Axis as GilAxis, Button as GilButton, ev::Code as GilCode};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 

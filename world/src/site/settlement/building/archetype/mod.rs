@@ -2,7 +2,7 @@ pub mod house;
 pub mod keep;
 
 use super::skeleton::*;
-use crate::{site::BlockMask, IndexRef};
+use crate::{IndexRef, site::BlockMask};
 use common::calendar::Calendar;
 use rand::prelude::*;
 use serde::Deserialize;

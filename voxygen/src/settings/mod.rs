@@ -21,7 +21,7 @@ pub use chat::ChatSettings;
 pub use control::ControlSettings;
 pub use gamepad::GamepadSettings;
 pub use gameplay::GameplaySettings;
-pub use graphics::{get_fps, Fps, GraphicsSettings};
+pub use graphics::{Fps, GraphicsSettings, get_fps};
 pub use interface::InterfaceSettings;
 pub use language::LanguageSettings;
 pub use networking::NetworkingSettings;

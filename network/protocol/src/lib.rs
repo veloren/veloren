@@ -70,7 +70,7 @@ pub use metrics::ProtocolMetrics;
 pub use mpsc::{MpscMsg, MpscRecvProtocol, MpscSendProtocol};
 pub use quic::{QuicDataFormat, QuicDataFormatStream, QuicRecvProtocol, QuicSendProtocol};
 pub use tcp::{TcpRecvProtocol, TcpSendProtocol};
-pub use types::{Bandwidth, Cid, Pid, Prio, Promises, Sid, HIGHEST_PRIO, VELOREN_NETWORK_VERSION};
+pub use types::{Bandwidth, Cid, HIGHEST_PRIO, Pid, Prio, Promises, Sid, VELOREN_NETWORK_VERSION};
 
 ///use at own risk, might change any time, for internal benchmarks
 pub mod _internal {

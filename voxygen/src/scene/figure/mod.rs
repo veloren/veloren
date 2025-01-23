@@ -10,43 +10,43 @@ pub use volume::VolumeKey;
 use crate::{
     ecs::comp::Interpolated,
     render::{
-        pipelines::{
-            self,
-            terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
-            trail, AtlasData, AtlasTextures, FigureSpriteAtlasData,
-        },
         AltIndices, CullingMode, FigureBoneData, FigureDrawer, FigureLocals, FigureModel,
         FigureShadowDrawer, Instances, Mesh, Quad, RenderError, Renderer, SpriteDrawer,
         SpriteInstance, SubModel, TerrainVertex,
+        pipelines::{
+            self, AtlasData, AtlasTextures, FigureSpriteAtlasData,
+            terrain::{BoundLocals as BoundTerrainLocals, Locals as TerrainLocals},
+            trail,
+        },
     },
     scene::{
+        RAIN_THRESHOLD, SceneData, TrailMgr,
         camera::{Camera, CameraMode, Dependents},
         math,
         terrain::Terrain,
-        SceneData, TrailMgr, RAIN_THRESHOLD,
     },
 };
 #[cfg(feature = "plugins")]
 use anim::plugin::PluginSkeleton;
 use anim::{
-    arthropod::ArthropodSkeleton, biped_large::BipedLargeSkeleton, biped_small::BipedSmallSkeleton,
-    bird_large::BirdLargeSkeleton, bird_medium::BirdMediumSkeleton, character::CharacterSkeleton,
-    crustacean::CrustaceanSkeleton, dragon::DragonSkeleton, fish_medium::FishMediumSkeleton,
-    fish_small::FishSmallSkeleton, golem::GolemSkeleton, item_drop::ItemDropSkeleton,
-    object::ObjectSkeleton, quadruped_low::QuadrupedLowSkeleton,
-    quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton,
-    ship::ShipSkeleton, theropod::TheropodSkeleton, Animation, Skeleton,
+    Animation, Skeleton, arthropod::ArthropodSkeleton, biped_large::BipedLargeSkeleton,
+    biped_small::BipedSmallSkeleton, bird_large::BirdLargeSkeleton,
+    bird_medium::BirdMediumSkeleton, character::CharacterSkeleton, crustacean::CrustaceanSkeleton,
+    dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
+    golem::GolemSkeleton, item_drop::ItemDropSkeleton, object::ObjectSkeleton,
+    quadruped_low::QuadrupedLowSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
+    quadruped_small::QuadrupedSmallSkeleton, ship::ShipSkeleton, theropod::TheropodSkeleton,
 };
 use common::{
     comp::{
-        body::parts::HeadState,
-        inventory::slot::EquipSlot,
-        item::{armor::ArmorKind, Hands, ItemKind, ToolKind},
-        ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
-        slot::ArmorSlot,
         Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, ItemKey,
         Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem, PoiseState, Pos,
         Scale, Vel,
+        body::parts::HeadState,
+        inventory::slot::EquipSlot,
+        item::{Hands, ItemKind, ToolKind, armor::ArmorKind},
+        ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
+        slot::ArmorSlot,
     },
     interaction::InteractionKind,
     link::Is,
@@ -70,8 +70,8 @@ use core::{
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use specs::{
-    shred, Entities, Entity as EcsEntity, Join, LazyUpdate, LendJoin, ReadExpect, ReadStorage,
-    SystemData, WorldExt,
+    Entities, Entity as EcsEntity, Join, LazyUpdate, LendJoin, ReadExpect, ReadStorage, SystemData,
+    WorldExt, shred,
 };
 use std::sync::Arc;
 use treeculler::{BVol, BoundingSphere};
@@ -579,7 +579,7 @@ struct FigureUpdateData<'a, CSS, COR> {
     focus_pos: anim::vek::Vec3<f32>,
 }
 
-impl<'a> FigureReadData<'a> {
+impl FigureReadData<'_> {
     pub fn get_entity(&self, entity: EcsEntity) -> Option<FigureUpdateParams> {
         Some(FigureUpdateParams {
             entity,
@@ -911,7 +911,7 @@ impl FigureMgr {
                     )
                 })
             {
-                light_anim.offset = vek::Vec3::from(lantern_offset);
+                light_anim.offset = lantern_offset;
             } else if let Some(body) = body {
                 light_anim.offset = body.default_light_offset();
             }
@@ -986,9 +986,7 @@ impl FigureMgr {
 
             let weather = scene_data.client.weather_at_player();
 
-            let cam_pos = math::Vec3::from(cam_pos);
-
-            let focus_off = math::Vec3::from(camera.get_focus_pos().map(f32::trunc));
+            let focus_off = camera.get_focus_pos().map(f32::trunc);
             let focus_off_mat = math::Mat4::translation_3d(-focus_off);
 
             let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
@@ -1003,7 +1001,6 @@ impl FigureMgr {
             let can_shadow = |ray_direction: Vec3<f32>,
                               enabled: bool,
                               visible_bounds: math::Aabr<f32>| {
-                let ray_direction = math::Vec3::from(ray_direction);
                 // Transform (semi) world space to light space.
                 let ray_mat: math::Mat4<f32> =
                     math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::unit_y());
@@ -1041,14 +1038,14 @@ impl FigureMgr {
         let player_pos = read_data
             .positions
             .get(scene_data.viewpoint_entity)
-            .map_or(anim::vek::Vec3::zero(), |pos| anim::vek::Vec3::from(pos.0));
+            .map_or(anim::vek::Vec3::zero(), |pos| pos.0);
         let visible_aabb = anim::vek::Aabb {
             min: player_pos - 2.0,
             max: player_pos + 2.0,
         };
         let slow_jobs = state.slow_job_pool();
 
-        let focus_pos = anim::vek::Vec3::<f32>::from(camera.get_focus_pos());
+        let focus_pos = camera.get_focus_pos();
 
         let mut data = FigureUpdateData {
             #[cfg(feature = "plugins")]
@@ -1117,9 +1114,7 @@ impl FigureMgr {
 
             let pos = entity_data
                 .interpolated
-                .map_or(anim::vek::Vec3::<f32>::from(entity_data.pos.0), |i| {
-                    anim::vek::Vec3::from(i.pos)
-                });
+                .map_or(entity_data.pos.0, |i| i.pos);
 
             // Maintaining figure data and sending new figure data to the GPU turns out to
             // be a very expensive operation. We want to avoid doing it as much
@@ -1198,8 +1193,7 @@ impl FigureMgr {
         let update_buf = &mut *data.update_buf;
 
         // Velocity relative to the current ground
-        let rel_vel =
-            anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel) / scale.map_or(1.0, |s| s.0);
+        let rel_vel = (vel.0 - physics.ground_vel) / scale.map_or(1.0, |s| s.0);
 
         // Priortise CharacterActivity as the source of the look direction
         let look_dir = character_activity.and_then(|ca| ca.look_dir)
@@ -1217,17 +1211,9 @@ impl FigureMgr {
         let viewpoint_character_state = if is_viewpoint { character } else { None };
 
         let (pos, ori) = interpolated
-            .map(|i| {
-                (
-                    (anim::vek::Vec3::from(i.pos),),
-                    anim::vek::Quaternion::<f32>::from(i.ori),
-                )
-            })
-            .unwrap_or((
-                (anim::vek::Vec3::<f32>::from(pos.0),),
-                anim::vek::Quaternion::<f32>::default(),
-            ));
-        let wall_dir = physics.on_wall.map(anim::vek::Vec3::from);
+            .map(|i| ((i.pos,), anim::vek::Quaternion::<f32>::from(i.ori)))
+            .unwrap_or(((pos.0,), anim::vek::Quaternion::<f32>::default()));
+        let wall_dir = physics.on_wall;
 
         // Check whether we could have been shadowing last frame.
         let mut state = self.states.get_mut(body, &entity);
@@ -1238,10 +1224,7 @@ impl FigureMgr {
 
         // Don't process figures outside the vd
         let vd_frac = anim::vek::Vec2::from(pos.0 - data.player_pos)
-            .map2(
-                anim::vek::Vec2::<u32>::from(TerrainChunk::RECT_SIZE),
-                |d: f32, sz| d.abs() / sz as f32,
-            )
+            .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| d.abs() / sz as f32)
             .magnitude()
             / data.view_distance as f32;
 
@@ -1380,10 +1363,7 @@ impl FigureMgr {
                     0
                 };
 
-                Some((
-                    anim::vek::Transform::default(),
-                    anim::vek::Vec3::from(mat.mul_point(Vec3::zero())),
-                ))
+                Some((anim::vek::Transform::default(), mat.mul_point(Vec3::zero())))
             } else {
                 None
             }
@@ -1428,14 +1408,14 @@ impl FigureMgr {
                 );
 
                 let holding_lantern = inventory
-                    .map_or(false, |i| i.equipped(EquipSlot::Lantern).is_some())
+                    .is_some_and(|i| i.equipped(EquipSlot::Lantern).is_some())
                     && light_emitter.is_some()
                     && ((second_tool_hand.is_none()
                         && matches!(active_tool_hand, Some(Hands::One)))
-                        || !character.map_or(false, |c| c.is_wield()))
-                    && !character.map_or(false, |c| c.is_using_hands())
+                        || !character.is_some_and(|c| c.is_wield()))
+                    && !character.is_some_and(|c| c.is_using_hands())
                     && physics.in_liquid().is_none()
-                    && is_volume_rider.map_or(true, |volume_rider| {
+                    && is_volume_rider.is_none_or(|volume_rider| {
                         !matches!(volume_rider.block.get_sprite(), Some(SpriteKind::Helm))
                     });
 
@@ -1823,11 +1803,9 @@ impl FigureMgr {
                                 .id_maps
                                 .uid_entity(target)
                                 .and_then(|target| read_data.positions.get(target))
-                                .map(|pos| anim::vek::Vec3::from(pos.0))
+                                .map(|pos| pos.0)
                                 .unwrap_or(pos.0),
-                            interact::InteractKind::Sprite { pos, .. } => {
-                                anim::vek::Vec3::from(pos.as_() + 0.5)
-                            },
+                            interact::InteractKind::Sprite { pos, .. } => pos.as_() + 0.5,
                         };
                         let stage_progress = match s.stage_section {
                             StageSection::Buildup => {
@@ -6849,7 +6827,7 @@ impl FigureMgr {
         ) {
             let healths = state.read_storage::<Health>();
             let health = healths.get(viewpoint_entity);
-            if health.map_or(false, |h| h.is_dead) {
+            if health.is_some_and(|h| h.is_dead) {
                 return;
             }
 
@@ -6890,7 +6868,6 @@ impl FigureMgr {
         }
     }
 
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn get_model_for_render(
         &self,
         tick: u64,
@@ -7704,7 +7681,6 @@ impl FigureMgr {
                     }
                 },
             })
-            .map(|viewpoint| viewpoint.into())
             .unwrap_or_else(Vec3::zero)
     }
 
@@ -7979,7 +7955,7 @@ impl FigureData for BoundTerrainLocals {
 
     fn update(&mut self, renderer: &mut Renderer, parameters: &FigureUpdateCommonParameters) {
         renderer.update_consts(self, &[TerrainLocals::new(
-            parameters.pos.into(),
+            parameters.pos,
             parameters.ori.into_vec4().into(),
             Vec2::zero(),
             0.0,

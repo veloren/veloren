@@ -19,7 +19,7 @@ pub mod terrain_sync;
 pub mod waypoint;
 pub mod wiring;
 
-use common_ecs::{dispatch, run_now, System};
+use common_ecs::{System, dispatch, run_now};
 use common_systems::{melee, projectile};
 use specs::DispatcherBuilder;
 use std::{

@@ -1,5 +1,5 @@
-use crate::rtsim::{event::OnBlockChange, ChunkStates};
-use common::terrain::{sprite, Block, CoordinateConversions};
+use crate::rtsim::{ChunkStates, event::OnBlockChange};
+use common::terrain::{Block, CoordinateConversions, sprite};
 use rtsim::{RtState, Rule, RuleError};
 
 pub struct DepleteResources;

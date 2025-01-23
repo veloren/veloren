@@ -1,12 +1,12 @@
-use bitvec::prelude::{bitbox, BitBox};
+use bitvec::prelude::{BitBox, bitbox};
 use common::{
-    terrain::{neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx, MapSizeLg, TerrainChunkSize},
+    terrain::{MapSizeLg, TerrainChunkSize, neighbors, uniform_idx_as_vec2, vec2_as_uniform_idx},
     vol::RectVolSize,
 };
 use common_base::prof_span;
 use noise::{
-    core::worley::*, math::vectors::*, permutationtable::PermutationTable, MultiFractal, NoiseFn,
-    Seedable,
+    MultiFractal, NoiseFn, Seedable, core::worley::*, math::vectors::*,
+    permutationtable::PermutationTable,
 };
 use num::Float;
 use rayon::prelude::*;
@@ -367,7 +367,7 @@ pub fn get_oceans<F: Float>(map_size_lg: MapSizeLg, oldh: impl Fn(usize) -> F + 
 }
 
 /// Finds the horizon map for sunlight for the given chunks.
-#[allow(clippy::result_unit_err)]
+#[expect(clippy::result_unit_err)]
 pub fn get_horizon_map<F: Float + Sync, A: Send, H: Send>(
     map_size_lg: MapSizeLg,
     bounds: Aabr<i32>,
@@ -542,7 +542,7 @@ where
 
     pub fn set_offset(self, offset: f64) -> Self { Self { offset, ..self } }
 
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub fn set_sources(self, sources: Vec<T>) -> Self { Self { sources, ..self } }
     /*fn calc_scale_factor(persistence: f64, octaves: usize) -> f64 {
         let mut result = persistence;
@@ -873,7 +873,7 @@ impl Worley {
 
     /// Enables or disables applying the distance from the nearest seed point
     /// to the output value.
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub fn set_return_type(self, return_type: ReturnType) -> Self {
         Self {
             return_type,
@@ -930,7 +930,6 @@ impl NoiseFn<f64, 3> for Worley {
     }
 }
 
-#[allow(clippy::cognitive_complexity)]
 impl NoiseFn<f64, 4> for Worley {
     fn get(&self, point: [f64; 4]) -> f64 {
         worley_4d(

@@ -1,7 +1,7 @@
 use super::{
     super::{AaMode, Bound, Consts, GlobalsLayouts, Mesh, Model},
-    terrain::Vertex,
     AtlasData,
+    terrain::Vertex,
 };
 use crate::mesh::greedy::GreedyMesh;
 use bytemuck::{Pod, Zeroable};

@@ -1,9 +1,9 @@
-#![allow(clippy::clone_on_copy)] // TODO: fix after wgpu branch
+#![expect(clippy::clone_on_copy)] // TODO: fix after wgpu branch
 
 use crate::{
     mesh::{
-        greedy::{self, GreedyConfig, GreedyMesh},
         MeshGen,
+        greedy::{self, GreedyConfig, GreedyMesh},
     },
     render::{AltIndices, FluidVertex, Mesh, TerrainAtlasData, TerrainVertex, Vertex},
     scene::terrain::{BlocksOfInterest, DEEP_ALT, SHALLOW_ALT},
@@ -99,11 +99,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                      vol: &mut CachedVolGrid2d<V>| {
         if *dest != OPAQUE {
             if *dest == UNKNOWN {
-                if vol
-                    .get(outer.min + pos)
-                    .ok()
-                    .map_or(false, |b| b.is_fluid())
-                {
+                if vol.get(outer.min + pos).ok().is_some_and(|b| b.is_fluid()) {
                     *dest = src.saturating_sub(1);
                     // Can't propagate further
                     if *dest > 1 {
@@ -225,7 +221,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn generate_mesh<'a>(
     vol: &'a VolGrid2d<TerrainChunk>,
     (range, max_texture_size, _boi): (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest),

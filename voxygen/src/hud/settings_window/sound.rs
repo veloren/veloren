@@ -1,16 +1,16 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
-    hud::{img_ids::Imgs, TEXT_COLOR, TEXT_COLOR_GREY},
-    session::settings_change::{Audio as AudioChange, Audio::*},
-    ui::{fonts::Fonts, ImageSlider, ToggleButton},
     GlobalState,
+    hud::{TEXT_COLOR, TEXT_COLOR_GREY, img_ids::Imgs},
+    session::settings_change::{Audio as AudioChange, Audio::*},
+    ui::{ImageSlider, ToggleButton, fonts::Fonts},
 };
 use conrod_core::{
-    color,
+    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::{Align, Relative},
     widget::{self, Button, Rectangle, Scrollbar, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
@@ -80,7 +80,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Sound<'a> {
+impl Widget for Sound<'_> {
     type Event = Vec<AudioChange>;
     type State = State;
     type Style = ();

@@ -1,23 +1,23 @@
 use super::{
-    cr_color, img_ids::Imgs, DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER,
-    HP_COLOR, LOW_HP_COLOR, QUALITY_EPIC, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR,
-    TEXT_BG, TEXT_COLOR,
+    DEFAULT_NPC, ENEMY_HP_COLOR, FACTION_COLOR, GROUP_COLOR, GROUP_MEMBER, HP_COLOR, LOW_HP_COLOR,
+    QUALITY_EPIC, REGION_COLOR, SAY_COLOR, STAMINA_COLOR, TELL_COLOR, TEXT_BG, TEXT_COLOR,
+    cr_color, img_ids::Imgs,
 };
 use crate::{
     game_input::GameInput,
     hud::BuffIcon,
     settings::{ControlSettings, InterfaceSettings},
-    ui::{fonts::Fonts, Ingameable},
+    ui::{Ingameable, fonts::Fonts},
 };
 use common::{
     comp::{Buffs, Energy, Health, SpeechBubble, SpeechBubbleType, Stance},
     resources::Time,
 };
 use conrod_core::{
-    color,
+    Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::Align,
     widget::{self, Image, Rectangle, RoundedRectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use keyboard_keynames::key_layout::KeyLayout;
@@ -108,7 +108,6 @@ pub struct Overhead<'a> {
 }
 
 impl<'a> Overhead<'a> {
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
         info: Option<Info<'a>>,
         bubble: Option<&'a SpeechBubble>,
@@ -145,7 +144,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Ingameable for Overhead<'a> {
+impl Ingameable for Overhead<'_> {
     fn prim_count(&self) -> usize {
         // Number of conrod primitives contained in the overhead display. TODO maybe
         // this could be done automatically?
@@ -179,18 +178,18 @@ impl<'a> Ingameable for Overhead<'a> {
                 } else {
                     0
                 }
-                + if info.health.map_or(false, should_show_healthbar) {
+                + if info.health.is_some_and(should_show_healthbar) {
                     5 + usize::from(info.energy.is_some()) + usize::from(info.hardcore)
                 } else {
                     0
                 }
-                + usize::from(info.health.map_or(false, decayed_health_displayed))
+                + usize::from(info.health.is_some_and(decayed_health_displayed))
                 + (!self.interaction_options.is_empty()) as usize * 2
         }) + if self.bubble.is_some() { 13 } else { 0 }
     }
 }
 
-impl<'a> Widget for Overhead<'a> {
+impl Widget for Overhead<'_> {
     type Event = ();
     type State = State;
     type Style = ();
@@ -294,7 +293,7 @@ impl<'a> Widget for Overhead<'a> {
                             0.0 + x as f64 * (21.0),
                         );
                         buff_widget
-                            .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                            .color(if current_duration.is_some_and(|cur| cur < 10.0) {
                                 Some(pulsating_col)
                             } else {
                                 Some(norm_col)
@@ -522,7 +521,7 @@ impl<'a> Widget for Overhead<'a> {
                     .parent(id)
                     .down_from(
                         self.info.map_or(state.ids.name, |info| {
-                            if info.health.map_or(false, should_show_healthbar) {
+                            if info.health.is_some_and(should_show_healthbar) {
                                 if info.energy.is_some() {
                                     state.ids.mana_bar
                                 } else {

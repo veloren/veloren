@@ -1,7 +1,7 @@
 use conrod_core::{
-    builder_methods, text,
+    Color, FontSize, Positionable, Sizeable, Widget, WidgetCommon, builder_methods, text,
     widget::{self, Text},
-    widget_ids, Color, FontSize, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 
 #[derive(Clone, WidgetCommon)]
@@ -56,7 +56,7 @@ impl<'a> OutlinedText<'a> {
     }
 }
 
-impl<'a> Widget for OutlinedText<'a> {
+impl Widget for OutlinedText<'_> {
     type Event = ();
     type State = State;
     type Style = ();

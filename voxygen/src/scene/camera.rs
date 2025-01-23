@@ -1,7 +1,7 @@
 use common::{terrain::TerrainGrid, vol::ReadVol};
 use common_base::span;
 use core::{f32::consts::PI, fmt::Debug, ops::Range};
-use num::traits::{real::Real, FloatConst};
+use num::traits::{FloatConst, real::Real};
 use treeculler::Frustum;
 use vek::*;
 

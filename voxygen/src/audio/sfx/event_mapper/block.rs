@@ -1,9 +1,9 @@
 /// EventMapper::Block watches the sound emitting blocks within
 /// chunk range of the player and emits ambient sfx
 use crate::{
-    audio::sfx::{SfxEvent, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
-    scene::{terrain::BlocksOfInterest, Camera, Terrain},
     AudioFrontend,
+    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
+    scene::{Camera, Terrain, terrain::BlocksOfInterest},
 };
 
 use super::EventMapper;
@@ -11,7 +11,7 @@ use client::Client;
 use common::{comp::Pos, spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 use common_state::State;
 use hashbrown::HashMap;
-use rand::{prelude::*, seq::SliceRandom, thread_rng, Rng};
+use rand::{Rng, prelude::*, seq::SliceRandom, thread_rng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
 use vek::*;

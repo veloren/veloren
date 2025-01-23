@@ -1,8 +1,7 @@
 #![deny(unsafe_code)]
-#![allow(
+#![expect(
     clippy::option_map_unit_fn,
-    clippy::blocks_in_conditions,
-    clippy::needless_pass_by_ref_mut //until we find a better way for specs
+    clippy::needless_pass_by_ref_mut // until we find a better way for specs
 )]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
@@ -82,8 +81,8 @@ use common::{
     cmd::ServerChatCommand,
     comp,
     event::{
-        register_event_busses, ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent,
-        EventBus, ExitIngameEvent, UpdateCharacterDataEvent,
+        ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent, EventBus, ExitIngameEvent,
+        UpdateCharacterDataEvent, register_event_busses,
     },
     link::Is,
     mounting::{Volume, VolumeRider},
@@ -113,7 +112,7 @@ use persistence::{
 use prometheus::Registry;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
 use specs::{
-    shred::SendDispatcher, Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt,
+    Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt, shred::SendDispatcher,
 };
 use std::{
     ops::{Deref, DerefMut},
@@ -126,7 +125,7 @@ use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace, warn};
 use vek::*;
 use veloren_query_server::server::QueryServer;
-pub use world::{civ::WorldCivStage, sim::WorldSimStage, WorldGenerateStage};
+pub use world::{WorldGenerateStage, civ::WorldCivStage, sim::WorldSimStage};
 
 use crate::{
     persistence::{DatabaseSettings, SqlLogMode},
@@ -140,15 +139,15 @@ use crate::settings::Protocol;
 #[cfg(feature = "plugins")]
 use {
     common::uid::IdMaps,
-    common_state::plugin::{memory_manager::EcsWorld, PluginMgr},
+    common_state::plugin::{PluginMgr, memory_manager::EcsWorld},
 };
 
 use crate::{chat::ChatCache, persistence::character_loader::CharacterScreenResponseKind};
 use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
 pub use world::{
-    sim::{FileOpts, GenOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     IndexOwned, World,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, GenOpts, WorldOpts},
 };
 
 /// SpawnPoint corresponds to the default location that players are positioned
@@ -553,7 +552,7 @@ impl Server {
 
                     match || -> Result<_, Box<dyn std::error::Error>> {
                         let key = fs::read(key_file_path)?;
-                        let key = if key_file_path.extension().map_or(false, |x| x == "der") {
+                        let key = if key_file_path.extension().is_some_and(|x| x == "der") {
                             PrivateKeyDer::try_from(key).map_err(|_| "No valid pem key in file")?
                         } else {
                             debug!("convert pem key to der");
@@ -574,8 +573,7 @@ impl Server {
                                 .ok_or("No valid pem key in file")?
                         };
                         let cert_chain = fs::read(cert_file_path)?;
-                        let cert_chain = if cert_file_path.extension().map_or(false, |x| x == "der")
-                        {
+                        let cert_chain = if cert_file_path.extension().is_some_and(|x| x == "der") {
                             vec![CertificateDer::from(cert_chain)]
                         } else {
                             debug!("convert pem cert to der");

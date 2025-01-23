@@ -74,7 +74,7 @@ impl<V, M, A: Access> SizedVol for Dyna<V, M, A> {
     fn upper_bound(&self) -> Vec3<i32> { self.sz.map(|e| e as i32) }
 }
 
-impl<'a, V, M, A: Access> SizedVol for &'a Dyna<V, M, A> {
+impl<V, M, A: Access> SizedVol for &Dyna<V, M, A> {
     #[inline(always)]
     fn lower_bound(&self) -> Vec3<i32> { (*self).lower_bound() }
 
@@ -101,7 +101,7 @@ impl<V, M, A: Access> WriteVol for Dyna<V, M, A> {
     }
 }
 
-impl<'a, V, M, A: Access> IntoPosIterator for &'a Dyna<V, M, A> {
+impl<V, M, A: Access> IntoPosIterator for &Dyna<V, M, A> {
     type IntoIter = DefaultPosIterator;
 
     fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {

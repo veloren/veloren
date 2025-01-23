@@ -1,6 +1,6 @@
-use super::super::{super::Rotation, style, IcedRenderer, Primitive};
+use super::super::{super::Rotation, IcedRenderer, Primitive, style};
 use common::util::srgba_to_linear;
-use iced::{container, Element, Layout, Point, Rectangle};
+use iced::{Element, Layout, Point, Rectangle, container};
 use style::container::Border;
 use vek::Rgba;
 

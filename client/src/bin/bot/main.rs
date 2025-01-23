@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};
 use tokio::runtime::Runtime;
 use tracing::{info, trace, warn};
-use veloren_client::{addr::ConnectionArgs, Client, ClientType};
+use veloren_client::{Client, ClientType, addr::ConnectionArgs};
 
 mod settings;
 mod tui;

@@ -1,35 +1,35 @@
 use super::{
-    cr_color,
+    CRITICAL_HP_COLOR, HudInfo, LOW_HP_COLOR, Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, cr_color,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
     slots::{ArmorSlot, EquipSlot, InventorySlot, SlotManager},
-    util, HudInfo, Show, CRITICAL_HP_COLOR, LOW_HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    util,
 };
 use crate::{
+    GlobalState,
     game_input::GameInput,
     ui::{
-        fonts::Fonts,
-        slot::{ContentSize, SlotMaker},
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
+        fonts::Fonts,
+        slot::{ContentSize, SlotMaker},
     },
-    GlobalState,
 };
 use client::Client;
 use common::{
     assets::AssetExt,
-    combat::{combat_rating, perception_dist_multiplier_from_stealth, Damage},
+    combat::{Damage, combat_rating, perception_dist_multiplier_from_stealth},
     comp::{
-        inventory::{slot::Slot, InventorySortOrder},
-        item::{ItemDef, ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         Body, Energy, Health, Inventory, Poise, SkillSet, Stats,
+        inventory::{InventorySortOrder, slot::Slot},
+        item::{ItemDef, ItemDesc, ItemI18n, MaterialStatManifest, Quality},
     },
     recipe::RecipeBookManifest,
 };
 use conrod_core::{
-    color,
+    Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, State as ConrodState, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use std::borrow::Cow;
@@ -97,7 +97,7 @@ pub struct InventoryScroller<'a> {
 }
 
 impl<'a> InventoryScroller<'a> {
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
         imgs: &'a Imgs,
@@ -427,7 +427,7 @@ impl<'a> InventoryScroller<'a> {
                 slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
             }
 
-            if self.show_salvage && item.as_ref().map_or(false, |item| item.is_salvageable()) {
+            if self.show_salvage && item.as_ref().is_some_and(|item| item.is_salvageable()) {
                 slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
             }
 
@@ -573,7 +573,7 @@ impl<'a> InventoryScroller<'a> {
     }
 }
 
-impl<'a> Widget for InventoryScroller<'a> {
+impl Widget for InventoryScroller<'_> {
     type Event = ();
     type State = InventoryScrollerState;
     type Style = ();
@@ -682,7 +682,7 @@ pub struct Bag<'a> {
 }
 
 impl<'a> Bag<'a> {
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
         info: &'a HudInfo,
@@ -756,7 +756,7 @@ pub enum Event {
     SetDetailsMode(bool),
 }
 
-impl<'a> Widget for Bag<'a> {
+impl Widget for Bag<'_> {
     type Event = Option<Event>;
     type State = BagState;
     type Style = ();
@@ -798,10 +798,7 @@ impl<'a> Widget for Bag<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
         let inventories = self.client.inventories();
-        let inventory = match inventories.get(self.info.viewpoint_entity) {
-            Some(l) => l,
-            None => return None,
-        };
+        let inventory = inventories.get(self.info.viewpoint_entity)?;
 
         // Tooltips
         let tooltip = Tooltip::new({

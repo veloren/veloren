@@ -1,10 +1,10 @@
 use crate::{
     mesh::{
+        MeshGen,
         greedy::{self, GreedyConfig, GreedyMesh},
         terrain::FaceKind,
-        MeshGen,
     },
-    render::{pipelines::FigureSpriteAtlasData, Mesh, ParticleVertex, SpriteVertex, TerrainVertex},
+    render::{Mesh, ParticleVertex, SpriteVertex, TerrainVertex, pipelines::FigureSpriteAtlasData},
     scene::math,
 };
 use common::{
@@ -104,8 +104,8 @@ where
     });
     let bounds = math::Aabb {
         // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
-        min: math::Vec3::from((lower_bound.as_::<f32>() + offs) * scale),
-        max: math::Vec3::from((upper_bound.as_::<f32>() + offs) * scale),
+        min: ((lower_bound.as_::<f32>() + offs) * scale),
+        max: ((upper_bound.as_::<f32>() + offs) * scale),
     }
     .made_valid();
 
@@ -154,9 +154,8 @@ where
 
     let get_light =
         |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| vox.is_fluid()) as i32 as f32;
-    let get_ao = |vol: &mut V, pos: Vec3<i32>| {
-        vol.get(pos).map_or(false, |vox| vox.is_opaque()) as i32 as f32
-    };
+    let get_ao =
+        |vol: &mut V, pos: Vec3<i32>| vol.get(pos).is_ok_and(|vox| vox.is_opaque()) as i32 as f32;
     let get_glow = |vol: &mut V, pos: Vec3<i32>| {
         vol.get(pos)
             .ok()
@@ -210,8 +209,8 @@ where
     });
     let bounds = math::Aabb {
         // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
-        min: math::Vec3::from((lower_bound.as_::<f32>() + offs) * scale),
-        max: math::Vec3::from((upper_bound.as_::<f32>() + offs) * scale),
+        min: ((lower_bound.as_::<f32>() + offs) * scale),
+        max: ((upper_bound.as_::<f32>() + offs) * scale),
     }
     .made_valid();
 

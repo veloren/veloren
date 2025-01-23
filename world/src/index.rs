@@ -1,7 +1,7 @@
 use crate::{
-    layer::wildlife::{self, DensityFn, SpawnEntry},
-    site::{economy::TradeInformation, Site},
     Colors, Features,
+    layer::wildlife::{self, DensityFn, SpawnEntry},
+    site::{Site, economy::TradeInformation},
 };
 use common::{
     assets::{AssetExt, AssetHandle},
@@ -54,7 +54,7 @@ pub struct IndexRef<'a> {
     pub index: &'a Index,
 }
 
-impl<'a> Deref for IndexRef<'a> {
+impl Deref for IndexRef<'_> {
     type Target = Index;
 
     fn deref(&self) -> &Self::Target { self.index }

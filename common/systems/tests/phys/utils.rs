@@ -1,8 +1,8 @@
 use common::{
     comp::{
-        inventory::item::MaterialStatManifest, tool::AbilityMap, Auras, Buffs, CharacterActivity,
-        CharacterState, Collider, Combo, Controller, Energy, EnteredAuras, Health, Ori, Pos, Stats,
-        Vel,
+        Auras, Buffs, CharacterActivity, CharacterState, Collider, Combo, Controller, Energy,
+        EnteredAuras, Health, Ori, Pos, Stats, Vel, inventory::item::MaterialStatManifest,
+        tool::AbilityMap,
     },
     resources::{DeltaTime, GameMode, Time},
     shared_server_config::ServerConstants,
@@ -11,7 +11,7 @@ use common::{
         Block, BlockKind, MapSizeLg, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainGrid,
     },
 };
-use common_ecs::{dispatch, System};
+use common_ecs::{System, dispatch};
 use common_net::sync::WorldSyncExt;
 use common_state::State;
 use rand::{prelude::*, rngs::SmallRng};
@@ -137,7 +137,7 @@ pub fn create_player(state: &mut State) -> Entity {
         .build()
 }
 
-#[allow(clippy::needless_pass_by_ref_mut)]
+#[expect(clippy::needless_pass_by_ref_mut)]
 pub fn generate_chunk(state: &mut State, chunk_pos: Vec2<i32>) {
     let (x, y) = chunk_pos.map(|e| e.to_le_bytes()).into_tuple();
     let mut rng = SmallRng::from_seed([

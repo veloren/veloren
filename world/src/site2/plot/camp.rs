@@ -1,5 +1,5 @@
 use super::*;
-use crate::{assets::AssetHandle, site2::gen::PrimitiveTransform, Land};
+use crate::{Land, assets::AssetHandle, site2::gen::PrimitiveTransform};
 use common::{
     generation::EntityInfo,
     terrain::{Structure as PrefabStructure, StructuresGroup},

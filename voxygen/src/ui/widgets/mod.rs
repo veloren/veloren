@@ -1,4 +1,4 @@
-#![allow(non_local_definitions)] // because of WidgetCommon derive
+#![expect(non_local_definitions)] // because of WidgetCommon derive
 pub mod ghost_image;
 pub mod image_frame;
 pub mod image_slider;

@@ -84,20 +84,20 @@ use crate::{
 
 use client::Client;
 use common::{
+    DamageSource,
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        beam, biped_large, biped_small, bird_large, bird_medium, crustacean, humanoid,
-        item::{item_key::ItemKey, AbilitySpec, ItemDefinitionId, ItemDesc, ItemKind, ToolKind},
+        Body, CharacterAbilityType, Health, InventoryUpdateEvent, UtteranceKind, beam, biped_large,
+        biped_small, bird_large, bird_medium, crustacean, humanoid,
+        item::{AbilitySpec, ItemDefinitionId, ItemDesc, ItemKind, ToolKind, item_key::ItemKey},
         object,
         poise::PoiseState,
-        quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType, Health,
-        InventoryUpdateEvent, UtteranceKind,
+        quadruped_low, quadruped_medium, quadruped_small,
     },
     outcome::Outcome,
     terrain::{BlockKind, SpriteKind, TerrainChunk},
     uid::Uid,
     vol::ReadVol,
-    DamageSource,
 };
 use common_state::State;
 use event_mapper::SfxEventMapper;
@@ -458,7 +458,7 @@ impl SfxMgr {
         );
     }
 
-    #[allow(clippy::single_match)]
+    #[expect(clippy::single_match)]
     pub fn handle_outcome(
         &mut self,
         outcome: &Outcome,

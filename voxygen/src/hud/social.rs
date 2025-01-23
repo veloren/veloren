@@ -1,14 +1,14 @@
 use super::{
-    img_ids::{Imgs, ImgsRot},
     Show, TEXT_COLOR, TEXT_COLOR_3, UI_HIGHLIGHT_0, UI_MAIN,
+    img_ids::{Imgs, ImgsRot},
 };
-use crate::ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable};
+use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts};
 use client::{self, Client};
 use common::{comp::group, uid::Uid};
 use conrod_core::{
-    color,
+    Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use itertools::Itertools;
@@ -89,7 +89,7 @@ pub enum Event {
     SearchPlayers(Option<String>),
 }
 
-impl<'a> Widget for Social<'a> {
+impl Widget for Social<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();
@@ -242,7 +242,7 @@ impl<'a> Widget for Social<'a> {
         });
         for (i, (&uid, player_info)) in player_list.into_iter().enumerate() {
             let hide_username = true;
-            let selected = state.selected_uid.map_or(false, |u| u.0 == uid);
+            let selected = state.selected_uid.is_some_and(|u| u.0 == uid);
             let alias = &player_info.player_alias;
             let name_text = match &player_info.character {
                 Some(character) => {
@@ -310,7 +310,7 @@ impl<'a> Widget for Social<'a> {
         let is_leader_or_not_in_group = self
             .client
             .group_info()
-            .map_or(true, |(_, l_uid)| self.client.uid() == Some(l_uid));
+            .is_none_or(|(_, l_uid)| self.client.uid() == Some(l_uid));
 
         let current_members = self
             .client
@@ -332,7 +332,7 @@ impl<'a> Widget for Social<'a> {
                         self.client
                             .player_list()
                             .get(selected)
-                            .map_or(false, |selected_player| {
+                            .is_some_and(|selected_player| {
                                 selected_player.is_online && selected_player.character.is_some()
                             })
                     })

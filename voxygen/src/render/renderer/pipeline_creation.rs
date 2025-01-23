@@ -2,15 +2,15 @@ use crate::render::pipelines::rain_occlusion;
 
 use super::{
     super::{
+        AaMode, BloomMode, CloudMode, ExperimentalShader, FluidMode, LightingMode, PipelineModes,
+        ReflectionMode, RenderError, ShadowMode,
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle,
             postprocess, rope, shadow, skybox, sprite, terrain, trail, ui,
         },
-        AaMode, BloomMode, CloudMode, ExperimentalShader, FluidMode, LightingMode, PipelineModes,
-        ReflectionMode, RenderError, ShadowMode,
     },
-    shaders::Shaders,
     ImmutableLayouts, Layouts,
+    shaders::Shaders,
 };
 use common_base::{prof_span, prof_span_alloc};
 use std::sync::Arc;
@@ -433,7 +433,7 @@ fn create_shader_module(
     //     .expect("Couldn't write shader out");
 
     // let label = [file_name, "\n\n", source].concat();
-    #[allow(unsafe_code)]
+    #[expect(unsafe_code)]
     Ok(unsafe {
         device.create_shader_module_unchecked(wgpu::ShaderModuleDescriptor {
             label: Some(file_name),

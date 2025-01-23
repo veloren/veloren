@@ -9,15 +9,15 @@ mod sound;
 mod video;
 
 use crate::{
-    hud::{img_ids::Imgs, Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN},
+    GlobalState,
+    hud::{Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, img_ids::Imgs},
     session::settings_change::SettingsChange,
     ui::fonts::Fonts,
-    GlobalState,
 };
 use conrod_core::{
-    color,
+    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
@@ -145,7 +145,7 @@ pub enum ScaleChange {
     Adjust(f64),
 }
 
-impl<'a> Widget for SettingsWindow<'a> {
+impl Widget for SettingsWindow<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();

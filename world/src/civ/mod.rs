@@ -1,15 +1,15 @@
-#![allow(dead_code)]
+#![expect(dead_code)]
 
 mod econ;
 
 use crate::{
+    Index, IndexRef, Land,
     config::CONFIG,
     sim::WorldSim,
-    site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
+    site::{Castle, Settlement, Site as WorldSite, Tree, namegen::NameGen},
     site2,
     site2::genstat::SitesGenMeta,
-    util::{attempt, seed_expan, DHashMap, NEIGHBORS},
-    Index, IndexRef, Land,
+    util::{DHashMap, NEIGHBORS, attempt, seed_expan},
 };
 use common::{
     astar::Astar,
@@ -18,8 +18,8 @@ use common::{
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{
-        uniform_idx_as_vec2, BiomeKind, CoordinateConversions, MapSizeLg, TerrainChunkSize,
-        TERRAIN_CHUNK_BLOCKS_LG,
+        BiomeKind, CoordinateConversions, MapSizeLg, TERRAIN_CHUNK_BLOCKS_LG, TerrainChunkSize,
+        uniform_idx_as_vec2,
     },
     vol::RectVolSize,
 };
@@ -213,7 +213,7 @@ impl ProximityRequirements {
     }
 }
 
-impl<'a, R: Rng> GenCtx<'a, R> {
+impl<R: Rng> GenCtx<'_, R> {
     pub fn reseed(&mut self) -> GenCtx<'_, impl Rng> {
         let mut entropy = self.rng.gen::<[u8; 32]>();
         entropy[0] = entropy[0].wrapping_add(SEED_SKIP); // Skip bad seeds
@@ -958,7 +958,7 @@ impl Civs {
 
     pub fn sites(&self) -> impl Iterator<Item = &Site> + '_ { self.sites.values() }
 
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn display_info(&self) {
         for (id, civ) in self.civs.iter() {
             println!("# Civilisation {:?}", id);
@@ -1378,7 +1378,7 @@ impl Civs {
                     .max();
                 chunk.alt > MIN_MOUNTAIN_ALT
                     && chunk.chaos > MIN_MOUNTAIN_CHAOS
-                    && neighbor_alts_max.map_or(false, |n_alt| chunk.alt as u32 > n_alt)
+                    && neighbor_alts_max.is_some_and(|n_alt| chunk.alt as u32 > n_alt)
             })
             .map(|(posi, chunk)| {
                 (
@@ -1845,7 +1845,7 @@ fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
     if sim.get(loc).is_some() {
         NEIGHBORS.iter().all(|n| {
             sim.get(loc + *n)
-                .map_or(false, |chunk| !chunk.river.near_water())
+                .is_some_and(|chunk| !chunk.river.near_water())
         })
     } else {
         false
@@ -2101,10 +2101,10 @@ impl SiteKind {
                 .unwrap_or(false)
         };
 
-        sim.get(loc).map_or(false, |chunk| {
+        sim.get(loc).is_some_and(|chunk| {
             let suitable_for_town = || -> bool {
                 let attributes = town_attributes_of_site(loc, sim);
-                attributes.map_or(false, |attributes| {
+                attributes.is_some_and(|attributes| {
                     // aquifer and has_many_rocks was added to make mesa clifftowns suitable for towns
                     (attributes.potable_water || (attributes.aquifer && matches!(self, SiteKind::CliffTown)))
                         && attributes.building_materials
@@ -2223,8 +2223,7 @@ impl SiteKind {
                             // underwater or in other awkward positions
                             // we have to do this
                             if sim
-                                .get(check_loc)
-                                .map_or(true, |c| c.is_underwater() || c.near_cliffs())
+                                .get(check_loc).is_none_or(|c| c.is_underwater() || c.near_cliffs())
                             {
                                 return false;
                             }
@@ -2251,7 +2250,7 @@ impl SiteKind {
         for x in (-radius)..radius {
             for y in (-radius)..radius {
                 let check_loc = loc + Vec2::new(x, y);
-                if sim.get(check_loc).map_or(false, |c| !c.sites.is_empty()) {
+                if sim.get(check_loc).is_some_and(|c| !c.sites.is_empty()) {
                     return false;
                 }
             }

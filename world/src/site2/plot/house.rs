@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::util::Dir,
-    util::{RandomField, Sampler, DIRS},
     Land,
+    site2::util::Dir,
+    util::{DIRS, RandomField, Sampler},
 };
 use common::{
     calendar::{Calendar, CalendarEvent},
@@ -49,7 +49,6 @@ impl House {
             max: site.tile_wpos(tile_aabr.max),
         };
 
-        #[allow(clippy::bool_to_int_with_if)]
         let front = match door_dir {
             dir if dir.y < 0 => Dir::NegY,
             dir if dir.x < 0 => Dir::NegX,
@@ -57,8 +56,7 @@ impl House {
             _ => Dir::X,
         };
 
-        let christmas_decorations =
-            calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas));
+        let christmas_decorations = calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas));
 
         Self {
             door_tile: door_tile_pos,

@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::place_circular,
-    util::{RandomField, Sampler, CARDINALS},
     Land,
+    site2::gen::place_circular,
+    util::{CARDINALS, RandomField, Sampler},
 };
 use common::{
     comp::Content,

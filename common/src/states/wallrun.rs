@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
+    comp::{CharacterState, StateUpdate, character_state::OutputEvents},
     states::{
         behavior::{CharacterBehavior, JoinData},
         idle, wielding,

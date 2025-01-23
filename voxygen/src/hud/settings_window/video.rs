@@ -1,9 +1,10 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
+    GlobalState,
     hud::{
-        img_ids::Imgs, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR, MENU_BG, STAMINA_COLOR,
-        TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, UI_SUBTLE,
+        CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR, MENU_BG, STAMINA_COLOR, TEXT_COLOR,
+        UI_HIGHLIGHT_0, UI_MAIN, UI_SUBTLE, img_ids::Imgs,
     },
     render::{
         AaMode, BloomConfig, BloomFactor, BloomMode, CloudMode, FluidMode, LightingMode,
@@ -11,15 +12,14 @@ use crate::{
     },
     session::settings_change::Graphics as GraphicsChange,
     settings::{Fps, GraphicsSettings},
-    ui::{fonts::Fonts, ImageSlider, ToggleButton},
+    ui::{ImageSlider, ToggleButton, fonts::Fonts},
     window::{FullScreenSettings, FullscreenMode},
-    GlobalState,
 };
 use conrod_core::{
-    color,
+    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::Relative,
     widget::{self, Button, DropDownList, Rectangle, Scrollbar, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use core::convert::TryFrom;
 use i18n::Localization;
@@ -212,7 +212,7 @@ const BG_FPS_CHOICES: [Fps; 20] = [
     Fps::Unlimited,
 ];
 
-impl<'a> Widget for Video<'a> {
+impl Widget for Video<'_> {
     type Event = Vec<GraphicsChange>;
     type State = State;
     type Style = ();

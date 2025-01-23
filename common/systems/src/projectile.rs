@@ -1,10 +1,12 @@
 use common::{
+    GroupTarget,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
+        PhysicsState, Player, Pos, Projectile, Stats, Vel,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
-        projectile, Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health,
-        Inventory, Mass, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
+        projectile,
     },
     event::{
         BonkEvent, BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, Emitter, EnergyChangeEvent,
@@ -16,15 +18,14 @@ use common::{
     resources::{DeltaTime, Time},
     uid::{IdMaps, Uid},
     util::Dir,
-    GroupTarget,
 };
 
 use common::vol::ReadVol;
 use common_ecs::{Job, Origin, Phase, System};
 use rand::Rng;
 use specs::{
-    shred, Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, SystemData,
-    WriteStorage,
+    Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
+    shred,
 };
 use std::time::Duration;
 use vek::*;
@@ -127,12 +128,10 @@ impl<'a> System<'a> for Sys {
                     // Note: somewhat inefficient since we do the lookup for every touching
                     // entity, but if we pull this out of the loop we would want to do it only
                     // if there is at least one touching entity
-                    .and_then(|e| read_data.groups.get(e))
-                    .map_or(false, |owner_group|
+                    .and_then(|e| read_data.groups.get(e)).is_some_and(|owner_group|
                         Some(owner_group) == read_data.id_maps
                         .uid_entity(other)
-                        .and_then(|e| read_data.groups.get(e))
-                    );
+                        .and_then(|e| read_data.groups.get(e)));
 
                 // Skip if in the same group
                 let target_group = if same_group {
@@ -151,7 +150,7 @@ impl<'a> System<'a> for Sys {
                                 .uid_entity(owner)
                                 .zip(read_data.id_maps.uid_entity(other))
                         })
-                        .map_or(true, |(owner, other)| {
+                        .is_none_or(|(owner, other)| {
                             !combat::allow_friendly_fire(&read_data.entered_auras, owner, other)
                         })
                 {
@@ -390,7 +389,7 @@ fn dispatch_hit(
                 .character_states
                 .get(target)
                 .and_then(|cs| cs.roll_attack_immunities())
-                .map_or(false, |i| i.projectiles);
+                .is_some_and(|i| i.projectiles);
 
             let precision_from_flank = combat::precision_mult_from_flank(
                 *projectile_dir,

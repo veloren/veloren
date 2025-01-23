@@ -1,7 +1,7 @@
 use common::comp::body::parts::HeadState;
 
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     QuadrupedLowSkeleton, SkeletonAttr,
 };
 

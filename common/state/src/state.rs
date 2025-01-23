@@ -1,7 +1,7 @@
 #[cfg(feature = "plugins")]
-use crate::plugin::memory_manager::EcsWorld;
-#[cfg(feature = "plugins")]
 use crate::plugin::PluginMgr;
+#[cfg(feature = "plugins")]
+use crate::plugin::memory_manager::EcsWorld;
 use crate::{BuildArea, NoDurabilityArea};
 #[cfg(feature = "plugins")]
 use common::uid::IdMaps;
@@ -28,15 +28,15 @@ use common::{
 };
 use common_base::{prof_span, span};
 use common_ecs::{PhysicsMetrics, SysMetrics};
-use common_net::sync::{interpolation as sync_interp, WorldSyncExt};
+use common_net::sync::{WorldSyncExt, interpolation as sync_interp};
 use core::{convert::identity, time::Duration};
 use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
+    Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
     prelude::Resource,
     shred::{Fetch, FetchMut, SendDispatcher},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
-    Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
 use std::{sync::Arc, time::Instant};
 use timer_queue::TimerQueue;

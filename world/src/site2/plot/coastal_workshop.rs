@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
-    util::{RandomField, Sampler, CARDINALS},
     Land,
+    util::{CARDINALS, RandomField, Sampler},
 };
 use common::{
     generation::SpecialEntity,
