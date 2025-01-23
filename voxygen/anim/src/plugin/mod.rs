@@ -5,7 +5,8 @@ use super::{
     Skeleton,
 };
 use common::comp;
-use vek::quaternion::repr_simd::Quaternion;
+// use vek::quaternion::repr_simd::Quaternion;
+use vek::Quaternion;
 
 pub type Body = comp::plugin::Body;
 

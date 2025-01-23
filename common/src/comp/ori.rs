@@ -364,6 +364,7 @@ impl From<Quaternion<f32>> for Ori {
     fn from(quat: Quaternion<f32>) -> Self { Self::new(quat) }
 }
 
+/*
 impl From<vek::quaternion::repr_simd::Quaternion<f32>> for Ori {
     fn from(
         vek::quaternion::repr_simd::Quaternion { x, y, z, w }: vek::quaternion::repr_simd::Quaternion<f32>,
@@ -371,16 +372,19 @@ impl From<vek::quaternion::repr_simd::Quaternion<f32>> for Ori {
         Self::from(Quaternion { x, y, z, w })
     }
 }
+*/
 
 impl From<Ori> for Quaternion<f32> {
     fn from(Ori(q): Ori) -> Self { q }
 }
 
+/*
 impl From<Ori> for vek::quaternion::repr_simd::Quaternion<f32> {
     fn from(Ori(Quaternion { x, y, z, w }): Ori) -> Self {
         vek::quaternion::repr_simd::Quaternion { x, y, z, w }
     }
 }
+*/
 
 impl From<Ori> for Dir {
     fn from(ori: Ori) -> Self { ori.look_dir() }
@@ -390,17 +394,21 @@ impl From<Ori> for Vec3<f32> {
     fn from(ori: Ori) -> Self { ori.look_vec() }
 }
 
+/*
 impl From<Ori> for vek::vec::repr_simd::Vec3<f32> {
     fn from(ori: Ori) -> Self { vek::vec::repr_simd::Vec3::from(ori.look_vec()) }
 }
+*/
 
 impl From<Ori> for Vec2<f32> {
     fn from(ori: Ori) -> Self { ori.look_dir().to_horizontal().unwrap_or_default().xy() }
 }
 
+/*
 impl From<Ori> for vek::vec::repr_simd::Vec2<f32> {
     fn from(ori: Ori) -> Self { vek::vec::repr_simd::Vec2::from(ori.look_vec().xy()) }
 }
+*/
 
 // Validate at Deserialization
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
