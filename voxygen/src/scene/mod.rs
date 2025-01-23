@@ -965,8 +965,8 @@ impl Scene {
         // to the translated ones we use when multiplying by the light space
         // matrix; this helps avoid precision loss during the
         // multiplication.
-        let look_at = math::Vec3::from(cam_pos);
-        let new_dir = math::Vec3::from(view_dir);
+        let look_at = cam_pos;
+        let new_dir = view_dir;
         let new_dir = new_dir.normalized();
         let up: math::Vec3<f32> = math::Vec3::unit_y();
 
@@ -1246,7 +1246,7 @@ impl Scene {
             let rain_dir_mat = Mat4::rotation_from_to_3d(-Vec3::unit_z(), rain_vel);
 
             let (shadow_mat, texture_mat) =
-                directed_mats(rain_view_mat, rain_vel.into(), &visible_occlusion_volume);
+                directed_mats(rain_view_mat, rain_vel, &visible_occlusion_volume);
 
             let rain_occlusion_locals = RainOcclusionLocals::new(
                 shadow_mat,
@@ -1273,7 +1273,7 @@ impl Scene {
             let point_shadow_aspect = point_shadow_res.x as f32 / point_shadow_res.y as f32;
             // Construct matrices to transform from world space to light space for the sun
             // and moon.
-            let directed_light_dir = math::Vec3::from(sun_dir);
+            let directed_light_dir = sun_dir;
 
             // We upload view matrices as well, to assist in linearizing vertex positions.
             // (only for directional lights, so far).

@@ -1373,12 +1373,10 @@ impl<V: RectRasterableVol> Terrain<V> {
             && renderer.pipeline_modes().shadow.is_map()
         {
             let visible_bounding_box = math::Aabb::<f32> {
-                min: math::Vec3::from(visible_bounding_box.min - focus_off),
-                max: math::Vec3::from(visible_bounding_box.max - focus_off),
+                min: (visible_bounding_box.min - focus_off),
+                max: (visible_bounding_box.max - focus_off),
             };
-            let focus_off = math::Vec3::from(focus_off);
             let visible_bounds_fine = visible_bounding_box.as_::<f64>();
-            let ray_direction = math::Vec3::<f32>::from(ray_direction);
             // NOTE: We use proj_mat_treeculler here because
             // calc_focused_light_volume_points makes the assumption that the
             // near plane lies before the far plane.
@@ -1392,7 +1390,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             .collect::<Vec<_>>();
 
             let up: math::Vec3<f32> = { math::Vec3::unit_y() };
-            let cam_pos = math::Vec3::from(cam_pos);
             let ray_mat = math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, up);
             let visible_bounds = math::Aabr::from(math::fit_psr(
                 ray_mat,
@@ -1466,15 +1463,15 @@ impl<V: RectRasterableVol> Terrain<V> {
             .max_weather_near(focus_off.xy() + cam_pos.xy());
         let (visible_occlusion_volume, visible_por_bounds) = if max_weather.rain > RAIN_THRESHOLD {
             let visible_bounding_box = math::Aabb::<f32> {
-                min: math::Vec3::from(visible_bounding_box.min - focus_off),
-                max: math::Vec3::from(visible_bounding_box.max - focus_off),
+                min: (visible_bounding_box.min - focus_off),
+                max: (visible_bounding_box.max - focus_off),
             };
             let visible_bounds_fine = math::Aabb {
                 min: visible_bounding_box.min.as_::<f64>(),
                 max: visible_bounding_box.max.as_::<f64>(),
             };
             let weather = scene_data.client.weather_at_player();
-            let ray_direction = math::Vec3::<f32>::from(weather.rain_vel().normalized());
+            let ray_direction = weather.rain_vel().normalized();
 
             // NOTE: We use proj_mat_treeculler here because
             // calc_focused_light_volume_points makes the assumption that the
@@ -1487,7 +1484,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             )
             .map(|v| v.as_::<f32>())
             .collect::<Vec<_>>();
-            let cam_pos = math::Vec3::from(cam_pos);
             let ray_mat =
                 math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::unit_y());
             let visible_bounds = math::Aabr::from(math::fit_psr(

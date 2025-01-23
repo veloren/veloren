@@ -489,8 +489,7 @@ impl ParticleMgr {
                 {
                     if let Some(pos) = scene_data.state.read_component_copied::<Pos>(entity) {
                         let heads = figure_mgr.get_heads(scene_data, entity);
-                        let head_pos =
-                            pos.0 + heads.get(*head).map(|v| Vec3::from(*v)).unwrap_or_default();
+                        let head_pos = pos.0 + heads.get(*head).copied().unwrap_or_default();
 
                         self.particles.resize_with(self.particles.len() + 40, || {
                             Particle::new(
@@ -707,8 +706,8 @@ impl ParticleMgr {
             return;
         };
 
-        let start = pos + Vec3::from(start);
-        let end = pos + Vec3::from(end);
+        let start = pos + start;
+        let end = pos + end;
 
         let time = scene_data.state.get_time();
         let mut rng = thread_rng();
@@ -1594,7 +1593,7 @@ impl ParticleMgr {
                                     Duration::from_secs(2),
                                     time,
                                     ParticleMode::EngineJet,
-                                    Vec3::<f32>::from((tp0.0 + tp1.1) * 0.5)
+                                    ((tp0.0 + tp1.1) * 0.5)
                                         // TODO: This offset is used to position the particles at the engine outlet. Ideally, we'd have a way to configure this per-glider
                                         + Vec3::unit_z() * 0.5
                                         + Vec3::<f32>::zero().map(|_| rng.gen_range(-0.25..0.25))

@@ -285,7 +285,7 @@ impl Scene {
         fn figure_params(dt: f32, pos: Vec3<f32>) -> FigureUpdateCommonParameters<'static> {
             FigureUpdateCommonParameters {
                 entity: None,
-                pos: pos.into(),
+                pos,
                 ori: anim::vek::Quaternion::identity().rotated_z(std::f32::consts::PI * -0.5),
                 scale: 1.0,
                 mount_transform_pos: None,
@@ -354,8 +354,8 @@ impl Scene {
                 None,
                 scene_data.time as f32,
                 scene_data.time as f32,
-                (params.ori * Vec3::unit_y()).into(),
-                (params.ori * Vec3::unit_y()).into(),
+                (params.ori * Vec3::unit_y()),
+                (params.ori * Vec3::unit_y()),
             ),
             scene_data.time as f32,
             &mut 0.0,

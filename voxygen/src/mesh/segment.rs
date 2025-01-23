@@ -104,8 +104,8 @@ where
     });
     let bounds = math::Aabb {
         // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
-        min: math::Vec3::from((lower_bound.as_::<f32>() + offs) * scale),
-        max: math::Vec3::from((upper_bound.as_::<f32>() + offs) * scale),
+        min: ((lower_bound.as_::<f32>() + offs) * scale),
+        max: ((upper_bound.as_::<f32>() + offs) * scale),
     }
     .made_valid();
 
@@ -210,8 +210,8 @@ where
     });
     let bounds = math::Aabb {
         // NOTE: Casts are safe since lower_bound and upper_bound both fit in a i16.
-        min: math::Vec3::from((lower_bound.as_::<f32>() + offs) * scale),
-        max: math::Vec3::from((upper_bound.as_::<f32>() + offs) * scale),
+        min: ((lower_bound.as_::<f32>() + offs) * scale),
+        max: ((upper_bound.as_::<f32>() + offs) * scale),
     }
     .made_valid();
 

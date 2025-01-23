@@ -911,7 +911,7 @@ impl FigureMgr {
                     )
                 })
             {
-                light_anim.offset = vek::Vec3::from(lantern_offset);
+                light_anim.offset = lantern_offset;
             } else if let Some(body) = body {
                 light_anim.offset = body.default_light_offset();
             }
@@ -986,9 +986,7 @@ impl FigureMgr {
 
             let weather = scene_data.client.weather_at_player();
 
-            let cam_pos = math::Vec3::from(cam_pos);
-
-            let focus_off = math::Vec3::from(camera.get_focus_pos().map(f32::trunc));
+            let focus_off = camera.get_focus_pos().map(f32::trunc);
             let focus_off_mat = math::Mat4::translation_3d(-focus_off);
 
             let collides_with_aabr = |a: math::Aabr<f32>, b: math::Aabr<f32>| {
@@ -1003,7 +1001,6 @@ impl FigureMgr {
             let can_shadow = |ray_direction: Vec3<f32>,
                               enabled: bool,
                               visible_bounds: math::Aabr<f32>| {
-                let ray_direction = math::Vec3::from(ray_direction);
                 // Transform (semi) world space to light space.
                 let ray_mat: math::Mat4<f32> =
                     math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::unit_y());
@@ -1041,14 +1038,14 @@ impl FigureMgr {
         let player_pos = read_data
             .positions
             .get(scene_data.viewpoint_entity)
-            .map_or(anim::vek::Vec3::zero(), |pos| anim::vek::Vec3::from(pos.0));
+            .map_or(anim::vek::Vec3::zero(), |pos| pos.0);
         let visible_aabb = anim::vek::Aabb {
             min: player_pos - 2.0,
             max: player_pos + 2.0,
         };
         let slow_jobs = state.slow_job_pool();
 
-        let focus_pos = anim::vek::Vec3::<f32>::from(camera.get_focus_pos());
+        let focus_pos = camera.get_focus_pos();
 
         let mut data = FigureUpdateData {
             #[cfg(feature = "plugins")]
@@ -1117,9 +1114,7 @@ impl FigureMgr {
 
             let pos = entity_data
                 .interpolated
-                .map_or(anim::vek::Vec3::<f32>::from(entity_data.pos.0), |i| {
-                    anim::vek::Vec3::from(i.pos)
-                });
+                .map_or(entity_data.pos.0, |i| i.pos);
 
             // Maintaining figure data and sending new figure data to the GPU turns out to
             // be a very expensive operation. We want to avoid doing it as much
@@ -1198,8 +1193,7 @@ impl FigureMgr {
         let update_buf = &mut *data.update_buf;
 
         // Velocity relative to the current ground
-        let rel_vel =
-            anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel) / scale.map_or(1.0, |s| s.0);
+        let rel_vel = (vel.0 - physics.ground_vel) / scale.map_or(1.0, |s| s.0);
 
         // Priortise CharacterActivity as the source of the look direction
         let look_dir = character_activity.and_then(|ca| ca.look_dir)
@@ -1217,16 +1211,8 @@ impl FigureMgr {
         let viewpoint_character_state = if is_viewpoint { character } else { None };
 
         let (pos, ori) = interpolated
-            .map(|i| {
-                (
-                    (anim::vek::Vec3::from(i.pos),),
-                    anim::vek::Quaternion::<f32>::from(i.ori),
-                )
-            })
-            .unwrap_or((
-                (anim::vek::Vec3::<f32>::from(pos.0),),
-                anim::vek::Quaternion::<f32>::default(),
-            ));
+            .map(|i| ((i.pos,), anim::vek::Quaternion::<f32>::from(i.ori)))
+            .unwrap_or(((pos.0,), anim::vek::Quaternion::<f32>::default()));
         let wall_dir = physics.on_wall.map(anim::vek::Vec3::from);
 
         // Check whether we could have been shadowing last frame.
@@ -1238,10 +1224,7 @@ impl FigureMgr {
 
         // Don't process figures outside the vd
         let vd_frac = anim::vek::Vec2::from(pos.0 - data.player_pos)
-            .map2(
-                anim::vek::Vec2::<u32>::from(TerrainChunk::RECT_SIZE),
-                |d: f32, sz| d.abs() / sz as f32,
-            )
+            .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| d.abs() / sz as f32)
             .magnitude()
             / data.view_distance as f32;
 
@@ -1380,10 +1363,7 @@ impl FigureMgr {
                     0
                 };
 
-                Some((
-                    anim::vek::Transform::default(),
-                    anim::vek::Vec3::from(mat.mul_point(Vec3::zero())),
-                ))
+                Some((anim::vek::Transform::default(), mat.mul_point(Vec3::zero())))
             } else {
                 None
             }
@@ -1823,11 +1803,9 @@ impl FigureMgr {
                                 .id_maps
                                 .uid_entity(target)
                                 .and_then(|target| read_data.positions.get(target))
-                                .map(|pos| anim::vek::Vec3::from(pos.0))
+                                .map(|pos| pos.0)
                                 .unwrap_or(pos.0),
-                            interact::InteractKind::Sprite { pos, .. } => {
-                                anim::vek::Vec3::from(pos.as_() + 0.5)
-                            },
+                            interact::InteractKind::Sprite { pos, .. } => pos.as_() + 0.5,
                         };
                         let stage_progress = match s.stage_section {
                             StageSection::Buildup => {
@@ -7704,7 +7682,6 @@ impl FigureMgr {
                     }
                 },
             })
-            .map(|viewpoint| viewpoint.into())
             .unwrap_or_else(Vec3::zero)
     }
 
@@ -7979,7 +7956,7 @@ impl FigureData for BoundTerrainLocals {
 
     fn update(&mut self, renderer: &mut Renderer, parameters: &FigureUpdateCommonParameters) {
         renderer.update_consts(self, &[TerrainLocals::new(
-            parameters.pos.into(),
+            parameters.pos,
             parameters.ori.into_vec4().into(),
             Vec2::zero(),
             0.0,
