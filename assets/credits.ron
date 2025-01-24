@@ -118,8 +118,22 @@
         notes: "exceptions (to the extent to which the license is prohibitive):
         - appearances in images and videos (including streams) of veloren gameplay or model viewing/editing software
         - official releases of veloren on platforms that have relevant restrictions"
-    ),
-    ],
+    ),  (
+        name: "mineral ingots",
+        authors : ["Supa"],
+        asset_path: "assets/voxygen/voxel/sprite/mineral/ingot",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: "A raplacement of a total of 10 ingot sprites by supa including:
+        bloodsteel, bronze, cobalt, copper, gold, iron, orichalcum, silver, steel, tin"
+    ),  (
+        name: "wood log",
+        authors : ["Supa"],
+        asset_path: "assets/voxygen/voxel/sprite/wood/log/wood.vox",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: "Wood log recolouring"
+    )],
     other_art: [],
     /// Entry format:
     /// ```
