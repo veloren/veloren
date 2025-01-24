@@ -15,7 +15,7 @@ pub use self::{
     stunned::StunnedAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -94,9 +94,15 @@ impl Skeleton for ArthropodSkeleton {
             make_bone(leg_br_mat),
         ];
 
-        // TODO: mount points
-        //use comp::arthropod::Species::*;
-        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
+        use comp::arthropod::Species::*;
+        let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
+            (
+                Hornbeetle | Leafbeetle | Stagbeetle | Weevil | Moltencrawler | Mosscrawler
+                | Sandcrawler | Dagonite,
+                _,
+            ) => (head_mat, self.head.orientation),
+            _ => (chest_mat, self.chest.orientation),
+        };
         // Offset from the mounted bone's origin.
         // Note: This could be its own bone if we need to animate it independently.
         let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
@@ -332,8 +338,22 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(_body: &Body) -> Vec3<f32> {
-    // TODO: mount points
-    //use comp::arthropod::{BodyType::*, Species::*};
-    (0.0, -6.0, 6.0).into()
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::arthropod::Species::*;
+    match (body.species, body.body_type) {
+        (Tarantula, _) => (0.0, 1.0, 4.0),
+        (Blackwidow, _) => (0.0, 0.0, 5.0),
+        (Antlion, _) => (0.0, 2.0, 3.5),
+        (Hornbeetle, _) => (0.0, 1.5, 1.5),
+        (Leafbeetle, _) => (0.0, 1.5, 3.0),
+        (Stagbeetle, _) => (0.0, 3.5, 3.5),
+        (Weevil, _) => (0.0, 1.5, 3.0),
+        (Cavespider, _) => (0.0, 1.0, 4.0),
+        (Moltencrawler, _) => (0.0, 5.5, 6.0),
+        (Mosscrawler, _) => (0.0, 6.5, 6.0),
+        (Sandcrawler, _) => (0.0, 6.5, 6.0),
+        (Dagonite, _) => (0.0, 8.5, 6.0),
+        (Emberfly, _) => (0.0, 3.0, 4.0),
+    }
+    .into()
 }

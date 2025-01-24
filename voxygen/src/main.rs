@@ -20,14 +20,14 @@ use i18n::{self, LocalizationHandle};
 #[cfg(feature = "singleplayer")]
 use veloren_voxygen::singleplayer::SingleplayerState;
 use veloren_voxygen::{
+    GlobalState,
     audio::AudioFrontend,
     cli, panic_handler,
     profile::Profile,
     run,
     scene::terrain::SpriteRenderContext,
-    settings::{get_fps, AudioOutput, Settings},
+    settings::{AudioOutput, Settings, get_fps},
     window::Window,
-    GlobalState,
 };
 
 use chrono::Utc;
@@ -116,8 +116,8 @@ fn main() {
     // Setup tokio runtime
     use common::consts::MIN_RECOMMENDED_TOKIO_THREADS;
     use std::sync::{
-        atomic::{AtomicUsize, Ordering},
         Arc,
+        atomic::{AtomicUsize, Ordering},
     };
     use tokio::runtime::Builder;
 

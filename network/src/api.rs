@@ -1,6 +1,6 @@
 use crate::{
     channel::ProtocolsError,
-    message::{partial_eq_bincode, Message},
+    message::{Message, partial_eq_bincode},
     participant::{A2bStreamOpen, S2bShutdownBparticipant},
     scheduler::{A2sConnect, Scheduler},
 };
@@ -11,19 +11,19 @@ use lz_fear::raw::DecodeError;
 use network_protocol::{Bandwidth, InitProtocolError, Pid, Prio, Promises, Sid};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::{
     net::SocketAddr,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
 use tokio::{
     io,
     runtime::Runtime,
-    sync::{mpsc, oneshot, watch, Mutex},
+    sync::{Mutex, mpsc, oneshot, watch},
 };
 use tracing::*;
 
@@ -106,10 +106,10 @@ pub struct Stream {
     local_pid: Pid,
     remote_pid: Pid,
     sid: Sid,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     prio: Prio,
     promises: Promises,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     guaranteed_bandwidth: Bandwidth,
     send_closed: Arc<AtomicBool>,
     a2b_msg_s: crossbeam_channel::Sender<(Sid, Bytes)>,

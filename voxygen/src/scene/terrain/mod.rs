@@ -8,21 +8,22 @@ use crate::{
     mesh::{
         greedy::{GreedyMesh, SpriteAtlasAllocator},
         segment::generate_mesh_base_vol_sprite,
-        terrain::{generate_mesh, SUNLIGHT, SUNLIGHT_INV},
+        terrain::{SUNLIGHT, SUNLIGHT_INV, generate_mesh},
     },
     render::{
-        pipelines::{self, AtlasData, AtlasTextures},
         AltIndices, CullingMode, FigureSpriteAtlasData, FirstPassDrawer, FluidVertex, GlobalModel,
-        Instances, LodData, Mesh, Model, RenderError, Renderer, SpriteDrawer,
-        SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts, TerrainAtlasData,
-        TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
+        Instances, LodData, Mesh, Model, RenderError, Renderer, SPRITE_VERT_PAGE_SIZE,
+        SpriteDrawer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts,
+        TerrainAtlasData, TerrainLocals, TerrainShadowDrawer, TerrainVertex,
+        pipelines::{self, AtlasData, AtlasTextures},
     },
     scene::terrain::sprite::SpriteModelConfig,
 };
 
 use super::{
+    RAIN_THRESHOLD, SceneData,
     camera::{self, Camera},
-    math, SceneData, RAIN_THRESHOLD,
+    math,
 };
 use common::{
     assets::{AssetExt, DotVoxAsset},
@@ -38,11 +39,11 @@ use crossbeam_channel as channel;
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use std::sync::{
-    atomic::{AtomicU64, Ordering},
     Arc,
+    atomic::{AtomicU64, Ordering},
 };
 use tracing::warn;
-use treeculler::{BVol, Frustum, AABB};
+use treeculler::{AABB, BVol, Frustum};
 use vek::*;
 
 const SPRITE_SCALE: Vec3<f32> = Vec3::new(1.0 / 11.0, 1.0 / 11.0, 1.0 / 11.0);
@@ -238,7 +239,7 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
 }
 
 /// Function executed by worker threads dedicated to chunk meshing.
-
+///
 /// skip_remesh is either None (do the full remesh, including recomputing the
 /// light map), or Some((light_map, glow_map)).
 fn mesh_worker(
@@ -526,9 +527,10 @@ impl SpriteRenderContext {
                         offset.map(|e: f32| e.floor()) * lod_scale,
                     );
                     // Get the number of pages after the model was meshed
-                    let end_page_num =
-                        (sprite_mesh.vertices().len() + SPRITE_VERT_PAGE_SIZE as usize - 1)
-                            / SPRITE_VERT_PAGE_SIZE as usize;
+                    let end_page_num = sprite_mesh
+                        .vertices()
+                        .len()
+                        .div_ceil(SPRITE_VERT_PAGE_SIZE as usize);
                     // Fill the current last page up with degenerate verts
                     sprite_mesh.vertices_mut_vec().resize_with(
                         end_page_num * SPRITE_VERT_PAGE_SIZE as usize,
@@ -1373,12 +1375,10 @@ impl<V: RectRasterableVol> Terrain<V> {
             && renderer.pipeline_modes().shadow.is_map()
         {
             let visible_bounding_box = math::Aabb::<f32> {
-                min: math::Vec3::from(visible_bounding_box.min - focus_off),
-                max: math::Vec3::from(visible_bounding_box.max - focus_off),
+                min: (visible_bounding_box.min - focus_off),
+                max: (visible_bounding_box.max - focus_off),
             };
-            let focus_off = math::Vec3::from(focus_off);
             let visible_bounds_fine = visible_bounding_box.as_::<f64>();
-            let ray_direction = math::Vec3::<f32>::from(ray_direction);
             // NOTE: We use proj_mat_treeculler here because
             // calc_focused_light_volume_points makes the assumption that the
             // near plane lies before the far plane.
@@ -1392,7 +1392,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             .collect::<Vec<_>>();
 
             let up: math::Vec3<f32> = { math::Vec3::unit_y() };
-            let cam_pos = math::Vec3::from(cam_pos);
             let ray_mat = math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, up);
             let visible_bounds = math::Aabr::from(math::fit_psr(
                 ray_mat,
@@ -1466,15 +1465,15 @@ impl<V: RectRasterableVol> Terrain<V> {
             .max_weather_near(focus_off.xy() + cam_pos.xy());
         let (visible_occlusion_volume, visible_por_bounds) = if max_weather.rain > RAIN_THRESHOLD {
             let visible_bounding_box = math::Aabb::<f32> {
-                min: math::Vec3::from(visible_bounding_box.min - focus_off),
-                max: math::Vec3::from(visible_bounding_box.max - focus_off),
+                min: (visible_bounding_box.min - focus_off),
+                max: (visible_bounding_box.max - focus_off),
             };
             let visible_bounds_fine = math::Aabb {
                 min: visible_bounding_box.min.as_::<f64>(),
                 max: visible_bounding_box.max.as_::<f64>(),
             };
             let weather = scene_data.client.weather_at_player();
-            let ray_direction = math::Vec3::<f32>::from(weather.rain_vel().normalized());
+            let ray_direction = weather.rain_vel().normalized();
 
             // NOTE: We use proj_mat_treeculler here because
             // calc_focused_light_volume_points makes the assumption that the
@@ -1487,7 +1486,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             )
             .map(|v| v.as_::<f32>())
             .collect::<Vec<_>>();
-            let cam_pos = math::Vec3::from(cam_pos);
             let ray_mat =
                 math::Mat4::look_at_rh(cam_pos, cam_pos + ray_direction, math::Vec3::unit_y());
             let visible_bounds = math::Aabr::from(math::fit_psr(

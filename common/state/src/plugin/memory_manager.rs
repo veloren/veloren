@@ -3,7 +3,7 @@ use common::{
     uid::{IdMaps, Uid},
 };
 use specs::{
-    storage::GenericReadStorage, Component, Entities, Entity, Read, ReadStorage, WriteStorage,
+    Component, Entities, Entity, Read, ReadStorage, WriteStorage, storage::GenericReadStorage,
 };
 use std::sync::atomic::{AtomicPtr, Ordering};
 
@@ -22,7 +22,7 @@ pub enum EcsComponentAccess<'a, 'b, T: Component> {
     WriteOwned(WriteStorage<'a, T>),
 }
 
-impl<'a, 'b, T: Component> EcsComponentAccess<'a, 'b, T> {
+impl<T: Component> EcsComponentAccess<'_, '_, T> {
     pub fn get(&self, entity: Entity) -> Option<&T> {
         match self {
             EcsComponentAccess::Read(e) => e.get(entity),
@@ -37,7 +37,7 @@ impl<'a, 'b, T: Component> From<&'b ReadStorage<'a, T>> for EcsComponentAccess<'
     fn from(a: &'b ReadStorage<'a, T>) -> Self { Self::Read(a) }
 }
 
-impl<'a, 'b, T: Component> From<ReadStorage<'a, T>> for EcsComponentAccess<'a, 'b, T> {
+impl<'a, T: Component> From<ReadStorage<'a, T>> for EcsComponentAccess<'a, '_, T> {
     fn from(a: ReadStorage<'a, T>) -> Self { Self::ReadOwned(a) }
 }
 
@@ -45,7 +45,7 @@ impl<'a, 'b, T: Component> From<&'b WriteStorage<'a, T>> for EcsComponentAccess<
     fn from(a: &'b WriteStorage<'a, T>) -> Self { Self::Write(a) }
 }
 
-impl<'a, 'b, T: Component> From<WriteStorage<'a, T>> for EcsComponentAccess<'a, 'b, T> {
+impl<'a, T: Component> From<WriteStorage<'a, T>> for EcsComponentAccess<'a, '_, T> {
     fn from(a: WriteStorage<'a, T>) -> Self { Self::WriteOwned(a) }
 }
 

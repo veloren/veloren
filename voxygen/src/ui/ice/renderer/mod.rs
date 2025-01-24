@@ -9,15 +9,15 @@ use primitive::Primitive;
 
 use super::{
     super::graphic::{self, Graphic, TexId},
+    Font, FontId, RawFont, Rotation,
     cache::Cache,
     widget::image,
-    Font, FontId, RawFont, Rotation,
 };
 use crate::{
     error::Error,
     render::{
-        create_ui_quad, create_ui_quad_vert_gradient, DynamicModel, Mesh, Renderer, UiBoundLocals,
-        UiDrawer, UiLocals, UiMode, UiVertex,
+        DynamicModel, Mesh, Renderer, UiBoundLocals, UiDrawer, UiLocals, UiMode, UiVertex,
+        create_ui_quad, create_ui_quad_vert_gradient,
     },
 };
 use common::{slowjob::SlowJobPool, util::srgba_to_linear};
@@ -31,7 +31,7 @@ enum DrawKind {
     Plain,
 }
 
-#[allow(dead_code)] // TODO: remove once WorldPos is used
+#[expect(dead_code)] // TODO: remove once WorldPos is used
 enum DrawCommand {
     Draw { kind: DrawKind, verts: Range<u32> },
     Scissor(Aabr<u16>),

@@ -1,8 +1,8 @@
 use crate::{
     combat::AttackSource,
     comp::{
-        ability::Capability, inventory::item::armor::Friction, item::ConsumableKind, ControlAction,
-        Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
+        ControlAction, Density, Energy, InputAttr, InputKind, Ori, Pos, Vel, ability::Capability,
+        inventory::item::armor::Friction, item::ConsumableKind,
     },
     event::{self, EmitExt, LocalEvent},
     event_emitters,
@@ -381,7 +381,7 @@ impl CharacterState {
             && self
                 .ability_info()
                 .map(|a| a.ability_meta.capabilities)
-                .map_or(false, |c| {
+                .is_some_and(|c| {
                     c.contains(Capability::PARRIES_MELEE)
                         && matches!(
                             self.stage_section(),
@@ -398,7 +398,7 @@ impl CharacterState {
         ) && self
             .ability_info()
             .map(|a| a.ability_meta.capabilities)
-            .map_or(false, |c| {
+            .is_some_and(|c| {
                 c.contains(Capability::PARRIES)
                     && matches!(
                         self.stage_section(),
@@ -431,7 +431,7 @@ impl CharacterState {
             _ => self
                 .ability_info()
                 .map(|ability| ability.ability_meta.capabilities)
-                .map_or(false, |capabilities| {
+                .is_some_and(|capabilities| {
                     capabilities.contains(Capability::BLOCKS)
                         && matches!(
                             self.stage_section(),
@@ -899,7 +899,7 @@ impl CharacterState {
             }),
             CharacterState::Interact(data) => Some(DurationsInfo {
                 buildup: Some(data.static_data.buildup_duration),
-                action: Some(data.static_data.use_duration),
+                action: data.static_data.use_duration,
                 recover: Some(data.static_data.recover_duration),
                 ..Default::default()
             }),

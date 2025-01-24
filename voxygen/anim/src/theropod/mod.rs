@@ -10,7 +10,7 @@ pub use self::{
     run::RunAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -73,14 +73,24 @@ impl Skeleton for TheropodSkeleton {
             make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
+
+        let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
+            (comp::body::theropod::Species::Archaeos, _) => (neck_mat, self.neck.orientation),
+            (comp::body::theropod::Species::Odonto, _) => (head_mat, self.head.orientation),
+            (comp::body::theropod::Species::Yale | comp::body::theropod::Species::Dodarock, _) => {
+                (chest_back_mat, self.chest_back.orientation)
+            },
+            _ => (chest_front_mat, self.chest_front.orientation),
+        };
+
+        let mount_position = mount_mat.mul_point(mount_point(&body));
+
         Offsets {
             viewpoint: Some((head_mat * Vec4::new(0.0, 2.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::Theropod(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
+                position: mount_position,
+                orientation: mount_orientation,
                 ..Default::default()
             },
             ..Default::default()
@@ -272,4 +282,21 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             steady_wings: matches!((body.species, body.body_type), (Axebeak, _)),
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::theropod::Species::*;
+    match (body.species, body.body_type) {
+        (Archaeos, _) => (0.0, 2.5, 6.0),
+        (Odonto, _) => (0.0, 10.0, 2.0),
+        (Sandraptor, _) => (0.0, -2.0, 5.0),
+        (Snowraptor, _) => (0.0, -2.0, 5.0),
+        (Woodraptor, _) => (0.0, -2.0, 5.0),
+        (Sunlizard, _) => (0.0, -2.0, 3.5),
+        (Yale, _) => (0.0, -2.5, 5.5),
+        (Ntouka, _) => (0.0, -4.0, 7.5),
+        (Dodarock, _) => (0.0, 3.5, 5.0),
+        (Axebeak, _) => (0.0, -3.5, 6.5),
+    }
+    .into()
 }

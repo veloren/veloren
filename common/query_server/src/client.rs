@@ -9,8 +9,8 @@ use tokio::{net::UdpSocket, time::timeout};
 use tracing::trace;
 
 use crate::proto::{
-    QueryServerRequest, QueryServerResponse, RawQueryServerRequest, RawQueryServerResponse,
-    ServerInfo, MAX_RESPONSE_SIZE,
+    MAX_RESPONSE_SIZE, QueryServerRequest, QueryServerResponse, RawQueryServerRequest,
+    RawQueryServerResponse, ServerInfo,
 };
 
 // This must be at least 2 for the client to get a value for the `p` field.
@@ -27,7 +27,7 @@ pub enum QueryClientError {
 
 struct ClientInitData {
     p: u64,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     server_max_version: u16,
 }
 
@@ -45,7 +45,7 @@ impl QueryClient {
         self.send_query(QueryServerRequest::ServerInfo)
             .await
             .and_then(|(response, duration)| {
-                #[allow(irrefutable_let_patterns)]
+                #[expect(irrefutable_let_patterns)]
                 if let QueryServerResponse::ServerInfo(info) = response {
                     Ok((info, duration))
                 } else {

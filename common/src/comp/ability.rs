@@ -2,25 +2,24 @@ use crate::{
     assets::{self, Asset},
     combat::{self, CombatEffect, DamageKind, Knockback},
     comp::{
-        self, aura, beam, buff,
+        self, Body, CharacterState, LightEmitter, StateUpdate, aura, beam, buff,
         character_state::AttackFilters,
         inventory::{
+            Inventory,
             item::{
+                ItemKind,
                 tool::{
                     AbilityContext, AbilityItem, AbilityKind, ContextualIndex, Stats, ToolKind,
                 },
-                ItemKind,
             },
             slot::EquipSlot,
-            Inventory,
         },
         melee::{CustomCombo, MeleeConstructor, MeleeConstructorKind},
         projectile::ProjectileConstructor,
         skillset::{
-            skills::{self, Skill, SKILL_MODIFIERS},
             SkillSet,
+            skills::{self, SKILL_MODIFIERS, Skill},
         },
-        Body, CharacterState, LightEmitter, StateUpdate,
     },
     resources::Secs,
     states::{
@@ -101,7 +100,7 @@ impl ActiveAbilities {
         ActiveAbilities {
             auxiliary_sets: auxiliary_sets
                 .into_iter()
-                .filter(|(_, set)| limit.map_or(true, |limit| set.len() == limit))
+                .filter(|(_, set)| limit.is_none_or(|limit| set.len() == limit))
                 .collect(),
             limit,
             ..Self::default()
@@ -173,7 +172,7 @@ impl ActiveAbilities {
             AbilityInput::Secondary => self.secondary.into(),
             AbilityInput::Movement => self.movement.into(),
             AbilityInput::Auxiliary(index) => {
-                if stats.map_or(false, |s| s.disable_auxiliary_abilities) {
+                if stats.is_some_and(|s| s.disable_auxiliary_abilities) {
                     Ability::Empty
                 } else {
                     self.auxiliary_set(inventory, skill_set)
@@ -300,7 +299,7 @@ impl ActiveAbilities {
             .enumerate()
             .filter_map(move |(i, a)| match a {
                 AbilityKind::Simple(skill, _) => skill
-                    .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
+                    .map_or(true, |s| skill_set.is_some_and(|ss| ss.has_skill(s)))
                     .then_some(i),
                 AbilityKind::Contextualized {
                     pseudo_id: _,
@@ -308,7 +307,7 @@ impl ActiveAbilities {
                 } => abilities
                     .iter()
                     .any(|(_contexts, (skill, _))| {
-                        skill.map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
+                        skill.map_or(true, |s| skill_set.is_some_and(|ss| ss.has_skill(s)))
                     })
                     .then_some(i),
             })
@@ -1242,7 +1241,7 @@ impl CharacterAbility {
                     scales_with_combo,
                     ..
                 } => {
-                    ((*scales_with_combo && data.combo.map_or(false, |c| c.counter() > 0))
+                    ((*scales_with_combo && data.combo.is_some_and(|c| c.counter() > 0))
                         | !*scales_with_combo)
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
@@ -1261,7 +1260,7 @@ impl CharacterAbility {
                     combo_cost: minimum_combo,
                     ..
                 } => {
-                    data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
+                    data.combo.is_some_and(|c| c.counter() >= *minimum_combo)
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 CharacterAbility::Shockwave {
@@ -1270,7 +1269,7 @@ impl CharacterAbility {
                     ..
                 } => {
                     data.combo
-                        .map_or(false, |c| c.counter() >= minimum_combo.unwrap_or(0))
+                        .is_some_and(|c| c.counter() >= minimum_combo.unwrap_or(0))
                         && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 CharacterAbility::DiveMelee {
@@ -1931,7 +1930,7 @@ impl CharacterAbility {
         }
     }
 
-    #[allow(clippy::bool_to_int_with_if)]
+    #[expect(clippy::bool_to_int_with_if)]
     pub fn combo_cost(&self) -> u32 {
         use CharacterAbility::*;
         match self {
@@ -2054,7 +2053,6 @@ impl CharacterAbility {
     }
 
     fn adjusted_by_bow_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
         use skills::{BowSkill::*, Skill::Bow};
 
         let projectile_speed_modifier = SKILL_MODIFIERS.bow_tree.universal.projectile_speed;
@@ -2146,7 +2144,6 @@ impl CharacterAbility {
     }
 
     fn adjusted_by_staff_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
         use skills::{Skill::Staff, StaffSkill::*};
 
         match self {
@@ -2215,7 +2212,6 @@ impl CharacterAbility {
     }
 
     fn adjusted_by_sceptre_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
         use skills::{SceptreSkill::*, Skill::Sceptre};
 
         match self {
@@ -3152,7 +3148,7 @@ impl AbilityRequirements {
     pub fn requirements_met(&self, stance: Option<&Stance>) -> bool {
         let AbilityRequirements { stance: req_stance } = self;
         req_stance.map_or(true, |req_stance| {
-            stance.map_or(false, |char_stance| req_stance == *char_stance)
+            stance.is_some_and(|char_stance| req_stance == *char_stance)
         })
     }
 }

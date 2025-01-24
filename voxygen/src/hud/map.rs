@@ -1,14 +1,14 @@
 use super::{
-    img_ids::{Imgs, ImgsRot},
     MapMarkers, QUALITY_COMMON, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE, TEXT_BG,
     TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
+    img_ids::{Imgs, ImgsRot},
 };
 use crate::{
+    GlobalState,
     game_input::GameInput,
     session::settings_change::{Interface as InterfaceChange, Interface::*},
-    ui::{fonts::Fonts, img_ids, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts, img_ids},
     window::KeyMouse,
-    GlobalState,
 };
 use client::{self, Client, SiteInfoRich};
 use common::{
@@ -20,11 +20,11 @@ use common::{
 };
 use common_net::msg::world_msg::{PoiKind, SiteId, SiteKind};
 use conrod_core::{
-    color,
+    Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     input::MouseButton as ConrodMouseButton,
     position,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use specs::WorldExt;
@@ -190,7 +190,7 @@ fn get_site_economy(site_rich: &SiteInfoRich) -> String {
 
             let mut trade_sorted: Vec<(&Good, &f32)> = economy.last_exports.iter().collect();
             trade_sorted.sort_unstable_by(|a, b| a.1.partial_cmp(b.1).unwrap());
-            if trade_sorted.first().is_some() {
+            if !trade_sorted.is_empty() {
                 result += &format!("\nTrade {:.1} ", *(trade_sorted.first().unwrap().1));
                 for i in trade_sorted.iter().filter(|x| *x.1 != 0.0) {
                     result += &format!("{:?} ", i.0);
@@ -222,7 +222,7 @@ impl From<KeyMouse> for ConrodMouseButton {
     }
 }
 
-impl<'a> Widget for Map<'a> {
+impl Widget for Map<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();
@@ -1243,7 +1243,7 @@ impl<'a> Widget for Map<'a> {
                         if ui
                             .widget_input(state.ids.mmap_poi_titles[i])
                             .mouse()
-                            .map_or(false, |m| m.is_over())
+                            .is_some_and(|m| m.is_over())
                         {
                             Text::new(&height)
                                 .mid_bottom_with_margin_on(

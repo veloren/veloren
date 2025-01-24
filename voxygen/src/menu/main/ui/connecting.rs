@@ -5,15 +5,15 @@ use crate::{
     menu::main::DetailedInitializationStage,
     settings::ControlSettings,
     ui::{
-        fonts::IcedFonts as Fonts,
-        ice::{component::neat_button, style, widget::Image, Element, IcedUi as Ui, Id},
         Graphic,
+        fonts::IcedFonts as Fonts,
+        ice::{Element, IcedUi as Ui, Id, component::neat_button, style, widget::Image},
     },
 };
 use client::ClientInitStage;
 use common::assets::{self, AssetExt};
 use i18n::Localization;
-use iced::{button, Align, Column, Container, Length, Row, Space, Text};
+use iced::{Align, Column, Container, Length, Row, Space, Text, button};
 use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "singleplayer")]

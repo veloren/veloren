@@ -12,7 +12,7 @@ pub use self::{
     run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
 };
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -74,12 +74,20 @@ impl Skeleton for GolemSkeleton {
             make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
             make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
         ];
+
+        let (mount_mat, mount_orientation) = (
+            head_mat,
+            self.torso.orientation * self.upper_torso.orientation * self.head.orientation,
+        );
+        let mount_position = mount_mat.mul_point(mount_point(&body));
+
         Offsets {
             viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 5.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::Golem(body).mount_offset().into_tuple().into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             ..Default::default()
         }
@@ -243,4 +251,20 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::golem::Species::*;
+    match (body.species, body.body_type) {
+        (StoneGolem, _) => (0.0, 0.5, 10.0),
+        (Treant, _) => (0.0, 0.0, 14.0),
+        (ClayGolem, _) => (0.0, 0.0, 12.0),
+        (WoodGolem, _) => (0.0, 0.0, 8.0),
+        (CoralGolem, _) => (0.0, 0.0, 5.0),
+        (Gravewarden, _) => (0.0, -0.5, 7.0),
+        (AncientEffigy, _) => (0.0, -0.5, 4.0),
+        (Mogwai, _) => (0.0, 11.0, 10.5),
+        (IronGolem, _) => (0.0, 0.0, 17.0),
+    }
+    .into()
 }

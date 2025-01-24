@@ -4,7 +4,7 @@ use crate::{
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, WriteVol},
     volumes::dyna::DynaError,
 };
-use hashbrown::{hash_map, HashMap};
+use hashbrown::{HashMap, hash_map};
 use std::{fmt::Debug, ops::Deref, sync::Arc};
 use vek::*;
 
@@ -262,7 +262,7 @@ impl<'a, V: RectRasterableVol> CachedVolGrid2d<'a, V> {
     }
 }
 
-impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
+impl<V: RectRasterableVol + ReadVol> CachedVolGrid2d<'_, V> {
     #[inline(always)]
     pub fn get(&mut self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid2dError<V>> {
         // Calculate chunk key from block pos
@@ -290,7 +290,7 @@ impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
     }
 }
 
-impl<'a, V: RectRasterableVol> Deref for CachedVolGrid2d<'a, V> {
+impl<V: RectRasterableVol> Deref for CachedVolGrid2d<'_, V> {
     type Target = VolGrid2d<V>;
 
     fn deref(&self) -> &Self::Target { self.vol_grid_2d }

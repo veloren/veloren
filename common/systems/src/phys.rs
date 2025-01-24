@@ -1,10 +1,10 @@
 use common::{
     comp::{
-        body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
-        fluid_dynamics::{Fluid, LiquidKind, Wings},
-        inventory::item::armor::Friction,
         Body, CharacterState, Collider, Density, Immovable, Mass, Ori, PhysicsState, Pos,
         PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
+        body::ship::figuredata::{VOXEL_COLLIDER_MANIFEST, VoxelCollider},
+        fluid_dynamics::{Fluid, LiquidKind, Wings},
+        inventory::item::armor::Friction,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EmitExt, EventBus, LandOnGroundEvent},
@@ -14,7 +14,7 @@ use common::{
     outcome::Outcome,
     resources::{DeltaTime, GameMode, TimeOfDay},
     states,
-    terrain::{Block, BlockKind, CoordinateConversions, SiteKindMeta, TerrainGrid, NEIGHBOR_DELTA},
+    terrain::{Block, BlockKind, CoordinateConversions, NEIGHBOR_DELTA, SiteKindMeta, TerrainGrid},
     uid::Uid,
     util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
@@ -25,8 +25,8 @@ use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
 use itertools::Itertools;
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred, Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
-    Write, WriteExpect, WriteStorage,
+    Entities, Entity, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write,
+    WriteExpect, WriteStorage, shred,
 };
 use std::ops::Range;
 use vek::*;
@@ -265,7 +265,7 @@ fn simulated_wind_vel(
 }
 
 fn calc_z_limit(char_state_maybe: Option<&CharacterState>, collider: &Collider) -> (f32, f32) {
-    let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge() || c_s.is_glide()) {
+    let modifier = if char_state_maybe.is_some_and(|c_s| c_s.is_dodge() || c_s.is_glide()) {
         0.5
     } else {
         1.0
@@ -296,8 +296,8 @@ pub struct PhysicsRead<'a> {
     immovables: ReadStorage<'a, Immovable>,
     masses: ReadStorage<'a, Mass>,
     colliders: ReadStorage<'a, Collider>,
-    is_ridings: ReadStorage<'a, Is<Rider>>,
-    is_volume_ridings: ReadStorage<'a, Is<VolumeRider>>,
+    is_riders: ReadStorage<'a, Is<Rider>>,
+    is_volume_riders: ReadStorage<'a, Is<VolumeRider>>,
     projectiles: ReadStorage<'a, Projectile>,
     character_states: ReadStorage<'a, CharacterState>,
     bodies: ReadStorage<'a, Body>,
@@ -326,7 +326,7 @@ pub struct PhysicsData<'a> {
     write: PhysicsWrite<'a>,
 }
 
-impl<'a> PhysicsData<'a> {
+impl PhysicsData<'_> {
     /// Add/reset physics state components
     fn reset(&mut self) {
         span!(_guard, "Add/reset physics state components");
@@ -515,8 +515,8 @@ impl<'a> PhysicsData<'a> {
             previous_phys_cache,
             &read.masses,
             &read.colliders,
-            read.is_ridings.maybe(),
-            read.is_volume_ridings.maybe(),
+            read.is_riders.maybe(),
+            read.is_volume_riders.maybe(),
             read.stickies.maybe(),
             read.immovables.maybe(),
             &mut write.physics_states,
@@ -540,8 +540,8 @@ impl<'a> PhysicsData<'a> {
                     previous_cache,
                     mass,
                     collider,
-                    is_riding,
-                    is_volume_riding,
+                    is_rider,
+                    is_volume_rider,
                     sticky,
                     immovable,
                     physics,
@@ -594,7 +594,7 @@ impl<'a> PhysicsData<'a> {
                                 mass,
                                 collider,
                                 read.character_states.get(entity),
-                                read.is_ridings.get(entity),
+                                read.is_riders.get(entity),
                             ))
                         })
                         .for_each(
@@ -606,7 +606,7 @@ impl<'a> PhysicsData<'a> {
                                 mass_other,
                                 collider_other,
                                 char_state_other_maybe,
-                                other_is_riding_maybe,
+                                other_is_rider_maybe,
                             )| {
                                 let collision_boundary = previous_cache.collision_boundary
                                     + previous_cache_other.collision_boundary;
@@ -674,9 +674,9 @@ impl<'a> PhysicsData<'a> {
                                             mass: *mass_other,
                                         },
                                         vel,
-                                        is_riding.is_some()
-                                            || is_volume_riding.is_some()
-                                            || other_is_riding_maybe.is_some(),
+                                        is_rider.is_some()
+                                            || is_volume_rider.is_some()
+                                            || other_is_rider_maybe.is_some(),
                                     );
                                 }
                             },
@@ -821,8 +821,8 @@ impl<'a> PhysicsData<'a> {
             write.physics_states.mask(),
             !&write.pos_vel_ori_defers, // This is the one we are adding
             write.previous_phys_cache.mask(),
-            !&read.is_ridings,
-            !&read.is_volume_ridings,
+            !&read.is_riders,
+            !&read.is_volume_riders,
         )
             .join()
             .map(|t| (t.0, *t.2, *t.3, *t.4))
@@ -854,8 +854,8 @@ impl<'a> PhysicsData<'a> {
             &read.masses,
             &read.densities,
             read.scales.maybe(),
-            !&read.is_ridings,
-            !&read.is_volume_ridings,
+            !&read.is_riders,
+            !&read.is_volume_riders,
         )
             .par_join()
             .for_each_init(
@@ -991,8 +991,8 @@ impl<'a> PhysicsData<'a> {
             &mut write.physics_states,
             &mut write.pos_vel_ori_defers,
             previous_phys_cache,
-            !&read.is_ridings,
-            !&read.is_volume_ridings,
+            !&read.is_riders,
+            !&read.is_volume_riders,
         )
             .par_join()
             .filter(|tuple| tuple.3.is_voxel() == terrain_like_entities)
@@ -1074,9 +1074,9 @@ impl<'a> PhysicsData<'a> {
 
                     let was_on_ground = physics_state.on_ground.is_some();
                     let block_snap =
-                        body.map_or(false, |b| !matches!(b, Body::Object(_) | Body::Ship(_)));
+                        body.is_some_and(|b| !matches!(b, Body::Object(_) | Body::Ship(_)));
                     let climbing =
-                        character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
+                        character_state.is_some_and(|cs| matches!(cs, CharacterState::Climb(_)));
 
                     let friction_factor = |vel: Vec3<f32>| {
                         if let Some(Body::Ship(ship)) = body
@@ -1654,7 +1654,7 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32), // effective collision cylinder
     terrain: &T,
@@ -2070,7 +2070,7 @@ fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
     if !vel.0.xy().is_approx_zero()
         && physics_state
             .on_ground
-            .map_or(false, |g| physics_state.footwear.can_skate_on(g.kind()))
+            .is_some_and(|g| physics_state.footwear.can_skate_on(g.kind()))
     {
         const DT_SCALE: f32 = 1.0; // other areas use 60.0???
         const POTENTIAL_TO_KINETIC: f32 = 8.0; // * 2.0 * GRAVITY;
@@ -2200,7 +2200,7 @@ struct ColliderData<'a> {
 }
 
 /// Returns whether interesction between entities occured
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 fn resolve_e2e_collision(
     // utility variables for our entity
     collision_registered: &mut bool,

@@ -144,7 +144,7 @@ impl PlayerState {
     // 0.0 => message is permitted, nothing unusual
     // >=1.0 => message is not permitted, chat volume exceeded
     pub fn enforce_message_volume(&mut self, now: Instant) -> f32 {
-        if self.muted_until.map_or(false, |u| u <= now) {
+        if self.muted_until.is_some_and(|u| u <= now) {
             self.muted_until = None;
         }
 

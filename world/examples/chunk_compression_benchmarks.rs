@@ -1,7 +1,6 @@
-#![allow(clippy::type_complexity)]
 use common::{
     spiral::Spiral2d,
-    terrain::{chonk::Chonk, Block, BlockKind, SpriteKind},
+    terrain::{Block, BlockKind, SpriteKind, chonk::Chonk},
     vol::{IntoVolIterator, RectVolSize, SizedVol, WriteVol},
     volumes::{
         dyna::{Access, ColumnAccess, Dyna},
@@ -9,9 +8,9 @@ use common::{
     },
 };
 use common_net::msg::compression::{
-    image_from_bytes, image_terrain_chonk, image_terrain_volgrid, CompressedData, GridLtrPacking,
-    PackingFormula, QuadPngEncoding, TriPngEncoding, VoxelImageDecoding, VoxelImageEncoding,
-    WidePacking,
+    CompressedData, GridLtrPacking, PackingFormula, QuadPngEncoding, TriPngEncoding,
+    VoxelImageDecoding, VoxelImageEncoding, WidePacking, image_from_bytes, image_terrain_chonk,
+    image_terrain_volgrid,
 };
 use hashbrown::HashMap;
 use image::{ImageBuffer, ImageEncoder};
@@ -28,9 +27,9 @@ use std::{
 use tracing::{debug, trace};
 use vek::*;
 use veloren_world::{
-    civ::SiteKind,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
     World,
+    civ::SiteKind,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
 
 fn lz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Vec<u8> {
@@ -42,7 +41,7 @@ fn lz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Vec<u8> {
     compressed
 }
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 fn unlz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Option<Vec<u8>> {
     lz_fear::LZ4FrameReader::new(data).ok().and_then(|r| {
         let mut uncompressed = Vec::new();
@@ -53,9 +52,8 @@ fn unlz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Option<Vec<u8>> {
     })
 }
 
-#[allow(dead_code)]
 fn do_deflate_rle(data: &[u8]) -> Vec<u8> {
-    use deflate::{write::DeflateEncoder, CompressionOptions};
+    use deflate::{CompressionOptions, write::DeflateEncoder};
 
     let mut encoder = DeflateEncoder::new(Vec::new(), CompressionOptions::rle());
     encoder.write_all(data).expect("Write error!");
@@ -64,7 +62,7 @@ fn do_deflate_rle(data: &[u8]) -> Vec<u8> {
 
 // Separate function so that it shows up differently on the flamegraph
 fn do_deflate_flate2_zero(data: &[u8]) -> Vec<u8> {
-    use flate2::{write::DeflateEncoder, Compression};
+    use flate2::{Compression, write::DeflateEncoder};
 
     let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(0));
     encoder.write_all(data).expect("Write error!");
@@ -72,7 +70,7 @@ fn do_deflate_flate2_zero(data: &[u8]) -> Vec<u8> {
 }
 
 fn do_deflate_flate2<const LEVEL: u32>(data: &[u8]) -> Vec<u8> {
-    use flate2::{write::DeflateEncoder, Compression};
+    use flate2::{Compression, write::DeflateEncoder};
 
     let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(LEVEL));
     encoder.write_all(data).expect("Write error!");
@@ -605,7 +603,7 @@ impl<P: RTreeParams> NearestNeighbor for RTree<ColorPoint, P> {
 #[derive(Debug, Clone, Copy)]
 pub struct PaletteEncoding<'a, NN: NearestNeighbor, const N: u32>(&'a HashMap<BlockKind, NN>);
 
-impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncoding<'a, NN, N> {
+impl<NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncoding<'_, NN, N> {
     type Output = CompressedData<(Vec<u8>, [usize; 4], Vec<[u8; 3]>)>;
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
@@ -817,7 +815,7 @@ fn main() {
                 let lz4chonk_pre = Instant::now();
                 let lz4_chonk = lz4_with_dictionary(&bincode::serialize(&chunk).unwrap(), &[]);
                 let lz4chonk_post = Instant::now();
-                #[allow(clippy::reversed_empty_ranges)]
+                #[expect(clippy::reversed_empty_ranges)]
                 for _ in 0..ITERS {
                     let _deflate0_chonk =
                         do_deflate_flate2_zero(&bincode::serialize(&chunk).unwrap());
@@ -996,7 +994,7 @@ fn main() {
 
                     if false {
                         use std::fs::File;
-                        let mut f = File::create(&format!(
+                        let mut f = File::create(format!(
                             "chonkjpegs/tmp_{}_{}.jpg",
                             spiralpos.x, spiralpos.y
                         ))
@@ -1257,8 +1255,8 @@ fn main() {
 
                     if (1usize..20).any(|i| (2 * i + 1) * (2 * i + 1) == count) {
                         use std::fs::File;
-                        let mut f = File::create(&format!("chonkjpegs/{}_{}.jpg", sitename, count))
-                            .unwrap();
+                        let mut f =
+                            File::create(format!("chonkjpegs/{}_{}.jpg", sitename, count)).unwrap();
                         let jpeg_volgrid =
                             image_terrain_volgrid(&JpegEncoding, GridLtrPacking, &volgrid).unwrap();
                         f.write_all(&jpeg_volgrid.0).unwrap();
@@ -1283,7 +1281,7 @@ fn main() {
                                 indices[1]..indices[2],
                                 indices[2]..mixed_volgrid.len(),
                             ];
-                            let mut f = File::create(&format!(
+                            let mut f = File::create(format!(
                                 "chonkmixed/{}_{}_{}.{}",
                                 sitename, count, i, FMT[i]
                             ))

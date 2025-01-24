@@ -5,7 +5,7 @@ use specs::{Join, Read, ReadStorage};
 use tracing::warn;
 use veloren_query_server::proto::ServerInfo;
 
-use crate::{client::Client, Settings, Tick};
+use crate::{Settings, Tick, client::Client};
 
 // Update the server stats every 60 ticks
 const INFO_SEND_INTERVAL: u64 = 60;

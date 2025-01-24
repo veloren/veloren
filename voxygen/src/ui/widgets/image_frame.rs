@@ -1,8 +1,9 @@
 //! A widget for selecting a single value along some linear range.
 use conrod_core::{
-    builder_methods, image,
+    Color, Colorable, Positionable, Rect, Sizeable, UiCell, Widget, WidgetCommon, builder_methods,
+    image,
     widget::{self, Image, Rectangle},
-    widget_ids, Color, Colorable, Positionable, Rect, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids,
 };
 
 #[derive(Clone, WidgetCommon)]

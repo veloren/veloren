@@ -7,20 +7,19 @@ use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, time::Dur
 #[cfg(not(target_os = "macos"))]
 use mumble_link::SharedLink;
 use ordered_float::OrderedFloat;
-use specs::{Join, LendJoin, WorldExt};
+use specs::WorldExt;
 use tracing::{error, info};
 use vek::*;
 
 use client::{self, Client};
 use common::{
+    CachedSpatialGrid,
     comp::{
-        self,
-        dialogue::Subject,
+        self, CharacterActivity, ChatType, Content, Fluid, InputKind, InventoryUpdateEvent, Pos,
+        PresenceKind, Stats, UtteranceKind, Vel,
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
-        item::{tool::ToolKind, ItemDesc},
-        Alignment, CharacterActivity, ChatType, Content, Fluid, InputKind, InventoryUpdateEvent,
-        Pos, PresenceKind, Stats, UtteranceKind, Vel,
+        item::{ItemDesc, tool::ToolKind},
     },
     consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
@@ -28,17 +27,16 @@ use common::{
     mounting::{Mount, VolumePos},
     outcome::Outcome,
     recipe::{self, RecipeBookManifest},
-    states::utils::can_perform_pet,
     terrain::{Block, BlockKind},
     trade::TradeResult,
     util::{Dir, Plane},
     vol::ReadVol,
-    CachedSpatialGrid,
 };
 use common_base::{prof_span, span};
 use common_net::{msg::server::InviteAnswer, sync::WorldSyncExt};
 
 use crate::{
+    Direction, GlobalState, PlayState, PlayStateResult,
     audio::sfx::SfxEvent,
     cmd::run_command,
     error::Error,
@@ -50,14 +48,13 @@ use crate::{
     key_state::KeyState,
     menu::{char_selection::CharSelectionState, main::get_client_msg_error},
     render::{Drawer, GlobalsBindGroup},
-    scene::{camera, CameraMode, DebugShapeId, Scene, SceneData},
+    scene::{CameraMode, DebugShapeId, Scene, SceneData, camera},
     session::target::ray_entities,
     settings::Settings,
     window::{AnalogGameInput, Event},
-    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use hashbrown::HashMap;
-use interactable::{select_interactable, BlockInteraction, Interactable};
+use interactable::{BlockInteraction, EntityInteraction, Interactable, get_interactables};
 use settings_change::Language::ChangeLanguage;
 use target::targets_under_cursor;
 #[cfg(feature = "egui-ui")]
@@ -118,7 +115,7 @@ pub struct SessionState {
     pub(crate) target_entity: Option<specs::Entity>,
     pub(crate) selected_entity: Option<(specs::Entity, std::time::Instant)>,
     pub(crate) viewpoint_entity: Option<specs::Entity>,
-    interactable: Option<Interactable>,
+    interactables: interactable::Interactables,
     #[cfg(not(target_os = "macos"))]
     mumble_link: SharedLink,
     hitboxes: HashMap<specs::Entity, DebugShapeId>,
@@ -190,7 +187,7 @@ impl SessionState {
             target_entity: None,
             selected_entity: None,
             viewpoint_entity: None,
-            interactable: None,
+            interactables: Default::default(),
             #[cfg(not(target_os = "macos"))]
             mumble_link,
             hitboxes: HashMap::new(),
@@ -632,14 +629,34 @@ impl PlayState for SessionState {
                     self.viewpoint_entity().0,
                 );
 
-            self.interactable = select_interactable(
+            match get_interactables(
                 &client,
                 collect_target,
                 entity_target,
                 mine_target,
-                self.viewpoint_entity().0,
                 &self.scene,
-            );
+            ) {
+                Ok(input_map) => {
+                    let entities = input_map
+                        .values()
+                        .filter_map(|(_, interactable)| {
+                            if let Interactable::Entity { entity, .. } = interactable {
+                                Some(*entity)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<HashSet<_>>();
+                    self.interactables = interactable::Interactables {
+                        input_map,
+                        entities,
+                    };
+                },
+                Err(error) => {
+                    tracing::trace!(?error, "Getting interactables failed");
+                    self.interactables = Default::default()
+                },
+            }
 
             drop(client);
 
@@ -937,45 +954,16 @@ impl PlayState for SessionState {
                                 let mut client = self.client.borrow_mut();
                                 if client.is_riding() {
                                     client.unmount();
-                                } else {
-                                    if let Some(interactable) = &self.interactable {
-                                        match interactable {
-                                            Interactable::Block(_, pos, interaction) => {
-                                                if matches!(interaction, BlockInteraction::Mount) {
-                                                    client.mount_volume(*pos)
-                                                }
-                                            },
-                                            Interactable::Entity(entity) => client.mount(*entity),
-                                        }
-                                    }
-                                    let player_pos = client
-                                        .state()
-                                        .read_storage::<Pos>()
-                                        .get(client.entity())
-                                        .copied();
-                                    if let Some(player_pos) = player_pos {
-                                        // Find closest mountable entity
-                                        let closest_mountable_entity = (
-                                            &client.state().ecs().entities(),
-                                            &client.state().ecs().read_storage::<Pos>(),
-                                            // TODO: More cleverly filter by things that can actually be mounted
-                                            !&client.state().ecs().read_storage::<Is<Mount>>(),
-                                            client.state().ecs().read_storage::<comp::Alignment>().maybe(),
-                                        )
-                                            .join()
-                                            .filter(|(entity, _, _, _)| *entity != client.entity())
-                                            .filter(|(_, _, _, alignment)| matches!(alignment, Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()))
-                                            .map(|(entity, pos, _, _)| {
-                                                (entity, player_pos.0.distance_squared(pos.0))
-                                            })
-                                            .filter(|(_, dist_sqr)| {
-                                                *dist_sqr < MAX_MOUNT_RANGE.powi(2)
-                                            })
-                                            .min_by_key(|(_, dist_sqr)| OrderedFloat(*dist_sqr));
-                                        if let Some((mountee_entity, _)) = closest_mountable_entity
-                                        {
-                                            client.mount(mountee_entity);
-                                        }
+                                } else if let Some((_, interactable)) =
+                                    self.interactables.input_map.get(&GameInput::Mount)
+                                {
+                                    match interactable {
+                                        Interactable::Block { volume_pos, .. } => {
+                                            client.mount_volume(*volume_pos)
+                                        },
+                                        Interactable::Entity { entity, .. } => {
+                                            client.mount(*entity)
+                                        },
                                     }
                                 }
                             },
@@ -1021,23 +1009,30 @@ impl PlayState for SessionState {
                                     let is_staying = client
                                         .state()
                                         .read_component_copied::<CharacterActivity>(pet_entity)
-                                        .map_or(false, |activity| activity.is_pet_staying);
+                                        .is_some_and(|activity| activity.is_pet_staying);
                                     client.set_pet_stay(pet_entity, !is_staying);
                                 }
                             },
                             GameInput::Interact => {
                                 if state {
                                     let mut client = self.client.borrow_mut();
-                                    if let Some(interactable) = &self.interactable {
+                                    if let Some((_, interactable)) =
+                                        self.interactables.input_map.get(&GameInput::Interact)
+                                    {
                                         match interactable {
-                                            Interactable::Block(block, pos, interaction) => {
+                                            Interactable::Block {
+                                                volume_pos,
+                                                block,
+                                                interaction,
+                                                ..
+                                            } => {
                                                 match interaction {
-                                                    BlockInteraction::Collect
+                                                    BlockInteraction::Collect { .. }
                                                     | BlockInteraction::Unlock(_) => {
                                                         if block.is_collectible() {
-                                                            match pos.kind {
+                                                            match volume_pos.kind {
                                                                 common::mounting::Volume::Terrain => {
-                                                                    client.collect_block(pos.pos);
+                                                                    client.collect_block(volume_pos.pos);
                                                                 }
                                                                 common::mounting::Volume::Entity(_) => {
                                                                     // TODO: Do we want to implement this?
@@ -1048,91 +1043,68 @@ impl PlayState for SessionState {
                                                     BlockInteraction::Craft(tab) => {
                                                         self.hud.show.open_crafting_tab(
                                                             *tab,
-                                                            block.get_sprite().map(|s| (*pos, s)),
+                                                            block
+                                                                .get_sprite()
+                                                                .map(|s| (*volume_pos, s)),
                                                         )
                                                     },
                                                     BlockInteraction::Mine(_)
                                                     | BlockInteraction::Mount => {},
-                                                    BlockInteraction::Read(content) => match pos
-                                                        .kind
-                                                    {
-                                                        common::mounting::Volume::Terrain => {
-                                                            self.hud.show_content_bubble(
-                                                                pos.pos.as_()
-                                                                    + Vec3::new(
-                                                                        0.5,
-                                                                        0.5,
-                                                                        block.solid_height() * 0.75,
-                                                                    ),
-                                                                content.clone(),
-                                                            )
-                                                        },
-                                                        // Signs on volume entities are not
-                                                        // currently supported
-                                                        common::mounting::Volume::Entity(_) => {},
+                                                    BlockInteraction::Read(content) => {
+                                                        match volume_pos.kind {
+                                                            common::mounting::Volume::Terrain => {
+                                                                self.hud.show_content_bubble(
+                                                                    volume_pos.pos.as_()
+                                                                        + Vec3::new(
+                                                                            0.5,
+                                                                            0.5,
+                                                                            block.solid_height()
+                                                                                * 0.75,
+                                                                        ),
+                                                                    content.clone(),
+                                                                )
+                                                            },
+                                                            // Signs on volume entities are not
+                                                            // currently supported
+                                                            common::mounting::Volume::Entity(_) => {
+                                                            },
+                                                        }
                                                     },
                                                     BlockInteraction::LightToggle(enable) => {
-                                                        client.toggle_sprite_light(*pos, *enable);
+                                                        client.toggle_sprite_light(
+                                                            *volume_pos,
+                                                            *enable,
+                                                        );
                                                     },
                                                 }
                                             },
-                                            Interactable::Entity(entity) => {
-                                                let body = client
-                                                    .state()
-                                                    .read_component_cloned::<comp::Body>(*entity);
-
-                                                let pettable = client
-                                                    .state()
-                                                    .read_component_cloned::<comp::Pos>(*entity)
-                                                    .zip(client.state().read_component_cloned::<comp::Alignment>(*entity))
-                                                    .zip(client.state().read_component_cloned::<comp::Pos>(client.entity()))
-                                                    .map_or(
-                                                        false,
-                                                        |((target_position, target_alignment), client_position)| {
-                                                            can_perform_pet(
-                                                                client_position,
-                                                                target_position,
-                                                                target_alignment,
-                                                            )
-                                                        },
-                                                    );
-
-                                                if matches!(
-                                                    client
-                                                        .state()
-                                                        .ecs()
-                                                        .read_storage::<comp::CharacterState>()
-                                                        .get(*entity),
-                                                    Some(comp::CharacterState::Crawl)
-                                                ) {
-                                                    client.help_downed(*entity);
-                                                } else if client
-                                                    .state()
-                                                    .ecs()
-                                                    .read_storage::<comp::PickupItem>()
-                                                    .get(*entity)
-                                                    .is_some()
-                                                {
-                                                    client.pick_up(*entity);
-                                                } else if body
-                                                    .map_or(false, |body| body.is_campfire())
-                                                {
-                                                    client.toggle_sit();
-                                                } else if let Some(portal_uid) = body
-                                                    .map_or(false, |body| body.is_portal())
-                                                    .then(|| {
-                                                        client
-                                                            .state()
-                                                            .ecs()
-                                                            .uid_from_entity(*entity)
-                                                    })
-                                                    .flatten()
-                                                {
-                                                    client.activate_portal(portal_uid);
-                                                } else if pettable {
-                                                    client.do_pet(*entity);
-                                                } else {
-                                                    client.npc_interact(*entity, Subject::Regular);
+                                            Interactable::Entity {
+                                                entity,
+                                                interaction,
+                                                ..
+                                            } => {
+                                                // NOTE: Keep this match exhaustive.
+                                                match interaction {
+                                                    EntityInteraction::HelpDowned => {
+                                                        client.help_downed(*entity)
+                                                    },
+                                                    EntityInteraction::PickupItem => {
+                                                        client.pick_up(*entity)
+                                                    },
+                                                    EntityInteraction::ActivatePortal => {
+                                                        client.activate_portal(*entity)
+                                                    },
+                                                    EntityInteraction::Pet => {
+                                                        client.do_pet(*entity)
+                                                    },
+                                                    EntityInteraction::Talk => client.npc_interact(
+                                                        *entity,
+                                                        comp::dialogue::Subject::Regular,
+                                                    ),
+                                                    EntityInteraction::CampfireSit
+                                                    | EntityInteraction::Trade
+                                                    | EntityInteraction::StayFollow
+                                                    | EntityInteraction::Mount => {},
                                                 }
                                             },
                                         }
@@ -1141,56 +1113,35 @@ impl PlayState for SessionState {
                             },
                             GameInput::Trade => {
                                 if state && controlling_char {
-                                    if let Some(interactable) = &self.interactable {
+                                    if let Some((_, Interactable::Entity { entity, .. })) =
+                                        self.interactables.input_map.get(&GameInput::Trade)
+                                    {
                                         let mut client = self.client.borrow_mut();
-                                        match interactable {
-                                            Interactable::Block(_, _, _) => {},
-                                            Interactable::Entity(entity) => {
-                                                let can_trade_to_alignment = client
-                                                    .state()
-                                                    .read_component_cloned::<Alignment>(*entity)
-                                                    .is_some_and(|a| match a {
-                                                        Alignment::Npc => true,
-                                                        Alignment::Owned(owner)
-                                                            if client.uid().is_some_and(
-                                                                |uid| owner == uid,
-                                                            ) =>
-                                                        {
-                                                            true
-                                                        },
-                                                        _ => false,
-                                                    });
+                                        if let Some(uid) =
+                                            client.state().ecs().uid_from_entity(*entity)
+                                        {
+                                            let name = client
+                                                .player_list()
+                                                .get(&uid)
+                                                .map(|info| info.player_alias.clone())
+                                                .unwrap_or_else(|| {
+                                                    let stats =
+                                                        client.state().read_storage::<Stats>();
+                                                    stats.get(*entity).map_or(
+                                                        format!("<entity {:?}>", uid),
+                                                        |e| e.name.to_owned(),
+                                                    )
+                                                });
 
-                                                if let Some(uid) =
-                                                    client.state().ecs().uid_from_entity(*entity)
-                                                    && (can_trade_to_alignment
-                                                        || client.player_list().contains_key(&uid))
-                                                {
-                                                    let name = client
-                                                        .player_list()
-                                                        .get(&uid)
-                                                        .map(|info| info.player_alias.clone())
-                                                        .unwrap_or_else(|| {
-                                                            let stats = client
-                                                                .state()
-                                                                .read_storage::<Stats>();
-                                                            stats.get(*entity).map_or(
-                                                                format!("<entity {:?}>", uid),
-                                                                |e| e.name.to_owned(),
-                                                            )
-                                                        });
+                                            self.hud.new_message(ChatType::Meta.into_msg(
+                                                Content::localized_with_args(
+                                                    "hud-trade-invite_sent",
+                                                    [("playername", name)],
+                                                ),
+                                            ));
 
-                                                    self.hud.new_message(ChatType::Meta.into_msg(
-                                                        Content::localized_with_args(
-                                                            "hud-trade-invite_sent",
-                                                            [("playername", name)],
-                                                        ),
-                                                    ));
-
-                                                    client.send_invite(uid, InviteKind::Trade)
-                                                };
-                                            },
-                                        }
+                                            client.send_invite(uid, InviteKind::Trade)
+                                        };
                                     }
                                 }
                             },
@@ -1264,9 +1215,8 @@ impl PlayState for SessionState {
                                 let client = self.client.borrow();
                                 camera.next_mode(
                                     client.is_moderator(),
-                                    client.presence().map_or(true, |presence| {
-                                        presence != PresenceKind::Spectator
-                                    }) || self.viewpoint_entity.is_some(),
+                                    (client.presence() != Some(PresenceKind::Spectator))
+                                        || self.viewpoint_entity.is_some(),
                                 );
                             },
                             GameInput::Select => {
@@ -1296,17 +1246,10 @@ impl PlayState for SessionState {
                                     // camera as a result of spectating.
                                     ori.z = 0.0;
                                     self.scene.camera_mut().set_orientation(ori);
-                                } else if let Some(interactable) = &self.interactable {
+                                } else if let Some(target_entity) = entity_target {
                                     if self.scene.camera().get_mode() == CameraMode::Freefly {
-                                        match interactable {
-                                            Interactable::Block(_, _, _) => {},
-                                            Interactable::Entity(entity) => {
-                                                self.viewpoint_entity = Some(*entity);
-                                                self.scene
-                                                    .camera_mut()
-                                                    .set_mode(CameraMode::FirstPerson);
-                                            },
-                                        }
+                                        self.viewpoint_entity = Some(target_entity.kind.0);
+                                        self.scene.camera_mut().set_mode(CameraMode::FirstPerson);
                                     }
                                 }
                             },
@@ -1354,7 +1297,7 @@ impl PlayState for SessionState {
                 }
             }
 
-            if self.viewpoint_entity.map_or(false, |entity| {
+            if self.viewpoint_entity.is_some_and(|entity| {
                 !self
                     .client
                     .borrow()
@@ -1660,6 +1603,8 @@ impl PlayState for SessionState {
                 }
             });
 
+            let inverted_interactable_map = self.interactables.inverted_map();
+
             // Extract HUD events ensuring the client borrow gets dropped.
             let mut hud_events = self.hud.maintain(
                 &self.client.borrow(),
@@ -1680,7 +1625,7 @@ impl PlayState for SessionState {
                     selected_entity: self.selected_entity,
                     persistence_load_error: self.metadata.skill_set_persistence_load_error,
                 },
-                self.interactable.as_ref(),
+                inverted_interactable_map,
             );
 
             // Maintain egui (debug interface)
@@ -2180,7 +2125,7 @@ impl PlayState for SessionState {
                     viewpoint_entity,
                     mutable_viewpoint: mutable_viewpoint || self.free_look,
                     // Only highlight if interactable
-                    target_entity: self.interactable.as_ref().and_then(Interactable::entity),
+                    target_entities: &self.interactables.entities,
                     loaded_distance: client.loaded_distance(),
                     terrain_view_distance: client.view_distance().unwrap_or(1),
                     entity_view_distance: client
@@ -2274,7 +2219,7 @@ impl PlayState for SessionState {
             viewpoint_entity,
             mutable_viewpoint,
             // Only highlight if interactable
-            target_entity: self.interactable.as_ref().and_then(Interactable::entity),
+            target_entities: &self.interactables.entities,
             loaded_distance: client.loaded_distance(),
             terrain_view_distance: client.view_distance().unwrap_or(1),
             entity_view_distance: client
@@ -2331,7 +2276,8 @@ impl PlayState for SessionState {
             // Draw the UI to the screen
             if let Some(mut ui_drawer) = third_pass.draw_ui() {
                 self.hud.render(&mut ui_drawer);
-            }; // Note: this semicolon is needed for the third_pass borrow to be dropped before it's lifetime ends
+            }; // Note: this semicolon is needed for the third_pass borrow to be
+            // dropped before it's lifetime ends
         }
     }
 

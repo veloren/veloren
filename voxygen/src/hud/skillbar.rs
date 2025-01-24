@@ -1,44 +1,43 @@
 use super::{
-    hotbar,
+    BLACK, BarNumbers, CRITICAL_HP_COLOR, HP_COLOR, HudInfo, LOW_HP_COLOR, POISE_COLOR,
+    POISEBAR_TICK_COLOR, QUALITY_EPIC, QUALITY_LEGENDARY, STAMINA_COLOR, ShortcutNumbers,
+    TEXT_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, XP_COLOR, hotbar,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slots, util, BarNumbers, HudInfo, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR,
-    LOW_HP_COLOR, POISEBAR_TICK_COLOR, POISE_COLOR, QUALITY_EPIC, QUALITY_LEGENDARY, STAMINA_COLOR,
-    TEXT_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, XP_COLOR,
+    slots, util,
 };
 use crate::{
+    GlobalState,
     game_input::GameInput,
-    hud::{animation::animation_timer, ComboFloater, Position, PositionSpecifier},
+    hud::{ComboFloater, Position, PositionSpecifier, animation::animation_timer},
     ui::{
-        fonts::Fonts,
-        slot::{ContentSize, SlotMaker},
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
+        fonts::Fonts,
+        slot::{ContentSize, SlotMaker},
     },
     window::KeyMouse,
-    GlobalState,
 };
 use i18n::Localization;
 
 use client::{self, Client};
 use common::{
     comp::{
-        self,
+        self, Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Hardcore, Health,
+        Inventory, Poise, PoiseState, SkillSet, Stats,
         ability::{AbilityInput, Stance},
         item::{
-            tool::{AbilityContext, ToolKind},
             ItemDesc, ItemI18n, MaterialStatManifest,
+            tool::{AbilityContext, ToolKind},
         },
         skillset::SkillGroupKind,
-        Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Hardcore, Health, Inventory,
-        Poise, PoiseState, SkillSet, Stats,
     },
     recipe::RecipeBookManifest,
 };
 use conrod_core::{
-    color,
+    Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
+    widget_ids,
 };
 use vek::*;
 
@@ -325,7 +324,7 @@ pub struct Skillbar<'a> {
 }
 
 impl<'a> Skillbar<'a> {
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
         info: &'a HudInfo,
@@ -475,7 +474,7 @@ impl<'a> Skillbar<'a> {
                 .state()
                 .read_storage::<common::interaction::Interactors>()
                 .get(self.client.entity())
-                .map_or(false, |interactors| {
+                .is_some_and(|interactors| {
                     interactors.has_interaction(common::interaction::InteractionKind::HelpDowned)
                 })
             {
@@ -711,10 +710,7 @@ impl<'a> Skillbar<'a> {
             return Some(Event::OpenBag);
         }
         let invs = self.client.inventories();
-        let inventory = match invs.get(self.info.viewpoint_entity) {
-            Some(inv) => inv,
-            None => return None,
-        };
+        let inventory = invs.get(self.info.viewpoint_entity)?;
 
         let space_used = inventory.populated_slots();
         let space_max = inventory.slots().count();
@@ -771,7 +767,7 @@ impl<'a> Skillbar<'a> {
             .global_state
             .settings
             .controls
-            .get_binding(GameInput::Bag)
+            .get_binding(GameInput::Inventory)
         {
             self.create_new_button_with_shadow(
                 ui,
@@ -1277,9 +1273,9 @@ impl<'a> Skillbar<'a> {
                         self.stats,
                     )
                 })
-                .map_or(false, |(a, _, _)| {
+                .is_some_and(|(a, _, _)| {
                     self.energy.current() >= a.energy_cost()
-                        && self.combo.map_or(false, |c| c.counter() >= a.combo_cost())
+                        && self.combo.is_some_and(|c| c.counter() >= a.combo_cost())
                         && a.ability_meta().requirements.requirements_met(self.stance)
                 })
             {
@@ -1353,7 +1349,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Skillbar<'a> {
+impl Widget for Skillbar<'_> {
     type Event = Option<Event>;
     type State = State;
     type Style = ();

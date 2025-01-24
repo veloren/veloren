@@ -16,16 +16,17 @@ pub use self::{
 };
 pub(crate) use self::{
     erosion::{
-        do_erosion, fill_sinks, get_lakes, get_multi_drainage, get_multi_rec, get_rivers, Alt,
-        RiverData, RiverKind,
+        Alt, RiverData, RiverKind, do_erosion, fill_sinks, get_lakes, get_multi_drainage,
+        get_multi_rec, get_rivers,
     },
     util::{
-        cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor, uniform_noise, uphill,
-        InverseCdf,
+        InverseCdf, cdf_irwin_hall, downhill, get_oceans, local_cells, map_edge_factor,
+        uniform_noise, uphill,
     },
 };
 
 use crate::{
+    CONFIG, IndexRef,
     all::{Environment, ForestKind, TreeAttr},
     block::BlockGen,
     civ::{Place, PointOfInterest},
@@ -33,10 +34,9 @@ use crate::{
     layer::spot::Spot,
     site::Site,
     util::{
-        seed_expan, DHashSet, FastNoise, FastNoise2d, RandomField, Sampler, StructureGen2d,
-        CARDINALS, LOCALITY, NEIGHBORS,
+        CARDINALS, DHashSet, FastNoise, FastNoise2d, LOCALITY, NEIGHBORS, RandomField, Sampler,
+        StructureGen2d, seed_expan,
     },
-    IndexRef, CONFIG,
 };
 use common::{
     assets::{self, AssetExt},
@@ -47,18 +47,18 @@ use common::{
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{
-        map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx, BiomeKind, CoordinateConversions,
-        MapSizeLg, TerrainChunk, TerrainChunkSize,
+        BiomeKind, CoordinateConversions, MapSizeLg, TerrainChunk, TerrainChunkSize,
+        map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx,
     },
     vol::RectVolSize,
 };
 use common_base::prof_span;
 use common_net::msg::WorldMapMsg;
 use noise::{
-    core::worley::distance_functions, BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn,
-    Perlin, RidgedMulti, SuperSimplex,
+    BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, Perlin, RidgedMulti, SuperSimplex,
+    core::worley::distance_functions,
 };
-use num::{traits::FloatConst, Float, Signed};
+use num::{Float, Signed, traits::FloatConst};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
@@ -649,7 +649,6 @@ impl WorldFile {
     /// for serialization. Whenever a new map is updated, just change the
     /// variant we construct here to make sure we're using the latest map
     /// version.
-
     pub fn new(map: ModernMap) -> Self { WorldFile::Veloren0_7_0(map) }
 
     #[inline]
@@ -1781,7 +1780,7 @@ impl WorldSim {
             let mut cliff_path = Vec::new();
 
             for _ in 0..64 {
-                if self.get_gradient_approx(pos).map_or(false, |g| g > 1.5) {
+                if self.get_gradient_approx(pos).is_some_and(|g| g > 1.5) {
                     if !cliffs.insert(pos) {
                         break;
                     }

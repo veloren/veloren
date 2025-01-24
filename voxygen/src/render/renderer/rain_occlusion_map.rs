@@ -1,6 +1,6 @@
 use crate::{render::pipelines::rain_occlusion, scene::terrain::RAIN_OCCLUSION_CHUNKS};
 
-use super::super::{texture::Texture, RenderError, ShadowMapMode};
+use super::super::{RenderError, ShadowMapMode, texture::Texture};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 

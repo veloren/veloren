@@ -374,7 +374,7 @@ impl<'a, V, S: RectVolSize, M: Clone> Iterator for ChonkVolIter<'a, V, S, M> {
     }
 }
 
-impl<'a, V, S: RectVolSize, M: Clone> IntoPosIterator for &'a Chonk<V, S, M> {
+impl<V, S: RectVolSize, M: Clone> IntoPosIterator for &Chonk<V, S, M> {
     type IntoIter = ChonkPosIter<V, S, M>;
 
     fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {

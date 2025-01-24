@@ -1,16 +1,15 @@
 use common_net::synced_components::Heads;
 use specs::{
-    shred, Entities, LazyUpdate, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
+    Entities, LazyUpdate, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage, shred,
 };
 
 use common::{
     comp::{
-        self,
+        self, ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, Controller,
+        Density, Energy, Health, Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise,
+        Pos, PreviousPhysCache, Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
         character_state::{CharacterStateEvents, OutputEvents},
-        inventory::item::{tool::AbilityMap, MaterialStatManifest},
-        ActiveAbilities, Beam, Body, CharacterActivity, CharacterState, Combo, Controller, Density,
-        Energy, Health, Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos,
-        PreviousPhysCache, Scale, SkillSet, Stance, StateUpdate, Stats, Vel,
+        inventory::item::{MaterialStatManifest, tool::AbilityMap},
     },
     event::{self, EventBus, KnockbackEvent, LocalEvent},
     link::Is,
@@ -155,7 +154,7 @@ impl<'a> System<'a> for Sys {
                 combo,
             ) = comps;
             // Being dead overrides all other states
-            if health.map_or(false, |h| h.is_dead) {
+            if health.is_some_and(|h| h.is_dead) {
                 // Do nothing
                 return;
             }

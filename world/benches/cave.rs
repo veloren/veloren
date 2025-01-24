@@ -1,10 +1,9 @@
 use common::{spiral::Spiral2d, terrain::CoordinateConversions};
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use rayon::ThreadPoolBuilder;
 use veloren_world::{
-    layer,
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
-    CanvasInfo, Land, World,
+    CanvasInfo, Land, World, layer,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
 
 fn cave(c: &mut Criterion) {

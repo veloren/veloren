@@ -1,20 +1,20 @@
 use super::{
-    img_ids::Imgs, ChatTab, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR,
-    OFFLINE_COLOR, ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR,
+    ChatTab, ERROR_COLOR, FACTION_COLOR, GROUP_COLOR, INFO_COLOR, KILL_COLOR, OFFLINE_COLOR,
+    ONLINE_COLOR, REGION_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR, WORLD_COLOR, img_ids::Imgs,
 };
 use crate::{
+    GlobalState,
     cmd::complete,
     settings::chat::MAX_CHAT_TABS,
     ui::{
-        fonts::{Font, Fonts},
         Scale,
+        fonts::{Font, Fonts},
     },
-    GlobalState,
 };
 use client::Client;
-use common::comp::{group::Role, ChatMode, ChatMsg, ChatType};
+use common::comp::{ChatMode, ChatMsg, ChatType, group::Role};
 use conrod_core::{
-    color,
+    Color, Colorable, Labelable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon, color,
     input::Key,
     position::Dimension,
     text::{
@@ -22,13 +22,12 @@ use conrod_core::{
         cursor::{self, Index},
     },
     widget::{self, Button, Id, Image, Line, List, Rectangle, Text, TextEdit},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Ui, UiCell, Widget,
-    WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
-use vek::{approx::AbsDiffEq, Vec2};
+use vek::{Vec2, approx::AbsDiffEq};
 
 widget_ids! {
     struct Ids {
@@ -128,7 +127,7 @@ impl<'a> Chat<'a> {
             Some(complete(
                 &input[..index],
                 self.client,
-                self.global_state.settings.chat.chat_cmd_prefix,
+                &self.global_state.settings.chat.chat_cmd_prefix.to_string(),
             ))
         } else {
             None
@@ -199,7 +198,7 @@ pub enum Event {
     DisableForceChat,
 }
 
-impl<'a> Widget for Chat<'a> {
+impl Widget for Chat<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();
@@ -672,7 +671,7 @@ impl<'a> Widget for Chat<'a> {
         //Chat tabs
         if ui
             .rect_of(state.ids.message_box_bg)
-            .map_or(false, |r| r.is_over(ui.global_input().current.mouse.xy))
+            .is_some_and(|r| r.is_over(ui.global_input().current.mouse.xy))
         {
             state.update(|s| s.tabs_last_hover_pulse = Some(self.pulse));
         }
@@ -691,7 +690,7 @@ impl<'a> Widget for Chat<'a> {
                 .set(state.ids.chat_tab_align, ui);
             if ui
                 .rect_of(state.ids.chat_tab_align)
-                .map_or(false, |r| r.is_over(ui.global_input().current.mouse.xy))
+                .is_some_and(|r| r.is_over(ui.global_input().current.mouse.xy))
             {
                 state.update(|s| s.tabs_last_hover_pulse = Some(self.pulse));
             }
@@ -756,7 +755,7 @@ impl<'a> Widget for Chat<'a> {
                 if ui
                     .widget_input(state.ids.chat_tabs[i])
                     .mouse()
-                    .map_or(false, |m| m.is_over())
+                    .is_some_and(|m| m.is_over())
                 {
                     Rectangle::fill([120.0, 20.0])
                         .rgba(0.0, 0.0, 0.0, 0.9)
@@ -834,7 +833,7 @@ impl<'a> Widget for Chat<'a> {
                 // Update the history
                 // Don't add if this is identical to the last message in the history
                 s.history_pos = 0;
-                if s.history.front().map_or(true, |h| h != &msg) {
+                if s.history.front() != Some(&msg) {
                     s.history.push_front(msg.clone());
                     s.history.truncate(self.history_max);
                 }

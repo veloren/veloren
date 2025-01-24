@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, convert::TryFrom};
 
 use crate::comp::inventory::{
-    item::{armor, armor::ArmorKind, tool, ItemKind},
+    item::{ItemKind, armor, armor::ArmorKind, tool},
     loadout::LoadoutSlotId,
 };
 

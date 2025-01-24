@@ -1,10 +1,10 @@
-use super::{world_msg::SiteId, PingMsg};
+use super::{PingMsg, world_msg::SiteId};
 use common::{
+    ViewDistances,
     character::CharacterId,
     comp::{self, AdminRole, Skill},
     event::PluginHash,
     terrain::block::Block,
-    ViewDistances,
 };
 use serde::{Deserialize, Serialize};
 use vek::*;

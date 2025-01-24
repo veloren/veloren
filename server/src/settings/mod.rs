@@ -32,7 +32,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tracing::{error, warn};
-use world::sim::{FileOpts, DEFAULT_WORLD_SEED};
+use world::sim::{DEFAULT_WORLD_SEED, FileOpts};
 
 use self::server_description::ServerDescription;
 

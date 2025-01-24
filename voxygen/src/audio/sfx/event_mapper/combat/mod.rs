@@ -1,9 +1,9 @@
 /// EventMapper::Combat watches the combat states of surrounding entities' and
 /// emits sfx related to weapons and attacks/abilities
 use crate::{
-    audio::sfx::{SfxEvent, SfxTriggerItem, SfxTriggers, SFX_DIST_LIMIT_SQR},
-    scene::{Camera, Terrain},
     AudioFrontend,
+    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
+    scene::{Camera, Terrain},
 };
 
 use super::EventMapper;
@@ -11,8 +11,8 @@ use super::EventMapper;
 use client::Client;
 use common::{
     comp::{
-        inventory::slot::EquipSlot, item::ItemKind, CharacterAbilityType, CharacterState,
-        Inventory, Pos,
+        CharacterAbilityType, CharacterState, Inventory, Pos, inventory::slot::EquipSlot,
+        item::ItemKind,
     },
     terrain::TerrainChunk,
 };

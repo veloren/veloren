@@ -1,7 +1,7 @@
 use super::{
-    super::{vek::*, Animation},
-    biped_small_wield_bow, biped_small_wield_spear, biped_small_wield_sword, BipedSmallSkeleton,
-    SkeletonAttr,
+    super::{Animation, vek::*},
+    BipedSmallSkeleton, SkeletonAttr, biped_small_wield_bow, biped_small_wield_spear,
+    biped_small_wield_sword,
 };
 use common::comp::item::tool::{AbilitySpec, ToolKind};
 use std::f32::consts::PI;

@@ -1,5 +1,5 @@
 use common::{
-    terrain::{chonk::Chonk, Block, BlockKind},
+    terrain::{Block, BlockKind, chonk::Chonk},
     vol::{BaseVol, ReadVol, RectVolSize, WriteVol},
     volumes::vol_grid_2d::VolGrid2d,
 };
@@ -26,7 +26,7 @@ pub struct CompressedData<T> {
 
 impl<T: Serialize> CompressedData<T> {
     pub fn compress(t: &T, level: u32) -> Self {
-        use flate2::{write::DeflateEncoder, Compression};
+        use flate2::{Compression, write::DeflateEncoder};
         let uncompressed = bincode::serialize(t)
             .expect("bincode serialization can only fail if a byte limit is set");
 
@@ -151,7 +151,7 @@ pub fn image_from_bytes<I: ImageDecoder, P: 'static + Pixel<Subpixel = u8>>(
     ImageBuffer::from_raw(w, h, buf)
 }
 
-impl<'a, VIE: VoxelImageEncoding> VoxelImageEncoding for &'a VIE {
+impl<VIE: VoxelImageEncoding> VoxelImageEncoding for &VIE {
     type Output = VIE::Output;
     type Workspace = VIE::Workspace;
 
@@ -175,7 +175,7 @@ impl<'a, VIE: VoxelImageEncoding> VoxelImageEncoding for &'a VIE {
     fn finish(ws: &Self::Workspace) -> Option<Self::Output> { VIE::finish(ws) }
 }
 
-impl<'a, VIE: VoxelImageDecoding> VoxelImageDecoding for &'a VIE {
+impl<VIE: VoxelImageDecoding> VoxelImageDecoding for &VIE {
     fn start(ws: &Self::Output) -> Option<Self::Workspace> { VIE::start(ws) }
 
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block {

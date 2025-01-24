@@ -304,9 +304,7 @@ impl TerrainGrid {
             .map(|i| if i % 2 == 0 { i } else { -i } / 2)
             .map(|z_diff| pos + Vec3::unit_z() * z_diff)
             .find(|pos| {
-                self.get(pos - Vec3::unit_z())
-                    .map_or(false, |b| b.is_filled())
-                    && self.is_space(*pos)
+                self.get(pos - Vec3::unit_z()).is_ok_and(|b| b.is_filled()) && self.is_space(*pos)
             })
     }
 
@@ -381,7 +379,7 @@ impl TerrainChunk {
                     Vec3::new(chunk_relative_xy.x, chunk_relative_xy.y, test_pos.z)
                         - Vec3::unit_z(),
                 )
-                .map_or(false, |b| b.is_filled())
+                .is_ok_and(|b| b.is_filled())
                     && (0..3).all(|z| {
                         self.get(
                             Vec3::new(chunk_relative_xy.x, chunk_relative_xy.y, test_pos.z)

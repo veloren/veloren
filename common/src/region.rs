@@ -2,7 +2,7 @@ use crate::comp::{Pos, Presence, Vel};
 use common_base::span;
 use hashbrown::{DefaultHashBuilder, HashSet};
 use indexmap::IndexMap;
-use specs::{hibitset::BitSetLike, BitSet, Entities, Join, LendJoin, ReadStorage};
+use specs::{BitSet, Entities, Join, LendJoin, ReadStorage, hibitset::BitSetLike};
 use vek::*;
 
 pub enum Event {
@@ -143,7 +143,7 @@ impl RegionMap {
                 )
                     .join()
                 {
-                    let should_sync = maybe_presence.map_or(true, |p| p.kind.sync_me());
+                    let should_sync = maybe_presence.is_none_or(|p| p.kind.sync_me());
                     match maybe_pos {
                         // Switch regions for entities which need switching
                         // TODO don't check every tick (use velocity) (and use id to stagger)

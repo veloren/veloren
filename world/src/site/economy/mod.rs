@@ -4,7 +4,7 @@ use crate::world_msg::EconomyInfo;
 use crate::{
     sim::SimChunk,
     site::Site,
-    util::{map_array::GenericIndex, DHashMap, DHashSet},
+    util::{DHashMap, DHashSet, map_array::GenericIndex},
 };
 use common::{
     store::Id,
@@ -776,7 +776,6 @@ impl Economy {
     /// economy will dynamically react to environmental changes. If a
     /// product becomes available through a mechanism such as trade, an
     /// entire arm of the economy may materialise to take advantage of this.
-
     pub fn tick(&mut self, site_id: Id<Site>, dt: f32) {
         // collect goods from trading
         if INTER_SITE_TRADE {

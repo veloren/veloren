@@ -1,4 +1,4 @@
-use super::super::{pipelines::shadow, texture::Texture, RenderError, ShadowMapMode};
+use super::super::{RenderError, ShadowMapMode, pipelines::shadow, texture::Texture};
 use vek::*;
 
 /// A type that holds shadow map data.  Since shadow mapping may not be
@@ -129,7 +129,7 @@ impl ShadowMap {
         };
         clear(&cube_tex);
         clear(&tex);
-        #[allow(clippy::drop_non_drop)]
+        #[expect(clippy::drop_non_drop)]
         drop(clear);
         queue.submit(std::iter::once(encoder.finish()));
 

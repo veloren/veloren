@@ -2,13 +2,13 @@
 //! the need to decode files on each playback
 use common::assets::{self, AssetExt, Loader};
 use kira::{
+    OutputDestination, StartTime, Volume,
     sound::{
+        FromFileError, IntoOptionalRegion, PlaybackState, SoundData,
         static_sound::{StaticSoundData, StaticSoundHandle},
         streaming::{StreamingSoundData, StreamingSoundHandle},
-        FromFileError, IntoOptionalRegion, PlaybackState, SoundData,
     },
     tween::{Tween, Value},
-    OutputDestination, StartTime, Volume,
 };
 use std::{
     borrow::Cow,

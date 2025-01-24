@@ -1,9 +1,9 @@
 use crate::{
-    combat,
+    Explosion, RadiusEffect, combat,
     combat::{Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
     comp::{
-        character_state::OutputEvents, item::Reagent, melee::CustomCombo, tool::Stats,
-        CharacterState, MeleeConstructor, StateUpdate,
+        CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents,
+        item::Reagent, melee::CustomCombo, tool::Stats,
     },
     event::{ExplosionEvent, LocalEvent},
     outcome::Outcome,
@@ -12,7 +12,6 @@ use crate::{
         combo_melee2,
         utils::*,
     },
-    Explosion, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

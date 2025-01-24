@@ -1,6 +1,6 @@
 use super::{
-    neighbors, quadratic_nearest_point, river_spline_coeffs, uniform_idx_as_vec2,
-    vec2_as_uniform_idx, TerrainChunkSize, NEIGHBOR_DELTA, TERRAIN_CHUNK_BLOCKS_LG,
+    NEIGHBOR_DELTA, TERRAIN_CHUNK_BLOCKS_LG, TerrainChunkSize, neighbors, quadratic_nearest_point,
+    river_spline_coeffs, uniform_idx_as_vec2, vec2_as_uniform_idx,
 };
 use crate::vol::RectVolSize;
 use common_base::prof_span;
@@ -155,7 +155,7 @@ impl MapSizeLg {
     /// that these invariants indeed hold, safely opening up optimizations
     /// that might not otherwise be available at runtime.
     #[inline(always)]
-    #[allow(clippy::result_unit_err)]
+    #[expect(clippy::result_unit_err)]
     pub const fn new(map_size_lg: Vec2<u32>) -> Result<Self, ()> {
         // Assertion on dimensions: must be between
         // 0 and ([MAX_WORLD_BLOCKS_LG] - [TERRAIN_CHUNK_BLOCKS_LG])
@@ -396,7 +396,7 @@ pub struct MapSample {
     pub connections: Option<[Option<Connection>; 8]>,
 }
 
-impl<'a> MapConfig<'a> {
+impl MapConfig<'_> {
     /// Constructs the configuration settings for an orthographic projection of
     /// a map from the top down, rendering (by default) the complete map to
     /// an image such that the chunk:pixel ratio is 1:1.

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{item::Reagent, Density, Mass},
+    comp::{Density, Mass, item::Reagent},
     consts::{IRON_DENSITY, WATER_DENSITY},
     make_case_elim,
 };

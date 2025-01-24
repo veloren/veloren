@@ -3,8 +3,9 @@ use crate::ui::fonts::Fonts;
 use client::{self, Client};
 use common_net::msg::Notification;
 use conrod_core::{
+    Color, Colorable, Positionable, Widget, WidgetCommon,
     widget::{self, Text},
-    widget_ids, Color, Colorable, Positionable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use std::{collections::VecDeque, time::Instant};
@@ -63,7 +64,7 @@ pub struct State {
     last_region_name: Option<String>,
 }
 
-impl<'a> Widget for Popup<'a> {
+impl Widget for Popup<'_> {
     type Event = ();
     type State = State;
     type Style = ();

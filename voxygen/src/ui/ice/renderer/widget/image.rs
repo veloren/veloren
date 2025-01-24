@@ -1,5 +1,5 @@
 use super::super::{
-    super::{widget::image, Rotation},
+    super::{Rotation, widget::image},
     IcedRenderer, Primitive,
 };
 use iced::mouse;

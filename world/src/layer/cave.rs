@@ -1,16 +1,16 @@
 use crate::{
+    Canvas, CanvasInfo, ColumnSample, Land,
     site::SiteKind,
     util::{
-        close_fast as close, sampler::Sampler, FastNoise2d, RandomField, RandomPerm, SmallCache,
-        StructureGen2d, LOCALITY, SQUARE_4,
+        FastNoise2d, LOCALITY, RandomField, RandomPerm, SQUARE_4, SmallCache, StructureGen2d,
+        close_fast as close, sampler::Sampler,
     },
-    Canvas, CanvasInfo, ColumnSample, Land,
 };
 use common::{
     generation::EntityInfo,
     terrain::{
-        quadratic_nearest_point, river_spline_coeffs, Block, BlockKind, CoordinateConversions,
-        SpriteKind, TerrainChunkSize,
+        Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize,
+        quadratic_nearest_point, river_spline_coeffs,
     },
     vol::RectVolSize,
 };
@@ -1194,7 +1194,7 @@ fn write_column<R: Rng>(
                 Block::new(BlockKind::Rock, Rgb::new(50, 35, 75))
             } else if (z < base && !void_below)
                 || ((z >= ceiling && !void_above)
-                    && !(ceiling_cover > 0.0 && overlap.as_ref().map_or(false, |o| o.contains(&z))))
+                    && !(ceiling_cover > 0.0 && overlap.as_ref().is_some_and(|o| o.contains(&z))))
             {
                 let stalactite: Rgb<i16> = Lerp::lerp_unclamped(
                     Lerp::lerp_unclamped(

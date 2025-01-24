@@ -1,7 +1,7 @@
 use super::track::UpdateTracker;
 use common::{resources::Time, uid::Uid};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use specs::{storage::AccessMut, Component, Entity, Join, ReadStorage, World, WorldExt};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use specs::{Component, Entity, Join, ReadStorage, World, WorldExt, storage::AccessMut};
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Debug,
@@ -137,7 +137,7 @@ pub struct CompSyncPackage<P: CompPacket> {
 }
 
 impl<P: CompPacket> CompSyncPackage<P> {
-    #[allow(clippy::new_without_default)]
+    #[expect(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             comp_updates: Vec::new(),

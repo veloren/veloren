@@ -1,7 +1,7 @@
 //! List of players which are not allowed to use client side physics, to punish
 //! abuse
 
-use super::{editable::Version, EditableSetting, SERVER_PHYSICS_FORCE_FILENAME as FILENAME};
+use super::{EditableSetting, SERVER_PHYSICS_FORCE_FILENAME as FILENAME, editable::Version};
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
 pub use v0::*;
@@ -45,7 +45,7 @@ mod v0 {
         ops::{Deref, DerefMut},
     };
 
-    use crate::settings::{editable::Version, EditableSetting};
+    use crate::settings::{EditableSetting, editable::Version};
 
     #[derive(Clone, Deserialize, Serialize, Debug)]
     pub struct ServerPhysicsForceRecord {

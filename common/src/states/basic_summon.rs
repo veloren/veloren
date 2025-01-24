@@ -1,12 +1,11 @@
 use crate::{
     comp::{
-        self,
+        self, Behavior, BehaviorCapability,
+        Body::Object,
+        CharacterState, Projectile, StateUpdate,
         character_state::OutputEvents,
         inventory::loadout_builder::{self, LoadoutBuilder},
         object::Body::FieryTornado,
-        Behavior, BehaviorCapability,
-        Body::Object,
-        CharacterState, Projectile, StateUpdate,
     },
     event::{CreateNpcEvent, LocalEvent, NpcBuilder},
     npc::NPC_NAMES,

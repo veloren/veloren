@@ -12,11 +12,11 @@ pub use self::{
 };
 
 use crate::{
+    Canvas, CanvasInfo, IndexRef,
     column::ColumnSample,
     config::CONFIG,
     sim,
     util::{FastNoise, RandomField, RandomPerm, Sampler},
-    Canvas, CanvasInfo, IndexRef,
 };
 use common::{
     assets::AssetExt,
@@ -680,7 +680,6 @@ pub fn apply_caves_supplement<'a>(
     }
 }
 
-#[allow(dead_code)]
 pub fn apply_coral_to(canvas: &mut Canvas) {
     let info = canvas.info();
 

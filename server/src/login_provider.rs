@@ -1,6 +1,6 @@
 use crate::{
-    settings::{banlist::NormalizedIpAddr, AdminRecord, Ban, Banlist, WhitelistRecord},
     Client,
+    settings::{AdminRecord, Ban, Banlist, WhitelistRecord, banlist::NormalizedIpAddr},
 };
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use chrono::Utc;
@@ -27,7 +27,7 @@ pub fn ban_applies(
     let exceeds_ban_role = |admin: &AdminRecord| {
         AdminRole::from(admin.role) >= AdminRole::from(ban.performed_by_role())
     };
-    !ban.is_expired(now) && !admin.map_or(false, exceeds_ban_role)
+    !ban.is_expired(now) && !admin.is_some_and(exceeds_ban_role)
 }
 
 fn derive_uuid(username: &str) -> Uuid {

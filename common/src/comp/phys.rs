@@ -1,4 +1,4 @@
-use super::{ship::figuredata::ShipSpec, Fluid, Ori};
+use super::{Fluid, Ori, ship::figuredata::ShipSpec};
 use crate::{
     comp::{body::ship::figuredata::VoxelCollider, inventory::item::armor::Friction},
     consts::WATER_DENSITY,

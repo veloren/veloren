@@ -1,19 +1,19 @@
-use super::{terrain::BlocksOfInterest, FigureMgr, SceneData, Terrain};
+use super::{FigureMgr, SceneData, Terrain, terrain::BlocksOfInterest};
 use crate::{
     ecs::comp::Interpolated,
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
     render::{
-        pipelines::particle::ParticleMode, Instances, Light, Model, ParticleDrawer,
-        ParticleInstance, ParticleVertex, Renderer,
+        Instances, Light, Model, ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
+        pipelines::particle::ParticleMode,
     },
     scene::terrain::FireplaceType,
 };
 use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
-        self, ability::Dodgeable, aura, beam, body, buff, item::Reagent, object, shockwave, Beam,
-        Body, CharacterActivity, CharacterState, Fluid, Inventory, Ori, PhysicsState, Pos, Scale,
-        Shockwave, Vel,
+        self, Beam, Body, CharacterActivity, CharacterState, Fluid, Inventory, Ori, PhysicsState,
+        Pos, Scale, Shockwave, Vel, ability::Dodgeable, aura, beam, body, buff, item::Reagent,
+        object, shockwave,
     },
     figure::Segment,
     outcome::Outcome,
@@ -489,8 +489,7 @@ impl ParticleMgr {
                 {
                     if let Some(pos) = scene_data.state.read_component_copied::<Pos>(entity) {
                         let heads = figure_mgr.get_heads(scene_data, entity);
-                        let head_pos =
-                            pos.0 + heads.get(*head).map(|v| Vec3::from(*v)).unwrap_or_default();
+                        let head_pos = pos.0 + heads.get(*head).copied().unwrap_or_default();
 
                         self.particles.resize_with(self.particles.len() + 40, || {
                             Particle::new(
@@ -707,8 +706,8 @@ impl ParticleMgr {
             return;
         };
 
-        let start = pos + Vec3::from(start);
-        let end = pos + Vec3::from(end);
+        let start = pos + start;
+        let end = pos + end;
 
         let time = scene_data.state.get_time();
         let mut rng = thread_rng();
@@ -1594,7 +1593,7 @@ impl ParticleMgr {
                                     Duration::from_secs(2),
                                     time,
                                     ParticleMode::EngineJet,
-                                    Vec3::<f32>::from((tp0.0 + tp1.1) * 0.5)
+                                    ((tp0.0 + tp1.1) * 0.5)
                                         // TODO: This offset is used to position the particles at the engine outlet. Ideally, we'd have a way to configure this per-glider
                                         + Vec3::unit_z() * 0.5
                                         + Vec3::<f32>::zero().map(|_| rng.gen_range(-0.25..0.25))
@@ -2081,7 +2080,7 @@ impl ParticleMgr {
                         kind: buff::BuffKind::Frozen,
                         ..
                     } => {
-                        let is_new_aura = aura.data.duration.map_or(true, |max_dur| {
+                        let is_new_aura = aura.data.duration.is_none_or(|max_dur| {
                             let rem_dur = aura.end_time.map_or(time, |e| e.0) - time;
                             rem_dur > max_dur.0 * 0.9
                         });
@@ -2375,7 +2374,7 @@ impl ParticleMgr {
             PositionsAndDirs(&'a [(Vec3<i32>, Vec3<f32>)]),
         }
 
-        impl<'a> BlockParticleSlice<'a> {
+        impl BlockParticleSlice<'_> {
             fn len(&self) -> usize {
                 match self {
                     Self::Positions(blocks) => blocks.len(),

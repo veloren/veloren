@@ -1,10 +1,10 @@
 use common::{
     comp::{
-        Body, CharacterActivity, Collider, ControlAction, Controller, InputKind, Ori, Pos, Scale,
-        Vel,
+        Body, CharacterActivity, Collider, ControlAction, Controller, InputKind, Ori, PhysicsState,
+        Pos, Scale, Vel,
     },
     link::Is,
-    mounting::{Mount, VolumeRider},
+    mounting::{Mount, Rider, VolumeRider},
     terrain::TerrainGrid,
     uid::IdMaps,
 };
@@ -22,12 +22,14 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainGrid>,
         Entities<'a>,
         WriteStorage<'a, Controller>,
+        ReadStorage<'a, Is<Rider>>,
         ReadStorage<'a, Is<Mount>>,
         ReadStorage<'a, Is<VolumeRider>>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, CharacterActivity>,
+        WriteStorage<'a, PhysicsState>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Collider>,
@@ -44,12 +46,14 @@ impl<'a> System<'a> for Sys {
             terrain,
             entities,
             mut controllers,
+            is_riders,
             is_mounts,
             is_volume_riders,
             mut positions,
             mut velocities,
             mut orientations,
-            mut character_activity,
+            mut character_activities,
+            mut physics_states,
             bodies,
             scales,
             colliders,
@@ -67,7 +71,7 @@ impl<'a> System<'a> for Sys {
                             if !matches!(body, Some(Body::Humanoid(_))) {
                                 let actions = c
                                     .actions
-                                    .extract_if(|action| match action {
+                                    .extract_if(.., |action| match action {
                                         ControlAction::StartInput { input: i, .. }
                                         | ControlAction::CancelInput(i) => matches!(
                                             i,
@@ -109,6 +113,18 @@ impl<'a> System<'a> for Sys {
                 controller.inputs = inputs;
                 controller.actions = actions;
             }
+        }
+
+        // Since physics state isn't updated while riding we set it to default.
+        // TODO: Could this be done only once when the link is first created? Has to
+        // happen on both server and client.
+        for (physics_state, _) in (
+            &mut physics_states,
+            is_riders.mask() | is_volume_riders.mask(),
+        )
+            .join()
+        {
+            *physics_state = PhysicsState::default();
         }
 
         // For each volume rider.
@@ -164,7 +180,7 @@ impl<'a> System<'a> for Sys {
             let inputs = controllers.get_mut(entity).map(|c| {
                 let actions: Vec<_> = c
                     .actions
-                    .extract_if(|action| match action {
+                    .extract_if(.., |action| match action {
                         ControlAction::StartInput { input: i, .. }
                         | ControlAction::CancelInput(i) => {
                             matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll)
@@ -179,7 +195,7 @@ impl<'a> System<'a> for Sys {
 
             if is_volume_rider.block.is_controller() {
                 if let Some((actions, inputs)) = inputs {
-                    if let Some(mut character_activity) = character_activity
+                    if let Some(mut character_activity) = character_activities
                         .get_mut(entity)
                         .filter(|c| c.steer_dir != inputs.move_dir.y)
                     {

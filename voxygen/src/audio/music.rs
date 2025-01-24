@@ -54,7 +54,7 @@ use common::{
 use common_state::State;
 use hashbrown::HashMap;
 use kira::clock::ClockTime;
-use rand::{prelude::SliceRandom, rngs::ThreadRng, thread_rng, Rng};
+use rand::{Rng, prelude::SliceRandom, rngs::ThreadRng, thread_rng};
 use serde::Deserialize;
 use tracing::{debug, trace, warn};
 
@@ -228,7 +228,7 @@ impl MusicMgr {
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(&mut self, audio: &mut AudioFrontend, state: &State, client: &Client) {
-        use common::comp::{group::ENEMY, Group, Health, Pos};
+        use common::comp::{Group, Health, Pos, group::ENEMY};
         use specs::{Join, WorldExt};
 
         if !audio.music_enabled() || audio.get_clock().is_none() || audio.get_clock_time().is_none()

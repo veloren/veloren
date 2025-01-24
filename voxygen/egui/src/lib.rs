@@ -1,5 +1,5 @@
 #![feature(stmt_expr_attributes)]
-#![allow(
+#![expect(
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
 
@@ -15,7 +15,7 @@ use client::{Client, Join, LendJoin, World, WorldExt};
 use common::{
     cmd::ServerChatCommand,
     comp,
-    comp::{inventory::item::armor::Friction, Poise, PoiseState},
+    comp::{Poise, PoiseState, inventory::item::armor::Friction},
     resources::Time,
 };
 use core::mem;
@@ -27,8 +27,8 @@ use crate::{
     experimental_shaders::draw_experimental_shaders_window, widgets::two_col_row,
 };
 use common::comp::{
-    aura::AuraKind::{Buff, ForcePvP, FriendlyFire},
     Body, Fluid,
+    aura::AuraKind::{Buff, ForcePvP, FriendlyFire},
 };
 use egui_winit_platform::Platform;
 use std::time::Duration;
@@ -387,7 +387,7 @@ pub fn maintain_egui_inner(
                                 .join()
                                 .filter(
                                     |(_, _, _, pos, _, _, _, _, _)| {
-                                        client_pos.map_or(true, |client_pos| {
+                                        client_pos.is_none_or(|client_pos| {
                                             pos.map_or(0.0, |pos| {
                                                 pos.0.distance_squared(client_pos.0)
                                             }) < max_entity_distance

@@ -1,9 +1,9 @@
 use axum::{
+    Router,
     extract::{ConnectInfo, State},
-    http::{header::SET_COOKIE, HeaderMap, HeaderValue},
+    http::{HeaderMap, HeaderValue, header::SET_COOKIE},
     response::{Html, IntoResponse},
     routing::get,
-    Router,
 };
 use std::net::SocketAddr;
 

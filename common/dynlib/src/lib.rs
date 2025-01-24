@@ -1,8 +1,8 @@
 use libloading::Library;
-use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
+use notify::{EventKind, RecursiveMode, Watcher, recommended_watcher};
 use std::{
     process::{Command, Stdio},
-    sync::{mpsc, Mutex},
+    sync::{Mutex, mpsc},
     time::Duration,
 };
 

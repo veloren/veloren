@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{
@@ -77,7 +77,7 @@ impl Animation for SummonAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
-        #[allow(clippy::single_match)]
+        #[expect(clippy::single_match)]
         match active_tool_kind {
             Some(ToolKind::Staff) => {
                 next.shoulder_l.position = Vec3::new(

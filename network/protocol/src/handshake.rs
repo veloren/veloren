@@ -1,11 +1,11 @@
 use crate::{
+    InitProtocol,
     error::{InitProtocolError, ProtocolError},
     frame::InitFrame,
     types::{
-        Pid, Sid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, VELOREN_MAGIC_NUMBER,
+        Pid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, Sid, VELOREN_MAGIC_NUMBER,
         VELOREN_NETWORK_VERSION,
     },
-    InitProtocol,
 };
 use async_trait::async_trait;
 use tracing::{debug, error, info, trace};
@@ -170,7 +170,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{mpsc::test_utils::*, InitProtocolError};
+    use crate::{InitProtocolError, mpsc::test_utils::*};
 
     #[tokio::test]
     async fn handshake_drop_start() {

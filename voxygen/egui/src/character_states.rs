@@ -1,4 +1,4 @@
-use crate::{widgets::two_col_row, SelectedEntityInfo};
+use crate::{SelectedEntityInfo, widgets::two_col_row};
 use common::{
     comp::CharacterState,
     states::{charged_melee, dash_melee, leap_melee},

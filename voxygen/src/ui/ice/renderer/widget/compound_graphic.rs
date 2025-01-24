@@ -1,10 +1,10 @@
 use super::super::{
-    super::{widget::compound_graphic, Rotation},
+    super::{Rotation, widget::compound_graphic},
     IcedRenderer, Primitive,
 };
 use common::util::srgba_to_linear;
 use compound_graphic::GraphicKind;
-use iced::{mouse, Rectangle};
+use iced::{Rectangle, mouse};
 
 impl compound_graphic::Renderer for IcedRenderer {
     fn draw<I>(&mut self, graphics: I) -> Self::Output

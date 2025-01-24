@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 // See best practices for attribution: https://wiki.creativecommons.org/wiki/Best_practices_for_attribution
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 #[derive(Clone, Deserialize)]
 pub struct Art {
     /// Name of the art.

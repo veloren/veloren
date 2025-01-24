@@ -8,21 +8,21 @@ use common::{
 };
 use common_ecs::{Origin, Phase, System};
 use common_net::msg::ServerGeneral;
-use rand::{seq::SliceRandom, thread_rng, Rng};
+use rand::{Rng, seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
 use std::{mem, sync::Arc};
 use vek::Vec2;
 use world::World;
 
-use crate::{client::Client, Tick};
+use crate::{Tick, client::Client};
 
 use super::{
-    sim::{LightningCells, WeatherSim},
     WEATHER_DT,
+    sim::{LightningCells, WeatherSim},
 };
 
 enum WeatherJobState {
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     Working(SlowJob),
     Idle(WeatherSim),
     None,

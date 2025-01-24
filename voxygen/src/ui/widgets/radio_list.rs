@@ -1,7 +1,8 @@
 use conrod_core::{
-    builder_methods, image, text,
+    Color, FontSize, Positionable, Rect, Sizeable, Widget, WidgetCommon, builder_methods, image,
+    text,
     widget::{self, button},
-    widget_ids, Color, FontSize, Positionable, Rect, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 
 #[derive(Clone, WidgetCommon)]

@@ -1,5 +1,5 @@
-use super::super::{super::Rotation, style, IcedRenderer, Primitive};
-use iced::{checkbox, mouse, Rectangle};
+use super::super::{super::Rotation, IcedRenderer, Primitive, style};
+use iced::{Rectangle, checkbox, mouse};
 
 impl checkbox::Renderer for IcedRenderer {
     // TODO: what if this gets large enough to not be copied around?

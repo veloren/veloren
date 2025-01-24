@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Stab(
-                    damage: 15,
+                    damage: 14,
                     poise: 5,
                     knockback: 0,
                     energy_regen: 0,

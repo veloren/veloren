@@ -66,7 +66,7 @@ pub use self::{
     wallrun::WallrunAnimation,
     wield::WieldAnimation,
 };
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
+use super::{FigureBoneData, Offsets, Skeleton, TrailSource, make_bone, vek::*};
 use common::comp::{
     self,
     tool::{Hands, ToolKind},

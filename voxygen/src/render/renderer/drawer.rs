@@ -2,18 +2,18 @@ use crate::render::Bound;
 
 use super::{
     super::{
+        AltIndices, CullingMode,
         buffer::Buffer,
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, rope,
-            shadow, skybox, sprite, terrain, trail, ui, AtlasTextures, FigureSpriteAtlasData,
-            GlobalsBindGroup, TerrainAtlasData,
+            AtlasTextures, FigureSpriteAtlasData, GlobalsBindGroup, TerrainAtlasData, blit, bloom,
+            clouds, debug, figure, fluid, lod_object, lod_terrain, particle, rope, shadow, skybox,
+            sprite, terrain, trail, ui,
         },
-        AltIndices, CullingMode,
     },
-    rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
     Renderer, ShadowMap, ShadowMapRenderer,
+    rain_occlusion_map::{RainOcclusionMap, RainOcclusionMapRenderer},
 };
 use common_base::prof_span;
 use core::ops::Range;
@@ -34,7 +34,7 @@ enum Pipelines<'frame> {
     None,
 }
 
-impl<'frame> Pipelines<'frame> {
+impl Pipelines<'_> {
     fn ui(&self) -> Option<&ui::UiPipeline> {
         match self {
             Pipelines::Interface(pipelines) => Some(&pipelines.ui),
@@ -743,7 +743,7 @@ impl<'frame> Drawer<'frame> {
     }
 }
 
-impl<'frame> Drop for Drawer<'frame> {
+impl Drop for Drawer<'_> {
     fn drop(&mut self) {
         let mut encoder = self.encoder.take().unwrap();
 
@@ -1282,7 +1282,7 @@ pub struct VolumetricPassDrawer<'pass> {
     clouds_pipeline: &'pass clouds::CloudsPipeline,
 }
 
-impl<'pass> VolumetricPassDrawer<'pass> {
+impl VolumetricPassDrawer<'_> {
     pub fn draw_clouds(&mut self) {
         self.render_pass
             .set_pipeline(&self.clouds_pipeline.pipeline);

@@ -4,42 +4,42 @@
 #[cfg(feature = "worldgen")]
 use crate::weather::WeatherJob;
 use crate::{
+    Server, Settings, StateExt,
     client::Client,
     location::Locations,
     login_provider::LoginProvider,
     settings::{
-        banlist::NormalizedIpAddr, server_description::ServerDescription,
-        server_physics::ServerPhysicsForceRecord, BanInfo, BanOperation, BanOperationError,
-        EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
+        BanInfo, BanOperation, BanOperationError, EditableSetting, SettingError, WhitelistInfo,
+        WhitelistRecord, banlist::NormalizedIpAddr, server_description::ServerDescription,
+        server_physics::ServerPhysicsForceRecord,
     },
     sys::terrain::SpawnEntityData,
     wiring::{self, OutputFormula},
-    Server, Settings, StateExt,
 };
 
 use assets::AssetExt;
 use authc::Uuid;
 use chrono::{NaiveTime, Timelike, Utc};
 use common::{
-    assets,
+    CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, GroupTarget, LoadoutBuilder,
+    RadiusEffect, assets,
     calendar::Calendar,
     cmd::{
-        AreaKind, EntityTarget, KitSpec, ServerChatCommand, BUFF_PACK, BUFF_PARSER,
-        KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
+        AreaKind, BUFF_PACK, BUFF_PARSER, EntityTarget, KIT_MANIFEST_PATH, KitSpec,
+        PRESET_MANIFEST_PATH, ServerChatCommand,
     },
     combat,
     comp::{
-        self,
+        self, AdminRole, Aura, AuraKind, BuffCategory, ChatType, Content, Inventory, Item,
+        LightEmitter, LocalizationArg, WaypointArea,
         aura::{AuraKindVariant, AuraTarget},
         buff::{Buff, BuffData, BuffKind, BuffSource, DestInfo, MiscBuffData},
         inventory::{
-            item::{all_items_expect, tool::AbilityMap, MaterialStatManifest, Quality},
+            item::{MaterialStatManifest, Quality, all_items_expect, tool::AbilityMap},
             slot::Slot,
         },
         invite::InviteKind,
         misc::PortalData,
-        AdminRole, Aura, AuraKind, BuffCategory, ChatType, Content, Inventory, Item, LightEmitter,
-        LocalizationArg, WaypointArea,
     },
     depot,
     effect::Effect,
@@ -60,8 +60,6 @@ use common::{
     tether::Tethered,
     uid::Uid,
     vol::ReadVol,
-    CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, GroupTarget, LoadoutBuilder,
-    RadiusEffect,
 };
 #[cfg(feature = "worldgen")]
 use common::{terrain::TerrainChunkSize, weather};
@@ -73,8 +71,8 @@ use common_state::{Areas, AreasContainer, BuildArea, NoDurabilityArea, SpecialAr
 use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
-use rand::{thread_rng, Rng};
-use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, LendJoin, WorldExt};
+use rand::{Rng, thread_rng};
+use specs::{Builder, Entity as EcsEntity, Join, LendJoin, WorldExt, storage::StorageEntry};
 use std::{
     fmt::Write, net::SocketAddr, num::NonZeroU32, ops::DerefMut, str::FromStr, sync::Arc,
     time::Duration,
@@ -82,7 +80,7 @@ use std::{
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
 #[cfg(feature = "worldgen")]
-use world::util::{Sampler, LOCALITY};
+use world::util::{LOCALITY, Sampler};
 
 use common::comp::Alignment;
 use tracing::{error, info, warn};
@@ -355,7 +353,7 @@ fn can_send_message(target: EcsEntity, server: &mut Server) -> CmdResult<()> {
         .ecs()
         .read_storage::<Client>()
         .get(target)
-        .map_or(true, |client| !client.client_type.can_send_message())
+        .is_none_or(|client| !client.client_type.can_send_message())
     {
         Err(Content::localized("command-cannot-send-message-hidden"))
     } else {
@@ -737,7 +735,7 @@ fn handle_into_npc(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    use crate::events::shared::{transform_entity, TransformEntityError};
+    use crate::events::shared::{TransformEntityError, transform_entity};
 
     if client != target {
         server.notify_client(
@@ -1069,7 +1067,7 @@ fn handle_site(
             .sites()
             .find(|site| {
                 site.site_tmp
-                    .map_or(false, |id| server.index.sites[id].name() == dest_name)
+                    .is_some_and(|id| server.index.sites[id].name() == dest_name)
             })
             .ok_or_else(|| Content::localized("command-site-not-found"))?;
 
@@ -2654,7 +2652,7 @@ fn handle_kill_npcs(
             let should_kill = kill_pets
                 || if let Some(Alignment::Owned(owned)) = alignment {
                     ecs.entity_from_uid(*owned)
-                        .map_or(true, |owner| !players.contains(owner))
+                        .is_none_or(|owner| !players.contains(owner))
                 } else {
                     true
                 };
@@ -3167,6 +3165,15 @@ fn handle_outcome(
         "HeadLost" => Outcome::HeadLost {
             uid: uid_arg!().unwrap_or(target_uid),
             head: parse_or_default!(),
+        },
+        "Splash" => Outcome::Splash {
+            vel: vec_arg!(),
+            pos: pos_arg!(),
+            mass: parse_or_default!(1.0),
+            kind: parse_or_default!(
+                comp::fluid_dynamics::LiquidKind::Water,
+                @|arg| comp::fluid_dynamics::LiquidKind::from_str(arg).ok()
+            ),
         },
         _ => {
             return Err(Content::localized_with_args(
@@ -5841,7 +5848,7 @@ fn handle_dismount(
         .ecs()
         .write_storage::<common::mounting::VolumeRiders>()
         .get_mut(target)
-        .map_or(false, |volume_riders| volume_riders.clear());
+        .is_some_and(|volume_riders| volume_riders.clear());
 
     if destroyed {
         server.notify_client(

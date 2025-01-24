@@ -1,6 +1,6 @@
 use super::super::{super::FontId, IcedRenderer, Primitive};
 use glyph_brush::GlyphCruncher;
-use iced::{mouse, text, Color, HorizontalAlignment, Rectangle, Size, VerticalAlignment};
+use iced::{Color, HorizontalAlignment, Rectangle, Size, VerticalAlignment, mouse, text};
 
 impl text::Renderer for IcedRenderer {
     type Font = FontId;

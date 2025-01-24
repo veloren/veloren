@@ -5,7 +5,7 @@ pub mod shoot;
 // Reexports
 pub use self::{beam::BeamAnimation, idle::IdleAnimation, shoot::ShootAnimation};
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 

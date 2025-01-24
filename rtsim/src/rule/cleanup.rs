@@ -1,4 +1,4 @@
-use crate::{event::OnTick, RtState, Rule, RuleError};
+use crate::{RtState, Rule, RuleError, event::OnTick};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 

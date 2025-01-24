@@ -1,6 +1,6 @@
 use super::{
-    load::{BodySpec, ShipBoneMeshes},
     FigureModelEntry, ModelEntry, TerrainModelEntry,
+    load::{BodySpec, ShipBoneMeshes},
 };
 use crate::{
     mesh::{
@@ -8,24 +8,24 @@ use crate::{
         segment::{generate_mesh_base_vol_figure, generate_mesh_base_vol_terrain},
     },
     render::{
-        pipelines, BoneMeshes, FigureModel, FigureSpriteAtlasData, Instances, Mesh, Renderer,
-        SpriteInstance, TerrainVertex,
+        BoneMeshes, FigureModel, FigureSpriteAtlasData, Instances, Mesh, Renderer, SpriteInstance,
+        TerrainVertex, pipelines,
     },
     scene::{
         camera::CameraMode,
-        terrain::{get_sprite_instances, BlocksOfInterest, SpriteRenderState, SPRITE_LOD_LEVELS},
+        terrain::{BlocksOfInterest, SPRITE_LOD_LEVELS, SpriteRenderState, get_sprite_instances},
     },
 };
 use anim::Skeleton;
 use common::{
     assets::ReloadWatcher,
     comp::{
-        inventory::{
-            slot::{ArmorSlot, EquipSlot},
-            Inventory,
-        },
-        item::{item_key::ItemKey, modular, Item, ItemDefinitionId},
         CharacterState,
+        inventory::{
+            Inventory,
+            slot::{ArmorSlot, EquipSlot},
+        },
+        item::{Item, ItemDefinitionId, item_key::ItemKey, modular},
     },
     figure::{Segment, TerrainSegment},
     slowjob::SlowJobPool,
@@ -33,7 +33,7 @@ use common::{
 };
 use core::{hash::Hash, ops::Range};
 use crossbeam_utils::atomic;
-use hashbrown::{hash_map::Entry, HashMap};
+use hashbrown::{HashMap, hash_map::Entry};
 use serde::Deserialize;
 use std::{array::from_fn, sync::Arc};
 use vek::*;
@@ -77,7 +77,7 @@ pub trait ModelEntryFuture<const N: usize> {
     type ModelEntry: ModelEntry;
 
     // TODO: is there a potential use for this?
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn into_done(self) -> Option<Self::ModelEntry>;
 
     fn get_done(&self) -> Option<&Self::ModelEntry>;
@@ -303,7 +303,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel>
 where
     Skel::Body: BodySpec + Eq + Hash,
 {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         // NOTE: It might be better to bubble this error up rather than panicking.
         let manifests = <Skel::Body as BodySpec>::load_spec().unwrap();
@@ -391,7 +390,6 @@ where
         > + Eq
         + Hash,
 {
-    #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_model<'c>(
         &'c mut self,
         renderer: &mut Renderer,
@@ -406,7 +404,8 @@ where
         item_key: Option<ItemKey>,
     ) -> (FigureModelEntryLod<'c>, &'c Skel::Attr)
     where
-        for<'a> &'a Skel::Body: Into<Skel::Attr>,
+        Skel::Attr: 'c,
+        Skel::Attr: for<'a> From<&'a Skel::Body>,
         Skel::Body: Clone + Send + Sync + 'static,
         <Skel::Body as BodySpec>::Spec: Send + Sync + 'static,
     {
@@ -443,7 +442,7 @@ where
                                 opaque,
                                 bounds,
                                 vertex_range,
-                            }) = Arc::get_mut(recv).take().and_then(|cell| cell.take())
+                            }) = Arc::get_mut(recv).and_then(|cell| cell.take())
                             {
                                 let model_entry = atlas.create_figure(
                                     renderer,
@@ -629,7 +628,6 @@ where
         > + Eq
         + Hash,
 {
-    #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_terrain_model<'c>(
         &'c mut self,
         renderer: &mut Renderer,
@@ -641,6 +639,7 @@ where
         sprite_render_state: &Arc<SpriteRenderState>,
     ) -> (TerrainModelEntryLod<'c>, &'c Skel::Attr)
     where
+        Skel::Attr: 'c,
         for<'a> &'a Skel::Body: Into<Skel::Attr>,
         Skel::Body: Clone + Send + Sync + 'static,
         <Skel::Body as BodySpec>::Spec: Send + Sync + 'static,
@@ -669,7 +668,7 @@ where
                                 sprite_instances,
                                 blocks_of_interest,
                                 blocks_offset,
-                            }) = Arc::get_mut(recv).take().and_then(|cell| cell.take())
+                            }) = Arc::get_mut(recv).and_then(|cell| cell.take())
                             {
                                 let model_entry = atlas.create_terrain(
                                     renderer,

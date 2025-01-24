@@ -1,39 +1,39 @@
 #[cfg(feature = "worldgen")]
 use crate::rtsim::RtSim;
 use crate::{
+    Server, Settings, SpawnPoint,
     client::Client,
     comp::{
+        BuffKind, BuffSource, PhysicsState,
         agent::{Agent, AgentEvent, Sound, SoundKind},
         loot_owner::LootOwner,
         skillset::SkillGroupKind,
-        BuffKind, BuffSource, PhysicsState,
     },
     error,
     events::entity_creation::handle_create_npc,
     pet::tame_pet,
     state_ext::StateExt,
-    sys::terrain::{NpcData, SpawnEntityData, SAFE_ZONE_RADIUS},
-    Server, Settings, SpawnPoint,
+    sys::terrain::{NpcData, SAFE_ZONE_RADIUS, SpawnEntityData},
 };
 #[cfg(feature = "worldgen")]
 use common::rtsim::{Actor, RtSimEntity};
 use common::{
+    CachedSpatialGrid, Damage, DamageKind, DamageSource, GroupTarget, RadiusEffect,
     assets::AssetExt,
     combat::{
-        self, AttackSource, DamageContributor, DeathEffect, DeathEffects,
-        BASE_PARRIED_POISE_PUNISHMENT,
+        self, AttackSource, BASE_PARRIED_POISE_PUNISHMENT, DamageContributor, DeathEffect,
+        DeathEffects,
     },
     comp::{
-        self,
+        self, Alignment, Auras, BASE_ABILITY_LIMIT, Body, BuffCategory, BuffEffect, CharacterState,
+        Energy, Group, Hardcore, Health, Inventory, Object, PickupItem, Player, Poise, PoiseChange,
+        Pos, Presence, PresenceKind, SkillSet, Stats,
         aura::{self, EnteredAuras},
         buff,
         chat::{KillSource, KillType},
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
         loot_owner::LootOwnerKind,
-        Alignment, Auras, Body, BuffCategory, BuffEffect, CharacterState, Energy, Group, Hardcore,
-        Health, Inventory, Object, PickupItem, Player, Poise, PoiseChange, Pos, Presence,
-        PresenceKind, SkillSet, Stats, BASE_ABILITY_LIMIT,
     },
     consts::TELEPORTER_RADIUS,
     event::{
@@ -60,7 +60,6 @@ use common::{
     uid::{IdMaps, Uid},
     util::Dir,
     vol::ReadVol,
-    CachedSpatialGrid, Damage, DamageKind, DamageSource, GroupTarget, RadiusEffect,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt, synced_components::Heads};
 use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
@@ -69,8 +68,8 @@ use rand::Rng;
 #[cfg(feature = "worldgen")]
 use specs::WriteExpect;
 use specs::{
-    shred, DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, Read,
-    ReadExpect, ReadStorage, SystemData, WorldExt, Write, WriteStorage,
+    DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, Read, ReadExpect,
+    ReadStorage, SystemData, WorldExt, Write, WriteStorage, shred,
 };
 #[cfg(feature = "worldgen")] use std::sync::Arc;
 use std::{borrow::Cow, collections::HashMap, iter, time::Duration};
@@ -79,7 +78,7 @@ use vek::{Vec2, Vec3};
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
-use super::{event_dispatch, event_sys_name, ServerEvent};
+use super::{ServerEvent, event_dispatch, event_sys_name};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<PoiseChangeEvent>(builder, &[]);
@@ -1024,7 +1023,7 @@ impl ServerEvent for DestroyEvent {
                     data.positions
                         .get(ev.entity)
                         .cloned()
-                        .map_or(false, |our_pos| {
+                        .is_some_and(|our_pos| {
                             let our_pos = our_pos.0.map(|i| i as i32);
 
                             let is_in_area = data
@@ -1129,7 +1128,7 @@ impl ServerEvent for LandOnGroundEvent {
             if relative_vel >= 30.0
                 && physic_states
                     .get(ev.entity)
-                    .map_or(true, |ps| ps.in_liquid().is_none())
+                    .is_none_or(|ps| ps.in_liquid().is_none())
             {
                 let reduced_vel =
                     if let Some(CharacterState::DiveMelee(c)) = character_states.get(ev.entity) {
@@ -1407,7 +1406,7 @@ impl ServerEvent for ExplosionEvent {
                                         // Check that owner is not player or explosion_burn_marks by
                                         // players
                                         // is enabled
-                                        owner_entity.map_or(true, |e| data.players.get(e).is_none())
+                                        owner_entity.is_none_or(|e| data.players.get(e).is_none())
                                             || data.settings.gameplay.explosion_burn_marks
                                     )
                                 {
@@ -1577,7 +1576,7 @@ impl ServerEvent for ExplosionEvent {
 
                                 let target_dodging = char_state_b_maybe
                                     .and_then(|cs| cs.roll_attack_immunities())
-                                    .map_or(false, |i| i.explosions);
+                                    .is_some_and(|i| i.explosions);
                                 let allow_friendly_fire =
                                     owner_entity.is_some_and(|owner_entity| {
                                         combat::allow_friendly_fire(
@@ -1654,11 +1653,11 @@ impl ServerEvent for ExplosionEvent {
                                     &data.id_maps,
                                     owner_entity,
                                     entity_b,
-                                ) || owner_entity.map_or(true, |entity_a| entity_a == entity_b)
+                                ) || owner_entity.is_none_or(|entity_a| entity_a == entity_b)
                             };
                             if strength > 0.0 {
                                 let is_alive =
-                                    data.healths.get(entity_b).map_or(true, |h| !h.is_dead);
+                                    data.healths.get(entity_b).is_none_or(|h| !h.is_dead);
 
                                 if is_alive {
                                     effect.modify_strength(strength);
@@ -1898,9 +1897,9 @@ impl ServerEvent for BuffEvent {
 
                         if !bodies
                             .get(ev.entity)
-                            .map_or(false, |body| body.immune_to(new_buff.kind))
+                            .is_some_and(|body| body.immune_to(new_buff.kind))
                             && immunity_by_buff.is_none()
-                            && healths.get(ev.entity).map_or(true, |h| !h.is_dead)
+                            && healths.get(ev.entity).is_none_or(|h| !h.is_dead)
                         {
                             if let Some(strength) =
                                 new_buff.kind.resilience_ccr_strength(new_buff.data)
@@ -2172,7 +2171,7 @@ impl ServerEvent for TeleportToEvent {
             if let (Some(pos), Some(target_pos)) = (positions.get_mut(ev.entity), target_pos) {
                 if ev
                     .max_range
-                    .map_or(true, |r| pos.0.distance_squared(target_pos.0) < r.powi(2))
+                    .is_none_or(|r| pos.0.distance_squared(target_pos.0) < r.powi(2))
                 {
                     *pos = target_pos;
                     force_updates
@@ -2397,7 +2396,7 @@ impl ServerEvent for MakeAdminEvent {
         for ev in events {
             if players
                 .get(ev.entity)
-                .map_or(false, |player| player.uuid() == ev.uuid)
+                .is_some_and(|player| player.uuid() == ev.uuid)
             {
                 let _ = admins.insert(ev.entity, ev.admin);
             }

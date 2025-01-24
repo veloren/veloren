@@ -1,6 +1,6 @@
 use crate::{
-    event::{EventCtx, OnDeath, OnHealthChange, OnSetup, OnTick},
     RtState, Rule, RuleError,
+    event::{EventCtx, OnDeath, OnHealthChange, OnSetup, OnTick},
 };
 use common::{
     grid::Grid,

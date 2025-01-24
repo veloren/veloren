@@ -27,7 +27,6 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Frontend("voxygen");
     const PHASE: Phase = Phase::Create;
 
-    #[allow(clippy::blocks_in_conditions)] // TODO: Pending review in #587
     fn run(
         _job: &mut Job<Self>,
         (entities, my_entity, dt, pos, healths, mut hp_floater_lists): Self::SystemData,
@@ -75,7 +74,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Clear floaters if newest floater is past show time
-            if hp_floater_list.floaters.last().map_or(false, |f| {
+            if hp_floater_list.floaters.last().is_some_and(|f| {
                 f.timer
                     > if Some(entity) != my_entity.0 {
                         HP_SHOWTIME

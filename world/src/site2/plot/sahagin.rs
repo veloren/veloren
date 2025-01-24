@@ -1,11 +1,11 @@
 use super::*;
 use crate::{
+    Land,
     site2::{
         gen::{place_circular, place_circular_as_vec, spiral_staircase},
         util::gradient::WrapMode,
     },
-    util::{sampler::Sampler, RandomField},
-    Land,
+    util::{RandomField, sampler::Sampler},
 };
 use common::generation::EntityInfo;
 use rand::prelude::*;

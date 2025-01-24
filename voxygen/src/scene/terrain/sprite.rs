@@ -4,8 +4,8 @@ use super::SPRITE_LOD_LEVELS;
 use common::{
     assets,
     terrain::{
-        sprite::{self, RelativeNeighborPosition},
         Block, SpriteKind,
+        sprite::{self, RelativeNeighborPosition},
     },
 };
 use hashbrown::HashMap;

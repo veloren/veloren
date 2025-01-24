@@ -671,7 +671,7 @@ impl SpriteKind {
                 let is_moving_into = move_dir.dot(resolve_dir) <= 0.0;
 
                 is_moving_into
-                    && parent.get_ori().map_or(false, |ori| {
+                    && parent.get_ori().is_some_and(|ori| {
                         Vec2::unit_y()
                             .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
                             .with_z(0.0)

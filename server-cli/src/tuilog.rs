@@ -14,7 +14,7 @@ pub struct TuiLog<'a> {
     pub inner: Arc<Mutex<Text<'a>>>,
 }
 
-impl<'a> TuiLog<'a> {
+impl TuiLog<'_> {
     pub fn resize(&self, h: usize) {
         let mut inner = self.inner.lock().unwrap();
 
@@ -23,7 +23,7 @@ impl<'a> TuiLog<'a> {
     }
 }
 
-impl<'a> Write for TuiLog<'a> {
+impl Write for TuiLog<'_> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // TODO: this processing can probably occur in the consumer of the log lines
         // (and instead of having a TuiLog::resize the consumer can take

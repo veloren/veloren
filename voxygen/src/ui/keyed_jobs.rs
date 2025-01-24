@@ -1,5 +1,5 @@
 use common::slowjob::{SlowJob, SlowJobPool};
-use hashbrown::{hash_map::Entry, HashMap};
+use hashbrown::{HashMap, hash_map::Entry};
 use std::{
     hash::Hash,
     time::{Duration, Instant},

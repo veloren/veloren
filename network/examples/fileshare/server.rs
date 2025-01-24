@@ -4,7 +4,7 @@ use std::{collections::HashMap, path::PathBuf, sync::Arc};
 use tokio::{
     fs, join,
     runtime::Runtime,
-    sync::{mpsc, Mutex, RwLock},
+    sync::{Mutex, RwLock, mpsc},
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;

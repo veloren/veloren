@@ -1,6 +1,7 @@
 #[cfg(feature = "worldgen")]
 use crate::rtsim::RtSim;
 use crate::{
+    BattleModeBuffer, SpawnPoint,
     automod::AutoMod,
     chat::ChatExporter,
     client::Client,
@@ -10,15 +11,14 @@ use crate::{
     presence::RepositionOnChunkLoad,
     settings::Settings,
     sys::sentinel::DeletedEntities,
-    wiring, BattleModeBuffer, SpawnPoint,
+    wiring,
 };
-#[cfg(feature = "worldgen")]
-use common::{calendar::Calendar, resources::TimeOfDay, slowjob::SlowJobPool};
 use common::{
+    LoadoutBuilder, ViewDistances,
     character::CharacterId,
     comp::{
-        self, item::ItemKind, misc::PortalData, object, ChatType, Content, Group, Inventory,
-        LootOwner, Object, Player, Poise, Presence, PresenceKind, BASE_ABILITY_LIMIT,
+        self, BASE_ABILITY_LIMIT, ChatType, Content, Group, Inventory, LootOwner, Object, Player,
+        Poise, Presence, PresenceKind, item::ItemKind, misc::PortalData, object,
     },
     interaction::Interaction,
     link::{Is, Link, LinkHandle},
@@ -28,8 +28,9 @@ use common::{
     tether::Tethered,
     uid::{IdMaps, Uid},
     util::Dir,
-    LoadoutBuilder, ViewDistances,
 };
+#[cfg(feature = "worldgen")]
+use common::{calendar::Calendar, resources::TimeOfDay, slowjob::SlowJobPool};
 use common_net::{
     msg::{CharacterInfo, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
@@ -37,8 +38,8 @@ use common_net::{
 use common_state::State;
 use rand::prelude::*;
 use specs::{
-    storage::{GenericReadStorage, GenericWriteStorage},
     Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt, WriteStorage,
+    storage::{GenericReadStorage, GenericWriteStorage},
 };
 use std::time::{Duration, Instant};
 use tracing::{error, trace, warn};
@@ -809,8 +810,8 @@ impl StateExt for State {
         let id_maps = ecs.read_resource::<IdMaps>();
         let entity_from_uid = |uid| id_maps.uid_entity(uid);
 
-        if msg.chat_type.uid().map_or(true, |sender| {
-            entity_from_uid(sender).map_or(false, |e| {
+        if msg.chat_type.uid().is_none_or(|sender| {
+            entity_from_uid(sender).is_some_and(|e| {
                 self.validate_chat_msg(
                     e,
                     &msg.chat_type,

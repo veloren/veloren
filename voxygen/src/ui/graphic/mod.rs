@@ -9,8 +9,8 @@ use crate::{
 };
 use common::{figure::Segment, slowjob::SlowJobPool};
 use common_base::prof_span;
-use guillotiere::{size2, SimpleAtlasAllocator};
-use hashbrown::{hash_map::Entry, HashMap};
+use guillotiere::{SimpleAtlasAllocator, size2};
+use hashbrown::{HashMap, hash_map::Entry};
 use image::{DynamicImage, RgbaImage};
 use slab::Slab;
 use std::{borrow::Cow, hash::Hash, sync::Arc};
@@ -214,7 +214,7 @@ impl TextureRequirements {
         }
     }
 
-    #[allow(clippy::wrong_self_convention)] // type is spiritually Copy
+    #[expect(clippy::wrong_self_convention)] // type is spiritually Copy
     fn to_key_and_tex_parameters(
         self,
         graphic_id: Id,
@@ -1048,7 +1048,6 @@ impl PremultiplyStrategy {
 /// Computes the fraction of 4 pixel chunks that are fully translucent or
 /// opaque. Returns `None` if no premultiplication is needed (i.e. all alpha
 /// values are 255).
-#[allow(clippy::unusual_byte_groupings)]
 fn fraction_shortcircuit_blocks(image: &RgbaImage) -> Option<f32> {
     let dims = image.dimensions();
     let pixel_count = dims.0 as usize * dims.1 as usize;

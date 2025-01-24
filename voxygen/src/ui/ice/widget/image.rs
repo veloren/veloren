@@ -1,5 +1,5 @@
 use super::super::graphic;
-use iced::{layout, Element, Hasher, Layout, Length, Point, Rectangle, Widget};
+use iced::{Element, Hasher, Layout, Length, Point, Rectangle, Widget, layout};
 use std::hash::Hash;
 use vek::Rgba;
 

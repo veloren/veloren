@@ -159,7 +159,7 @@ pub enum BanOperationError {
 }
 
 mod legacy {
-    use super::{v0 as next, Final, MIGRATION_UPGRADE_GUARANTEE};
+    use super::{Final, MIGRATION_UPGRADE_GUARANTEE, v0 as next};
     use authc::Uuid;
     use core::convert::TryInto;
     use hashbrown::HashMap;
@@ -195,7 +195,7 @@ mod legacy {
 /// perform a migration for an old version; please use this as a reference when
 /// constructing new migrations.
 mod v0 {
-    use super::{legacy as prev, v1 as next, Final, MIGRATION_UPGRADE_GUARANTEE};
+    use super::{Final, MIGRATION_UPGRADE_GUARANTEE, legacy as prev, v1 as next};
     use crate::settings::editable::{EditableSetting, Version};
     use authc::Uuid;
     use core::convert::{TryFrom, TryInto};
@@ -265,11 +265,11 @@ mod v0 {
 
 mod v1 {
     use super::{
-        v0 as prev, v2 as next, BanError, BanErrorKind, BanKind, Final, MIGRATION_UPGRADE_GUARANTEE,
+        BanError, BanErrorKind, BanKind, Final, MIGRATION_UPGRADE_GUARANTEE, v0 as prev, v2 as next,
     };
     use crate::settings::editable::{EditableSetting, Version};
     use authc::Uuid;
-    use chrono::{prelude::*, Utc};
+    use chrono::{Utc, prelude::*};
     use common::comp::AdminRole;
     use core::ops::Deref;
     use hashbrown::HashMap;
@@ -337,7 +337,7 @@ mod v1 {
     impl Ban {
         /// Returns true if the ban is expired, false otherwise.
         pub fn is_expired(&self, now: DateTime<Utc>) -> bool {
-            self.end_date.map_or(false, |end_date| end_date <= now)
+            self.end_date.is_some_and(|end_date| end_date <= now)
         }
 
         pub fn performed_by_role(&self) -> Role {
@@ -601,7 +601,7 @@ mod v1 {
     impl TryFrom<Banlist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
-        #[allow(clippy::useless_conversion)]
+        #[expect(clippy::useless_conversion)]
         fn try_from(mut value: Banlist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Banlist::migrate(value)
@@ -613,14 +613,14 @@ mod v1 {
 
 mod v2 {
     use super::{
-        v1 as prev, BanError, BanErrorKind, BanKind, BanOperation, BanOperationError, Final,
+        BanError, BanErrorKind, BanKind, BanOperation, BanOperationError, Final, v1 as prev,
     };
     use crate::settings::editable::{EditableSetting, Version};
     use authc::Uuid;
-    use chrono::{prelude::*, Utc};
+    use chrono::{Utc, prelude::*};
     use common::comp::AdminRole;
     use core::{mem, ops::Deref};
-    use hashbrown::{hash_map, HashMap};
+    use hashbrown::{HashMap, hash_map};
     use serde::{Deserialize, Serialize};
     use std::net::{IpAddr, Ipv6Addr};
     use tracing::warn;
@@ -706,7 +706,7 @@ mod v2 {
     impl Ban {
         /// Returns true if the ban is expired, false otherwise.
         pub fn is_expired(&self, now: DateTime<Utc>) -> bool {
-            self.end_date.map_or(false, |end_date| end_date <= now)
+            self.end_date.is_some_and(|end_date| end_date <= now)
         }
 
         pub fn performed_by_role(&self) -> Role {
@@ -1530,7 +1530,7 @@ mod v2 {
                 // the per entry validation won't catch this)
                 //
                 // collapsible_if: more clear not to have side effects in the if condition
-                #[allow(clippy::collapsible_if)]
+                #[expect(clippy::collapsible_if)]
                 if let Some(uuid) = value.current.uuid_when_performed
                     && !value.current.is_expired(now)
                 {
@@ -1559,7 +1559,7 @@ mod v2 {
     /* impl TryFrom<Banlist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
-        #[allow(clippy::useless_conversion)]
+        #[expect(clippy::useless_conversion)]
         fn try_from(mut value: Banlist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Banlist::migrate(value).try_into().expect(MIGRATION_UPGRADE_GUARANTEE))

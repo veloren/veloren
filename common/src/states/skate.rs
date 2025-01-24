@@ -1,8 +1,8 @@
 use super::utils::*;
 use crate::{
     comp::{
-        character_state::OutputEvents, item::armor::Friction, CharacterState, InventoryAction,
-        StateUpdate,
+        CharacterState, InventoryAction, StateUpdate, character_state::OutputEvents,
+        item::armor::Friction,
     },
     states::{
         behavior::{CharacterBehavior, JoinData},

@@ -1,13 +1,13 @@
 use super::{
-    world_msg::EconomyInfo, ClientType, CompressedData, EcsCompPacket, PingMsg, QuadPngEncoding,
-    TriPngEncoding, WidePacking, WireChonk,
+    ClientType, CompressedData, EcsCompPacket, PingMsg, QuadPngEncoding, TriPngEncoding,
+    WidePacking, WireChonk, world_msg::EconomyInfo,
 };
 use crate::sync;
 use common::{
     calendar::Calendar,
     character::{self, CharacterItem},
     comp::{
-        self, body::Gender, invite::InviteKind, item::MaterialStatManifest, AdminRole, Content,
+        self, AdminRole, Content, body::Gender, invite::InviteKind, item::MaterialStatManifest,
     },
     event::{PluginHash, UpdateCharacterMetadata},
     lod,
@@ -62,7 +62,6 @@ pub struct ServerDescription {
 
 /// Reponse To ClientType
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(clippy::large_enum_variant)]
 pub enum ServerInit {
     GameSync {
         entity_package: sync::EntityPackage<EcsCompPacket>,

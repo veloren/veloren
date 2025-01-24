@@ -1,12 +1,12 @@
 use crate::settings::Settings;
-use common::comp::{chat::ChatType, Content};
+use common::comp::{Content, chat::ChatType};
 use common_net::msg::ServerGeneral;
 use server::Server;
 use std::{
     ops::Add,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     time::{Duration, Instant},
 };

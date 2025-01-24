@@ -1,24 +1,24 @@
 use common::resources::MapKind;
 use i18n::Localization;
 use iced::{
-    button, scrollable, slider, text_input, Align, Button, Column, Container, Length, Row,
-    Scrollable, Slider, Space, Text, TextInput,
+    Align, Button, Column, Container, Length, Row, Scrollable, Slider, Space, Text, TextInput,
+    button, scrollable, slider, text_input,
 };
 use rand::Rng;
 use vek::Rgba;
 
 use crate::{
-    menu::main::ui::{WorldsChange, FILL_FRAC_TWO},
+    menu::main::ui::{FILL_FRAC_TWO, WorldsChange},
     ui::{
         fonts::IcedFonts,
         ice::{
+            Element,
             component::neat_button,
             style,
             widget::{
-                compound_graphic::{CompoundGraphic, Graphic},
                 BackgroundContainer, Image, Overlay, Padding,
+                compound_graphic::{CompoundGraphic, Graphic},
             },
-            Element,
         },
     },
 };

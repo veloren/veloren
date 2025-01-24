@@ -2,12 +2,12 @@ use common::terrain::CoordinateConversions;
 use rayon::ThreadPoolBuilder;
 use vek::Vec2;
 use veloren_world::{
+    CanvasInfo, Land, World,
     layer::{
         self,
         cave::{Biome, LAYERS},
     },
-    sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED},
-    CanvasInfo, Land, World,
+    sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
 
 fn main() {

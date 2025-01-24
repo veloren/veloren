@@ -2,7 +2,6 @@
     never_type,
     try_blocks,
     trait_alias,
-    control_flow_enum,
     let_chains,
     binary_heap_drain_sorted,
     fn_traits,

@@ -3,18 +3,18 @@ use {crate::LIB, std::ffi::CStr};
 
 use super::*;
 use crate::{
+    CanvasInfo, ColumnSample,
     block::block_from_structure,
     column::ColInfo,
     site2::util::Dir,
     util::{RandomField, Sampler},
-    CanvasInfo, ColumnSample,
 };
 use common::{
     generation::EntityInfo,
     store::{Id, Store},
     terrain::{
-        structure::{Structure as PrefabStructure, StructureBlock},
         Block, BlockKind, SpriteCfg,
+        structure::{Structure as PrefabStructure, StructureBlock},
     },
     vol::ReadVol,
 };
@@ -27,7 +27,6 @@ use std::{
 };
 use vek::*;
 
-#[allow(dead_code)]
 pub enum Primitive {
     Empty, // Placeholder
 
@@ -1509,7 +1508,7 @@ pub trait PrimitiveTransform {
     fn repeat(self, offset: Vec3<i32>, count: u32) -> Self;
 }
 
-impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
+impl PrimitiveTransform for PrimitiveRef<'_> {
     fn translate(self, trans: Vec3<i32>) -> Self {
         self.painter.prim(Primitive::translate(self, trans))
     }
@@ -1532,7 +1531,7 @@ impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
     }
 }
 
-impl<'a, const N: usize> PrimitiveTransform for [PrimitiveRef<'a>; N] {
+impl<const N: usize> PrimitiveTransform for [PrimitiveRef<'_>; N] {
     fn translate(mut self, trans: Vec3<i32>) -> Self {
         for prim in &mut self {
             *prim = prim.translate(trans);
@@ -1654,7 +1653,7 @@ pub fn aabr_with_z<T>(aabr: Aabr<T>, z: Range<T>) -> Aabb<T> {
     }
 }
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 /// Just the corners of an AABB, good for outlining stuff when debugging
 pub fn aabb_corners<F: FnMut(Primitive) -> Id<Primitive>>(
     prim: &mut F,

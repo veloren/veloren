@@ -1,4 +1,4 @@
-use crate::{column::ColumnSample, sim::SimChunk, util::close, IndexRef, CONFIG};
+use crate::{CONFIG, IndexRef, column::ColumnSample, sim::SimChunk, util::close};
 use common::{
     assets::{self, AssetExt},
     calendar::{Calendar, CalendarEvent},
@@ -50,9 +50,9 @@ impl SpawnEntry {
                     .iter()
                     .any(|period| *period == requested_period);
                 let calendar_match = if let Some(calendar) = calendar {
-                    pack.calendar_events.as_ref().map_or(true, |events| {
-                        events.iter().any(|event| calendar.is_event(*event))
-                    })
+                    pack.calendar_events
+                        .as_ref()
+                        .is_none_or(|events| events.iter().any(|event| calendar.is_event(*event)))
                 } else {
                     false
                 };

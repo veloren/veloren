@@ -1,7 +1,7 @@
 use hashbrown::HashMap;
 use petgraph::{
-    dot::{Config, Dot},
     Graph,
+    dot::{Config, Dot},
 };
 use std::{fs::File, io::Write};
 use veloren_common::{

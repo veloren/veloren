@@ -12,14 +12,14 @@ use prometheus::Registry;
 use rand::Rng;
 use std::{
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicBool, AtomicU64, Ordering},
     },
     time::Duration,
 };
 use tokio::{
     io,
-    sync::{mpsc, oneshot, Mutex},
+    sync::{Mutex, mpsc, oneshot},
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
@@ -36,7 +36,7 @@ use tracing::*;
 #[derive(Debug)]
 struct ParticipantInfo {
     secret: u128,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     s2b_create_channel_s: mpsc::UnboundedSender<S2bCreateChannel>,
     s2b_shutdown_bparticipant_s: Option<oneshot::Sender<S2bShutdownBparticipant>>,
 }

@@ -5,7 +5,7 @@
 
 use crate::{character::CharacterId, comp::dialogue::Subject, util::Dir};
 use common_i18n::Content;
-use rand::{seq::IteratorRandom, Rng};
+use rand::{Rng, seq::IteratorRandom};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use std::collections::VecDeque;

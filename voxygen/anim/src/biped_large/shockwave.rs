@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{
@@ -26,7 +26,7 @@ impl Animation for ShockwaveAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_large_shockwave\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_shockwave")]
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
+    #[expect(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (

@@ -1,6 +1,6 @@
 use super::{
-    body::{object, Body},
     Density, Ori, Vel,
+    body::{Body, object},
 };
 use crate::{
     consts::{AIR_DENSITY, LAVA_DENSITY, WATER_DENSITY},
@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, strum::EnumString)]
 pub enum LiquidKind {
     Water,
     Lava,

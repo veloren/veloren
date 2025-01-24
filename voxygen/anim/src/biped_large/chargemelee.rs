@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     BipedLargeSkeleton, SkeletonAttr,
 };
 use common::{
@@ -97,7 +97,7 @@ impl Animation for ChargeMeleeAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
-        #[allow(clippy::single_match)]
+        #[expect(clippy::single_match)]
         match active_tool_kind {
             Some(ToolKind::Natural) => match ability_id {
                 Some("common.abilities.custom.minotaur.cleave") => {

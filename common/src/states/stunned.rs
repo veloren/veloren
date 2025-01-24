@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, PoiseState, StateUpdate},
+    comp::{CharacterState, PoiseState, StateUpdate, character_state::OutputEvents},
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};

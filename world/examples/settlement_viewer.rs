@@ -1,6 +1,6 @@
 use rand::thread_rng;
 use vek::*;
-use veloren_world::{index::Index, site::Settlement, IndexRef};
+use veloren_world::{IndexRef, index::Index, site::Settlement};
 
 const W: usize = 640;
 const H: usize = 480;

@@ -1,6 +1,6 @@
 use crate::{
     assets::{AssetExt, AssetHandle},
-    comp::{self, body, AllBodies, Body},
+    comp::{self, AllBodies, Body, body},
 };
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
@@ -171,7 +171,7 @@ impl NpcBody {
     /// If there is an exact name match for a body kind, call kind_to_body on
     /// it. Otherwise, if an explicit species is found, generate a random
     /// member of the species; otherwise, return Err(()).
-    #[allow(clippy::result_unit_err)]
+    #[expect(clippy::result_unit_err)]
     pub fn from_str_with(s: &str, kind_to_body: fn(NpcKind) -> Body) -> Result<Self, ()> {
         fn parse<
             'a,

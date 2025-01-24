@@ -54,7 +54,7 @@ impl EditableSetting for Whitelist {
 }
 
 mod legacy {
-    use super::{v0 as next, Final, MIGRATION_UPGRADE_GUARANTEE};
+    use super::{Final, MIGRATION_UPGRADE_GUARANTEE, v0 as next};
     use authc::Uuid;
     use core::convert::TryInto;
     use hashbrown::HashSet;
@@ -84,7 +84,7 @@ mod legacy {
 /// perform a migration for an old version; please use this as a reference when
 /// constructing new migrations.
 mod v0 {
-    use super::{legacy as prev, v1 as next, Final, MIGRATION_UPGRADE_GUARANTEE};
+    use super::{Final, MIGRATION_UPGRADE_GUARANTEE, legacy as prev, v1 as next};
     use crate::settings::editable::{EditableSetting, Version};
     use authc::Uuid;
     use core::convert::{TryFrom, TryInto};
@@ -117,7 +117,7 @@ mod v0 {
     impl TryFrom<Whitelist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
-        #[allow(clippy::useless_conversion)]
+        #[expect(clippy::useless_conversion)]
         fn try_from(mut value: Whitelist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Whitelist::migrate(value)
@@ -128,10 +128,10 @@ mod v0 {
 }
 
 mod v1 {
-    use super::{v0 as prev, Final};
+    use super::{Final, v0 as prev};
     use crate::settings::editable::{EditableSetting, Version};
     use authc::Uuid;
-    use chrono::{prelude::*, Utc};
+    use chrono::{Utc, prelude::*};
     use common::comp::AdminRole;
     use core::ops::{Deref, DerefMut};
     use hashbrown::HashMap;

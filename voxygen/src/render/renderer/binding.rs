@@ -3,8 +3,8 @@ use crate::render::pipelines::rain_occlusion;
 use super::{
     super::{
         pipelines::{
-            debug, figure, lod_terrain, rope, shadow, sprite, terrain, ui, AtlasTextures,
-            FigureSpriteAtlasData, GlobalModel, GlobalsBindGroup, TerrainAtlasData,
+            AtlasTextures, FigureSpriteAtlasData, GlobalModel, GlobalsBindGroup, TerrainAtlasData,
+            debug, figure, lod_terrain, rope, shadow, sprite, terrain, ui,
         },
         texture::Texture,
     },

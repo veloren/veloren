@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, InventoryAction, StateUpdate},
+    comp::{CharacterState, InventoryAction, StateUpdate, character_state::OutputEvents},
     states::{
         behavior::{CharacterBehavior, JoinData},
         idle,

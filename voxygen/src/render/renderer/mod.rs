@@ -18,18 +18,18 @@ use shadow_map::{ShadowMap, ShadowMapRenderer};
 use self::{pipeline_creation::RainOcclusionPipelines, rain_occlusion_map::RainOcclusionMap};
 
 use super::{
+    AddressMode, FilterMode, OtherModes, PipelineModes, PresentMode, RenderError, RenderMode,
+    ShadowMapMode, ShadowMode, Vertex,
     buffer::Buffer,
     consts::Consts,
     instances::Instances,
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, bloom, clouds, debug, figure, postprocess, rain_occlusion, rope, shadow, sprite,
-        terrain, ui, GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
+        GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup, blit, bloom, clouds, debug,
+        figure, postprocess, rain_occlusion, rope, shadow, sprite, terrain, ui,
     },
     texture::Texture,
-    AddressMode, FilterMode, OtherModes, PipelineModes, PresentMode, RenderError, RenderMode,
-    ShadowMapMode, ShadowMode, Vertex,
 };
 use common::assets::{self, AssetExt, AssetHandle, ReloadWatcher};
 use common_base::span;
@@ -97,7 +97,7 @@ struct Shadow {
 /// Represent two states of the renderer:
 /// 1. Only interface pipelines created
 /// 2. All of the pipelines have been created
-#[allow(clippy::large_enum_variant)] // They are both pretty large
+#[expect(clippy::large_enum_variant)] // They are both pretty large
 enum State {
     // NOTE: this is used as a transient placeholder for moving things out of State temporarily
     Nothing,
@@ -236,7 +236,7 @@ impl Renderer {
 
         // This is unsafe because the window handle must be valid, if you find a way to
         // have an invalid winit::Window then you have bigger issues
-        #[allow(unsafe_code)]
+        #[expect(unsafe_code)]
         let surface =
             unsafe { instance.create_surface(window) }.expect("Failed to create a surface");
 
@@ -691,7 +691,7 @@ impl Renderer {
             || self
                 .recreation_pending
                 .as_ref()
-                .map_or(false, |modes| modes != &pipeline_modes)
+                .is_some_and(|modes| modes != &pipeline_modes)
         {
             // Recreate pipelines with new modes
             self.recreate_pipelines(pipeline_modes);
@@ -1033,36 +1033,6 @@ impl Renderer {
         .map(|(point, directed)| (point.get_dimensions().xy(), directed.get_dimensions().xy()))
         .unwrap_or_else(|| (Vec2::new(1, 1), Vec2::new(1, 1)))
     }
-
-    // TODO: Seamless is potentially the default with wgpu but we need further
-    // investigation into whether this is actually turned on for the OpenGL
-    // backend
-    //
-    /// NOTE: Supported by Vulkan (by default), DirectX 10+ (it seems--it's hard
-    /// to find proof of this, but Direct3D 10 apparently does it by
-    /// default, and 11 definitely does, so I assume it's natively supported
-    /// by DirectX itself), OpenGL 3.2+, and Metal (done by default).  While
-    /// there may be some GPUs that don't quite support it correctly, the
-    /// impact is relatively small, so there is no reason not to enable it where
-    /// available.
-    //fn enable_seamless_cube_maps() {
-    //todo!()
-    // unsafe {
-    //     // NOTE: Currently just fail silently rather than complain if the
-    // computer is on     // a version lower than 3.2, where
-    // seamless cubemaps were introduced.     if !device.get_info().
-    // is_version_supported(3, 2) {         return;
-    //     }
-
-    //     // NOTE: Safe because GL_TEXTURE_CUBE_MAP_SEAMLESS is supported
-    // by OpenGL 3.2+     // (see https://www.khronos.org/opengl/wiki/Cubemap_Texture#Seamless_cubemap);
-    //     // enabling seamless cube maps should always be safe regardless
-    // of the state of     // the OpenGL context, so no further
-    // checks are needed.     device.with_gl(|gl| {
-    //         gl.Enable(gfx_gl::TEXTURE_CUBE_MAP_SEAMLESS);
-    //     });
-    // }
-    //}
 
     /// Start recording the frame
     /// When the returned `Drawer` is dropped the recorded draw calls will be

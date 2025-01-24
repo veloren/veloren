@@ -1,15 +1,15 @@
 use client::{
+    Client, ClientInitStage, ServerInfo,
     addr::ConnectionArgs,
     error::{Error as ClientError, NetworkConnectError, NetworkError},
-    Client, ClientInitStage, ServerInfo,
 };
 use common_net::msg::ClientType;
-use crossbeam_channel::{unbounded, Receiver, Sender, TryRecvError};
+use crossbeam_channel::{Receiver, Sender, TryRecvError, unbounded};
 use std::{
     path::Path,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
     time::Duration,
 };
@@ -17,8 +17,7 @@ use tokio::runtime;
 use tracing::{trace, warn};
 
 #[derive(Debug)]
-#[allow(clippy::enum_variant_names)] //TODO: evaluate ClientError ends with Enum name
-#[allow(clippy::large_enum_variant)] // not a problem, its only send once
+#[expect(clippy::enum_variant_names)] //TODO: evaluate ClientError ends with Enum name
 pub enum Error {
     ClientError {
         error: ClientError,
@@ -28,7 +27,6 @@ pub enum Error {
     ServerNotFound,
 }
 
-#[allow(clippy::large_enum_variant)] // TODO: Pending review in #587
 pub enum Msg {
     IsAuthTrusted(String),
     Done(Result<Client, Error>),
@@ -81,7 +79,6 @@ impl ClientInit {
                     break;
                 }
                 let mut mismatched_server_info = None;
-                #[allow(clippy::blocks_in_conditions)]
                 match Client::new(
                     connection_args.clone(),
                     Arc::clone(&runtime2),

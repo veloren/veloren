@@ -1,11 +1,11 @@
 use crate::{
+    DamageSource,
     combat::DamageContributor,
     comp::{self, item::ToolKind},
     terrain::SpriteKind,
     uid::Uid,
-    DamageSource,
 };
-use comp::{beam, item::Reagent, poise::PoiseState, skillset::SkillGroupKind, UtteranceKind};
+use comp::{UtteranceKind, beam, item::Reagent, poise::PoiseState, skillset::SkillGroupKind};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use vek::*;

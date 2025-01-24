@@ -1,5 +1,5 @@
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
+    comp::{CharacterState, StateUpdate, character_state::OutputEvents},
     event::{CreateSpriteEvent, LocalEvent},
     outcome::Outcome,
     spiral::Spiral2d,
@@ -10,7 +10,7 @@ use crate::{
     terrain::{Block, SpriteKind},
     vol::ReadVol,
 };
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::*;

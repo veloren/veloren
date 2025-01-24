@@ -116,7 +116,7 @@ impl Energy {
             .min(self.maximum);
     }
 
-    #[allow(clippy::result_unit_err)]
+    #[expect(clippy::result_unit_err)]
     pub fn try_change_by(&mut self, change: f32) -> Result<(), ()> {
         let new_val = self.current() + change;
         if new_val < 0.0 || new_val > self.maximum() {

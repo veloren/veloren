@@ -1,9 +1,9 @@
 use super::*;
 use crate::{
+    Land,
     assets::AssetHandle,
     site2::gen::PrimitiveTransform,
-    util::{sampler::Sampler, RandomField},
-    Land,
+    util::{RandomField, sampler::Sampler},
 };
 use common::{
     generation::EntityInfo,

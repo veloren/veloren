@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     CharacterSkeleton, SkeletonAttr,
 };
 use common::comp::item::{Hands, ToolKind};
@@ -234,7 +234,7 @@ impl Animation for RunAnimation {
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
-        if wall.map_or(false, |e| e.y > 0.5) {
+        if wall.is_some_and(|e| e.y > 0.5) {
             let push = (1.0 - orientation.x.abs()).powi(2);
             let right_sub = -(orientation.x).min(0.0);
             let left_sub = (orientation.x).max(0.0);
@@ -256,7 +256,7 @@ impl Animation for RunAnimation {
                 Quaternion::rotation_x(push * 2.0 + footrotl * -0.2 * left_sub)
                     * Quaternion::rotation_y(-1.0 * right_sub)
                     * Quaternion::rotation_z(-2.5 * right_sub - 1.0 * left_sub);
-        } else if wall.map_or(false, |e| e.y < -0.5) {
+        } else if wall.is_some_and(|e| e.y < -0.5) {
             let push = (1.0 - orientation.x.abs()).powi(2);
             let right_sub = (orientation.x).max(0.0);
             let left_sub = -(orientation.x).min(0.0);
@@ -278,7 +278,7 @@ impl Animation for RunAnimation {
                 Quaternion::rotation_x(push * 2.0 + footrotl * -0.2 * left_sub)
                     * Quaternion::rotation_y(-1.0 * right_sub)
                     * Quaternion::rotation_z(-2.5 * right_sub - 1.0 * left_sub);
-        } else if wall.map_or(false, |e| e.x < -0.5) {
+        } else if wall.is_some_and(|e| e.x < -0.5) {
             let push = (1.0 - orientation.y.abs()).powi(2);
             let right_sub = -(orientation.y).min(0.0);
             let left_sub = (orientation.y).max(0.0);
@@ -300,7 +300,7 @@ impl Animation for RunAnimation {
                 Quaternion::rotation_x(push * 2.0 + footrotl * -0.2 * left_sub)
                     * Quaternion::rotation_y(-1.0 * right_sub)
                     * Quaternion::rotation_z(-2.5 * right_sub - 1.0 * left_sub);
-        } else if wall.map_or(false, |e| e.x > 0.5) {
+        } else if wall.is_some_and(|e| e.x > 0.5) {
             let push = (1.0 - orientation.y.abs()).powi(2);
             let right_sub = (orientation.y).max(0.0);
             let left_sub = -(orientation.y).min(0.0);

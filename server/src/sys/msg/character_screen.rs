@@ -4,11 +4,11 @@ use crate::test_world::World;
 use world::{IndexOwned, World};
 
 use crate::{
+    EditableSettings,
     automod::AutoMod,
     character_creator,
     client::Client,
     persistence::{character_loader::CharacterLoader, character_updater::CharacterUpdater},
-    EditableSettings,
 };
 #[cfg(feature = "worldgen")]
 use common::terrain::TerrainChunkSize;
@@ -25,9 +25,9 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{ClientGeneral, ServerGeneral};
 use specs::{
-    shred, Entities, Join, ReadExpect, ReadStorage, SystemData, WriteExpect, WriteStorage,
+    Entities, Join, ReadExpect, ReadStorage, SystemData, WriteExpect, WriteStorage, shred,
 };
-use std::sync::{atomic::Ordering, Arc};
+use std::sync::{Arc, atomic::Ordering};
 use tracing::debug;
 
 event_emitters! {
@@ -41,7 +41,7 @@ event_emitters! {
 }
 
 impl Sys {
-    #[allow(clippy::too_many_arguments)] // Shhhh, go bother someone else clippy
+    #[cfg_attr(feature = "worldgen", expect(clippy::too_many_arguments))] // Shhhh, go bother someone else clippy
     fn handle_client_character_screen_msg(
         emitters: &mut Emitters,
         entity: specs::Entity,
@@ -65,7 +65,7 @@ impl Sys {
             let localized_description = editable_settings
                 .server_description
                 .get(client.locale.as_deref());
-            if !localized_description.map_or(true, |d| d.motd.is_empty()) {
+            if !localized_description.is_none_or(|d| d.motd.is_empty()) {
                 client.send(ServerGeneral::server_msg(
                     ChatType::CommandInfo,
                     localized_description.map_or(Content::Plain("".to_string()), |d| {

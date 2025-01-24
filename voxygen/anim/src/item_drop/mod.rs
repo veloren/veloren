@@ -3,7 +3,7 @@ pub mod idle;
 // Reexports
 pub use self::idle::IdleAnimation;
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::comp::{self, item_drop::ItemDropArmorKind};
 use core::convert::TryFrom;
 

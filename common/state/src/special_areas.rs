@@ -1,5 +1,5 @@
 use common::depot::{Depot, Id};
-use hashbrown::{hash_map, HashMap};
+use hashbrown::{HashMap, hash_map};
 use std::{
     marker::PhantomData,
     ops::{Deref, DerefMut},

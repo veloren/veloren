@@ -1,4 +1,4 @@
-use iced::{layout, Element, Hasher, Layout, Length, Point, Rectangle, Size, Widget};
+use iced::{Element, Hasher, Layout, Length, Point, Rectangle, Size, Widget, layout};
 use std::hash::Hash;
 
 const DEFAULT_FILL_FRACTION: f32 = 1.0;

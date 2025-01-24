@@ -4,7 +4,7 @@
 use crate::{
     game_input::GameInput, settings::gamepad::con_settings::LayerEntry, window::MenuInput,
 };
-use gilrs::{ev::Code as GilCode, Axis as GilAxis, Button as GilButton};
+use gilrs::{Axis as GilAxis, Button as GilButton, ev::Code as GilCode};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
@@ -165,7 +165,7 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                     .push(GameInput::Map);
                 map.entry(settings.game_buttons.bag)
                     .or_default()
-                    .push(GameInput::Bag);
+                    .push(GameInput::Inventory);
                 map.entry(settings.game_buttons.social)
                     .or_default()
                     .push(GameInput::Social);
@@ -400,7 +400,7 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                     .push(GameInput::Map);
                 map.entry(settings.game_layer_buttons.bag)
                     .or_default()
-                    .push(GameInput::Bag);
+                    .push(GameInput::Inventory);
                 map.entry(settings.game_layer_buttons.social)
                     .or_default()
                     .push(GameInput::Social);

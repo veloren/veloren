@@ -79,8 +79,7 @@ impl InterpolatableComponent for Pos {
         if (t1 - t0).abs() < f64::EPSILON {
             return self;
         }
-        if POSITION_INTERP_SANITY
-            .map_or(false, |limit| p0.0.distance_squared(p1.0) > limit.powf(2.0))
+        if POSITION_INTERP_SANITY.is_some_and(|limit| p0.0.distance_squared(p1.0) > limit.powf(2.0))
         {
             warn!("position delta exceeded sanity check, clamping");
             return p1;
@@ -133,8 +132,7 @@ impl InterpolatableComponent for Vel {
         if (t1 - t0).abs() < f64::EPSILON {
             return self;
         }
-        if VELOCITY_INTERP_SANITY
-            .map_or(false, |limit| p0.0.distance_squared(p1.0) > limit.powf(2.0))
+        if VELOCITY_INTERP_SANITY.is_some_and(|limit| p0.0.distance_squared(p1.0) > limit.powf(2.0))
         {
             warn!("velocity delta exceeded sanity check, clamping");
             return p1;

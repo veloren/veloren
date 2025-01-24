@@ -36,7 +36,7 @@ pub trait BaseVol {
 
 /// Implementing `BaseVol` for any `&'a BaseVol` makes it possible to implement
 /// `IntoVolIterator` for references.
-impl<'a, T: BaseVol> BaseVol for &'a T {
+impl<T: BaseVol> BaseVol for &T {
     type Error = T::Error;
     type Vox = T::Vox;
 }
@@ -317,7 +317,7 @@ impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
     }
 }
 
-impl<'b, T: ReadVol> ReadVol for &'b T {
+impl<T: ReadVol> ReadVol for &T {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&'_ Self::Vox, Self::Error> { (*self).get(pos) }
 }

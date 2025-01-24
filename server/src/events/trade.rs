@@ -1,12 +1,12 @@
 use crate::Server;
 use common::{
     comp::{
+        CharacterState, Health,
         agent::{Agent, AgentEvent},
         inventory::{
-            item::{tool::AbilityMap, ItemDefinitionIdOwned, MaterialStatManifest},
             Inventory,
+            item::{ItemDefinitionIdOwned, MaterialStatManifest, tool::AbilityMap},
         },
-        CharacterState, Health,
     },
     event::ProcessTradeActionEvent,
     trade::{PendingTrade, ReducedInventory, TradeAction, TradeResult, Trades},
@@ -15,8 +15,8 @@ use common_net::{
     msg::ServerGeneral,
     sync::{Uid, WorldSyncExt},
 };
-use hashbrown::{hash_map::Entry, HashMap};
-use specs::{world::WorldExt, Entity as EcsEntity};
+use hashbrown::{HashMap, hash_map::Entry};
+use specs::{Entity as EcsEntity, world::WorldExt};
 use std::{cmp::Ordering, num::NonZeroU32};
 use tracing::{error, trace};
 #[cfg(feature = "worldgen")]
@@ -82,7 +82,7 @@ pub(super) fn handle_process_trade_action(
             .ecs()
             .read_storage::<Health>()
             .get(entity)
-            .map_or(true, |health| {
+            .is_none_or(|health| {
                 !(health.is_dead
                     || (health.has_consumed_death_protection()
                         && matches!(

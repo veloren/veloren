@@ -1,19 +1,19 @@
 use common::{
     comp::{
+        BehaviorState, Content, ControlAction, Item, TradingBehavior, UnresolvedChatMsg,
+        UtteranceKind,
         agent::{AgentEvent, Target, TimerAction},
         compass::{Direction, Distance},
         dialogue::Subject,
         inventory::item::{ItemTag, MaterialStatManifest},
         invite::{InviteKind, InviteResponse},
         tool::AbilityMap,
-        BehaviorState, Content, ControlAction, Item, TradingBehavior, UnresolvedChatMsg,
-        UtteranceKind,
     },
     event::{ChatEvent, EmitExt, ProcessTradeActionEvent},
     rtsim::{Actor, NpcInput, PersonalityTrait},
     trade::{TradeAction, TradePhase, TradeResult},
 };
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 
 use crate::sys::agent::util::get_entity_by_id;
 
@@ -560,8 +560,8 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                 if agent
                     .target
                     .zip(get_entity_by_id(*by, bdata.read_data))
-                    // in combat, speak to players that aren't the current target
-                    .map_or(false, |(target, speaker)| !target.hostile || target.target != speaker)
+                    // In combat, speak to players that aren't the current target.
+                    .is_some_and(|(target, speaker)| !target.hostile || target.target != speaker)
                 {
                     agent_data.chat_npc_if_allowed_to_speak(
                         Content::localized("npc-speech-villager_busy"),

@@ -1,16 +1,14 @@
 use super::{
-    event_dispatch,
+    ServerEvent, event_dispatch,
     group_manip::{self, update_map_markers},
-    ServerEvent,
 };
-use crate::{client::Client, Settings};
+use crate::{Settings, client::Client};
 use common::{
     comp::{
-        self,
+        self, CharacterState, ChatType, Content, Group, Health, Pos,
         agent::{Agent, AgentEvent},
         group::GroupManager,
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
-        CharacterState, ChatType, Content, Group, Health, Pos,
     },
     consts::MAX_TRADE_RANGE,
     event::{InitiateInviteEvent, InviteResponseEvent},
@@ -21,7 +19,7 @@ use common_net::msg::{InviteAnswer, ServerGeneral};
 #[cfg(feature = "worldgen")]
 use specs::ReadExpect;
 use specs::{
-    shred, DispatcherBuilder, Entities, Entity, Read, ReadStorage, SystemData, Write, WriteStorage,
+    DispatcherBuilder, Entities, Entity, Read, ReadStorage, SystemData, Write, WriteStorage, shred,
 };
 use std::time::{Duration, Instant};
 use tracing::{error, warn};
@@ -94,7 +92,7 @@ impl ServerEvent for InitiateInviteEvent {
             // Check if entity is trying to invite themselves
             if uids
                 .get(inviter)
-                .map_or(false, |inviter_uid| *inviter_uid == invitee_uid)
+                .is_some_and(|inviter_uid| *inviter_uid == invitee_uid)
             {
                 warn!("Entity tried to invite themselves into a group/trade");
                 continue;
@@ -103,7 +101,10 @@ impl ServerEvent for InitiateInviteEvent {
             if matches!(kind, InviteKind::Trade) {
                 let is_alive_and_well = |entity| {
                     entities.is_alive(entity)
-                        && !comp::is_downed(healths.get(entity), character_states.get(entity))
+                        && !comp::is_downed_or_dead(
+                            healths.get(entity),
+                            character_states.get(entity),
+                        )
                 };
                 // Check whether the inviter is in range of the invitee or dead
                 if !within_trading_range(positions.get(inviter), positions.get(invitee))

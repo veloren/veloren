@@ -5,7 +5,7 @@ use termcolor::{ColorChoice, StandardStream};
 use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
-    filter::LevelFilter, fmt::writer::MakeWriter, prelude::*, registry, EnvFilter,
+    EnvFilter, filter::LevelFilter, fmt::writer::MakeWriter, prelude::*, registry,
 };
 
 const RUST_LOG_ENV: &str = "RUST_LOG";

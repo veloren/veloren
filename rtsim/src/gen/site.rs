@@ -3,8 +3,8 @@ use common::store::Id;
 use rand::prelude::*;
 use vek::*;
 use world::{
-    site::{Site as WorldSite, SiteKind},
     IndexRef, World,
+    site::{Site as WorldSite, SiteKind},
 };
 
 impl Site {
@@ -62,7 +62,7 @@ impl Site {
                     .filter(|(_, faction)| {
                         factions
                             .get(*faction)
-                            .map_or(false, |f| f.good_or_evil == good_or_evil)
+                            .is_some_and(|f| f.good_or_evil == good_or_evil)
                     })
                     .min_by_key(|(faction_wpos, _)| {
                         faction_wpos

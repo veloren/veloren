@@ -1,25 +1,25 @@
 use crate::{
+    Settings,
     render::{
-        create_skybox_mesh, pipelines::terrain::BoundLocals as BoundTerrainLocals, AltIndices,
-        Consts, FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, Model,
+        AltIndices, Consts, FirstPassDrawer, GlobalModel, Globals, GlobalsBindGroup, Light, Model,
         PointLightMatrix, RainOcclusionLocals, Renderer, Shadow, ShadowLocals, SkyboxVertex,
-        SpriteGlobalsBindGroup,
+        SpriteGlobalsBindGroup, create_skybox_mesh,
+        pipelines::terrain::BoundLocals as BoundTerrainLocals,
     },
     scene::{
+        CloudsLocals, CullingMode, Lod, PostProcessLocals,
         camera::{self, Camera, CameraMode},
         figure::{FigureAtlas, FigureModelCache, FigureState, FigureUpdateCommonParameters},
         terrain::{SpriteRenderContext, SpriteRenderState},
-        CloudsLocals, CullingMode, Lod, PostProcessLocals,
     },
     window::{Event, PressState},
-    Settings,
 };
-use anim::{character::CharacterSkeleton, ship::ShipSkeleton, Animation};
+use anim::{Animation, character::CharacterSkeleton, ship::ShipSkeleton};
 use client::Client;
 use common::{
     comp::{
         humanoid,
-        inventory::{slot::EquipSlot, Inventory},
+        inventory::{Inventory, slot::EquipSlot},
         item::ItemKind,
         ship,
     },
@@ -285,7 +285,7 @@ impl Scene {
         fn figure_params(dt: f32, pos: Vec3<f32>) -> FigureUpdateCommonParameters<'static> {
             FigureUpdateCommonParameters {
                 entity: None,
-                pos: pos.into(),
+                pos,
                 ori: anim::vek::Quaternion::identity().rotated_z(std::f32::consts::PI * -0.5),
                 scale: 1.0,
                 mount_transform_pos: None,
@@ -354,8 +354,8 @@ impl Scene {
                 None,
                 scene_data.time as f32,
                 scene_data.time as f32,
-                (params.ori * Vec3::unit_y()).into(),
-                (params.ori * Vec3::unit_y()).into(),
+                (params.ori * Vec3::unit_y()),
+                (params.ori * Vec3::unit_y()),
             ),
             scene_data.time as f32,
             &mut 0.0,

@@ -4,7 +4,7 @@ use crate::{
         DamageKind, DamageSource, GroupTarget, Knockback,
     },
     comp::{
-        ability::Dodgeable, character_state::OutputEvents, shockwave, CharacterState, StateUpdate,
+        CharacterState, StateUpdate, ability::Dodgeable, character_state::OutputEvents, shockwave,
     },
     event::{LocalEvent, ShockwaveEvent},
     outcome::Outcome,

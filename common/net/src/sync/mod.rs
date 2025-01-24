@@ -10,9 +10,9 @@ mod track;
 pub use common::uid::{IdMaps, Uid};
 pub use net_sync::{NetSync, SyncFrom};
 pub use packet::{
+    CompPacket, CompSyncPackage, EntityPackage, EntitySyncPackage, InterpolatableComponent,
     handle_insert, handle_interp_insert, handle_interp_modify, handle_interp_remove, handle_modify,
-    handle_remove, CompPacket, CompSyncPackage, EntityPackage, EntitySyncPackage,
-    InterpolatableComponent,
+    handle_remove,
 };
 pub use sync_ext::WorldSyncExt;
 pub use track::UpdateTracker;

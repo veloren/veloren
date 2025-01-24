@@ -1,20 +1,19 @@
 use hashbrown::HashSet;
-use rand::{seq::IteratorRandom, Rng};
+use rand::{Rng, seq::IteratorRandom};
 use specs::{
-    join::Join, shred, DispatcherBuilder, Entities, Entity as EcsEntity, Read, ReadExpect,
-    ReadStorage, SystemData, Write, WriteStorage,
+    DispatcherBuilder, Entities, Entity as EcsEntity, Read, ReadExpect, ReadStorage, SystemData,
+    Write, WriteStorage, join::Join, shred,
 };
 use tracing::{debug, error, warn};
 use vek::{Rgb, Vec3};
 
 use common::{
     comp::{
-        self,
+        self, InventoryUpdate, LootOwner, PickupItem,
         group::members,
-        item::{self, flatten_counted_items, tool::AbilityMap, MaterialStatManifest},
+        item::{self, MaterialStatManifest, flatten_counted_items, tool::AbilityMap},
         loot_owner::LootOwnerKind,
         slot::{self, Slot},
-        InventoryUpdate, LootOwner, PickupItem,
     },
     consts::MAX_PICKUP_RANGE,
     event::{
@@ -23,7 +22,7 @@ use common::{
     },
     event_emitters,
     mounting::VolumePos,
-    recipe::{self, default_component_recipe_book, default_repair_recipe_book, RecipeBookManifest},
+    recipe::{self, RecipeBookManifest, default_component_recipe_book, default_repair_recipe_book},
     resources::{ProgramTime, Time},
     terrain::{Block, SpriteKind},
     trade::Trades,
@@ -35,11 +34,11 @@ use comp::LightEmitter;
 
 use crate::client::Client;
 use common::comp::{
-    pet::is_tameable, Alignment, Body, CollectFailedReason, Group, InventoryUpdateEvent,
+    Alignment, Body, CollectFailedReason, Group, InventoryUpdateEvent, pet::is_tameable,
 };
 use common_net::msg::ServerGeneral;
 
-use super::{entity_manipulation::emit_effect_events, event_dispatch, ServerEvent};
+use super::{ServerEvent, entity_manipulation::emit_effect_events, event_dispatch};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<InventoryManipEvent>(builder, &[]);
@@ -154,8 +153,9 @@ impl ServerEvent for InventoryManipEvent {
                 continue;
             }
 
-            if comp::is_downed(data.healths.get(entity), data.character_states.get(entity)) {
-                // Can't manipulate the inventory while downed.
+            if comp::is_downed_or_dead(data.healths.get(entity), data.character_states.get(entity))
+            {
+                // Can't manipulate the inventory while downed or dead.
                 continue;
             }
 
@@ -168,11 +168,6 @@ impl ServerEvent for InventoryManipEvent {
                 );
                 continue;
             };
-            // Disallow inventory manipulation while dead
-            if data.healths.get(entity).map_or(false, |h| h.is_dead) {
-                debug!("Can't manipulate inventory; entity is dead");
-                continue;
-            }
             match manip {
                 comp::InventoryManip::Pickup(pickup_uid) => {
                     let item_entity = if let Some(item_entity) = data.id_maps.uid_entity(pickup_uid)
@@ -200,35 +195,33 @@ impl ServerEvent for InventoryManipEvent {
                     // If there's a loot owner for the item being picked up, then
                     // determine whether the pickup should be rejected.
                     let ownership_check_passed =
-                        data.loot_owners
-                            .get(item_entity)
-                            .map_or(true, |loot_owner| {
-                                let can_pickup = loot_owner.can_pickup(
-                                    *uid,
-                                    data.groups.get(entity),
-                                    data.alignments.get(entity),
-                                    data.stats
-                                        .get(entity)
-                                        .map(|stats| &stats.original_body)
-                                        .or_else(|| data.bodies.get(entity)),
-                                    data.players.get(entity),
-                                );
-                                if !can_pickup {
-                                    let event = comp::InventoryUpdate::new(
-                                        InventoryUpdateEvent::EntityCollectFailed {
-                                            entity: pickup_uid,
-                                            reason: CollectFailedReason::LootOwned {
-                                                owner: loot_owner.owner(),
-                                                expiry_secs: loot_owner
-                                                    .time_until_expiration()
-                                                    .as_secs(),
-                                            },
+                        data.loot_owners.get(item_entity).is_none_or(|loot_owner| {
+                            let can_pickup = loot_owner.can_pickup(
+                                *uid,
+                                data.groups.get(entity),
+                                data.alignments.get(entity),
+                                data.stats
+                                    .get(entity)
+                                    .map(|stats| &stats.original_body)
+                                    .or_else(|| data.bodies.get(entity)),
+                                data.players.get(entity),
+                            );
+                            if !can_pickup {
+                                let event = comp::InventoryUpdate::new(
+                                    InventoryUpdateEvent::EntityCollectFailed {
+                                        entity: pickup_uid,
+                                        reason: CollectFailedReason::LootOwned {
+                                            owner: loot_owner.owner(),
+                                            expiry_secs: loot_owner
+                                                .time_until_expiration()
+                                                .as_secs(),
                                         },
-                                    );
-                                    data.inventory_updates.insert(entity, event).unwrap();
-                                }
-                                can_pickup
-                            });
+                                    },
+                                );
+                                data.inventory_updates.insert(entity, event).unwrap();
+                            }
+                            can_pickup
+                        });
 
                     if !ownership_check_passed {
                         continue;

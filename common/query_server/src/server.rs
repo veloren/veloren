@@ -1,4 +1,4 @@
-#[allow(deprecated)] use std::hash::SipHasher;
+#[expect(deprecated)] use std::hash::SipHasher;
 use std::{
     hash::{Hash, Hasher},
     io::{self, ErrorKind},
@@ -8,15 +8,14 @@ use std::{
 };
 
 use protocol::Parcel;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use tokio::{net::UdpSocket, sync::watch};
 use tracing::{debug, error, trace};
 
 use crate::{
     proto::{
-        Init, QueryServerRequest, QueryServerResponse, RawQueryServerRequest,
-        RawQueryServerResponse, ServerInfo, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE, VELOREN_HEADER,
-        VERSION,
+        Init, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE, QueryServerRequest, QueryServerResponse,
+        RawQueryServerRequest, RawQueryServerResponse, ServerInfo, VELOREN_HEADER, VERSION,
     },
     ratelimit::{RateLimiter, ReducedIpAddr},
 };
@@ -167,7 +166,7 @@ impl QueryServer {
 
         trace!(?request, "Received packet");
 
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         let real_p = {
             // Use SipHash-2-4 to compute the `p` value from a server specific
             // secret and the client's address.

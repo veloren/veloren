@@ -1,13 +1,13 @@
 use crate::{
-    hud::{img_ids::Imgs, MENU_BG, TEXT_COLOR},
-    session::settings_change::{Networking as NetworkingChange, Networking::*},
-    ui::{fonts::Fonts, ImageSlider, ToggleButton},
     GlobalState,
+    hud::{MENU_BG, TEXT_COLOR, img_ids::Imgs},
+    session::settings_change::{Networking as NetworkingChange, Networking::*},
+    ui::{ImageSlider, ToggleButton, fonts::Fonts},
 };
 use conrod_core::{
-    color,
+    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, DropDownList, Rectangle, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
@@ -64,7 +64,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Networking<'a> {
+impl Widget for Networking<'_> {
     type Event = Vec<NetworkingChange>;
     type State = State;
     type Style = ();

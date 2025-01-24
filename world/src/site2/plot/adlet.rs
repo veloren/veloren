@@ -1,9 +1,9 @@
 use super::*;
 use crate::{
+    IndexRef, Land,
     assets::AssetHandle,
     site2::{gen::PrimitiveTransform, util::Dir},
-    util::{attempt, sampler::Sampler, FastNoise, RandomField, NEIGHBORS, NEIGHBORS3},
-    IndexRef, Land,
+    util::{FastNoise, NEIGHBORS, NEIGHBORS3, RandomField, attempt, sampler::Sampler},
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
@@ -161,7 +161,7 @@ impl AdletStronghold {
                 // Check that structure not in the water or too close to another structure
                 if land
                     .get_chunk_wpos(structure_center.as_() + entrance)
-                    .map_or(false, |c| c.is_underwater())
+                    .is_some_and(|c| c.is_underwater())
                     || outer_structures.iter().any(|(kind, rpos, _dir)| {
                         structure_center.distance_squared(*rpos)
                             < structure_kind.required_separation(kind).pow(2)

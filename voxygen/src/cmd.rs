@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
 use crate::{
-    render::ExperimentalShader,
-    session::{settings_change::change_render_mode, SessionState},
     GlobalState,
+    render::ExperimentalShader,
+    session::{SessionState, settings_change::change_render_mode},
 };
 use client::Client;
 use common::{
@@ -318,7 +318,8 @@ pub fn run_command(
                 .client
                 .borrow_mut()
                 .send_command(cmd.keyword().into(), args);
-            Ok(None) // The server will provide a response when the command is run
+            Ok(None) // The server will provide a response when the command is
+            // run
         },
         ChatCommandKind::Client(cmd) => run_client_command(session_state, global_state, cmd, args),
     }
@@ -620,9 +621,9 @@ impl TabComplete for ArgumentSpec {
                 }
             },
             ArgumentSpec::Any(_, _) => vec![],
-            ArgumentSpec::Command(_) => complete_command(part, ' '),
+            ArgumentSpec::Command(_) => complete_command(part, ""),
             ArgumentSpec::Message(_) => complete_player(part, client),
-            ArgumentSpec::SubCommand => complete_command(part, ' '),
+            ArgumentSpec::SubCommand => complete_command(part, ""),
             ArgumentSpec::Enum(_, strings, _) => strings
                 .iter()
                 .filter(|string| string.starts_with(part))
@@ -689,7 +690,7 @@ fn complete_site(mut part: &str, client: &Client) -> Vec<String> {
         .collect()
 }
 
-// Get the byte index of the nth word. Used in completing "/sudo p /subcmd"
+// Get the byte index of the nth word. Used in completing "/sudo p subcmd"
 fn nth_word(line: &str, n: usize) -> Option<usize> {
     let mut is_space = false;
     let mut j = 0;
@@ -712,7 +713,7 @@ fn nth_word(line: &str, n: usize) -> Option<usize> {
     None
 }
 
-fn complete_command(part: &str, prefix: char) -> Vec<String> {
+fn complete_command(part: &str, prefix: &str) -> Vec<String> {
     ServerChatCommand::iter_with_keywords()
         .map(|(kwd, _)| kwd)
         .chain(ClientChatCommand::iter_with_keywords().map(|(kwd, _)| kwd))
@@ -721,8 +722,8 @@ fn complete_command(part: &str, prefix: char) -> Vec<String> {
         .collect()
 }
 
-pub fn complete(line: &str, client: &Client, cmd_prefix: char) -> Vec<String> {
-    let word = if line.chars().last().map_or(true, char::is_whitespace) {
+pub fn complete(line: &str, client: &Client, cmd_prefix: &str) -> Vec<String> {
+    let word = if line.chars().last().is_none_or(char::is_whitespace) {
         ""
     } else {
         line.split_whitespace().last().unwrap_or("")
@@ -759,7 +760,7 @@ pub fn complete(line: &str, client: &Client, cmd_prefix: char) -> Vec<String> {
                 match args.last() {
                     Some(ArgumentSpec::SubCommand) => {
                         if let Some(index) = nth_word(line, args.len()) {
-                            complete(&line[index..], client, cmd_prefix)
+                            complete(&line[index..], client, "")
                         } else {
                             vec![]
                         }
@@ -792,12 +793,12 @@ fn verify_cmd_list_sorted() {
 
 #[test]
 fn test_complete_command() {
-    assert_eq!(complete_command("mu", '/'), vec!["/mute".to_string()]);
-    assert_eq!(complete_command("unba", '/'), vec![
+    assert_eq!(complete_command("mu", "/"), vec!["/mute".to_string()]);
+    assert_eq!(complete_command("unba", "/"), vec![
         "/unban".to_string(),
         "/unban_ip".to_string()
     ]);
-    assert_eq!(complete_command("make_", '/'), vec![
+    assert_eq!(complete_command("make_", "/"), vec![
         "/make_block".to_string(),
         "/make_npc".to_string(),
         "/make_sprite".to_string(),

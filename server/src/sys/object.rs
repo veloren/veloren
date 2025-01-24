@@ -1,12 +1,12 @@
 use common::{
-    comp::{object, Body, Object, PhysicsState, Pos, Teleporting, Vel},
+    CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
+    comp::{Body, Object, PhysicsState, Pos, Teleporting, Vel, object},
     consts::TELEPORTER_RADIUS,
     effect::Effect,
     event::{ChangeBodyEvent, DeleteEvent, EmitExt, EventBus, ExplosionEvent, ShootEvent},
     event_emitters,
     outcome::Outcome,
     resources::{DeltaTime, Time},
-    CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, RadiusEffect,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, LendJoin, Read, ReadStorage};
@@ -213,7 +213,7 @@ impl<'a> System<'a> for Sys {
                             (&positions, &teleporting)
                                 .lend_join()
                                 .get(entity, &entities)
-                                .map_or(false, |(teleporter_pos, _)| {
+                                .is_some_and(|(teleporter_pos, _)| {
                                     pos.0.distance_squared(teleporter_pos.0)
                                         <= TELEPORTER_RADIUS.powi(2)
                                 })

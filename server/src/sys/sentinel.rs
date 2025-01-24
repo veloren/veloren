@@ -1,7 +1,7 @@
 use common::{
     comp::{
-        item::{tool::AbilityMap, MaterialStatManifest},
         Ori, Pos, Vel,
+        item::{MaterialStatManifest, tool::AbilityMap},
     },
     uid::Uid,
 };
@@ -11,7 +11,7 @@ use common_net::{
     sync::{CompSyncPackage, EntityPackage, EntitySyncPackage, NetSync, SyncFrom, UpdateTracker},
 };
 use hashbrown::HashMap;
-use specs::{shred, Entity as EcsEntity, Join, ReadExpect, ReadStorage, SystemData, WriteExpect};
+use specs::{Entity as EcsEntity, Join, ReadExpect, ReadStorage, SystemData, WriteExpect, shred};
 use vek::*;
 
 /// Always watching

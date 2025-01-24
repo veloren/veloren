@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Axe balance tweaks.
 - Mountability now depends on mass, with the exception of ships and humanoids.
+- Hammer skill icons.
+- Renamed 'Bag' control setting to 'Inventory' and changed default keybind to 'i'.
+- Improved interaction HUD consistency and prioritize important interactions over others.
+- Sword balance tweaks.
+- Vampire Castle chests are now the same as Haniwa chests.
 
 ### Removed
 
@@ -28,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Realignment of tree and entrance for Haniwa Catacomb sites.
 - Riders no longer lags behind mounts.
+- Can no longer ride while dead.
+- Realignment of airship dock signs in forest towns.
 
 ## [0.17.0] - 2024-12-28
 

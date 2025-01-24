@@ -1,6 +1,6 @@
 use crate::ecs::comp::Interpolated;
 use common::{
-    comp::{object, Body, Ori, Pos, Vel},
+    comp::{Body, Ori, Pos, Vel, object},
     resources::DeltaTime,
 };
 use common_ecs::{Job, Origin, Phase, System};

@@ -1,13 +1,14 @@
 use crate::{
+    CONFIG, IndexRef,
     column::ColumnSample,
     sim::{RiverKind, WorldSim},
     site::SiteKind,
-    IndexRef, CONFIG,
 };
 use common::{
     terrain::{
+        CoordinateConversions, NEIGHBOR_DELTA, TerrainChunkSize,
         map::{Connection, ConnectionKind, MapConfig, MapSample},
-        vec2_as_uniform_idx, CoordinateConversions, TerrainChunkSize, NEIGHBOR_DELTA,
+        vec2_as_uniform_idx,
     },
     vol::RectVolSize,
 };
@@ -232,38 +233,38 @@ pub fn sample_pos(
                 });
             });
     };
-    let rgb =
-        if is_water && is_ice && column_data.map_or(false, |(_, _, ice_depth)| ice_depth > 0.0) {
-            CONFIG.ice_color
-        } else {
-            match (river_kind, (is_water, true_alt >= true_sea_level)) {
-                (_, (false, _)) | (None, (_, true)) | (Some(RiverKind::River { .. }), _) => {
-                    let (r, g, b) = (
-                        (column_rgb.r
-                            * if is_temperature {
-                                temperature as f64
-                            } else {
-                                column_rgb.r
-                            })
-                        .sqrt(),
-                        column_rgb.g,
-                        (column_rgb.b
-                            * if is_humidity {
-                                humidity as f64
-                            } else {
-                                column_rgb.b
-                            })
-                        .sqrt(),
-                    );
-                    Rgb::new((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
-                },
-                (None | Some(RiverKind::Lake { .. } | RiverKind::Ocean), _) => Rgb::new(
-                    0,
-                    ((g_water - water_depth * g_water) * 1.0) as u8,
-                    ((b_water - water_depth * b_water) * 1.0) as u8,
-                ),
-            }
-        };
+    let rgb = if is_water && is_ice && column_data.is_some_and(|(_, _, ice_depth)| ice_depth > 0.0)
+    {
+        CONFIG.ice_color
+    } else {
+        match (river_kind, (is_water, true_alt >= true_sea_level)) {
+            (_, (false, _)) | (None, (_, true)) | (Some(RiverKind::River { .. }), _) => {
+                let (r, g, b) = (
+                    (column_rgb.r
+                        * if is_temperature {
+                            temperature as f64
+                        } else {
+                            column_rgb.r
+                        })
+                    .sqrt(),
+                    column_rgb.g,
+                    (column_rgb.b
+                        * if is_humidity {
+                            humidity as f64
+                        } else {
+                            column_rgb.b
+                        })
+                    .sqrt(),
+                );
+                Rgb::new((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
+            },
+            (None | Some(RiverKind::Lake { .. } | RiverKind::Ocean), _) => Rgb::new(
+                0,
+                ((g_water - water_depth * g_water) * 1.0) as u8,
+                ((b_water - water_depth * b_water) * 1.0) as u8,
+            ),
+        }
+    };
     // TODO: Make principled.
     let rgb = if is_bridge {
         Rgb::new(0x80, 0x80, 0x80)

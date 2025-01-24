@@ -14,8 +14,8 @@ use std::{
     io,
     net::SocketAddr,
     sync::{
-        atomic::{AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicU64, Ordering},
     },
     time::Duration,
 };
@@ -24,11 +24,10 @@ use tokio::{
     net,
     net::tcp::{OwnedReadHalf, OwnedWriteHalf},
     select,
-    sync::{mpsc, oneshot, Mutex},
+    sync::{Mutex, mpsc, oneshot},
 };
 use tracing::{error, info, trace, warn};
 
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub(crate) enum Protocols {
     Tcp((TcpSendProtocol<TcpDrain>, TcpRecvProtocol<TcpSink>)),
@@ -606,7 +605,6 @@ pub struct QuicDrain {
 #[cfg(feature = "quic")]
 #[derive(Debug)]
 pub struct QuicSink {
-    #[allow(dead_code)]
     con: quinn::Connection,
     recvstreams_r: mpsc::UnboundedReceiver<QuicStream>,
     recvstreams_s: mpsc::UnboundedSender<QuicStream>,

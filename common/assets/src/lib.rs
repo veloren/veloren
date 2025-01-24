@@ -13,18 +13,18 @@ use std::{
 };
 
 pub use assets_manager::{
+    AnyCache, Asset, AssetCache, BoxedError, Compound, Error, SharedString,
     asset::{DirLoadable, Ron},
     loader::{
         self, BincodeLoader, BytesLoader, JsonLoader, LoadFrom, Loader, RonLoader, StringLoader,
     },
     source::{self, Source},
-    AnyCache, Asset, AssetCache, BoxedError, Compound, Error, SharedString,
 };
 
 mod fs;
 #[cfg(feature = "plugins")] mod plugin_cache;
 mod walk;
-pub use walk::{walk_tree, Walk};
+pub use walk::{Walk, walk_tree};
 
 #[cfg(feature = "plugins")]
 lazy_static! {
@@ -448,7 +448,7 @@ mod tests {
             .filter(|path| path.is_file())
             .filter(|path| {
                 path.extension()
-                    .map_or(false, |e| ext == e.to_ascii_lowercase())
+                    .is_some_and(|e| ext == e.to_ascii_lowercase())
             })
             .for_each(|path| {
                 let file = File::open(&path).expect("Failed to open the file");
@@ -472,9 +472,9 @@ pub mod asset_tweak {
     //!
     //! Will hot-reload (if corresponded feature is enabled).
     // TODO: don't use the same ASSETS_PATH as game uses?
-    use super::{Asset, AssetExt, RonLoader, ASSETS_PATH};
-    use ron::ser::{to_writer_pretty, PrettyConfig};
-    use serde::{de::DeserializeOwned, Deserialize, Serialize};
+    use super::{ASSETS_PATH, Asset, AssetExt, RonLoader};
+    use ron::ser::{PrettyConfig, to_writer_pretty};
+    use serde::{Deserialize, Serialize, de::DeserializeOwned};
     use std::{fs, path::Path};
 
     /// Specifier to use with tweak functions in this module
@@ -510,7 +510,7 @@ pub mod asset_tweak {
     /// # Examples:
     /// How not to use.
     /// ```should_panic
-    /// use veloren_common_assets::asset_tweak::{tweak_expect, Specifier};
+    /// use veloren_common_assets::asset_tweak::{Specifier, tweak_expect};
     ///
     /// // will panic if you don't have a file
     /// let specifier = Specifier::Asset(&["no_way_we_have_this_directory", "x"]);
@@ -521,8 +521,8 @@ pub mod asset_tweak {
     /// ```
     /// use std::fs;
     /// use veloren_common_assets::{
-    ///     asset_tweak::{tweak_expect, Specifier},
     ///     ASSETS_PATH,
+    ///     asset_tweak::{Specifier, tweak_expect},
     /// };
     ///
     /// // you need to create file first
@@ -600,8 +600,8 @@ pub mod asset_tweak {
     /// Tweaking integer value
     /// ```
     /// use veloren_common_assets::{
-    ///     asset_tweak::{tweak_expect_or_create, Specifier},
     ///     ASSETS_PATH,
+    ///     asset_tweak::{Specifier, tweak_expect_or_create},
     /// };
     ///
     /// // first time it will create the file
@@ -647,7 +647,7 @@ pub mod asset_tweak {
     /// ```
     /// // note that you need to export it from `assets` crate,
     /// // not from `assets::asset_tweak`
-    /// use veloren_common_assets::{tweak, ASSETS_PATH};
+    /// use veloren_common_assets::{ASSETS_PATH, tweak};
     ///
     /// // you need to create file first
     /// let own_path = ASSETS_PATH.join("tweak/grizelda.ron");
@@ -676,13 +676,13 @@ pub mod asset_tweak {
     #[macro_export]
     macro_rules! tweak {
         ($name:literal) => {{
-            use $crate::asset_tweak::{tweak_expect, Specifier::Tweak};
+            use $crate::asset_tweak::{Specifier::Tweak, tweak_expect};
 
             tweak_expect(Tweak($name))
         }};
 
         ($name:literal, $default:expr) => {{
-            use $crate::asset_tweak::{tweak_expect_or_create, Specifier::Tweak};
+            use $crate::asset_tweak::{Specifier::Tweak, tweak_expect_or_create};
 
             tweak_expect_or_create(Tweak($name), $default)
         }};
@@ -705,7 +705,7 @@ pub mod asset_tweak {
     /// // note that you need to export it from `assets` crate,
     /// // not from `assets::asset_tweak`
     /// use serde::{Deserialize, Serialize};
-    /// use veloren_common_assets::{tweak_from, ASSETS_PATH};
+    /// use veloren_common_assets::{ASSETS_PATH, tweak_from};
     ///
     /// #[derive(Clone, PartialEq, Deserialize, Serialize)]
     /// struct Data {
@@ -719,13 +719,13 @@ pub mod asset_tweak {
     #[macro_export]
     macro_rules! tweak_from {
         ($path:expr) => {{
-            use $crate::asset_tweak::{tweak_expect, Specifier::Asset};
+            use $crate::asset_tweak::{Specifier::Asset, tweak_expect};
 
             tweak_expect(Asset($path))
         }};
 
         ($path:expr, $default:expr) => {{
-            use $crate::asset_tweak::{tweak_expect_or_create, Specifier::Asset};
+            use $crate::asset_tweak::{Specifier::Asset, tweak_expect_or_create};
 
             tweak_expect_or_create(Asset($path), $default)
         }};

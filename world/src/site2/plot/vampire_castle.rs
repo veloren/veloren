@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::wall_staircase,
-    util::{sampler::Sampler, RandomField, CARDINALS, DIAGONALS, NEIGHBORS},
     Land,
+    site2::gen::wall_staircase,
+    util::{CARDINALS, DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler},
 };
 use common::{generation::EntityInfo, terrain::SpriteKind};
 use rand::prelude::*;
@@ -934,7 +934,7 @@ impl Structure for VampireCastle {
                 (tower_center + (tower_width / 2) + 1).with_z(tower_base + tower_height + 1);
             let chest_var = RandomField::new(0).get(chest_pos) % 2;
             if chest_var > 0 {
-                painter.sprite(chest_pos, SpriteKind::DungeonChest4);
+                painter.sprite(chest_pos, SpriteKind::DungeonChest3);
                 random_npc_positions.push(rand_npc_pos);
             }
             if t == harlequin_0 {
@@ -2060,7 +2060,7 @@ impl Structure for VampireCastle {
             .fill(wood.clone());
         painter.sprite(
             side_bldg_pos_2.with_z(side_bldg_base_raw),
-            SpriteKind::DungeonChest4,
+            SpriteKind::DungeonChest3,
         );
         // main room bossfight
         painter

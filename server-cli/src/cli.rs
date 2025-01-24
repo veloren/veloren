@@ -1,8 +1,8 @@
-#![allow(
+#![expect(
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
 
-use clap::{builder::ValueParser, Parser};
+use clap::{Parser, builder::ValueParser};
 use common::comp;
 use server::persistence::SqlLogMode;
 use std::{str::FromStr, sync::mpsc::Sender};

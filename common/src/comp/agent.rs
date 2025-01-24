@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        biped_large, biped_small, bird_medium, humanoid, quadruped_low, quadruped_medium,
-        quadruped_small, ship, Body, UtteranceKind,
+        Body, UtteranceKind, biped_large, biped_small, bird_medium, humanoid, quadruped_low,
+        quadruped_medium, quadruped_small, ship,
     },
     path::Chaser,
     rtsim::{NpcInput, RtSimController},
@@ -14,7 +14,7 @@ use std::{collections::VecDeque, fmt};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
-use super::{dialogue::Subject, Group, Pos};
+use super::{Group, Pos, dialogue::Subject};
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
@@ -622,7 +622,7 @@ impl Timer {
     /// given timeout.
     pub fn time_since_exceeds(&self, time: f64, action: TimerAction, timeout: f64) -> bool {
         self.time_of_last(action)
-            .map_or(true, |last_time| (time - last_time).max(0.0) > timeout)
+            .is_none_or(|last_time| (time - last_time).max(0.0) > timeout)
     }
 
     /// Return `true` while the time since the action was last started is less
@@ -851,7 +851,7 @@ impl Component for Agent {
 
 #[cfg(test)]
 mod tests {
-    use super::{humanoid, Agent, Behavior, BehaviorCapability, BehaviorState, Body};
+    use super::{Agent, Behavior, BehaviorCapability, BehaviorState, Body, humanoid};
 
     /// Test to verify that Behavior is working correctly at its most basic
     /// usages

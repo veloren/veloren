@@ -1,6 +1,6 @@
-use super::super::{super::Rotation, style, IcedRenderer, Primitive};
+use super::super::{super::Rotation, IcedRenderer, Primitive, style};
 use common::util::srgba_to_linear;
-use iced::{mouse, scrollable, Rectangle};
+use iced::{Rectangle, mouse, scrollable};
 use style::scrollable::{Scroller, Track};
 
 const SCROLLBAR_MIN_HEIGHT: u16 = 6;

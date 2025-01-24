@@ -7,8 +7,8 @@ use std::{
     io::Write,
     net::{SocketAddr, TcpStream},
     sync::{
-        atomic::{AtomicU64, Ordering},
         Arc,
+        atomic::{AtomicU64, Ordering},
     },
     thread,
     time::{Duration, Instant},

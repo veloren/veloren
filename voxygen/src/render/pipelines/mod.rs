@@ -96,7 +96,7 @@ pub const TIME_OVERFLOW: f64 = 300000.0;
 
 impl Globals {
     /// Create global consts from the provided parameters.
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,

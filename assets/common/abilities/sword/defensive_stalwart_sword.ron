@@ -3,7 +3,7 @@ SelfBuff(
     cast_duration: 0.3,
     recover_duration: 0.25,
     buff_kind: ProtectingWard,
-    buff_strength: 0.4,
+    buff_strength: 0.35,
     buff_duration: Some(20.0),
     energy_cost: 20,
     meta: (

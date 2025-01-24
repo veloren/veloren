@@ -55,7 +55,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            if physics.map_or(true, |ps| ps.on_ground.is_some()) && velocity.0.z >= 0.0 {
+            if physics.is_none_or(|ps| ps.on_ground.is_some()) && velocity.0.z >= 0.0 {
                 for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
                     if player_pos.0.distance_squared(waypoint_pos.0)
                         < waypoint_area.radius().powi(2)
@@ -63,7 +63,7 @@ impl<'a> System<'a> for Sys {
                         if let Ok(wp_old) =
                             waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
                         {
-                            if wp_old.map_or(true, |w| w.elapsed(*time) > NOTIFY_TIME) {
+                            if wp_old.is_none_or(|w| w.elapsed(*time) > NOTIFY_TIME) {
                                 client.send_fallible(ServerGeneral::Notification(
                                     Notification::WaypointSaved,
                                 ));

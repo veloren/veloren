@@ -1,9 +1,9 @@
 use crate::{
+    Land, Sampler, SpriteKind,
     layer::tree::{ProceduralTree, TreeConfig},
     site::namegen::NameGen,
     site2::{Fill, Painter, Site, Structure},
     util::FastNoise,
-    Land, Sampler, SpriteKind,
 };
 use common::{
     generation::EntityInfo,

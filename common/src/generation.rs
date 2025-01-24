@@ -5,10 +5,9 @@ use crate::{
     calendar::Calendar,
     combat::{DeathEffect, DeathEffects},
     comp::{
-        self, agent, humanoid,
+        self, Alignment, Body, Item, agent, humanoid,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
         misc::PortalData,
-        Alignment, Body, Item,
     },
     lottery::LootSpec,
     npc::{self, NPC_NAMES},

@@ -1,31 +1,30 @@
 use super::{
+    BLACK, BUFF_COLOR, DEBUFF_COLOR, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR, LOW_HP_COLOR,
+    QUALITY_EPIC, STAMINA_COLOR, Show, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0, UI_MAIN,
     cr_color,
     img_ids::{Imgs, ImgsRot},
-    Show, BLACK, BUFF_COLOR, DEBUFF_COLOR, ERROR_COLOR, GROUP_COLOR, HP_COLOR, KILL_COLOR,
-    LOW_HP_COLOR, QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, TEXT_COLOR_GREY, UI_HIGHLIGHT_0,
-    UI_MAIN,
 };
 
 use crate::{
+    GlobalState,
     game_input::GameInput,
     hud::BuffIcon,
     settings::Settings,
-    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
-    GlobalState,
+    ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
 };
 use client::{self, Client};
 use common::{
     combat,
-    comp::{group::Role, inventory::item::MaterialStatManifest, invite::InviteKind, Stats},
+    comp::{Stats, group::Role, inventory::item::MaterialStatManifest, invite::InviteKind},
     resources::Time,
     uid::{IdMaps, Uid},
 };
 use common_net::sync::WorldSyncExt;
 use conrod_core::{
-    color,
+    Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::{Place, Relative},
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use specs::WorldExt;
@@ -132,7 +131,7 @@ pub enum Event {
     AssignLeader(Uid),
 }
 
-impl<'a> Widget for Group<'a> {
+impl Widget for Group<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();
@@ -149,7 +148,6 @@ impl<'a> Widget for Group<'a> {
     //TODO: Disband groups when there's only one member in them
     //TODO: Always send health, energy, level and position of group members to the
     // client
-    #[allow(clippy::blocks_in_conditions)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Group::update");
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -221,7 +219,7 @@ impl<'a> Widget for Group<'a> {
                 .client
                 .player_list()
                 .get(&invite.0)
-                .map_or(true, |player| {
+                .is_none_or(|player| {
                     self.global_state
                         .profile
                         .mutelist
@@ -582,7 +580,7 @@ impl<'a> Widget for Group<'a> {
                                 };
                                 prev_id = Some(id);
                                 buff_widget
-                                    .color(if current_duration.map_or(false, |cur| cur < 10.0) {
+                                    .color(if current_duration.is_some_and(|cur| cur < 10.0) {
                                         Some(pulsating_col)
                                     } else {
                                         Some(norm_col)
@@ -772,7 +770,7 @@ impl<'a> Widget for Group<'a> {
                     .set(state.ids.scrollbar, ui);
                 // List member names
                 for (i, &uid) in group_members.iter().copied().enumerate() {
-                    let selected = state.selected_member.map_or(false, |u| u == uid);
+                    let selected = state.selected_member == Some(uid);
                     let char_name = uid_to_name_text(uid, self.client);
                     // TODO: Do something special visually if uid == leader
                     if Button::image(if selected {

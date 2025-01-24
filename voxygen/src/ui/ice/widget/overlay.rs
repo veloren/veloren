@@ -1,6 +1,6 @@
 use iced::{
-    layout, mouse, Align, Clipboard, Element, Event, Hasher, Layout, Length, Padding, Point,
-    Rectangle, Size, Widget,
+    Align, Clipboard, Element, Event, Hasher, Layout, Length, Padding, Point, Rectangle, Size,
+    Widget, layout, mouse,
 };
 use std::hash::Hash;
 
@@ -107,7 +107,7 @@ where
     }
 }
 
-impl<'a, M, R> Widget<M, R> for Overlay<'a, M, R>
+impl<M, R> Widget<M, R> for Overlay<'_, M, R>
 where
     R: Renderer,
 {

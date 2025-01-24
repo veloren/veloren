@@ -1,16 +1,16 @@
 use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
-    hud::{img_ids::Imgs, AutoPressBehavior, PressBehavior, MENU_BG, TEXT_COLOR},
-    session::settings_change::{Gameplay as GameplayChange, Gameplay::*},
-    ui::{fonts::Fonts, ImageSlider, ToggleButton},
     GlobalState,
+    hud::{AutoPressBehavior, MENU_BG, PressBehavior, TEXT_COLOR, img_ids::Imgs},
+    session::settings_change::{Gameplay as GameplayChange, Gameplay::*},
+    ui::{ImageSlider, ToggleButton, fonts::Fonts},
 };
 use conrod_core::{
-    color,
+    Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::Relative,
     widget::{self, Button, DropDownList, Rectangle, Scrollbar, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
@@ -100,7 +100,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Gameplay<'a> {
+impl Widget for Gameplay<'_> {
     type Event = Vec<GameplayChange>;
     type State = State;
     type Style = ();

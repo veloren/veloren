@@ -1,8 +1,8 @@
 use crate::{
     combat::{self, CombatEffect},
     comp::{
-        character_state::OutputEvents, projectile::ProjectileConstructor, Body, CharacterState,
-        LightEmitter, Pos, StateUpdate,
+        Body, CharacterState, LightEmitter, Pos, StateUpdate, character_state::OutputEvents,
+        projectile::ProjectileConstructor,
     },
     event::ShootEvent,
     states::{

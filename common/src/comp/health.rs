@@ -1,4 +1,4 @@
-use crate::{combat::DamageContributor, comp, resources::Time, uid::Uid, DamageSource};
+use crate::{DamageSource, combat::DamageContributor, comp, resources::Time, uid::Uid};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
@@ -255,9 +255,15 @@ impl Health {
 /// Returns true if an entity is downed, their character state is `Crawl` and
 /// their death protection has been consumed.
 pub fn is_downed(health: Option<&Health>, character_state: Option<&super::CharacterState>) -> bool {
-    health.map_or(false, |health| {
-        !health.is_dead && health.has_consumed_death_protection()
-    }) && matches!(character_state, Some(super::CharacterState::Crawl))
+    health.is_some_and(|health| !health.is_dead && health.has_consumed_death_protection())
+        && matches!(character_state, Some(super::CharacterState::Crawl))
+}
+
+pub fn is_downed_or_dead(
+    health: Option<&Health>,
+    character_state: Option<&super::CharacterState>,
+) -> bool {
+    health.is_some_and(|health| health.is_dead) || is_downed(health, character_state)
 }
 
 impl Component for Health {

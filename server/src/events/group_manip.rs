@@ -1,18 +1,17 @@
 use crate::client::Client;
 use common::{
     comp::{
-        self,
+        self, ChatType, Content, GroupManip,
         group::{ChangeNotification, Group, GroupManager},
         invite::{InviteKind, PendingInvites},
-        ChatType, Content, GroupManip,
     },
     event::GroupManipEvent,
     uid::{IdMaps, Uid},
 };
 use common_net::msg::ServerGeneral;
-use specs::{world::Entity, DispatcherBuilder, Entities, Read, ReadStorage, Write, WriteStorage};
+use specs::{DispatcherBuilder, Entities, Read, ReadStorage, Write, WriteStorage, world::Entity};
 
-use super::{event_dispatch, ServerEvent};
+use super::{ServerEvent, event_dispatch};
 
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<GroupManipEvent>(builder, &[]);
@@ -28,10 +27,10 @@ pub fn can_invite(
     invitee: Entity,
 ) -> bool {
     // Disallow inviting entity that is already in your group
-    let already_in_same_group = groups.get(inviter).map_or(false, |group| {
+    let already_in_same_group = groups.get(inviter).is_some_and(|group| {
         group_manager
             .group_info(*group)
-            .map_or(false, |g| g.leader == inviter)
+            .is_some_and(|g| g.leader == inviter)
             && groups.get(invitee) == Some(group)
     });
     if already_in_same_group {
@@ -174,7 +173,7 @@ impl ServerEvent for GroupManipEvent {
                     };
 
                     // Can't kick pet
-                    if matches!(alignments.get(target), Some(comp::Alignment::Owned(owner)) if uids.get(target).map_or(true, |u| u != owner))
+                    if matches!(alignments.get(target), Some(comp::Alignment::Owned(owner)) if uids.get(target) != Some(owner))
                     {
                         if let Some(general_stream) = clients.get(entity) {
                             general_stream.send_fallible(ServerGeneral::server_msg(
@@ -185,7 +184,7 @@ impl ServerEvent for GroupManipEvent {
                         continue;
                     }
                     // Can't kick yourself
-                    if uids.get(entity).map_or(false, |u| *u == uid) {
+                    if uids.get(entity).is_some_and(|u| *u == uid) {
                         if let Some(client) = clients.get(entity) {
                             client.send_fallible(ServerGeneral::server_msg(
                                 ChatType::Meta,

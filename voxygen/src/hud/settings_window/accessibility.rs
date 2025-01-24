@@ -1,14 +1,14 @@
 use crate::{
-    hud::{img_ids::Imgs, TEXT_COLOR},
+    GlobalState,
+    hud::{TEXT_COLOR, img_ids::Imgs},
     render::RenderMode,
     session::settings_change::{Accessibility as AccessibilityChange, Accessibility::*},
-    ui::{fonts::Fonts, ToggleButton},
-    GlobalState,
+    ui::{ToggleButton, fonts::Fonts},
 };
 use conrod_core::{
-    color,
+    Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Rectangle, Text},
-    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 
@@ -54,7 +54,7 @@ pub struct State {
     ids: Ids,
 }
 
-impl<'a> Widget for Accessibility<'a> {
+impl Widget for Accessibility<'_> {
     type Event = Vec<AccessibilityChange>;
     type State = State;
     type Style = ();

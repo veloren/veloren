@@ -1,6 +1,6 @@
 use crate::{AdminCommandState, EguiAction, EguiActions};
 use common::cmd::ServerChatCommand;
-use egui::{style::Margin, CollapsingHeader, Context, Resize, Slider, Ui, Vec2, Window};
+use egui::{CollapsingHeader, Context, Resize, Slider, Ui, Vec2, Window, style::Margin};
 use lazy_static::lazy_static;
 
 lazy_static! {

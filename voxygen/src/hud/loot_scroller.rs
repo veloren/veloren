@@ -1,25 +1,25 @@
 use super::{
-    animate_by_pulse, get_quality_col,
+    HudInfo, Show, TEXT_COLOR, Windows, animate_by_pulse, get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    util, HudInfo, Show, Windows, TEXT_COLOR,
+    util,
 };
-use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
+use crate::ui::{ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, fonts::Fonts};
 use client::Client;
 use common::{
     comp::{
-        inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
         FrontendItem, Inventory,
+        inventory::item::{ItemDesc, ItemI18n, MaterialStatManifest, Quality},
     },
     recipe::RecipeBookManifest,
     uid::Uid,
 };
 use common_net::sync::WorldSyncExt;
 use conrod_core::{
-    color,
+    Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::Dimension,
     widget::{self, Image, List, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use i18n::Localization;
 use std::{collections::VecDeque, num::NonZeroU32};
@@ -130,7 +130,7 @@ pub struct State {
     last_auto_show_pulse: Option<f32>, // auto show if (for example) bag is open
 }
 
-impl<'a> Widget for LootScroller<'a> {
+impl Widget for LootScroller<'_> {
     type Event = ();
     type State = State;
     type Style = ();
@@ -229,7 +229,7 @@ impl<'a> Widget for LootScroller<'a> {
             if ui
                 .rect_of(state.ids.message_box)
                 .map(|r| r.pad_left(-6.0))
-                .map_or(false, |r| r.is_over(ui.global_input().current.mouse.xy))
+                .is_some_and(|r| r.is_over(ui.global_input().current.mouse.xy))
             {
                 state.update(|s| s.last_hover_pulse = Some(self.pulse));
             }
@@ -302,7 +302,7 @@ impl<'a> Widget for LootScroller<'a> {
                     .widget_graph()
                     .widget(state.ids.message_box)
                     .and_then(|w| w.maybe_y_scroll_state)
-                    .map_or(false, |s| s.scrollable_range_len > BOX_HEIGHT)
+                    .is_some_and(|s| s.scrollable_range_len > BOX_HEIGHT)
             {
                 Scrollbar::y_axis(state.ids.message_box)
                     .thickness(5.0)
@@ -342,7 +342,7 @@ impl<'a> Widget for LootScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let quality_col = get_quality_col(&item);
+                let quality_col = get_quality_col(item.quality());
 
                 Image::new(self.imgs.pixel)
                     .color(Some(shade_color(quality_col.alpha(0.7))))

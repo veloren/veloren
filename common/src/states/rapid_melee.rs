@@ -1,15 +1,14 @@
 use crate::{
-    combat,
+    Explosion, RadiusEffect, combat,
     combat::{Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
     comp::{
-        character_state::OutputEvents, item::Reagent, CharacterState, MeleeConstructor, StateUpdate,
+        CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents, item::Reagent,
     },
     event::{ComboChangeEvent, ExplosionEvent},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    Explosion, RadiusEffect,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

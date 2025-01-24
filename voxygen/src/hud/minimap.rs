@@ -1,13 +1,13 @@
 use super::{
-    img_ids::{Imgs, ImgsRot},
     MapMarkers, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW,
     QUALITY_MODERATE, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    img_ids::{Imgs, ImgsRot},
 };
 use crate::{
+    GlobalState,
     hud::{Graphic, Ui},
     session::settings_change::{Interface as InterfaceChange, Interface::*},
-    ui::{fonts::Fonts, img_ids, KeyedJobs},
-    GlobalState,
+    ui::{KeyedJobs, fonts::Fonts, img_ids},
 };
 use client::{self, Client};
 use common::{
@@ -23,9 +23,9 @@ use common::{
 use common_net::msg::world_msg::SiteKind;
 use common_state::TerrainChanges;
 use conrod_core::{
-    color, position,
+    Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color, position,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids,
 };
 use hashbrown::{HashMap, HashSet};
 use image::{DynamicImage, RgbaImage};
@@ -139,7 +139,7 @@ impl VoxelMinimap {
                 // Treat Leaves and Wood as translucent for the purposes of ceiling checks,
                 // since otherwise trees would cause ceiling removal to trigger
                 // when running under a branch.
-                let is_filled = block.map_or(true, |b| {
+                let is_filled = block.is_none_or(|b| {
                     b.is_filled()
                         && !matches!(
                             b.kind(),
@@ -216,9 +216,9 @@ impl VoxelMinimap {
             .modified_blocks
             .iter()
             .filter(|(key, old_block)| {
-                terrain.get(**key).map_or(false, |new_block| {
-                    new_block.is_terrain() != old_block.is_terrain()
-                })
+                terrain
+                    .get(**key)
+                    .is_ok_and(|new_block| new_block.is_terrain() != old_block.is_terrain())
             })
             .map(|(key, _)| terrain.pos_key(*key))
             .for_each(|key| {
@@ -274,7 +274,7 @@ impl VoxelMinimap {
                 .as_();
             let column = self.chunk_minimaps.get(&(cpos + coff));
             // TODO: evaluate clippy, toolchain upgrade 2021-12-19
-            #[allow(clippy::unnecessary_lazy_evaluations)]
+            #[expect(clippy::unnecessary_lazy_evaluations)]
             column
                 .map(
                     |MinimapColumn {
@@ -284,8 +284,7 @@ impl VoxelMinimap {
                             .find(|dz| {
                                 layers
                                     .get((pos.z as i32 - zlo + dz) as usize)
-                                    .and_then(|grid| grid.get(cmod))
-                                    .map_or(false, |(_, b)| *b)
+                                    .and_then(|grid| grid.get(cmod)).is_some_and(|(_, b)| *b)
                             })
                             .unwrap_or_else(||
                                 // if the `find` returned None, there's no solid blocks above the
@@ -342,7 +341,7 @@ impl VoxelMinimap {
                                 // ceiling is above the chunk, (e.g. so that forests with
                                 // differently-tall trees are handled properly)
                                 // TODO: evaluate clippy, toolchain upgrade 2021-12-19
-                                #[allow(clippy::unnecessary_lazy_evaluations)]
+                                #[expect(clippy::unnecessary_lazy_evaluations)]
                                 layers
                                     .get(
                                         (((pos.z as i32 - zlo).saturating_add(ceiling_offset))
@@ -454,7 +453,7 @@ pub enum Event {
     SettingsChange(InterfaceChange),
 }
 
-impl<'a> Widget for MiniMap<'a> {
+impl Widget for MiniMap<'_> {
     type Event = Vec<Event>;
     type State = State;
     type Style = ();

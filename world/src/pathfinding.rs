@@ -3,7 +3,7 @@ use common::path::Path;
 //use hashbrown::hash_map::DefaultHashBuilder;
 use vek::*;
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 pub struct SearchCfg {
     // 0.0 = no discount, 1.0 = free travel
     path_discount: f32,
@@ -12,14 +12,13 @@ pub struct SearchCfg {
     gradient_aversion: f32,
 }
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 pub struct Searcher<'a> {
     land: &'a WorldSim,
     pub cfg: SearchCfg,
 }
 
-#[allow(dead_code)]
-impl<'a> Searcher<'a> {
+impl Searcher<'_> {
     /// Attempt to find a path between two chunks on the map.
     pub fn search(self, _a: Vec2<i32>, _b: Vec2<i32>) -> Option<Path<i32>> {
         // TODO: implement this function

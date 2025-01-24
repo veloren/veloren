@@ -5,9 +5,9 @@ use common::{
 };
 use hashbrown::HashMap;
 use schnellru::{Limiter, LruMap};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
-    any::{type_name, Any},
+    any::{Any, type_name},
     fs::File,
     io::{self, Read as _, Write as _},
     path::PathBuf,

@@ -1,15 +1,15 @@
 use crate::{
+    CONFIG, IndexRef,
     all::ForestKind,
-    sim::{local_cells, Cave, Path, RiverKind, SimChunk, WorldSim},
+    sim::{Cave, Path, RiverKind, SimChunk, WorldSim, local_cells},
     site::SpawnRules,
     util::{RandomField, RandomPerm, Sampler},
-    IndexRef, CONFIG,
 };
 use common::{
     calendar::{Calendar, CalendarEvent},
     terrain::{
-        quadratic_nearest_point, river_spline_coeffs, uniform_idx_as_vec2, vec2_as_uniform_idx,
-        CoordinateConversions, TerrainChunkSize,
+        CoordinateConversions, TerrainChunkSize, quadratic_nearest_point, river_spline_coeffs,
+        uniform_idx_as_vec2, vec2_as_uniform_idx,
     },
     vol::RectVolSize,
 };
@@ -787,7 +787,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             let alt = if matches!(kind, RiverKind::Ocean) {
                                 alt
                             } else if (0.0..1.5).contains(&river_edge_dist)
-                                && water_dist.map_or(false, |d| d >= 0.0)
+                                && water_dist.is_some_and(|d| d >= 0.0)
                             {
                                 alt.with_max(water_alt + GORGE)
                             } else {
@@ -811,7 +811,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         );
         let alt = alt
             .eval_or(riverless_alt)
-            .max(if water_dist.map_or(true, |d| d > 0.0) {
+            .max(if water_dist.is_none_or(|d| d > 0.0) {
                 // Terrain below sea level breaks things, so force it to never happen
                 base_sea_level + 0.5
             } else {
@@ -1102,7 +1102,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         );
 
         // Snow covering
-        let thematic_snow = calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas));
+        let thematic_snow = calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas));
         let snow_factor = temp
             .sub(if thematic_snow {
                 CONFIG.tropical_temp

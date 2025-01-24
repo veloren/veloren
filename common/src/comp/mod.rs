@@ -41,8 +41,8 @@ pub mod visual;
 // Reexports
 pub use self::{
     ability::{
-        Ability, AbilityInput, ActiveAbilities, CharacterAbility, CharacterAbilityType, Stance,
-        BASE_ABILITY_LIMIT,
+        Ability, AbilityInput, ActiveAbilities, BASE_ABILITY_LIMIT, CharacterAbility,
+        CharacterAbilityType, Stance,
     },
     admin::{Admin, AdminRole},
     agent::{
@@ -53,9 +53,9 @@ pub use self::{
     aura::{Aura, AuraChange, AuraKind, Auras, EnteredAuras},
     beam::Beam,
     body::{
-        arthropod, biped_large, biped_small, bird_large, bird_medium, crustacean, dragon,
-        fish_medium, fish_small, golem, humanoid, item_drop, object, plugin, quadruped_low,
-        quadruped_medium, quadruped_small, ship, theropod, AllBodies, Body, BodyData, Gender,
+        AllBodies, Body, BodyData, Gender, arthropod, biped_large, biped_small, bird_large,
+        bird_medium, crustacean, dragon, fish_medium, fish_small, golem, humanoid, item_drop,
+        object, plugin, quadruped_low, quadruped_medium, quadruped_small, ship, theropod,
     },
     buff::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffKey, BuffKind, BuffSource, Buffs,
@@ -76,14 +76,14 @@ pub use self::{
     hardcore::Hardcore,
     inputs::CanBuild,
     inventory::{
+        CollectFailedReason, Inventory, InventoryUpdate, InventoryUpdateEvent,
         item::{
-            self,
+            self, FrontendItem, Item, ItemConfig, ItemDrops, PickupItem,
             item_key::ItemKey,
             tool::{self, AbilityItem},
-            FrontendItem, Item, ItemConfig, ItemDrops, PickupItem,
         },
         recipe_book::RecipeBook,
-        slot, CollectFailedReason, Inventory, InventoryUpdate, InventoryUpdateEvent,
+        slot,
     },
     last::Last,
     location::{MapMarker, MapMarkerChange, MapMarkerUpdate, Waypoint, WaypointArea},
@@ -96,14 +96,14 @@ pub use self::{
         Collider, Density, ForceUpdate, Immovable, Mass, PhysicsState, Pos, PosVelOriDefer,
         PreviousPhysCache, Scale, Sticky, Vel,
     },
-    player::{AliasError, DisconnectReason, Player, MAX_ALIAS_LEN},
+    player::{AliasError, DisconnectReason, MAX_ALIAS_LEN, Player},
     poise::{Poise, PoiseChange, PoiseState},
     presence::{Presence, PresenceKind},
     projectile::{Projectile, ProjectileConstructor},
     shockwave::{Shockwave, ShockwaveHitEntities},
     skillset::{
-        skills::{self, Skill},
         SkillGroup, SkillGroupKind, SkillSet,
+        skills::{self, Skill},
     },
     stats::{Stats, StatsModifier},
     teleport::Teleporting,
@@ -111,4 +111,4 @@ pub use self::{
 };
 pub use common_i18n::{Content, LocalizationArg};
 
-pub use health::{is_downed, Health, HealthChange};
+pub use health::{Health, HealthChange, is_downed, is_downed_or_dead};

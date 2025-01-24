@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    site2::util::gradient::WrapMode,
-    util::{RandomField, Sampler, DIAGONALS, LOCALITY},
     Land,
+    site2::util::gradient::WrapMode,
+    util::{DIAGONALS, LOCALITY, RandomField, Sampler},
 };
 use common::{
     generation::{EntityInfo, SpecialEntity},

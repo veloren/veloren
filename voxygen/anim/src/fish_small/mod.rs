@@ -4,7 +4,7 @@ pub mod swim;
 // Reexports
 pub use self::{idle::IdleAnimation, swim::SwimAnimation};
 
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
@@ -41,15 +41,18 @@ impl Skeleton for FishSmallSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.fin_l)),
             make_bone(chest_mat * Mat4::<f32>::from(self.fin_r)),
         ];
+
+        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
+        let mount_position = mount_bone_mat.mul_point(mount_point(&body));
+        let mount_orientation = mount_bone_ori;
+
         Offsets {
             viewpoint: Some((chest_mat * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: comp::Body::FishSmall(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
             ..Default::default()
         }
@@ -113,4 +116,13 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
         }
     }
+}
+
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::fish_small::Species::*;
+    match (body.species, body.body_type) {
+        (Clownfish, _) => (0.0, 0.5, 3.0),
+        (Piranha, _) => (0.0, -1.0, 4.5),
+    }
+    .into()
 }

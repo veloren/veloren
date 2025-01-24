@@ -13,7 +13,7 @@ pub trait GraphicCreator<'a> {
     type Specifier;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error>;
 }
-impl<'a> GraphicCreator<'a> for BlankGraphic {
+impl GraphicCreator<'_> for BlankGraphic {
     type Specifier = ();
 
     fn new_graphic(_: ()) -> Result<Graphic, Error> { Ok(Graphic::Blank) }

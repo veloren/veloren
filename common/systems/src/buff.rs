@@ -1,17 +1,18 @@
 use common::{
+    Damage, DamageSource,
     combat::{self, DamageContributor},
     comp::{
+        Alignment, Energy, Group, Health, HealthChange, Inventory, LightEmitter, Mass,
+        ModifierKind, PhysicsState, Player, Pos, Stats,
         agent::{Sound, SoundKind},
         aura::{Auras, EnteredAuras},
-        body::{object, Body},
+        body::{Body, object},
         buff::{
             Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffKey, BuffKind, BuffSource,
             Buffs, DestInfo,
         },
         fluid_dynamics::{Fluid, LiquidKind},
         item::MaterialStatManifest,
-        Alignment, Energy, Group, Health, HealthChange, Inventory, LightEmitter, Mass,
-        ModifierKind, PhysicsState, Player, Pos, Stats,
     },
     event::{
         BuffEvent, ChangeBodyEvent, CreateSpriteEvent, EmitExt, EnergyChangeEvent,
@@ -22,14 +23,13 @@ use common::{
     resources::{DeltaTime, Secs, Time},
     terrain::SpriteKind,
     uid::{IdMaps, Uid},
-    Damage, DamageSource,
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use rayon::iter::ParallelIterator;
 use specs::{
-    shred, Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData,
-    WriteStorage,
+    Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
+    shred,
 };
 use vek::Vec3;
 
@@ -181,7 +181,7 @@ impl<'a> System<'a> for Sys {
                         })
                     }) {
                         let duration = burning.data.duration.map(|d| d * 0.9);
-                        if duration.map_or(true, |d| d.0 >= 1.0) {
+                        if duration.is_none_or(|d| d.0 >= 1.0) {
                             let source =
                                 uid.map_or(BuffSource::World, |u| BuffSource::Character { by: *u });
                             emitters.emit(BuffEvent {
@@ -477,7 +477,7 @@ impl<'a> System<'a> for Sys {
                 });
 
             buff_comp.buffs.iter().for_each(|(buff_key, buff)| {
-                if buff.end_time.map_or(false, |end| end.0 < read_data.time.0) {
+                if buff.end_time.is_some_and(|end| end.0 < read_data.time.0) {
                     expired_buffs.push(buff_key)
                 }
             });
@@ -594,7 +594,7 @@ impl<'a> System<'a> for Sys {
 }
 
 // TODO: Globally disable this clippy lint
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 fn execute_effect(
     effect: &BuffEffect,
     buff_kind: BuffKind,

@@ -1,5 +1,5 @@
 use super::{
-    super::{vek::*, Animation},
+    super::{Animation, vek::*},
     CharacterSkeleton, SkeletonAttr,
 };
 use common::{
@@ -241,7 +241,7 @@ impl Animation for RollAnimation {
         next.belt.orientation = Quaternion::rotation_x(0.55 * movement1);
 
         if let Some(prev_aimed_dir) = prev_aimed_dir {
-            let forward = prev_aimed_dir.dot(orientation.into()).abs();
+            let forward = prev_aimed_dir.dot(orientation).abs();
             let sideways = 1.0 - forward;
 
             if matches!(hands.0, None | Some(Hands::One)) {

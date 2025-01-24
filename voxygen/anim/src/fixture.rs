@@ -1,4 +1,4 @@
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
 
 pub type Body = ();
 
@@ -7,7 +7,7 @@ pub struct FixtureSkeleton;
 
 pub struct SkeletonAttr;
 
-impl<'a, Factor> Lerp<Factor> for &'a FixtureSkeleton {
+impl<Factor> Lerp<Factor> for &FixtureSkeleton {
     type Output = FixtureSkeleton;
 
     fn lerp_unclamped(_from: Self, _to: Self, _factor: Factor) -> Self::Output { FixtureSkeleton }

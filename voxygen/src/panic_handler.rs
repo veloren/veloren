@@ -1,4 +1,4 @@
-use std::{panic, panic::PanicInfo, path::PathBuf};
+use std::{panic, panic::PanicHookInfo, path::PathBuf};
 use tracing::error;
 
 pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
@@ -59,7 +59,7 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
         dialog_message.push_str(
             format!(
                 "> Error information\n\nThe information below is intended for developers and \
-                 testers.\n\nPanicInfo: {} \nGame version: {} [{}]",
+                 testers.\n\nPanicHookInfo: {} \nGame version: {} [{}]",
                 panic_info,
                 *common::util::GIT_HASH,
                 *common::util::GIT_DATE
@@ -113,7 +113,7 @@ enum PotentialPanicCause {
     GraphicsCardIncompatibleWithRenderingBackend,
 }
 
-fn potential_cause(panic_info: &PanicInfo) -> Option<String> {
+fn potential_cause(panic_info: &PanicHookInfo) -> Option<String> {
     let location = panic_info
         .location()
         .map_or("".to_string(), |x| x.file().to_string())

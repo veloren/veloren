@@ -87,7 +87,7 @@ macro_rules! span {
 pub struct ProfSpan;
 
 /// Just implemented so that we dont need to have
-/// #[allow(clippy::drop_non_drop)] everywhere
+/// #[expect(clippy::drop_non_drop)] everywhere
 #[cfg(not(feature = "tracy"))]
 impl Drop for ProfSpan {
     fn drop(&mut self) {}
