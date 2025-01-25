@@ -3641,7 +3641,7 @@
     ),
     Simple("common.items.utility.training_dummy"): VoxTrans(
         "voxel.object.training_dummy",
-        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+        (0.0, -1.0, 0.0), (-50.0, 210.0, -20.0), 1.0,
     ),
     // Ingredients
     Simple("common.items.tool.craftsman_hammer"): VoxTrans(

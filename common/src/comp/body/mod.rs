@@ -1059,7 +1059,7 @@ impl Body {
                 _ => 60,
             },
             Body::Object(object) => match object {
-                object::Body::TrainingDummy => 1000,
+                object::Body::TrainingDummy => 60000,
                 object::Body::Crossbow => 80,
                 object::Body::Flamethrower => 80,
                 object::Body::Lavathrower => 80,
@@ -1171,7 +1171,8 @@ impl Body {
     pub fn immune_to(&self, buff: BuffKind) -> bool {
         match buff {
             BuffKind::Bleeding => match self {
-                Body::Object(_) | Body::Golem(_) | Body::Ship(_) => true,
+                Body::Golem(_) | Body::Ship(_) => true,
+                Body::Object(object) => !matches!(object, object::Body::TrainingDummy),
                 Body::BipedSmall(b) => matches!(
                     b.species,
                     biped_small::Species::Husk
@@ -1199,7 +1200,8 @@ impl Body {
                 _ => false,
             },
             BuffKind::Crippled => match self {
-                Body::Object(_) | Body::Golem(_) | Body::Ship(_) => true,
+                Body::Golem(_) | Body::Ship(_) => true,
+                Body::Object(object) => !matches!(object, object::Body::TrainingDummy),
                 Body::BipedLarge(b) => matches!(
                     b.species,
                     biped_large::Species::Dullahan | biped_large::Species::HaniwaGeneral
