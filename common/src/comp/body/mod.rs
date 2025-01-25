@@ -196,9 +196,9 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<&Body> for AllBodies<BodyMeta, Spec
 }
 
 impl<
-        BodyMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
-        SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
-    > Asset for AllBodies<BodyMeta, SpeciesMeta>
+    BodyMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
+    SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
+> Asset for AllBodies<BodyMeta, SpeciesMeta>
 {
     type Loader = assets::RonLoader;
 
@@ -1059,7 +1059,7 @@ impl Body {
                 _ => 60,
             },
             Body::Object(object) => match object {
-                object::Body::TrainingDummy => 6000000,
+                object::Body::TrainingDummy => 60000,
                 object::Body::Crossbow => 80,
                 object::Body::Flamethrower => 80,
                 object::Body::Lavathrower => 80,
