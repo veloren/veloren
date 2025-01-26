@@ -411,6 +411,16 @@
         (Item("common.items.armor.golemite.back"),1),
         (Item("common.items.armor.golemite.helmet"),1),
     ],
+    "ashen": [
+        (Item("common.items.armor.ashen.chest"),1),
+        (Item("common.items.armor.ashen.pants"),1),
+        (Item("common.items.armor.ashen.hand"),1),
+        (Item("common.items.armor.ashen.foot"),1),
+        (Item("common.items.armor.ashen.shoulder"),1),
+        (Item("common.items.armor.ashen.belt"),1),
+        (Item("common.items.armor.ashen.back"),1),
+        (Item("common.items.armor.ashen.helmet"),1),
+    ],    
     "instruments": [
         (Item("common.items.tool.instruments.double_bass"),1),
         (Item("common.items.tool.instruments.flute"),1),

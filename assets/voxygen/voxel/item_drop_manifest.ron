@@ -777,6 +777,15 @@
     Simple("common.items.armor.golemite.shoulder"): ("voxel.armor.golemite.golemite", 5),
     Simple("common.items.armor.golemite.back"): ("voxel.armor.golemite.golemite", 2),
     Simple("common.items.armor.golemite.helmet"): ("voxel.armor.golemite.golemite", 0),
+    //Ashen Set
+    Simple("common.items.armor.ashen.chest"): ("voxel.armor.ashen.ashen", 1),
+    Simple("common.items.armor.ashen.pants"): ("voxel.armor.ashen.ashen", 7),
+    Simple("common.items.armor.ashen.belt"): ("voxel.armor.ashen.ashen", 6),
+    Simple("common.items.armor.ashen.foot"): ("voxel.armor.ashen.ashen", 3),
+    Simple("common.items.armor.ashen.hand"): ("voxel.armor.ashen.ashen", 4),
+    Simple("common.items.armor.ashen.shoulder"): ("voxel.armor.ashen.ashen", 5),
+    Simple("common.items.armor.ashen.back"): ("voxel.armor.ashen.ashen", 2),
+    Simple("common.items.armor.ashen.helmet"): ("voxel.armor.ashen.ashen", 0),
     //misc
     Simple("common.items.armor.misc.pants.hunting"): "voxel.armor.misc.pants.grayscale",
     // Backs

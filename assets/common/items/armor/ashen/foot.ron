@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Ashen Sollerets",
+    legacy_description: "Equipment constructed from Ash.",
+    kind: Armor((
+        kind: Foot,
+        stats: FromSet("Ashen"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

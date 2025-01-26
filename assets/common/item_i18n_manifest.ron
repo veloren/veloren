@@ -1804,6 +1804,30 @@
             "common.items.armor.golemite.helmet",
         ): "armor-golemite-helmet",
         Simple(
+            "common.items.armor.ashen.back",
+        ): "armor-ashen-back",
+        Simple(
+            "common.items.armor.ashen.belt",
+        ): "armor-ashen-belt",
+        Simple(
+            "common.items.armor.ashen.chest",
+        ): "armor-ashen-chest",
+        Simple(
+            "common.items.armor.ashen.foot",
+        ): "armor-ashen-foot",
+        Simple(
+            "common.items.armor.ashen.hand",
+        ): "armor-ashen-hand",
+        Simple(
+            "common.items.armor.ashen.pants",
+        ): "armor-ashen-pants",
+        Simple(
+            "common.items.armor.ashen.shoulder",
+        ): "armor-ashen-shoulder",
+        Simple(
+            "common.items.armor.ashen.helmet",
+        ): "armor-ashen-helmet",
+        Simple(
             "common.items.armor.mail.steel.back",
         ): "armor-mail-steel-back",
         Simple(

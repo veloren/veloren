@@ -152,6 +152,10 @@
             vox_spec: ("armor.golemite.golemite", (-4.0, -1.5, -12.0), 2),
             color: None
         ),
+        "common.items.armor.ashen.back": (
+            vox_spec: ("armor.ashen.ashen", (-5.0, -1.5, -13.0), 2),
+            color: None
+        ),
         "common.items.armor.merchant.back": (
             vox_spec: ("armor.merchant.back", (-8.0, -8.5, -11.0)),
             color: None

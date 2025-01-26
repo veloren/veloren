@@ -3087,6 +3087,39 @@
         "voxel.armor.golemite.golemite",
         (0.0, 2.0, -0.0), (-110.0, 210.0, 15.0), 1.4, 0,
     ),
+    //Ashen Set
+    Simple("common.items.armor.ashen.chest"): VoxTrans(
+        "voxel.armor.ashen.ashen",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 1,
+    ),
+    Simple("common.items.armor.ashen.pants"): VoxTrans(
+        "voxel.armor.ashen.ashen",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9, 7,
+    ),
+    Simple("common.items.armor.ashen.belt"): VoxTrans(
+        "voxel.armor.ashen.ashen",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 6,
+    ),
+    Simple("common.items.armor.ashen.foot"): VoxTrans(
+        "voxel.armor.ashen.ashen",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 3,
+    ),
+    Simple("common.items.armor.ashen.hand"): VoxTrans(
+        "voxel.armor.ashen.ashen",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 4,
+    ),
+    Simple("common.items.armor.ashen.shoulder"): VoxTrans(
+        "voxel.armor.ashen.ashen",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 5,
+    ),
+    Simple("common.items.armor.ashen.back"): VoxTrans(
+        "voxel.armor.ashen.ashen",
+        (0.0, 0.0, -0.0), (-120.0, 210.0,15.0), 0.9, 2
+    ),
+    Simple("common.items.armor.ashen.helmet"): VoxTrans(
+        "voxel.armor.ashen.ashen",
+        (0.0, 2.0, -0.0), (-110.0, 210.0, 15.0), 1.4, 0,
+    ),
     //misc
     Simple("common.items.armor.misc.pants.hunting"): VoxTrans(
         "voxel.armor.misc.pants.grayscale",

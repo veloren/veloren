@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Ashen Mantle",
+    legacy_description: "Equipment constructed from Ash.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Ashen"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Ashen Belt Rope",
+    legacy_description: "Equipment constructed from Ash.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Ashen"),
+    )),
+    quality: Legendary,
+    tags: [],
+)
