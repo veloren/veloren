@@ -1602,6 +1602,14 @@
         "voxel.lantern.delvers_lamp",
     (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
     ),
+    Simple("common.items.lantern.bloodmoon_relic"): VoxTrans(
+        "voxel.lantern.bloodmoon",
+    (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    ),
+    Simple("common.items.lantern.crux"): VoxTrans(
+        "voxel.lantern.crux",
+    (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    ),
     // Farming Equipment
     Simple("common.items.weapons.tool.broom"): VoxTrans(
         "voxel.weapon.tool.broom-0",
@@ -4063,6 +4071,14 @@
     ),
     Simple("common.items.crafting_ing.dwarven_battery"): VoxTrans(
         "voxel.sprite.crafting_ing.dwarven_battery",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.bloody_tear"): VoxTrans(
+        "voxel.sprite.crafting_ing.bloody_tear",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.molten_core"): VoxTrans(
+        "voxel.sprite.crafting_ing.molten_core",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Gliders

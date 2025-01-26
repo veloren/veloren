@@ -469,6 +469,8 @@
         (Item("common.items.recipes.unique.delvers_lamp"),1),
         (Item("common.items.recipes.unique.mindflayer_spellbag"),1),
         (Item("common.items.recipes.unique.polaris"),1),
+        (Item("common.items.recipes.unique.bloodmoon_relic"),1),
+        (Item("common.items.recipes.unique.crux"),1),                
         (Item("common.items.recipes.unique.seashell_necklace"),1),
         (Item("common.items.recipes.unique.troll_hide_pack"),1),
         (Item("common.items.recipes.unique.winged_coronet"),1),

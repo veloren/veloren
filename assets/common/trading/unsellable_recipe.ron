@@ -42,4 +42,6 @@
     (0.2, Item("common.items.recipes.unique.abyssal_gorget")),
     (0.15, Item("common.items.recipes.unique.mindflayer_spellbag")),
     (0.1, Item("common.items.recipes.unique.polaris")),
+    (0.1, Item("common.items.recipes.unique.bloodmoon_relic")),
+    (0.1, Item("common.items.recipes.unique.crux")),        
 ]

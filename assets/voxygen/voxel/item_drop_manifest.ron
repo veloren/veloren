@@ -387,6 +387,8 @@
     Simple("common.items.lantern.pumpkin"): "voxel.lantern.pumpkin",
     Simple("common.items.lantern.polaris"): "voxel.lantern.polaris",
     Simple("common.items.lantern.delvers_lamp"): "voxel.lantern.delvers_lamp",
+    Simple("common.items.lantern.bloodmoon_relic"): "voxel.lantern.bloodmoon",
+    Simple("common.items.lantern.crux"): "voxel.lantern.crux",
     // Farming Equipment
     Simple("common.items.weapons.tool.broom"): "voxel.weapon.tool.broom-0",
     Simple("common.items.weapons.tool.hoe"): "voxel.weapon.tool.hoe_green",
@@ -993,6 +995,8 @@
     Simple("common.items.crafting_ing.glacial_crystal"): "voxel.object.glacial_crystal",
     Simple("common.items.crafting_ing.alkahest"): "voxel.sprite.crafting_ing.alkahest",
     Simple("common.items.crafting_ing.dwarven_battery"): "voxel.sprite.crafting_ing.dwarven_battery",
+    Simple("common.items.crafting_ing.bloody_tear"): "voxel.sprite.crafting_ing.bloody_tear",
+    Simple("common.items.crafting_ing.molten_core"): "voxel.sprite.crafting_ing.molten_core",
     Simple("common.items.mineral.ingot.silver"): "voxel.sprite.mineral.ingot.silver",
     Simple("common.items.mineral.ingot.gold"): "voxel.sprite.mineral.ingot.gold",
     Simple("common.items.mineral.ingot.orichalcum"): "voxel.sprite.mineral.ingot.orichalcum",

@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Crux",
+    legacy_description: "Fire Lantern.",
+    kind: Lantern(
+        (
+            color: (r: 178, g: 34, b: 34),
+            strength_thousandths: 8000,
+            flicker_thousandths: 600,
+        ),
+    ),
+    quality: Legendary,
+    tags: [Utility],
+)

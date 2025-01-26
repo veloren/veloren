@@ -24,6 +24,12 @@ lantern-red = Red Lantern
 
 lantern-delvers_lamp = Delver's Lamp
     .desc = Perfect for mining.
+    
+lantern-bloodmoon_relic = Bloodmoon Relic
+    .desc = Vampire Lantern.
+    
+lantern-crux = Crux
+    .desc = Fire Lantern.        
 
 glider-basic_red = Red Cloth Glider
     .desc = A simple glider, but with a striking red color.
