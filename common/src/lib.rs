@@ -2,18 +2,7 @@
 #![type_length_limit = "1664759"]
 #![expect(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(
-    associated_type_defaults,
-    fundamental,
-    let_chains,
-    option_zip,
-    trait_alias,
-    type_alias_impl_trait,
-    extend_one,
-    arbitrary_self_types,
-    int_roundings,
-    hash_extract_if
-)]
+#![feature(fundamental, let_chains, trait_alias)]
 
 pub use common_assets as assets;
 pub use uuid;

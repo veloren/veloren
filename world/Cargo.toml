@@ -49,7 +49,7 @@ rayon = { workspace = true }
 serde = { workspace = true }
 ron = { workspace = true }
 # inline_tweak = { workspace = true, features = ["derive"] }
-kiddo = "4.2.0"
+kiddo = { workspace = true }
 fixed = "1"
 strum = { workspace = true }
 
@@ -79,7 +79,7 @@ tracing-subscriber = { version = "0.3.7", default-features = false, features = [
     "smallvec",
     "env-filter",
 ] }
-minifb = "0.27"
+minifb = "0.28"
 rusqlite = { workspace = true }
 svg_fmt = "0.4"
 

@@ -54,7 +54,7 @@ rand = { workspace = true }
 specs = { workspace = true }
 
 #HTTP
-axum = { version = "0.7" }
+axum = { version = "0.8" }
 hyper = "1"
 http-body-util = "0.1"
 prometheus = { workspace = true }

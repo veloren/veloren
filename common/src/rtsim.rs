@@ -309,7 +309,7 @@ pub enum Role {
     Wild,
     #[serde(rename = "2")]
     Monster,
-    #[serde(rename = "2")]
+    #[serde(rename = "3")]
     Vehicle,
 }
 

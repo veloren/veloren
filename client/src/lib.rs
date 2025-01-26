@@ -1,6 +1,5 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(option_zip)]
 
 pub mod addr;
 pub mod error;

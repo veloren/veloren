@@ -1,4 +1,3 @@
-#![feature(assert_matches)]
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 use veloren_network::{NetworkError, StreamError};
