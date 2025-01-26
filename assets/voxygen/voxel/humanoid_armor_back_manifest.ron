@@ -153,7 +153,7 @@
             color: None
         ),
         "common.items.armor.ashen.back": (
-            vox_spec: ("armor.ashen.ashen", (-5.0, -1.5, -13.0), 2),
+            vox_spec: ("armor.ashen.ashen", (-5.0, -3.0, -11.0), 2),
             color: None
         ),
         "common.items.armor.merchant.back": (

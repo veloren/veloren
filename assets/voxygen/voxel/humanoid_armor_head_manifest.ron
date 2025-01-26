@@ -1358,7 +1358,7 @@
             color: None
         ),
         (Human, Female, "common.items.armor.ashen.helmet"): (
-            vox_spec: ("armor.ashen.ashen", (-4.0, -6.0, -2.0), 0),
+            vox_spec: ("armor.ashen.ashen", (-4.0, -5.0, -2.0), 0),
             color: None
         ),
         (Elf, Male, "common.items.armor.ashen.helmet"): (
@@ -1394,7 +1394,7 @@
             color: None
         ),
         (Orc, Male, "common.items.armor.ashen.helmet"): (
-            vox_spec: ("armor.ashen.ashen", (-3.0, -4.0, 0.0), 0),
+            vox_spec: ("armor.ashen.ashen", (-3.0, -4.5, 0.0), 0),
             color: None
         ),
         (Orc, Female, "common.items.armor.ashen.helmet"): (

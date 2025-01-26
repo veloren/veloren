@@ -189,7 +189,7 @@
             color: None
         ),
         "common.items.armor.ashen.belt":(
-            vox_spec: ("armor.ashen.ashen", (-4.0, -3.5, 1.0), 6),
+            vox_spec: ("armor.ashen.ashen", (-4.0, -3.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.cardinal.belt": (
