@@ -864,6 +864,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         roll_strength: f32,
         attack_immunities: AttackFilters,
+        was_cancel: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1331,6 +1332,7 @@ impl CharacterAbility {
                 air_shockwaves: true,
                 explosions: true,
             },
+            was_cancel: remaining_duration > 0.0,
             meta: Default::default(),
         }
     }
@@ -1454,6 +1456,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 roll_strength: _,
                 attack_immunities: _,
+                was_cancel: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2453,6 +2456,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 roll_strength,
                 attack_immunities,
+                was_cancel,
                 meta: _,
             } => CharacterState::Roll(roll::Data {
                 static_data: roll::StaticData {
@@ -2461,6 +2465,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     roll_strength: *roll_strength,
                     attack_immunities: *attack_immunities,
+                    was_cancel: *was_cancel,
                     ability_info,
                 },
                 timer: Duration::default(),

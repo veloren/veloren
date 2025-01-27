@@ -304,6 +304,14 @@
             threshold: 0.3,
             subtitle: "subtitle-roll",
         ),
+        RollCancel: (
+            files: [
+                "voxygen.audio.sfx.character.dive_roll_cancel_1",
+                "voxygen.audio.sfx.character.dive_roll_cancel_2",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-roll_cancel",
+        ),
         Climb: (
            files: [
                 // TODO: sync with animation, make actual sfx

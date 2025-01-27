@@ -196,8 +196,12 @@ impl MovementEventMapper {
         } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1
             || !previous_state.on_ground && physics_state.on_ground.is_some()
         {
-            return if matches!(character_state, CharacterState::Roll(_)) {
-                SfxEvent::Roll
+            return if let CharacterState::Roll(data) = character_state {
+                if data.static_data.was_cancel {
+                    SfxEvent::RollCancel
+                } else {
+                    SfxEvent::Roll
+                }
             } else if character_state.is_stealthy() {
                 SfxEvent::Sneak
             } else {

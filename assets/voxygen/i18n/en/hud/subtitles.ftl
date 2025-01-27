@@ -19,6 +19,7 @@ subtitle-glider_open = Glider equipped
 subtitle-glider_close = Glider unequipped
 subtitle-glide = Gliding
 subtitle-roll = Rolling
+subtitle-roll_cancel = Roll cancelling
 subtitle-swim = Swimming
 subtitle-climb = Climbing
 subtitle-damage = Damage

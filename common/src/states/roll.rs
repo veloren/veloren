@@ -29,6 +29,8 @@ pub struct StaticData {
     pub attack_immunities: AttackFilters,
     /// Information about the ability
     pub ability_info: AbilityInfo,
+    /// Whether the roll cancelled another ability
+    pub was_cancel: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -136,6 +136,7 @@ pub enum SfxEvent {
     Run(BlockKind),
     QuadRun(BlockKind),
     Roll,
+    RollCancel,
     Sneak,
     Climb,
     GliderOpen,
