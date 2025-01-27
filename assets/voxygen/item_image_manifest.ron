@@ -1711,7 +1711,6 @@
         "voxel.weapon.tool.banjo",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
     ),
-    ),
     Simple("common.items.tool.instruments.viola_pizzicato"): VoxTrans(
         "voxel.weapon.tool.viola_pizzicato",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,

@@ -1192,7 +1192,6 @@
         vox_spec: ("weapon.tool.banjo", (-4.0, -6.0, -2.0)),
         color: None
     ),
-    ),
     Tool("common.items.tool.instruments.viola_pizzicato"): (
         vox_spec: ("weapon.tool.viola_pizzicato", (-2.5, -8.0, 0.0)),
         color: None

@@ -1037,7 +1037,6 @@
         secondary: Simple(None, "common.abilities.music.banjo"),
         abilities: [],
     ),
-    ),
     Custom("ViolaPizzicato"): (
         primary: Simple(None, "common.abilities.music.viola_pizzicato"),
         secondary: Simple(None, "common.abilities.music.viola_pizzicato"),
