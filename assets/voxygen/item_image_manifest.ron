@@ -1715,12 +1715,12 @@
         "voxel.weapon.tool.viola_pizzicato",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
-    Simple("common.items.tool.instruments.conch"): VoxTrans(
-        "voxel.weapon.tool.conch",
+    Simple("common.items.tool.instruments.starlight_conch"): VoxTrans(
+        "voxel.weapon.tool.starlight_conch",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
-    Simple("common.items.tool.instruments.tambourine"): VoxTrans(
-        "voxel.weapon.tool.tambourine",
+    Simple("common.items.tool.instruments.timbrel_of_chaos"): VoxTrans(
+        "voxel.weapon.tool.timbrel_of_chaos",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
     Simple("common.items.tool.instruments.rhythmo"): VoxTrans(

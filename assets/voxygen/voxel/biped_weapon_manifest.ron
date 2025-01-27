@@ -1196,12 +1196,12 @@
         vox_spec: ("weapon.tool.viola_pizzicato", (-2.5, -8.0, 0.0)),
         color: None
     ),
-    Tool("common.items.tool.instruments.conch"): (
-        vox_spec: ("weapon.tool.conch", (-5.5, -8.0, 0.0)),
+    Tool("common.items.tool.instruments.starlight_conch"): (
+        vox_spec: ("weapon.tool.starlight_conch", (-5.5, -8.0, 0.0)),
         color: None
     ),
-    Tool("common.items.tool.instruments.tambourine"): (
-        vox_spec: ("weapon.tool.tambourine", (-2.5, -8.0, 8.0)),
+    Tool("common.items.tool.instruments.timbrel_of_chaos"): (
+        vox_spec: ("weapon.tool.timbrel_of_chaos", (-2.5, -8.0, 8.0)),
         color: None
     ),
     Tool("common.items.tool.instruments.rhythmo"): (

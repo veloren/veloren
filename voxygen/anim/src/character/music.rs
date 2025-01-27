@@ -118,7 +118,7 @@ impl Animation for MusicAnimation {
                     Some(
                         "common.abilities.music.flute"
                         | "common.abilities.music.glass_flute"
-                        | "common.abilities.music.conch"
+                        | "common.abilities.music.starlight_conch"
                         | "common.abilities.music.melodica",
                     ) => 0.2,
                     Some(
@@ -135,7 +135,7 @@ impl Animation for MusicAnimation {
                         | "common.abilities.music.icy_talharpa"
                         | "common.abilities.music.shamisen"
                         | "common.abilities.music.kalimba"
-                        | "common.abilities.music.tambourine"
+                        | "common.abilities.music.timbrel_of_chaos"
                         | "common.abilities.music.rhythmo"
                         | "common.abilities.music.steeltonguedrum",
                     ) => 0.3,
@@ -214,7 +214,7 @@ impl Animation for MusicAnimation {
                             * Quaternion::rotation_y(PI)
                             * Quaternion::rotation_z(0.05);
                     },
-                    Some("common.abilities.music.conch") => {
+                    Some("common.abilities.music.starlight_conch") => {
                         next.hand_l.position =
                             Vec3::new(2.0 - s_a.hand.0, 6.0 + s_a.hand.1, 4.0 + s_a.hand.2);
                         next.hand_l.orientation = Quaternion::rotation_x(2.4 + foot * 0.15)
@@ -259,7 +259,7 @@ impl Animation for MusicAnimation {
                         "common.abilities.music.lyre"
                         | "common.abilities.music.wildskin_drum"
                         | "common.abilities.music.steeltonguedrum"
-                        | "common.abilities.music.tambourine"
+                        | "common.abilities.music.timbrel_of_chaos"
                         | "common.abilities.music.icy_talharpa",
                     ) => {
                         next.hand_l.position = Vec3::new(
@@ -317,7 +317,7 @@ impl Animation for MusicAnimation {
 
                         next.hand_r.position = Vec3::new(
                             -6.0 + s_a.hand.0 - shortealt * 3.0,
-                            7.0 + s_a.hand.1 - shortealt * 1.5,
+                            8.5 + s_a.hand.1 - shortealt * 1.5,
                             5.0 + s_a.hand.2 + shortealt * 0.75,
                         );
                         next.hand_r.orientation = Quaternion::rotation_x(1.4 + foot * -0.15)
@@ -335,11 +335,8 @@ impl Animation for MusicAnimation {
                         next.hand_l.orientation =
                             Quaternion::rotation_x(1.4 + foot * 0.1) * Quaternion::rotation_y(-0.6);
 
-                        next.hand_r.position = Vec3::new(
-                            -2.0 + s_a.hand.0 - shortealt * 1.5,
-                            5.0 + s_a.hand.1,
-                            2.0 + s_a.hand.2,
-                        );
+                        next.hand_r.position =
+                            Vec3::new(-2.0 + s_a.hand.0, 5.0 + s_a.hand.1, 2.0 + s_a.hand.2);
                         next.hand_r.orientation =
                             Quaternion::rotation_x(1.4 + foot * -0.1) * Quaternion::rotation_y(0.9);
 

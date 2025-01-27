@@ -1,6 +1,6 @@
 ItemDef(
-    legacy_name: "Conch",
-    legacy_description: "Conch.",
+    legacy_name: "Timbrel Of Chaos",
+    legacy_description: "Timbrel Of Chaos.",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -16,5 +16,5 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [Utility],
-    ability_spec: Some(Custom("Conch")),
+    ability_spec: Some(Custom("TimbrelOfChaos")),
 )

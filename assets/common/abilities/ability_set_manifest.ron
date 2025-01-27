@@ -1042,14 +1042,14 @@
         secondary: Simple(None, "common.abilities.music.viola_pizzicato"),
         abilities: [],
     ),
-    Custom("Conch"): (
-        primary: Simple(None, "common.abilities.music.conch"),
-        secondary: Simple(None, "common.abilities.music.conch"),
+    Custom("StarlightConch"): (
+        primary: Simple(None, "common.abilities.music.starlight_conch"),
+        secondary: Simple(None, "common.abilities.music.starlight_conch"),
         abilities: [],
     ),
-    Custom("Tambourine"): (
-        primary: Simple(None, "common.abilities.music.tambourine"),
-        secondary: Simple(None, "common.abilities.music.tambourine"),
+    Custom("TimbrelOfChaos"): (
+        primary: Simple(None, "common.abilities.music.timbrel_of_chaos"),
+        secondary: Simple(None, "common.abilities.music.timbrel_of_chaos"),
         abilities: [],
     ),
     Custom("Rhythmo"): (

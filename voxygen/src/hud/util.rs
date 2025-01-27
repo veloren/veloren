@@ -713,8 +713,8 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.music.kora" => imgs.instrument,
         "common.abilities.music.banjo" => imgs.instrument,
         "common.abilities.music.viola_pizzicato" => imgs.instrument,
-        "common.abilities.music.conch" => imgs.instrument,
-        "common.abilities.music.tambourine" => imgs.instrument,
+        "common.abilities.music.starlight_conch" => imgs.instrument,
+        "common.abilities.music.timbrel_of_chaos" => imgs.instrument,
         "common.abilities.music.rhythmo" => imgs.instrument,
         // Glider
         "common.abilities.debug.glide_boost" => imgs.flyingrod_m2,

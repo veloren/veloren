@@ -1,6 +1,6 @@
 ItemDef(
-    legacy_name: "Tambourine",
-    legacy_description: "Tambourine.",
+    legacy_name: "Starlight Conch",
+    legacy_description: "Starlight Conch.",
     kind: Tool((
         kind: Instrument,
         hands: Two,
@@ -16,5 +16,5 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [Utility],
-    ability_spec: Some(Custom("Tambourine")),
+    ability_spec: Some(Custom("StarlightConch")),
 )
