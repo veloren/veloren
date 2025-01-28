@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Crux",
-    legacy_description: "Fire Lantern.",
+    legacy_description: "The scalding heat is but a mere sample of the embers of the Gigas' unforgiving origin.",
     kind: Lantern(
         (
             color: (r: 178, g: 34, b: 34),

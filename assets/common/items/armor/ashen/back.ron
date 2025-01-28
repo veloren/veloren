@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Ashen Cloak",
-    legacy_description: "Equipment constructed from Ash.",
+    legacy_description: "The scorched remains of a cloak made out of obsidian feathers.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Ashen"),

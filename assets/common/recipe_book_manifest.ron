@@ -2157,9 +2157,10 @@
     "bloodmoon_relic": (
             output: ("common.items.lantern.bloodmoon_relic", 1),
             inputs: [
-                (Item("common.items.crafting_ing.bloody_tear"), 3, false),
-                (Item("common.items.crafting_ing.animal_misc.icy_fang"), 16, false),
-                (Item("common.items.crafting_ing.pearl"), 1, false),
+                (Item("common.items.crafting_ing.bloody_tear"), 1, false),
+                (Item("common.items.mineral.ingot.bloodsteel"), 2, false),
+                (Item("common.items.mineral.ingot.steel"), 6, false),
+                (Item("common.items.crafting_ing.living_embers"), 2, false),
                 (Item("common.items.tool.craftsman_hammer"), 0, false),
             ],
             craft_sprite: Some(CraftingBench),
@@ -2169,7 +2170,7 @@
             output: ("common.items.lantern.crux", 1),
             inputs: [
                 (Item("common.items.crafting_ing.molten_core"), 3, false),
-                (Item("common.items.crafting_ing.animal_misc.icy_fang"), 16, false),
+                (Item("common.items.crafting_ing.living_embers"), 16, false),
                 (Item("common.items.crafting_ing.pearl"), 1, false),
                 (Item("common.items.tool.craftsman_hammer"), 0, false),
             ],

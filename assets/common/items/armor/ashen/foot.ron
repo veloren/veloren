@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Ashen Sollerets",
-    legacy_description: "Equipment constructed from Ash.",
+    legacy_description: "Scorch the earth in your wake.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Ashen"),

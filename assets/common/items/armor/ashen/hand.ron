@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Ashen Bracers",
-    legacy_description: "Equipment constructed from Ash.",
+    legacy_description: "It feels as though magma runs through your veins.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Ashen"),

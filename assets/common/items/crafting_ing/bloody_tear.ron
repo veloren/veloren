@@ -1,9 +1,9 @@
 ItemDef(
     legacy_name: "Bloody Tear",
-    legacy_description: "A piece of pure Bloodstone.",
+    legacy_description: "The hardened, concentrated blood of the beasts' countless victims.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",    ),
-    quality: Legendary,
+    quality: Epic,
     tags: [],
 )
