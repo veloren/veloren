@@ -5,8 +5,9 @@ ItemDef(
         kind: Head,
         stats: Direct((
             energy_max: Some(7.0),
-            energy_reward: Some(0.1),
-            precision_power: Some(0.064),
+            energy_reward: Some(0.061),
+            precision_power: Some(0.069),
+            stealth: Some(0.123),
         )),
     )),
     quality: Legendary,
