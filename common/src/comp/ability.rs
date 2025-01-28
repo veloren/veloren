@@ -1137,6 +1137,8 @@ pub enum CharacterAbility {
         cast_duration: f32,
         recover_duration: f32,
         buffs: Vec<self_buff::BuffDesc>,
+        #[serde(default)]
+        use_raw_buff_strength: bool,
         buff_cat: Option<buff::BuffCategory>,
         energy_cost: f32,
         #[serde(default = "default_true")]
@@ -1977,6 +1979,7 @@ impl CharacterAbility {
                 ref mut cast_duration,
                 ref mut recover_duration,
                 ref mut buffs,
+                use_raw_buff_strength,
                 buff_cat: _,
                 ref mut energy_cost,
                 enforced_limit: _,
@@ -1986,7 +1989,11 @@ impl CharacterAbility {
                 specifier: _,
             } => {
                 for buff in buffs.iter_mut() {
-                    buff.data.strength *= stats.diminished_buff_strength();
+                    buff.data.strength *= if use_raw_buff_strength {
+                        stats.buff_strength
+                    } else {
+                        stats.diminished_buff_strength()
+                    };
                 }
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
@@ -3242,6 +3249,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 cast_duration,
                 recover_duration,
                 buffs,
+                use_raw_buff_strength: _,
                 buff_cat,
                 energy_cost: _,
                 combo_cost,
@@ -3540,6 +3548,10 @@ impl StatAdj {
                 let poise_res = combat::compute_poise_resilience(data.inventory, data.msm);
                 poise_res.unwrap_or(0.0) / base
             },
+            StatContext::Stealth(base) => {
+                let stealth = combat::compute_stealth(data.inventory, data.msm);
+                stealth / base
+            },
         };
         match self.field {
             StatField::EffectPower => {
@@ -3558,6 +3570,8 @@ impl StatAdj {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StatAdj {
+    /// If this much of the stat is achieved, 1.0 will be added to the affected
+    /// stat
     pub context: StatContext,
     pub field: StatField,
 }
@@ -3565,6 +3579,7 @@ pub struct StatAdj {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum StatContext {
     PoiseResilience(f32),
+    Stealth(f32),
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

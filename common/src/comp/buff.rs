@@ -146,9 +146,12 @@ pub enum BuffKind {
     /// Strength linearly decreases the duration of newly applied, affected
     /// debuffs, 0.5 is a 50% reduction.
     Resilience,
-    /// Your attacks cause the rooted debuff.
+    /// Causes the next attacks to cause the rooted debuff.
     /// Strength increases the strength of the rooted debuff
     Snaring,
+    /// Causes the next attacks to be more precise if the target is not wielding
+    /// their weapon
+    OwlTalon,
     // =================
     //      DEBUFFS
     // =================
@@ -276,7 +279,8 @@ impl BuffKind {
             | BuffKind::ScornfulTaunt
             | BuffKind::Tenacity
             | BuffKind::Resilience
-            | BuffKind::Snaring => BuffDescriptor::SimplePositive,
+            | BuffKind::Snaring
+            | BuffKind::OwlTalon => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -567,6 +571,10 @@ impl BuffKind {
                     chance: 1.0,
                 }),
             ))],
+            BuffKind::OwlTalon => vec![
+                BuffEffect::ConditionalPrecisionOverride(CombatRequirement::TargetUnwielded, 1.0),
+                BuffEffect::AttackDamage(1.0 + data.strength),
+            ],
         }
     }
 
@@ -577,6 +585,9 @@ impl BuffKind {
             },
             BuffKind::PotionSickness => {
                 cat_ids.push(BuffCategory::PersistOnDowned);
+            },
+            BuffKind::OwlTalon => {
+                cat_ids.push(BuffCategory::RemoveOnAttack);
             },
             _ => {},
         }
@@ -713,6 +724,7 @@ pub enum BuffCategory {
     FromActiveAura(Uid, AuraKey),
     FromLink(DynWeakLinkHandle),
     RemoveOnAttack,
+    RemoveOnShoot,
     RemoveOnLoadoutChange,
     SelfBuff,
 }
@@ -779,6 +791,9 @@ pub enum BuffEffect {
     AttackDamage(f32),
     /// Overrides the precision multiplier applied to an attack
     PrecisionOverride(f32),
+    /// Overrides the precision multiplier applied to an attack if the condition
+    /// is met
+    ConditionalPrecisionOverride(CombatRequirement, f32),
     /// Overrides the precision multiplier applied to an incoming attack
     PrecisionVulnerabilityOverride(f32),
     /// Changes body.

@@ -442,7 +442,7 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
             .emit_now(BuffEvent {
                 entity,
                 buff_change: BuffChange::RemoveByCategory {
-                    all_required: vec![BuffCategory::RemoveOnAttack],
+                    all_required: vec![BuffCategory::RemoveOnShoot],
                     any_required: vec![],
                     none_required: vec![],
                 },

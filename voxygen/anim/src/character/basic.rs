@@ -1656,6 +1656,13 @@ impl Animation for BasicAction {
                 next.hand_l.position += Vec3::new(4.0, -6.0, -6.0) * move1;
                 next.hand_l.orientation.rotate_z(move1 * 2.0);
             },
+            Some("common.abilities.bow.owl_talon") => {
+                bow_start(&mut next, s_a);
+
+                next.hand_l.position += Vec3::new(-4.0, 0.0, 4.0) * move1;
+                next.hand_l.orientation.rotate_x(1.6 * move1);
+                next.hand_l.position += Vec3::new(0.0, 0.0, -10.0) * move2;
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================

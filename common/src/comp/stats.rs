@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{error::Error, fmt};
 
-use crate::combat::{AttackEffect, DamagedEffect, DeathEffect};
+use crate::combat::{AttackEffect, CombatRequirement, DamagedEffect, DeathEffect};
 
 use super::Body;
 
@@ -85,6 +85,7 @@ pub struct Stats {
     pub poise_damage_modifier: f32,
     pub attack_damage_modifier: f32,
     pub precision_multiplier_override: Option<f32>,
+    pub conditional_precision_overrides: Vec<(CombatRequirement, f32)>,
     pub precision_vulnerability_multiplier_override: Option<f32>,
     pub swim_speed_modifier: f32,
     /// This adds effects to any attacks that the entity makes
@@ -119,6 +120,7 @@ impl Stats {
             poise_damage_modifier: 1.0,
             attack_damage_modifier: 1.0,
             precision_multiplier_override: None,
+            conditional_precision_overrides: Vec::new(),
             precision_vulnerability_multiplier_override: None,
             swim_speed_modifier: 1.0,
             effects_on_attack: Vec::new(),

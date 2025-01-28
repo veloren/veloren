@@ -182,6 +182,9 @@ buff-resilience = Resilience
 ## Snaring
 buff-snaring = Snaring
     .desc = Your next attack will snare the target, rooting them in place.
+## Owl Talon
+buff-owltalon = Owl Talon
+    .desc = Taking advantage of your target not knowing of your presence, your next attack will be more precise and deal more damage.
 ## Util
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove

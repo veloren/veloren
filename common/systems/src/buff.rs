@@ -833,6 +833,9 @@ fn execute_effect(
                 .map(|mult| mult.min(*val))
                 .or(Some(*val));
         },
+        BuffEffect::ConditionalPrecisionOverride(req, val) => {
+            stat.conditional_precision_overrides.push((*req, *val));
+        },
         BuffEffect::PrecisionVulnerabilityOverride(val) => {
             // Use higher of precision multiplier overrides
             stat.precision_vulnerability_multiplier_override = stat

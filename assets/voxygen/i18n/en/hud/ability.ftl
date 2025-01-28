@@ -471,3 +471,6 @@ common-abilities-bow-barrage = Barrage
 common-abilities-bow-barrage_shot = Barrage
     .desc =
         Quickly fire a number of smaller arrows to barrage your enemies with an unending stream of arrows.
+common-abilities-bow-owl_talon = Owl Talon
+    .desc =
+        You carefully aim your next shot, slipping the arrow in between your enemy's defenses before they're prepared.
