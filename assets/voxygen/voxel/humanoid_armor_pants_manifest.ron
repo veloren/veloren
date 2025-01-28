@@ -45,7 +45,7 @@
             color: None
         ),
          "common.items.armor.ashen.pants": (
-            vox_spec: ("armor.ashen.ashen", (-6.0, -3.5, 0.0), 7),
+            vox_spec: ("armor.ashen.ashen", (-6.0, -3.5, -1.0), 7),
             color: None
         ),
          "common.items.armor.brinestone.pants": (
