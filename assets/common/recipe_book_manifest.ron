@@ -2171,7 +2171,7 @@
             inputs: [
                 (Item("common.items.crafting_ing.molten_core"), 3, false),
                 (Item("common.items.crafting_ing.living_embers"), 16, false),
-                (Item("common.items.crafting_ing.pearl"), 1, false),
+                (Item("common.items.crafting_ing.cursed_bead"), 1, false),
                 (Item("common.items.tool.craftsman_hammer"), 0, false),
             ],
             craft_sprite: Some(CraftingBench),
