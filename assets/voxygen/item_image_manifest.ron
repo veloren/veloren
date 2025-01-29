@@ -1909,6 +1909,14 @@
         "voxel.object.scroll",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
+    Simple("common.items.recipes.unique.bloodmoon_relic"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
+    Simple("common.items.recipes.unique.crux"): VoxTrans(
+        "voxel.object.recipe_blacksmithing",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),   
     // Armor
     // Starter Parts
     Simple("common.items.armor.misc.foot.sandals"): VoxTrans(

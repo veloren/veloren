@@ -467,6 +467,8 @@
     Simple("common.items.recipes.equipment.basic"): "voxel.object.scroll",
     Simple("common.items.recipes.equipment.moderate"): "voxel.object.scroll",
     Simple("common.items.recipes.equipment.advanced"): "voxel.object.scroll",
+    Simple("common.items.recipes.unique.crux"): "voxel.object.recipe_blacksmithing",
+    Simple("common.items.recipes.unique.bloodmoon_relic"): "voxel.object.recipe_blacksmithing",
     // Armor
     // Starter Parts
     Simple("common.items.armor.misc.foot.sandals"): "voxel.armor.misc.foot.cloth_sandal",

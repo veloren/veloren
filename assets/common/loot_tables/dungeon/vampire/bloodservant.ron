@@ -1,0 +1,4 @@
+[
+    (0.9, Nothing),
+    (0.1, Item("common.items.recipes.unique.bloodmoon_relic")),
+]
