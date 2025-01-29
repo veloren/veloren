@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "bloodmoon_relic",
+        ],
+    ),
+    quality: Common,
+    tags: [],
+)

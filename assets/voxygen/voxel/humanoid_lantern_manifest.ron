@@ -36,6 +36,14 @@
           vox_spec: ("lantern.polaris", (-3.5, -4.0, -8.5)),
           color: None
       ),
+      "common.items.lantern.bloodmoon_relic": (
+          vox_spec: ("lantern.bloodmoon", (-3.5, -4.0, -10.0)),
+          color: None
+      ),
+      "common.items.lantern.crux": (
+          vox_spec: ("lantern.crux", (-3.5, -4.0, -7.5)),
+          color: None
+      ),
       "common.items.lantern.delvers_lamp": (
           vox_spec: ("lantern.delvers_lamp", (-3.5, -4.0, -8.5)),
           color: None

@@ -1804,6 +1804,30 @@
             "common.items.armor.golemite.helmet",
         ): "armor-golemite-helmet",
         Simple(
+            "common.items.armor.ashen.back",
+        ): "armor-ashen-back",
+        Simple(
+            "common.items.armor.ashen.belt",
+        ): "armor-ashen-belt",
+        Simple(
+            "common.items.armor.ashen.chest",
+        ): "armor-ashen-chest",
+        Simple(
+            "common.items.armor.ashen.foot",
+        ): "armor-ashen-foot",
+        Simple(
+            "common.items.armor.ashen.hand",
+        ): "armor-ashen-hand",
+        Simple(
+            "common.items.armor.ashen.pants",
+        ): "armor-ashen-pants",
+        Simple(
+            "common.items.armor.ashen.shoulder",
+        ): "armor-ashen-shoulder",
+        Simple(
+            "common.items.armor.ashen.helmet",
+        ): "armor-ashen-helmet",
+        Simple(
             "common.items.armor.mail.steel.back",
         ): "armor-mail-steel-back",
         Simple(
@@ -3319,8 +3343,11 @@
             "common.items.crafting_ing.dwarven_battery",
         ): "sprite-crafting_ing-dwarven_battery",
         Simple(
-            "common.items.crafting_ing.dwarven_battery",
-        ): "sprite-crafting_ing-dwarven_battery",
+            "common.items.crafting_ing.bloody_tear",
+        ): "sprite-crafting_ing-bloody_tear",
+        Simple(
+            "common.items.crafting_ing.molten_core",
+        ): "sprite-crafting_ing-molten_core",
         Simple(
             "common.items.crafting_ing.stones",
         ): "sprite-rocks-rock-0",
@@ -3486,6 +3513,12 @@
         Simple(
             "common.items.lantern.red_0",
         ): "lantern-red",
+        Simple(
+            "common.items.lantern.bloodmoon_relic",
+        ): "lantern-bloodmoon_relic",
+        Simple(
+            "common.items.lantern.crux",
+        ): "lantern-crux",                
         Simple(
             "common.items.charms.burning_charm",
         ): "object-burning_charm",
@@ -7377,6 +7410,8 @@
         Simple("common.items.recipes.unique.abyssal_ring"): "recipe-unique-abyssal_ring",
         Simple("common.items.recipes.unique.mindflayer_spellbag"): "recipe-unique-mindflayer_spellbag",
         Simple("common.items.recipes.unique.polaris"): "recipe-unique-polaris",
+        Simple("common.items.recipes.unique.bloodmoon_relic"): "recipe-unique-bloodmoon_relic",
+        Simple("common.items.recipes.unique.crux"): "recipe-unique-crux",                
         Simple("common.items.recipes.unique.seashell_necklace"): "recipe-unique-seashell_necklace",
         Simple("common.items.recipes.unique.troll_hide_pack"): "recipe-unique-troll_hide_pack",
         Simple("common.items.recipes.unique.winged_coronet"): "recipe-unique-winged_coronet",

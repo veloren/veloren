@@ -420,6 +420,16 @@
                 color: None
             )
         ),
+        "common.items.armor.ashen.hand": (
+            left: (
+                vox_spec: ("armor.ashen.ashen", (-2.5, -2.5, -2.5), 4),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.ashen.ashen", (-1.5, -2.5, -2.5), 4),
+                color: None
+            )
+        ),
         "common.items.armor.cardinal.hand": (
             left: (
                 vox_spec: ("armor.cardinal.hand", (-2.5, -2.5, -3.5)),

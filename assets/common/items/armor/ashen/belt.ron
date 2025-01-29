@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Ashen Belt Rope",
+    legacy_description: "The ashen thread seals the volcanic heat emitting from within the robe.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Ashen"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

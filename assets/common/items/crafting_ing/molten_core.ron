@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Molten Core",
+    legacy_description: "Compacted liquid-sword forged in the great furnace of the earth.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",    ),
+    quality: Legendary,
+    tags: [],
+)

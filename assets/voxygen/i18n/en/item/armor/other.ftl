@@ -24,6 +24,12 @@ lantern-red = Red Lantern
 
 lantern-delvers_lamp = Delver's Lamp
     .desc = Perfect for mining.
+    
+lantern-bloodmoon_relic = Bloodmoon Relic
+    .desc = The alluring scent of blood acts as both a trap and a light-source to hunt down creatures of the night.
+    
+lantern-crux = Crux
+    .desc = The scalding heat is but a mere sample of the embers of the Gigas' unforgiving origin.   
 
 glider-basic_red = Red Cloth Glider
     .desc = A simple glider, but with a striking red color.

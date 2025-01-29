@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Ashen Mantle",
+    legacy_description: "The once soft raven feathers hardened in layers of volcanic materials.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Ashen"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

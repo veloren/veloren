@@ -75,6 +75,12 @@ sprite-crafting_ing-alkahest = Alkahest
 
 sprite-crafting_ing-dwarven_battery = Dwarven Battery
     .desc = Container of magical energy.
+    
+sprite-crafting_ing-bloody_tear = Bloody Tear
+    .desc = The hardened, concentrated blood of the beasts' countless victims.
+    
+sprite-crafting_ing-molten_core = Molten Core
+    .desc = Compacted liquid-sword forged in the great furnace of the earth.       
 
 sprite-rocks-rock-0 = Stones
     .desc = Pebbles from the ground, nothing out of the ordinary.
