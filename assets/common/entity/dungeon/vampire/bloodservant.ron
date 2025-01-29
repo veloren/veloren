@@ -3,7 +3,7 @@
     name: Name("Bloodservant"),
     body: RandomWith("bloodservant"),
     alignment: Alignment(Enemy),
-    loot: Nothing,
+    loot: LootTable("common.loot_tables.dungeon.vampire.bloodservant"),
     inventory: (
         loadout: Inline((
             active_hands: InHands((Item("common.items.npc_weapons.biped_small.vampire.bloodservant_axe"), None)),
