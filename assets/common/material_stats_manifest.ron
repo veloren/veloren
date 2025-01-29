@@ -333,10 +333,10 @@
             energy_reward: Some(-0.45),
         ),
         "Ashen": (
-            energy_max: Some(63.0),
-            energy_reward: Some(0.55),
-            precision_power: Some(0.618),
-            stealth: Some(1.105),
+            energy_max: Some(72.9),
+            energy_reward: Some(0.729),
+            precision_power: Some(0.388),
+            stealth: Some(1.51875),
         ),        
     },
 )

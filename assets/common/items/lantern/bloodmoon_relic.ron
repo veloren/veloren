@@ -3,7 +3,7 @@ ItemDef(
     legacy_description: "The alluring scent of blood acts as both a trap and a light-source to hunt down creatures of the night.",
     kind: Lantern(
         (
-            color: (r: 220, g: 20, b: 60),
+            color: (r: 220, g: 20, b: 40),
             strength_thousandths: 8000,
             flicker_thousandths: 600,
         ),

@@ -4,10 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Head,
         stats: Direct((
-            energy_max: Some(7.0),
-            energy_reward: Some(0.061),
-            precision_power: Some(0.069),
-            stealth: Some(0.123),
+            energy_max: Some(8.1),
+            energy_reward: Some(0.81),
+            precision_power: Some(0.0432),
+            stealth: Some(0.16875),
         )),
     )),
     quality: Legendary,
