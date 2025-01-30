@@ -231,6 +231,7 @@ impl<'a> System<'a> for Sys {
                                 inventory: read_data.inventories.get(entity),
                                 stats: read_data.stats.get(entity),
                                 mass: read_data.masses.get(entity),
+                                pos: Some(pos.0),
                             });
 
                     let target_info = TargetInfo {

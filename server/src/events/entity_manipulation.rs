@@ -1702,6 +1702,7 @@ impl ServerEvent for ExplosionEvent {
                                             inventory: data.inventories.get(entity),
                                             stats: data.stats.get(entity),
                                             mass: data.masses.get(entity),
+                                            pos: data.positions.get(entity).map(|p| p.0),
                                         }
                                     });
 

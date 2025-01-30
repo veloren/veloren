@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
-        DamagedEffect, DeathEffect,
+        AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatModification,
+        CombatRequirement, DamagedEffect, DeathEffect, Knockback, KnockbackDir,
     },
     comp::{Mass, Stats, aura::AuraKey},
     link::DynWeakLinkHandle,
@@ -149,9 +149,12 @@ pub enum BuffKind {
     /// Causes the next attacks to cause the rooted debuff.
     /// Strength increases the strength of the rooted debuff
     Snaring,
-    /// Causes the next attacks to be more precise if the target is not wielding
-    /// their weapon
+    /// Causes the next attack to have precision of 1.0 if the target is not
+    /// wielding their weapon, and also generally increases damage. Strength
+    /// increases the damage increase.
     OwlTalon,
+    /// Causes the next attack to have more knockback and poise damage.
+    HeavyNock,
     // =================
     //      DEBUFFS
     // =================
@@ -280,7 +283,8 @@ impl BuffKind {
             | BuffKind::Tenacity
             | BuffKind::Resilience
             | BuffKind::Snaring
-            | BuffKind::OwlTalon => BuffDescriptor::SimplePositive,
+            | BuffKind::OwlTalon
+            | BuffKind::HeavyNock => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -575,6 +579,29 @@ impl BuffKind {
                 BuffEffect::ConditionalPrecisionOverride(CombatRequirement::TargetUnwielded, 1.0),
                 BuffEffect::AttackDamage(1.0 + data.strength),
             ],
+            BuffKind::HeavyNock => {
+                let range_mod = CombatModification::RangeWeakening {
+                    start_dist: 5.0,
+                    end_dist: 50.0,
+                    min_str: 0.1,
+                };
+                let knockback = AttackEffect::new(
+                    None,
+                    CombatEffect::Knockback(Knockback {
+                        direction: KnockbackDir::Away,
+                        strength: 25.0 * data.strength,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage)
+                .with_modification(range_mod);
+                let poise = AttackEffect::new(None, CombatEffect::Poise(50.0 * data.strength))
+                    .with_requirement(CombatRequirement::AnyDamage)
+                    .with_modification(range_mod);
+                vec![
+                    BuffEffect::AttackEffect(knockback),
+                    BuffEffect::AttackEffect(poise),
+                ]
+            },
         }
     }
 
@@ -587,6 +614,9 @@ impl BuffKind {
                 cat_ids.push(BuffCategory::PersistOnDowned);
             },
             BuffKind::OwlTalon => {
+                cat_ids.push(BuffCategory::RemoveOnAttack);
+            },
+            BuffKind::HeavyNock => {
                 cat_ids.push(BuffCategory::RemoveOnAttack);
             },
             _ => {},

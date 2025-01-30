@@ -1661,7 +1661,14 @@ impl Animation for BasicAction {
 
                 next.hand_l.position += Vec3::new(-4.0, 0.0, 4.0) * move1;
                 next.hand_l.orientation.rotate_x(1.6 * move1);
+
                 next.hand_l.position += Vec3::new(0.0, 0.0, -10.0) * move2;
+            },
+            Some("common.abilities.bow.heavy_nock") => {
+                bow_start(&mut next, s_a);
+
+                next.hold.scale *= 1.0 + move1base / 2.0;
+                next.hold.position += Vec3::new(0.0, 0.0, -2.5) * move1;
             },
             // ==================================
             //             FIRE STAFF

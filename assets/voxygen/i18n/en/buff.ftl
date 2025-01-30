@@ -185,6 +185,9 @@ buff-snaring = Snaring
 ## Owl Talon
 buff-owltalon = Owl Talon
     .desc = Taking advantage of your target not knowing of your presence, your next attack will be more precise and deal more damage.
+## Heavy Nock
+buff-heavynock = Heavy Nock
+    .desc = Nock a heavier arrow to your bow, allowing your next shot to stagger the target. The heavier arrow will have less momentum at longer ranges though.
 ## Util
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove

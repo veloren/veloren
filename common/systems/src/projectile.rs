@@ -454,6 +454,7 @@ fn dispatch_hit(
                         inventory: read_data.inventories.get(entity),
                         stats: read_data.stats.get(entity),
                         mass: read_data.masses.get(entity),
+                        pos: read_data.positions.get(entity).map(|p| p.0),
                     });
 
             let target_info = TargetInfo {

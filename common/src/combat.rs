@@ -83,6 +83,7 @@ pub struct AttackerInfo<'a> {
     pub inventory: Option<&'a Inventory>,
     pub stats: Option<&'a Stats>,
     pub mass: Option<&'a Mass>,
+    pub pos: Option<Vec3<f32>>,
 }
 
 #[derive(Copy, Clone)]
@@ -360,7 +361,7 @@ impl Attack {
         let mut accumulated_damage = 0.0;
         let damage_modifier = attacker
             .and_then(|a| a.stats)
-            .map_or(1.0, |s| dbg!(s.attack_damage_modifier));
+            .map_or(1.0, |s| s.attack_damage_modifier);
         for damage in self
             .damages
             .iter()
@@ -692,6 +693,26 @@ impl Attack {
                 )
             });
             if requirements_met {
+                let mut strength_modifier = strength_modifier;
+                for modification in effect.modifications.iter() {
+                    match modification {
+                        CombatModification::RangeWeakening {
+                            start_dist,
+                            end_dist,
+                            min_str,
+                        } => {
+                            if let Some(attacker_pos) = attacker.and_then(|a| a.pos) {
+                                let dist = attacker_pos.distance(target.pos);
+                                let p = (dist - start_dist) / (end_dist - start_dist).min(0.1);
+                                let strength = (1.0 - p.clamp(0.0, 1.0))
+                                    * (1.0 - min_str.clamp(0.0, 1.0))
+                                    + min_str;
+                                strength_modifier *= strength;
+                            }
+                        },
+                    }
+                }
+                let strength_modifier = strength_modifier;
                 is_applied = true;
                 match effect.effect {
                     CombatEffect::Knockback(kb) => {
@@ -1010,6 +1031,7 @@ pub struct AttackEffect {
     target: Option<GroupTarget>,
     effect: CombatEffect,
     requirements: Vec<CombatRequirement>,
+    modifications: Vec<CombatModification>,
 }
 
 impl AttackEffect {
@@ -1018,12 +1040,19 @@ impl AttackEffect {
             target,
             effect,
             requirements: Vec::new(),
+            modifications: Vec::new(),
         }
     }
 
     #[must_use]
     pub fn with_requirement(mut self, requirement: CombatRequirement) -> Self {
         self.requirements.push(requirement);
+        self
+    }
+
+    #[must_use]
+    pub fn with_modification(mut self, modification: CombatModification) -> Self {
+        self.modifications.push(modification);
         self
     }
 
@@ -1208,6 +1237,17 @@ impl CombatRequirement {
             CombatRequirement::TargetUnwielded => target.char_state.is_some_and(|cs| cs.is_wield()),
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum CombatModification {
+    /// Linearly ecreases effect strength starting with 1 strength at some
+    /// distance, ending at a minimum strength by some end distance
+    RangeWeakening {
+        start_dist: f32,
+        end_dist: f32,
+        min_str: f32,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

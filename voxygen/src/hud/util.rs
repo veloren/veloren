@@ -207,6 +207,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Resilience => "buff-resilience",
         BuffKind::Snaring => "buff-snaring",
         BuffKind::OwlTalon => "buff-owltalon",
+        BuffKind::HeavyNock => "buff-heavynock",
         // Debuffs
         BuffKind::Bleeding => "buff-bleed",
         BuffKind::Cursed => "buff-cursed",
@@ -364,7 +365,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::Tenacity
                         | BuffKind::Resilience
                         | BuffKind::Snaring
-                        | BuffKind::OwlTalon => Cow::Borrowed(""),
+                        | BuffKind::OwlTalon
+                        | BuffKind::HeavyNock => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -639,6 +641,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.barrage_shot" => imgs.bow_barrage,
         "veloren.core.pseudo_abilities.bow.barrage" => imgs.bow_barrage,
         "common.abilities.bow.owl_talon" => imgs.bow_owl_talon,
+        "common.abilities.bow.heavy_nock" => imgs.bow_heavy_nock,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

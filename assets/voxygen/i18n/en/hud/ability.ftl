@@ -474,3 +474,6 @@ common-abilities-bow-barrage_shot = Barrage
 common-abilities-bow-owl_talon = Owl Talon
     .desc =
         You carefully aim your next shot, slipping the arrow in between your enemy's defenses before they're prepared.
+common-abilities-bow-heavy_nock = Heavy Nock
+    .desc =
+        Locating your heaviest arrow, you nock it to your bow. Surely it will do a little bit more than your other arrows?

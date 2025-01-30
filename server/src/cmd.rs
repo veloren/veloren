@@ -5904,7 +5904,8 @@ fn build_buff(
             | BuffKind::Tenacity
             | BuffKind::Resilience
             | BuffKind::Snaring
-            | BuffKind::OwlTalon => {
+            | BuffKind::OwlTalon
+            | BuffKind::HeavyNock => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

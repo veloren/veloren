@@ -224,6 +224,7 @@ impl<'a> System<'a> for Sys {
                         inventory: read_data.inventories.get(attacker),
                         stats: read_data.stats.get(attacker),
                         mass: read_data.masses.get(attacker),
+                        pos: Some(pos.0),
                     });
 
                     let target_ori = read_data.orientations.get(target);
