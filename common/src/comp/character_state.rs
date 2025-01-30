@@ -460,7 +460,10 @@ impl CharacterState {
 
     pub fn is_dodge(&self) -> bool {
         if let CharacterState::Roll(c) = self {
-            c.stage_section == StageSection::Movement
+            matches!(
+                c.stage_section,
+                StageSection::Buildup | StageSection::Movement
+            )
         } else {
             false
         }
@@ -473,8 +476,10 @@ impl CharacterState {
     pub fn is_music(&self) -> bool { matches!(self, CharacterState::Music(_)) }
 
     pub fn roll_attack_immunities(&self) -> Option<AttackFilters> {
-        if let CharacterState::Roll(c) = self {
-            (c.stage_section == StageSection::Movement).then_some(c.static_data.attack_immunities)
+        if self.is_dodge()
+            && let CharacterState::Roll(c) = self
+        {
+            Some(c.static_data.attack_immunities)
         } else {
             None
         }

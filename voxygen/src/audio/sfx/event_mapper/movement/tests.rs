@@ -196,6 +196,7 @@ fn maps_roll() {
                     explosions: false,
                 },
                 ability_info: empty_ability_info(),
+                was_cancel: false,
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,

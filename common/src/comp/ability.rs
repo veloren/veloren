@@ -864,6 +864,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         roll_strength: f32,
         attack_immunities: AttackFilters,
+        was_cancel: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1298,25 +1299,28 @@ impl CharacterAbility {
     }
 
     pub fn default_roll(current_state: Option<&CharacterState>) -> CharacterAbility {
-        let remaining_recover = if let Some(char_state) = current_state {
-            if matches!(char_state.stage_section(), Some(StageSection::Recover)) {
-                let timer = char_state.timer().map_or(0.0, |t| t.as_secs_f32());
-                let recover_duration = char_state
-                    .durations()
-                    .and_then(|durs| durs.recover)
-                    .map_or(timer, |rec| rec.as_secs_f32());
-                recover_duration - timer
-            } else {
-                0.0
-            }
-        } else {
-            0.0
-        }
-        .max(0.0);
+        let remaining_duration = current_state
+            .and_then(|char_state| {
+                char_state.timer().zip(
+                    char_state
+                        .durations()
+                        .zip(char_state.stage_section())
+                        .and_then(|(durations, stage_section)| match stage_section {
+                            StageSection::Buildup => durations.buildup,
+                            StageSection::Recover => durations.recover,
+                            _ => None,
+                        }),
+                )
+            })
+            .map_or(0.0, |(timer, duration)| {
+                duration.as_secs_f32() - timer.as_secs_f32()
+            })
+            .max(0.0);
+
         CharacterAbility::Roll {
-            energy_cost: 10.85,
-            // Remaining recover flows into buildup
-            buildup_duration: 0.05 + remaining_recover,
+            // Energy cost increased by remaining duration
+            energy_cost: 10.0 + 100.0 * remaining_duration,
+            buildup_duration: 0.05,
             movement_duration: 0.36,
             recover_duration: 0.125,
             roll_strength: 3.3075,
@@ -1328,6 +1332,7 @@ impl CharacterAbility {
                 air_shockwaves: true,
                 explosions: true,
             },
+            was_cancel: remaining_duration > 0.0,
             meta: Default::default(),
         }
     }
@@ -1451,6 +1456,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 roll_strength: _,
                 attack_immunities: _,
+                was_cancel: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2450,6 +2456,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 roll_strength,
                 attack_immunities,
+                was_cancel,
                 meta: _,
             } => CharacterState::Roll(roll::Data {
                 static_data: roll::StaticData {
@@ -2458,6 +2465,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     roll_strength: *roll_strength,
                     attack_immunities: *attack_immunities,
+                    was_cancel: *was_cancel,
                     ability_info,
                 },
                 timer: Duration::default(),
