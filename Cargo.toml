@@ -182,7 +182,7 @@ rustls = { version = "0.23", default-features = false, features = ["std"] }
 quinn = { version = "0.11" }
 
 noise = { version = "0.9", default-features = false }
-kiddo = "5"
+kiddo = "=4.2.0"
 
 [patch.crates-io]
 # until next specs release
