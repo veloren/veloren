@@ -68,15 +68,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aligned-vec"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e0966165eaf052580bd70eb1b32cb3d6245774c0104d1b2793e9650bf83b52a"
-dependencies = [
- "equator",
-]
-
-[[package]]
 name = "allocator-api2"
 version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -282,12 +273,6 @@ dependencies = [
  "quote 1.0.38",
  "syn 1.0.109",
 ]
-
-[[package]]
-name = "array-init"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d62b7694a562cdf5a74227903507c56ab2cc8bdd1f781ed5cb4cf9c9f810bfc"
 
 [[package]]
 name = "arrayref"
@@ -526,7 +511,7 @@ dependencies = [
  "bitflags 2.8.0",
  "cexpr",
  "clang-sys",
- "itertools 0.10.5",
+ "itertools 0.13.0",
  "proc-macro2 1.0.93",
  "quote 1.0.38",
  "regex",
@@ -733,7 +718,7 @@ dependencies = [
  "cap-primitives",
  "cap-std",
  "io-lifetimes",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -761,7 +746,7 @@ dependencies = [
  "ipnet",
  "maybe-owned",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
  "winx",
 ]
 
@@ -1074,12 +1059,6 @@ checksum = "e24a03c8b52922d68a1589ad61032f2c1aa5a8158d2aa0d93c6e9534944bbad6"
 dependencies = [
  "cc",
 ]
-
-[[package]]
-name = "cmov"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b1dc960ba75d543267db9254da8ec1cb318a037beb3f8d2497520e410096fab"
 
 [[package]]
 name = "cobs"
@@ -1697,7 +1676,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e16e44ab292b1dddfdaf7be62cfd8877df52f2f3fde5858d95bab606be259f20"
 dependencies = [
  "bitflags 2.8.0",
- "libloading 0.7.4",
+ "libloading 0.8.6",
  "winapi",
 ]
 
@@ -1927,7 +1906,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330c60081dcc4c72131f8eb70510f1ac07223e5d4163db481a04a0befcffa412"
 dependencies = [
- "libloading 0.7.4",
+ "libloading 0.8.6",
 ]
 
 [[package]]
@@ -2133,26 +2112,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "equator"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c35da53b5a021d2484a7cc49b2ac7f2d840f8236a286f84202369bd338d761ea"
-dependencies = [
- "equator-macro",
-]
-
-[[package]]
-name = "equator-macro"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bf679796c0322556351f287a51b49e48f7c4986e727b5dd78c972d30e2e16cc"
-dependencies = [
- "proc-macro2 1.0.93",
- "quote 1.0.38",
- "syn 2.0.96",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2165,7 +2124,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33d852cb9b869c2a9b3df2f71a3074817f01e1844f839a144f5fcef059a4eb5d"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2595,6 +2554,19 @@ dependencies = [
 
 [[package]]
 name = "generator"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5cc16584ff22b460a382b7feec54b23d2908d858152e5739a120b949293bd74e"
+dependencies = [
+ "cc",
+ "libc",
+ "log",
+ "rustversion",
+ "windows 0.48.0",
+]
+
+[[package]]
+name = "generator"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc6bd114ceda131d3b1d665eba35788690ad37f5916457286b32ab6fd3c438dd"
@@ -2682,7 +2654,7 @@ dependencies = [
  "vec_map",
  "wasm-bindgen",
  "web-sys",
- "windows 0.51.1",
+ "windows 0.58.0",
 ]
 
 [[package]]
@@ -3783,21 +3755,18 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
 name = "kiddo"
-version = "5.0.3"
+version = "4.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6e580022eee0bcd05b8c1c43d3512e79bfa001ccf88ef3dcfd1a3ac74b4e390"
+checksum = "9d2f8d9e1bc7c6919ad2cdc83472a9a4b5ed2ea2c5392c9514fdf958a7920f9a"
 dependencies = [
- "aligned-vec",
- "array-init",
  "az",
- "cmov",
  "divrem",
  "doc-comment",
  "elapsed",
  "fixed",
- "generator",
+ "generator 0.7.5",
  "init_with",
- "itertools 0.13.0",
+ "itertools 0.12.1",
  "log",
  "num-traits",
  "ordered-float 4.6.0",
@@ -3890,7 +3859,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if 1.0.0",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -3993,7 +3962,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "419e0dc8046cb947daa77eb95ae174acfbddb7673b4151f56d1eed8e93fbfaca"
 dependencies = [
  "cfg-if 1.0.0",
- "generator",
+ "generator 0.8.4",
  "scoped-tls",
  "tracing",
  "tracing-subscriber",
@@ -5474,7 +5443,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5935,7 +5904,7 @@ dependencies = [
  "libc",
  "linux-raw-sys",
  "once_cell",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6692,7 +6661,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "libc",
  "psm",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7345,7 +7314,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69fff37da548239c3bf9e64a12193d261e8b22b660991c6fd2df057c168f435f"
 dependencies = [
  "cc",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -7402,7 +7371,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "rand",
  "static_assertions",
 ]
@@ -8946,7 +8915,7 @@ dependencies = [
  "js-sys",
  "khronos-egl",
  "libc",
- "libloading 0.7.4",
+ "libloading 0.8.6",
  "log",
  "metal",
  "naga",
@@ -9069,7 +9038,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -9117,6 +9086,15 @@ dependencies = [
  "clipboard_x11",
  "raw-window-handle 0.5.2",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "windows"
+version = "0.48.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e686886bc078bc1b0b600cac0147aadb815089b6e4da64016cbd754b6342700f"
+dependencies = [
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
