@@ -164,6 +164,17 @@ pub trait Action<S = (), R = ()>: Any + Send + Sync {
         }
     }
 
+    /// Like `Action::then`, except the second action may be configured by the
+    /// output of the first.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// ask_question("Is it sunny?").and_then(|response| match response {
+    ///     true => say("Good, I like sunshine"),
+    ///     false => say("Shame, I'll get my coat"),
+    /// })
+    /// ```
     #[must_use]
     fn and_then<F, A1: Action<S, R1>, R1>(self, f: F) -> AndThen<Self, F, A1, R>
     where

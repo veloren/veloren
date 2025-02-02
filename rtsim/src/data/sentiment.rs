@@ -14,7 +14,7 @@ pub const NPC_MAX_SENTIMENTS: usize = 128;
 
 /// Magic factor used to control sentiment decay speed (note: higher = slower
 /// decay, for implementation reasons).
-const DECAY_TIME_FACTOR: f32 = 2500.0; //TODO: Use this value when we're happy that everything is working as intended
+const DECAY_TIME_FACTOR: f32 = 2500.0;
 
 /// The target that a sentiment is felt toward.
 // NOTE: More could be added to this! For example:

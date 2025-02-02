@@ -811,13 +811,11 @@ impl StateExt for State {
         let entity_from_uid = |uid| id_maps.uid_entity(uid);
 
         if msg.chat_type.uid().is_none_or(|sender| {
-            entity_from_uid(sender).is_some_and(|e| {
-                self.validate_chat_msg(
-                    e,
-                    &msg.chat_type,
-                    msg.content().as_plain().unwrap_or_default(),
-                )
-            })
+            entity_from_uid(sender)
+                .zip(msg.content().as_plain())
+                .is_some_and(|(e, plain_content)| {
+                    self.validate_chat_msg(e, &msg.chat_type, plain_content)
+                })
         }) {
             match &msg.chat_type {
                 comp::ChatType::Offline(_)

@@ -257,7 +257,7 @@ impl Widget for Quest<'_> {
                 }
 
                 // Item image
-                if let Some((item, _amount)) = &response.given_item {
+                if let Some((item, amount)) = &response.given_item {
                     Image::new(animate_by_pulse(
                         &self
                             .item_imgs

@@ -65,8 +65,8 @@ pub struct Controller {
 }
 
 impl Controller {
-    // Reset the controller to a neutral state before the start of the next brain
-    // tick.
+    /// Reset the controller to a neutral state before the start of the next
+    /// brain tick.
     pub fn reset(&mut self) {
         self.activity = None;
         self.look_dir = None;
@@ -204,8 +204,8 @@ pub struct Npc {
     #[serde(default)]
     pub sentiments: Sentiments,
 
-    // An NPC can temporarily become a hired hand
-    // (hiring_actor, termination_time)
+    /// An NPC can temporarily become a hired hand (`(hiring_actor,
+    /// termination_time)`).
     #[serde(default)]
     pub hiring: Option<(Actor, Time)>,
 

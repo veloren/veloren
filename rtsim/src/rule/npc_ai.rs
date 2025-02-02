@@ -1269,7 +1269,7 @@ fn humanoid() -> impl Action<DefaultState> {
                     socialize().map_state(|state: &mut DefaultState| &mut state.socialize_timer),
                 )
             }
-        } else if let Some((tgt, expires)) = ctx.npc.hiring
+        } else if let Some((tgt, _)) = ctx.npc.hiring
             && util::actor_exists(ctx, tgt)
         {
             important(hired(tgt).interrupt_with(react_to_events))
