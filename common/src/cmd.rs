@@ -178,7 +178,7 @@ lazy_static! {
             BuffKind::OffBalance => "off_balance",
             BuffKind::Tenacity => "tenacity",
             BuffKind::Resilience => "resilience",
-            BuffKind::Snaring => "snaring",
+            BuffKind::SnareShot => "snare_shot",
             BuffKind::OwlTalon => "owl_talon",
             BuffKind::HeavyNock => "heavy_nock",
         };

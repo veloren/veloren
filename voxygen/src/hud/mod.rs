@@ -5533,7 +5533,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Berserk => imgs.buff_reckless,
         BuffKind::ScornfulTaunt => imgs.buff_scornfultaunt,
         BuffKind::Tenacity => imgs.buff_tenacity,
-        BuffKind::Snaring => imgs.buff_snaring,
+        BuffKind::SnareShot => imgs.buff_snareshot,
         BuffKind::OwlTalon => imgs.buff_owltalon,
         BuffKind::HeavyNock => imgs.buff_heavynock,
         //  Debuffs

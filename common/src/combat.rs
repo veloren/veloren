@@ -1156,6 +1156,7 @@ pub enum CombatRequirement {
     BehindTarget,
     TargetBlocking,
     TargetUnwielded,
+    AttackSource(AttackSource),
 }
 
 impl CombatRequirement {
@@ -1235,6 +1236,7 @@ impl CombatRequirement {
                 .char_state
                 .is_some_and(|cs| cs.is_block(attack_source) || cs.is_parry(attack_source)),
             CombatRequirement::TargetUnwielded => target.char_state.is_some_and(|cs| cs.is_wield()),
+            CombatRequirement::AttackSource(source) => attack_source == *source,
         }
     }
 }

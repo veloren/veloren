@@ -179,8 +179,8 @@ buff-tenacity = Tenacity
 ## Resilience
 buff-resilience = Resilience
     .desc = After having just taken a debilitating attack, you become more resilient to future incapaciting effects.
-## Snaring
-buff-snaring = Snaring
+## Snare Shot
+buff-snaring = Snare Shot
     .desc = Your next attack will snare the target, rooting them in place.
 ## Owl Talon
 buff-owltalon = Owl Talon

@@ -1,7 +1,7 @@
 use crate::{
     combat::{
-        AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatModification,
-        CombatRequirement, DamagedEffect, DeathEffect, Knockback, KnockbackDir,
+        AttackEffect, AttackSource, CombatBuff, CombatBuffStrength, CombatEffect,
+        CombatModification, CombatRequirement, DamagedEffect, DeathEffect, Knockback, KnockbackDir,
     },
     comp::{Mass, Stats, aura::AuraKey},
     link::DynWeakLinkHandle,
@@ -146,14 +146,15 @@ pub enum BuffKind {
     /// Strength linearly decreases the duration of newly applied, affected
     /// debuffs, 0.5 is a 50% reduction.
     Resilience,
-    /// Causes the next attacks to cause the rooted debuff.
+    /// Causes the next projectile fired to cause the rooted debuff.
     /// Strength increases the strength of the rooted debuff
-    Snaring,
+    SnareShot,
     /// Causes the next attack to have precision of 1.0 if the target is not
     /// wielding their weapon, and also generally increases damage. Strength
     /// increases the damage increase.
     OwlTalon,
-    /// Causes the next attack to have more knockback and poise damage.
+    /// Causes the next projectile fired to have more knockback and poise
+    /// damage.
     HeavyNock,
     // =================
     //      DEBUFFS
@@ -282,7 +283,7 @@ impl BuffKind {
             | BuffKind::ScornfulTaunt
             | BuffKind::Tenacity
             | BuffKind::Resilience
-            | BuffKind::Snaring
+            | BuffKind::SnareShot
             | BuffKind::OwlTalon
             | BuffKind::HeavyNock => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
@@ -566,15 +567,18 @@ impl BuffKind {
                 BuffEffect::DamagedEffect(DamagedEffect::Energy(data.strength * 10.0)),
             ],
             BuffKind::Resilience => vec![BuffEffect::CrowdControlResistance(data.strength)],
-            BuffKind::Snaring => vec![BuffEffect::AttackEffect(AttackEffect::new(
-                None,
-                CombatEffect::Buff(CombatBuff {
-                    kind: BuffKind::Rooted,
-                    dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
-                    strength: CombatBuffStrength::Value(data.strength),
-                    chance: 1.0,
-                }),
-            ))],
+            BuffKind::SnareShot => vec![BuffEffect::AttackEffect(
+                AttackEffect::new(
+                    None,
+                    CombatEffect::Buff(CombatBuff {
+                        kind: BuffKind::Rooted,
+                        dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
+                        strength: CombatBuffStrength::Value(data.strength),
+                        chance: 1.0,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile)),
+            )],
             BuffKind::OwlTalon => vec![
                 BuffEffect::ConditionalPrecisionOverride(CombatRequirement::TargetUnwielded, 1.0),
                 BuffEffect::AttackDamage(1.0 + data.strength),
@@ -593,9 +597,11 @@ impl BuffKind {
                     }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage)
+                .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile))
                 .with_modification(range_mod);
                 let poise = AttackEffect::new(None, CombatEffect::Poise(50.0 * data.strength))
                     .with_requirement(CombatRequirement::AnyDamage)
+                    .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile))
                     .with_modification(range_mod);
                 vec![
                     BuffEffect::AttackEffect(knockback),

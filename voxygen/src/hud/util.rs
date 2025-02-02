@@ -205,7 +205,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::ScornfulTaunt => "buff-scornfultaunt",
         BuffKind::Tenacity => "buff-tenacity",
         BuffKind::Resilience => "buff-resilience",
-        BuffKind::Snaring => "buff-snaring",
+        BuffKind::SnareShot => "buff-snareshot",
         BuffKind::OwlTalon => "buff-owltalon",
         BuffKind::HeavyNock => "buff-heavynock",
         // Debuffs
@@ -364,7 +364,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::OffBalance
                         | BuffKind::Tenacity
                         | BuffKind::Resilience
-                        | BuffKind::Snaring
+                        | BuffKind::SnareShot
                         | BuffKind::OwlTalon
                         | BuffKind::HeavyNock => Cow::Borrowed(""),
                     };

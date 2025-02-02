@@ -5903,7 +5903,7 @@ fn build_buff(
             | BuffKind::OffBalance
             | BuffKind::Tenacity
             | BuffKind::Resilience
-            | BuffKind::Snaring
+            | BuffKind::SnareShot
             | BuffKind::OwlTalon
             | BuffKind::HeavyNock => {
                 if buff_kind.is_simple() {

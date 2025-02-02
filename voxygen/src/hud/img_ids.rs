@@ -840,7 +840,7 @@ image_ids! {
         buff_scornfultaunt: "voxygen.element.de_buffs.buff_scornfultaunt",
         buff_tenacity: "voxygen.element.de_buffs.buff_tenacity",
         buff_resilience: "voxygen.element.de_buffs.buff_resilience",
-        buff_snaring: "voxygen.element.de_buffs.buff_snaring",
+        buff_snareshot: "voxygen.element.de_buffs.buff_snareshot",
         buff_owltalon: "voxygen.element.de_buffs.buff_owltalon",
         buff_heavynock: "voxygen.element.de_buffs.buff_heavynock",
 
