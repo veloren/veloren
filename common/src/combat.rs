@@ -335,17 +335,27 @@ impl Attack {
         let from_precision_mult = attacker
             .and_then(|a| a.stats)
             .and_then(|s| {
-                s.conditional_precision_overrides
+                s.conditional_precision_modifiers
                     .iter()
-                    .filter_map(|(req, mult)| {
+                    .filter_map(|(req, mult, ovrd)| {
                         req.requirement_met(target, attacker, 0.0, emitters, dir, attack_source)
-                            .then_some(mult)
+                            .then_some((*mult, *ovrd))
                     })
-                    .chain(s.precision_multiplier_override.iter())
-                    .copied()
-                    .reduce(|a, b| a.min(b))
+                    .chain(
+                        s.precision_multiplier_override
+                            .iter()
+                            .map(|val| (*val, true)),
+                    )
+                    .chain(precision_mult.iter().map(|val| (*val, false)))
+                    .reduce(|(val_a, ovrd_a), (val_b, ovrd_b)| {
+                        if ovrd_a || ovrd_b {
+                            (val_a.min(val_b), true)
+                        } else {
+                            (val_a.max(val_b), false)
+                        }
+                    })
             })
-            .or(precision_mult);
+            .map(|(val, _)| val);
 
         let from_precision_vulnerability_mult = target
             .stats

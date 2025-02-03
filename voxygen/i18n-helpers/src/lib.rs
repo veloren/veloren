@@ -403,7 +403,8 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
         | BuffKind::Resilience
         | BuffKind::SnareShot
         | BuffKind::OwlTalon
-        | BuffKind::HeavyNock => {
+        | BuffKind::HeavyNock
+        | BuffKind::Heartseeker => {
             tracing::error!("Player was killed by a positive buff!");
             "mysterious"
         },

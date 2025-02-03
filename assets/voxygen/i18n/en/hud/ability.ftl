@@ -477,3 +477,6 @@ common-abilities-bow-owl_talon = Owl Talon
 common-abilities-bow-heavy_nock = Heavy Nock
     .desc =
         Locating your heaviest arrow, you nock it to your bow. Surely it will do a little bit more than your other arrows?
+common-abilities-bow-heartseeker = Heartseeker
+    .desc =
+        You take careful aim, and your next arrow released will wound your enemy as if it pierced their heart, and will bless you with some of their energy.

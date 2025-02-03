@@ -5536,6 +5536,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::SnareShot => imgs.buff_snareshot,
         BuffKind::OwlTalon => imgs.buff_owltalon,
         BuffKind::HeavyNock => imgs.buff_heavynock,
+        BuffKind::Heartseeker => imgs.buff_heartseeker,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_cursed_0,

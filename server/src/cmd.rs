@@ -5905,7 +5905,8 @@ fn build_buff(
             | BuffKind::Resilience
             | BuffKind::SnareShot
             | BuffKind::OwlTalon
-            | BuffKind::HeavyNock => {
+            | BuffKind::HeavyNock
+            | BuffKind::Heartseeker => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

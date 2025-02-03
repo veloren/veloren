@@ -150,12 +150,18 @@ pub enum BuffKind {
     /// Strength increases the strength of the rooted debuff
     SnareShot,
     /// Causes the next attack to have precision of 1.0 if the target is not
-    /// wielding their weapon, and also generally increases damage. Strength
-    /// increases the damage increase.
+    /// wielding their weapon, and also generally increases damage.
+    /// Strength linearly increases the damage increase.
     OwlTalon,
     /// Causes the next projectile fired to have more knockback and poise
     /// damage.
+    /// Strength linearly increases the knockback and poise damage applied to
+    /// the next projectile.
     HeavyNock,
+    /// Causes the next projectile to both gain precision and restore more
+    /// energy.
+    /// Strength linearly increases the precision override and energy restored.
+    Heartseeker,
     // =================
     //      DEBUFFS
     // =================
@@ -285,7 +291,8 @@ impl BuffKind {
             | BuffKind::Resilience
             | BuffKind::SnareShot
             | BuffKind::OwlTalon
-            | BuffKind::HeavyNock => BuffDescriptor::SimplePositive,
+            | BuffKind::HeavyNock
+            | BuffKind::Heartseeker => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -580,7 +587,11 @@ impl BuffKind {
                 .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile)),
             )],
             BuffKind::OwlTalon => vec![
-                BuffEffect::ConditionalPrecisionOverride(CombatRequirement::TargetUnwielded, 1.0),
+                BuffEffect::ConditionalPrecisionModifier(
+                    CombatRequirement::TargetUnwielded,
+                    1.0,
+                    false,
+                ),
                 BuffEffect::AttackDamage(1.0 + data.strength),
             ],
             BuffKind::HeavyNock => {
@@ -608,22 +619,31 @@ impl BuffKind {
                     BuffEffect::AttackEffect(poise),
                 ]
             },
+            BuffKind::Heartseeker => {
+                let energy =
+                    AttackEffect::new(None, CombatEffect::EnergyReward(40.0 * data.strength))
+                        .with_requirement(CombatRequirement::AnyDamage)
+                        .with_requirement(CombatRequirement::AttackSource(
+                            AttackSource::Projectile,
+                        ));
+                vec![
+                    BuffEffect::ConditionalPrecisionModifier(
+                        CombatRequirement::AttackSource(AttackSource::Projectile),
+                        data.strength * 0.5,
+                        false,
+                    ),
+                    BuffEffect::AttackEffect(energy),
+                ]
+            },
         }
     }
 
     fn extend_cat_ids(&self, mut cat_ids: Vec<BuffCategory>) -> Vec<BuffCategory> {
+        // TODO: Remove clippy allow after another buff needs this
+        #[allow(clippy::single_match)]
         match self {
-            BuffKind::ImminentCritical => {
-                cat_ids.push(BuffCategory::RemoveOnAttack);
-            },
             BuffKind::PotionSickness => {
                 cat_ids.push(BuffCategory::PersistOnDowned);
-            },
-            BuffKind::OwlTalon => {
-                cat_ids.push(BuffCategory::RemoveOnAttack);
-            },
-            BuffKind::HeavyNock => {
-                cat_ids.push(BuffCategory::RemoveOnAttack);
             },
             _ => {},
         }
@@ -827,9 +847,10 @@ pub enum BuffEffect {
     AttackDamage(f32),
     /// Overrides the precision multiplier applied to an attack
     PrecisionOverride(f32),
-    /// Overrides the precision multiplier applied to an attack if the condition
-    /// is met
-    ConditionalPrecisionOverride(CombatRequirement, f32),
+    /// Adds a precision modifier applied to an attack if the condition
+    /// is met, also allows for the modifier to optionally override other
+    /// precision bonuses
+    ConditionalPrecisionModifier(CombatRequirement, f32, bool),
     /// Overrides the precision multiplier applied to an incoming attack
     PrecisionVulnerabilityOverride(f32),
     /// Changes body.

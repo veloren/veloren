@@ -188,6 +188,9 @@ buff-owltalon = Owl Talon
 ## Heavy Nock
 buff-heavynock = Heavy Nock
     .desc = Nock a heavier arrow to your bow, allowing your next shot to stagger the target. The heavier arrow will have less momentum at longer ranges though.
+## Heartseeker
+buff-heartseeker = Heartseeker
+    .desc = Your next arrow will strike your enemy as if it'd dealt a heartwound, causing a more serious wound and giving you energy.
 ## Util
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove

@@ -7,5 +7,6 @@ SelfBuff(
         strength: 1.0,
         duration: None,
     ),
+    buff_cat: Some(RemoveOnShoot),
     energy_cost: 10,
 )

@@ -1670,6 +1670,13 @@ impl Animation for BasicAction {
                 next.hold.scale *= 1.0 + move1base / 2.0;
                 next.hold.position += Vec3::new(0.0, 0.0, -2.5) * move1;
             },
+            Some("common.abilities.bow.heartseeker") => {
+                bow_start(&mut next, s_a);
+
+                next.control.orientation.rotate_y(move1 * 0.4);
+                next.control.orientation.rotate_x(move1 * 0.6);
+                next.control.position += Vec3::new(4.0, 0.0, 6.0) * move1;
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================
