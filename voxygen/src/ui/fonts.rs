@@ -28,6 +28,7 @@ macro_rules! conrod_fonts {
             }
 
             impl Fonts {
+                // TODO: test that no additional fonts are present
                 pub fn load(fonts: &i18n::Fonts, ui: &mut crate::ui::Ui) -> Result<Self, assets::Error> {
                     Ok(Self {
                         $( $name: Font::new(fonts.get(stringify!($name)).unwrap(), ui)?, )*
@@ -39,6 +40,7 @@ macro_rules! conrod_fonts {
 }
 
 conrod_fonts! {
+    // TODO: wizard and metamorph aren't used, should we remove them?
     [opensans, metamorph, alkhemi, cyri, wizard]
 }
 
