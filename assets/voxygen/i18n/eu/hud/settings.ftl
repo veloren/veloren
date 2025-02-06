@@ -100,7 +100,6 @@ hud-settings-shadow_rendering_mode-cheap = Arina
 hud-settings-shadow_rendering_mode-map = Mapa
 hud-settings-shadow_rendering_mode-map-resolution = Bereizmena
 hud-settings-lod_detail = LoD xehetasunak
-hud-settings-save_window_size = Gorde leihoaren tamaina
 hud-settings-reset_graphics = Berreskuratu lehenetsiak
 hud-settings-bloom = Kameraren efektua
 hud-settings-point_glow = Puntu disdira

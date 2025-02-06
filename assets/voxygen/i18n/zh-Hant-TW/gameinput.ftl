@@ -37,7 +37,6 @@ gameinput-chat = 聊天
 gameinput-command = 指令
 gameinput-escape = 離開
 gameinput-map = 地圖
-gameinput-bag = 背包
 gameinput-trade = 交易
 gameinput-social = 社交
 gameinput-sit = 坐下

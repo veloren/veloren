@@ -297,3 +297,6 @@ npc-speech-witness_theft_owned =
     .a0 = Hej! To je moje.
     .a1 = Proč saháš na moje věci?
     .a2 = Jestli mi budeš brát věci, nejsi tu vítán.
+npc-speech-thank_you =
+    .a0 = Díky!
+    .a1 = Děkuji

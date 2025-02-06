@@ -36,7 +36,6 @@ gameinput-chat = Chat
 gameinput-command = Comando
 gameinput-escape = Esci
 gameinput-map = Mappa
-gameinput-bag = Borsa
 gameinput-trade = Commercio
 gameinput-social = Social
 gameinput-sit = Sedersi

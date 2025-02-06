@@ -32,7 +32,6 @@ gameinput-chat = チャット
 gameinput-command = コマンド
 gameinput-escape = メニューへ
 gameinput-map = 地図
-gameinput-bag = バッグ
 gameinput-trade = 取引
 gameinput-social = ソーシャル
 gameinput-sit = 座る

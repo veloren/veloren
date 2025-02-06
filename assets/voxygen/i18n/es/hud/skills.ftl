@@ -172,7 +172,6 @@ hud-skill-st_flamethrower_range = Las llamas llegan un { $boost } % más lejos.{
 
 ## Onda de choque
 
--hud-skill-st_shockwave_title = Onda de choque
 hud-skill-st_shockwave_unlock_title = Desbloquear Onda de choque
 hud-skill-st_shockwave_unlock = Desbloquea la habilidad de lanzar por los aires a los enemigos usando fuego.{ $SP }
 hud-skill-st_shockwave_damage_title = Daño de Onda de choque

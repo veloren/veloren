@@ -99,7 +99,6 @@ hud-settings-shadow_rendering_mode-map = 地图
 hud-settings-shadow_rendering_mode-map-resolution = 分辨率
 hud-settings-rain_occlusion-resolution = Rain Occlusion Resolution
 hud-settings-lod_detail = LoD细节
-hud-settings-save_window_size = 保存窗口尺寸
 hud-settings-reset_graphics = 重置为默认
 hud-settings-bloom = Bloom
 hud-settings-point_glow = Point Glow

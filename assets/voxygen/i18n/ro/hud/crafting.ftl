@@ -1,11 +1,11 @@
 hud-crafting = Meșteșug
 hud-crafting-recipes = Rețete
 hud-crafting-ingredients = Ingrediente:
-hud-crafting-craft = Craft
+hud-crafting-craft = Construiește
 hud-crafting-anvil = Nicovală
 hud-crafting-cauldron = Cazan
 hud-crafting-cooking_pot = Oală de gătit
-hud-crafting-crafting_bench = Masă de meșteșug
+hud-crafting-crafting_bench = Masă de lucru
 hud-crafting-forge = Forjă
 hud-crafting-loom = Tăbăcărie
 hud-crafting-spinning_wheel = Roată de Tors
@@ -27,7 +27,7 @@ hud-crafting-dismantle_title = Demontare
 hud-crafting-dismantle_explanation =
     Pune cursorul peste iteme ca
     să vezi ce poți demonta.
-    
+
     Dublu-Clic pentru a începe demontarea.
 hud-crafting-modular_desc = Trage bucăți de iteme aici pentru a face o armă
 hud-crafting-mod_weap_prim_slot_title = Componentă Principală de Armă
@@ -40,3 +40,9 @@ hud-crafting-mod_comp_wood_prim_slot_title = Lemn
 hud-crafting-mod_comp_wood_prim_slot_desc = Plasează un tip de lemn aici, doar unele tipuri de lemn pot fi folosite pentru arme.
 hud-crafting-mod_comp_sec_slot_title = Material de Animal
 hud-crafting-mod_comp_sec_slot_desc = (Optional) Plasează un ingredient de animal, doar unlete tipuri de ingrediente pot fi folosite pentru a augmenta arme.
+hud-crafting-craft_all = Construiți Tot
+hud-crafting-repair-selection = Selecția
+hud-crafting-repair_equipped = Echipat
+hud-crafting-repair_all = Toate
+hud-crafting-tool_cata = Unelte:
+hud-crafting-req_crafting_station = Masă de lucru:

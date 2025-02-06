@@ -2,14 +2,14 @@ hud-map-map_title = Hartă
 hud-map-qlog_title = Misiuni
 hud-map-topo_map = Topografic
 hud-map-difficulty = Dificultate
-hud-map-towns = Sate
+hud-map-towns = Comune
 hud-map-castles = Castele
 hud-map-dungeons = Temnițe
-hud-map-caves = Perșteri
+hud-map-caves = Peșteri
 hud-map-cave = Peșteră
 hud-map-peaks = Munți
 hud-map-biomes = Biomuri
-hud-map-voxel_map = Hartă Voxel
+hud-map-voxel_map = Hartă din voxeli
 hud-map-trees = Copaci Giganți
 hud-map-tree = Copac Gigant
 hud-map-town = Sat
@@ -17,7 +17,7 @@ hud-map-castle = Castel
 hud-map-dungeon = Termință
 hud-map-difficulty_dungeon =
     Dificultatea
-    
+
     Terminței: { $difficulty }
 hud-map-drag = Trage
 hud-map-zoom = Zoom

@@ -35,7 +35,6 @@ gameinput-chat = Чат
 gameinput-command = Каманда
 gameinput-escape = Выхад
 gameinput-map = Мапа
-gameinput-bag = Торба
 gameinput-trade = Гандляваць
 gameinput-social = Іншыя гульцы
 gameinput-sit = Сесці

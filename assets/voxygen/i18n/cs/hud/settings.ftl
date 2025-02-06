@@ -82,7 +82,6 @@ hud-settings-shadow_rendering_mode-cheap = Levný
 hud-settings-shadow_rendering_mode-map = Mapa
 hud-settings-shadow_rendering_mode-map-resolution = Rozlišení
 hud-settings-lod_detail = Vykreslovací vzdálenost detailů
-hud-settings-save_window_size = Pamatovat velikost okna
 hud-settings-reset_graphics = Výchozí nastavení
 hud-settings-bloom = Rozptyl
 hud-settings-master_volume = Celková Hlasitost

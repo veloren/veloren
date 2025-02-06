@@ -55,7 +55,6 @@ hud-settings-particles = Partikler
 hud-settings-resolution = Resolusjon
 hud-settings-bit_depth = Bit Dybde
 hud-settings-refresh_rate = Oppdateringsfrekvens
-hud-settings-save_window_size = Spar vindusstørrelse
 hud-settings-lighting_rendering_mode = Tegn-belysning-modus
 hud-settings-lighting_rendering_mode-ashikhmin = Type A - Høy
 hud-settings-lighting_rendering_mode-blinnphong = Type B - Medium

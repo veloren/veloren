@@ -129,21 +129,6 @@ hud-skill-pick_strike_oregain_title = Hackans Malmavkastning
 hud-skill-pick_strike_oregain = Chans att få extra malm ({ $boost } % per nivå).{ $SP }
 hud-skill-pick_strike_gemgain_title = Hackans Ädelstensavkastning
 hud-skill-pick_strike_gemgain = Chans att få extra ädelstenar ({ $boost } % per nivå).{ $SP }
-# internal terms, currently only used in ES
-# If we remove them here, they also get auto-removed in ES,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-sc_wardaura_title = ""
-# internal terms, currently only used in ES
-# If we remove them here, they also get auto-removed in ES,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-bow_shotgun_title = ""
-# internal terms, currently only used in ES
-# If we remove them here, they also get auto-removed in ES,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-st_shockwave_title = ""
 # Skill tree error dialog
 hud-skill-persistence-common_message = Några av dina erfarenhetspoäng har blivit nollställda. Du kommer behöva omfördela dem.
 # Skill tree error dialog

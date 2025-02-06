@@ -70,7 +70,6 @@ hud-settings-shadow_rendering_mode-cheap = Basit
 hud-settings-shadow_rendering_mode-map = Ayrıntılı
 hud-settings-shadow_rendering_mode-map-resolution = Çözünürlük
 hud-settings-lod_detail = Uzak Cisim Detayı
-hud-settings-save_window_size = Pencere boyutunu kaydet
 hud-settings-music_volume = Müzik Sesi
 hud-settings-sound_effect_volume = Efekt Sesi
 hud-settings-audio_device = Ses Aygıtı

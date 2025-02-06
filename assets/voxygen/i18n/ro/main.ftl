@@ -1,37 +1,34 @@
 main-username = Nume de utilizator
 main-server = Server
-main-password = Parola
-main-connecting = Se conectează
-main-creating_world = Se creează lumea
+main-password = Parolă
+main-connecting = Conectare
+main-creating_world = Creare lume
 main-tip = Sfat:
 main-unbound_key_tip = nelegat
 main-notice =
-    Bine ai venit în versiunea alfa de Veloren!
+    Bine ai venit la versiunea alfa a jocului Veloren!
 
-    Înainte să începi distracția, te rog să ții minte câteva lucruri:
+    Înainte de a începe distracția, te rugam să ții în minte unele lucruri:
 
-    - Această versiune de joc este prematură. Așteaptă-te la erori, gameplay nefinisat, mecanisme nelustruite și caracteristici care lipsesc. 
+    - Este o versiune alfa foarte instabilă. Așteaptă-te la erori, gameplay incomplet, mecanici care nu sunt gata de lansare, și lucruri care lipsesc.
 
-    - Dacă ai feedback constructiv sau rapoarte de erori, ne poți contacta pe Reddit, GitLab sau în serverul nostru de comunitate pe Discord.
+    - Dacă ai feedback constructiv sau vrei să raportezi erori, ne poți contacta prin repozitoriul nostru de GitLab și pe serverele noastre de Discord sau Matrix.
 
-    - Veloren este licențiat sub licența susră-deschisă(„open-source”) GPL 3. Asta înseamnă că ești liber să joci, să modifici și să redistribui jocul 
-     după gustul tău (cu condiția ca munca derivată să fie sub GPL 3).
+    - Codul Veloren este deschis și disponibil tuturor. Ești liber să te joci, sa modifici, și să re-distribui jocul conform versiunii 3 a licenței GNU General Public
 
-    - Veloren este un proiect non-profit al comunotații, iar cei care lucrează la el sunt voluntari.
-    Daca îți place ce vezi, ești binevenit să te alături echipelor de dezvoltare sau echipelor de artă!
+    - Veloren este un proiect non-profit al comunității, și toată lumea care lucrează este un voluntar.
+    Dacă îți place ce vezi, ești binevenit să te alături oricăruia dintre grupurile noastre de lucru!
 
-    Îți mulțumim că ai citit acest anunț, sperăm că te vei distra!
+    Mulțumim pentru timpul acordat citirii acest anunț, sperăm că te vei bucura de joc!
 
-    ~ Dezvoltatorii Veloren
+    ~ Echipa de dezvoltare
 main-login_process =
-    Informații privind procesul de autentificare:
+    Informații privind modul multiplayer:
 
-    Ține minte că îți trebuie un cont
-    pentru a juca pe servere cu autentificarea activată.
+    Ține minte că îți trebuie un cont pentru a juca pe servere cu autentificarea activată.
 
-    Poți să-ți faci un cont pe
-
-    https://veloren.net/account/.
+    Poți să-ți faci un cont pe:
+    https://veloren.net/account/
 main-login-server_not_found = Serverul nu a fost găsit
 main-login-authentication_error = Eroare de autentificare pe server
 main-login-internal_error = Eroare internă pe client (cel mai probabil, personajul jucătorului a fost șters)
@@ -92,3 +89,7 @@ loading-tips =
     .a19 = Apasă '{ $gameinput-roll }' ca să te rostogolești. Rostogolindu-te poți să te miști mai repede și să eviți atacurile inamicilor.
     .a20 = Nu știi pentru ce folosești un item? Cauată 'input:<item name>' în meniul de meșteșuguri ca să vezi rețetele în care este folosit.
     .a21 = Ai găsit ceva interesant? Ia o captură de ecran cu '{ $gameinput-screenshot }'.
+main-singleplayer-new = Nou
+main-singleplayer-regenerate = Regenerare
+main-singleplayer-create_custom = Creează Personalizat
+main-singleplayer-delete = Șterge

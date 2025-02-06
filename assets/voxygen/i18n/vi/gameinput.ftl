@@ -35,7 +35,6 @@ gameinput-chat = Trò Chuyện
 gameinput-command = Lệnh
 gameinput-escape = Thoát
 gameinput-map = Bản Đồ
-gameinput-bag = Túi
 gameinput-trade = Giao Dịch
 gameinput-social = Xã Hội
 gameinput-sit = Ngồi

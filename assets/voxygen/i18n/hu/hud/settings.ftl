@@ -80,7 +80,6 @@ hud-settings-shadow_rendering_mode-cheap = Olcsó
 hud-settings-shadow_rendering_mode-map = térkép
 hud-settings-shadow_rendering_mode-map-resolution = Felbontás
 hud-settings-lod_detail = Részletesség mértéke
-hud-settings-save_window_size = Ablakméret mentése
 hud-settings-reset_graphics = Alapértékek visszaállítása
 hud-settings-master_volume = Fő hangerő
 hud-settings-inactive_master_volume_perc = Inaktív ablak hangereje

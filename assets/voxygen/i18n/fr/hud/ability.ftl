@@ -151,81 +151,6 @@ common-abilities-sword-cleaving_cross_cut = Coupe croisée tranchante
 # Sword abilities
 common-abilities-sword-basic_dual_cross_cut = Coupe croisée basique
     .desc = Une entaille basique simultanée à droite et à gauche.
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--heavy_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crippling_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--agile_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--defensive_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crippling_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--basic_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--heavy_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--agile_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--defensive_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cleaving_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--double_slash = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--modified_depending_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crescent_slash = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--fell_strike = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cleaving_stance = ""
 common-abilities-sword-basic_mighty_strike = Frappe puissante
     .desc =
         Un coup simple et puissant.
@@ -282,3 +207,45 @@ common-abilities-axe-adrenaline_rush = Montée d'adrénaline
     .desc =
         Consomme tout votre combo pour récupérer votre énergie.
         S'amplifie avec le combo à l'activation, consomme votre combo.
+common-abilities-hammer-dual_upheaval = Soulèvement
+    .desc = Enfonce ton marteau dans l'ennemi, le soulevant dans les airs et le laissant dans un état d'étourdissement.
+common-abilities-hammer-vigorous_bash = Coup énergique
+    .desc = Utilise la tête de votre marteau pour frapper rapidement vos ennemis, donnant une poussée d’adrénaline si la cible est déséquilibrée.
+common-abilities-hammer-dual_heavy_whorl = Tourbillon lourd
+    .desc = Vous frappez tous les ennemis avoisinants avec votre marteau.
+common-abilities-hammer-spine_cracker = Rupture de colonne vertébrale
+    .desc = Lorsque votre ennemi vous tourne le dos, frappez-le fort dans le dos, ciblant la partie faible de sa colonne vertébrale.
+common-abilities-hammer-dual_iron_tempest = Tempête de fer
+    .desc = Balance le marteau aussi vite qu'il en devient une tempête, dispersant vos ennemis.
+common-abilities-hammer-rampart = Rempart
+    .desc = Frappe le sol, entraînant un soulèvement tectonique pour protéger vos alliés des attaques.
+common-abilities-hammer-seismic_shock = Choc sismique
+    .desc = Après avoir accumulé suffisamment de combos dans votre marteau, frappe le sol avec force pour qu'il éclate vers l'extérieur, jetant vos ennemis en l'air.
+common-abilities-hammer-tremor = Secousse
+    .desc = Frappez la terre avec une force suffisante pour que le sol tremble sous vos ennemis.
+common-abilities-hammer-breach = Brèche
+    .desc = Brisez la tentative de défense de votre ennemi avec un coup de marteau.
+common-abilities-hammer-heavy_whorl = Tourbillon écrasant
+    .desc = Vous frappez tous les ennemis avoisinants avec votre marteau.
+common-abilities-hammer-intercept = Interception
+    .desc = Charge avant avec ton marteau, le poussant avec ton poids.
+common-abilities-hammer-dual_intercept = Interception
+    .desc = Charge avant avec ton marteau, le poussant avec ton poids.
+common-abilities-hammer-retaliate = Riposter
+    .desc = Après avoir bloqué une attaque, riposter avec un coup lourd.
+common-abilities-hammer-pile_driver = Enfonce-pieux
+    .desc = Frappe votre ennemi en l'enterrant dans le sol, arrêtant son mouvement jusqu’à ce qu’il libère ses jambes.
+common-abilities-hammer-helm_crusher = Broyeur de casque
+    .desc = Frappe la tête de votre ennemi avec votre marteau, le commotionnant.
+common-abilities-hammer-iron_tempest = Tempête de fer
+    .desc = Balance le marteau aussi vite qu'il en devient une tempête, dispersant vos ennemis.
+common-abilities-hammer-upheaval = Soulèvement
+    .desc = Enfonce ton marteau dans l'ennemi, le soulevant dans les airs et le laissant dans un état d'étourdissement.
+common-abilities-hammer-tenacity = Ténacité
+    .desc = Maintenir sa force face aux slaves d'attaque, en continuant d'attaquer sans interruption.
+common-abilities-hammer-thunderclap = Coup de tonnerre
+    .desc = Lance une attaque aérienne dévastatrice et pleine d'adrénaline contre votre ennemi.
+common-abilities-hammer-earthshaker = Tremblement de terre
+    .desc = Enfonce la tête de votre marteau trempé de sang dans le sol, libérant une onde de choc qui assomme tout le monde autour de vous.
+common-abilities-hammer-judgement = Jugement
+    .desc = Amène votre marteau sur votre ennemi avec tout votre poids, les tuant directement s’ils sont titubants.

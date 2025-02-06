@@ -35,7 +35,6 @@ gameinput-chat = Abrir Chat
 gameinput-command = Insertar Comandos
 gameinput-escape = Menú
 gameinput-map = Mapa
-gameinput-bag = Inventario
 gameinput-trade = Comerciar
 gameinput-social = Lista de jugadores
 gameinput-sit = Sentarse

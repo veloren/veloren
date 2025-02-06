@@ -36,7 +36,6 @@ gameinput-chat = Чат
 gameinput-command = Команда
 gameinput-escape = Вихід
 gameinput-map = Мапа
-gameinput-bag = Інвентар
 gameinput-trade = Торгувати
 gameinput-social = Інші гравці
 gameinput-sit = Сісти

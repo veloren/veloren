@@ -108,7 +108,6 @@ hud-settings-shadow_rendering_mode-map = 지도
 hud-settings-shadow_rendering_mode-map-resolution = 해상도
 hud-settings-rain_occlusion-resolution = Rain Occlusion Resolution
 hud-settings-lod_detail = LoD Detail
-hud-settings-save_window_size = Save window size
 hud-settings-reset_graphics = 기본값으로 되돌리기
 hud-settings-minimal_graphics = 최소
 hud-settings-low_graphics = 낮음

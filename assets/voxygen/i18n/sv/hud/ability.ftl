@@ -261,8 +261,6 @@ common-abilities-sword-cleaving_sky_splitter = Himmelsklyvare
     .desc =
         Ett kraftfullt hugg som till och med sägs kunna klyva himlen, men kommer klyva genom fiender.
         Kräver klyvande hållning.
--heavy_stance = ""
--agile_stance = ""
 common-abilities-axe-execute = Avrätta
     .desc =
         Ett förödande slag som ofta är känd att vara fatal.
@@ -295,101 +293,6 @@ common-abilities-debug-glide_speeder = Vroom
 # Debug abilities
 common-abilities-debug-glide_boost = Vroom
     .desc = Ger dig kraften att nå himlen.
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--agile_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crippling_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cleaving_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--basic_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--heavy_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--defensive_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crippling_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cleaving_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--double_slash = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--modified_depending_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crescent_slash = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--fell_strike = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--skewer = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cascade = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cross_cut = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--requires_moderate_combo = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--require_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--defensive_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--enter_stance = ""
 # Axe abilities
 common-abilities-hammer-helm_crusher = Hjälmkrossare
     .desc = Slå din fiendes huvud med din hammare, och ge dem hjärnskakning.

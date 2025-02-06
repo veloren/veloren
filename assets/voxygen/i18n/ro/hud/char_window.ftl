@@ -1,4 +1,4 @@
-character_window-character_name = Nume Personaj
+character_window-character_name = Nume personaj
 character_window-character_stats =
     Rezistență
 

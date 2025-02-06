@@ -85,7 +85,6 @@ hud-settings-shadow_rendering_mode-cheap = Barat
 hud-settings-shadow_rendering_mode-map = Mapa
 hud-settings-shadow_rendering_mode-map-resolution = Resolució
 hud-settings-lod_detail = Nivell de Detall
-hud-settings-save_window_size = Desar Mida de la Finestra
 hud-settings-reset_graphics = Configuració per defecte
 hud-settings-bloom = Bloom
 hud-settings-point_glow = Point Glow

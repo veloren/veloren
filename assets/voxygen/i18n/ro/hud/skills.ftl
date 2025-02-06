@@ -1,11 +1,14 @@
-hud-rank_up = Punct de Abilitate Nou
-hud-skill-sp_available = { $number } PA valabile
-hud-skill-not_unlocked = Nedeblocat încă
-hud-skill-req_sp =
-    { "\u000A" }
-
-    Necesită { $number } PA
-hud-skill-unlck_sword_title = Deblochează Sabia
+hud-rank_up = Punct de abilitate nou
+hud-skill-sp_available =
+    { $number ->
+        [0] Nu ai puncte de abilitate
+        [1] Ai { $number } punct de abilitate
+        [few] Ai { $number } puncte de abilitate
+       *[other] Ai { $number } de puncte de abilitate
+    }
+hud-skill-not_unlocked = Nu este încă deblocat
+hud-skill-req_sp = { "\u000A" }Necesită { $number } PA
+hud-skill-unlck_sword_title = Competență cu sabia
 hud-skill-unlck_sword = Deblochează copacul abilitaților pentru sabie{ $SP }
 hud-skill-unlck_axe_title = Deblochează Topor
 hud-skill-unlck_axe = Deblochează copacul abilitaților pentru topor{ $SP }
@@ -126,3 +129,12 @@ hud-skill-pick_strike_oregain_title = Extras de minereuri
 hud-skill-pick_strike_oregain = Sansa sa primesti un minereu in plus ({ $boost }% per nivel){ $SP }
 hud-skill-pick_strike_gemgain_title = Extras de gemuri
 hud-skill-pick_strike_gemgain = Sansa sa primesti un gem in plus ({ $boost }% per nivel){ $SP }
+hud-skill_tree-sword = Sabie
+hud-skill_tree-axe = Topor
+hud-skill_tree-general = Bătălii generale
+hud-skill_tree-hammer = Ciocan
+hud-skill_tree-bow = Arc
+hud-skill_tree-staff = Baston de foc
+hud-skill_tree-sceptre = Sceptru
+hud-skill_tree-mining = Minat
+hud-skill-set_as_exp_bar = Urmărește progresul în bara de experiență

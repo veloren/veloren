@@ -77,7 +77,6 @@ hud-settings-shadow_rendering_mode-cheap = Kém
 hud-settings-shadow_rendering_mode-map = Bản đồ
 hud-settings-shadow_rendering_mode-map-resolution = Độ phân giải
 hud-settings-lod_detail = Chi tiết LoD
-hud-settings-save_window_size = Lưu kích thước cửa sổ
 hud-settings-reset_graphics = Thiết lập mặc định
 hud-settings-master_volume = Âm lượng tổng
 hud-settings-inactive_master_volume_perc = Âm lượng cửa sổ không kích hoạt

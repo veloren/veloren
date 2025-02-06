@@ -129,18 +129,3 @@ hud-skill-pick_strike_oregain_title = Resa materiali grezzi picconata
 hud-skill-pick_strike_oregain = Possibilità di ottenere materiale grezzo extra del ({ $boost }% per livello){ $SP }
 hud-skill-pick_strike_gemgain_title = Resa gemme picconata
 hud-skill-pick_strike_gemgain = Possibilità di ottenere gemme extra del ({ $boost }% per livello){ $SP }
-# Internal terms, currently only used in es
-# If we remove them here, they also get auto-removed in es,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-sc_wardaura_title = ""
-# Internal terms, currently only used in es
-# If we remove them here, they also get auto-removed in es,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-bow_shotgun_title = ""
-# Internal terms, currently only used in es
-# If we remove them here, they also get auto-removed in es,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-st_shockwave_title = ""

@@ -1,6 +1,6 @@
-hud-bag-inventory = Invetarul lui { $playername }
-hud-bag-stats_title = Statisticile lui { $playername }
-hud-bag-armor = Armura
+hud-bag-inventory = Inventarul jucătorului { $playername }
+hud-bag-stats_title = Statisticile jucătorului { $playername }
+hud-bag-armor = Armură
 hud-bag-stats = Statistici
 hud-bag-head = Cap
 hud-bag-neck = Gât

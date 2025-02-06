@@ -271,104 +271,9 @@ common-abilities-sword-agile_dual_flurry = Ráfaga de estocadas
     .desc =
         Arremete con una serie de estocadas usando ambas espadas.
         Requiere estar en la posición ágil.
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--defensive_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crippling_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cleaving_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--basic_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--agile_stance = ""
 # Debug abilities
 common-abilities-debug-glide_speeder = Bbrrrum
     .desc = Consigues el poder para llegar hasta dónde alcance tu mirada.
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--heavy_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--agile_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--defensive_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crippling_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cleaving_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--double_slash = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--modified_depending_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crescent_slash = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--fell_strike = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--skewer = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cascade = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--requires_moderate_combo = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--enter_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--require_stance = ""
 # Sword abilities
 common-abilities-sword-agile_dual_perforate = Torrente de estocadas
     .desc = Arremete con una gran serie de golpes ligeros con ambas espadas.
@@ -466,16 +371,6 @@ common-abilities-axe-execute = Ejecución
         Un golpe devastador que suele ser letal.
         Requiere 30 de combo para usarse.
         Esta habilidad se convierte en "Torbellino" si tienes al menos 50 de combo.
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--heavy_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cross_cut = ""
 # Sword abilities
 common-abilities-sword-cleaving_dual_spiral_slash = Torbellino carmesí
     .desc = Gira con ambas espadas para golpear a todo cuánto te rodee.
