@@ -73,6 +73,7 @@ struct Language {
     /// Font configuration is stored here
     pub(crate) fonts: Fonts,
     pub(crate) metadata: LanguageMetadata,
+    pub(crate) convert_utf8_to_ascii: bool,
 }
 
 impl Language {
@@ -84,6 +85,12 @@ impl Language {
         for err in errs {
             tracing::error!("err: {err} for {key}");
         }
+
+        let msg = if self.convert_utf8_to_ascii {
+            deunicode(&msg).into()
+        } else {
+            msg
+        };
 
         Some(msg)
     }
@@ -104,6 +111,12 @@ impl Language {
         for err in errs {
             tracing::error!("err: {err} for {key}");
         }
+
+        let msg = if self.convert_utf8_to_ascii {
+            deunicode(&msg).into()
+        } else {
+            msg
+        };
 
         Some(msg)
     }
@@ -150,10 +163,15 @@ impl Language {
             tracing::error!("err: {err} for {key}");
         }
 
+        let msg = if self.convert_utf8_to_ascii {
+            deunicode(&msg).into()
+        } else {
+            msg
+        };
+
         Some(msg)
     }
 }
-
 impl assets::Compound for Language {
     fn load(cache: assets::AnyCache, path: &SharedString) -> Result<Self, assets::BoxedError> {
         let manifest = cache
@@ -174,17 +192,6 @@ impl assets::Compound for Language {
                 Ok(handle) => {
                     let source: &raw::Resource = &handle.read();
                     let src = source.src.clone();
-
-                    // NOTE:
-                    // This deunicode whole file, which mean it may break if
-                    // we have non-ascii keys.
-                    // I don't consider this a problem, because having
-                    // non-ascii keys is quite exotic.
-                    let src = if convert_utf8_to_ascii {
-                        deunicode(&src)
-                    } else {
-                        src
-                    };
 
                     let resource = FluentResource::try_new(src).map_err(|(_ast, errs)| {
                         ResourceErr::parsing_error(errs, id.to_string(), &source.src)
@@ -210,6 +217,7 @@ impl assets::Compound for Language {
             bundle,
             fonts,
             metadata,
+            convert_utf8_to_ascii,
         })
     }
 }
