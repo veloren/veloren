@@ -112,7 +112,6 @@ hud-settings-shadow_rendering_mode-map = Kartlagd
 hud-settings-shadow_rendering_mode-map-resolution = Upplösning
 hud-settings-rain_occlusion-resolution = Regnocklusionsupplösning
 hud-settings-lod_detail = LoD-detalj
-hud-settings-save_window_size = Spara fönsterstorlek
 hud-settings-reset_graphics = Återställ till standard
 hud-settings-minimal_graphics = Minimal
 hud-settings-low_graphics = Låg

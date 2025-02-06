@@ -35,7 +35,6 @@ gameinput-chat = Txata
 gameinput-command = Agindua
 gameinput-escape = Ihes egin
 gameinput-map = Mapa
-gameinput-bag = Zorroa
 gameinput-trade = Trukaketa
 gameinput-social = Soziala
 gameinput-sit = Eseri

@@ -21,46 +21,6 @@ veloren-core-pseudo_abilities-sword-double_slash = Двойной удар
 # Sword abilities
 common-abilities-sword-crippling_double_slash = Калечащий Двойной Удар
     .desc = Двойной удар, который может наложить кровотечение на врага.
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--basic_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--agile_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--defensive_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crippling_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cleaving_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--heavy_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--agile_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--defensive_state = ""
 # Sword abilities
 common-abilities-sword-cleaving_double_slash = Рассекающий Двойной Удар
     .desc = Двойной удар, способный рассечь несколько врагов.
@@ -82,71 +42,6 @@ common-abilities-sword-agile_dual_perforate = Шквал
 # Sword abilities
 common-abilities-sword-crippling_deep_rend = Глубокий Разрыв
     .desc = Удар по раненному противнику, наносит больше урона истекающим кровью врагам.
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--heavy_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crippling_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cleaving_state = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--double_slash = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--modified_depending_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--crescent_slash = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--fell_strike = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--skewer = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cascade = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--cross_cut = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--requires_moderate_combo = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--enter_stance = ""
-# Internal terms, currently only used in zh-Hans.
-# If we remove them here, they also get auto-removed in zh-Hans,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--require_stance = ""
 # Sword abilities
 common-abilities-sword-cleaving_spiral_slash = Спиральный Взмах
     .desc = Взмахните клинком вокруг, чтобы поразить всех рядом.

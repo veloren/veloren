@@ -129,7 +129,6 @@ hud-settings-shadow_rendering_mode-map = Карта тіней
 hud-settings-shadow_rendering_mode-map-resolution = Роздільна здатність
 hud-settings-rain_occlusion-resolution = Роздільна здатність дощової оклюзії
 hud-settings-lod_detail = Рівень деталізації
-hud-settings-save_window_size = Зберегти розмір вікна
 hud-settings-reset_graphics = За замовчуванням
 hud-settings-minimal_graphics = Мінімальне
 hud-settings-low_graphics = Низьке

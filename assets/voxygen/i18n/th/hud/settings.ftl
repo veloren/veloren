@@ -86,7 +86,6 @@ hud-settings-shadow_rendering_mode-cheap = ต่ำ
 hud-settings-shadow_rendering_mode-map = แมพ
 hud-settings-shadow_rendering_mode-map-resolution = Resolution
 hud-settings-lod_detail = รายละเอียด LoD
-hud-settings-save_window_size = บันทึกขนาดหน้าจอ
 hud-settings-reset_graphics = ใช้ค่าเริ่มต้น
 hud-settings-bloom = แสงฟุ้ง (Bloom)
 hud-settings-point_glow = จุดเรืองแสง

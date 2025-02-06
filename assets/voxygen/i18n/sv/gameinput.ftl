@@ -35,7 +35,6 @@ gameinput-chat = Prata
 gameinput-command = Kommando
 gameinput-escape = Escape
 gameinput-map = Karta
-gameinput-bag = Säck
 gameinput-trade = Byteshandla
 gameinput-social = Socialt
 gameinput-sit = Sitt

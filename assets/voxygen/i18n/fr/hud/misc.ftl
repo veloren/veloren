@@ -83,3 +83,5 @@ hud-steal = Voler
 hud-pet = Caresser
 hud-hardcore_char_deleted = Ce personnage hardcore a été supprimé.
 hud-press_key_to_return_to_char_menu = Appuyez sur { $key } pour revenir au menu des personnages.
+hud-items_will_lose_dur = Votre outil équipé va perdre de la durabilité.
+hud-items_lost_dur = Votre outil équipé a perdu de la durabilité.

@@ -112,7 +112,6 @@ hud-settings-shadow_rendering_mode-map = Mapa
 hud-settings-shadow_rendering_mode-map-resolution = Resolução
 hud-settings-rain_occlusion-resolution = Resolução da Obstrução da Chuva
 hud-settings-lod_detail = Detalhes
-hud-settings-save_window_size = Salvar Dim. da Janela
 hud-settings-reset_graphics = Restaurar Padrões
 hud-settings-minimal_graphics = Minimo
 hud-settings-low_graphics = Baixo

@@ -11,6 +11,5 @@ hud-group-add_friend = Přidat Přítele
 hud-group-link_group = Propojit Skupiny
 hud-group-in_menu = V Menu
 hud-group-members = Členové Skupiny
-hug-group-invite-accepted = { $target } přijal tvou pozvánku do skupiny.
 hud-group-invite-declined = { $target } odmítl tvou pozvánku do skupiny.
 hud-group-invite-timed_out = Pozvánka do skupiny pro { $target } vypršela.

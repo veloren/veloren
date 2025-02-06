@@ -1,0 +1,13 @@
+subtitle-bird_call = Păsări cântând
+subtitle-campfire = Foc de tabără pocnind
+subtitle-bees = Albine bâzâind
+subtitle-owl = Bufniță buhăind
+subtitle-running_water = Apă bulbucând
+subtitle-lavapool = Bazin de lavă
+subtitle-lightning = Tunet
+subtitle-portal-activated = Portal Activat
+subtitle-portal-teleported = Teleportat prin portal
+subtitle-footsteps_grass = Mergând pe iarbă
+subtitle-footsteps_earth = Mergând pe pământ
+subtitle-footsteps_rock = Mergând pe pietre
+subtitle-footsteps_snow = Mergând pe gheață

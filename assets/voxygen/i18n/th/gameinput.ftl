@@ -35,7 +35,6 @@ gameinput-chat = สนทนากับผู้เล่น
 gameinput-command = คำสั่ง
 gameinput-escape = หนีออกจากพื้นที่
 gameinput-map = แผนที่
-gameinput-bag = กระเป๋า
 gameinput-trade = แลกของ
 gameinput-social = สังคม
 gameinput-sit = นั่ง

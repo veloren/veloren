@@ -128,7 +128,6 @@ hud-settings-shadow_rendering_mode-map = Высокое
 hud-settings-shadow_rendering_mode-map-resolution = Разрешение
 hud-settings-rain_occlusion-resolution = Разрешение дождевой окклюзии
 hud-settings-lod_detail = Уровень детализации LoD
-hud-settings-save_window_size = Сохранить размер окна
 hud-settings-reset_graphics = По умолчанию
 hud-settings-minimal_graphics = Минимальные
 hud-settings-low_graphics = Низкие

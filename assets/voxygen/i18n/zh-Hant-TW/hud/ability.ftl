@@ -3,27 +3,6 @@
 ## 因此即使英文檔案中未使用，仍請保留它們
 ## 參見 https://github.com/WeblateOrg/weblate/issues/9895
 
--heavy_stance = ""
--agile_stance = ""
--defensive_stance = ""
--crippling_stance = ""
--cleaving_stance = ""
--basic_state = ""
--heavy_state = ""
--agile_state = ""
--defensive_state = ""
--crippling_state = ""
--cleaving_state = ""
--double_slash = ""
--modified_depending_stance = ""
--crescent_slash = ""
--fell_strike = ""
--skewer = ""
--cascade = ""
--cross_cut = ""
--requires_moderate_combo = ""
--enter_stance = ""
--require_stance = ""
 
 ## 除錯能力
 

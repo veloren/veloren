@@ -32,7 +32,6 @@ gameinput-chat = Sohbet
 gameinput-command = Komut
 gameinput-escape = Oyunu Duraklat
 gameinput-map = Harita
-gameinput-bag = Envanter
 gameinput-social = Sosyal
 gameinput-sit = Otur
 gameinput-settings = Ayarlar

@@ -95,3 +95,4 @@ common-material-stone = Kamień
 common-material-cloth = Tkanina
 common-material-hide = Skóra
 common-sprite-chest = Skrzynia
+common-accessibility = Dostępność

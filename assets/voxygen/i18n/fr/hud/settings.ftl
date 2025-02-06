@@ -112,7 +112,6 @@ hud-settings-shadow_rendering_mode-map = Carte
 hud-settings-shadow_rendering_mode-map-resolution = Résolution
 hud-settings-rain_occlusion-resolution = Résolution de l'occlusion de la pluie
 hud-settings-lod_detail = Détail du rendu distant
-hud-settings-save_window_size = Sauvegarder la taille de fenêtre
 hud-settings-reset_graphics = Restaurer par Défaut
 hud-settings-minimal_graphics = Minimum
 hud-settings-low_graphics = Bas

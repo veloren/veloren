@@ -32,7 +32,6 @@ gameinput-chat = Chat
 gameinput-command = Kommando
 gameinput-escape = Røm
 gameinput-map = Kart
-gameinput-bag = Bag
 gameinput-social = Sosial
 gameinput-sit = Sitt
 gameinput-settings = Innstillinger

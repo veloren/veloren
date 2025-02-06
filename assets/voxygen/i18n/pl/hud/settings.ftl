@@ -108,7 +108,6 @@ hud-settings-shadow_rendering_mode-map = Mapa
 hud-settings-shadow_rendering_mode-map-resolution = Rozdzielczość
 hud-settings-rain_occlusion-resolution = Wykrywanie Okluzji Deszczu
 hud-settings-lod_detail = Jakość LoD
-hud-settings-save_window_size = Zapisz wymiary okna
 hud-settings-reset_graphics = Zresetuj ustawienia
 hud-settings-minimal_graphics = Minimalne
 hud-settings-low_graphics = Niskie

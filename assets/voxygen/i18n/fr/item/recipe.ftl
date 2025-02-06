@@ -26,3 +26,7 @@ recipe-armor-silken = Recettes d'Armures en Soie
     .desc = { "" }
 recipe-armor-steel = Recettes d'Armures en Acier
     .desc = { "" }
+recipe-armor-moonweave = Recettes d'Armures en Tissage lunaire
+    .desc = { "" }
+recipe-equipment-basic = Recette d'équipement basique
+    .desc = { "" }

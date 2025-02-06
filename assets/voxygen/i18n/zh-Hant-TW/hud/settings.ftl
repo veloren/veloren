@@ -120,7 +120,6 @@ hud-settings-shadow_rendering_mode-map = 地圖
 hud-settings-shadow_rendering_mode-map-resolution = 地圖解析度
 hud-settings-rain_occlusion-resolution = 雨水遮擋解析度
 hud-settings-lod_detail = 細節層次
-hud-settings-save_window_size = 保存視窗大小
 hud-settings-reset_graphics = 重設圖形
 hud-settings-minimal_graphics = 最低
 hud-settings-low_graphics = 低

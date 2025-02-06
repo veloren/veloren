@@ -104,7 +104,6 @@ hud-settings-shadow_rendering_mode-map = Mapeado
 hud-settings-shadow_rendering_mode-map-resolution = Resolución
 hud-settings-rain_occlusion-resolution = Resolución de oclusión por lluvia
 hud-settings-lod_detail = Nivel de detalle
-hud-settings-save_window_size = Guardar tamaño de ventana
 hud-settings-reset_graphics = Valores por defecto
 hud-settings-bloom = Efecto de cámara
 hud-settings-point_glow = Brillo puntual

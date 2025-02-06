@@ -135,3 +135,4 @@ subtitle-utterance-sea_crocodile-angry = Sifflement de crocodile marin
 subtitle-utterance-truffler-calm = Grognement de truffler
 subtitle-utterance-adlet-angry = Aboiement d'adlet
 subtitle-utterance-goat-calm = Bêlement de chèvre
+subtitle-instrument_steeldrum = Son de steelpan

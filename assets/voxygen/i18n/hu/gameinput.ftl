@@ -33,7 +33,6 @@ gameinput-chat = Csevegés
 gameinput-command = Parancs
 gameinput-escape = Kilépés
 gameinput-map = Térkép
-gameinput-bag = Holmi
 gameinput-trade = Üzletelés
 gameinput-social = Közösségi
 gameinput-sit = Leülés

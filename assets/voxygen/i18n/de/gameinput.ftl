@@ -35,7 +35,6 @@ gameinput-chat = Chat
 gameinput-command = Befehl
 gameinput-escape = Fliehen
 gameinput-map = Karte
-gameinput-bag = Inventar
 gameinput-trade = Handeln
 gameinput-social = Sozial
 gameinput-sit = Sitzen

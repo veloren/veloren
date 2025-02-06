@@ -78,7 +78,6 @@ hud-settings-shadow_rendering_mode-cheap = Јефтино
 hud-settings-shadow_rendering_mode-map = Мапа
 hud-settings-shadow_rendering_mode-map-resolution = Резолуција
 hud-settings-lod_detail = LoD Детаљи
-hud-settings-save_window_size = Упамти величину
 hud-settings-reset_graphics = Подразумевано
 hud-settings-master_volume = Главни Звук Јачина
 hud-settings-inactive_master_volume_perc = Јачина Звука Некативног Прозора

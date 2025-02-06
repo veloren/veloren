@@ -35,7 +35,6 @@ gameinput-chat = 채팅
 gameinput-command = 명령어
 gameinput-escape = 탈출
 gameinput-map = 지도
-gameinput-bag = 가방
 gameinput-trade = 거래
 gameinput-social = 소셜
 gameinput-sit = 앉기

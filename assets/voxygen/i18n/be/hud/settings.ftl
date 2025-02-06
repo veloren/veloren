@@ -89,7 +89,6 @@ hud-settings-shadow_rendering_mode-cheap = Нізкая
 hud-settings-shadow_rendering_mode-map = Мапа
 hud-settings-shadow_rendering_mode-map-resolution = Разрознасць
 hud-settings-lod_detail = Узровень дэталізацыі
-hud-settings-save_window_size = Захаваць памер акна
 hud-settings-reset_graphics = Па змаўчанню
 hud-settings-bloom = Прасочванне святла
 hud-settings-point_glow = Крыніцы святла

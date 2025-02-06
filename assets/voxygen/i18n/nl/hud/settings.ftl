@@ -51,7 +51,6 @@ hud-settings-particles = Deeltjes
 hud-settings-resolution = Resolutie
 hud-settings-bit_depth = Bit diepte
 hud-settings-refresh_rate = Vernieuwingssnelheid
-hud-settings-save_window_size = Venster grootte opslaan
 hud-settings-lighting_rendering_mode = Licht Rendering Modus
 hud-settings-lighting_rendering_mode-ashikhmin = Type A
 hud-settings-lighting_rendering_mode-blinnphong = Type B

@@ -32,7 +32,6 @@ hud-settings-antialiasing_mode = Modo de antialiasing
 hud-settings-cloud_rendering_mode = Modo de representação de nuvens
 hud-settings-fluid_rendering_mode = Modo de representação de fluídos
 hud-settings-fullscreen = Tela cheia
-hud-settings-save_window_size = Gravar dimensões
 hud-settings-music_volume = Volume da música
 hud-settings-sound_effect_volume = Volume dos efeitos sonoros
 hud-settings-audio_device = Dispositivo de aúdio

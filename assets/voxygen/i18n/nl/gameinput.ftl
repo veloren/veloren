@@ -32,7 +32,6 @@ gameinput-chat = Chat
 gameinput-command = Commando
 gameinput-escape = Sluiten
 gameinput-map = Kaart
-gameinput-bag = Rugzak
 gameinput-social = Sociaal
 gameinput-sit = Zit
 gameinput-settings = Instellingen

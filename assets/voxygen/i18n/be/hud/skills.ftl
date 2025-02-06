@@ -130,18 +130,3 @@ hud-skill-pick_strike_gemgain_title = Шчаслівы ўдар (камяні)
 hud-skill-pick_strike_gemgain = Шанец здабыць дадатковыя каштоўныя камяні (+{ $boost }% за ўзровень).{ $SP }
 # Skill tree UI
 hud-skill-set_as_exp_bar = Усталяваць як шкалу досведу
-# Internal terms, currently only used in es
-# If we remove them here, they also get auto-removed in es,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-bow_shotgun_title = ""
-# Internal terms, currently only used in es
-# If we remove them here, they also get auto-removed in es,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-st_shockwave_title = ""
-# Internal terms, currently only used in es
-# If we remove them here, they also get auto-removed in es,
-# so please keep them, even when not used in English file.
-# See https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-sc_wardaura_title = ""

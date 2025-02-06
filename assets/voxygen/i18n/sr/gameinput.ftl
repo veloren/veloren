@@ -35,7 +35,6 @@ gameinput-chat = Причаоница
 gameinput-command = Команда
 gameinput-escape = Откажи
 gameinput-map = Мапа
-gameinput-bag = Ранац
 gameinput-trade = Трампа
 gameinput-social = Социјала
 gameinput-sit = Седни

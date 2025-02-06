@@ -1,0 +1,13 @@
+body-npc-speech-biped_large-ogre-male = un căpcăun
+body-npc-speech-biped_large-ogre-female = o căpcăunoaică
+body-npc-speech-biped_large-cyclops = un ciclop
+body-npc-speech-biped_large-wendigo = un wendigo
+body-npc-speech-biped_large-werewolf = un vârcolac
+body-npc-speech-biped_large-cave_troll = un trol de peșteră
+body-npc-speech-generic = o creatură
+body-npc-speech-biped_large-mountain_troll = un trol de munte
+body-npc-speech-biped_large-swamp_troll = un trol de mlaștină
+body-npc-speech-biped_large-blue_oni = un oni albastru
+body-npc-speech-biped_large-red_oni = un oni roșu
+body-npc-speech-biped_large-dullahan = un dullahan
+body-npc-speech-biped_large-tursus = o torsă

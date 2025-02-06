@@ -73,7 +73,6 @@ hud-settings-shadow_rendering_mode-cheap = チープ
 hud-settings-shadow_rendering_mode-map = マップ
 hud-settings-shadow_rendering_mode-map-resolution = 解像度
 hud-settings-lod_detail = LoDディテール
-hud-settings-save_window_size = ウィンドウサイズ保存
 hud-settings-reset_graphics = デフォルトに戻す
 hud-settings-music_volume = 音楽ボリューム
 hud-settings-sound_effect_volume = 効果音ボリューム
