@@ -240,17 +240,23 @@
             Simple(Hammer(Earthshaker), "common.abilities.hammer.earthshaker"),
             Simple(Hammer(Judgement), "common.abilities.hammer.judgement"),
         ],
-    )),
+    ),
     Tool(Bow): AbilitySet((
-        primary: Simple(None, "common.abilities.bow.arrow_shot"),
-        secondary:
-            Contextualized(
-                pseudo_id: "common.abilities.bow.broadhead",
-                abilities: [
-                    ((stance: Bow(Barrage)), (Bow(Barrage), "common.abilities.bow.barrage_shot")),
-                    ((), (None, "common.abilities.bow.broadhead")),
-                ],
-            ),
+        primary: Contextualized(
+            pseudo_id: "common.abilities.bow.arrow_shot",
+            abilities: [
+                ((stance: Bow(Scatterburst)), (Bow(Scatterburst), "common.abilities.bow.lesser_scatterburst")),
+                ((), (None, "common.abilities.bow.arrow_shot")),
+            ],
+        ),
+        secondary: Contextualized(
+            pseudo_id: "common.abilities.bow.broadhead",
+            abilities: [
+                ((stance: Bow(Scatterburst)), (Bow(Scatterburst), "common.abilities.bow.greater_scatterburst")),
+                ((stance: Bow(Barrage)), (Bow(Barrage), "common.abilities.bow.barrage_shot")),
+                ((), (None, "common.abilities.bow.broadhead")),
+            ],
+        ),
         abilities: [
             Simple(Bow(Foothold), "common.abilities.bow.foothold"),
             Simple(Bow(SnareShot), "common.abilities.bow.snare_shot"),

@@ -480,3 +480,12 @@ common-abilities-bow-heavy_nock = Heavy Nock
 common-abilities-bow-heartseeker = Heartseeker
     .desc =
         You take careful aim, and your next arrow released will wound your enemy as if it pierced their heart, and will bless you with some of their energy.
+common-abilities-bow-scatterburst = Scatterburst
+    .desc =
+        Haphazardly grab a handful of arrows, nocking them to your bow.
+common-abilities-bow-lesser_scatterburst = Scatterburst
+    .desc =
+        Quickly pull the handful of arrows back, releasing them before you drop any.
+common-sbilities-bow-greater_scatterburst = Scatterburst
+    .desc =
+        Carefully pull the handful of arrows back, bringing your bow to a full draw before releasing them.

@@ -31,6 +31,8 @@ use crate::{
 };
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
+use itertools::Either;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::PI,
@@ -1951,4 +1953,64 @@ pub struct OrientationModifier {
     pub buildup: Option<f32>,
     pub swing: Option<f32>,
     pub recover: Option<f32>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ProjectileSpread {
+    Increasing(f32),
+    Horizontal(f32),
+}
+
+impl ProjectileSpread {
+    pub fn compute_directions(
+        self,
+        init_dir: Dir,
+        init_ori: Ori,
+        num: u32,
+        rng: &mut impl Rng,
+    ) -> impl Iterator<Item = Dir> + '_ {
+        match self {
+            Self::Increasing(spread) => Either::Left(
+                // Adds a slight spread to the projectiles. First projectile has no spread,
+                // and spread increases linearly with number of projectiles created.
+                (0..num).map(move |i| {
+                    Dir::from_unnormalized(init_dir.map(|x| {
+                        let offset = (2.0 * rng.random::<f32>() - 1.0) * spread * i as f32;
+                        x + offset
+                    }))
+                    .unwrap_or(init_dir)
+                }),
+            ),
+            Self::Horizontal(spread) => Either::Right(if num < 2 {
+                Either::Left(std::iter::once(init_dir))
+            } else {
+                let left = -spread.to_radians();
+                let increment = spread.to_radians() * 2.0 / (num as f32 - 1.0);
+                let rot_quat_dir = Quaternion::<f32>::rotation_from_to_3d(
+                    Vec3::unit_y(),
+                    Vec3::new(0.0, init_dir.xy().magnitude(), init_dir.z),
+                );
+                Either::Right((0..num).map(move |i| {
+                    let angle = left + increment * i as f32;
+                    let rot_quat_spread = Quaternion::<f32>::rotation_from_to_3d(
+                        Vec3::unit_y(),
+                        Vec2::unit_y().rotated_z(angle).with_z(0.0),
+                    );
+                    Dir::from_unnormalized(
+                        Ori::new(init_ori.to_quat() * rot_quat_dir * rot_quat_spread).look_vec(),
+                    )
+                    .unwrap_or(init_dir)
+                }))
+            }),
+        }
+    }
+
+    // Don't use this for anything important, just things that need to know
+    // "roughly" the spread
+    pub fn estimated_spread(&self) -> f32 {
+        match self {
+            // TODO: Check if we want these to return something different
+            Self::Increasing(spread) | Self::Horizontal(spread) => *spread,
+        }
+    }
 }

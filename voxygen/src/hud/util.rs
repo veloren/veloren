@@ -641,10 +641,12 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.snare_shot" => imgs.bow_snare_shot,
         "common.abilities.bow.barrage" => imgs.bow_barrage,
         "common.abilities.bow.barrage_shot" => imgs.bow_barrage,
-        "veloren.core.pseudo_abilities.bow.barrage" => imgs.bow_barrage,
         "common.abilities.bow.owl_talon" => imgs.bow_owl_talon,
         "common.abilities.bow.heavy_nock" => imgs.bow_heavy_nock,
         "common.abilities.bow.heartseeker" => imgs.bow_heartseeker,
+        "common.abilities.bow.scatterburst" => imgs.bow_scatterburst,
+        "common.abilities.bow.lesser_scatterburst" => imgs.bow_lesser_scatterburst,
+        "common.abilities.bow.greater_scatterburst" => imgs.bow_greater_scatterburst,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

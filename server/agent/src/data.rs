@@ -700,7 +700,7 @@ impl AbilityData {
             } => Self::BasicRanged {
                 energy: *energy_cost,
                 projectile_speed: *projectile_speed,
-                projectile_spread: *projectile_spread,
+                projectile_spread: projectile_spread.map_or(0.0, |sprd| sprd.estimated_spread()),
                 num_projectiles: *num_projectiles,
             },
             BasicMelee {

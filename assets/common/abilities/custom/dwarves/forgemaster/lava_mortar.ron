@@ -17,7 +17,7 @@ BasicRanged(
     projectile_body: Object(Mine),
     projectile_speed: 50.0,
     num_projectiles: Value(2),
-    projectile_spread: 0.1,
+    projectile_spread: Some(Increasing(0.1)),
     movement_modifier: (
         buildup: Some(0.3),
         recover: Some(0.3),

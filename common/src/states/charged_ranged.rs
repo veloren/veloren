@@ -1,8 +1,8 @@
 use crate::{
     combat,
     comp::{
-        Body, CharacterState, LightEmitter, Pos, StateUpdate, character_state::OutputEvents,
-        projectile::ProjectileConstructor,
+        Body, CharacterState, LightEmitter, Pos, StateUpdate, ability::Amount,
+        character_state::OutputEvents, projectile::ProjectileConstructor,
     },
     event::ShootEvent,
     states::{
@@ -10,6 +10,8 @@ use crate::{
         utils::*,
     },
 };
+use itertools::Either;
+use rand::rng;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -32,6 +34,8 @@ pub struct StaticData {
     pub projectile_light: Option<LightEmitter>,
     pub initial_projectile_speed: f32,
     pub scaled_projectile_speed: f32,
+    pub projectile_spread: Option<ProjectileSpread>,
+    pub num_projectiles: Amount,
     /// Move speed efficiency
     pub move_speed: f32,
     /// What key is used to press ability
@@ -102,17 +106,37 @@ impl CharacterBehavior for Data {
                         .projectile
                         .handle_scaling(charge_frac)
                         .create_projectile(Some(*data.uid), precision_mult, data.stats);
-                    output_events.emit_server(ShootEvent {
-                        entity: Some(data.entity),
-                        pos,
-                        dir: data.inputs.look_dir,
-                        body: self.static_data.projectile_body,
-                        projectile,
-                        light: self.static_data.projectile_light,
-                        speed: self.static_data.initial_projectile_speed
-                            + charge_frac * self.static_data.scaled_projectile_speed,
-                        object: None,
-                    });
+
+                    let num_projectiles = self
+                        .static_data
+                        .num_projectiles
+                        .compute(data.heads.map_or(1, |heads| heads.amount() as u32));
+
+                    let mut rng = rng();
+                    let dirs = if let Some(spread) = self.static_data.projectile_spread {
+                        Either::Left(spread.compute_directions(
+                            data.inputs.look_dir,
+                            *data.ori,
+                            num_projectiles,
+                            &mut rng,
+                        ))
+                    } else {
+                        Either::Right((0..num_projectiles).map(|_| data.inputs.look_dir))
+                    };
+
+                    for dir in dirs {
+                        output_events.emit_server(ShootEvent {
+                            entity: Some(data.entity),
+                            pos,
+                            dir,
+                            body: self.static_data.projectile_body,
+                            projectile: projectile.clone(),
+                            light: self.static_data.projectile_light,
+                            speed: self.static_data.initial_projectile_speed
+                                + charge_frac * self.static_data.scaled_projectile_speed,
+                            object: None,
+                        });
+                    }
 
                     update.character = CharacterState::ChargedRanged(Data {
                         timer: Duration::default(),

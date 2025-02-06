@@ -28,8 +28,8 @@ use crate::{
         behavior::JoinData,
         sprite_summon::SpriteSummonAnchor,
         utils::{
-            AbilityInfo, ComboConsumption, MovementModifier, OrientationModifier, ScalingKind,
-            StageSection,
+            AbilityInfo, ComboConsumption, MovementModifier, OrientationModifier, ProjectileSpread,
+            ScalingKind, StageSection,
         },
         *,
     },
@@ -772,6 +772,10 @@ impl Amount {
     }
 }
 
+impl Default for Amount {
+    fn default() -> Self { Self::Value(1) }
+}
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 /// For documentation on individual fields, see the corresponding character
@@ -800,8 +804,9 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
+        #[serde(default)]
         num_projectiles: Amount,
-        projectile_spread: f32,
+        projectile_spread: Option<ProjectileSpread>,
         #[serde(default)]
         movement_modifier: MovementModifier,
         #[serde(default)]
@@ -990,6 +995,9 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
+        projectile_spread: Option<ProjectileSpread>,
+        #[serde(default)]
+        num_projectiles: Amount,
         move_speed: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1758,6 +1766,8 @@ impl CharacterAbility {
                 projectile_light: _,
                 ref mut initial_projectile_speed,
                 ref mut scaled_projectile_speed,
+                projectile_spread: _,
+                num_projectiles: _,
                 move_speed: _,
                 meta: _,
             } => {
@@ -2897,6 +2907,8 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 projectile_light,
                 initial_projectile_speed,
                 scaled_projectile_speed,
+                projectile_spread,
+                num_projectiles,
                 move_speed,
                 meta: _,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
@@ -2911,6 +2923,8 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     projectile_light: *projectile_light,
                     initial_projectile_speed: *initial_projectile_speed,
                     scaled_projectile_speed: *scaled_projectile_speed,
+                    projectile_spread: *projectile_spread,
+                    num_projectiles: *num_projectiles,
                     move_speed: *move_speed,
                     ability_info,
                 },
@@ -3615,6 +3629,11 @@ pub enum SwordStance {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
 pub enum BowStance {
     Barrage,
+    Scatterburst,
+    IgniteArrow,
+    DrenchArrow,
+    FreezeArrow,
+    JoltArrow,
     PiercingGale,
     Hawkstrike,
     Fusillade,
@@ -3664,13 +3683,16 @@ impl Stance {
             Stance::Sword(SwordStance::Cleaving) => {
                 "veloren.core.pseudo_abilities.sword.cleaving_stance"
             },
-            Stance::Bow(BowStance::Barrage) => "veloren.core.pseudo_abilities.bow.barrage",
-            Stance::Bow(BowStance::PiercingGale) => {
-                "veloren.core.pseudo_abilities.bow.piercing_gale"
-            },
-            Stance::Bow(BowStance::Hawkstrike) => "veloren.core.pseudo_abilities.bow.hawkstrike",
-            Stance::Bow(BowStance::Fusillade) => "veloren.core.pseudo_abilities.bow.fusillade",
-            Stance::Bow(BowStance::DeathValley) => "veloren.core.pseudo_abilities.bow.death_Valley",
+            Stance::Bow(BowStance::Barrage) => "common.abilities.bow.barrage",
+            Stance::Bow(BowStance::Scatterburst) => "common.abilities.bow.scatterburst",
+            Stance::Bow(BowStance::IgniteArrow) => "common.abilities.bow.ignite_arrow",
+            Stance::Bow(BowStance::DrenchArrow) => "common.abilities.bow.drench_arrow",
+            Stance::Bow(BowStance::FreezeArrow) => "common.abilities.bow.freeze_arrow",
+            Stance::Bow(BowStance::JoltArrow) => "common.abilities.bow.jolt_arrow",
+            Stance::Bow(BowStance::PiercingGale) => "common.abilities.bow.piercing_gale",
+            Stance::Bow(BowStance::Hawkstrike) => "common.abilities.bow.hawkstrike",
+            Stance::Bow(BowStance::Fusillade) => "common.abilities.bow.fusillade",
+            Stance::Bow(BowStance::DeathValley) => "common.abilities.bow.death_Valley",
             Stance::None => "veloren.core.pseudo_abilities.no_stance",
         }
     }

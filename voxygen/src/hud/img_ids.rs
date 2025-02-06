@@ -334,6 +334,9 @@ image_ids! {
         bow_owl_talon: "voxygen.element.skills.bow.owl_talon",
         bow_heavy_nock: "voxygen.element.skills.bow.heavy_nock",
         bow_heartseeker: "voxygen.element.skills.bow.heartseeker",
+        bow_scatterburst: "voxygen.element.skills.bow.scatterburst",
+        bow_lesser_scatterburst: "voxygen.element.skills.bow.lesser_scatterburst",
+        bow_greater_scatterburst: "voxygen.element.skills.bow.greater_scatterburst",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

@@ -12,9 +12,9 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    util::Dir,
 };
-use rand::{Rng, rng};
+use itertools::Either;
+use rand::rng;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -26,7 +26,7 @@ pub struct StaticData {
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// How much spread there is when more than 1 projectile is created
-    pub projectile_spread: f32,
+    pub projectile_spread: Option<ProjectileSpread>,
     /// Projectile variables
     pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
@@ -130,33 +130,32 @@ impl CharacterBehavior for Data {
                         .num_projectiles
                         .compute(data.heads.map_or(1, |heads| heads.amount() as u32));
 
-                    for i in 0..num_projectiles {
-                        // Gets offsets
-                        let body_offsets = data.body.projectile_offsets(
-                            update.ori.look_vec(),
-                            data.scale.map_or(1.0, |s| s.0),
-                        );
-                        let pos = Pos(data.pos.0 + body_offsets);
+                    let mut rng = rng();
 
-                        let dir = {
-                            let look_dir = if self.static_data.ori_modifier.buildup.is_some() {
-                                data.inputs.look_dir.merge_z(data.ori.look_dir())
-                            } else {
-                                data.inputs.look_dir
-                            };
+                    let aim_dir = if self.static_data.ori_modifier.buildup.is_some() {
+                        data.inputs.look_dir.merge_z(data.ori.look_dir())
+                    } else {
+                        data.inputs.look_dir
+                    };
 
-                            // Adds a slight spread to the projectiles. First projectile has no
-                            // spread, and spread increases linearly
-                            // with number of projectiles created.
-                            Dir::from_unnormalized(look_dir.map(|x| {
-                                let offset = (2.0 * rng().random::<f32>() - 1.0)
-                                    * self.static_data.projectile_spread
-                                    * i as f32;
-                                x + offset
-                            }))
-                            .unwrap_or(data.inputs.look_dir)
-                        };
+                    let dirs = if let Some(spread) = self.static_data.projectile_spread {
+                        Either::Left(spread.compute_directions(
+                            aim_dir,
+                            *data.ori,
+                            num_projectiles,
+                            &mut rng,
+                        ))
+                    } else {
+                        Either::Right((0..num_projectiles).map(|_| aim_dir))
+                    };
 
+                    // Gets offsets
+                    let body_offsets = data
+                        .body
+                        .projectile_offsets(update.ori.look_vec(), data.scale.map_or(1.0, |s| s.0));
+                    let pos = Pos(data.pos.0 + body_offsets);
+
+                    for dir in dirs {
                         // Tells server to create and shoot the projectile
                         output_events.emit_server(ShootEvent {
                             entity: Some(data.entity),
