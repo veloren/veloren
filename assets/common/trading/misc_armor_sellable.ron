@@ -1,0 +1,13 @@
+// Loot table that exists purely for price rationalisation
+//
+// For miscellaneous un-craftable armor pieces
+//
+// This loot table should be marked as sellable.
+// If you want to add something that merchants can buy but not sell,
+// add another loot table
+//
+// Please keep it sorted by rarity so it's easier to reason about things
+[
+    // Basic
+    (1.0, Item("common.items.armor.misc.head.straw")),
+]
