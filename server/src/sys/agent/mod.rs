@@ -1,7 +1,6 @@
 pub mod behavior_tree;
 use server_agent::data::AgentEvents;
 pub use server_agent::{action_nodes, attack, consts, data, util};
-use vek::Vec3;
 
 use crate::sys::agent::{
     behavior_tree::{BehaviorData, BehaviorTree},
@@ -9,7 +8,7 @@ use crate::sys::agent::{
 };
 use common::{
     comp::{
-        self, Agent, Alignment, Body, CharacterState, Controller, Health, InputKind, Scale,
+        self, Agent, Alignment, Body, CharacterState, Controller, Health, Scale,
         inventory::slot::EquipSlot, item::ItemDesc,
     },
     mounting::Volume,
@@ -165,24 +164,6 @@ impl<'a> System<'a> for Sys {
                         Some(CharacterState::GlideWield(_) | CharacterState::Glide(_))
                     ) && physics_state.on_ground.is_none();
 
-                    if let Some((kp, ki, kd)) = moving_body.and_then(comp::agent::pid_coefficients)
-                    {
-                        if agent
-                            .position_pid_controller
-                            .as_ref()
-                            .is_some_and(|pid| (pid.kp, pid.ki, pid.kd) != (kp, ki, kd))
-                        {
-                            agent.position_pid_controller = None;
-                        }
-                        let pid = agent.position_pid_controller.get_or_insert_with(|| {
-                            fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
-                            comp::PidController::new(kp, ki, kd, pos.0, 0.0, pure_z)
-                        });
-                        pid.add_measurement(read_data.time.0, pos.0);
-                    } else {
-                        agent.position_pid_controller = None;
-                    }
-
                     // This controls how picky NPCs are about their pathfinding.
                     // Giants are larger and so can afford to be less precise
                     // when trying to move around the world
@@ -198,18 +179,10 @@ impl<'a> System<'a> for Sys {
                         min_tgt_dist: scale * moving_body.map_or(1.0, |body| body.max_radius()),
                         can_climb: moving_body.is_some_and(Body::can_climb),
                         can_fly: moving_body.is_some_and(|b| b.fly_thrust().is_some()),
+                        vectored_propulsion: moving_body.is_some_and(|b| b.vectored_propulsion()),
                         is_target_loaded: true,
                     };
                     let health_fraction = health.map_or(1.0, Health::fraction);
-
-                    if traversal_config.can_fly && matches!(moving_body, Some(Body::Ship(_))) {
-                        // hack (kinda): Never turn off flight airships
-                        // since it results in stuttering and falling back to the ground.
-                        //
-                        // TODO: look into `controller.reset()` line above
-                        // and see if it fixes it
-                        controller.push_basic_input(InputKind::Fly);
-                    }
 
                     // Package all this agent's data into a convenient struct
                     let data = AgentData {

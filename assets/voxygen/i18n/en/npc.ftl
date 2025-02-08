@@ -402,3 +402,29 @@ npc-speech-reject_rival =
     .a0 = You're not welcome here.
     .a1 = Sorry, I don't want to talk to you.
     .a2 = You should leave.
+
+## NPC pilot dialogue
+
+npc-speech-pilot-takeoff =
+    .a0 = Onward to { $dst }!
+    .a1 = Here we go!
+    .a2 = Next stop, { $dst }!
+    .a3 = Farewell, { $src }!
+npc-speech-pilot-landed =
+    .a0 = Another happy landing.
+    .a1 = Easy does it...
+    .a2 = Cracking job.
+    .a3 = Is this your stop?
+npc-speech-pilot-announce_next =
+    .a0 = Jump on if you're heading { $dir } to { $dst }!
+    .a1 = We sail for { $dst } soon!.
+    .a2 = Travelling { $dir }? Jump on!
+npc-speech-pilot-announce_hold =
+    .a0 = Holding here while the dock is cleared.
+    .a1 = We're on hold until the docking position is vacated!
+    .a2 = A short hold is required due to traffic at the dock.
+npc-speech-pilot-continue_hold =
+    .a0 = We have to continue holding!
+    .a1 = Traffic is heavy, we're still on hold!
+    .a2 = Continuing to hold!
+    .a3 = Another ship is loading, we'll be holding for a bit longer.

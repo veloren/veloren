@@ -5,7 +5,11 @@
 
 use crate::{
     character::CharacterId,
-    comp::{dialogue::Subject, inventory::item::ItemDef},
+    comp::{
+        agent::{PidGain, PidMode},
+        dialogue::Subject,
+        inventory::item::ItemDef,
+    },
     util::Dir,
 };
 use common_i18n::Content;
@@ -23,6 +27,8 @@ slotmap::new_key_type! { pub struct SiteId; }
 slotmap::new_key_type! { pub struct FactionId; }
 
 slotmap::new_key_type! { pub struct ReportId; }
+
+slotmap::new_key_type! { pub struct AirshipRouteId; }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct RtSimEntity(pub NpcId);
@@ -248,6 +254,9 @@ impl RtSimController {
 pub enum NpcActivity {
     /// (travel_to, speed_factor)
     Goto(Vec3<f32>, f32),
+    /// (travel_to, speed_factor, height above terrain, direction_override,
+    /// pid_mode, pid_gain)
+    GotoFlying(Vec3<f32>, f32, Option<f32>, Option<Dir>, PidMode, PidGain),
     Gather(&'static [ChunkResource]),
     // TODO: Generalise to other entities? What kinds of animals?
     HuntAnimals,

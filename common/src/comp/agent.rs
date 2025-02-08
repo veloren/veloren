@@ -658,7 +658,7 @@ pub struct Agent {
     pub timer: Timer,
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
-    pub position_pid_controller: Option<PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>>,
+    pub multi_pid_controllers: Option<PidControllers<16>>,
     /// Position from which to flee. Intended to be the agent's position plus a
     /// random position offset, to be used when a random flee direction is
     /// required and reset each time the flee timer is reset.
@@ -769,7 +769,7 @@ impl Agent {
             timer: Timer::default(),
             bearing: Vec2::zero(),
             sounds_heard: Vec::new(),
-            position_pid_controller: None,
+            multi_pid_controllers: None,
             flee_from_pos: None,
             stay_pos: None,
             awareness: Awareness::new(0.0),
@@ -820,11 +820,8 @@ impl Agent {
     }
 
     #[must_use]
-    pub fn with_position_pid_controller(
-        mut self,
-        pid: PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>,
-    ) -> Self {
-        self.position_pid_controller = Some(pid);
+    pub fn with_altitude_pid_controller(mut self, mpid: PidControllers<16>) -> Self {
+        self.multi_pid_controllers = Some(mpid);
         self
     }
 
@@ -909,10 +906,14 @@ mod tests {
     }
 }
 
-/// PID controllers are used for automatically adapting nonlinear controls (like
-/// buoyancy for airships) to target specific outcomes (i.e. a specific height)
+/// PID controllers (Proportional–integral–derivative controllers) are used for
+/// automatically adapting nonlinear controls (like buoyancy for balloons)
+/// and for damping out oscillations in control feedback loops (like vehicle
+/// cruise control). PID controllers can monitor an error signal between a
+/// setpoint and a process variable, and use that error to adjust a control
+/// variable. A PID controller can only control one variable at a time.
 #[derive(Clone)]
-pub struct PidController<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> {
+pub struct PidController<F: Fn(f32, f32) -> f32, const NUM_SAMPLES: usize> {
     /// The coefficient of the proportional term
     pub kp: f32,
     /// The coefficient of the integral term
@@ -920,9 +921,9 @@ pub struct PidController<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: 
     /// The coefficient of the derivative term
     pub kd: f32,
     /// The setpoint that the process has as its goal
-    pub sp: Vec3<f32>,
+    pub sp: f32,
     /// A ring buffer of the last NUM_SAMPLES measured process variables
-    pv_samples: [(f64, Vec3<f32>); NUM_SAMPLES],
+    pv_samples: [(f64, f32); NUM_SAMPLES],
     /// The index into the ring buffer of process variables
     pv_idx: usize,
     /// The total integral error
@@ -932,7 +933,7 @@ pub struct PidController<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: 
     e: F,
 }
 
-impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> fmt::Debug
+impl<F: Fn(f32, f32) -> f32, const NUM_SAMPLES: usize> fmt::Debug
     for PidController<F, NUM_SAMPLES>
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -947,10 +948,10 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> fmt::Debug
     }
 }
 
-impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController<F, NUM_SAMPLES> {
+impl<F: Fn(f32, f32) -> f32, const NUM_SAMPLES: usize> PidController<F, NUM_SAMPLES> {
     /// Constructs a PidController with the specified weights, setpoint,
     /// starting time, and error function
-    pub fn new(kp: f32, ki: f32, kd: f32, sp: Vec3<f32>, time: f64, e: F) -> Self {
+    pub fn new(kp: f32, ki: f32, kd: f32, sp: f32, time: f64, e: F) -> Self {
         Self {
             kp,
             ki,
@@ -964,7 +965,7 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
     }
 
     /// Adds a measurement of the process variable to the ringbuffer
-    pub fn add_measurement(&mut self, time: f64, pv: Vec3<f32>) {
+    pub fn add_measurement(&mut self, time: f64, pv: f32) {
         self.pv_idx += 1;
         self.pv_idx %= NUM_SAMPLES;
         self.pv_samples[self.pv_idx] = (time, pv);
@@ -1002,6 +1003,18 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
         }
     }
 
+    /// The integral error accumulates over time, and can get to the point where
+    /// the output of the controller is saturated. This is called integral
+    /// windup, and it commonly occurs when the controller setpoint is
+    /// changed. To limit the integral error signal, this function can be
+    /// called with a fn/closure that can modify the integral_error value.
+    pub fn limit_integral_windup<W>(&mut self, f: W)
+    where
+        W: Fn(&mut f64),
+    {
+        f(&mut self.integral_error);
+    }
+
     /// The derivative error is the numerical derivative of the error function
     /// based on the most recent 2 samples. Using more than 2 samples might
     /// improve the accuracy of the estimate of the derivative, but it would be
@@ -1012,7 +1025,250 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
         let (a, x0) = self.pv_samples[(self.pv_idx + NUM_SAMPLES - 1) % NUM_SAMPLES];
         let (b, x1) = self.pv_samples[self.pv_idx];
         let h = b - a;
-        (f(x1) - f(x0)) / h as f32
+        if h == 0.0 {
+            0.0
+        } else {
+            (f(x1) - f(x0)) / h as f32
+        }
+    }
+}
+
+#[derive(Default, Copy, Clone, Debug, PartialEq)]
+pub enum PidMode {
+    /// The controller output should be used to control the
+    /// acceleration/velocity in the z direction only.
+    #[default]
+    PureZ,
+    /// The controller output should be used to control the
+    /// acceleration/velocity in all three axes, and the orientation of the
+    /// object should be maintained.
+    FixedDirection,
+}
+
+#[derive(Default, Copy, Clone, Debug, PartialEq)]
+pub enum PidGain {
+    /// The controller should use coefficients to prefer rapid response and
+    /// reduce sensitivity to noise.
+    #[default]
+    Normal,
+    /// The controller should use a higher deriviative coefficient to reduce
+    /// overshoot.
+    High,
+}
+
+/// A Mulit-PID controller that can control the acceleration/velocity in one or
+/// all three axes.
+#[derive(Clone)]
+pub struct PidControllers<const NUM_SAMPLES: usize> {
+    pub mode: PidMode,
+    pub gain: PidGain,
+    /// This is ignored unless the mode FixedDirection.
+    pub x_controller: Option<PidController<fn(f32, f32) -> f32, NUM_SAMPLES>>,
+    pub y_controller: Option<PidController<fn(f32, f32) -> f32, NUM_SAMPLES>>,
+    pub z_controller: Option<PidController<fn(f32, f32) -> f32, NUM_SAMPLES>>,
+}
+
+impl<const NUM_SAMPLES: usize> fmt::Debug for PidControllers<NUM_SAMPLES> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("PidControllers")
+            .field("mode", &self.mode)
+            .field("x_controller", &self.x_controller)
+            .field("y_controller", &self.y_controller)
+            .field("z_controller", &self.z_controller)
+            .finish()
+    }
+}
+
+#[inline(always)]
+pub fn add_measurement_to_controller<F, const NUM_SAMPLES: usize>(
+    controller: &mut Option<PidController<F, NUM_SAMPLES>>,
+    time: f64,
+    pv: f32,
+) where
+    F: Fn(f32, f32) -> f32,
+{
+    if let Some(controller) = controller {
+        controller.add_measurement(time, pv);
+    }
+}
+
+#[inline(always)]
+pub fn change_controller_setpoint<F, const NUM_SAMPLES: usize>(
+    controller: &mut Option<PidController<F, NUM_SAMPLES>>,
+    sp: f32,
+) where
+    F: Fn(f32, f32) -> f32,
+{
+    if let Some(controller) = controller {
+        controller.sp = sp;
+    }
+}
+
+#[inline(always)]
+pub fn calc_controller_error<F, const NUM_SAMPLES: usize>(
+    controller: &Option<PidController<F, NUM_SAMPLES>>,
+) -> Option<f32>
+where
+    F: Fn(f32, f32) -> f32,
+{
+    controller.as_ref().map(|c| c.calc_err())
+}
+
+#[inline(always)]
+pub fn limit_integral_windup<F, W, const NUM_SAMPLES: usize>(
+    controller: &mut Option<PidController<F, NUM_SAMPLES>>,
+    f: W,
+) where
+    F: Fn(f32, f32) -> f32,
+    W: Fn(&mut f64),
+{
+    controller.as_mut().map(|c| c.limit_integral_windup(f));
+}
+
+/// A collection of PidControllers, one for each 3D axis.
+/// Airships use either one or three PidControllers, depending on the mode
+/// (see action_nodes.rs for details of Airship modes).
+impl<const NUM_SAMPLES: usize> PidControllers<NUM_SAMPLES> {
+    pub fn new(mode: PidMode, gain: PidGain) -> Self {
+        Self {
+            mode,
+            gain,
+            x_controller: None,
+            y_controller: None,
+            z_controller: None,
+        }
+    }
+
+    pub fn new_multi_pid_controllers(
+        pidmode: PidMode,
+        pidgain: PidGain,
+        travel_to: Vec3<f32>,
+    ) -> PidControllers<16> {
+        let mut mpid = PidControllers::new(pidmode, pidgain);
+        // FixedDirection requires x and y and z controllers
+        // PureZ requires only z controller
+        if pidmode == PidMode::FixedDirection {
+            // Add x_controller && y_controller
+            let (kp, ki, kd) = pid_coefficients_for_mode(pidmode, pidgain, false);
+            mpid.set_x_controller(PidController::new(
+                kp,
+                ki,
+                kd,
+                travel_to.x,
+                0.0,
+                |sp, pv| sp - pv,
+            ));
+            mpid.set_y_controller(PidController::new(
+                kp,
+                ki,
+                kd,
+                travel_to.y,
+                0.0,
+                |sp, pv| sp - pv,
+            ));
+        }
+        // Add z_controller
+        let (kp, ki, kd) = pid_coefficients_for_mode(pidmode, pidgain, true);
+        mpid.set_z_controller(PidController::new(
+            kp,
+            ki,
+            kd,
+            travel_to.z,
+            0.0,
+            |sp, pv| sp - pv,
+        ));
+        mpid
+    }
+
+    pub fn set_x_controller(
+        &mut self,
+        controller: PidController<fn(f32, f32) -> f32, NUM_SAMPLES>,
+    ) {
+        self.x_controller = Some(controller);
+    }
+
+    pub fn set_y_controller(
+        &mut self,
+        controller: PidController<fn(f32, f32) -> f32, NUM_SAMPLES>,
+    ) {
+        self.y_controller = Some(controller);
+    }
+
+    pub fn set_z_controller(
+        &mut self,
+        controller: PidController<fn(f32, f32) -> f32, NUM_SAMPLES>,
+    ) {
+        self.z_controller = Some(controller);
+    }
+
+    #[inline(always)]
+    pub fn add_x_measurement(&mut self, time: f64, pv: f32) {
+        add_measurement_to_controller(&mut self.x_controller, time, pv);
+    }
+
+    #[inline(always)]
+    pub fn add_y_measurement(&mut self, time: f64, pv: f32) {
+        add_measurement_to_controller(&mut self.y_controller, time, pv);
+    }
+
+    #[inline(always)]
+    pub fn add_z_measurement(&mut self, time: f64, pv: f32) {
+        add_measurement_to_controller(&mut self.z_controller, time, pv);
+    }
+
+    #[inline(always)]
+    pub fn add_measurement(&mut self, time: f64, pos: Vec3<f32>) {
+        add_measurement_to_controller(&mut self.x_controller, time, pos.x);
+        add_measurement_to_controller(&mut self.y_controller, time, pos.y);
+        add_measurement_to_controller(&mut self.z_controller, time, pos.z);
+    }
+
+    #[inline(always)]
+    pub fn change_x_setpoint(&mut self, sp: f32) {
+        change_controller_setpoint(&mut self.x_controller, sp);
+    }
+
+    #[inline(always)]
+    pub fn change_y_setpoint(&mut self, sp: f32) {
+        change_controller_setpoint(&mut self.y_controller, sp);
+    }
+
+    #[inline(always)]
+    pub fn change_z_setpoint(&mut self, sp: f32) {
+        change_controller_setpoint(&mut self.z_controller, sp);
+    }
+
+    #[inline(always)]
+    pub fn calc_err_x(&self) -> Option<f32> { calc_controller_error(&self.x_controller) }
+
+    #[inline(always)]
+    pub fn calc_err_y(&self) -> Option<f32> { calc_controller_error(&self.y_controller) }
+
+    #[inline(always)]
+    pub fn calc_err_z(&self) -> Option<f32> { calc_controller_error(&self.z_controller) }
+
+    #[inline(always)]
+    pub fn limit_windup_x<F>(&mut self, f: F)
+    where
+        F: Fn(&mut f64),
+    {
+        limit_integral_windup(&mut self.x_controller, f);
+    }
+
+    #[inline(always)]
+    pub fn limit_windup_y<F>(&mut self, f: F)
+    where
+        F: Fn(&mut f64),
+    {
+        limit_integral_windup(&mut self.y_controller, f);
+    }
+
+    #[inline(always)]
+    pub fn limit_windup_z<F>(&mut self, f: F)
+    where
+        F: Fn(&mut f64),
+    {
+        limit_integral_windup(&mut self.z_controller, f);
     }
 }
 
@@ -1021,12 +1277,6 @@ impl<F: Fn(Vec3<f32>, Vec3<f32>) -> f32, const NUM_SAMPLES: usize> PidController
 pub fn pid_coefficients(body: &Body) -> Option<(f32, f32, f32)> {
     // A pure-proportional controller is { kp: 1.0, ki: 0.0, kd: 0.0 }
     match body {
-        Body::Ship(ship::Body::DefaultAirship) => {
-            let kp = 1.0;
-            let ki = 0.1;
-            let kd = 1.2;
-            Some((kp, ki, kd))
-        },
         Body::Ship(ship::Body::AirBalloon) => {
             let kp = 1.0;
             let ki = 0.1;
@@ -1034,5 +1284,22 @@ pub fn pid_coefficients(body: &Body) -> Option<(f32, f32, f32)> {
             Some((kp, ki, kd))
         },
         _ => None,
+    }
+}
+
+/// Get the PID coefficients (for the airship, for now) by PID modes.
+pub fn pid_coefficients_for_mode(mode: PidMode, gain: PidGain, z_axis: bool) -> (f32, f32, f32) {
+    match mode {
+        PidMode::PureZ => {
+            if z_axis {
+                (1.0, 0.4, 0.25)
+            } else {
+                (0.0, 0.0, 0.0)
+            }
+        },
+        PidMode::FixedDirection => match gain {
+            PidGain::Normal => (1.0, 0.3, 0.4),
+            PidGain::High => (1.0, 0.8, 0.8),
+        },
     }
 }

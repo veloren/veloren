@@ -327,8 +327,16 @@ impl Body {
             },
             Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 0.5),
             Body::Dragon(_) => Some(200_000.0),
-            Body::Ship(ship) if ship.can_fly() => Some(300_000.0),
+            Body::Ship(ship) if ship.can_fly() => Some(1_000_000.0),
             _ => None,
+        }
+    }
+
+    /// Returns whether the body uses vectored propulsion
+    pub fn vectored_propulsion(&self) -> bool {
+        match self {
+            Body::Ship(ship) => ship.vectored_propulsion(),
+            _ => false,
         }
     }
 
@@ -789,8 +797,24 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
         let thrust = efficiency * force;
         let accel = thrust / data.mass.0;
 
-        handle_orientation(data, update, efficiency, None);
+        match data.body {
+            Body::Ship(ship::Body::DefaultAirship) => {
+                // orient the airship according to the controller look_dir
+                // Make the airship rotation more efficient (x2) so that it
+                // can orient itself more quickly.
+                handle_orientation(
+                    data,
+                    update,
+                    efficiency * 2.0,
+                    Some(data.controller.inputs.look_dir),
+                );
+            },
+            _ => {
+                handle_orientation(data, update, efficiency, None);
+            },
+        }
 
+        let mut update_fw_vel = true;
         // Elevation control
         match data.body {
             // flappy flappy
@@ -798,8 +822,24 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
                 let anti_grav = GRAVITY * (1.0 + data.inputs.move_z.min(0.0));
                 update.vel.0.z += data.dt.0 * (anti_grav + accel * data.inputs.move_z.max(0.0));
             },
+            // led zeppelin
+            Body::Ship(ship::Body::DefaultAirship) => {
+                update_fw_vel = false;
+                // airships or zeppelins are controlled by their engines and should have
+                // neutral buoyancy. Don't change their density.
+                // Assume that the airship is always level and that the engines are gimbaled
+                // so that they can provide thrust in any direction.
+                // The vector of thrust is the desired movement direction scaled by the
+                // acceleration.
+                let thrust_dir = data.inputs.move_dir.with_z(data.inputs.move_z);
+                update.vel.0 += thrust_dir * data.dt.0 * accel;
+            },
             // floaty floaty
             Body::Ship(ship) if ship.can_fly() => {
+                // Balloons gain altitude by modifying their density, e.g. by heating the air
+                // inside. Ships float by adjusting their buoyancy, e.g. by
+                // pumping water in or out. Simulate a ship or balloon by
+                // adjusting its density.
                 let regulate_density = |min: f32, max: f32, def: f32, rate: f32| -> Density {
                     // Reset to default on no input
                     let change = if data.inputs.move_z.abs() > f32::EPSILON {
@@ -824,15 +864,16 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
             _ => {},
         };
 
-        update.vel.0 += Vec2::broadcast(data.dt.0)
-            * accel
-            * if data.body.can_strafe() {
-                data.inputs.move_dir
-            } else {
-                let fw = Vec2::from(update.ori);
-                fw * data.inputs.move_dir.dot(fw).max(0.0)
-            };
-
+        if update_fw_vel {
+            update.vel.0 += Vec2::broadcast(data.dt.0)
+                * accel
+                * if data.body.can_strafe() {
+                    data.inputs.move_dir
+                } else {
+                    let fw = Vec2::from(update.ori);
+                    fw * data.inputs.move_dir.dot(fw).max(0.0)
+                };
+        }
         true
     } else {
         false

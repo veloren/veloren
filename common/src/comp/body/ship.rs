@@ -142,7 +142,19 @@ impl Body {
         matches!(self, Body::DefaultAirship | Body::AirBalloon | Body::Volume)
     }
 
-    pub fn flying_height(&self) -> f32 { if self.can_fly() { 200.0 } else { 0.0 } }
+    pub fn vectored_propulsion(&self) -> bool { matches!(self, Body::DefaultAirship) }
+
+    pub fn flying_height(&self) -> f32 {
+        if self.can_fly() {
+            match self {
+                Body::DefaultAirship => 300.0,
+                Body::AirBalloon => 200.0,
+                _ => 0.0,
+            }
+        } else {
+            0.0
+        }
+    }
 
     pub fn has_water_thrust(&self) -> bool {
         matches!(self, Body::SailBoat | Body::Galleon | Body::Skiff)
@@ -172,7 +184,7 @@ impl Body {
     /// Max speed in block/s
     pub fn get_speed(&self) -> f32 {
         match self {
-            Body::DefaultAirship => 7.0,
+            Body::DefaultAirship => 56.0,
             Body::AirBalloon => 8.0,
             Body::SailBoat => 5.0,
             Body::Galleon => 6.0,

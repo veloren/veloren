@@ -101,6 +101,7 @@ impl Plot {
 pub enum PlotKindMeta<'plot> {
     AirshipDock {
         door_tile: Vec2<i32>,
+        center: Vec2<i32>,
         docking_positions: &'plot Vec<Vec3<i32>>,
     },
     Workshop {
@@ -166,22 +167,27 @@ impl PlotKind {
             PlotKind::SavannahAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
                 door_tile: d.door_tile,
                 docking_positions: &d.docking_positions,
+                center: d.center,
             }),
             PlotKind::AirshipDock(d) => Some(PlotKindMeta::AirshipDock {
                 door_tile: d.door_tile,
                 docking_positions: &d.docking_positions,
+                center: d.center,
             }),
             PlotKind::CoastalAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
                 door_tile: d.door_tile,
                 docking_positions: &d.docking_positions,
+                center: d.center,
             }),
             PlotKind::DesertCityAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
                 door_tile: d.door_tile,
                 docking_positions: &d.docking_positions,
+                center: d.center,
             }),
             PlotKind::CliffTownAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
                 door_tile: d.door_tile,
                 docking_positions: &d.docking_positions,
+                center: d.center,
             }),
             PlotKind::House(h) => Some(PlotKindMeta::House {
                 door_tile: h.door_tile,

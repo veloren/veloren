@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - One new dungeon track and two new town tracks.
 - You can now engage NPCs in two-way conversation.
 - NPCs can now be hired for a short time.
+- Pairs of Airships now travel between designated sites.
 
 ### Changed
 

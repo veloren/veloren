@@ -22,7 +22,7 @@ pub struct DesertCityAirshipDock {
     /// Approximate altitude of the door tile
     pub(crate) alt: i32,
     pub docking_positions: Vec<Vec3<i32>>,
-    center: Vec2<i32>,
+    pub center: Vec2<i32>,
     base: i32,
     length: i32,
     height: i32,

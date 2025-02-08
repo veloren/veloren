@@ -32,6 +32,7 @@ use common::{
     comp::{
         self, AdminRole, Aura, AuraKind, BuffCategory, ChatType, Content, Inventory, Item,
         LightEmitter, LocalizationArg, WaypointArea,
+        agent::{PidControllers, PidGain, PidMode},
         aura::{AuraKindVariant, AuraTarget},
         buff::{Buff, BuffData, BuffKind, BuffSource, DestInfo, MiscBuffData},
         inventory::{
@@ -1970,12 +1971,13 @@ fn handle_spawn_airship(
         .state
         .create_ship(pos, ori, ship, |ship| ship.make_collider());
     if let Some(pos) = destination {
-        let (kp, ki, kd) =
-            comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
-        fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
-            .with_position_pid_controller(comp::PidController::new(kp, ki, kd, pos, 0.0, pure_z));
+            .with_altitude_pid_controller(PidControllers::<16>::new_multi_pid_controllers(
+                PidMode::PureZ,
+                PidGain::Normal,
+                pos,
+            ));
         builder = builder.with(agent);
     }
     builder.build();
@@ -2018,12 +2020,13 @@ fn handle_spawn_ship(
         .create_ship(pos, ori, ship, |ship| ship.make_collider());
 
     if let Some(pos) = destination {
-        let (kp, ki, kd) =
-            comp::agent::pid_coefficients(&comp::Body::Ship(ship)).unwrap_or((1.0, 0.0, 0.0));
-        fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
-            .with_position_pid_controller(comp::PidController::new(kp, ki, kd, pos, 0.0, pure_z));
+            .with_altitude_pid_controller(PidControllers::<16>::new_multi_pid_controllers(
+                PidMode::PureZ,
+                PidGain::Normal,
+                pos,
+            ));
         builder = builder.with(agent);
     }
 
