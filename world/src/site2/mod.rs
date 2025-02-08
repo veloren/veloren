@@ -120,6 +120,8 @@ impl Site {
                 PlotKind::VampireCastle(vc) => Some(vc.spawn_rules(wpos)),
                 PlotKind::MyrmidonArena(ma) => Some(ma.spawn_rules(wpos)),
                 PlotKind::MyrmidonHouse(mh) => Some(mh.spawn_rules(wpos)),
+                PlotKind::AirshipDock(ad) => Some(ad.spawn_rules(wpos)),
+                PlotKind::SavannahAirshipDock(sad) => Some(sad.spawn_rules(wpos)),
                 _ => None,
             })
             .fold(base_spawn_rules, |a, b| a.combine(b))

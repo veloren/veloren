@@ -1,3 +1,4 @@
+pub mod airship;
 pub mod faction;
 pub mod nature;
 pub mod npc;
@@ -13,7 +14,7 @@ pub use self::{
     sentiment::{Sentiment, Sentiments},
     site::{Site, SiteId, Sites},
 };
-
+use airship::AirshipSim;
 use common::resources::TimeOfDay;
 use enum_map::{EnumArray, EnumMap, enum_map};
 use serde::{Deserialize, Serialize, de, ser};
@@ -55,6 +56,9 @@ pub struct Data {
     // If true, rtsim data will be ignored (and, hence, overwritten on next save) on load.
     #[serde(default)]
     pub should_purge: bool,
+
+    #[serde(skip)]
+    pub airship_sim: AirshipSim,
 }
 
 pub enum ReadError {

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - State of the window is saved between game launches.
 - Barns that can spawn at the edge of towns.
+- Pairs of Airships now travel between designated sites.
 
 ### Changed
 

@@ -7,6 +7,7 @@ edition = "2021"
 common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
 serde = { workspace = true }
+serde_json = { workspace = true }
 hashbrown = { workspace = true }
 enum-map = { workspace = true, features = ["serde"] }
 vek = { workspace = true }
@@ -20,3 +21,4 @@ rand_chacha = { workspace = true }
 fxhash = { workspace = true }
 itertools = { workspace = true }
 rayon = { workspace = true }
+ordered-float = { workspace = true }

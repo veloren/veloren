@@ -22,7 +22,7 @@ pub struct CliffTownAirshipDock {
     door_dir: Vec2<i32>,
     surface_color: Rgb<f32>,
     sub_surface_color: Rgb<f32>,
-    center: Vec2<i32>,
+    pub center: Vec2<i32>,
     variant: i32,
     storeys: i32,
     platform_length: i32,

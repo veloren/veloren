@@ -1,3 +1,5 @@
+mod airship_ai;
+
 use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use crate::{
@@ -1429,10 +1431,12 @@ fn humanoid() -> impl Action<DefaultState> {
             if riding.is_steering {
                 if let Some(vehicle) = ctx.state.data().npcs.get(riding.mount) {
                     match vehicle.body {
-                        comp::Body::Ship(
-                            body @ comp::ship::Body::DefaultAirship
-                            | body @ comp::ship::Body::AirBalloon,
-                        ) => important(pilot(body)),
+                        comp::Body::Ship(body @ comp::ship::Body::AirBalloon) => {
+                            important(pilot(body))
+                        },
+                        comp::Body::Ship(body @ comp::ship::Body::DefaultAirship) => {
+                            important(airship_ai::pilot_airship(body))
+                        },
                         comp::Body::Ship(
                             comp::ship::Body::SailBoat | comp::ship::Body::Galleon,
                         ) => important(captain()),

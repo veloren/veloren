@@ -1,9 +1,11 @@
 #![expect(dead_code)]
 
+pub mod airship_travel;
 mod econ;
 
 use crate::{
     Index, IndexRef, Land,
+    civ::airship_travel::Airships,
     config::CONFIG,
     sim::WorldSim,
     site::{Castle, Settlement, Site as WorldSite, Tree, namegen::NameGen},
@@ -62,6 +64,7 @@ pub struct Civs {
 
     pub sites: Store<Site>,
     pub caves: Store<CaveInfo>,
+    pub airships: Airships,
 }
 
 // Change this to get rid of particularly horrid seeds
@@ -812,6 +815,12 @@ impl Civs {
             }
         });
         drop(guard);
+
+        prof_span!(guard, "generate airship routes");
+        this.airships
+            .generate_airship_routes(sites, sim, index.seed);
+        drop(guard);
+
         sites
             .iter_mut()
             .for_each(|(_, s)| s.economy.cache_economy());

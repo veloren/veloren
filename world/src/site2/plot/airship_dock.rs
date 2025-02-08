@@ -18,7 +18,7 @@ pub struct AirshipDock {
     pub(crate) alt: i32,
     rotation: f32,
     pub door_tile: Vec2<i32>,
-    center: Vec2<i32>,
+    pub center: Vec2<i32>,
     base: i32,
     height: i32,
     pub docking_positions: Vec<Vec3<i32>>,
@@ -68,6 +68,21 @@ impl AirshipDock {
             docking_positions,
             door_dir,
             campfire_pos,
+        }
+    }
+
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
+        SpawnRules {
+            trees: {
+                // dock is 3 tiles = 18 blocks in radius
+                // airships are 20 blocks wide.
+                // Leave extra space for tree width (at lease 15 extra).
+                // Don't allow trees within 18 + 20 + 15 = 53 blocks of the dock center
+                const AIRSHIP_MIN_TREE_DIST2: i32 = 53i32.pow(2);
+                wpos.distance_squared(self.center) > AIRSHIP_MIN_TREE_DIST2
+            },
+            waypoints: false,
+            ..SpawnRules::default()
         }
     }
 }

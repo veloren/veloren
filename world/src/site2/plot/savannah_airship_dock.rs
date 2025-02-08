@@ -19,7 +19,7 @@ pub struct SavannahAirshipDock {
     pub door_tile: Vec2<i32>,
     /// Approximate altitude of the door tile
     pub(crate) alt: i32,
-    center: Vec2<i32>,
+    pub center: Vec2<i32>,
     length: i32,
     platform_height: i32,
     pub docking_positions: Vec<Vec3<i32>>,
@@ -58,6 +58,21 @@ impl SavannahAirshipDock {
             length,
             platform_height,
             docking_positions,
+        }
+    }
+
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
+        SpawnRules {
+            trees: {
+                // dock is 4 tiles = 24 blocks in radius
+                // airships are 20 blocks wide.
+                // Leave extra space for tree width (at least 15 extra).
+                // Don't allow trees within 24 + 20 + 15 = 59 blocks of the dock center
+                const AIRSHIP_MIN_TREE_DIST2: i32 = 59i32.pow(2);
+                wpos.distance_squared(self.center) > AIRSHIP_MIN_TREE_DIST2
+            },
+            waypoints: false,
+            ..SpawnRules::default()
         }
     }
 }
