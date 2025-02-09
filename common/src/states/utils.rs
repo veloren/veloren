@@ -305,6 +305,7 @@ impl Body {
                 Body::QuadrupedLow(_) => 1200.0 * self.mass().0,
                 Body::QuadrupedMedium(body) => match body.species {
                     quadruped_medium::Species::Mammoth => 150.0 * self.mass().0,
+                    quadruped_medium::Species::Kelpie => 3500.0 * self.mass().0,
                     _ => 1000.0 * self.mass().0,
                 },
                 Body::QuadrupedSmall(_) => 1500.0 * self.mass().0,

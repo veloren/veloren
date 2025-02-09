@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved interaction HUD consistency and prioritize important interactions over others.
 - Sword balance tweaks.
 - Vampire Castle chests are now the same as Haniwa chests.
+- Increased kelpies' swim speed.
 
 ### Removed
 
