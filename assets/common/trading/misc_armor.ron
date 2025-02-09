@@ -13,8 +13,7 @@
     (0.2, Item("common.items.armor.misc.bag.liana_kit")),
 
     // Basic
-    (2.5, Item("common.items.armor.misc.head.straw")),
-    (2.5, Item("common.items.armor.misc.head.bamboo_twig")),
+    (1.5, Item("common.items.armor.misc.head.bamboo_twig")),
 
     // General humanoid
     (0.12, Item("common.items.armor.misc.ring.gold")),
