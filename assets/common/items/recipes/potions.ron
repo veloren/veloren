@@ -6,7 +6,6 @@ ItemDef(
             "potion_combustion",
             "potion_freezing",
             "potion_agility",
-            "potion_minor",
             "potion_medium",
         ],
     ),
