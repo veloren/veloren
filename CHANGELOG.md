@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sword balance tweaks.
 - Vampire Castle chests are now the same as Haniwa chests.
 - Increased kelpies' swim speed.
+- Crippled balance tweaks.
 
 ### Removed
 
@@ -286,7 +287,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Camera zoom can now be locked, to prevent accidental zooming while rolling in combat.
   It comes with a key bind to enable/disable the setting,
   and an Auto/Toggle behavior setting. Auto behavior.
-will only lock the camera zoom while movement and combat inputs are also being pressed.
+  will only lock the camera zoom while movement and combat inputs are also being pressed.
 - Custom spots can be added without recompilation (only ron and vox files).
 - Setting in userdata/server/server_config/settings.ron that controls the length of each day/night cycle.
 - Starting site can now be chosen during character creation.
