@@ -2,7 +2,7 @@ use client::{Client, EcsEntity};
 use common::{comp::ItemKey, rtsim};
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
+    widget::{self, Button, Image, Rectangle, Text},
     widget_ids,
 };
 use i18n::Localization;
@@ -118,7 +118,7 @@ impl<'a> Quest<'a> {
         }
 
         if let Some(start_time) = state.text_timer {
-            if now.duration_since(start_time) >= Duration::from_millis(50) {
+            if now.duration_since(start_time) >= Duration::from_millis(10) {
                 if state.text_position < msg_text.len() {
                     state.text_position += 1;
                     state.text_timer = Some(now);
@@ -139,6 +139,7 @@ impl<'a> Quest<'a> {
 
 pub enum Event {
     Dialogue(EcsEntity, rtsim::Dialogue),
+    #[allow(dead_code)]
     Close,
 }
 

@@ -139,7 +139,7 @@ pub trait StateExt {
         &self,
         player: EcsEntity,
         chat_type: &comp::ChatType<comp::Group>,
-        msg: &str,
+        msg: &Content,
     ) -> bool;
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
     fn notify_players(&self, msg: ServerGeneral);
@@ -746,7 +746,7 @@ impl StateExt for State {
         &self,
         entity: EcsEntity,
         chat_type: &comp::ChatType<comp::Group>,
-        msg: &str,
+        msg: &Content,
     ) -> bool {
         let mut automod = self.ecs().write_resource::<AutoMod>();
         let client = self.ecs().read_storage::<Client>();
@@ -756,6 +756,13 @@ impl StateExt for State {
         };
         let Some(player) = player.get(entity) else {
             return true;
+        };
+
+        // Don't permit players to send non-plain content... yet.
+        // TODO: Eventually, it would be nice for players to be able to send messages
+        // that get localised on their client!
+        let Some(msg) = msg.as_plain() else {
+            return false;
         };
 
         match automod.validate_chat_msg(
@@ -812,10 +819,7 @@ impl StateExt for State {
 
         if msg.chat_type.uid().is_none_or(|sender| {
             entity_from_uid(sender)
-                .zip(msg.content().as_plain())
-                .is_some_and(|(e, plain_content)| {
-                    self.validate_chat_msg(e, &msg.chat_type, plain_content)
-                })
+                .is_some_and(|e| self.validate_chat_msg(e, &msg.chat_type, msg.content()))
         }) {
             match &msg.chat_type {
                 comp::ChatType::Offline(_)
