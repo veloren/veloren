@@ -252,7 +252,7 @@ npc-speech-tell_site =
     .a0 = There's { $site } { $dir } of here. Have you visited it?
     .a1 = You should visit { $site } some time.
     .a2 = If you travel { $dist } { $dir }, you can get to { $site }.
-    .a3 = { $dir } you'll find { $site }, it's { $dist }.
+    .a3 = Hey, { $dir } you'll find { $site }, it's { $dist }.
 
 npc-speech-site =
     .a0 = Don't you think our village is the best?
