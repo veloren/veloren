@@ -529,6 +529,34 @@
         // Town music
 
         Individual((
+            title: "Where Frost Played",
+            path: "voxygen.audio.soundtrack.town.where_frost_played",
+            length: 105.0,
+            timing: None,
+            weather: None,
+            biomes: [(Snowland, 1)],
+            sites: [
+                Settlement(CliffTown),
+                Settlement(Default),
+            ],
+            music_state: Activity(Explore),
+            artist: ("phoenix13032005", None),
+        )),
+        Individual((
+            title: "Fill The Mugs",
+            path: "voxygen.audio.soundtrack.town.fill_the_mugs",
+            length: 83.0,
+            timing: Day,
+            weather: None,
+            biomes: [],
+            sites: [
+                Settlement(CoastalTown),
+                Settlement(SavannahTown),
+            ],
+            music_state: Activity(Explore),
+            artist: ("phoenix13032005", None),
+        )),
+        Individual((
             title: "Into the Mines",
             path: "voxygen.audio.soundtrack.town.into_the_mines",
             length: 157.0,
@@ -757,7 +785,21 @@
         )),
 
         // Dungeon music
+        // TBD : Addition of specific tracks for teracotta dungeons and vampire castle 
 
+        Individual((
+            title: "Still Heart's Coffin",
+            path: "voxygen.audio.soundtrack.dungeon.still_hearts_coffin",
+            length: 199.0,
+            timing: None,
+            weather: None,
+            biomes:[],
+            sites: [
+                Dungeon(VampireCastle),
+            ],
+            music_state: Activity(Explore),
+            artist: ("GeekyGami", "https://geekygami.newgrounds.com/audio/"),
+        )),
         Individual((
             title: "A Heart's Ice-Cold Protection",
             path: "voxygen.audio.soundtrack.dungeon.a_hearts_ice-cold_protection",
@@ -779,8 +821,8 @@
             weather: None,
             biomes:[],
             sites: [
-                Dungeon(Myrmidon),
                 Dungeon(Adlet),
+                Dungeon(SeaChapel),
             ],
             music_state: Activity(Explore),
             artist: ("Tiny", None),
@@ -793,7 +835,8 @@
             weather: None,
             biomes:[],
             sites: [
-                Dungeon(Myrmidon),
+                Dungeon(Haniwa),
+                Dungeon(DwarvenMine),
             ],
             music_state: Activity(Explore),
             artist: ("Crow", None),
@@ -806,7 +849,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Myrmidon),
+                Dungeon(DwarvenMine),
                 Dungeon(Adlet),
             ],
             music_state: Activity(Explore),
@@ -820,8 +863,8 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Myrmidon),
-                Dungeon(Adlet),
+                Dungeon(SeaChapel),
+                Dungeon(Cultist),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -835,6 +878,7 @@
             biomes: [],
             sites: [
                 Dungeon(Myrmidon),
+                Dungeon(VampireCastle),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -848,6 +892,8 @@
             biomes: [],
             sites: [
                 Dungeon(Myrmidon),
+                Dungeon(Sahagin),
+                Dungeon(Cultist),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -874,6 +920,7 @@
             biomes: [],
             sites: [
                 Dungeon(Gnarling),
+                Dungeon(Terracotta)
             ],
             music_state: Activity(Explore),
             artist: ("badbbad", "https://soundcloud.com/tomerbarnea"),
@@ -886,7 +933,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Gnarling),
+                Dungeon(Sahagin),
             ],
             music_state: Activity(Explore),
             artist: ("Jeremiah Sweeney", "https://soundcloud.com/jsweeney743"),

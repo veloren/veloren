@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - State of the window is saved between game launches.
 - Barns that can spawn at the edge of towns.
+- One new dungeon track and two new town tracks.
 
 ### Changed
 
@@ -28,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vampire Castle chests are now the same as Haniwa chests.
 - Increased kelpies' swim speed.
 - Crippled balance tweaks.
+- Track assignment for dungeons.
+- Mineral ingot sprites recoloured.
 
 ### Removed
 
