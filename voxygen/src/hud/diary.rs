@@ -1244,7 +1244,7 @@ impl Widget for Diary<'_> {
                                 Some(self.inventory),
                                 self.msm,
                                 None,
-                                None,
+                                self.stats,
                             );
                             format!("{:.2}%", stun_res * 100.0)
                         },
