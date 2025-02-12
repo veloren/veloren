@@ -60,7 +60,7 @@ impl AirshipSim {
             let approach = &route.approaches[approach_index];
             let airship_wpos = approach
                 .approach_final_pos
-                .with_z(approach.airship_pos.z + approach.cruise_hat);
+                .with_z(approach.airship_pos.z + approach.height);
             debug_airships!(
                 "Airship {:?}/{:?}, approach index:{}, initial wpos:{:?}",
                 airship_id,
@@ -88,17 +88,17 @@ impl AirshipSim {
         // route, get the pilot id and the routes the pilot is assigned to, then
         // if the pilot is assigned to the route, add the pilot to the route's
         // pilots
-        airships.routes.iter().for_each(|(route_id, _)| {
-            let mut route_pilots = Vec::<NpcId>::new();
-            self.assigned_routes
-                .iter()
-                .for_each(|(pilot_id, assigned_route_id)| {
-                    if *assigned_route_id == *route_id {
-                        route_pilots.push(*pilot_id);
-                    }
-                });
-            self.route_pilots.insert(*route_id, route_pilots);
-        });
+        self.route_pilots
+            .extend(airships.routes.iter().map(|(route_id, _)| {
+                (
+                    *route_id,
+                    self.assigned_routes
+                        .iter()
+                        .filter(|(_, assigned_route_id)| **assigned_route_id == *route_id)
+                        .map(|(pilot_id, _)| *pilot_id)
+                        .collect(),
+                )
+            }));
         debug_airships!("Route pilots: {:?}", self.route_pilots);
     }
 }
@@ -113,32 +113,11 @@ pub struct AirshipSpawningLocation {
     pub site_name: String,
 }
 
-impl AirshipSpawningLocation {
-    pub fn new(
-        pos: Vec3<f32>,
-        dir: Dir,
-        center: Vec2<i32>,
-        docking_pos: Vec3<i32>,
-        site_id: SiteId,
-        site_name: String,
-    ) -> Self {
-        Self {
-            pos,
-            dir,
-            center,
-            docking_pos,
-            site_id,
-            site_name,
-        }
-    }
-}
-
 impl PartialEq for AirshipSpawningLocation {
     fn eq(&self, other: &Self) -> bool {
         self.center == other.center
             && self.docking_pos == other.docking_pos
             && self.site_id == other.site_id
-            && self.site_name == other.site_name
     }
 }
 

@@ -407,14 +407,14 @@ impl Data {
                                                     // migrate module.
                                                     Some(AirshipDockingSide::Starboard),
                                                 );
-                                            Some(AirshipSpawningLocation::new(
-                                                airship_pos,
-                                                airship_dir,
+                                            Some(AirshipSpawningLocation {
+                                                pos: airship_pos,
+                                                dir: airship_dir,
                                                 center,
-                                                *docking_pos,
+                                                docking_pos: *docking_pos,
                                                 site_id,
-                                                site2.name().to_string(),
-                                            ))
+                                                site_name: site2.name().to_string(),
+                                            })
                                         } else {
                                             None
                                         }

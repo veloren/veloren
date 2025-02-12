@@ -5,11 +5,7 @@
 
 use crate::{
     character::CharacterId,
-    comp::{
-        agent::{PidGain, PidMode},
-        dialogue::Subject,
-        inventory::item::ItemDef,
-    },
+    comp::{agent::FlightMode, dialogue::Subject, inventory::item::ItemDef},
     util::Dir,
 };
 use common_i18n::Content;
@@ -255,8 +251,8 @@ pub enum NpcActivity {
     /// (travel_to, speed_factor)
     Goto(Vec3<f32>, f32),
     /// (travel_to, speed_factor, height above terrain, direction_override,
-    /// pid_mode, pid_gain)
-    GotoFlying(Vec3<f32>, f32, Option<f32>, Option<Dir>, PidMode, PidGain),
+    /// flight_mode)
+    GotoFlying(Vec3<f32>, f32, Option<f32>, Option<Dir>, FlightMode),
     Gather(&'static [ChunkResource]),
     // TODO: Generalise to other entities? What kinds of animals?
     HuntAnimals,

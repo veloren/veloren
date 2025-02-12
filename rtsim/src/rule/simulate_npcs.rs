@@ -274,7 +274,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     }
                 },
                 // Move Flying NPCs like airships if they have a target destination
-                Some(NpcActivity::GotoFlying(target, speed_factor, _, dir, _, _)) => {
+                Some(NpcActivity::GotoFlying(target, speed_factor, _, dir, _)) => {
                     let diff = target - npc.wpos;
                     let dist2 = diff.magnitude_squared();
 
