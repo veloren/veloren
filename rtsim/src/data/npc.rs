@@ -6,10 +6,7 @@ use crate::{
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     character::CharacterId,
-    comp::{
-        self,
-        agent::{PidGain, PidMode},
-    },
+    comp::{self, agent::FlightMode},
     grid::Grid,
     rtsim::{
         Actor, ChunkResource, FactionId, NpcAction, NpcActivity, NpcInput, Personality, ReportId,
@@ -79,16 +76,14 @@ impl Controller {
         speed_factor: f32,
         height: Option<f32>,
         dir: Option<Dir>,
-        pid_mode: PidMode,
-        pid_gain: PidGain,
+        flight_mode: FlightMode,
     ) {
         self.activity = Some(NpcActivity::GotoFlying(
             wpos,
             speed_factor,
             height,
             dir,
-            pid_mode,
-            pid_gain,
+            flight_mode,
         ));
     }
 

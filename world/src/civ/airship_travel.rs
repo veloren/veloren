@@ -11,9 +11,8 @@ use common::{
 };
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
-use serde::{Serialize, Serializer, ser::SerializeStruct};
-use std::{env, fs::OpenOptions, io::Write};
-use tracing::{debug, info, warn};
+use std::{fs::OpenOptions, io::Write};
+use tracing::{debug, warn};
 use vek::*;
 
 const AIRSHIP_TRAVEL_DEBUG: bool = false;
@@ -28,11 +27,11 @@ macro_rules! debug_airships {
 
 /// A docking position (id, position). The docking position id is
 /// an index of all docking positions in the world.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct AirshipDockingPosition(pub u32, pub Vec3<f32>);
 
 /// An airship can dock with its port or starboard side facing the dock.
-#[derive(Debug, Copy, Clone, PartialEq, Default, Serialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Default)]
 pub enum AirshipDockingSide {
     #[default]
     Port,
@@ -48,7 +47,7 @@ pub enum AirshipDockingSide {
 /// before docking. The approach final position is selected to minimize the
 /// change of direction when flying from the takeoff location to the target
 /// docking position.
-#[derive(Clone, Debug, PartialEq, Default, Serialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AirshipDockingApproach {
     pub dock_pos: AirshipDockingPosition,
     /// The position of the airship when docked.
@@ -60,7 +59,7 @@ pub struct AirshipDockingApproach {
     /// Then center of the AirshipDock Plot.
     pub dock_center: Vec2<f32>,
     /// The height above terrain the airship cruises at.
-    pub cruise_hat: f32,
+    pub height: f32,
     /// A 3D position that is offset from the direct line between the dock sites
     /// to allow for a transition to the direction the airship will be
     /// facing when it is docked.
@@ -73,33 +72,7 @@ pub struct AirshipDockingApproach {
     pub side: AirshipDockingSide,
     /// The site name where the airship will be docked at the end of the
     /// approach.
-    pub site_name: String,
-}
-
-impl AirshipDockingApproach {
-    fn new(
-        dock_pos: AirshipDockingPosition,
-        airship_pos: Vec3<f32>,
-        airship_direction: Dir,
-        dock_center: Vec2<f32>,
-        cruise_hat: f32,
-        approach_initial_pos: Vec2<f32>,
-        approach_final_pos: Vec2<f32>,
-        side: AirshipDockingSide,
-        site_name: &str,
-    ) -> Self {
-        Self {
-            dock_pos,
-            airship_pos,
-            airship_direction,
-            dock_center,
-            cruise_hat,
-            approach_initial_pos,
-            approach_final_pos,
-            side,
-            site_name: site_name.to_string(),
-        }
-    }
+    pub site_id: Id<Site>,
 }
 
 /// A route that an airship flies round-trip between two sites.
@@ -129,22 +102,6 @@ impl AirshipRoute {
     }
 }
 
-impl Serialize for AirshipRoute {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("AirshipRoute", 3)?;
-        state.serialize_field(
-            "sites",
-            &self.sites.iter().map(|id| id.id()).collect::<Vec<_>>(),
-        )?;
-        state.serialize_field("approaches", &self.approaches)?;
-        state.serialize_field("distance", &self.distance)?;
-        state.end()
-    }
-}
-
 /// Airship routes are identified by a unique serial number starting from zero.
 type AirshipRouteId = u32;
 
@@ -165,7 +122,6 @@ struct AirshipDockPositions {
     pub center: Vec2<f32>,
     pub docking_positions: Vec<AirshipDockingPosition>,
     pub site_id: Id<site::Site>,
-    pub site_name: String,
 }
 
 impl AirshipDockPositions {
@@ -174,7 +130,6 @@ impl AirshipDockPositions {
         center: Vec2<i32>,
         docking_positions: &[Vec3<i32>],
         site_id: Id<site::Site>,
-        site_name: &str,
     ) -> Self {
         let mut dock_pos_id = first_id;
         Self {
@@ -189,7 +144,6 @@ impl AirshipDockPositions {
                 })
                 .collect(),
             site_id,
-            site_name: site_name.to_string(),
         }
     }
 }
@@ -290,19 +244,18 @@ impl Airships {
                         ..
                     }) = plot.kind().meta()
                     {
-                        Some((center, docking_positions, site_id, site2.name()))
+                        Some((center, docking_positions, site_id))
                     } else {
                         None
                     }
                 })
             })
-            .map(|(center, docking_positions, site_id, site_name)| {
+            .map(|(center, docking_positions, site_id)| {
                 let positions = AirshipDockPositions::from_plot_meta(
                     dock_pos_id,
                     center,
                     docking_positions,
                     site_id,
-                    site_name,
                 );
 
                 dock_pos_id += positions.docking_positions.len() as u32;
@@ -513,13 +466,6 @@ impl Airships {
             }
         }
 
-        dock_connections.sort_by(|a, b| {
-            a.dock
-                .site_name
-                .to_lowercase()
-                .cmp(&b.dock.site_name.to_lowercase())
-        });
-
         // The dock connections are now set.
         // At this point, we now have a network of airship routes between all the sites
         // with airship docks, and we have a list of docking positions for each
@@ -603,20 +549,6 @@ impl Airships {
                 }
             });
         });
-
-        if AIRSHIP_TRAVEL_DEBUG {
-            let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
-            if let Some(routes_log_folder) = airship_routes_log_folder {
-                let routes_log_file_path =
-                    format!("{}/airship_routes_{}.json", routes_log_folder, seed);
-                let json = serde_json::to_string_pretty(&self.routes).unwrap();
-                if let Err(e) = write_airship_routes_log(&routes_log_file_path, &json) {
-                    warn!("Failed to write airship routes to file: {}", e);
-                } else {
-                    info!("Airship Routes written to {}", routes_log_file_path);
-                }
-            }
-        }
     }
 
     /// Given a docking position, find the airship route and approach index
@@ -750,17 +682,17 @@ impl Airships {
         depart_to_dest_angle: f32,
         map_center: Vec2<f32>,
         max_dims: Vec2<f32>,
-        dest_name: &str,
+        site_id: Id<Site>,
     ) -> AirshipDockingApproach {
-        let (airship_pos, airship_dir) = Airships::airship_vec_for_docking_pos(
+        let (airship_pos, airship_direction) = Airships::airship_vec_for_docking_pos(
             docking_pos.1,
             dest_center,
             Some(AirshipDockingSide::Starboard),
         );
         // calculate port final point. It is a 500 block extension from the docking
         // position in the direction of the docking direction.
-        let port_final_pos = docking_pos.1.xy() + airship_dir.to_vec().xy() * 500.0;
-        let starboard_final_pos = docking_pos.1.xy() - airship_dir.to_vec().xy() * 500.0;
+        let port_final_pos = docking_pos.1.xy() + airship_direction.to_vec().xy() * 500.0;
+        let starboard_final_pos = docking_pos.1.xy() - airship_direction.to_vec().xy() * 500.0;
         // calculate the turn angle required to align with the port. The port final
         // point is the origin. One vector is the reverse of the vector from the
         // port final point to the departure center. The other vector is from
@@ -842,29 +774,29 @@ impl Airships {
         };
 
         if side == AirshipDockingSide::Starboard {
-            AirshipDockingApproach::new(
-                *docking_pos,
+            AirshipDockingApproach {
+                dock_pos: *docking_pos,
                 airship_pos,
-                airship_dir,
-                dest_center,
+                airship_direction,
+                dock_center: dest_center,
                 height,
-                initial_pos_fn(starboard_final_pos),
-                starboard_final_pos,
+                approach_initial_pos: initial_pos_fn(starboard_final_pos),
+                approach_final_pos: starboard_final_pos,
                 side,
-                dest_name,
-            )
+                site_id,
+            }
         } else {
-            AirshipDockingApproach::new(
-                *docking_pos,
+            AirshipDockingApproach {
+                dock_pos: *docking_pos,
                 airship_pos,
-                -airship_dir,
-                dest_center,
+                airship_direction: -airship_direction,
+                dock_center: dest_center,
                 height,
-                initial_pos_fn(port_final_pos),
-                port_final_pos,
+                approach_initial_pos: initial_pos_fn(port_final_pos),
+                approach_final_pos: port_final_pos,
                 side,
-                dest_name,
-            )
+                site_id,
+            }
         }
     }
 
@@ -937,7 +869,7 @@ impl Airships {
                 dock1_to_dock2_angle,
                 map_center,
                 max_dims,
-                &dock2_positions.site_name,
+                dock2_positions.site_id,
             ),
             Airships::docking_approach_for(
                 dock2_center,
@@ -946,7 +878,7 @@ impl Airships {
                 dock2_to_dock1_angle,
                 map_center,
                 max_dims,
-                &dock1_positions.site_name,
+                dock1_positions.site_id,
             ),
         ]
     }

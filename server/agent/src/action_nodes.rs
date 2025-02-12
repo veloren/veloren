@@ -17,7 +17,7 @@ use common::{
         Controller, HealthChange, InputKind, InventoryAction, Pos, PresenceKind, Scale,
         UnresolvedChatMsg, UtteranceKind,
         ability::BASE_ABILITY_LIMIT,
-        agent::{PidControllers, PidMode, Sound, SoundKind, Target},
+        agent::{FlightMode, PidControllers, Sound, SoundKind, Target},
         inventory::slot::EquipSlot,
         item::{
             ConsumableKind, Effects, Item, ItemDesc, ItemKind,
@@ -373,10 +373,14 @@ impl AgentData<'_> {
                             };
 
                         if let Some(mpid) = agent.multi_pid_controllers.as_mut() {
-                            mpid.change_z_setpoint(self.pos.0.z + height_offset);
-                            controller.inputs.move_z = mpid.calc_err_z().unwrap_or(0.0);
-                            // when changing setpoints, limit PID windup
-                            mpid.limit_windup_z(|z| *z = z.clamp(-10.0, 10.0));
+                            if let Some(z_controller) = mpid.z_controller.as_mut() {
+                                z_controller.sp = self.pos.0.z + height_offset;
+                                controller.inputs.move_z = z_controller.calc_err();
+                                // when changing setpoints, limit PID windup
+                                z_controller.limit_integral_windup(|z| *z = z.clamp(-10.0, 10.0));
+                            } else {
+                                controller.inputs.move_z = 0.0;
+                            }
                         } else {
                             controller.inputs.move_z = height_offset;
                         }
@@ -399,8 +403,7 @@ impl AgentData<'_> {
                     speed_factor,
                     height_offset,
                     direction_override,
-                    pid_mode,
-                    pid_gain,
+                    flight_mode,
                 )) => {
                     if read_data
                         .is_volume_riders
@@ -464,14 +467,12 @@ impl AgentData<'_> {
                         if agent
                             .multi_pid_controllers
                             .as_ref()
-                            .is_some_and(|mpid| mpid.mode != pid_mode || mpid.gain != pid_gain)
+                            .is_some_and(|mpid| mpid.mode != flight_mode)
                         {
                             agent.multi_pid_controllers = None;
                         }
                         let mpid = agent.multi_pid_controllers.get_or_insert_with(|| {
-                            PidControllers::<16>::new_multi_pid_controllers(
-                                pid_mode, pid_gain, travel_to,
-                            )
+                            PidControllers::<16>::new_multi_pid_controllers(flight_mode, travel_to)
                         });
                         let sample_time = read_data.time.0;
 
@@ -493,14 +494,16 @@ impl AgentData<'_> {
                             terrain_alt
                         };
 
-                        if pid_mode == PidMode::PureZ {
+                        if flight_mode == FlightMode::FlyThrough {
                             let travel_vec = travel_to - self.pos.0;
                             let bearing =
                                 travel_vec.xy().try_normalized().unwrap_or_else(Vec2::zero);
                             controller.inputs.move_dir = bearing * speed_factor;
                             let terrain_alt = terrain_alt_with_lookahead(32.0);
                             let height = height_offset.unwrap_or(100.0);
-                            mpid.change_z_setpoint(terrain_alt + height);
+                            if let Some(z_controller) = mpid.z_controller.as_mut() {
+                                z_controller.sp = terrain_alt + height;
+                            }
                             mpid.add_measurement(sample_time, self.pos.0);
                             // check if getting close to terrain
                             if terrain_alt >= self.pos.0.z - 32.0 {
@@ -525,18 +528,25 @@ impl AgentData<'_> {
                             // When doing step-wise movement, the target waypoint changes. Make sure
                             // the PID controller setpoints keep up with
                             // the changes.
-                            mpid.change_x_setpoint(travel_to.x);
-                            mpid.change_y_setpoint(travel_to.y);
+                            if let Some(x_controller) = mpid.x_controller.as_mut() {
+                                x_controller.sp = travel_to.x;
+                            }
+                            if let Some(y_controller) = mpid.y_controller.as_mut() {
+                                y_controller.sp = travel_to.y;
+                            }
 
                             // If terrain following, get the terrain altitude at the current
                             // position. Set the z setpoint to the max
                             // of terrain alt + height offset or the
                             // target z.
-                            if let Some(height) = height_offset {
+                            let z_setpoint = if let Some(height) = height_offset {
                                 let clearance_alt = terrain_alt_with_lookahead(16.0) + height;
-                                mpid.change_z_setpoint(clearance_alt.max(travel_to.z));
+                                clearance_alt.max(travel_to.z)
                             } else {
-                                mpid.change_z_setpoint(travel_to.z);
+                                travel_to.z
+                            };
+                            if let Some(z_controller) = mpid.z_controller.as_mut() {
+                                z_controller.sp = z_setpoint;
                             }
 
                             mpid.add_measurement(sample_time, self.pos.0);

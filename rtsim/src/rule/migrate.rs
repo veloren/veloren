@@ -144,9 +144,7 @@ impl Rule for Migrate {
                         if let Some(spawning_location) = spawning_locations.pop() {
                             captains_to_register.push((*captain_id, airship_id, spawning_location));
                         } else {
-                            // todo: delete the captain (& airship) pair
-                            // $$$ is this all that's needed? It does seem that simulate_npcs
-                            // on_tick() will clean up the mount link.
+                            // delete the captain (& airship) pair
                             data.npcs.remove(*captain_id);
                             data.npcs.remove(airship_id);
                         }

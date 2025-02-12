@@ -32,7 +32,7 @@ use common::{
     comp::{
         self, AdminRole, Aura, AuraKind, BuffCategory, ChatType, Content, Inventory, Item,
         LightEmitter, LocalizationArg, WaypointArea,
-        agent::{PidControllers, PidGain, PidMode},
+        agent::{FlightMode, PidControllers},
         aura::{AuraKindVariant, AuraTarget},
         buff::{Buff, BuffData, BuffKind, BuffSource, DestInfo, MiscBuffData},
         inventory::{
@@ -1974,8 +1974,7 @@ fn handle_spawn_airship(
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
             .with_altitude_pid_controller(PidControllers::<16>::new_multi_pid_controllers(
-                PidMode::PureZ,
-                PidGain::Normal,
+                FlightMode::FlyThrough,
                 pos,
             ));
         builder = builder.with(agent);
@@ -2023,8 +2022,7 @@ fn handle_spawn_ship(
         let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
             .with_destination(pos)
             .with_altitude_pid_controller(PidControllers::<16>::new_multi_pid_controllers(
-                PidMode::PureZ,
-                PidGain::Normal,
+                FlightMode::FlyThrough,
                 pos,
             ));
         builder = builder.with(agent);
