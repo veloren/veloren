@@ -346,12 +346,12 @@ impl SessionState {
                             | InventoryUpdateEvent::EntityCollectFailed { .. }
                             | InventoryUpdateEvent::BlockCollectFailed { .. }
                             | InventoryUpdateEvent::Craft => {
-                                global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
+                                global_state.audio.emit_ui_sfx(sfx_trigger_item, None);
                             },
                             _ => global_state.audio.emit_sfx(
                                 sfx_trigger_item,
                                 client.position().unwrap_or_default(),
-                                Some(1.0),
+                                None,
                             ),
                         }
 
@@ -2077,7 +2077,7 @@ impl PlayState for SessionState {
                         if !has_repaired {
                             let sfx_trigger_item = sfx_triggers
                                 .get_key_value(&SfxEvent::from(&InventoryUpdateEvent::Craft));
-                            global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
+                            global_state.audio.emit_ui_sfx(sfx_trigger_item, None);
                             has_repaired = true
                         };
                         self.client
