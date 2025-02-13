@@ -9,10 +9,10 @@ BasicMelee(
             damage: 10,
             poise: 10,
             knockback: 5,
-            energy_regen: 15,
+            energy_regen: 20,
         ),
         range: 3.0,
-        angle: 15.0,
+        angle: 30.0,
     ),
     ori_modifier: 0.6,
 )

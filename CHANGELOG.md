@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crippled balance tweaks.
 - Track assignment for dungeons.
 - Mineral ingot sprites recoloured.
+- Hammer balance tweaks.
 
 ### Removed
 

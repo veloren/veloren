@@ -10,7 +10,7 @@ FinisherMelee(
             knockback: 6,
             energy_regen: 0,
         ),
-        range: 4.0,
+        range: 3.0,
         angle: 60.0,
         damage_effect: Some(Buff((
             kind: Winded,
@@ -20,5 +20,5 @@ FinisherMelee(
         ))),
         precision_flank_multipliers: (front: 1.0, side: 2.0, back: 1.0),
     ),
-    minimum_combo: 10,
+    minimum_combo: 5,
 )
