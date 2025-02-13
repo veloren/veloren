@@ -31,6 +31,7 @@ macro_rules! debug_airships {
 impl AirshipSim {
     /// Connect the airshp captain NpcId to an airship route using the given
     /// docking position. This establishes the airship captain's route.
+    /// Returns the position where the airship should be placed.
     pub fn register_airship_captain(
         &mut self,
         docking_pos: Vec3<f32>,

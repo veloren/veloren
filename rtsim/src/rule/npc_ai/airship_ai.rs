@@ -39,7 +39,6 @@ pub struct AirshipRouteContext {
     // The current approach index, 0 1 or none
     pub current_approach_index: Option<usize>,
     // The names of the route's sites
-    // pub site_names: [String; 2],
     pub site_ids: Option<[Id<Site>; 2]>,
 }
 
@@ -115,7 +114,7 @@ impl ZoneDistanceTracker {
 }
 
 // This is the context data for the fly_airship action.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 struct FlyAirshipContext {
     // For determining the velocity and direction of this and other airships on the route.
     trackers: DHashMap<NpcId, ZoneDistanceTracker>,
@@ -131,19 +130,6 @@ struct FlyAirshipContext {
     avoid_mode: AirshipAvoidanceMode,
 }
 
-impl FlyAirshipContext {
-    fn new(timer: Duration, speed_factor: f32) -> Self {
-        Self {
-            trackers: DHashMap::default(),
-            timer,
-            hold_timer: Duration::from_secs(0),
-            hold_announced: false,
-            speed_factor,
-            avoid_mode: AirshipAvoidanceMode::None,
-        }
-    }
-}
-
 /// The flight phases of an airship.
 /// When the airship is loaded from RTSim data there is no "current approach
 /// index", so the 'Reset' phases are used to get the airship back on the route.
@@ -157,10 +143,6 @@ enum AirshipFlightPhase {
     // Docking,
     #[default]
     Docked,
-    ResetAscend,
-    ResetResume,
-    ResetInitial,
-    ResetFinal,
 }
 
 /// Called from pilot_airship to move the airship along phases of the route
@@ -210,7 +192,7 @@ enum AirshipFlightPhase {
 ///
 /// An Action
 fn fly_airship<S: State>(
-    route_context: &AirshipRouteContext,
+    approach_index: usize,
     phase: AirshipFlightPhase,
     wpos: Vec3<f32>,
     goal_dist: f32,
@@ -222,278 +204,271 @@ fn fly_airship<S: State>(
     with_collision_avoidance: bool,
     radar_interval: Duration,
 ) -> impl Action<S> {
-    let current_approach_index = route_context.current_approach_index.unwrap_or(0);
-    just(
-        move |ctx, airship_context: &mut Option<FlyAirshipContext>| {
-            // init context
-            let airship_context = airship_context.get_or_insert_with(|| {
-                FlyAirshipContext::new(radar_interval, initial_speed_factor)
-            });
-
-            let remaining = airship_context
-                .timer
-                .checked_sub(Duration::from_secs_f32(ctx.dt));
-            if remaining.is_none() {
-                airship_context.timer = radar_interval;
-                // The collision avoidance checks are not done every tick (no dt required).
-                if with_collision_avoidance {
-                    if let Some(route_id) = ctx
-                        .state
-                        .data()
-                        .airship_sim
-                        .assigned_routes
-                        .get(&ctx.npc_id)
-                        && let Some(route) = ctx.world.civs().airships.routes.get(route_id)
-                        && let Some(approach) = route.approaches.get(current_approach_index)
-                        && let Some(pilots) =
-                            ctx.state.data().airship_sim.route_pilots.get(route_id)
-                    {
-                        let mypos = ctx.npc.wpos;
-                        // The intermediate reference distance is either the approach initial point
-                        // (when cruising) or final point (when on
-                        // approach).
-                        let tracker_ref_dist = match phase {
-                            AirshipFlightPhase::Cruise => Some(
-                                approach
-                                    .approach_initial_pos
-                                    .distance_squared(approach.airship_pos.xy()),
-                            ),
-                            AirshipFlightPhase::ApproachFinal => Some(
-                                approach
-                                    .approach_final_pos
-                                    .distance_squared(approach.airship_pos.xy()),
-                            ),
-                            _ => None,
-                        };
-                        // Collection the avoidance modes for other airships on the route.
-                        let avoidance: Vec<AirshipAvoidanceMode> = pilots
-                            .iter()
-                            .filter(|pilot_id| **pilot_id != ctx.npc_id)
-                            .filter_map(|pilot_id| {
-                                ctx.state.data().npcs.get(*pilot_id).and_then(|pilot| {
-                                    let pilot_wpos = pilot.wpos;
-                                    let other_tracker = airship_context
-                                        .trackers
-                                        .entry(*pilot_id)
-                                        .or_insert_with(|| ZoneDistanceTracker {
-                                            fixed_pos: approach.airship_pos.xy(),
-                                            stable_tolerance: 20.0,
-                                            ref_dist: tracker_ref_dist,
-                                            ..Default::default()
-                                        });
-                                    // the tracker determines if the other airship is moving towards
-                                    // or away from my docking position
-                                    // and if towards, whether it is inside of my position (ahead of
-                                    // me) and if ahead, whether it is
-                                    // inside the reference distance. If ahead of me but no inside
-                                    // the reference distance, I should slow down.
-                                    // If ahead of me and inside the reference distance, I should
-                                    // slow down or hold depending on which
-                                    // phase I'm in.
-                                    let (trend, zone) =
-                                        other_tracker.update(mypos.xy(), pilot_wpos.xy());
-                                    match trend {
-                                        Some(DistanceTrend::ApproachingDock) => {
-                                            // other airship is moving towards the (my) docking
-                                            // position
-                                            match zone {
-                                                Some(DistanceZone::InsideMyDistance) => {
-                                                    // other airship is ahead, on the same route,
-                                                    // but outside
-                                                    // the reference distance (either the approach
-                                                    // initial point or final point)
-                                                    match phase {
-                                                        // If I'm currently cruising, slow down if
-                                                        // the other airship is
-                                                        // within 2000 blocks
-                                                        AirshipFlightPhase::Cruise => {
-                                                            let dist2 = mypos
-                                                                .xy()
-                                                                .distance_squared(pilot_wpos.xy());
-                                                            if dist2 < 2000.0f32.powi(2) {
-                                                                Some(AirshipAvoidanceMode::SlowDown)
-                                                            } else {
-                                                                None
-                                                            }
-                                                        },
-                                                        // If I'm currently on approach, stop and
-                                                        // hold
-                                                        AirshipFlightPhase::ApproachFinal => {
-                                                            Some(AirshipAvoidanceMode::Hold(
-                                                                mypos,
-                                                                Dir::from_unnormalized(
-                                                                    (approach.approach_final_pos
-                                                                        - mypos.xy())
-                                                                    .with_z(0.0),
-                                                                )
-                                                                .unwrap_or_default(),
-                                                            ))
-                                                        },
-                                                        // If I'm currently transitioning to above
-                                                        // the dock, hold position
-                                                        AirshipFlightPhase::Transition => {
-                                                            Some(AirshipAvoidanceMode::Hold(
-                                                                mypos,
-                                                                approach.airship_direction,
-                                                            ))
-                                                        },
-                                                        _ => None,
-                                                    }
-                                                },
-                                                Some(DistanceZone::InsideReference) => {
-                                                    // other airship is ahead, on the same route,
-                                                    // and inside
-                                                    // the reference distance (either the approach
-                                                    // initial point or final point)
-                                                    match phase {
-                                                        // If I'm currently on approach, slow down,
-                                                        // to eventually
-                                                        // hold near the dock.
-                                                        AirshipFlightPhase::ApproachFinal => {
+    just(move |ctx, airship_context: &mut FlyAirshipContext| {
+        let remaining = airship_context
+            .timer
+            .checked_sub(Duration::from_secs_f32(ctx.dt));
+        if remaining.is_none() {
+            airship_context.timer = radar_interval;
+            // The collision avoidance checks are not done every tick (no dt required).
+            if with_collision_avoidance {
+                if let Some(route_id) = ctx
+                    .state
+                    .data()
+                    .airship_sim
+                    .assigned_routes
+                    .get(&ctx.npc_id)
+                    && let Some(route) = ctx.world.civs().airships.routes.get(route_id)
+                    && let Some(approach) = route.approaches.get(approach_index)
+                    && let Some(pilots) = ctx.state.data().airship_sim.route_pilots.get(route_id)
+                {
+                    let mypos = ctx.npc.wpos;
+                    // The intermediate reference distance is either the approach initial point
+                    // (when cruising) or final point (when on
+                    // approach).
+                    let tracker_ref_dist = match phase {
+                        AirshipFlightPhase::Cruise => Some(
+                            approach
+                                .approach_initial_pos
+                                .distance_squared(approach.airship_pos.xy()),
+                        ),
+                        AirshipFlightPhase::ApproachFinal => Some(
+                            approach
+                                .approach_final_pos
+                                .distance_squared(approach.airship_pos.xy()),
+                        ),
+                        _ => None,
+                    };
+                    // Collection the avoidance modes for other airships on the route.
+                    let avoidance: Vec<AirshipAvoidanceMode> = pilots
+                        .iter()
+                        .filter(|pilot_id| **pilot_id != ctx.npc_id)
+                        .filter_map(|pilot_id| {
+                            ctx.state.data().npcs.get(*pilot_id).and_then(|pilot| {
+                                let pilot_wpos = pilot.wpos;
+                                let other_tracker = airship_context
+                                    .trackers
+                                    .entry(*pilot_id)
+                                    .or_insert_with(|| ZoneDistanceTracker {
+                                        fixed_pos: approach.airship_pos.xy(),
+                                        stable_tolerance: 20.0,
+                                        ref_dist: tracker_ref_dist,
+                                        ..Default::default()
+                                    });
+                                // the tracker determines if the other airship is moving towards
+                                // or away from my docking position
+                                // and if towards, whether it is inside of my position (ahead of
+                                // me) and if ahead, whether it is
+                                // inside the reference distance. If ahead of me but no inside
+                                // the reference distance, I should slow down.
+                                // If ahead of me and inside the reference distance, I should
+                                // slow down or hold depending on which
+                                // phase I'm in.
+                                let (trend, zone) =
+                                    other_tracker.update(mypos.xy(), pilot_wpos.xy());
+                                match trend {
+                                    Some(DistanceTrend::ApproachingDock) => {
+                                        // other airship is moving towards the (my) docking
+                                        // position
+                                        match zone {
+                                            Some(DistanceZone::InsideMyDistance) => {
+                                                // other airship is ahead, on the same route,
+                                                // but outside
+                                                // the reference distance (either the approach
+                                                // initial point or final point)
+                                                match phase {
+                                                    // If I'm currently cruising, slow down if
+                                                    // the other airship is
+                                                    // within 2000 blocks
+                                                    AirshipFlightPhase::Cruise => {
+                                                        let dist2 = mypos
+                                                            .xy()
+                                                            .distance_squared(pilot_wpos.xy());
+                                                        if dist2 < 2000.0f32.powi(2) {
                                                             Some(AirshipAvoidanceMode::SlowDown)
-                                                        },
-                                                        // else I'm cruising, the other airship is
-                                                        // well ahead, and
-                                                        // I might eventually have to hold nearer
-                                                        // the dock.
-                                                        // There is no reference distance if on
-                                                        // final.
-                                                        _ => None,
-                                                    }
-                                                },
-                                                // else other airship is behind me, ignore
-                                                _ => None,
-                                            }
-                                        },
-                                        // other airship is at the dock (or desending to the dock)
-                                        Some(DistanceTrend::Docked) => {
-                                            // other airship is ahead, on the same route, near the
-                                            // dock.
-                                            match phase {
-                                                // If I'm currently on approach, slow down, to
-                                                // eventually probably hold near the dock.
-                                                AirshipFlightPhase::ApproachFinal => {
-                                                    Some(AirshipAvoidanceMode::SlowDown)
-                                                },
-                                                // If I'm currently transitioning to above the dock,
-                                                // hold position
-                                                AirshipFlightPhase::Transition => {
-                                                    Some(AirshipAvoidanceMode::Hold(
-                                                        mypos,
-                                                        approach.airship_direction,
-                                                    ))
-                                                },
-                                                // otherwise continue until some other condition is
-                                                // met
-                                                _ => None,
-                                            }
-                                        },
-                                        // else other airship is moving away from my dock or there
-                                        // isn't enough data to determine the trend.
-                                        // Do nothing.
-                                        _ => None,
-                                    }
-                                })
+                                                        } else {
+                                                            None
+                                                        }
+                                                    },
+                                                    // If I'm currently on approach, stop and
+                                                    // hold
+                                                    AirshipFlightPhase::ApproachFinal => {
+                                                        Some(AirshipAvoidanceMode::Hold(
+                                                            mypos,
+                                                            Dir::from_unnormalized(
+                                                                (approach.approach_final_pos
+                                                                    - mypos.xy())
+                                                                .with_z(0.0),
+                                                            )
+                                                            .unwrap_or_default(),
+                                                        ))
+                                                    },
+                                                    // If I'm currently transitioning to above
+                                                    // the dock, hold position
+                                                    AirshipFlightPhase::Transition => {
+                                                        Some(AirshipAvoidanceMode::Hold(
+                                                            mypos,
+                                                            approach.airship_direction,
+                                                        ))
+                                                    },
+                                                    _ => None,
+                                                }
+                                            },
+                                            Some(DistanceZone::InsideReference) => {
+                                                // other airship is ahead, on the same route,
+                                                // and inside
+                                                // the reference distance (either the approach
+                                                // initial point or final point)
+                                                match phase {
+                                                    // If I'm currently on approach, slow down,
+                                                    // to eventually
+                                                    // hold near the dock.
+                                                    AirshipFlightPhase::ApproachFinal => {
+                                                        Some(AirshipAvoidanceMode::SlowDown)
+                                                    },
+                                                    // else I'm cruising, the other airship is
+                                                    // well ahead, and
+                                                    // I might eventually have to hold nearer
+                                                    // the dock.
+                                                    // There is no reference distance if on
+                                                    // final.
+                                                    _ => None,
+                                                }
+                                            },
+                                            // else other airship is behind me, ignore
+                                            _ => None,
+                                        }
+                                    },
+                                    // other airship is at the dock (or desending to the dock)
+                                    Some(DistanceTrend::Docked) => {
+                                        // other airship is ahead, on the same route, near the
+                                        // dock.
+                                        match phase {
+                                            // If I'm currently on approach, slow down, to
+                                            // eventually probably hold near the dock.
+                                            AirshipFlightPhase::ApproachFinal => {
+                                                Some(AirshipAvoidanceMode::SlowDown)
+                                            },
+                                            // If I'm currently transitioning to above the dock,
+                                            // hold position
+                                            AirshipFlightPhase::Transition => {
+                                                Some(AirshipAvoidanceMode::Hold(
+                                                    mypos,
+                                                    approach.airship_direction,
+                                                ))
+                                            },
+                                            // otherwise continue until some other condition is
+                                            // met
+                                            _ => None,
+                                        }
+                                    },
+                                    // else other airship is moving away from my dock or there
+                                    // isn't enough data to determine the trend.
+                                    // Do nothing.
+                                    _ => None,
+                                }
                             })
-                            .collect();
+                        })
+                        .collect();
 
-                        if let Some((hold_pos, hold_dir)) = avoidance.iter().find_map(|mode| {
-                            if let AirshipAvoidanceMode::Hold(hold_pos, hold_dir) = mode {
-                                Some((hold_pos, hold_dir))
-                            } else {
-                                None
-                            }
-                        }) {
-                            if !matches!(airship_context.avoid_mode, AirshipAvoidanceMode::Hold(..))
-                            {
-                                airship_context.avoid_mode =
-                                    AirshipAvoidanceMode::Hold(*hold_pos, *hold_dir);
-                                // airship_context.hold_wpos = mypos + (other_pos -
-                                // mypos.xy()).normalized() * 25.0;
-                                airship_context.hold_timer =
-                                    Duration::from_secs_f32(ctx.rng.gen_range(4.0..7.0));
-                                airship_context.hold_announced = false;
-                            }
-                        } else if avoidance
-                            .iter()
-                            .any(|mode| matches!(mode, AirshipAvoidanceMode::SlowDown))
-                        {
+                    if let Some((hold_pos, hold_dir)) = avoidance.iter().find_map(|mode| {
+                        if let AirshipAvoidanceMode::Hold(hold_pos, hold_dir) = mode {
+                            Some((hold_pos, hold_dir))
+                        } else {
+                            None
+                        }
+                    }) {
+                        if !matches!(airship_context.avoid_mode, AirshipAvoidanceMode::Hold(..)) {
+                            airship_context.avoid_mode =
+                                AirshipAvoidanceMode::Hold(*hold_pos, *hold_dir);
+                            airship_context.hold_timer =
+                                Duration::from_secs_f32(ctx.rng.gen_range(4.0..7.0));
+                            airship_context.hold_announced = false;
+                        }
+                    } else if avoidance
+                        .iter()
+                        .any(|mode| matches!(mode, AirshipAvoidanceMode::SlowDown))
+                    {
+                        if !matches!(airship_context.avoid_mode, AirshipAvoidanceMode::SlowDown) {
                             airship_context.avoid_mode = AirshipAvoidanceMode::SlowDown;
                             airship_context.speed_factor = initial_speed_factor * 0.5;
-                        } else {
-                            airship_context.avoid_mode = AirshipAvoidanceMode::None;
-                            airship_context.speed_factor = initial_speed_factor;
                         }
-                    }
-                } else {
-                    airship_context.avoid_mode = AirshipAvoidanceMode::None;
-                    airship_context.speed_factor = initial_speed_factor;
-                }
-            } else {
-                airship_context.timer = remaining.unwrap();
-            }
-
-            if let AirshipAvoidanceMode::Hold(hold_pos, hold_dir) = airship_context.avoid_mode {
-                let hold_remaining = airship_context
-                    .hold_timer
-                    .checked_sub(Duration::from_secs_f32(ctx.dt));
-                if hold_remaining.is_none() {
-                    if !airship_context.hold_announced {
-                        airship_context.hold_announced = true;
-                        ctx.controller
-                            .say(None, Content::localized("npc-speech-pilot-announce_hold"));
                     } else {
-                        ctx.controller
-                            .say(None, Content::localized("npc-speech-pilot-continue_hold"));
+                        airship_context.avoid_mode = AirshipAvoidanceMode::None;
+                        airship_context.speed_factor = initial_speed_factor;
                     }
-                    airship_context.hold_timer =
-                        Duration::from_secs_f32(ctx.rng.gen_range(10.0..20.0));
-                } else {
-                    airship_context.hold_timer = hold_remaining.unwrap();
                 }
-                // Hold position (same idea as holding station at the dock except allow
-                // oscillations)
-                let hold_pos = if matches!(ctx.npc.mode, SimulationMode::Simulated) {
-                    hold_pos
-                } else {
-                    // Airship is loaded, add some randomness to the hold position
-                    // so that the airship doesn't look like it's stuck in one place.
-                    // This also keeps the propellers spinning slowly and somewhat randomly.
-                    hold_pos
-                        + (Vec3::new(0.7, 0.8, 0.9).map(|e| (e * ctx.time.0).sin())
-                            * Vec3::new(5.0, 5.0, 10.0))
-                        .map(|e| e as f32)
-                };
-
-                // Holding position
-                ctx.controller.do_goto_with_height_and_dir(
-                    hold_pos,
-                    0.15,
-                    None,
-                    Some(hold_dir),
-                    FlightMode::Braking(BrakingMode::Normal),
-                );
             } else {
-                // use terrain height offset if specified
-                let height_offset_opt = if with_terrain_following {
-                    Some(height_offset)
-                } else {
-                    None
-                };
-                // Move the airship
-                ctx.controller.do_goto_with_height_and_dir(
-                    wpos,
-                    airship_context.speed_factor,
-                    height_offset_opt,
-                    direction_override,
-                    flight_mode,
-                );
+                airship_context.avoid_mode = AirshipAvoidanceMode::None;
+                airship_context.speed_factor = initial_speed_factor;
             }
-        },
-    )
+        } else {
+            airship_context.timer = remaining.unwrap();
+        }
+
+        if let AirshipAvoidanceMode::Hold(hold_pos, hold_dir) = airship_context.avoid_mode {
+            let hold_remaining = airship_context
+                .hold_timer
+                .checked_sub(Duration::from_secs_f32(ctx.dt));
+            if hold_remaining.is_none() {
+                if !airship_context.hold_announced {
+                    airship_context.hold_announced = true;
+                    ctx.controller
+                        .say(None, Content::localized("npc-speech-pilot-announce_hold"));
+                } else {
+                    ctx.controller
+                        .say(None, Content::localized("npc-speech-pilot-continue_hold"));
+                }
+                airship_context.hold_timer = Duration::from_secs_f32(ctx.rng.gen_range(10.0..20.0));
+            } else {
+                airship_context.hold_timer = hold_remaining.unwrap();
+            }
+            // Hold position (same idea as holding station at the dock except allow
+            // oscillations)
+            let hold_pos = if matches!(ctx.npc.mode, SimulationMode::Simulated) {
+                hold_pos
+            } else {
+                // Airship is loaded, add some randomness to the hold position
+                // so that the airship doesn't look like it's stuck in one place.
+                // This also keeps the propellers spinning slowly and somewhat randomly.
+                hold_pos
+                    + (Vec3::new(0.7, 0.8, 0.9).map(|e| (e * ctx.time.0).sin())
+                        * Vec3::new(5.0, 5.0, 10.0))
+                    .map(|e| e as f32)
+            };
+
+            // Holding position
+            ctx.controller.do_goto_with_height_and_dir(
+                hold_pos,
+                0.15,
+                None,
+                Some(hold_dir),
+                FlightMode::Braking(BrakingMode::Normal),
+            );
+        } else {
+            // use terrain height offset if specified
+            let height_offset_opt = if with_terrain_following {
+                Some(height_offset)
+            } else {
+                None
+            };
+            // Move the airship
+            ctx.controller.do_goto_with_height_and_dir(
+                wpos,
+                airship_context.speed_factor,
+                height_offset_opt,
+                direction_override,
+                flight_mode,
+            );
+        }
+    })
     .repeat()
     .boxed()
-    .with_state(None)
+    .with_state(FlyAirshipContext {
+        timer: radar_interval,
+        speed_factor: initial_speed_factor,
+        ..Default::default()
+    })
     .stop_if(move |ctx: &mut NpcCtx| {
         if flight_mode == FlightMode::FlyThrough {
             // we only care about the xy distance (just get close to the target position)
@@ -549,87 +524,25 @@ fn approach_target_pos(
     approach_pos.with_z(max_alt + height)
 }
 
-/// Calculates how to resume a route. Called when loading an airship from
-/// saved rtSim data.
-///
-/// If the airship is within 700 blocks of a docking position, go to the
-/// approach initial point for that docking position. If the airship is
-/// outside of 700 blocks of either docking position, go to the nearest
-/// approach initial point.
-///
-/// ### Returns
-///
-/// The index of the approach to resume on.
+/// Calculates how to resume a route. Called when the server starts up.
+/// The airship will be at the approach final point, and this function
+/// just needs to figure out to which approach index that correlates.
+/// Returns the index of the approach to resume on.
 fn resume_route(airships: &Airships, route_id: &u32, ctx: &mut NpcCtx<'_>) -> usize {
     if let Some(route) = airships.routes.get(route_id) {
-        // (approach index, distance to docking position, distance to approach initial
-        // pos)
-        let resume_data: Vec<(usize, i32, i32)> = route
+        route
             .approaches
             .iter()
             .enumerate()
-            .map(|(index, approach)| {
-                (
-                    index,
-                    approach
-                        .airship_pos
-                        .xy()
-                        .distance_squared(ctx.npc.wpos.xy()) as i32,
-                    approach
-                        .approach_initial_pos
-                        .distance_squared(ctx.npc.wpos.xy()) as i32,
-                )
+            .min_by_key(|(_, approach)| {
+                approach
+                    .approach_final_pos
+                    .distance_squared(ctx.npc.wpos.xy()) as i32
             })
-            .collect::<Vec<_>>();
-
-        // The approach initial position is between 700 to 1000 blocks from the docking
-        // position. If the distance from the docking position is less than
-        // 100 blocks, the airship was docked or landing to dock.
-        // else if the distance from the docking position is less than 700 blocks, it
-        // was in the approach phase. else it was cruising or was just past
-        // the initial approach point.
-
-        // Consider three zones:
-        // 1. Near Site 1 docking position
-        // 2. Near Site 2 docking position
-        // 3. Cruising in between the two sites.
-
-        // Unfortunately, we can't use the npc.dir to determine where it was pointed.
-        // The npc.dir is the direction the npc is facing, and for airship pilots, it
-        // does not change. Apparently, the npc.dir is relative the ship body or
-        // something.
-
-        // If the airship is within 700 blocks of the approach docking position
-        //      Go to approach initial point
-        // Else if within 700 blocks of the opposite approach docking position
-        //      Go to the opposite approach initial point
-        // Else
-        //      Go to the nearest approach initial point
-        // End
-
-        if let Some((index, _, _)) = resume_data
-            .iter()
-            .find(|(_, dock_dist2, _)| *dock_dist2 < 700i32.pow(2))
-        {
-            // Go to approach initial point at normal altitude + a random offset.
-            *index
-        // Else if the distance to either dock is greater than 700 blocks,
-        // the airship was cruising between the two sites, so go
-        // to the nearest approach initial point.
-        } else if let Some((index, _, _)) = resume_data
-            .iter()
-            .min_by_key(|(_, _, initial_dist2)| *initial_dist2)
-        {
-            *index
-        } else {
-            // there must be no approached, unexpected.
-            // pick a random approach.
-            ctx.rng.gen_range(0..2)
-        }
+            .map(|(index, _)| index)
+            .unwrap_or(0)
     } else {
-        // no route, unexpected.
-        // pick a random approach.
-        ctx.rng.gen_range(0..2)
+        0
     }
 }
 
@@ -668,79 +581,73 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
 
         Algorithm for piloting the airship:
 
-        Phase  State    Parameters               Completion Conditions
-        1      Docked   3D Position, Dir         Docking Timeout
-        2      Ascent   3D Position, Dir         Altitude reached
-        3      Cruise   2D Position, Height      2D Position reached
-        4      Approach 3D Position, Dir         2D Position reached
-        5      Final    3D Position, Dir         3D Position reached
+        Phase  State    Parameters                      Completion Conditions   Collision Avoidance
+        1      Docked   3D Position, Dir                Docking Timeout         No
+        2      Ascent   3D Position, Dir                Altitude reached        No
+        3      Cruise   2D Position, Height             2D Position reached     Yes
+        4      Approach 3D Position, Height, Dir        2D Position reached     Yes
+        5      Final    3D Position, Dir                3D Position reached     Yes
+        6      Landing  3D Position, Dir                3D Position reached     No
     */
 
     now(move |ctx, route_context: &mut AirshipRouteContext| {
 
-        /*
-            Get the assigned route for the airship (the captain NpcId)
-            and then figure out where in the route the airship is and what it's supposed to do next.
-            The airship flight action loop can be entered at any point because the airship/captain
-            position is saved in RTSim saved data but not what they were doing. When the server is
-            restarted, they will be in the same position but not doing anything and this code needs
-            to figure out what they should be doing.
-
-            If there is a current approach
-
-                Regular Flight Loop
-                Assumes that the airship starts at the Approach Final Point
-                This is the first de-confliction point for airships on the same route.
-                When the airship gets to the Approach Final Point, if there are any other
-                airships (pilots assigned to the same route) within some radius of the docking
-                position, then the airship should wait at the Approach Final Point until the
-                other airships are no longer within that radius. This is to prevent collisions.
-
-                Repeat until no other route pilot is within some radius of the docking position
-                    Wait
-                End
-                Fly 3D to Docking Transition Point
-                Descend and Dock
-                Wait at Dock (default time + extension time)
-                Ascend to Cruise Alt
-                Fly 2D to Destination Initial Point
-                Fly 3D to Destination Final Point
-
-            Else (no current approach in the context data)
-
-                No current approach happens when first starting up, both from scratch with a new
-                world and when loading rtSim data from persistent storage. The airship could be anywhere
-                along a route.
-
-                If the airship was cruising, resume the cruise flight phase.
-                If the airship was docked or nearly docked, send it off towards the opposite site.
-                Else the airship should be somewhere near the Approach Final Point. Fly 3D to the
-                Approach Final Point and start the regular flight loop.
-            End
-            Repeat
-         */
-
         // get the assigned route
-
         if let Some(route_id) = ctx.state.data().airship_sim.assigned_routes.get(&ctx.npc_id)
             && let Some(route) = ctx.world.civs().airships.routes.get(route_id) {
 
             route_context.site_ids = Some([route.approaches[0].site_id, route.approaches[1].site_id]);
 
-            if let Some(current_approach_index) = route_context.current_approach_index {
-                // when current_approach_index exists, it means we're repeating the flight loop
-                // if approach index is 0, then the airship is fly from site 0 to site 1, and vice versa
+            // pilot_airship action is called the first time, there will be no current approach index
+            // but the airship will be sitting at the approach final point.
+            let (current_approach_index, resuming) = if let Some(current_approach_index) = route_context.current_approach_index {
+                (current_approach_index, false)
+            } else {
+                let resume_approach_index = resume_route(&ctx.world.civs().airships, route_id, ctx);
+                route_context.current_approach_index = Some(resume_approach_index);
+                (resume_approach_index, true)
+            };
 
-                let ship_body = comp::Body::from(ship);
-                let approach1 = route.approaches[current_approach_index].clone();
-                let approach2 = route.approaches[(current_approach_index + 1) % 2].clone();
+            // when current_approach_index exists, it means we're repeating the flight loop
+            // if approach index is 0, then the airship is fly from site 0 to site 1, and vice versa
 
-                // Regular Flight Loop
-                // Fly 3D to Docking Transition Point, full PID control
-                // 
+            let ship_body = comp::Body::from(ship);
+            // the approach flips in the middle of this loop after waiting at the dock.
+            // The route_context.current_approach_index is used to determine the current approach at the
+            // top of the function but any changes to route_context are not seen until the next iteration.
+            // For this loop, these are the two approaches. We use #2 after docking is completed.
+            let approach_index_1 = current_approach_index;
+            let approach_index_2 = (current_approach_index + 1) % 2;
+            let approach1 = route.approaches[approach_index_1].clone();
+            let approach2 = route.approaches[approach_index_2].clone();
 
+            // Startup delay
+            // If the server has just started (resuming is true)
+            // then the airship is at the approach final point.
+            // It should hover there for a random time so that not all airships land at the same time.
+            let start_delay = if resuming {
+                ctx.rng.gen_range(1..5) as f64 * 10.0
+            } else {
+                0.02
+            };
+            just(move |ctx, _| {
+                ctx.controller
+                .do_goto_with_height_and_dir(
+                    approach1.approach_final_pos.with_z(approach1.airship_pos.z + approach1.height),
+                    0.4, None,
+                    Some(approach1.airship_direction),
+                    FlightMode::Braking(BrakingMode::Precise),
+                );
+            })
+            .repeat()
+            .stop_if(timeout(start_delay))
+
+            // Regular Flight Loop
+            // Fly 3D to Docking Transition Point, full PID control
+
+            .then(
                 fly_airship(
-                    route_context,
+                    approach_index_1,
                     AirshipFlightPhase::Transition,
                     approach1.airship_pos + Vec3::unit_z() * (approach1.height),
                     50.0,
@@ -751,258 +658,169 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     FlightMode::Braking(BrakingMode::Normal),
                     true,
                     Duration::from_secs_f32(1.0),
-                )
-
-                // Descend and Dock
-                //    Docking
-                //      Stop in increments and settle at 150 blocks and then 50 blocks from the dock.
-                //      This helps to ensure that the airship docks vertically and avoids collisions
-                //      with other airships and the dock. The speed_factor is high to
-                //      give a strong response to the PID controller for the first
-                //      three docking phases. The speed_factor is reduced for the final docking phase
-                //      to give the impression that the airship propellers are not rotating.
-                .then(
-                    // descend to 150 blocks above the dock
-                    just(move |ctx, _| {
-                        ctx.controller
-                            .do_goto_with_height_and_dir(
-                                approach1.airship_pos + Vec3::unit_z() * 150.0,
-                                0.7, None,
-                                Some(approach1.airship_direction),
-                                FlightMode::Braking(BrakingMode::Normal),
-                            );
-                    })
-                    .repeat()
-                    .stop_if(timeout(9.0)))
-                .then(
-                    // descend to 50 blocks above the dock
-                    just(move |ctx, _| {
-                        ctx.controller
-                            .do_goto_with_height_and_dir(
-                                approach1.airship_pos + Vec3::unit_z() * 50.0,
-                                0.6, None,
-                                Some(approach1.airship_direction),
-                                FlightMode::Braking(BrakingMode::Normal),
-                            );
-                    })
-                    .repeat()
-                    .stop_if(timeout(6.0)))
-                .then(
-                    // descend to docking position
-                    just(move |ctx, _| {
-                        ctx.controller
-                            .do_goto_with_height_and_dir(
-                                approach1.airship_pos + ship_body.mount_offset(),
-                                0.5, None,
-                                Some(approach1.airship_direction),
-                                FlightMode::Braking(BrakingMode::Precise),
-                            );
-                    })
-                    .repeat()
-                    .stop_if(timeout(6.0)))
-                // Announce arrival
-                .then(just(move |ctx, route_context:&mut AirshipRouteContext| {
-                    #[cfg(debug_assertions)]
-                    {
-                        if let Some(site_ids) = route_context.site_ids {
-                            let docked_site_id = site_ids[route_context.current_approach_index.unwrap_or(0)];
-                            let docked_site_name = ctx.index.sites.get(docked_site_id).name().to_string();
-                            debug!("{}, Docked at {}", format!("{:?}", ctx.npc_id), docked_site_name);
-                        }
-                    }
+            ))
+            // Descend and Dock
+            //    Docking
+            //      Stop in increments and settle at 150 blocks and then 50 blocks from the dock.
+            //      This helps to ensure that the airship docks vertically and avoids collisions
+            //      with other airships and the dock. The speed_factor is high to
+            //      give a strong response to the PID controller for the first
+            //      three docking phases. The speed_factor is reduced for the final docking phase
+            //      to give the impression that the airship propellers are not rotating.
+            //      Vary the timeout to get variation in the docking sequence.
+            .then(
+                // descend to 125 blocks above the dock
+                just(move |ctx, _| {
                     ctx.controller
-                        .say(None, Content::localized("npc-speech-pilot-landed"));
-                }))
-
-                // Docked - Wait at Dock
-                .then(
-                    just(move |ctx, _| {
-                        ctx.controller
+                        .do_goto_with_height_and_dir(
+                            approach1.airship_pos + Vec3::unit_z() * 125.0,
+                            0.7, None,
+                            Some(approach1.airship_direction),
+                            FlightMode::Braking(BrakingMode::Normal),
+                        );
+                })
+                .repeat()
+                .stop_if(timeout(ctx.rng.gen_range(8.0..12.0))))
+            .then(
+                // descend to 35 blocks above the dock
+                just(move |ctx, _| {
+                    ctx.controller
+                        .do_goto_with_height_and_dir(
+                            approach1.airship_pos + Vec3::unit_z() * 35.0,
+                            0.6, None,
+                            Some(approach1.airship_direction),
+                            FlightMode::Braking(BrakingMode::Normal),
+                        );
+                })
+                .repeat()
+                .stop_if(timeout(ctx.rng.gen_range(5.0..7.0))))
+            .then(
+                // descend to docking position
+                just(move |ctx: &mut NpcCtx<'_>, _| {
+                    ctx.controller
                         .do_goto_with_height_and_dir(
                             approach1.airship_pos + ship_body.mount_offset(),
-                            0.4, None,
+                            0.5, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Precise),
                         );
-                    })
-                    .repeat()
-                    .stop_if(timeout(ctx.rng.gen_range(10.0..20.0)))
-                    // While waiting, every now and then announce where the airship is going next.
-                    .then(
-                        just(move |ctx, route_context:&mut AirshipRouteContext| {
-                            // get the name of the site the airship is going to next.
-                            // The route_context.current_approach_index has not been switched yet,
-                            // so the index is the opposite of the current approach index.
-                            if let Some(site_ids) = route_context.site_ids {
-                                let next_site_id = site_ids[(route_context.current_approach_index.unwrap_or(0) + 1) % 2];
-                                let next_site_name = ctx.index.sites.get(next_site_id).name().to_string();
-                                ctx.controller.say(
-                                    None,
-                                    Content::localized_with_args("npc-speech-pilot-announce_next", [
-                                    (
-                                        "dir",
-                                        Direction::from_dir(approach2.approach_initial_pos - ctx.npc.wpos.xy()).localize_npc(),
-                                    ),
-                                    ("dst", Content::Plain(next_site_name.to_string())),
-                                    ]),
-                                );
-                            }
-                        })
-                    )
-                    .repeat()
-                    .stop_if(timeout(Airships::docking_duration()))
-                ).then(
-                    // rotate the approach to the next approach index. Note the approach2 is already known,
-                    // this is just changing the approach index in the context data for the next loop.
+                })
+                .repeat()
+                .stop_if(timeout(ctx.rng.gen_range(6.0..9.0))))
+            // Announce arrival
+            .then(just(|ctx: &mut NpcCtx<'_>, route_context:&mut AirshipRouteContext| {
+                #[cfg(debug_assertions)]
+                {
+                    if let Some(site_ids) = route_context.site_ids {
+                        let docked_site_id = site_ids[route_context.current_approach_index.unwrap_or(0)];
+                        let docked_site_name = ctx.index.sites.get(docked_site_id).name().to_string();
+                        debug!("{}, Docked at {}", format!("{:?}", ctx.npc_id), docked_site_name);
+                    }
+                }
+                ctx.controller
+                    .say(None, Content::localized("npc-speech-pilot-landed"));
+            }))
+
+            // Docked - Wait at Dock
+            .then(
+                just(move |ctx, _| {
+                    ctx.controller
+                    .do_goto_with_height_and_dir(
+                        approach1.airship_pos + ship_body.mount_offset(),
+                        0.4, None,
+                        Some(approach1.airship_direction),
+                        FlightMode::Braking(BrakingMode::Precise),
+                    );
+                })
+                .repeat()
+                .stop_if(timeout(ctx.rng.gen_range(10.0..20.0)))
+                // While waiting, every now and then announce where the airship is going next.
+                .then(
                     just(move |ctx, route_context:&mut AirshipRouteContext| {
-                        let from_index = route_context.current_approach_index.unwrap_or(0);
-                        let next_approach_index = (from_index + 1) % 2;
-                        route_context.current_approach_index = Some(next_approach_index);
+                        // get the name of the site the airship is going to next.
+                        // The route_context.current_approach_index has not been switched yet,
+                        // so the index is the opposite of the current approach index.
                         if let Some(site_ids) = route_context.site_ids {
+                            let next_site_id = site_ids[(route_context.current_approach_index.unwrap_or(0) + 1) % 2];
+                            let next_site_name = ctx.index.sites.get(next_site_id).name().to_string();
                             ctx.controller.say(
-                            None,
-                                Content::localized_with_args("npc-speech-pilot-takeoff", [
-                                    ("src", Content::Plain(ctx.index.sites.get(site_ids[from_index]).name().to_string())),
-                                    ("dst", Content::Plain(ctx.index.sites.get(site_ids[next_approach_index]).name().to_string())),
+                                None,
+                                Content::localized_with_args("npc-speech-pilot-announce_next", [
+                                (
+                                    "dir",
+                                    Direction::from_dir(approach2.approach_initial_pos - ctx.npc.wpos.xy()).localize_npc(),
+                                ),
+                                ("dst", Content::Plain(next_site_name.to_string())),
                                 ]),
                             );
                         }
                     })
-                ).then(
-                    // Ascend to Cruise Alt, full PID control
-                    fly_airship(
-                        route_context,
-                        AirshipFlightPhase::Ascent,
-                        approach1.airship_pos + Vec3::unit_z() * Airships::takeoff_ascent_hat(),
-                        50.0,
-                        0.08,
-                        0.0,
-                        false,
-                        Some(Dir::from_unnormalized((approach2.approach_initial_pos - ctx.npc.wpos.xy()).with_z(0.0)).unwrap_or_default()),
-                        FlightMode::Braking(BrakingMode::Normal),
-                        false,
-                        Duration::from_secs_f32(120.0),
-                    )
-                ).then(
-                    // Fly 2D to Destination Initial Point
-                    fly_airship(
-                        route_context,
-                        AirshipFlightPhase::Cruise,
-                        approach_target_pos(ctx, approach2.approach_initial_pos, approach2.airship_pos.z + approach2.height, approach2.height),
-                        250.0,
-                        1.0,
-                        approach2.height,
-                        true,
+                )
+                .repeat()
+                .stop_if(timeout(Airships::docking_duration()))
+            ).then(
+                // rotate the approach to the next approach index. Note the approach2 is already known,
+                // this is just changing the approach index in the context data for the next loop.
+                just(move |ctx, route_context:&mut AirshipRouteContext| {
+                    let from_index = route_context.current_approach_index.unwrap_or(0);
+                    let next_approach_index = (from_index + 1) % 2;
+                    route_context.current_approach_index = Some(next_approach_index);
+                    if let Some(site_ids) = route_context.site_ids {
+                        ctx.controller.say(
                         None,
-                        FlightMode::FlyThrough,
-                        true,
-                        Duration::from_secs_f32(3.0),
-                    )
-                ).then(
-                    // Fly 3D to Destination Final Point, z PID control
-                    fly_airship(
-                        route_context,
-                        AirshipFlightPhase::ApproachFinal,
-                        approach_target_pos(ctx, approach2.approach_final_pos, approach2.airship_pos.z + approach2.height, approach2.height),
-                        250.0,
-                        0.3,
-                        approach2.height,
-                        true,
-                        Some(approach2.airship_direction),
-                        FlightMode::FlyThrough,
-                        true,
-                        Duration::from_secs_f32(1.0),
-                    )
-                ).map(|_, _| ()).boxed()
-            // there is no current approach, we must be just starting up. Find the nearest approach final point.
-            } else if let Some(route_id) = ctx.state.data().airship_sim.assigned_routes.get(&ctx.npc_id)
-                && let Some(route) = ctx.world.civs().airships.routes.get(route_id)
-            {
-                let resume_approach_index = resume_route(&ctx.world.civs().airships, route_id, ctx);
-
-                // This is a bit tricky because another airship could have been within 700
-                // blocks of a docking position (one arriving and one leaving), or more than
-                // one airship could be between the initial points, so don't just
-                // go directly to the final point.
-                // Choose a random offset from the approach initial point and go there at a random altitude.
-                // The airship deconfliction code in fly_airship will quickly sort out the situation.
-
-                route_context.current_approach_index = Some(resume_approach_index);
-                let approach= &route.approaches.get(resume_approach_index).unwrap();
-
-                // get the direction from the approach final point to the approach initial point
-                let mut approach_dir = approach.approach_initial_pos - approach.approach_final_pos;
-
-                // rotate the direction from final pos to initial pos by +- 30 or 60 degrees,
-                // and then extend that by a random factor of (1.15, 1.3 or 1.45) to get the resume position.
-                let rotation = ctx.rng.gen_range(-2..3) as f32 * std::f32::consts::FRAC_PI_6;
-                let mult_factor = 1.0 + ctx.rng.gen_range(1..4) as f32 * 0.15;
-                approach_dir.rotate_z(rotation);
-                let resume_pos = approach.approach_final_pos + approach_dir * mult_factor;
-
+                            Content::localized_with_args("npc-speech-pilot-takeoff", [
+                                ("src", Content::Plain(ctx.index.sites.get(site_ids[from_index]).name().to_string())),
+                                ("dst", Content::Plain(ctx.index.sites.get(site_ids[next_approach_index]).name().to_string())),
+                            ]),
+                        );
+                    }
+                })
+            ).then(
+                // Ascend to Cruise Alt, full PID control
                 fly_airship(
-                    // Make sure the airship is at altitude
-                    route_context,
-                    AirshipFlightPhase::ResetAscend,
-                    approach_target_pos(ctx, ctx.npc.wpos.xy(), 0.0, approach.height),
-                    100.0,
+                    approach_index_2,
+                    AirshipFlightPhase::Ascent,
+                    approach1.airship_pos + Vec3::unit_z() * Airships::takeoff_ascent_hat(),
+                    50.0,
                     0.08,
                     0.0,
                     false,
-                    Some(Dir::from_unnormalized((resume_pos - ctx.npc.wpos.xy()).with_z(0.0)).unwrap_or_default()),
+                    Some(Dir::from_unnormalized((approach2.approach_initial_pos - ctx.npc.wpos.xy()).with_z(0.0)).unwrap_or_default()),
                     FlightMode::Braking(BrakingMode::Normal),
                     false,
                     Duration::from_secs_f32(120.0),
                 )
-                .then(
-                    // Fly to the resume position
-                    fly_airship(
-                        route_context,
-                        AirshipFlightPhase::ResetResume,
-                        approach_target_pos(ctx, resume_pos, 0.0, approach.height),
-                        250.0,
-                        1.0,
-                        approach.height,
-                        true,
-                        None,
-                        FlightMode::FlyThrough,
-                        true,
-                        Duration::from_secs_f32(1.0),
-                    ))
-                .then(
-                    // Fly to the approach initial point
-                    fly_airship(
-                        route_context,
-                        AirshipFlightPhase::ResetInitial,
-                        approach_target_pos(ctx, approach.approach_initial_pos, approach.airship_pos.z + approach.height, approach.height),
-                        250.0,
-                        0.4,
-                        approach.height,
-                        true,
-                        None,
-                        FlightMode::FlyThrough,
-                        true,
-                        Duration::from_secs_f32(1.0),
-                    ))
-                .then(
-                    // fly to approach final point
-                    fly_airship(
-                        route_context,
-                        AirshipFlightPhase::ResetFinal,
-                        approach_target_pos(ctx, approach.approach_final_pos, approach.airship_pos.z + approach.height, approach.height),
-                        250.0,
-                        0.3,
-                        approach.height,
-                        true,
-                        Some(approach.airship_direction),
-                        FlightMode::FlyThrough,
-                        true,
-                        Duration::from_secs_f32(1.0),
-                    )).map(|_, _| ()).boxed()
-            } else {
-                // no resume mode, this is unexpected and never happens in testing, just finish so the compiler doesn't complain.
-                finish().map(|_, _| ()).boxed()
-            }
+            ).then(
+                // Fly 2D to Destination Initial Point
+                fly_airship(
+                    approach_index_2,
+                    AirshipFlightPhase::Cruise,
+                    approach_target_pos(ctx, approach2.approach_initial_pos, approach2.airship_pos.z + approach2.height, approach2.height),
+                    250.0,
+                    1.0,
+                    approach2.height,
+                    true,
+                    None,
+                    FlightMode::FlyThrough,
+                    true,
+                    Duration::from_secs_f32(3.0),
+                )
+            ).then(
+                // Fly 3D to Destination Final Point, z PID control
+                fly_airship(
+                    approach_index_2,
+                    AirshipFlightPhase::ApproachFinal,
+                    approach_target_pos(ctx, approach2.approach_final_pos, approach2.airship_pos.z + approach2.height, approach2.height),
+                    250.0,
+                    0.3,
+                    approach2.height,
+                    true,
+                    Some(approach2.airship_direction),
+                    FlightMode::FlyThrough,
+                    true,
+                    Duration::from_secs_f32(1.0),
+                )
+            ).map(|_, _| ()).boxed()
         } else {
             //  There are no routes assigned.
             //  This is unexpected and never happens in testing, just do nothing so the compiler doesn't complain.
