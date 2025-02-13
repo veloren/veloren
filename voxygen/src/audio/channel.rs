@@ -10,13 +10,11 @@
 //! [`AudioSettings`](../../settings/struct.AudioSettings.html)
 
 use kira::{
-    StartTime, Volume,
-    effect::filter::{FilterBuilder, FilterHandle},
-    manager::AudioManager,
+    Easing, StartTime, Tween,
+    clock::ClockTime,
+    listener::ListenerId,
     sound::PlaybackState,
-    spatial::emitter::EmitterHandle,
-    track::{TrackBuilder, TrackHandle, TrackId, TrackRoutes},
-    tween::{Easing, Tween, Value},
+    track::{SpatialTrackBuilder, SpatialTrackHandle, TrackBuilder, TrackHandle},
 };
 use serde::Deserialize;
 use std::time::Duration;
@@ -24,7 +22,9 @@ use strum::EnumIter;
 use tracing::warn;
 use vek::*;
 
-use super::soundcache::AnySoundHandle;
+use crate::audio;
+
+use super::soundcache::{AnySoundData, AnySoundHandle};
 
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
 /// should transition between two types of in-game music. For example, we
@@ -42,7 +42,7 @@ pub enum MusicChannelTag {
 /// is always heard at the player's position.
 pub struct MusicChannel {
     tag: MusicChannelTag,
-    track: Option<TrackHandle>,
+    track: TrackHandle,
     source: Option<AnySoundHandle>,
     length: f32,
     loop_data: (bool, LoopPoint, LoopPoint), // Loops?, Start, End
@@ -56,31 +56,15 @@ pub enum LoopPoint {
 }
 
 impl MusicChannel {
-    pub fn new(manager: &mut AudioManager, parent_track: TrackId) -> Self {
-        let new_track = manager.add_sub_track(
-            TrackBuilder::new()
-                .volume(Volume::Amplitude(0.0))
-                .routes(TrackRoutes::parent(parent_track)),
-        );
-        match new_track {
-            Ok(track) => Self {
-                tag: MusicChannelTag::TitleMusic,
-                track: Some(track),
-                source: None,
-                length: 0.0,
-                loop_data: (false, LoopPoint::Start, LoopPoint::End),
-            },
-            Err(_) => {
-                warn!(?new_track, "Failed to create track. May not play music.");
-                Self {
-                    tag: MusicChannelTag::TitleMusic,
-                    track: None,
-                    source: None,
-                    length: 0.0,
-                    loop_data: (false, LoopPoint::Start, LoopPoint::End),
-                }
-            },
-        }
+    pub fn new(route_to: &mut TrackHandle) -> Result<Self, kira::ResourceLimitReached> {
+        let track = route_to.add_sub_track(TrackBuilder::new().volume(audio::to_decibels(0.0)))?;
+        Ok(Self {
+            tag: MusicChannelTag::TitleMusic,
+            track,
+            source: None,
+            length: 0.0,
+            loop_data: (false, LoopPoint::Start, LoopPoint::End),
+        })
     }
 
     pub fn set_tag(&mut self, tag: MusicChannelTag) { self.tag = tag; }
@@ -122,6 +106,33 @@ impl MusicChannel {
         }
     }
 
+    pub fn play(
+        &mut self,
+        mut source: AnySoundData,
+        now: ClockTime,
+        fade_in: Option<f32>,
+        delay: Option<f32>,
+    ) {
+        if let Some(fade_in) = fade_in {
+            let fade_in_tween = Tween {
+                duration: Duration::from_secs_f32(fade_in),
+                ..Default::default()
+            };
+            source = source.fade_in_tween(fade_in_tween);
+        }
+
+        if let Some(delay) = delay {
+            source = source.start_time(now + delay as f64);
+        }
+
+        match self.track.play(source) {
+            Ok(handle) => self.source = Some(handle),
+            Err(e) => {
+                warn!(?e, "Cannot play music")
+            },
+        }
+    }
+
     /// Stop whatever is playing on this channel with an optional fadeout and
     /// delay
     pub fn stop(&mut self, duration: Option<f32>, delay: Option<f32>) {
@@ -137,11 +148,8 @@ impl MusicChannel {
 
     /// Set the volume of the current channel.
     pub fn set_volume(&mut self, volume: f32) {
-        if let Some(track) = self.track.as_mut() {
-            track.set_volume(Volume::Amplitude(volume as f64), Tween::default());
-            // } else {
-            //     warn!("Music track not present; cannot set volume")
-        }
+        self.track
+            .set_volume(audio::to_decibels(volume), Tween::default());
     }
 
     /// Fade to a given amplitude over a given duration, optionally after a
@@ -156,9 +164,7 @@ impl MusicChannel {
             duration: Duration::from_secs_f32(duration),
             easing: Easing::Linear,
         };
-        if let Some(track) = self.track.as_mut() {
-            track.set_volume(Volume::Amplitude(volume as f64), tween);
-        }
+        self.track.set_volume(audio::to_decibels(volume), tween);
     }
 
     /// Fade to silence over a given duration and stop, optionally after a delay
@@ -177,12 +183,8 @@ impl MusicChannel {
 
     pub fn get_tag(&self) -> MusicChannelTag { self.tag }
 
-    /// Get an immutable reference to the channel's track for purposes of
-    /// setting the output destination of a sound
-    pub fn get_track(&self) -> Option<&TrackHandle> { self.track.as_ref() }
-
     /// Get a mutable reference to the channel's track
-    pub fn get_track_mut(&mut self) -> Option<&mut TrackHandle> { self.track.as_mut() }
+    pub fn get_track(&mut self) -> &mut TrackHandle { &mut self.track }
 
     pub fn get_source(&mut self) -> Option<&mut AnySoundHandle> { self.source.as_mut() }
 
@@ -208,7 +210,6 @@ pub struct AmbienceChannel {
     tag: AmbienceChannelTag,
     target_volume: f32,
     track: TrackHandle,
-    filter: FilterHandle,
     source: Option<AnySoundHandle>,
     pub looping: bool,
 }
@@ -217,24 +218,17 @@ impl AmbienceChannel {
     pub fn new(
         tag: AmbienceChannelTag,
         init_volume: f32,
-        manager: &mut AudioManager,
-        parent_track: TrackId,
+        route_to: &mut TrackHandle,
         looping: bool,
     ) -> Result<Self, kira::ResourceLimitReached> {
-        let ambience_filter_builder = FilterBuilder::new().cutoff(Value::Fixed(20000.0));
-        let mut ambience_track_builder = TrackBuilder::new();
-        let filter = ambience_track_builder.add_effect(ambience_filter_builder);
-        let track = manager.add_sub_track(
-            ambience_track_builder
-                .volume(0.0)
-                .routes(TrackRoutes::parent(parent_track)),
-        )?;
+        let ambience_track_builder = TrackBuilder::new();
+        let track =
+            route_to.add_sub_track(ambience_track_builder.volume(audio::to_decibels(0.0)))?;
 
         Ok(Self {
             tag,
             target_volume: init_volume,
             track,
-            filter,
             source: None,
             looping,
         })
@@ -242,6 +236,23 @@ impl AmbienceChannel {
 
     pub fn set_source(&mut self, source_handle: Option<AnySoundHandle>) {
         self.source = source_handle;
+    }
+
+    pub fn play(&mut self, mut source: AnySoundData, fade_in: Option<f32>, delay: Option<f32>) {
+        let mut tween = Tween::default();
+        if let Some(fade_in) = fade_in {
+            tween.duration = Duration::from_secs_f32(fade_in);
+        }
+        if let Some(delay) = delay {
+            tween.start_time = StartTime::Delayed(Duration::from_secs_f32(delay));
+        }
+        source = source.fade_in_tween(tween);
+        match self.track.play(source) {
+            Ok(handle) => self.source = Some(handle),
+            Err(e) => {
+                warn!(?e, "Cannot play ambience")
+            },
+        }
     }
 
     /// Stop whatever is playing on this channel with an optional fadeout and
@@ -259,19 +270,12 @@ impl AmbienceChannel {
 
     /// Set the channel to a volume, fading over a given duration
     pub fn fade_to(&mut self, volume: f32, duration: f32) {
-        self.track
-            .set_volume(Volume::Amplitude(volume as f64), Tween {
-                start_time: StartTime::Immediate,
-                duration: Duration::from_secs_f32(duration),
-                easing: Easing::Linear,
-            });
+        self.track.set_volume(audio::to_decibels(volume), Tween {
+            start_time: StartTime::Immediate,
+            duration: Duration::from_secs_f32(duration),
+            easing: Easing::Linear,
+        });
         self.target_volume = volume;
-    }
-
-    /// Set the cutoff for the lowpass filter on this channel
-    pub fn set_filter(&mut self, frequency: u32) {
-        self.filter
-            .set_cutoff(Value::Fixed(frequency as f64), Tween::default());
     }
 
     /// Set whether this channel's sound loops or not
@@ -320,22 +324,38 @@ impl AmbienceChannel {
 /// Note: currently, emitters are static once spawned
 #[derive(Debug)]
 pub struct SfxChannel {
+    track: SpatialTrackHandle,
     source: Option<AnySoundHandle>,
-    emitter: EmitterHandle,
     pub pos: Vec3<f32>,
 }
 
 impl SfxChannel {
-    pub fn new(emitter: EmitterHandle) -> Self {
-        Self {
+    pub fn new(
+        route_to: &mut TrackHandle,
+        listener: ListenerId,
+    ) -> Result<Self, kira::ResourceLimitReached> {
+        let sfx_track_builder = SpatialTrackBuilder::new()
+            .distances((1.0, 200.0))
+            .attenuation_function(Some(Easing::OutPowf(0.45)));
+        let track = route_to.add_spatial_sub_track(listener, Vec3::zero(), sfx_track_builder)?;
+        Ok(Self {
+            track,
             source: None,
-            emitter,
             pos: Vec3::zero(),
-        }
+        })
     }
 
     pub fn set_source(&mut self, source_handle: Option<AnySoundHandle>) {
         self.source = source_handle;
+    }
+
+    pub fn play(&mut self, source: AnySoundData) {
+        match self.track.play(source) {
+            Ok(handle) => self.source = Some(handle),
+            Err(e) => {
+                warn!(?e, "Cannot play sfx")
+            },
+        }
     }
 
     pub fn stop(&mut self) {
@@ -346,11 +366,9 @@ impl SfxChannel {
 
     pub fn set_volume(&mut self, volume: f32) {
         if let Some(source) = self.source.as_mut() {
-            source.set_volume(Volume::Amplitude(volume as f64), Tween::default())
+            source.set_volume(audio::to_decibels(volume), Tween::default())
         }
     }
-
-    pub fn get_emitter(&self) -> &EmitterHandle { &self.emitter }
 
     pub fn is_done(&self) -> bool {
         self.source
@@ -359,12 +377,12 @@ impl SfxChannel {
     }
 
     pub fn update(&mut self, pos: Vec3<f32>) {
-        self.pos = pos;
-
-        self.emitter.set_position(pos, Tween {
+        let tween = Tween {
             duration: Duration::from_secs_f32(0.0),
             ..Default::default()
-        });
+        };
+        self.track.set_position(pos, tween);
+        self.pos = pos;
     }
 }
 
@@ -372,34 +390,30 @@ impl SfxChannel {
 /// audio which is not spatially controlled, but does not need control over
 /// playback or fading/transitions
 pub struct UiChannel {
-    track: Option<TrackHandle>,
+    track: TrackHandle,
     source: Option<AnySoundHandle>,
 }
 
 impl UiChannel {
-    pub fn new(manager: &mut AudioManager, parent_track: TrackId) -> Self {
-        let new_track = manager
-            .add_sub_track(TrackBuilder::default().routes(TrackRoutes::parent(parent_track)));
-        match new_track {
-            Ok(track) => Self {
-                track: Some(track),
-                source: None,
-            },
-            Err(_) => {
-                warn!(
-                    ?new_track,
-                    "Failed to create track. May not play UI sounds."
-                );
-                Self {
-                    track: None,
-                    source: None,
-                }
-            },
-        }
+    pub fn new(route_to: &mut TrackHandle) -> Result<Self, kira::ResourceLimitReached> {
+        let track = route_to.add_sub_track(TrackBuilder::default())?;
+        Ok(Self {
+            track,
+            source: None,
+        })
     }
 
     pub fn set_source(&mut self, source_handle: Option<AnySoundHandle>) {
         self.source = source_handle;
+    }
+
+    pub fn play(&mut self, source: AnySoundData) {
+        match self.track.play(source) {
+            Ok(handle) => self.source = Some(handle),
+            Err(e) => {
+                warn!(?e, "Cannot play ui sfx")
+            },
+        }
     }
 
     pub fn stop(&mut self) {
@@ -409,11 +423,8 @@ impl UiChannel {
     }
 
     pub fn set_volume(&mut self, volume: f32) {
-        if let Some(track) = self.track.as_mut() {
-            track.set_volume(Volume::Amplitude(volume as f64), Tween::default())
-            // } else {
-            //     warn!("UI track not present; cannot set volume")
-        }
+        self.track
+            .set_volume(audio::to_decibels(volume), Tween::default())
     }
 
     pub fn is_done(&self) -> bool {

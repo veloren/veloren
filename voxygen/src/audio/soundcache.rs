@@ -2,13 +2,12 @@
 //! the need to decode files on each playback
 use common::assets::{self, AssetExt, Loader};
 use kira::{
-    OutputDestination, StartTime, Volume,
+    Decibels, StartTime, Tween, Value,
     sound::{
         FromFileError, IntoOptionalRegion, PlaybackState, SoundData,
         static_sound::{StaticSoundData, StaticSoundHandle},
         streaming::{StreamingSoundData, StreamingSoundHandle},
     },
-    tween::{Tween, Value},
 };
 use std::{
     borrow::Cow,
@@ -53,17 +52,6 @@ impl SoundData for AnySoundData {
 }
 
 impl AnySoundData {
-    pub fn output_destination(self, output_destination: impl Into<OutputDestination>) -> Self {
-        match self {
-            AnySoundData::Static(d) => {
-                AnySoundData::Static(d.output_destination(output_destination))
-            },
-            AnySoundData::Streaming(d) => {
-                AnySoundData::Streaming(d.output_destination(output_destination))
-            },
-        }
-    }
-
     pub fn fade_in_tween(self, fade_in_tween: impl Into<Option<Tween>>) -> Self {
         match self {
             AnySoundData::Static(d) => AnySoundData::Static(d.fade_in_tween(fade_in_tween)),
@@ -78,7 +66,7 @@ impl AnySoundData {
         }
     }
 
-    pub fn volume(self, volume: impl Into<Value<Volume>>) -> Self {
+    pub fn volume(self, volume: impl Into<Value<Decibels>>) -> Self {
         match self {
             AnySoundData::Static(d) => AnySoundData::Static(d.volume(volume)),
             AnySoundData::Streaming(d) => AnySoundData::Streaming(d.volume(volume)),
@@ -114,7 +102,7 @@ impl AnySoundHandle {
         }
     }
 
-    pub fn set_volume(&mut self, volume: impl Into<Value<Volume>>, tween: Tween) {
+    pub fn set_volume(&mut self, volume: impl Into<Value<Decibels>>, tween: Tween) {
         match self {
             AnySoundHandle::Static(h) => h.set_volume(volume, tween),
             AnySoundHandle::Streaming(h) => h.set_volume(volume, tween),
