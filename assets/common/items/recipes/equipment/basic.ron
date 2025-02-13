@@ -7,7 +7,6 @@ ItemDef(
             "knitted_red_pouch",
             "steel_pickaxe",
             "fang_necklace",
-            "black_lantern",
         ],
     ),
     quality: Common,

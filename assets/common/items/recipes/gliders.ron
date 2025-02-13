@@ -3,7 +3,6 @@ ItemDef(
     legacy_description: "",
     kind: RecipeGroup(
         recipes: [
-            "plain_cloth_glider",
             "red_cloth_glider",
             "cloverleaf_glider",
             "leaves_glider",
