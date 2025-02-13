@@ -6,17 +6,17 @@ BasicMelee(
     recover_duration: 0.2,
     melee_constructor: (
         kind: Bash(
-            damage: 25,
-            poise: 30,
+            damage: 21,
+            poise: 20,
             knockback: 0,
             energy_regen: 0,
         ),
-        range: 3.0,
+        range: 3.5,
         angle: 15.0,
         damage_effect: Some(Buff((
             kind: Rooted,
             dur_secs: 4.0,
-            strength: Value(1.0),
+            strength: Value(2.0),
             chance: 1.0,
         ))),
     ),

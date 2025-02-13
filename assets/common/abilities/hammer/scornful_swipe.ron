@@ -1,22 +1,22 @@
 BasicMelee(
-    energy_cost: 10,
-    buildup_duration: 0.7,
-    swing_duration: 0.1,
+    energy_cost: 20,
+    buildup_duration: 0.5,
+    swing_duration: 0.2,
     hit_timing: 0.5,
     recover_duration: 0.2,
     melee_constructor: (
         kind: Bash(
-            damage: 20,
+            damage: 23,
             poise: 10,
             knockback: 5,
             energy_regen: 0,
         ),
         range: 3.0,
-        angle: 15.0,
+        angle: 45.0,
         damage_effect: Some(SelfBuff((
             kind: ScornfulTaunt,
             dur_secs: 20.0,
-            strength: Value(0.5),
+            strength: Value(0.7),
             chance: 1.0,
         ))),
     ),

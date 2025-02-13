@@ -12,7 +12,7 @@ StaticAura(
             category: Magical,
         ),
     ],
-    aura_duration: Some(15),
+    aura_duration: Some(20),
     range: 10.0,
     sprite_info: Some((
         sprite: Stones2,
