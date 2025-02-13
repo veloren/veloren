@@ -1089,7 +1089,7 @@ impl Widget for Bag<'_> {
                             Some(inventory),
                             self.msm,
                             None,
-                            None
+                            Some(self.stats),
                         )) as i32
                 );
                 let stealth_txt = format!(
