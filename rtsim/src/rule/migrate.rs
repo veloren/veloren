@@ -162,6 +162,9 @@ impl Rule for Migrate {
             // done inside the previous loop because this requires mutable
             // access to this (data).
             for (captain_id, airship_id, spawning_location) in captains_to_register.iter() {
+                // The airship position returned by register_airship_captain is the approach
+                // final position. From there, the airship will fly a transition
+                // phase to directly above the docking position.
                 if let Some(airship_pos) = data.airship_sim.register_airship_captain(
                     spawning_location.docking_pos.map(|i| i as f32),
                     *captain_id,
