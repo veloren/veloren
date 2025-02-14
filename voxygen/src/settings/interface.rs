@@ -81,7 +81,7 @@ impl Default for InterfaceSettings {
             buff_position: BuffPosition::Bar,
             bar_numbers: BarNumbers::Values,
             always_show_bars: false,
-            enable_poise_bar: false,
+            enable_poise_bar: true,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             map_zoom: 10.0,
             map_show_topo_map: true,

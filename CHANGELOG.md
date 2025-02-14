@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mineral ingot sprites recoloured.
 - Hammer balance tweaks.
 - Minor balance change to Terracotta Statue blast attack.
+- Poise bar is shown by default.
 
 ### Removed
 
