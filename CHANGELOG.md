@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Riders no longer lags behind mounts.
 - Can no longer ride while dead.
 - Realignment of airship dock signs in forest towns.
+- Fixed rotation of Bloodmoon Relic.
 
 ## [0.17.0] - 2024-12-28
 
