@@ -686,6 +686,69 @@ pub struct WorldSim {
 }
 
 impl WorldSim {
+    pub fn empty() -> Self {
+        let gen_ctx = GenCtx {
+            turb_x_nz: SuperSimplex::new(0),
+            turb_y_nz: SuperSimplex::new(0),
+            chaos_nz: RidgedMulti::new(0),
+            hill_nz: SuperSimplex::new(0),
+            alt_nz: util::HybridMulti::new(0),
+            temp_nz: Fbm::new(0),
+
+            small_nz: BasicMulti::new(0),
+            rock_nz: HybridMulti::new(0),
+            tree_nz: BasicMulti::new(0),
+            _cave_0_nz: SuperSimplex::new(0),
+            _cave_1_nz: SuperSimplex::new(0),
+
+            structure_gen: StructureGen2d::new(0, 24, 10),
+            _big_structure_gen: StructureGen2d::new(0, 768, 512),
+            _region_gen: StructureGen2d::new(0, 400, 96),
+            humid_nz: Billow::new(0),
+
+            _fast_turb_x_nz: FastNoise::new(0),
+            _fast_turb_y_nz: FastNoise::new(0),
+
+            _town_gen: StructureGen2d::new(0, 2048, 1024),
+            river_seed: RandomField::new(0),
+            rock_strength_nz: Fbm::new(0),
+            uplift_nz: util::Worley::new(0),
+        };
+        Self {
+            seed: 0,
+            map_size_lg: MapSizeLg::new(Vec2::one()).unwrap(),
+            max_height: 0.0,
+            chunks: vec![SimChunk {
+                chaos: 0.0,
+                alt: 0.0,
+                basement: 0.0,
+                water_alt: 0.0,
+                downhill: None,
+                flux: 0.0,
+                temp: 0.0,
+                humidity: 0.0,
+                rockiness: 0.0,
+                tree_density: 0.0,
+                forest_kind: ForestKind::Dead,
+                spawn_rate: 0.0,
+                river: RiverData::default(),
+                surface_veg: 0.0,
+                sites: vec![],
+                place: None,
+                poi: None,
+                path: Default::default(),
+                cave: Default::default(),
+                cliff_height: 0.0,
+                spot: None,
+                contains_waypoint: false,
+            }],
+            _locations: Vec::new(),
+            gen_ctx,
+            rng: rand_chacha::ChaCha20Rng::from_seed([0; 32]),
+            calendar: None,
+        }
+    }
+
     pub fn generate(
         seed: u32,
         opts: WorldOpts,

@@ -24,8 +24,8 @@ use world::{
 
 /// Airships can slow down or hold position to avoid collisions with other
 /// airships.
-#[derive(Debug, Copy, Clone, Default)]
-pub enum AirshipAvoidanceMode {
+#[derive(Debug, Copy, Clone, Default, PartialEq)]
+enum AirshipAvoidanceMode {
     #[default]
     None,
     Hold(Vec3<f32>, Dir),
@@ -35,11 +35,33 @@ pub enum AirshipAvoidanceMode {
 // Context data for the airship route.
 // This is the context data for the pilot_airship action.
 #[derive(Debug, Default, Clone)]
-pub struct AirshipRouteContext {
+struct AirshipRouteContext {
     // The current approach index, 0 1 or none
-    pub current_approach_index: Option<usize>,
-    // The names of the route's sites
-    pub site_ids: Option<[Id<Site>; 2]>,
+    current_approach_index: Option<usize>,
+    // The route's site ids.
+    site_ids: Option<[Id<Site>; 2]>,
+
+    // For fly_airship action
+    // For determining the velocity and direction of this and other airships on the route.
+    trackers: DHashMap<NpcId, ZoneDistanceTracker>,
+    // Timer for checking the airship trackers.
+    avoidance_timer: Duration,
+    // Timer used when holding, either on approach or at the dock.
+    hold_timer: f32,
+    // Whether the initial hold message has been sent to the client.
+    hold_announced: bool,
+    // The original speed factor passed to the fly_airship action.
+    speed_factor: f32,
+    // The current avoidance mode for the airship.
+    avoid_mode: AirshipAvoidanceMode,
+    // Whether the airship had to hold during the last flight.
+    did_hold: bool,
+    // number of times the airship had to slow down during the last flight.
+    slow_count: u32,
+    // The extra docking time due to holding.
+    extra_hold_dock_time: f32,
+    // The extra docking time due to holding.
+    extra_slowdown_dock_time: f32,
 }
 
 #[derive(Debug, PartialEq)]
@@ -113,23 +135,6 @@ impl ZoneDistanceTracker {
     }
 }
 
-// This is the context data for the fly_airship action.
-#[derive(Debug, Default, Clone)]
-struct FlyAirshipContext {
-    // For determining the velocity and direction of this and other airships on the route.
-    trackers: DHashMap<NpcId, ZoneDistanceTracker>,
-    // The interval for updating the airship tracker.
-    timer: Duration,
-    // A timer for emitting pilot messages while holding position.
-    hold_timer: Duration,
-    // Whether the initial hold message has been sent to the client.
-    hold_announced: bool,
-    // The original speed factor passed to the fly_airship action.
-    speed_factor: f32,
-    // The current avoidance mode for the airship.
-    avoid_mode: AirshipAvoidanceMode,
-}
-
 /// The flight phases of an airship.
 /// When the airship is loaded from RTSim data there is no "current approach
 /// index", so the 'Reset' phases are used to get the airship back on the route.
@@ -145,6 +150,40 @@ enum AirshipFlightPhase {
     Docked,
 }
 
+/// Wrapper for the fly_airship action, so the route context fields can be
+/// reset.
+fn fly_airship(
+    phase: AirshipFlightPhase,
+    wpos: Vec3<f32>,
+    goal_dist: f32,
+    initial_speed_factor: f32,
+    height_offset: f32,
+    with_terrain_following: bool,
+    direction_override: Option<Dir>,
+    flight_mode: FlightMode,
+    with_collision_avoidance: bool,
+    radar_interval: Duration,
+) -> impl Action<AirshipRouteContext> {
+    now(move |_, airship_context: &mut AirshipRouteContext| {
+        airship_context.speed_factor = initial_speed_factor;
+        airship_context.avoidance_timer = radar_interval;
+        airship_context.avoid_mode = AirshipAvoidanceMode::None;
+        airship_context.trackers.clear();
+        fly_airship_inner(
+            phase,
+            wpos,
+            goal_dist,
+            initial_speed_factor,
+            height_offset,
+            with_terrain_following,
+            direction_override,
+            flight_mode,
+            with_collision_avoidance,
+            radar_interval,
+        )
+    })
+}
+
 /// Called from pilot_airship to move the airship along phases of the route
 /// and for initial routing after server startup. The bulk of this action
 /// is collision-avoidance monitoring. The frequency of the collision-avoidance
@@ -156,7 +195,7 @@ enum AirshipFlightPhase {
 /// All airships on the same route follow what is essentially a race track.
 /// All collision issues are caused by airships catching up to each other on the
 /// route. To avoid collisions, the postion and movement of other airships on
-/// the route is monitored at a interval of between 1 and 5 seconds. If another
+/// the route is monitored at a interval of between 2 and 4 seconds. If another
 /// airship is moving towards the same docking position, it may be ahead or
 /// behind the monitoring airship. If the other airship is ahead, and the
 /// monitoring airship is approaching the docking position, the monitoring
@@ -191,8 +230,7 @@ enum AirshipFlightPhase {
 /// # Returns
 ///
 /// An Action
-fn fly_airship<S: State>(
-    approach_index: usize,
+fn fly_airship_inner(
     phase: AirshipFlightPhase,
     wpos: Vec3<f32>,
     goal_dist: f32,
@@ -203,15 +241,17 @@ fn fly_airship<S: State>(
     flight_mode: FlightMode,
     with_collision_avoidance: bool,
     radar_interval: Duration,
-) -> impl Action<S> {
-    just(move |ctx, airship_context: &mut FlyAirshipContext| {
+) -> impl Action<AirshipRouteContext> {
+    just(move |ctx, airship_context: &mut AirshipRouteContext| {
         let remaining = airship_context
-            .timer
+            .avoidance_timer
             .checked_sub(Duration::from_secs_f32(ctx.dt));
         if remaining.is_none() {
-            airship_context.timer = radar_interval;
-            // The collision avoidance checks are not done every tick (no dt required).
+            airship_context.avoidance_timer = radar_interval;
+            // The collision avoidance checks are not done every tick (no dt required), only
+            // every 2-4 seconds.
             if with_collision_avoidance {
+                let approach_index = airship_context.current_approach_index.unwrap();
                 if let Some(route_id) = ctx
                     .state
                     .data()
@@ -239,7 +279,7 @@ fn fly_airship<S: State>(
                         ),
                         _ => None,
                     };
-                    // Collection the avoidance modes for other airships on the route.
+                    // Collect the avoidance modes for other airships on the route.
                     let avoidance: Vec<AirshipAvoidanceMode> = pilots
                         .iter()
                         .filter(|pilot_id| **pilot_id != ctx.npc_id)
@@ -379,10 +419,10 @@ fn fly_airship<S: State>(
                         }
                     }) {
                         if !matches!(airship_context.avoid_mode, AirshipAvoidanceMode::Hold(..)) {
+                            airship_context.did_hold = true;
                             airship_context.avoid_mode =
                                 AirshipAvoidanceMode::Hold(*hold_pos, *hold_dir);
-                            airship_context.hold_timer =
-                                Duration::from_secs_f32(ctx.rng.gen_range(4.0..7.0));
+                            airship_context.hold_timer = ctx.rng.gen_range(4.0..7.0);
                             airship_context.hold_announced = false;
                         }
                     } else if avoidance
@@ -390,6 +430,7 @@ fn fly_airship<S: State>(
                         .any(|mode| matches!(mode, AirshipAvoidanceMode::SlowDown))
                     {
                         if !matches!(airship_context.avoid_mode, AirshipAvoidanceMode::SlowDown) {
+                            airship_context.slow_count += 1;
                             airship_context.avoid_mode = AirshipAvoidanceMode::SlowDown;
                             airship_context.speed_factor = initial_speed_factor * 0.5;
                         }
@@ -403,14 +444,12 @@ fn fly_airship<S: State>(
                 airship_context.speed_factor = initial_speed_factor;
             }
         } else {
-            airship_context.timer = remaining.unwrap();
+            airship_context.avoidance_timer = remaining.unwrap();
         }
 
         if let AirshipAvoidanceMode::Hold(hold_pos, hold_dir) = airship_context.avoid_mode {
-            let hold_remaining = airship_context
-                .hold_timer
-                .checked_sub(Duration::from_secs_f32(ctx.dt));
-            if hold_remaining.is_none() {
+            airship_context.hold_timer -= ctx.dt;
+            if airship_context.hold_timer <= 0.0 {
                 if !airship_context.hold_announced {
                     airship_context.hold_announced = true;
                     ctx.controller
@@ -419,9 +458,7 @@ fn fly_airship<S: State>(
                     ctx.controller
                         .say(None, Content::localized("npc-speech-pilot-continue_hold"));
                 }
-                airship_context.hold_timer = Duration::from_secs_f32(ctx.rng.gen_range(10.0..20.0));
-            } else {
-                airship_context.hold_timer = hold_remaining.unwrap();
+                airship_context.hold_timer = ctx.rng.gen_range(10.0..20.0);
             }
             // Hold position (same idea as holding station at the dock except allow
             // oscillations)
@@ -464,11 +501,6 @@ fn fly_airship<S: State>(
     })
     .repeat()
     .boxed()
-    .with_state(FlyAirshipContext {
-        timer: radar_interval,
-        speed_factor: initial_speed_factor,
-        ..Default::default()
-    })
     .stop_if(move |ctx: &mut NpcCtx| {
         if flight_mode == FlightMode::FlyThrough {
             // we only care about the xy distance (just get close to the target position)
@@ -616,10 +648,9 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
             // The route_context.current_approach_index is used to determine the current approach at the
             // top of the function but any changes to route_context are not seen until the next iteration.
             // For this loop, these are the two approaches. We use #2 after docking is completed.
-            let approach_index_1 = current_approach_index;
-            let approach_index_2 = (current_approach_index + 1) % 2;
-            let approach1 = route.approaches[approach_index_1].clone();
-            let approach2 = route.approaches[approach_index_2].clone();
+
+            let approach1 = route.approaches[current_approach_index].clone();
+            let approach2 = route.approaches[(current_approach_index + 1) % 2].clone();
 
             // Startup delay
             // If the server has just started (resuming is true)
@@ -647,7 +678,6 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
 
             .then(
                 fly_airship(
-                    approach_index_1,
                     AirshipFlightPhase::Transition,
                     approach1.airship_pos + Vec3::unit_z() * (approach1.height),
                     50.0,
@@ -657,7 +687,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     Some(approach1.airship_direction),
                     FlightMode::Braking(BrakingMode::Normal),
                     true,
-                    Duration::from_secs_f32(1.0),
+                    Duration::from_secs_f32(2.0),
             ))
             // Descend and Dock
             //    Docking
@@ -693,7 +723,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                         );
                 })
                 .repeat()
-                .stop_if(timeout(ctx.rng.gen_range(5.0..7.0))))
+                .stop_if(timeout(ctx.rng.gen_range(6.0..8.5))))
             .then(
                 // descend to docking position
                 just(move |ctx: &mut NpcCtx<'_>, _| {
@@ -706,58 +736,86 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                         );
                 })
                 .repeat()
-                .stop_if(timeout(ctx.rng.gen_range(6.0..9.0))))
+                .stop_if(timeout(ctx.rng.gen_range(5.0..7.0))))
             // Announce arrival
-            .then(just(|ctx: &mut NpcCtx<'_>, route_context:&mut AirshipRouteContext| {
-                #[cfg(debug_assertions)]
-                {
-                    if let Some(site_ids) = route_context.site_ids {
-                        let docked_site_id = site_ids[route_context.current_approach_index.unwrap_or(0)];
-                        let docked_site_name = ctx.index.sites.get(docked_site_id).name().to_string();
-                        debug!("{}, Docked at {}", format!("{:?}", ctx.npc_id), docked_site_name);
-                    }
-                }
+            .then(just(|ctx: &mut NpcCtx<'_>, _| {
                 ctx.controller
                     .say(None, Content::localized("npc-speech-pilot-landed"));
             }))
 
             // Docked - Wait at Dock
             .then(
-                just(move |ctx, _| {
-                    ctx.controller
-                    .do_goto_with_height_and_dir(
-                        approach1.airship_pos + ship_body.mount_offset(),
-                        0.4, None,
-                        Some(approach1.airship_direction),
-                        FlightMode::Braking(BrakingMode::Precise),
-                    );
-                })
-                .repeat()
-                .stop_if(timeout(ctx.rng.gen_range(10.0..20.0)))
-                // While waiting, every now and then announce where the airship is going next.
-                .then(
-                    just(move |ctx, route_context:&mut AirshipRouteContext| {
-                        // get the name of the site the airship is going to next.
-                        // The route_context.current_approach_index has not been switched yet,
-                        // so the index is the opposite of the current approach index.
+                now(move |ctx, route_context:&mut AirshipRouteContext| {
+                    // The extra time to hold at the dock is a route_context variable.
+                    // Adjust the extra time based on the airship's behavior during the previous
+                    // flight. If the airship had to hold position, add 30 seconds to the dock time.
+                    // If the airship did not hold position, subtract 45 seconds from the dock time
+                    // because we want to reverse the extra penalty faster than building it up in case
+                    // the airship transitions to simulation mode.
+                    // If the airship had to slow down add 15 and if not subtract 20.
+                    if route_context.did_hold {
+                        route_context.extra_hold_dock_time += 30.0;
+                    } else if route_context.extra_hold_dock_time > 45.0 {
+                        route_context.extra_hold_dock_time -= 45.0;
+                    } else {
+                        route_context.extra_hold_dock_time = 0.0;
+                    }
+                    if route_context.slow_count > 0 {
+                        route_context.extra_slowdown_dock_time += 15.0;
+                    } else if route_context.extra_slowdown_dock_time > 20.0 {
+                        route_context.extra_slowdown_dock_time -= 20.0;
+                    } else {
+                        route_context.extra_slowdown_dock_time = 0.0;
+                    }
+
+                    let docking_time = route_context.extra_hold_dock_time + route_context.extra_slowdown_dock_time + Airships::docking_duration();
+                    #[cfg(debug_assertions)]
+                    {
                         if let Some(site_ids) = route_context.site_ids {
-                            let next_site_id = site_ids[(route_context.current_approach_index.unwrap_or(0) + 1) % 2];
-                            let next_site_name = ctx.index.sites.get(next_site_id).name().to_string();
-                            ctx.controller.say(
-                                None,
-                                Content::localized_with_args("npc-speech-pilot-announce_next", [
-                                (
-                                    "dir",
-                                    Direction::from_dir(approach2.approach_initial_pos - ctx.npc.wpos.xy()).localize_npc(),
-                                ),
-                                ("dst", Content::Plain(next_site_name.to_string())),
-                                ]),
-                            );
+                            let docked_site_id = site_ids[route_context.current_approach_index.unwrap()];
+                            let docked_site_name = ctx.index.sites.get(docked_site_id).name().to_string();
+                            debug!("{}, Docked at {}, did_hold:{}, slow_count:{}, extra_hold_dock_time:{}, extra_slowdown_dock_time:{}, docking_time:{}", format!("{:?}", ctx.npc_id), docked_site_name, route_context.did_hold, route_context.slow_count, route_context.extra_hold_dock_time, route_context.extra_slowdown_dock_time, docking_time);
                         }
+                    }
+                    route_context.did_hold = false;
+                    route_context.slow_count = 0;
+
+                    just(move |ctx, _| {
+                        ctx.controller
+                        .do_goto_with_height_and_dir(
+                            approach1.airship_pos + ship_body.mount_offset(),
+                            0.4, None,
+                            Some(approach1.airship_direction),
+                            FlightMode::Braking(BrakingMode::Precise),
+                        );
                     })
-                )
-                .repeat()
-                .stop_if(timeout(Airships::docking_duration()))
+                    .repeat()
+                    .stop_if(timeout(ctx.rng.gen_range(10.0..16.0)))
+                    // While waiting, every now and then announce where the airship is going next.
+                    .then(
+                        just(move |ctx, route_context:&mut AirshipRouteContext| {
+                            // get the name of the site the airship is going to next.
+                            // The route_context.current_approach_index has not been switched yet,
+                            // so the index is the opposite of the current approach index.
+                            if let Some(site_ids) = route_context.site_ids {
+                                let next_site_id = site_ids[(route_context.current_approach_index.unwrap_or(0) + 1) % 2];
+                                let next_site_name = ctx.index.sites.get(next_site_id).name().to_string();
+                                ctx.controller.say(
+                                    None,
+                                    Content::localized_with_args("npc-speech-pilot-announce_next", [
+                                    (
+                                        "dir",
+                                        Direction::from_dir(approach2.approach_initial_pos - ctx.npc.wpos.xy()).localize_npc(),
+                                    ),
+                                    ("dst", Content::Plain(next_site_name.to_string())),
+                                    ]),
+                                );
+                            }
+                        })
+                    )
+                    .repeat()
+                    .stop_if(timeout(docking_time as f64))
+                })
             ).then(
                 // rotate the approach to the next approach index. Note the approach2 is already known,
                 // this is just changing the approach index in the context data for the next loop.
@@ -778,7 +836,6 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
             ).then(
                 // Ascend to Cruise Alt, full PID control
                 fly_airship(
-                    approach_index_2,
                     AirshipFlightPhase::Ascent,
                     approach1.airship_pos + Vec3::unit_z() * Airships::takeoff_ascent_hat(),
                     50.0,
@@ -793,7 +850,6 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
             ).then(
                 // Fly 2D to Destination Initial Point
                 fly_airship(
-                    approach_index_2,
                     AirshipFlightPhase::Cruise,
                     approach_target_pos(ctx, approach2.approach_initial_pos, approach2.airship_pos.z + approach2.height, approach2.height),
                     250.0,
@@ -803,12 +859,11 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     None,
                     FlightMode::FlyThrough,
                     true,
-                    Duration::from_secs_f32(3.0),
+                    Duration::from_secs_f32(4.0),
                 )
             ).then(
                 // Fly 3D to Destination Final Point, z PID control
                 fly_airship(
-                    approach_index_2,
                     AirshipFlightPhase::ApproachFinal,
                     approach_target_pos(ctx, approach2.approach_final_pos, approach2.airship_pos.z + approach2.height, approach2.height),
                     250.0,
@@ -818,7 +873,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     Some(approach2.airship_direction),
                     FlightMode::FlyThrough,
                     true,
-                    Duration::from_secs_f32(1.0),
+                    Duration::from_secs_f32(2.0),
                 )
             ).map(|_, _| ()).boxed()
         } else {
@@ -835,7 +890,81 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
 #[cfg(test)]
 mod tests {
     use super::{DistanceTrend, DistanceZone, ZoneDistanceTracker};
+    use crate::{
+        RtState,
+        ai::{Action, NpcCtx, State, just, now},
+    };
+    use common::{comp, rtsim::Role};
+    use rand::prelude::*;
     use vek::{Vec2, Vec3};
+    use world::World;
+
+    #[derive(Clone, Default)]
+    struct SomeState {
+        test: i32,
+        prev: i32,
+    }
+
+    // Test of functions that share a common state.
+    fn child_1() -> impl Action<SomeState> {
+        just(move |_, child_context: &mut SomeState| {
+            child_context.test += 1;
+        })
+    }
+
+    fn child_2() -> impl Action<SomeState> {
+        just(move |_, child_context: &mut SomeState| {
+            assert!(child_context.test == child_context.prev + 1);
+            child_context.prev = child_context.test;
+        })
+    }
+
+    pub fn do_something<S: State>() -> impl Action<S, !> {
+        now(move |_, _: &mut SomeState| child_1().then(child_2()))
+            .repeat()
+            .with_state(SomeState::default())
+    }
+
+    #[test]
+    fn state_node_test() {
+        let mut action = do_something();
+        let (world, index) = World::empty();
+        let state = RtState {
+            resources: Default::default(),
+            rules: Default::default(),
+            event_handlers: Default::default(),
+        };
+
+        let npc = crate::data::Npc::new(
+            0,
+            Vec3::zero(),
+            comp::Body::Humanoid(comp::humanoid::Body::random()),
+            Role::Civilised(None),
+        );
+
+        let ctx = &mut NpcCtx {
+            state: &state,
+            world: &world,
+            index: index.as_index_ref(),
+            time_of_day: Default::default(),
+            time: Default::default(),
+            npc_id: Default::default(),
+            npc: &npc,
+            controller: &mut Default::default(),
+            inbox: &mut Default::default(),
+            sentiments: &mut Default::default(),
+            known_reports: &mut Default::default(),
+            dt: 0.0,
+            rng: rand_chacha::ChaCha20Rng::from_seed([0; 32]),
+        };
+
+        for _ in 0..10 {
+            match action.tick(ctx, &mut ()) {
+                std::ops::ControlFlow::Continue(_) => {},
+                std::ops::ControlFlow::Break(_) => break,
+            }
+        }
+    }
 
     #[test]
     fn transition_zone_other_approaching_test() {
