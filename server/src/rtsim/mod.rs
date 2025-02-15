@@ -132,7 +132,7 @@ impl RtSim {
 
         rule::start_rules(&mut this.state);
 
-        this.state.emit(OnSetup, world, index);
+        this.state.emit(OnSetup, &mut (), world, index);
 
         Ok(this)
     }
@@ -155,7 +155,8 @@ impl RtSim {
         pos: VolumePos<NpcId>,
         actor: Actor,
     ) {
-        self.state.emit(OnMountVolume { actor, pos }, world, index)
+        self.state
+            .emit(OnMountVolume { actor, pos }, &mut (), world, index)
     }
 
     pub fn hook_pickup_owned_sprite(
@@ -180,6 +181,7 @@ impl RtSim {
                 sprite,
                 site,
             },
+            &mut (),
             world,
             index,
         )
@@ -201,7 +203,7 @@ impl RtSim {
     // change to the rtsim resource produced by [`Block::get_rtsim_resource`].
     pub fn hook_block_update(&mut self, world: &World, index: IndexRef, changes: Vec<BlockDiff>) {
         self.state
-            .emit(event::OnBlockChange { changes }, world, index);
+            .emit(event::OnBlockChange { changes }, &mut (), world, index);
     }
 
     pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
@@ -229,6 +231,7 @@ impl RtSim {
                 cause,
                 new_health_fraction: new_hp_fraction,
             },
+            &mut (),
             world,
             index,
         )
@@ -248,6 +251,7 @@ impl RtSim {
                 actor,
                 killer,
             },
+            &mut (),
             world,
             index,
         );

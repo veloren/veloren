@@ -223,6 +223,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                 match action {
                     NpcAction::Say(_, _) => {}, // Currently, just swallow interactions
                     NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
+                    NpcAction::Dialogue(_, _) => {},
                 }
             }
 
@@ -276,7 +277,8 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     | NpcActivity::HuntAnimals
                     | NpcActivity::Dance(_)
                     | NpcActivity::Cheer(_)
-                    | NpcActivity::Sit(..),
+                    | NpcActivity::Sit(..)
+                    | NpcActivity::Talk(..),
                 ) => {
                     // TODO: Maybe they should walk around randomly
                     // when gathering resources?
@@ -320,6 +322,11 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                 new_home.population.insert(npc_id);
             }
             npc.home = Some(new_home);
+        }
+
+        // Set hired status if required (I'm a poet and I didn't know it)
+        if let Some(hiring) = npc.controller.hiring.take() {
+            npc.hiring = hiring;
         }
     }
 }

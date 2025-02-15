@@ -318,14 +318,17 @@ impl AgentData<'_> {
             }
         }
         // teleport to target when it can't be pathed to
-        else if !self.path_toward_target(
-            agent,
-            controller,
-            tgt_data.pos.0,
-            read_data,
-            Path::Separate,
-            None,
-        ) || !(-3.0..3.0).contains(&(tgt_data.pos.0.z - self.pos.0.z))
+        else if self
+            .path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Separate,
+                None,
+            )
+            .is_none()
+            || !(-3.0..3.0).contains(&(tgt_data.pos.0.z - self.pos.0.z))
         {
             controller.push_action(ControlAction::StartInput {
                 input: InputKind::Ability(0),
@@ -348,14 +351,16 @@ impl AgentData<'_> {
                 _ => controller.push_basic_input(InputKind::Ability(3)),
             };
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
-            && self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            )
+            && self
+                .path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Separate,
+                    None,
+                )
+                .is_some()
             && line_of_sight_with_target()
             && agent.combat_state.timers[DASH_TIMER] > 4.0
             && attack_data.angle < 45.0
@@ -2535,22 +2540,26 @@ impl AgentData<'_> {
             if self.vel.0.is_approx_zero() {
                 controller.push_basic_input(InputKind::Ability(0));
             }
-            if self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            ) && entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                self.scale,
-                tgt_data.pos,
-                tgt_data.body,
-                tgt_data.scale,
-                read_data,
-            ) && attack_data.angle < 90.0
+            if self
+                .path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Separate,
+                    None,
+                )
+                .is_some()
+                && entities_have_line_of_sight(
+                    self.pos,
+                    self.body,
+                    self.scale,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    tgt_data.scale,
+                    read_data,
+                )
+                && attack_data.angle < 90.0
             {
                 if agent.combat_state.timers
                     [ActionStateTimers::TimerHandleStoneGolemAttack as usize]
@@ -3001,14 +3010,17 @@ impl AgentData<'_> {
         {
             controller.push_basic_input(InputKind::Ability(0));
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            ) && attack_data.angle < 15.0
+            if self
+                .path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Separate,
+                    None,
+                )
+                .is_some()
+                && attack_data.angle < 15.0
                 && entities_have_line_of_sight(
                     self.pos,
                     self.body,
@@ -6751,14 +6763,16 @@ impl AgentData<'_> {
             }
             controller.push_basic_input(InputKind::Primary);
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
-            && self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            )
+            && self
+                .path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::Separate,
+                    None,
+                )
+                .is_some()
             && entities_have_line_of_sight(
                 self.pos,
                 self.body,

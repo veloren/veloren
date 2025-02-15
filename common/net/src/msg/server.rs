@@ -14,6 +14,7 @@ use common::{
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
     resources::{Time, TimeOfDay, TimeScale},
+    rtsim,
     shared_server_config::ServerConstants,
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
@@ -180,6 +181,7 @@ pub enum ServerGeneral {
     /// from an ingame state
     ExitInGameSuccess,
     InventoryUpdate(comp::Inventory, Vec<comp::InventoryUpdateEvent>),
+    Dialogue(Uid, rtsim::Dialogue<true>),
     /// NOTE: The client can infer that entity view distance will be at most the
     /// terrain view distance that we send here (and if lower it won't be
     /// modified). So we just need to send the terrain VD back to the client
@@ -351,6 +353,7 @@ impl ServerMsg {
                         | ServerGeneral::ExitInGameSuccess
                         | ServerGeneral::InventoryUpdate(_, _)
                         | ServerGeneral::GroupInventoryUpdate(_, _)
+                        | ServerGeneral::Dialogue(_, _)
                         | ServerGeneral::TerrainChunkUpdate { .. }
                         | ServerGeneral::TerrainBlockUpdates(_)
                         | ServerGeneral::SetViewDistance(_)

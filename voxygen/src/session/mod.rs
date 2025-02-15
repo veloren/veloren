@@ -391,6 +391,11 @@ impl SessionState {
                         };
                     }
                 },
+                client::Event::Dialogue(sender_uid, dialogue) => {
+                    if let Some(sender) = client.state().ecs().entity_from_uid(sender_uid) {
+                        self.hud.dialogue(sender, dialogue);
+                    }
+                },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
                 client::Event::DisconnectionNotification(time) => {
                     self.hud
@@ -1008,7 +1013,8 @@ impl PlayState for SessionState {
                                 {
                                     let is_staying = client
                                         .state()
-                                        .read_component_copied::<CharacterActivity>(pet_entity)
+                                        .read_storage::<CharacterActivity>()
+                                        .get(pet_entity)
                                         .is_some_and(|activity| activity.is_pet_staying);
                                     client.set_pet_stay(pet_entity, !is_staying);
                                 }
@@ -2113,6 +2119,9 @@ impl PlayState for SessionState {
                     },
                     HudEvent::MapMarkerEvent(event) => {
                         self.client.borrow_mut().map_marker_event(event);
+                    },
+                    HudEvent::Dialogue(target, dialogue) => {
+                        self.client.borrow_mut().perform_dialogue(target, dialogue);
                     },
                 }
             }

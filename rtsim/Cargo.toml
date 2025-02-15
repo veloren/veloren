@@ -20,3 +20,4 @@ rand_chacha = { workspace = true }
 fxhash = { workspace = true }
 itertools = { workspace = true }
 rayon = { workspace = true }
+specs = { workspace = true, features = ["shred-derive"] }

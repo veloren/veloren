@@ -116,7 +116,7 @@ impl<'a> System<'a> for Sys {
                 },
                 // Accelerate recharging energy.
                 CharacterState::Idle(_)
-                | CharacterState::Talk
+                | CharacterState::Talk(_)
                 | CharacterState::Dance
                 | CharacterState::Skate(_)
                 | CharacterState::Glide(_)

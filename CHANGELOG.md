@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - State of the window is saved between game launches.
 - Barns that can spawn at the edge of towns.
 - One new dungeon track and two new town tracks.
+- You can now engage NPCs in two-way conversation.
+- NPCs can now be hired for a short time.
 
 ### Changed
 
@@ -37,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Purple Geode is dropped again, now from Basilisks.now from basilisk.)
 
 ### Removed
+
+- NPCs will no longer randomly ambush players.
 
 ### Fixed
 

@@ -227,7 +227,6 @@ pub struct Server {
     database_settings: Arc<RwLock<DatabaseSettings>>,
     disconnect_all_clients_requested: bool,
 
-    server_constants: ServerConstants,
     event_dispatcher: SendDispatcher<'static>,
 }
 
@@ -362,6 +361,9 @@ impl Server {
         state.ecs_mut().insert(HwStats {
             hardware_threads: num_cpus::get() as u32,
             rayon_threads: num_cpus::get() as u32,
+        });
+        state.ecs_mut().insert(ServerConstants {
+            day_cycle_coefficient: settings.day_cycle_coefficient(),
         });
         state.ecs_mut().insert(Tick(0));
         state.ecs_mut().insert(TickStart(Instant::now()));
@@ -659,10 +661,6 @@ impl Server {
             weather::init(&mut state);
         }
 
-        let server_constants = ServerConstants {
-            day_cycle_coefficient: settings.day_cycle_coefficient(),
-        };
-
         let this = Self {
             state,
             world,
@@ -674,8 +672,6 @@ impl Server {
             chat_cache,
             database_settings,
             disconnect_all_clients_requested: false,
-
-            server_constants,
 
             event_dispatcher: Self::create_event_dispatcher(pools),
         };
@@ -829,11 +825,12 @@ impl Server {
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // in sys/terrain.rs
         let mut state_tick_metrics = Default::default();
+        let server_constants = (*self.state.ecs().read_resource::<ServerConstants>()).clone();
         self.state.tick(
             dt,
             false,
             Some(&mut state_tick_metrics),
-            &self.server_constants,
+            &server_constants,
             on_block_update,
         );
 

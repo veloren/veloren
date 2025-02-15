@@ -14,7 +14,7 @@ pub const NPC_MAX_SENTIMENTS: usize = 128;
 
 /// Magic factor used to control sentiment decay speed (note: higher = slower
 /// decay, for implementation reasons).
-const DECAY_TIME_FACTOR: f32 = 1.0; //6.0; TODO: Use this value when we're happy that everything is working as intended
+const DECAY_TIME_FACTOR: f32 = 2500.0;
 
 /// The target that a sentiment is felt toward.
 // NOTE: More could be added to this! For example:
@@ -69,25 +69,18 @@ impl Sentiments {
     ///
     /// Note that sentiment get decay gets slower the harsher the sentiment is.
     /// You can calculate the **average** number of seconds required for a
-    /// sentiment to neutral decay with the following formula:
+    /// sentiment to neutral decay with the following rough formula:
     ///
     /// ```ignore
-    /// seconds_until_neutrality = ((sentiment_value * 127 * DECAY_TIME_FACTOR) ^ 2) / 2
-    /// ```
-    ///
-    /// For example, a positive (see [`Sentiment::POSITIVE`]) sentiment has a
-    /// value of `0.2`, so we get
-    ///
-    /// ```ignore
-    /// seconds_until_neutrality = ((0.1 * 127 * DECAY_TIME_FACTOR) ^ 2) / 2 = ~2,903 seconds, or 48 minutes
+    /// seconds_until_neutrality = (sentiment_value^2 * 24 + 1) / 25 * DECAY_TIME_FACTOR * sentiment_value * 128
     /// ```
     ///
     /// Some 'common' sentiment decay times are as follows:
     ///
-    /// - `POSITIVE`/`NEGATIVE`: ~48 minutes
-    /// - `ALLY`/`RIVAL`: ~7 hours
-    /// - `FRIEND`/`ENEMY`: ~29 hours
-    /// - `HERO`/`VILLAIN`: ~65 hours
+    /// - `POSITIVE`/`NEGATIVE`: ~26 minutes
+    /// - `ALLY`/`RIVAL`: ~3.4 hours
+    /// - `FRIEND`/`ENEMY`: ~21 hours
+    /// - `HERO`/`VILLAIN`: ~47 hours
     pub fn decay(&mut self, rng: &mut impl Rng, dt: f32) {
         self.map.retain(|_, sentiment| {
             sentiment.decay(rng, dt);
@@ -118,7 +111,7 @@ impl Sentiments {
     }
 }
 
-#[derive(Copy, Clone, Default, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Sentiment {
     /// How positive the sentiment is.
     ///
@@ -196,10 +189,13 @@ impl Sentiment {
         if self.positivity != 0 {
             // TODO: Find a slightly nicer way to have sentiment decay, perhaps even by
             // remembering the last interaction instead of constant updates.
-            if rng.gen_bool(
-                (1.0 / (self.positivity.unsigned_abs() as f32 * DECAY_TIME_FACTOR.powi(2) * dt))
-                    .max(1.0) as f64,
-            ) {
+            let chance = (1.0
+                / ((self.value().powi(2) * 0.24 + 1.0) * (1.0 / 25.0) * DECAY_TIME_FACTOR * dt))
+                .min(1.0) as f64;
+
+            // For some reason, RNG doesn't work with small chances (possibly due to impl
+            // limits), so use two bools
+            if rng.gen_bool(chance.sqrt()) && rng.gen_bool(chance.sqrt()) {
                 self.positivity -= self.positivity.signum();
             }
         }

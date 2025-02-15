@@ -18,12 +18,14 @@ use common::{
 use rand::{Rng, prelude::ThreadRng, thread_rng};
 use server_agent::data::AgentEmitters;
 use specs::Entity as EcsEntity;
+use tracing::warn;
 use vek::{Vec2, Vec3};
 
 use self::interaction::{
-    handle_inbox_cancel_interactions, handle_inbox_finished_trade, handle_inbox_talk,
-    handle_inbox_trade_accepted, handle_inbox_trade_invite, handle_inbox_update_pending_trade,
-    increment_timer_deltatime, process_inbox_interaction, process_inbox_sound_and_hurt,
+    handle_inbox_cancel_interactions, handle_inbox_dialogue, handle_inbox_finished_trade,
+    handle_inbox_talk, handle_inbox_trade_accepted, handle_inbox_trade_invite,
+    handle_inbox_update_pending_trade, increment_timer_deltatime, process_inbox_interaction,
+    process_inbox_sound_and_hurt,
 };
 
 use super::{
@@ -136,7 +138,7 @@ impl BehaviorTree {
         {
             let mut tree: Vec<BehaviorFn> = vec![increment_timer_deltatime];
             if agent.behavior.can(BehaviorCapability::SPEAK) {
-                tree.push(handle_inbox_talk);
+                tree.extend([handle_inbox_dialogue, handle_inbox_talk]);
             }
             tree.extend_from_slice(&[
                 handle_inbox_trade_invite,
@@ -355,17 +357,20 @@ fn do_idle_tree(bdata: &mut BehaviorData) -> bool { BehaviorTree::idle().run(bda
 /// If target is dead, forget them
 fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
-        if let Some(tgt_health) = bdata.read_data.healths.get(target) {
-            // If target is dead, forget them
-            if tgt_health.is_dead {
-                /*
-                if let Some(tgt_stats) = bdata.rtsim_entity.and(bdata.read_data.stats.get(target)) {
-                    bdata.agent.forget_enemy(&tgt_stats.name);
-                }
-                */
-                bdata.agent.target = None;
-                return true;
+        // If target is dead or no longer exists, forget them
+        if bdata
+            .read_data
+            .healths
+            .get(target)
+            .is_none_or(|tgt_health| tgt_health.is_dead)
+        {
+            /*
+            if let Some(tgt_stats) = bdata.rtsim_entity.and(bdata.read_data.stats.get(target)) {
+                bdata.agent.forget_enemy(&tgt_stats.name);
             }
+            */
+            bdata.agent.target = None;
+            return true;
         }
     }
     false
@@ -594,7 +599,9 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
             NpcAction::Say(target, msg) => {
                 if bdata.agent.allowed_to_speak() {
                     // Aim the speech toward a target
-                    if let Some(target) = target.and_then(|tgt| bdata.read_data.lookup_actor(tgt)) {
+                    if let Some(target) =
+                        target.and_then(|tgt| bdata.read_data.id_maps.actor_entity(tgt))
+                    {
                         bdata.agent.target = Some(Target::new(
                             target,
                             false,
@@ -622,7 +629,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                 }
             },
             NpcAction::Attack(target) => {
-                if let Some(target) = bdata.read_data.lookup_actor(target) {
+                if let Some(target) = bdata.read_data.id_maps.actor_entity(target) {
                     bdata.agent.target = Some(Target::new(
                         target,
                         true,
@@ -631,6 +638,18 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                         bdata.read_data.positions.get(target).map(|p| p.0),
                     ));
                     bdata.agent.awareness.set_maximally_aware();
+                }
+            },
+            NpcAction::Dialogue(target, dialogue) => {
+                if let Some(target) = bdata.read_data.id_maps.actor_entity(target)
+                    && let Some(target_uid) = bdata.read_data.uids.get(target)
+                {
+                    bdata
+                        .controller
+                        .push_event(ControlEvent::Dialogue(*target_uid, dialogue));
+                    bdata.controller.push_utterance(UtteranceKind::Greeting);
+                } else {
+                    warn!("NPC dialogue sent to non-existent target entity");
                 }
             },
         }
@@ -673,7 +692,6 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
                     bdata.agent,
                     bdata.controller,
                     bdata.read_data,
-                    bdata.emitters,
                     AgentData::is_enemy,
                 );
             } else {
@@ -943,13 +961,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
 
                 if (!agent.psyche.should_stop_pursuing || !in_aggro_range) && is_time_to_retarget {
-                    agent_data.choose_target(
-                        agent,
-                        controller,
-                        read_data,
-                        emitters,
-                        AgentData::is_enemy,
-                    );
+                    agent_data.choose_target(agent, controller, read_data, AgentData::is_enemy);
                 }
 
                 if aggro_on {

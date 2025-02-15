@@ -1,23 +1,27 @@
-use client::Client;
-use common::comp::{Stats, inventory::item::item_key::ItemKey};
+use client::{Client, EcsEntity};
+use common::{comp::ItemKey, rtsim};
 use conrod_core::{
-    Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
+    Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
+    widget::{self, Button, Image, Rectangle, Text},
     widget_ids,
 };
 use i18n::Localization;
+use std::time::{Duration, Instant};
 
 use crate::ui::{TooltipManager, fonts::Fonts};
 use inline_tweak::*;
 
 use super::{
-    HP_COLOR, Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, animate_by_pulse,
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{ItemImgs, animate_by_pulse},
+    item_imgs::ItemImgs,
 };
 
 pub struct State {
     ids: Ids,
+    text_timer: Option<Instant>,
+    text_position: usize,
+    last_displayed_text: Option<String>, // New field to track the last message
 }
 
 widget_ids! {
@@ -29,15 +33,18 @@ widget_ids! {
         close,
         title_align,
         title,
-        content_align,
+        text_align,
+        topics_align,
         scrollbar,
         intro_txt,
         desc_txt_0,
         quest_objectives[],
-        quest_reward_txt,
+        quest_response_txt,
         objective_text,
-        quest_rewards_frames[],
-        quest_rewards_icons[],
+        quest_responses_frames[],
+        quest_responses_btn[],
+        quest_responses_icons[],
+        quest_responses_amounts[],
         quest_rewards_txts[],
         accept_btn,
         decline_btn,
@@ -53,8 +60,9 @@ pub struct Quest<'a> {
     localized_strings: &'a Localization,
     _rot_imgs: &'a ImgsRot,
     _tooltip_manager: &'a mut TooltipManager,
-    stats: &'a Stats,
     item_imgs: &'a ItemImgs,
+    sender: EcsEntity,
+    dialogue: &'a rtsim::Dialogue<true>,
     pulse: f32,
 
     #[conrod(common_builder)]
@@ -70,8 +78,9 @@ impl<'a> Quest<'a> {
         localized_strings: &'a Localization,
         _rot_imgs: &'a ImgsRot,
         _tooltip_manager: &'a mut TooltipManager,
-        stats: &'a Stats,
         item_imgs: &'a ItemImgs,
+        sender: EcsEntity,
+        dialogue: &'a rtsim::Dialogue<true>,
         pulse: f32,
     ) -> Self {
         Self {
@@ -82,15 +91,55 @@ impl<'a> Quest<'a> {
             fonts,
             localized_strings,
             _tooltip_manager,
-            stats,
             item_imgs,
+            sender,
+            dialogue,
             pulse,
             common: widget::CommonBuilder::default(),
         }
     }
+
+    fn update_text(&self, state: &mut State, ui: &mut UiCell, msg_text: &str) {
+        let now = Instant::now();
+
+        // Check if we have a new message
+        let is_new_message = state.text_position == 0
+            || state.text_position > msg_text.len()
+            || state.last_displayed_text.as_deref() != Some(msg_text);
+
+        if is_new_message {
+            state.text_timer = Some(now);
+            state.text_position = 1; // Start displaying from the first character
+            state.last_displayed_text = Some(msg_text.to_string()); // Store the message
+        }
+
+        if state.text_timer.is_none() {
+            state.text_timer = Some(now);
+        }
+
+        if let Some(start_time) = state.text_timer {
+            if now.duration_since(start_time) >= Duration::from_millis(10)
+                && state.text_position < msg_text.len()
+            {
+                state.text_position += 1;
+                state.text_timer = Some(now);
+            }
+        }
+
+        let display_text = &msg_text[..state.text_position.min(msg_text.len())];
+        Text::new(display_text)
+            .top_left_with_margins_on(state.ids.text_align, tweak!(8.0), tweak!(8.0))
+            .w(500.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(tweak!(20)))
+            .color(TEXT_COLOR)
+            .set(state.ids.desc_txt_0, ui);
+    }
 }
 
 pub enum Event {
+    Dialogue(EcsEntity, rtsim::Dialogue),
+    #[allow(dead_code)]
     Close,
 }
 
@@ -102,6 +151,9 @@ impl Widget for Quest<'_> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         Self::State {
             ids: Ids::new(id_gen),
+            text_timer: None,
+            text_position: 0,
+            last_displayed_text: None,
         }
     }
 
@@ -112,225 +164,162 @@ impl Widget for Quest<'_> {
         let mut event = None;
 
         // Window BG
-        Image::new(self.imgs.quest_bg)
-            .bottom_left_with_margins_on(ui.window, tweak!(308.0), tweak!(500.0))
+        Image::new(self.imgs.dialogue_bg)
+            .mid_bottom_with_margin_on(ui.window, 80.0)
             .color(Some(UI_MAIN))
-            .w_h(280.0, 460.0)
+            .w_h(720.0, 234.0)
             .set(state.ids.bg, ui);
         // Window frame
-        Image::new(self.imgs.quest_frame)
+        Image::new(self.imgs.dialogue_frame)
             .middle_of(state.ids.bg)
             .color(Some(UI_HIGHLIGHT_0))
-            .w_h(280.0, 460.0)
+            .w_h(720.0, 234.0)
             .set(state.ids.frame, ui);
 
-        // Icon
-        Image::new(self.imgs.quest_ico)
-            .w_h(30.0, 30.0)
-            .top_left_with_margins_on(state.ids.frame, 6.0, 6.0)
-            .set(state.ids.icon, ui);
-        // X-Button
-        if Button::image(self.imgs.close_button)
-            .w_h(24.0, 25.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
-            .set(state.ids.close, ui)
-            .was_clicked()
-        {
-            event = Some(Event::Close);
-        }
-
-        // Title
-        Rectangle::fill_with([212.0, 42.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.frame, 2.0, 44.0)
-            .set(state.ids.title_align, ui);
-        Text::new(&self.localized_strings.get_msg("hud-quest"))
-            .middle_of(state.ids.title_align)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(20))
-            .color(TEXT_COLOR)
-            .set(state.ids.title, ui);
+        // // X-Button
+        // if Button::image(self.imgs.close_button)
+        //     .w_h(24.0, 25.0)
+        //     .hover_image(self.imgs.close_button_hover)
+        //     .press_image(self.imgs.close_button_press)
+        //     .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
+        //     .set(state.ids.close, ui)
+        //     .was_clicked()
+        // {
+        //     event = Some(Event::Close);
+        // }
 
         // Content Alignment
-        Rectangle::fill_with([tweak!(270.0), tweak!(395.0)], color::TRANSPARENT)
-            .mid_top_with_margin_on(state.ids.frame, tweak!(55.0))
+        // Text Left
+        Rectangle::fill_with([tweak!(529.0), tweak!(230.0)], color::TRANSPARENT)
+            .top_left_with_margins_on(state.ids.frame, tweak!(2.0), tweak!(2.0))
             .scroll_kids_vertically()
-            .set(state.ids.content_align, ui);
-        Scrollbar::y_axis(state.ids.content_align)
-            .thickness(4.0)
-            .color(Color::Rgba(0.79, 1.09, 1.09, 0.0))
-            .set(state.ids.scrollbar, ui);
-
-        // Quest Text
-
-        // Introduction
-
-        Text::new(
-            &self
-                .localized_strings
-                .get_msg_ctx("hud-quest-intro", &i18n::fluent_args! {
-                    "playername" => self.stats.name.to_string(),
-                }),
-        )
-        .top_left_with_margins_on(state.ids.content_align, tweak!(0.0), tweak!(2.0))
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(tweak!(20)))
-        .color(TEXT_COLOR)
-        .set(state.ids.intro_txt, ui);
-
-        enum QuestType {
-            FetchQuest,
-            // KillQuest,
-        }
+            .set(state.ids.text_align, ui);
+        // Topics Right
+        Rectangle::fill_with([tweak!(186.0), tweak!(230.0)], color::TRANSPARENT)
+            .top_right_with_margins_on(state.ids.frame, tweak!(2.0), tweak!(2.0))
+            .scroll_kids_vertically()
+            .set(state.ids.topics_align, ui);
 
         // Define type of quest to change introduction text
-
-        let quest_type = QuestType::FetchQuest;
-
-        let q_desc0 = match quest_type {
-            QuestType::FetchQuest => "hud-quest-desc-fetch",
-            // QuestType::KillQuest => "hud-quest-desc-kill",
+        let msg_text = match &self.dialogue.kind {
+            rtsim::DialogueKind::Start | rtsim::DialogueKind::End => None,
+            rtsim::DialogueKind::Statement(msg) => Some(self.localized_strings.get_content(msg)),
+            rtsim::DialogueKind::Question { msg, .. } => {
+                Some(self.localized_strings.get_content(msg))
+            },
+            rtsim::DialogueKind::Response { response, .. } => {
+                Some(self.localized_strings.get_content(&response.msg))
+            },
         };
 
-        Text::new(&self.localized_strings.get_msg(q_desc0))
-            .top_left_with_margins_on(state.ids.intro_txt, tweak!(40.0), tweak!(0.0))
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(20)))
-            .color(TEXT_COLOR)
-            .set(state.ids.desc_txt_0, ui);
-
-        // Objective(s)
-        let objective_amount = 20.0;
-        let objective_name = "Flower";
-        let objective_txt = format!("{}x {}", objective_amount, objective_name);
-
-        Text::new(&objective_txt)
-            .down_from(state.ids.desc_txt_0, tweak!(10.0))
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(20)))
-            .color(TEXT_VELORITE)
-            .set(state.ids.objective_text, ui);
-
-        Text::new(&self.localized_strings.get_msg("hud-quest-reward"))
-            .down_from(state.ids.objective_text, tweak!(30.0))
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(20)))
-            .color(TEXT_COLOR)
-            .set(state.ids.quest_reward_txt, ui);
-
-        // insert reward item data here
-        // [amount, item_desc]
-
-        //("common.items.weapons.sword.caladbolg");
-        let rewards = [
-            (1, "common.items.weapons.dagger.starter_dagger", "Dagger"),
-            (4, "common.items.crafting_ing.seashells", "Seashell"),
-            (
-                8,
-                "common.items.crafting_ing.animal_misc.raptor_feather",
-                "Raptor Feather",
-            ),
-        ];
-        let rewards_amount = rewards.len();
-
-        if state.ids.quest_rewards_frames.len() < rewards_amount {
+        if let Some(msg_text) = msg_text {
             state.update(|s| {
-                s.ids
-                    .quest_rewards_frames
-                    .resize(rewards.len(), &mut ui.widget_id_generator())
-            })
-        };
-        if state.ids.quest_rewards_icons.len() < rewards_amount {
-            state.update(|s| {
-                s.ids
-                    .quest_rewards_icons
-                    .resize(rewards.len(), &mut ui.widget_id_generator())
-            })
-        };
-        if state.ids.quest_rewards_txts.len() < rewards_amount {
-            state.update(|s| {
-                s.ids
-                    .quest_rewards_txts
-                    .resize(rewards.len(), &mut ui.widget_id_generator())
-            })
-        };
-
-        for (i, item) in rewards.iter().enumerate() {
-            // Slot BG
-            let mut frame_img = Image::new(self.imgs.skillbar_slot)
-                .w_h(40.0, 40.0)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)));
-
-            if i == 0 {
-                frame_img = frame_img.down_from(state.ids.quest_reward_txt, tweak!(10.0))
-            } else {
-                frame_img = frame_img.down_from(state.ids.quest_rewards_frames[i - 1], tweak!(5.0))
-            }
-            frame_img.set(state.ids.quest_rewards_frames[i], ui);
-
-            // Item amount and text
-            let item_txt = if item.0 == 1 {
-                item.2.to_string()
-            } else {
-                format!("{}x {}", item.0, item.2)
-            };
-            //INPUT QUALITY HERE TO CHANGE COLOR
-            let item_quality = TEXT_VELORITE;
-            Text::new(&item_txt)
-                .right_from(state.ids.quest_rewards_frames[i], tweak!(10.0))
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(tweak!(18)))
-                .color(item_quality)
-                .set(state.ids.quest_rewards_txts[i], ui);
-            // Item image
-            Image::new(animate_by_pulse(
-                &self
-                    .item_imgs
-                    .img_ids_or_not_found_img(ItemKey::Simple(item.1.to_string())),
-                self.pulse,
-            ))
-            .w_h(38.0, 38.0)
-            .middle_of(state.ids.quest_rewards_frames[i])
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-            .set(state.ids.quest_rewards_icons[i], ui);
+                self.update_text(s, ui, &msg_text);
+            });
         }
 
-        // Accept/Decline Buttons
+        if let rtsim::DialogueKind::Question { responses, tag, .. } = &self.dialogue.kind {
+            if state.ids.quest_responses_frames.len() < responses.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_responses_frames
+                        .resize(responses.len(), &mut ui.widget_id_generator())
+                })
+            };
+            if state.ids.quest_responses_icons.len() < responses.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_responses_icons
+                        .resize(responses.len(), &mut ui.widget_id_generator())
+                })
+            };
+            if state.ids.quest_responses_amounts.len() < responses.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_responses_amounts
+                        .resize(responses.len(), &mut ui.widget_id_generator())
+                })
+            };
+            if state.ids.quest_rewards_txts.len() < responses.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_rewards_txts
+                        .resize(responses.len(), &mut ui.widget_id_generator())
+                })
+            };
+            if state.ids.quest_responses_btn.len() < responses.len() {
+                state.update(|s| {
+                    s.ids
+                        .quest_responses_btn
+                        .resize(responses.len(), &mut ui.widget_id_generator())
+                })
+            };
 
-        if Button::image(self.imgs.button)
-            .bottom_left_with_margins_on(state.ids.content_align, tweak!(5.0), tweak!(5.0))
-            .w_h(tweak!(120.0), tweak!(50.0))
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label(&self.localized_strings.get_msg("hud-quest-accept"))
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(self.fonts.cyri.scale(20))
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .image_color(HP_COLOR)
-            .set(state.ids.accept_btn, ui)
-            .was_clicked()
-        {
-            event = Some(Event::Close);
-        };
+            for (i, (response_id, response)) in responses.iter().enumerate() {
+                let frame = Button::image(self.imgs.nothing).w_h(186.0, 40.0);
+                let frame = if i == 0 {
+                    frame.top_left_with_margins_on(
+                        state.ids.topics_align,
+                        tweak!(20.0),
+                        tweak!(2.0),
+                    )
+                } else {
+                    frame.down_from(state.ids.quest_responses_frames[i - 1], tweak!(10.0))
+                };
+                frame.set(state.ids.quest_responses_frames[i], ui);
 
-        if Button::image(self.imgs.button)
-            .bottom_right_with_margins_on(state.ids.content_align, tweak!(5.0), tweak!(5.0))
-            .w_h(tweak!(120.0), tweak!(50.0))
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label(&self.localized_strings.get_msg("hud-quest-decline"))
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(self.fonts.cyri.scale(20))
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .image_color(TEXT_DULL_RED_COLOR)
-            .set(state.ids.decline_btn, ui)
-            .was_clicked()
-        {
-            event = Some(Event::Close);
-        };
+                // Slot BG
+                if Button::image(self.imgs.nothing)
+                    .w_h(120.0, 40.0)
+                    .hover_image(self.imgs.nothing)
+                    .press_image(self.imgs.nothing)
+                    .middle_of(state.ids.quest_responses_frames[i])
+                    .set(state.ids.quest_responses_btn[i], ui)
+                    .was_clicked()
+                {
+                    event = Some(Event::Dialogue(self.sender, rtsim::Dialogue {
+                        id: self.dialogue.id,
+                        kind: rtsim::DialogueKind::Response {
+                            tag: *tag,
+                            response: response.clone(),
+                            response_id: *response_id,
+                        },
+                    }));
+                }
+
+                // Item image
+                if let Some((item, amount)) = &response.given_item {
+                    Image::new(animate_by_pulse(
+                        &self
+                            .item_imgs
+                            .img_ids_or_not_found_img(ItemKey::from(&**item)),
+                        self.pulse,
+                    ))
+                    .middle_of(state.ids.quest_responses_btn[i])
+                    .w_h(20.0, 20.0)
+                    .graphics_for(state.ids.quest_responses_btn[i])
+                    .set(state.ids.quest_responses_icons[i], ui);
+
+                    if *amount > 0 {
+                        Text::new(&format!("x{amount}"))
+                            .mid_bottom_with_margin_on(state.ids.quest_responses_frames[i], 3.0)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(self.fonts.cyri.scale(12))
+                            .color(TEXT_COLOR)
+                            .wrap_by_word()
+                            .set(state.ids.quest_responses_amounts[i], ui);
+                    }
+                }
+
+                Text::new(&self.localized_strings.get_content(&response.msg))
+                    .middle_of(state.ids.quest_responses_btn[i])
+                    .graphics_for(state.ids.quest_responses_btn[i])
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .font_size(self.fonts.cyri.scale(tweak!(14)))
+                    .set(state.ids.quest_rewards_txts[i], ui);
+            }
+        }
 
         event
     }

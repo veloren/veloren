@@ -1468,6 +1468,30 @@ impl Item {
         self.update_item_state(ability_map, msm);
     }
 
+    /// If an item is stackable and has an amount greater than the requested
+    /// amount, decreases the amount of the original item by the same
+    /// quantity and return a copy of the item with the taken amount.
+    #[must_use = "Returned items will be lost if not used"]
+    pub fn take_amount(
+        &mut self,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+        returning_amount: u32,
+    ) -> Option<Item> {
+        if self.is_stackable() && self.amount() > 1 && returning_amount < self.amount() {
+            let mut return_item = self.duplicate(ability_map, msm);
+            self.decrease_amount(returning_amount).ok()?;
+            return_item.set_amount(returning_amount).expect(
+                "return_item.amount() = returning_amount < self.amount() (since self.amount() ≥ \
+                 1) ≤ self.max_amount() = return_item.max_amount(), since return_item is a \
+                 duplicate of item",
+            );
+            Some(return_item)
+        } else {
+            None
+        }
+    }
+
     /// If an item is stackable and has an amount greater than 1, creates a new
     /// item with half the amount (rounded down), and decreases the amount of
     /// the original item by the same quantity.
@@ -1477,19 +1501,7 @@ impl Item {
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
     ) -> Option<Item> {
-        if self.is_stackable() && self.amount() > 1 {
-            let mut return_item = self.duplicate(ability_map, msm);
-            let returning_amount = self.amount() / 2;
-            self.decrease_amount(returning_amount).ok()?;
-            return_item.set_amount(returning_amount).expect(
-                "return_item.amount() = self.amount() / 2 < self.amount() (since self.amount() ≥ \
-                 1) ≤ self.max_amount() = return_item.max_amount(), since return_item is a \
-                 duplicate of item",
-            );
-            Some(return_item)
-        } else {
-            None
-        }
+        self.take_amount(ability_map, msm, self.amount() / 2)
     }
 
     #[cfg(test)]

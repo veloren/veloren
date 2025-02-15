@@ -110,6 +110,7 @@ use common::{
     outcome::Outcome,
     recipe::RecipeBookManifest,
     resources::{Secs, Time},
+    rtsim,
     slowjob::SlowJobPool,
     terrain::{Block, SpriteKind, TerrainChunk, UnlockKind},
     trade::{ReducedInventory, TradeAction},
@@ -754,6 +755,7 @@ pub enum Event {
     SettingsChange(SettingsChange),
     AcknowledgePersistenceLoadError,
     MapMarkerEvent(MapMarkerChange),
+    Dialogue(EcsEntity, rtsim::Dialogue),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -1298,6 +1300,7 @@ pub struct Hud {
     map_drag: Vec2<f64>,
     force_chat: bool,
     clear_chat: bool,
+    current_dialogue: Option<(EcsEntity, rtsim::Dialogue<true>)>,
 }
 
 impl Hud {
@@ -1435,6 +1438,7 @@ impl Hud {
             map_drag: Vec2::zero(),
             force_chat: false,
             clear_chat: false,
+            current_dialogue: None,
         }
     }
 
@@ -3638,34 +3642,49 @@ impl Hud {
         }
         // Quest Window
         let stats = client.state().ecs().read_storage::<comp::Stats>();
-        if self.show.quest {
-            if let Some(stats) = stats.get(entity) {
-                match Quest::new(
-                    &self.show,
-                    client,
-                    &self.imgs,
-                    &self.fonts,
-                    i18n,
-                    &self.rot_imgs,
-                    tooltip_manager,
-                    stats,
-                    &self.item_imgs,
-                    self.pulse,
-                )
-                .set(self.ids.quest_window, ui_widgets)
-                {
-                    Some(quest::Event::Close) => {
-                        self.show.quest(false);
-                        if !self.show.bag {
-                            self.show.want_grab = true;
-                            self.force_ungrab = false;
-                        } else {
-                            self.force_ungrab = true
-                        };
-                    },
-                    None => {},
-                }
+        let dialogue_open = if self.show.quest
+            && let Some((sender, dialogue)) = &self.current_dialogue
+        {
+            match Quest::new(
+                &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+                i18n,
+                &self.rot_imgs,
+                tooltip_manager,
+                &self.item_imgs,
+                *sender,
+                dialogue,
+                self.pulse,
+            )
+            .set(self.ids.quest_window, ui_widgets)
+            {
+                Some(quest::Event::Dialogue(target, dialogue)) => {
+                    events.push(Event::Dialogue(target, dialogue));
+                    true
+                },
+                Some(quest::Event::Close) => {
+                    self.show.quest(false);
+                    if !self.show.bag {
+                        self.show.want_grab = true;
+                        self.force_ungrab = false;
+                    } else {
+                        self.force_ungrab = true
+                    };
+                    false
+                },
+                None => true,
             }
+        } else {
+            false
+        };
+
+        if !dialogue_open && let Some((sender, dialogue)) = self.current_dialogue.take() {
+            events.push(Event::Dialogue(sender, rtsim::Dialogue {
+                id: dialogue.id,
+                kind: rtsim::DialogueKind::End,
+            }));
         }
 
         // Social Window
@@ -4569,6 +4588,31 @@ impl Hud {
 
     pub fn new_loot_message(&mut self, item: LootMessage) {
         self.new_loot_messages.push_back(item);
+    }
+
+    pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue<true>) {
+        match &dialogue.kind {
+            rtsim::DialogueKind::End => {
+                if self
+                    .current_dialogue
+                    .take_if(|(old_sender, _)| *old_sender == sender)
+                    .is_some()
+                {
+                    self.show.quest(false);
+                }
+            },
+            _ => {
+                if !self.show.quest
+                    || self
+                        .current_dialogue
+                        .as_ref()
+                        .is_none_or(|(old_sender, _)| *old_sender == sender)
+                {
+                    self.show.quest(true);
+                    self.current_dialogue = Some((sender, dialogue));
+                }
+            },
+        }
     }
 
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }

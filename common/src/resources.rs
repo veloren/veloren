@@ -1,4 +1,4 @@
-use crate::comp::Pos;
+use crate::{comp::Pos, shared_server_config::ServerConstants};
 use serde::{Deserialize, Serialize};
 use specs::Entity;
 use std::ops::{Mul, MulAssign};
@@ -33,8 +33,18 @@ impl TimeOfDay {
 }
 
 /// A resource that stores the tick (i.e: physics) time.
-#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq, PartialOrd)]
 pub struct Time(pub f64);
+
+impl Time {
+    pub fn add_seconds(self, seconds: f64) -> Self { Self(self.0 + seconds) }
+
+    // Note that this applies in 'game time' and does not respect either real time
+    // or in-game time of day.
+    pub fn add_days(self, days: f64, server_constants: &ServerConstants) -> Self {
+        self.add_seconds(days * 3600.0 * 24.0 / server_constants.day_cycle_coefficient)
+    }
+}
 
 /// A resource that stores the real tick, local to the server/client.
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq)]

@@ -112,6 +112,9 @@ image_ids! {
         quest_frame: "voxygen.element.ui.quests.quest_frame",
         quest_ico: "voxygen.element.ui.quests.quest_icon",
 
+        // Dialog Window
+        dialogue_bg: "voxygen.element.ui.dialogue.bg",
+        dialogue_frame: "voxygen.element.ui.dialogue.frame",
 
         // Social Window
         social_frame_on: "voxygen.element.ui.social.social_frame",
