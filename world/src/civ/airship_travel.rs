@@ -216,13 +216,13 @@ impl Airships {
     );
     const AIRSHIP_TO_DOCK_CENTERLINE_OFFSET: f32 = 18.0;
     const AIRSHIP_TO_DOCK_FORE_AFT_OFFSET: f32 = 3.0;
-    const DEFAULT_DOCK_DURATION: f64 = 90.0;
+    const DEFAULT_DOCK_DURATION: f32 = 90.0;
     const ROUTES_NORTH: Vec2<f32> = Vec2::new(0.0, 15000.0);
     const STD_CRUISE_HAT: f32 = 300.0;
     const TAKEOFF_ASCENT_ALT: f32 = 150.0;
 
     #[inline(always)]
-    pub fn docking_duration() -> f64 { Airships::DEFAULT_DOCK_DURATION }
+    pub fn docking_duration() -> f32 { Airships::DEFAULT_DOCK_DURATION }
 
     #[inline(always)]
     pub fn takeoff_ascent_hat() -> f32 { Airships::TAKEOFF_ASCENT_ALT }

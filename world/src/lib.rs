@@ -117,6 +117,17 @@ impl assets::Asset for Colors {
 }
 
 impl World {
+    pub fn empty() -> (Self, IndexOwned) {
+        let index = Index::new(0);
+        (
+            Self {
+                sim: sim::WorldSim::empty(),
+                civs: civ::Civs::default(),
+            },
+            IndexOwned::new(index),
+        )
+    }
+
     pub fn generate(
         seed: u32,
         opts: sim::WorldOpts,
