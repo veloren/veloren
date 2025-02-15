@@ -152,14 +152,12 @@ impl ServerEvent for DialogueEvent {
         >,
     ) {
         for DialogueEvent(sender, target, dialogue) in events {
-            let within_range = {
-                positions.get(sender).zip(positions.get(target)).map_or(
-                    false,
-                    |(sender_pos, target_pos)| {
-                        sender_pos.0.distance_squared(target_pos.0) <= MAX_NPCINTERACT_RANGE.powi(2)
-                    },
-                )
-            };
+            let within_range = positions
+                .get(sender)
+                .zip(positions.get(target))
+                .is_some_and(|(sender_pos, target_pos)| {
+                    sender_pos.0.distance_squared(target_pos.0) <= MAX_NPCINTERACT_RANGE.powi(2)
+                });
 
             if within_range && let Some(sender_uid) = uids.get(sender) {
                 // Perform item transfer, if required
@@ -169,35 +167,33 @@ impl ServerEvent for DialogueEvent {
                     | DialogueKind::Statement(..)
                     | DialogueKind::Question { .. } => {},
                     DialogueKind::Response { response, .. } => {
-                        if
-                        // Check that the response requires an item to be given
-                        let Some((item_def, amount)) = &response.given_item
-                        // Check that the target's inventory has enough space for the item
-                        && let Some(target_inv) = inventories.get(target)
-                        && target_inv.has_space_for(item_def, *amount)
-                        // Check that the sender has enough of the item
-                        && let Some(mut sender_inv) = inventories.get_mut(sender)
-                        && sender_inv.item_count(item_def) >= *amount as u64
-                        {
-                            // First, remove the item from the sender's inventory
-                            if let Ok(items) =
-                                sender_inv.remove_item_amount(item_def, *amount, &ability_map, &msm)
+                        // If the response requires an item to be given, perform exchange (or exit)
+                        if let Some((item_def, amount)) = &response.given_item {
+                            // Check that the target's inventory has enough space for the item
+                            if let Some(target_inv) = inventories.get(target)
+                                && target_inv.has_space_for(item_def, *amount)
+                                // Check that the sender has enough of the item
+                                && let Some(mut sender_inv) = inventories.get_mut(sender)
+                                && sender_inv.item_count(item_def) >= *amount as u64
+                                // First, remove the item from the sender's inventory
+                                && let Some(items) = sender_inv.remove_item_amount(item_def, *amount, &ability_map, &msm)
+                                && let Some(mut target_inv) = inventories.get_mut(target)
                             {
-                                if let Some(mut target_inv) = inventories.get_mut(target) {
-                                    for item in items {
-                                        // Push the items to the target's inventory
-                                        if target_inv.push(item).is_err() {
-                                            error!(
-                                                "Failed to insert dialogue given item despite \
-                                                 target inventory claiming to have space, \
-                                                 dropping remaining items..."
-                                            );
-                                            break;
-                                        }
+                                for item in items {
+                                    // Push the items to the target's inventory
+                                    if target_inv.push(item).is_err() {
+                                        error!(
+                                            "Failed to insert dialogue given item despite target \
+                                             inventory claiming to have space, dropping remaining \
+                                             items..."
+                                        );
+                                        break;
                                     }
                                 }
+                            } else {
+                                // TODO: Respond with error message on failure?
+                                break;
                             }
-                        } else {
                         }
                     },
                 }

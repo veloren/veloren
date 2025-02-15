@@ -362,7 +362,7 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
             .read_data
             .healths
             .get(target)
-            .map_or(true, |tgt_health| tgt_health.is_dead)
+            .is_none_or(|tgt_health| tgt_health.is_dead)
         {
             /*
             if let Some(tgt_stats) = bdata.rtsim_entity.and(bdata.read_data.stats.get(target)) {

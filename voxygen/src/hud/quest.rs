@@ -118,11 +118,11 @@ impl<'a> Quest<'a> {
         }
 
         if let Some(start_time) = state.text_timer {
-            if now.duration_since(start_time) >= Duration::from_millis(10) {
-                if state.text_position < msg_text.len() {
-                    state.text_position += 1;
-                    state.text_timer = Some(now);
-                }
+            if now.duration_since(start_time) >= Duration::from_millis(10)
+                && state.text_position < msg_text.len()
+            {
+                state.text_position += 1;
+                state.text_timer = Some(now);
             }
         }
 
@@ -161,7 +161,6 @@ impl Widget for Quest<'_> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-        let state = state;
         let mut event = None;
 
         // Window BG

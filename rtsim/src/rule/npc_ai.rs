@@ -210,7 +210,7 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
             .boxed()
         } else if matches!(tgt, Actor::Character(_)) {
             let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));
-            let is_hired_by_tgt = ctx.npc.hiring.map_or(false, |(a, _)| a == tgt);
+            let is_hired_by_tgt = ctx.npc.hiring.is_some_and(|(a, _)| a == tgt);
             do_dialogue(tgt, move |session| {
                 session
                     .ask_question(Content::localized("npc-question-general"), [
@@ -603,7 +603,7 @@ fn adventure() -> impl Action<DefaultState> {
 fn hired<S: State>(tgt: Actor) -> impl Action<S> {
     follow_actor(tgt, 5.0)
         // Stop following if we're no longer hired
-        .stop_if(move |ctx: &mut NpcCtx| ctx.npc.hiring.map_or(true, |(a, _)| a != tgt))
+        .stop_if(move |ctx: &mut NpcCtx| ctx.npc.hiring.is_some_and(|(a, _)| a != tgt))
         .debug(move|| format!("hired by {tgt:?}"))
         .map(|_, _| ())
 }

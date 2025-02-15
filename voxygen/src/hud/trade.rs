@@ -41,6 +41,7 @@ use super::{
 };
 use std::borrow::Cow;
 
+#[allow(clippy::large_enum_variant)]
 pub enum TradeEvent {
     TradeAction(TradeAction),
     SetDetailsMode(bool),

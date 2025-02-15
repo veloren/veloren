@@ -724,7 +724,7 @@ impl Inventory {
     /// The returned items will have arbitrary amounts, but their sum will be <=
     /// amount.
     ///
-    /// If the inventory does not contain sufficient items, `Err(())` will be
+    /// If the inventory does not contain sufficient items, `None` will be
     /// returned.
     pub fn remove_item_amount(
         &mut self,
@@ -732,14 +732,14 @@ impl Inventory {
         amount: u32,
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
-    ) -> Result<Vec<Item>, ()> {
+    ) -> Option<Vec<Item>> {
         let mut amount = amount as u64;
         if self.item_count(item_def) >= amount {
             let mut removed_items = Vec::new();
             for slot in self.slots_mut() {
                 return if amount == 0 {
                     // We've collected enough
-                    Ok(removed_items)
+                    Some(removed_items)
                 } else if let Some(item) = slot {
                     if amount < item.amount() as u64 {
                         // Remove just the amount we need to finish off
@@ -748,7 +748,7 @@ impl Inventory {
                         // less than the existing amount
                         removed_items
                             .push(item.take_amount(ability_map, msm, amount as u32).unwrap());
-                        Ok(removed_items)
+                        Some(removed_items)
                     } else {
                         // Take the whole item and keep going
                         amount -= item.amount() as u64;
@@ -759,9 +759,9 @@ impl Inventory {
                     continue;
                 };
             }
-            Ok(removed_items)
+            Some(removed_items)
         } else {
-            Err(())
+            None
         }
     }
 

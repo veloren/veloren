@@ -4606,7 +4606,7 @@ impl Hud {
                     || self
                         .current_dialogue
                         .as_ref()
-                        .map_or(true, |(old_sender, _)| *old_sender == sender)
+                        .is_none_or(|(old_sender, _)| *old_sender == sender)
                 {
                     self.show.quest(true);
                     self.current_dialogue = Some((sender, dialogue));

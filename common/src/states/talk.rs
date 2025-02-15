@@ -29,7 +29,6 @@ impl CharacterBehavior for Data {
         } else {
             CharacterState::Talk(Self {
                 timer: self.timer + Duration::from_secs_f32(data.dt.0),
-                ..*self
             })
         };
 

@@ -475,7 +475,7 @@ pub fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Act
             finish().boxed()
         }
             // Stop the NPC early if we're near the site to prevent huddling around the centre
-            .stop_if(move |ctx: &mut NpcCtx| site_wpos.map_or(false, |site_wpos| ctx.npc.wpos.xy().distance_squared(site_wpos) < 16f32.powi(2)))
+            .stop_if(move |ctx: &mut NpcCtx| site_wpos.is_some_and(|site_wpos| ctx.npc.wpos.xy().distance_squared(site_wpos) < 16f32.powi(2)))
     })
         .debug(move || format!("travel_to_site {:?}", tgt_site))
         .map(|_, _| ())
