@@ -4,8 +4,8 @@
         MultiDrop(Item("common.items.crafting_ing.hide.plate"), 6, 10),
         MultiDrop(Item("common.items.crafting_ing.animal_misc.grim_eyeball"), 2, 2),
         Lottery([
-            (0.95, Nothing),
-            (0.05, Item("common.items.lantern.geode_purp")),
+            (0.9, Nothing),
+            (0.1, Item("common.items.lantern.geode_purp")),
         ]),
         ],
     )),
