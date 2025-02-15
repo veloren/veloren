@@ -199,7 +199,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                     image,
                                     if energy.current() >= ability.energy_cost()
                                         && combo
-                                            .map_or(false, |c| c.counter() >= ability.combo_cost())
+                                            .is_some_and(|c| c.counter() >= ability.combo_cost())
                                         && ability
                                             .ability_meta()
                                             .requirements

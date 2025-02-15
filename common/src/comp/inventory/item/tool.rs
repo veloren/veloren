@@ -442,11 +442,11 @@ impl AbilityContext {
             combo,
         } = self;
         // Either stance not required or context is in the same stance
-        let stance_check = stance.map_or(true, |s| context.stance == Some(s));
+        let stance_check = stance.is_none_or(|s| context.stance == Some(s));
         // Either dual wield not required or context is dual wielding
         let dual_wield_check = !dual_wielding_same_kind || context.dual_wielding_same_kind;
         // Either no minimum combo needed or context has sufficient combo
-        let combo_check = combo.map_or(true, |c| context.combo.is_some_and(|c_c| c_c >= c));
+        let combo_check = combo.is_none_or(|c| context.combo.is_some_and(|c_c| c_c >= c));
 
         stance_check && dual_wield_check && combo_check
     }

@@ -256,8 +256,10 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
         let num_groups = self.vox.len() as u32 / Self::GROUP_VOLUME;
         if u32::from(*base) >= num_groups {
             *base = num_groups as u8;
-            self.vox
-                .extend(std::iter::repeat(self.default.clone()).take(Self::GROUP_VOLUME as usize));
+            self.vox.extend(std::iter::repeat_n(
+                self.default.clone(),
+                Self::GROUP_VOLUME as usize,
+            ));
         }
         (u32::from(*base) * Self::GROUP_VOLUME + rel_idx) as usize
     }

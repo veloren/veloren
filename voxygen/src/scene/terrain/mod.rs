@@ -190,14 +190,14 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
             .wrapping_add((wpos.x as u64).wrapping_mul(wpos.y as u64)); // Awful PRNG
 
         // % 4 is non uniform, take 7 and combine two lesser probable outcomes
-        let ori = (block.get_ori().unwrap_or((((seed % 7) + 1) / 2) as u8 * 2)) & 0b111;
+        let ori = (block.get_ori().unwrap_or((seed % 7).div_ceil(2) as u8 * 2)) & 0b111;
         // try to make the variation more uniform as the PRNG is highly unfair
         let variation = match data.variations.len() {
             1 => 0,
             2 => (seed as usize % 4) / 3,
             3 => (seed as usize % 5) / 2,
             // for four use a different seed than for ori to not have them match always
-            4 => (((seed.wrapping_add(wpos.x as u64)) as usize % 7) + 1) / 2,
+            4 => ((seed.wrapping_add(wpos.x as u64)) as usize % 7).div_ceil(2),
             _ => seed as usize % data.variations.len(),
         };
         let variant = &data.variations[variation];

@@ -2038,14 +2038,14 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
-                    CharacterState::Sit { .. } => anim::character::SitAnimation::update_skeleton(
+                    CharacterState::Sit => anim::character::SitAnimation::update_skeleton(
                         &target_base,
                         (active_tool_kind, second_tool_kind, time),
                         state.state_time,
                         &mut state_animation_rate,
                         skeleton_attr,
                     ),
-                    CharacterState::Crawl { .. } => {
+                    CharacterState::Crawl => {
                         anim::character::CrawlAnimation::update_skeleton(
                             &target_base,
                             (
@@ -2086,15 +2086,13 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
-                    CharacterState::Dance { .. } => {
-                        anim::character::DanceAnimation::update_skeleton(
-                            &target_base,
-                            (active_tool_kind, second_tool_kind, time),
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        )
-                    },
+                    CharacterState::Dance => anim::character::DanceAnimation::update_skeleton(
+                        &target_base,
+                        (active_tool_kind, second_tool_kind, time),
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
                     CharacterState::Music(s) => anim::character::MusicAnimation::update_skeleton(
                         &target_base,
                         (
@@ -2308,15 +2306,13 @@ impl FigureMgr {
                             },
                         }
                     },
-                    CharacterState::Sit { .. } => {
-                        anim::quadruped_small::FeedAnimation::update_skeleton(
-                            &target_base,
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        )
-                    },
+                    CharacterState::Sit => anim::quadruped_small::FeedAnimation::update_skeleton(
+                        &target_base,
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
                     CharacterState::Shockwave(s) => {
                         let stage_time = s.timer.as_secs_f32();
                         let stage_progress = match s.stage_section {
@@ -2640,15 +2636,13 @@ impl FigureMgr {
                             },
                         }
                     },
-                    CharacterState::Sit { .. } => {
-                        anim::quadruped_medium::FeedAnimation::update_skeleton(
-                            &target_base,
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        )
-                    },
+                    CharacterState::Sit => anim::quadruped_medium::FeedAnimation::update_skeleton(
+                        &target_base,
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
                     // TODO!
                     _ => target_base,
                 };
@@ -3186,15 +3180,13 @@ impl FigureMgr {
                     ),
                 };
                 let target_bones = match &character {
-                    CharacterState::Sit { .. } => {
-                        anim::bird_medium::FeedAnimation::update_skeleton(
-                            &target_base,
-                            time,
-                            state.state_time,
-                            &mut state_animation_rate,
-                            skeleton_attr,
-                        )
-                    },
+                    CharacterState::Sit => anim::bird_medium::FeedAnimation::update_skeleton(
+                        &target_base,
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    ),
                     CharacterState::BasicBeam(s) => {
                         let stage_time = s.timer.as_secs_f32();
                         let stage_progress = match s.stage_section {
@@ -4935,7 +4927,7 @@ impl FigureMgr {
                     ),
                 };
                 let target_bones = match &character {
-                    CharacterState::Sit { .. } => anim::bird_large::FeedAnimation::update_skeleton(
+                    CharacterState::Sit => anim::bird_large::FeedAnimation::update_skeleton(
                         &target_base,
                         time,
                         state.state_time,
@@ -6520,9 +6512,7 @@ impl FigureMgr {
                         CharacterState::BasicMelee(_) => {
                             common_state::plugin::module::CharacterState::Melee
                         },
-                        CharacterState::Sit { .. } => {
-                            common_state::plugin::module::CharacterState::Feed
-                        },
+                        CharacterState::Sit => common_state::plugin::module::CharacterState::Feed,
                         CharacterState::Stunned(_) => {
                             common_state::plugin::module::CharacterState::Stunned
                         },
@@ -6598,7 +6588,7 @@ impl FigureMgr {
             )
             .join()
             // Don't render dead entities
-            .filter(|(_, _, _, _, health, _, _, _, _)| health.map_or(true, |h| !h.is_dead))
+            .filter(|(_, _, _, _, health, _, _, _, _)| health.is_none_or(|h| !h.is_dead))
             .filter(|(_, _, _, _, _, _, _, _, obj)| !self.should_flicker(*time, *obj))
             .for_each(|(entity, pos, _, body, _, inventory, scale, collider, _)| {
                 if let Some((bound, model, _)) = self.get_model_for_render(
@@ -6680,7 +6670,7 @@ impl FigureMgr {
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, _, health, _)| health.map_or(true, |h| !h.is_dead))
+        .filter(|(_, _, _, _, health, _)| health.is_none_or(|h| !h.is_dead))
         {
             if let Some((sprite_instances, data)) = self
                 .get_sprite_instances(entity, body, collider)
@@ -6773,7 +6763,7 @@ impl FigureMgr {
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, health, _, _, _, _)| health.map_or(true, |h| !h.is_dead))
+        .filter(|(_, _, _, health, _, _, _, _)| health.is_none_or(|h| !h.is_dead))
         // Don't render player
         .filter(|(entity, _, _, _, _, _, _, _)| *entity != viewpoint_entity)
         .filter(|(_, _, _, _, _, _, _, obj)| !self.should_flicker(*time, *obj))
