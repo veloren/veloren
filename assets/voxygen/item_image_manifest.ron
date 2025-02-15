@@ -1604,7 +1604,7 @@
     ),
     Simple("common.items.lantern.bloodmoon_relic"): VoxTrans(
         "voxel.lantern.bloodmoon",
-    (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    (0.0, 0.0, 0.0), (-100.0, 205.0, 3.0), 0.9,
     ),
     Simple("common.items.lantern.crux"): VoxTrans(
         "voxel.lantern.crux",
