@@ -232,15 +232,23 @@ impl Widget for Overhead<'_> {
             let font_size = if hp_percentage.abs() > 99.9 { 24 } else { 20 };
             // Show K for numbers above 10^3 and truncate them
             // Show M for numbers above 10^6 and truncate them
-            let health_cur_txt = match health_current as u32 {
-                0..=999 => format!("{:.0}", health_current.max(1.0)),
-                1000..=999999 => format!("{:.0}K", (health_current / 1000.0).max(1.0)),
-                _ => format!("{:.0}M", (health_current / 1.0e6).max(1.0)),
+            let health_cur_txt = if self.settings.use_health_prefixes {
+                match health_current as u32 {
+                    0..=999 => format!("{:.0}", health_current.max(1.0)),
+                    1000..=999999 => format!("{:.0}K", (health_current / 1000.0).max(1.0)),
+                    _ => format!("{:.0}M", (health_current / 1.0e6).max(1.0)),
+                }
+            } else {
+                format!("{:.0}", health_current.max(1.0))
             };
-            let health_max_txt = match health_max as u32 {
-                0..=999 => format!("{:.0}", health_max.max(1.0)),
-                1000..=999999 => format!("{:.0}K", (health_max / 1000.0).max(1.0)),
-                _ => format!("{:.0}M", (health_max / 1.0e6).max(1.0)),
+            let health_max_txt = if self.settings.use_health_prefixes {
+                match health_max as u32 {
+                    0..=999 => format!("{:.0}", health_max.max(1.0)),
+                    1000..=999999 => format!("{:.0}K", (health_max / 1000.0).max(1.0)),
+                    _ => format!("{:.0}M", (health_max / 1.0e6).max(1.0)),
+                }
+            } else {
+                format!("{:.0}", health_max.max(1.0))
             };
             // Buffs
             // Alignment
