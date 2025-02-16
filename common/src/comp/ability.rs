@@ -718,7 +718,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::Climb(_)
             | CharacterState::Sit
             | CharacterState::Dance
-            | CharacterState::Talk
+            | CharacterState::Talk(_)
             | CharacterState::Glide(_)
             | CharacterState::GlideWield(_)
             | CharacterState::Stunned(_)

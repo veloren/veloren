@@ -1,29 +1,29 @@
 BasicMelee(
-    energy_cost: 10,
-    buildup_duration: 0.6,
-    swing_duration: 0.1,
+    energy_cost: 15,
+    buildup_duration: 0.4,
+    swing_duration: 0.2,
     hit_timing: 0.5,
-    recover_duration: 0.4,
+    recover_duration: 0.3,
     melee_constructor: (
         kind: Bash(
-            damage: 15,
-            poise: 15,
+            damage: 26,
+            poise: 23,
             knockback: 0,
             energy_regen: 0,
         ),
-        range: 3,
+        range: 3.5,
         angle: 20,
         multi_target: Some(Normal),
         damage_effect: Some(Buff((
             kind: Staggered,
             dur_secs: 10.0,
-            strength: Value(0.5),
+            strength: Value(0.6),
             chance: 1.0,
         ))),
         attack_effect: Some((
             Knockback((
                 direction: Up,
-                strength: 10,
+                strength: 15,
             )),
             AnyDamage,
         )),

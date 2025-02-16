@@ -31,6 +31,7 @@ hud-settings-speech_bubble = Speech Bubble
 hud-settings-speech_bubble_self = Show Own Speech Bubbles
 hud-settings-speech_bubble_dark_mode = Speech Bubble Dark Mode
 hud-settings-speech_bubble_icon = Speech Bubble Icon
+hud-settings-use_health_prefixes = Use SI prefixes for the health bar
 hud-settings-energybar_numbers = Energy bar numbers
 hud-settings-always_show_bars = Always show the energy bar
 hud-settings-enable_poise_bar = Enable Poise bar

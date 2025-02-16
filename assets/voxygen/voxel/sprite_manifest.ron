@@ -6252,4 +6252,225 @@ CrateBlock: [(
     ],
     wind_sway: 0.0,
 )],
+WaterBarrelWood: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.water_barrel_wood",
+            offset: (-7, -7, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+LanternpostWoodLantern: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LanternpostWoodUpper: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_upper",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LanternpostWoodBase: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_base",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LampMetal: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_blue_shingles",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_red_shingles",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LampMetalBase: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_base",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LampTerracotta: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_terracotta",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BlacksmithBellows: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.blacksmith_bellows",
+            offset: (-7.5, -10.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterTable: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_table-0",
+            offset: (-11.0, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_table-1",
+            offset: (-11.0, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterCrateWoodS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_crate_wood_S",
+            offset: (-4.0, -4.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterCrateWoodL: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_crate_wood_L",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterToolsWall: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_tools_wall",
+            offset: (-5.5, -1.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterLogCutter: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-0",
+            offset: (-10.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-1",
+            offset: (-10.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-2",
+            offset: (-10.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CoalBarrelWood: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.coal_barrel_wood",
+            offset: (-7.0, -7.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+HandCartWood: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.hand_cart_wood",
+            offset: (-16.5, -11.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+LogsWoodBranchL: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_L",
+            offset: (-8.5, -16.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBranchM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_M",
+            offset: (-8.5, -11.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBranchS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_S",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodCleanL: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_clean_L",
+            offset: (-6.5, -16.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodCoreL: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_core_L",
+            offset: (-5.5, -16.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)]
+
 }

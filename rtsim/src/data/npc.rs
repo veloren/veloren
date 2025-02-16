@@ -8,9 +8,10 @@ use common::{
     character::CharacterId,
     comp::{self, agent::FlightMode},
     grid::Grid,
+    resources::Time,
     rtsim::{
-        Actor, ChunkResource, FactionId, NpcAction, NpcActivity, NpcInput, Personality, ReportId,
-        Role, SiteId,
+        Actor, ChunkResource, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction,
+        NpcActivity, NpcInput, Personality, ReportId, Response, Role, SiteId,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -60,10 +61,20 @@ pub struct Controller {
     pub activity: Option<NpcActivity>,
     pub new_home: Option<SiteId>,
     pub look_dir: Option<Dir>,
+    pub hiring: Option<Option<(Actor, Time)>>,
 }
 
 impl Controller {
+    /// Reset the controller to a neutral state before the start of the next
+    /// brain tick.
+    pub fn reset(&mut self) {
+        self.activity = None;
+        self.look_dir = None;
+    }
+
     pub fn do_idle(&mut self) { self.activity = None; }
+
+    pub fn do_talk(&mut self, tgt: Actor) { self.activity = Some(NpcActivity::Talk(tgt)); }
 
     pub fn do_goto(&mut self, wpos: Vec3<f32>, speed_factor: f32) {
         self.activity = Some(NpcActivity::Goto(wpos, speed_factor));
@@ -110,6 +121,77 @@ impl Controller {
     }
 
     pub fn set_new_home(&mut self, new_home: SiteId) { self.new_home = Some(new_home); }
+
+    pub fn set_newly_hired(&mut self, actor: Actor, expires: Time) {
+        self.hiring = Some(Some((actor, expires)));
+    }
+
+    pub fn end_hiring(&mut self) { self.hiring = Some(None); }
+
+    /// Start a new dialogue.
+    pub fn dialogue_start(&mut self, target: impl Into<Actor>) -> DialogueSession {
+        let target = target.into();
+
+        let session = DialogueSession {
+            target,
+            id: DialogueId(thread_rng().gen()),
+        };
+
+        self.actions.push(NpcAction::Dialogue(target, Dialogue {
+            id: session.id,
+            kind: DialogueKind::Start,
+        }));
+
+        session
+    }
+
+    /// End an existing dialogue.
+    pub fn dialogue_end(&mut self, session: DialogueSession) {
+        self.actions
+            .push(NpcAction::Dialogue(session.target, Dialogue {
+                id: session.id,
+                kind: DialogueKind::End,
+            }));
+    }
+
+    /// Ask a question, with various possible answers. Returns the dialogue tag,
+    /// used for identifying the answer.
+    pub fn dialogue_question(
+        &mut self,
+        session: DialogueSession,
+        msg: comp::Content,
+        responses: impl IntoIterator<Item = (u16, Response)>,
+    ) -> u32 {
+        let tag = thread_rng().gen();
+
+        self.actions
+            .push(NpcAction::Dialogue(session.target, Dialogue {
+                id: session.id,
+                kind: DialogueKind::Question {
+                    tag,
+                    msg,
+                    responses: responses.into_iter().collect(),
+                },
+            }));
+
+        tag
+    }
+
+    /// Provide a statement as part of a dialogue.
+    pub fn dialogue_statement(&mut self, session: DialogueSession, msg: comp::Content) {
+        self.actions
+            .push(NpcAction::Dialogue(session.target, Dialogue {
+                id: session.id,
+                kind: DialogueKind::Statement(msg),
+            }));
+    }
+}
+
+// Represents an ongoing dialogue with another actor.
+#[derive(Copy, Clone)]
+pub struct DialogueSession {
+    pub target: Actor,
+    pub id: DialogueId,
 }
 
 pub struct Brain {
@@ -139,6 +221,11 @@ pub struct Npc {
     pub personality: Personality,
     #[serde(default)]
     pub sentiments: Sentiments,
+
+    /// An NPC can temporarily become a hired hand (`(hiring_actor,
+    /// termination_time)`).
+    #[serde(default)]
+    pub hiring: Option<(Actor, Time)>,
 
     // Unpersisted state
     #[serde(skip)]
@@ -177,6 +264,7 @@ impl Clone for Npc {
             body: self.body,
             personality: self.personality,
             sentiments: self.sentiments.clone(),
+            hiring: self.hiring,
             // Not persisted
             chunk_pos: None,
             current_site: Default::default(),
@@ -202,6 +290,7 @@ impl Npc {
             body,
             personality: Default::default(),
             sentiments: Default::default(),
+            hiring: None,
             role,
             home: None,
             faction: None,

@@ -37,6 +37,7 @@ use common::{
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
     resources::{GameMode, PlayerEntity, Time, TimeOfDay},
+    rtsim,
     shared_server_config::ServerConstants,
     spiral::Spiral2d,
     terrain::{
@@ -121,6 +122,7 @@ pub enum Event {
     StartSpectate(Vec3<f32>),
     SpectatePosition(Vec3<f32>),
     PluginDataReceived(Vec<u8>),
+    Dialogue(Uid, rtsim::Dialogue<true>),
 }
 
 #[derive(Debug)]
@@ -2042,6 +2044,18 @@ impl Client {
         self.send_msg(ClientGeneral::ControlAction(control_action));
     }
 
+    fn control_event(&mut self, control_event: ControlEvent) {
+        if let Some(controller) = self
+            .state
+            .ecs()
+            .write_storage::<Controller>()
+            .get_mut(self.entity())
+        {
+            controller.push_event(control_event.clone());
+        }
+        self.send_msg(ClientGeneral::ControlEvent(control_event));
+    }
+
     pub fn view_distance(&self) -> Option<u32> { self.view_distance }
 
     pub fn server_view_distance_limit(&self) -> Option<u32> { self.server_view_distance_limit }
@@ -2120,7 +2134,9 @@ impl Client {
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
 
     /// Send a chat message to the server.
-    pub fn send_chat(&mut self, message: String) { self.send_msg(ClientGeneral::ChatMsg(message)); }
+    pub fn send_chat(&mut self, message: String) {
+        self.send_msg(ClientGeneral::ChatMsg(comp::Content::Plain(message)));
+    }
 
     /// Send a command to the server.
     pub fn send_command(&mut self, name: String, args: Vec<String>) {
@@ -2145,6 +2161,16 @@ impl Client {
         self.control_action(ControlAction::InventoryAction(InventoryAction::Collect(
             pos,
         )));
+    }
+
+    pub fn perform_dialogue(&mut self, target: EcsEntity, dialogue: rtsim::Dialogue) {
+        if let Some(target_uid) = self.state.read_component_copied(target) {
+            // TODO: Add a way to do send-only chat
+            // if let Some(msg) = dialogue.message().cloned() {
+            //     self.send_msg(ClientGeneral::ChatMsg(msg));
+            // }
+            self.control_event(ControlEvent::Dialogue(target_uid, dialogue));
+        }
     }
 
     pub fn change_ability(&mut self, slot: usize, new_ability: comp::ability::AuxiliaryAbility) {
@@ -2845,6 +2871,9 @@ impl Client {
                 self.update_available_recipes();
 
                 frontend_events.push(Event::InventoryUpdated(events));
+            },
+            ServerGeneral::Dialogue(sender, dialogue) => {
+                frontend_events.push(Event::Dialogue(sender, dialogue));
             },
             ServerGeneral::SetViewDistance(vd) => {
                 self.view_distance = Some(vd);

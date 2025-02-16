@@ -346,12 +346,12 @@ impl SessionState {
                             | InventoryUpdateEvent::EntityCollectFailed { .. }
                             | InventoryUpdateEvent::BlockCollectFailed { .. }
                             | InventoryUpdateEvent::Craft => {
-                                global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
+                                global_state.audio.emit_ui_sfx(sfx_trigger_item, None);
                             },
                             _ => global_state.audio.emit_sfx(
                                 sfx_trigger_item,
                                 client.position().unwrap_or_default(),
-                                Some(1.0),
+                                None,
                             ),
                         }
 
@@ -389,6 +389,11 @@ impl SessionState {
                             },
                             _ => {},
                         };
+                    }
+                },
+                client::Event::Dialogue(sender_uid, dialogue) => {
+                    if let Some(sender) = client.state().ecs().entity_from_uid(sender_uid) {
+                        self.hud.dialogue(sender, dialogue);
                     }
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
@@ -1008,7 +1013,8 @@ impl PlayState for SessionState {
                                 {
                                     let is_staying = client
                                         .state()
-                                        .read_component_copied::<CharacterActivity>(pet_entity)
+                                        .read_storage::<CharacterActivity>()
+                                        .get(pet_entity)
                                         .is_some_and(|activity| activity.is_pet_staying);
                                     client.set_pet_stay(pet_entity, !is_staying);
                                 }
@@ -2077,7 +2083,7 @@ impl PlayState for SessionState {
                         if !has_repaired {
                             let sfx_trigger_item = sfx_triggers
                                 .get_key_value(&SfxEvent::from(&InventoryUpdateEvent::Craft));
-                            global_state.audio.emit_ui_sfx(sfx_trigger_item, Some(1.0));
+                            global_state.audio.emit_ui_sfx(sfx_trigger_item, None);
                             has_repaired = true
                         };
                         self.client
@@ -2113,6 +2119,9 @@ impl PlayState for SessionState {
                     },
                     HudEvent::MapMarkerEvent(event) => {
                         self.client.borrow_mut().map_marker_event(event);
+                    },
+                    HudEvent::Dialogue(target, dialogue) => {
+                        self.client.borrow_mut().perform_dialogue(target, dialogue);
                     },
                 }
             }

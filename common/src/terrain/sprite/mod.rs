@@ -138,6 +138,26 @@ sprites! {
         Scarecrow      = 0x70,
         FountainArabic = 0x71,
         Hearth         = 0x72,
+        WaterBarrelWood= 0x73,
+        LanternpostWoodUpper = 0x74,
+        LanternpostWoodBase = 0x75,
+        LampMetalBase = 0x76,
+        BlacksmithBellows = 0x77,
+        CarpenterTable = 0x78,
+        CarpenterCrateWoodS = 0x79,
+        CarpenterCrateWoodL = 0x7A,
+        CarpenterToolsWall = 0x7B,
+        CarpenterLogCutter = 0x7C,
+        CoalBarrelWood = 0x7D,
+        HandCartWood = 0x7E,
+        LogsWoodBranchL = 0x7F,
+        LogsWoodBranchM = 0x80,
+        LogsWoodBranchS = 0x81,
+        LogsWoodCleanL = 0x82,
+        LogsWoodCoreL = 0x83,
+
+
+
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
     Plant = 3 has Growth, Owned, SnowCovered {
@@ -372,6 +392,11 @@ sprites! {
         SeashellLantern = 3,
         FireBowlGround  = 4,
         MesaLantern     = 5,
+        LanternpostWoodLantern = 6,
+        LampMetal = 7,
+        LampTerracotta = 8,
+
+
     },
     Container = 9 has Ori, Owned {
         Chest             = 0x00,
@@ -641,6 +666,27 @@ impl SpriteKind {
             SpriteKind::HotSurface => 0.01,
             SpriteKind::Barrel => 1.0,
             SpriteKind::CrateBlock => 1.0,
+            SpriteKind::WaterBarrelWood => 17.0 / 11.0,
+            SpriteKind::LanternpostWoodLantern => 2.000,
+            SpriteKind::LanternpostWoodUpper => 2.000,
+            SpriteKind::LanternpostWoodBase => 3.000,
+            SpriteKind::LampMetal => 1.000,
+            SpriteKind::LampMetalBase => 2.818,
+            SpriteKind::LampTerracotta => 1.727,
+            SpriteKind::BlacksmithBellows => 0.545,
+            SpriteKind::CarpenterTable => 2.000,
+            SpriteKind::CarpenterCrateWoodS => 0.727,
+            SpriteKind::CarpenterCrateWoodL => 1.273,
+            SpriteKind::CarpenterToolsWall => 1.000,
+            SpriteKind::CarpenterLogCutter => 1.545,
+            SpriteKind::CoalBarrelWood => 1.545,
+            SpriteKind::HandCartWood => 3.000,
+            SpriteKind::LogsWoodBranchL
+            | SpriteKind::LogsWoodBranchM
+            | SpriteKind::LogsWoodBranchS
+            | SpriteKind::LogsWoodCleanL => 1.091,
+            SpriteKind::LogsWoodCoreL => 0.818,
+
             _ => return None,
         })
     }

@@ -3,8 +3,8 @@ RiposteMelee(
     buildup_duration: 0.4,
     swing_duration: 0.1,
     recover_duration: 0.2,
-    whiffed_recover_duration: 0.6,
-    block_strength: 2.1,
+    whiffed_recover_duration: 0.8,
+    block_strength: 2.5,
     melee_constructor: (
         kind: Bash(
             damage: 8,
@@ -13,6 +13,6 @@ RiposteMelee(
             energy_regen: 0,
         ),
         range: 4.0,
-        angle: 20.0,
+        angle: 25.0,
     ),
 )

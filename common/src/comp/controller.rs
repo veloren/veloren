@@ -9,6 +9,7 @@ use crate::{
         invite::{InviteKind, InviteResponse},
     },
     mounting::VolumePos,
+    rtsim,
     trade::{TradeAction, TradeId},
     uid::Uid,
     util::Dir,
@@ -174,6 +175,7 @@ pub enum ControlEvent {
         target: Uid,
         kind: crate::interaction::InteractionKind,
     },
+    Dialogue(Uid, rtsim::Dialogue),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]

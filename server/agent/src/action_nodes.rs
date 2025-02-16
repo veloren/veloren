@@ -98,7 +98,7 @@ impl AgentData<'_> {
         read_data: &ReadData,
         path: Path,
         speed_multiplier: Option<f32>,
-    ) -> bool {
+    ) -> Option<Vec3<f32>> {
         self.dismount(controller, read_data);
 
         let partial_path_tgt_pos = |pos_difference: Vec3<f32>| {
@@ -143,6 +143,19 @@ impl AgentData<'_> {
             Path::Partial => partial_path_tgt_pos(pos_difference),
         };
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
+
+        let in_loaded_chunk = |pos: Vec3<f32>| {
+            read_data
+                .terrain
+                .contains_key(read_data.terrain.pos_key(pos.map(|e| e.floor() as i32)))
+        };
+
+        // If current position lies inside a loaded chunk, we need to plan routes using
+        // voxel info. If target happens to be in an unloaded chunk,
+        // we need to make our way to the current chunk border, and
+        // then reroute if needed.
+        let is_target_loaded = in_loaded_chunk(pathing_pos);
+
         if let Some((bearing, speed)) = agent.chaser.chase(
             &*read_data.terrain,
             self.pos.0,
@@ -150,13 +163,14 @@ impl AgentData<'_> {
             pathing_pos,
             TraversalConfig {
                 min_tgt_dist: 0.25,
+                is_target_loaded,
                 ..self.traversal_config
             },
         ) {
             self.traverse(controller, bearing, speed * speed_multiplier);
-            true
+            Some(bearing)
         } else {
-            false
+            None
         }
     }
 
@@ -189,7 +203,7 @@ impl AgentData<'_> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        emitters: &mut AgentEmitters,
+        _emitters: &mut AgentEmitters,
         rng: &mut impl Rng,
     ) {
         enum ActionTimers {
@@ -252,6 +266,8 @@ impl AgentData<'_> {
                         controller.push_event(ControlEvent::Unmount);
                     }
 
+                    agent.bearing = Vec2::zero();
+
                     // If it has an rtsim destination and can fly, then it should.
                     // If it is flying and bumps something above it, then it should move down.
                     if self.traversal_config.can_fly
@@ -268,39 +284,14 @@ impl AgentData<'_> {
                         controller.push_cancel_input(InputKind::Fly)
                     }
 
-                    let chase_tgt = if self.traversal_config.can_fly {
-                        read_data.terrain.try_find_space(travel_to.as_())
-                    } else {
-                        read_data.terrain.try_find_ground(travel_to.as_())
-                    }
-                    .map(|pos| pos.as_())
-                    .unwrap_or(travel_to);
-
-                    let in_loaded_chunk = |pos: Vec3<f32>| {
-                        read_data
-                            .terrain
-                            .contains_key(read_data.terrain.pos_key(pos.map(|e| e.floor() as i32)))
-                    };
-
-                    // If current position lies inside a loaded chunk, we need to plan routes using
-                    // voxel info. If target happens to be in an unloaded chunk,
-                    // we need to make our way to the current chunk border, and
-                    // then reroute if needed.
-                    let is_target_loaded = in_loaded_chunk(chase_tgt);
-
-                    if let Some((bearing, speed)) = agent.chaser.chase(
-                        &*read_data.terrain,
-                        self.pos.0,
-                        self.vel.0,
-                        chase_tgt,
-                        TraversalConfig {
-                            min_tgt_dist: self.traversal_config.min_tgt_dist * 1.25,
-                            is_target_loaded,
-                            ..self.traversal_config
-                        },
+                    if let Some(bearing) = self.path_toward_target(
+                        agent,
+                        controller,
+                        travel_to,
+                        read_data,
+                        Path::Full,
+                        Some(speed_factor),
                     ) {
-                        self.traverse(controller, bearing, speed.min(speed_factor));
-
                         let height_offset = bearing.z
                             + if self.traversal_config.can_fly {
                                 // NOTE: costs 4 us (imbris)
@@ -625,9 +616,19 @@ impl AgentData<'_> {
                             agent,
                             controller,
                             read_data,
-                            emitters,
                             AgentData::is_hunting_animal,
                         );
+                    }
+                },
+                Some(NpcActivity::Talk(target)) => {
+                    if agent.target.is_none()
+                        && let Some(target) = read_data.id_maps.actor_entity(target)
+                    {
+                        // We're always aware of someone we're talking to
+                        controller.push_action(ControlAction::Stand);
+                        self.look_toward(controller, read_data, target);
+                        controller.push_action(ControlAction::Talk);
+                        break 'activity;
                     }
                 },
                 None => {},
@@ -1020,7 +1021,6 @@ impl AgentData<'_> {
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
-        emitters: &mut AgentEmitters,
         is_enemy: fn(&Self, EcsEntity, &ReadData) -> bool,
     ) {
         enum ActionStateTimers {
@@ -1037,37 +1037,10 @@ impl AgentData<'_> {
             .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
             .collect_vec();
 
-        let can_ambush = |entity: EcsEntity, read_data: &ReadData| {
-            let self_different_from_entity =
-                || read_data.uids.get(entity).is_some_and(|eu| eu != self.uid);
-            if agent.rtsim_controller.personality.will_ambush()
-                && self_different_from_entity()
-                && !self.passive_towards(entity, read_data)
-            {
-                let surrounding_humanoids = entities_nearby
-                    .iter()
-                    .filter(|e| read_data.bodies.get(**e).is_some_and(|b| b.is_humanoid()))
-                    .collect_vec();
-                surrounding_humanoids.len() == 2
-                    && surrounding_humanoids.iter().any(|e| **e == entity)
-            } else {
-                false
-            }
-        };
-
         let get_pos = |entity| read_data.positions.get(entity);
         let get_enemy = |(entity, attack_target): (EcsEntity, bool)| {
             if attack_target {
                 if is_enemy(self, entity, read_data) {
-                    Some((entity, true))
-                } else if can_ambush(entity, read_data) {
-                    controller.clone().push_utterance(UtteranceKind::Ambush);
-                    self.chat_npc_if_allowed_to_speak(
-                        Content::localized("npc-speech-ambush"),
-                        agent,
-                        emitters,
-                    );
-                    aggro_on = true;
                     Some((entity, true))
                 } else if self.should_defend(entity, read_data) {
                     if let Some(attacker) = get_attacker(entity, read_data) {

@@ -13,21 +13,16 @@ use channel::{
     UiChannel,
 };
 use kira::{
-    Volume,
+    AudioManager, AudioManagerSettings, Decibels, Tween, Value,
+    backend::{self, DefaultBackend},
     clock::{ClockHandle, ClockSpeed, ClockTime},
     effect::filter::{FilterBuilder, FilterHandle},
-    manager::{AudioManager, AudioManagerSettings, DefaultBackend},
-    spatial::{
-        emitter::EmitterSettings,
-        listener::{ListenerHandle, ListenerSettings},
-        scene::{SpatialSceneHandle, SpatialSceneSettings},
-    },
+    listener::ListenerHandle,
     track::{TrackBuilder, TrackHandle},
-    tween::{Easing, Tween, Value},
 };
 use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
-use soundcache::{AnySoundData, AnySoundHandle, load_ogg};
+use soundcache::load_ogg;
 use std::{collections::VecDeque, time::Duration};
 use tracing::{debug, error, warn};
 
@@ -58,6 +53,16 @@ use crate::hud::Subtitle;
 //         }
 //     }
 // }
+
+pub fn to_decibels(amplitude: f32) -> Decibels {
+    if amplitude <= 0.001 {
+        Decibels::SILENCE
+    } else if amplitude == 1.0 {
+        Decibels::IDENTITY
+    } else {
+        Decibels(amplitude.log10() * 20.0)
+    }
+}
 
 pub enum MasterEffect {
     SfxFilter(FilterHandle),
@@ -144,53 +149,20 @@ struct ListenerInstance {
     ori: Vec3<f32>,
 }
 
-struct SoundPlayer {
-    manager: AudioManager,
-    clock: ClockHandle,
-}
-
-impl SoundPlayer {
-    /// Play a sound using the AudioManager
-    fn play_sound(
-        &mut self,
-        mut source: AnySoundData,
-        fade_in: Option<f32>,
-        delay: Option<f32>,
-    ) -> Option<AnySoundHandle> {
-        if let Some(fade_in) = fade_in {
-            let fade_in_tween = Tween {
-                duration: Duration::from_secs_f32(fade_in),
-                ..Default::default()
-            };
-            source = source.fade_in_tween(fade_in_tween);
-        }
-
-        if let Some(delay) = delay {
-            source = source.start_time(self.clock.time() + delay as f64);
-        }
-
-        self.manager
-            .play(source)
-            .inspect_err(|e| error!(?e, "Failed to play sound."))
-            .ok()
-    }
-}
-
 struct AudioFrontendInner {
-    sound_player: SoundPlayer,
-    #[expect(dead_code)]
-    scene: SpatialSceneHandle,
+    manager: AudioManager,
     tracks: Tracks,
     effects: Effects,
     channels: Channels,
     listener: ListenerInstance,
+    clock: ClockHandle,
 }
 
 enum AudioCreationError {
-    Manager(<DefaultBackend as kira::manager::backend::Backend>::Error),
+    Manager(<DefaultBackend as backend::Backend>::Error),
     Clock(kira::ResourceLimitReached),
     Track(kira::ResourceLimitReached),
-    Scene(kira::ResourceLimitReached),
+    Listener(kira::ResourceLimitReached),
 }
 
 impl AudioFrontendInner {
@@ -212,7 +184,17 @@ impl AudioFrontendInner {
                 .add_effect(FilterBuilder::new().cutoff(Value::Fixed(20000.0))),
         };
 
-        let tracks = Tracks {
+        let listener_handle = manager
+            .add_listener(Vec3::zero(), Quaternion::identity())
+            .map_err(AudioCreationError::Listener)?;
+
+        let listener = ListenerInstance {
+            handle: listener_handle,
+            pos: Vec3::zero(),
+            ori: Vec3::unit_x(),
+        };
+
+        let mut tracks = Tracks {
             music: manager
                 .add_sub_track(TrackBuilder::new())
                 .map_err(AudioCreationError::Track)?,
@@ -229,68 +211,55 @@ impl AudioFrontendInner {
 
         let mut channels = Channels::default();
 
-        let mut scene = manager
-            .add_spatial_scene(SpatialSceneSettings::new())
-            .map_err(AudioCreationError::Scene)?;
-        let listener_handle = scene
-            .add_listener(
-                Vec3::zero(),
-                Quaternion::identity(),
-                ListenerSettings::new().track(tracks.sfx.id()),
-            )
-            .map_err(AudioCreationError::Scene)?;
-
-        let listener = ListenerInstance {
-            handle: listener_handle,
-            pos: Vec3::zero(),
-            ori: Vec3::unit_x(),
-        };
-
         for _ in 0..num_sfx_channels {
-            let emitter = scene
-                .add_emitter(
-                    Vec3::zero(),
-                    EmitterSettings::new()
-                        .persist_until_sounds_finish(true)
-                        .distances([1.0, 200.0])
-                        .attenuation_function(Some(Easing::OutPowf(0.45))),
-                )
-                .map_err(AudioCreationError::Scene)?;
-
-            channels.sfx.push(SfxChannel::new(emitter));
+            if let Ok(channel) = SfxChannel::new(&mut tracks.sfx, listener.handle.id()) {
+                channels.sfx.push(channel);
+            } else {
+                warn!("Cannot create sfx channel")
+            }
         }
 
-        channels.ui.resize_with(num_ui_channels, || {
-            UiChannel::new(&mut manager, tracks.ui.id())
-        });
+        for _ in 0..num_ui_channels {
+            if let Ok(channel) = UiChannel::new(&mut tracks.ui) {
+                channels.ui.push(channel);
+            } else {
+                warn!("Cannot create ui channel")
+            }
+        }
 
         Ok(Self {
-            sound_player: SoundPlayer { manager, clock },
-            scene,
+            manager,
             tracks,
             effects,
             channels,
             listener,
+            clock,
         })
     }
 
-    fn manager(&mut self) -> &mut AudioManager { &mut self.sound_player.manager }
+    fn manager(&mut self) -> &mut AudioManager { &mut self.manager }
 
-    fn clock(&self) -> &ClockHandle { &self.sound_player.clock }
+    fn clock(&self) -> &ClockHandle { &self.clock }
 
     fn create_music_channel(&mut self, channel_tag: MusicChannelTag) {
-        let parent_track = self.tracks.music.id();
-
-        let mut next_music_channel = MusicChannel::new(self.manager(), parent_track);
-        next_music_channel.set_volume(1.0);
-        next_music_channel.set_tag(channel_tag);
-        self.channels.music.push(next_music_channel);
+        let channel = MusicChannel::new(&mut self.tracks.music);
+        match channel {
+            Ok(mut next_music_channel) => {
+                next_music_channel.set_volume(1.0);
+                next_music_channel.set_tag(channel_tag);
+                self.channels.music.push(next_music_channel);
+            },
+            Err(e) => error!(
+                ?e,
+                "Failed to crate new music channel, music may fail playing"
+            ),
+        }
     }
 
     /// Adds a new ambience channel of the given tag at zero volume
     fn new_ambience_channel(&mut self, channel_tag: AmbienceChannelTag) {
-        let parent_track = self.tracks.ambience.id();
-        match AmbienceChannel::new(channel_tag, 0.0, self.manager(), parent_track, true) {
+        let channel = AmbienceChannel::new(channel_tag, 0.0, &mut self.tracks.ambience, true);
+        match channel {
             Ok(ambience_channel) => self.channels.ambience.push(ambience_channel),
             Err(e) => error!(
                 ?e,
@@ -346,8 +315,8 @@ impl AudioFrontend {
                 AudioCreationError::Track(e) => {
                     error!(?e, "Failed to construct audio frontend track.")
                 },
-                AudioCreationError::Scene(e) => {
-                    error!(?e, "Failed to construct audio frontend scene.")
+                AudioCreationError::Listener(e) => {
+                    error!(?e, "Failed to construct audio frontend listener.")
                 },
             })
             .ok();
@@ -412,6 +381,8 @@ impl AudioFrontend {
                 current_channel.fade_out(*fade_out, None);
             }
 
+            let now = inner.clock().time();
+
             let channel = match inner.channels.get_music_channel(channel_tag) {
                 Some(c) => c,
                 None => {
@@ -428,16 +399,12 @@ impl AudioFrontend {
                 .fade_timings
                 .get(&(channel.get_tag(), channel_tag))
                 .unwrap_or(&(1.0, 0.1));
-            let track = channel.get_track();
-            let source = load_ogg(sound, true).output_destination(track.unwrap());
+            let source = load_ogg(sound, true);
             channel.stop(Some(*fade_out), None);
             channel.set_length(length);
             channel.set_tag(channel_tag);
             channel.set_loop_data(false, LoopPoint::Start, LoopPoint::End);
-            let handle = inner
-                .sound_player
-                .play_sound(source, Some(*fade_in), Some(*fade_out));
-            channel.set_source(handle);
+            channel.play(source, now, Some(*fade_in), Some(*fade_out));
         }
     }
 
@@ -466,7 +433,7 @@ impl AudioFrontend {
         }
     }
 
-    /// Set the cutoff of the filter affecting all spatial sfx
+    /// Set the cutoff of the filter affecting all ambience
     pub fn set_ambience_master_filter(&mut self, frequency: u32) {
         if let Some(inner) = self.inner.as_mut() {
             inner
@@ -534,13 +501,9 @@ impl AudioFrontend {
             {
                 let sound = load_ogg(sfx_file, false);
                 channel.update(position);
-                let emitter = channel.get_emitter();
 
-                let source = sound
-                    .volume(Volume::Amplitude((volume.unwrap_or(1.0) * 5.0) as f64))
-                    .output_destination(emitter);
-                let handle = inner.sound_player.play_sound(source, None, None);
-                channel.set_source(handle);
+                let source = sound.volume(to_decibels(volume.unwrap_or(1.0) * 5.0));
+                channel.play(source);
             }
         } else {
             warn!(
@@ -565,10 +528,8 @@ impl AudioFrontend {
                 && let Some(inner) = self.inner.as_mut()
                 && let Some(channel) = inner.channels.get_ui_channel()
             {
-                let sound = load_ogg(sfx_file, false)
-                    .volume(Volume::Amplitude(volume.unwrap_or(1.0) as f64));
-                let handle = inner.sound_player.play_sound(sound, None, None);
-                channel.set_source(handle);
+                let sound = load_ogg(sfx_file, false).volume(to_decibels(volume.unwrap_or(1.0)));
+                channel.play(sound);
             }
         } else {
             warn!("Missing sfx trigger config for ui sfx event.",);
@@ -602,12 +563,9 @@ impl AudioFrontend {
             && let Some(inner) = self.inner.as_mut()
             && let Some(channel) = inner.channels.get_ambience_channel(channel_tag)
         {
-            let source = load_ogg(sound, true)
-                .loop_region(0.0..)
-                .output_destination(channel.get_track());
+            let source = load_ogg(sound, true).loop_region(0.0..);
             channel.set_looping(true);
-            let handle = inner.sound_player.play_sound(source, Some(1.0), None);
-            channel.set_source(handle);
+            channel.play(source, Some(1.0), None);
         }
     }
 
@@ -631,12 +589,10 @@ impl AudioFrontend {
                 .0;
             let source = load_ogg(sound, false)
                 .loop_region(None)
-                .output_destination(channel.get_track())
-                .volume(Volume::Amplitude(volume.unwrap_or(1.0) as f64));
+                .volume(to_decibels(volume.unwrap_or(1.0)));
             channel.set_looping(false);
             channel.fade_to(1.0, 0.0);
-            let handle = inner.sound_player.play_sound(source, None, delay);
-            channel.set_source(handle);
+            channel.play(source, None, delay);
         }
     }
 
@@ -716,7 +672,7 @@ impl AudioFrontend {
             inner
                 .tracks
                 .music
-                .set_volume(Volume::Amplitude(music_volume as f64), Tween::default())
+                .set_volume(to_decibels(music_volume), Tween::default())
         }
     }
 
@@ -727,7 +683,7 @@ impl AudioFrontend {
             inner
                 .tracks
                 .ambience
-                .set_volume(Volume::Amplitude(ambience_volume as f64), Tween::default())
+                .set_volume(to_decibels(ambience_volume), Tween::default())
         }
     }
 
@@ -740,7 +696,7 @@ impl AudioFrontend {
             inner
                 .tracks
                 .sfx
-                .set_volume(Volume::Amplitude(sfx_volume as f64), Tween::default())
+                .set_volume(to_decibels(sfx_volume), Tween::default())
         }
     }
 
@@ -756,7 +712,7 @@ impl AudioFrontend {
             inner
                 .manager()
                 .main_track()
-                .set_volume(Volume::Amplitude(master_volume as f64), Tween::default());
+                .set_volume(to_decibels(master_volume), Tween::default());
         }
     }
 

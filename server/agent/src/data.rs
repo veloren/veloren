@@ -24,7 +24,7 @@ use common::{
     mounting::{Mount, Rider, VolumeRider},
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
-    rtsim::{Actor, RtSimEntity},
+    rtsim::RtSimEntity,
     states::utils::{ForcedMovement, StageSection},
     terrain::TerrainGrid,
     uid::{IdMaps, Uid},
@@ -436,15 +436,6 @@ pub struct ReadData<'a> {
     pub stances: ReadStorage<'a, Stance>,
     pub presences: ReadStorage<'a, Presence>,
     pub ability_map: ReadExpect<'a, AbilityMap>,
-}
-
-impl ReadData<'_> {
-    pub fn lookup_actor(&self, actor: Actor) -> Option<EcsEntity> {
-        match actor {
-            Actor::Character(character_id) => self.id_maps.character_entity(character_id),
-            Actor::Npc(npc_id) => self.id_maps.rtsim_entity(RtSimEntity(npc_id)),
-        }
-    }
 }
 
 pub enum Path {

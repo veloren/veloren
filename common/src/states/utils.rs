@@ -305,6 +305,7 @@ impl Body {
                 Body::QuadrupedLow(_) => 1200.0 * self.mass().0,
                 Body::QuadrupedMedium(body) => match body.species {
                     quadruped_medium::Species::Mammoth => 150.0 * self.mass().0,
+                    quadruped_medium::Species::Kelpie => 3500.0 * self.mass().0,
                     _ => 1000.0 * self.mass().0,
                 },
                 Body::QuadrupedSmall(_) => 1500.0 * self.mass().0,
@@ -959,7 +960,7 @@ pub fn can_perform_pet(position: Pos, target_position: Pos, target_alignment: Al
 
 pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() {
-        update.character = CharacterState::Talk;
+        update.character = CharacterState::Talk(Default::default());
     }
 }
 

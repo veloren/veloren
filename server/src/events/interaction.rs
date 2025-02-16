@@ -1,7 +1,9 @@
 use std::{f32::consts::PI, ops::Mul};
 
+use common::rtsim::DialogueKind;
 use common_state::{BlockChange, ScheduledBlockChange};
 use specs::{DispatcherBuilder, Join, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
+use tracing::error;
 use vek::*;
 
 use common::{
@@ -16,8 +18,9 @@ use common::{
     },
     consts::{MAX_INTERACT_RANGE, MAX_NPCINTERACT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
     event::{
-        CreateItemDropEvent, CreateSpriteEvent, EventBus, MineBlockEvent, NpcInteractEvent,
-        SetLanternEvent, SetPetStayEvent, SoundEvent, TamePetEvent, ToggleSpriteLightEvent,
+        CreateItemDropEvent, CreateSpriteEvent, DialogueEvent, EventBus, MineBlockEvent,
+        NpcInteractEvent, SetLanternEvent, SetPetStayEvent, SoundEvent, TamePetEvent,
+        ToggleSpriteLightEvent,
     },
     link::Is,
     mounting::Mount,
@@ -29,7 +32,7 @@ use common::{
     vol::ReadVol,
 };
 
-use crate::{Server, Time};
+use crate::{Server, ServerGeneral, Time, client::Client};
 
 use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
@@ -41,6 +44,7 @@ use super::{ServerEvent, event_dispatch, mounting::within_mounting_range};
 pub(super) fn register_event_systems(builder: &mut DispatcherBuilder) {
     event_dispatch::<SetLanternEvent>(builder, &[]);
     event_dispatch::<NpcInteractEvent>(builder, &[]);
+    event_dispatch::<DialogueEvent>(builder, &[]);
     event_dispatch::<SetPetStayEvent>(builder, &[]);
     event_dispatch::<MineBlockEvent>(builder, &[]);
     event_dispatch::<SoundEvent>(builder, &[]);
@@ -124,6 +128,86 @@ impl ServerEvent for NpcInteractEvent {
                     agent
                         .inbox
                         .push_back(AgentEvent::Talk(*interactor_uid, subject));
+                }
+            }
+        }
+    }
+}
+
+impl ServerEvent for DialogueEvent {
+    type SystemData<'a> = (
+        ReadStorage<'a, Uid>,
+        ReadStorage<'a, comp::Pos>,
+        ReadStorage<'a, Client>,
+        WriteStorage<'a, comp::Agent>,
+        WriteStorage<'a, comp::Inventory>,
+        ReadExpect<'a, AbilityMap>,
+        ReadExpect<'a, MaterialStatManifest>,
+    );
+
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (uids, positions, clients, mut agents, mut inventories, ability_map, msm): Self::SystemData<
+            '_,
+        >,
+    ) {
+        for DialogueEvent(sender, target, dialogue) in events {
+            let within_range = positions
+                .get(sender)
+                .zip(positions.get(target))
+                .is_some_and(|(sender_pos, target_pos)| {
+                    sender_pos.0.distance_squared(target_pos.0) <= MAX_NPCINTERACT_RANGE.powi(2)
+                });
+
+            if within_range && let Some(sender_uid) = uids.get(sender) {
+                // Perform item transfer, if required
+                match &dialogue.kind {
+                    DialogueKind::Start
+                    | DialogueKind::End
+                    | DialogueKind::Statement(..)
+                    | DialogueKind::Question { .. } => {},
+                    DialogueKind::Response { response, .. } => {
+                        // If the response requires an item to be given, perform exchange (or exit)
+                        if let Some((item_def, amount)) = &response.given_item {
+                            // Check that the target's inventory has enough space for the item
+                            if let Some(target_inv) = inventories.get(target)
+                                && target_inv.has_space_for(item_def, *amount)
+                                // Check that the sender has enough of the item
+                                && let Some(mut sender_inv) = inventories.get_mut(sender)
+                                && sender_inv.item_count(item_def) >= *amount as u64
+                                // First, remove the item from the sender's inventory
+                                && let Some(items) = sender_inv.remove_item_amount(item_def, *amount, &ability_map, &msm)
+                                && let Some(mut target_inv) = inventories.get_mut(target)
+                            {
+                                for item in items {
+                                    // Push the items to the target's inventory
+                                    if target_inv.push(item).is_err() {
+                                        error!(
+                                            "Failed to insert dialogue given item despite target \
+                                             inventory claiming to have space, dropping remaining \
+                                             items..."
+                                        );
+                                        break;
+                                    }
+                                }
+                            } else {
+                                // TODO: Respond with error message on failure?
+                                break;
+                            }
+                        }
+                    },
+                }
+
+                let dialogue = dialogue.into_validated_unchecked();
+
+                if let Some(agent) = agents.get_mut(target) {
+                    agent
+                        .inbox
+                        .push_back(AgentEvent::Dialogue(*sender_uid, dialogue.clone()));
+                }
+
+                if let Some(client) = clients.get(target) {
+                    client.send_fallible(ServerGeneral::Dialogue(*sender_uid, dialogue));
                 }
             }
         }

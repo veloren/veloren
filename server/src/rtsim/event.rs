@@ -6,4 +6,6 @@ pub struct OnBlockChange {
     pub changes: Vec<BlockDiff>,
 }
 
-impl Event for OnBlockChange {}
+impl Event for OnBlockChange {
+    type SystemData<'a> = ();
+}

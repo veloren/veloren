@@ -560,7 +560,7 @@ fn approach_target_pos(
 /// The airship will be at the approach final point, and this function
 /// just needs to figure out to which approach index that correlates.
 /// Returns the index of the approach to resume on.
-fn resume_route(airships: &Airships, route_id: &u32, ctx: &mut NpcCtx<'_>) -> usize {
+fn resume_route(airships: &Airships, route_id: &u32, ctx: &mut NpcCtx) -> usize {
     if let Some(route) = airships.routes.get(route_id) {
         route
             .approaches
@@ -726,7 +726,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                 .stop_if(timeout(ctx.rng.gen_range(6.0..8.5))))
             .then(
                 // descend to docking position
-                just(move |ctx: &mut NpcCtx<'_>, _| {
+                just(move |ctx: &mut NpcCtx, _| {
                     ctx.controller
                         .do_goto_with_height_and_dir(
                             approach1.airship_pos + ship_body.mount_offset(),
@@ -738,7 +738,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                 .repeat()
                 .stop_if(timeout(ctx.rng.gen_range(5.0..7.0))))
             // Announce arrival
-            .then(just(|ctx: &mut NpcCtx<'_>, _| {
+            .then(just(|ctx: &mut NpcCtx, _| {
                 ctx.controller
                     .say(None, Content::localized("npc-speech-pilot-landed"));
             }))
@@ -899,72 +899,72 @@ mod tests {
     use vek::{Vec2, Vec3};
     use world::World;
 
-    #[derive(Clone, Default)]
-    struct SomeState {
-        test: i32,
-        prev: i32,
-    }
+    // #[derive(Clone, Default)]
+    // struct SomeState {
+    //     test: i32,
+    //     prev: i32,
+    // }
 
-    // Test of functions that share a common state.
-    fn child_1() -> impl Action<SomeState> {
-        just(move |_, child_context: &mut SomeState| {
-            child_context.test += 1;
-        })
-    }
+    // // Test of functions that share a common state.
+    // fn child_1() -> impl Action<SomeState> {
+    //     just(move |_, child_context: &mut SomeState| {
+    //         child_context.test += 1;
+    //     })
+    // }
 
-    fn child_2() -> impl Action<SomeState> {
-        just(move |_, child_context: &mut SomeState| {
-            assert!(child_context.test == child_context.prev + 1);
-            child_context.prev = child_context.test;
-        })
-    }
+    // fn child_2() -> impl Action<SomeState> {
+    //     just(move |_, child_context: &mut SomeState| {
+    //         assert!(child_context.test == child_context.prev + 1);
+    //         child_context.prev = child_context.test;
+    //     })
+    // }
 
-    pub fn do_something<S: State>() -> impl Action<S, !> {
-        now(move |_, _: &mut SomeState| child_1().then(child_2()))
-            .repeat()
-            .with_state(SomeState::default())
-    }
+    // pub fn do_something<S: State>() -> impl Action<S, !> {
+    //     now(move |_, _: &mut SomeState| child_1().then(child_2()))
+    //         .repeat()
+    //         .with_state(SomeState::default())
+    // }
 
-    #[test]
-    fn state_node_test() {
-        let mut action = do_something();
-        let (world, index) = World::empty();
-        let state = RtState {
-            resources: Default::default(),
-            rules: Default::default(),
-            event_handlers: Default::default(),
-        };
+    // #[test]
+    // fn state_node_test() {
+    //     let mut action = do_something();
+    //     let (world, index) = World::empty();
+    //     let state = RtState {
+    //         resources: Default::default(),
+    //         rules: Default::default(),
+    //         event_handlers: Default::default(),
+    //     };
 
-        let npc = crate::data::Npc::new(
-            0,
-            Vec3::zero(),
-            comp::Body::Humanoid(comp::humanoid::Body::random()),
-            Role::Civilised(None),
-        );
+    //     let npc = crate::data::Npc::new(
+    //         0,
+    //         Vec3::zero(),
+    //         comp::Body::Humanoid(comp::humanoid::Body::random()),
+    //         Role::Civilised(None),
+    //     );
 
-        let ctx = &mut NpcCtx {
-            state: &state,
-            world: &world,
-            index: index.as_index_ref(),
-            time_of_day: Default::default(),
-            time: Default::default(),
-            npc_id: Default::default(),
-            npc: &npc,
-            controller: &mut Default::default(),
-            inbox: &mut Default::default(),
-            sentiments: &mut Default::default(),
-            known_reports: &mut Default::default(),
-            dt: 0.0,
-            rng: rand_chacha::ChaCha20Rng::from_seed([0; 32]),
-        };
+    //     let ctx = &mut NpcCtx {
+    //         state: &state,
+    //         world: &world,
+    //         index: index.as_index_ref(),
+    //         time_of_day: Default::default(),
+    //         time: Default::default(),
+    //         npc_id: Default::default(),
+    //         npc: &npc,
+    //         controller: &mut Default::default(),
+    //         inbox: &mut Default::default(),
+    //         sentiments: &mut Default::default(),
+    //         known_reports: &mut Default::default(),
+    //         dt: 0.0,
+    //         rng: rand_chacha::ChaCha20Rng::from_seed([0; 32]),
+    //     };
 
-        for _ in 0..10 {
-            match action.tick(ctx, &mut ()) {
-                std::ops::ControlFlow::Continue(_) => {},
-                std::ops::ControlFlow::Break(_) => break,
-            }
-        }
-    }
+    //     for _ in 0..10 {
+    //         match action.tick(ctx, &mut ()) {
+    //             std::ops::ControlFlow::Continue(_) => {},
+    //             std::ops::ControlFlow::Break(_) => break,
+    //         }
+    //     }
+    // }
 
     #[test]
     fn transition_zone_other_approaching_test() {

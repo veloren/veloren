@@ -1,17 +1,17 @@
 BasicRanged(
     energy_cost: 0.0,
     buildup_duration: 1.5,
-    recover_duration: 1.5,
+    recover_duration: 2.5,
     projectile: (
         kind: Explosive(
-            radius: 20,
-            min_falloff: 0.0,
+            radius: 9,
+            min_falloff: 0.15,
             reagent: Some(Yellow),
-            terrain: Some((10, Black)),
+            terrain: Some((9, Black)),
         ),
         attack: Some((
-            damage: 50,
-            knockback: Some(50),
+            damage: 60,
+            knockback: Some(35),
             energy: 0,
         )),
     ),

@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - State of the window is saved between game launches.
 - Barns that can spawn at the edge of towns.
+- One new dungeon track and two new town tracks.
+- You can now engage NPCs in two-way conversation.
+- NPCs can now be hired for a short time.
 - Pairs of Airships now travel between designated sites.
 
 ### Changed
@@ -27,8 +30,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved interaction HUD consistency and prioritize important interactions over others.
 - Sword balance tweaks.
 - Vampire Castle chests are now the same as Haniwa chests.
+- Increased kelpies' swim speed.
+- Crippled balance tweaks.
+- Track assignment for dungeons.
+- Mineral ingot sprites recoloured.
+- Hammer balance tweaks.
+- Minor balance change to Terracotta Statue blast attack.
+- Poise bar is shown by default.
+- Purple Geode is dropped again, now from Basilisks.now from basilisk.)
 
 ### Removed
+
+- NPCs will no longer randomly ambush players.
 
 ### Fixed
 
@@ -36,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Riders no longer lags behind mounts.
 - Can no longer ride while dead.
 - Realignment of airship dock signs in forest towns.
+- Fixed rotation of Bloodmoon Relic.
 
 ## [0.17.0] - 2024-12-28
 
@@ -286,7 +300,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Camera zoom can now be locked, to prevent accidental zooming while rolling in combat.
   It comes with a key bind to enable/disable the setting,
   and an Auto/Toggle behavior setting. Auto behavior.
-will only lock the camera zoom while movement and combat inputs are also being pressed.
+  will only lock the camera zoom while movement and combat inputs are also being pressed.
 - Custom spots can be added without recompilation (only ron and vox files).
 - Setting in userdata/server/server_config/settings.ron that controls the length of each day/night cycle.
 - Starting site can now be chosen during character creation.

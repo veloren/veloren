@@ -22,7 +22,7 @@ pub fn draw_char_state_group(
         | CharacterState::Idle(_)
         | CharacterState::Sit
         | CharacterState::GlideWield(_)
-        | CharacterState::Talk
+        | CharacterState::Talk(_)
         | CharacterState::Wielding(_) => {},
         CharacterState::LeapMelee(data) => leap_melee_grid(ui, data),
         _ => {

@@ -246,6 +246,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, comp::Agent>,
         ReadStorage<'a, Presence>,
         ReadExpect<'a, Calendar>,
+        <rtsim::OnTick as rtsim::Event>::SystemData<'a>,
     );
 
     const NAME: &'static str = "rtsim::tick";
@@ -271,6 +272,7 @@ impl<'a> System<'a> for Sys {
             mut agents,
             presences,
             calendar,
+            mut tick_data,
         ): Self::SystemData,
     ) {
         let mut create_ship_emitter = create_ship_events.emitter();
@@ -302,9 +304,14 @@ impl<'a> System<'a> for Sys {
         }
 
         // Tick rtsim
-        rtsim
-            .state
-            .tick(&world, index.as_index_ref(), *time_of_day, *time, dt.0);
+        rtsim.state.tick(
+            &mut tick_data,
+            &world,
+            index.as_index_ref(),
+            *time_of_day,
+            *time,
+            dt.0,
+        );
 
         // Perform a save if required
         if rtsim

@@ -70,6 +70,31 @@ pub fn increment_timer_deltatime(bdata: &mut BehaviorData) -> bool {
     false
 }
 
+pub fn handle_inbox_dialogue(bdata: &mut BehaviorData) -> bool {
+    let BehaviorData {
+        agent, read_data, ..
+    } = bdata;
+
+    if !matches!(agent.inbox.front(), Some(AgentEvent::Dialogue(_, _))) {
+        return false;
+    }
+
+    if let Some(AgentEvent::Dialogue(sender, dialogue)) = agent.inbox.pop_front() {
+        if let Some(rtsim_outbox) = &mut agent.rtsim_outbox
+            && let Some(sender_entity) = read_data.id_maps.uid_entity(sender)
+            && let Some(sender_actor) = read_data
+                .presences
+                .get(sender_entity)
+                .and_then(|p| p.kind.character_id().map(Actor::Character))
+                .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(sender_entity)?.0)))
+        {
+            rtsim_outbox.push_back(NpcInput::Dialogue(sender_actor, dialogue));
+            return false;
+        }
+    }
+    true
+}
+
 /// Handles Talk event if the front of the agent's inbox contains one
 pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
@@ -556,7 +581,9 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
 
     if let Some(msg) = agent.inbox.front() {
         match msg {
-            AgentEvent::Talk(by, _) | AgentEvent::TradeAccepted(by) => {
+            AgentEvent::Talk(by, _)
+            | AgentEvent::TradeAccepted(by)
+            | AgentEvent::Dialogue(by, _) => {
                 if agent
                     .target
                     .zip(get_entity_by_id(*by, bdata.read_data))
