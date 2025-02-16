@@ -260,6 +260,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                                     .get(chunk_pos)
                                     .is_none_or(|f| f.river.river_kind.is_some())
                             },
+                            Body::Ship(comp::ship::Body::DefaultAirship) => false,
                             _ => true,
                         };
 
@@ -270,6 +271,68 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                         npc.dir = (target.xy() - npc.wpos.xy())
                             .try_normalized()
                             .unwrap_or(npc.dir);
+                    }
+                },
+                // Move Flying NPCs like airships if they have a target destination
+                Some(NpcActivity::GotoFlying(target, speed_factor, _, dir, _)) => {
+                    let diff = target - npc.wpos;
+                    let dist2 = diff.magnitude_squared();
+
+                    if dist2 > 0.5f32.powi(2) {
+                        match npc.body {
+                            Body::Ship(comp::ship::Body::DefaultAirship) => {
+                                // Don't limit airship movement to 1.0 per axis
+                                // SimulationMode::Simulated treats the Npc dimensions differently
+                                // somehow from when the Npc is
+                                // loaded. The calculation below results in a position
+                                // that is roughly the offset from the ship centerline to the
+                                // docking position and is also off
+                                // by the offset from the ship fore/aft centerline to the docking
+                                // position. The result is that if the player spawns in at a dock
+                                // where an airship is docked, the
+                                // airship will bounce around while seeking the docking position
+                                // in loaded mode.
+                                let offset = (diff - npc.body.mount_offset())
+                                    * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
+                                        / dist2.sqrt());
+                                npc.wpos += offset;
+                            },
+                            _ => {
+                                let offset = diff
+                                    * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
+                                        / dist2.sqrt())
+                                    .min(1.0);
+                                let new_wpos = npc.wpos + offset;
+
+                                let is_valid = match npc.body {
+                                    // Don't move water bound bodies outside of water.
+                                    Body::Ship(
+                                        comp::ship::Body::SailBoat | comp::ship::Body::Galleon,
+                                    )
+                                    | Body::FishMedium(_)
+                                    | Body::FishSmall(_) => {
+                                        let chunk_pos = new_wpos.xy().as_().wpos_to_cpos();
+                                        ctx.world
+                                            .sim()
+                                            .get(chunk_pos)
+                                            .is_none_or(|f| f.river.river_kind.is_some())
+                                    },
+                                    _ => true,
+                                };
+
+                                if is_valid {
+                                    npc.wpos = new_wpos;
+                                }
+                            },
+                        }
+
+                        if let Some(dir_override) = dir {
+                            npc.dir = dir_override.xy().try_normalized().unwrap_or(npc.dir);
+                        } else {
+                            npc.dir = (target.xy() - npc.wpos.xy())
+                                .try_normalized()
+                                .unwrap_or(npc.dir);
+                        }
                     }
                 },
                 Some(

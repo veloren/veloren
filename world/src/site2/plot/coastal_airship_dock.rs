@@ -20,7 +20,7 @@ pub struct CoastalAirshipDock {
     /// Approximate altitude of the door tile
     pub(crate) alt: i32,
     base: i32,
-    center: Vec2<i32>,
+    pub center: Vec2<i32>,
     size: i32,
     bldg_height: i32,
     diameter: i32,

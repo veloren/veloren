@@ -17,7 +17,7 @@ use common::{
         Controller, HealthChange, InputKind, InventoryAction, Pos, PresenceKind, Scale,
         UnresolvedChatMsg, UtteranceKind,
         ability::BASE_ABILITY_LIMIT,
-        agent::{Sound, SoundKind, Target},
+        agent::{FlightMode, PidControllers, Sound, SoundKind, Target},
         inventory::slot::EquipSlot,
         item::{
             ConsumableKind, Effects, Item, ItemDesc, ItemKind,
@@ -362,20 +362,196 @@ impl AgentData<'_> {
                             } else {
                                 0.05 //normal land traveller offset
                             };
-                        if let Some(pid) = agent.position_pid_controller.as_mut() {
-                            pid.sp = self.pos.0.z + height_offset * Vec3::unit_z();
-                            controller.inputs.move_z = pid.calc_err();
+
+                        if let Some(mpid) = agent.multi_pid_controllers.as_mut() {
+                            if let Some(z_controller) = mpid.z_controller.as_mut() {
+                                z_controller.sp = self.pos.0.z + height_offset;
+                                controller.inputs.move_z = z_controller.calc_err();
+                                // when changing setpoints, limit PID windup
+                                z_controller.limit_integral_windup(|z| *z = z.clamp(-10.0, 10.0));
+                            } else {
+                                controller.inputs.move_z = 0.0;
+                            }
                         } else {
                             controller.inputs.move_z = height_offset;
                         }
-                        // Put away weapon
-                        if rng.gen_bool(0.1)
-                            && matches!(
-                                read_data.char_states.get(*self.entity),
-                                Some(CharacterState::Wielding(_))
-                            )
+                    }
+
+                    // Put away weapon
+                    if rng.gen_bool(0.1)
+                        && matches!(
+                            read_data.char_states.get(*self.entity),
+                            Some(CharacterState::Wielding(_))
+                        )
+                    {
+                        controller.push_action(ControlAction::Unwield);
+                    }
+                    break 'activity; // Don't fall through to idle wandering
+                },
+
+                Some(NpcActivity::GotoFlying(
+                    travel_to,
+                    speed_factor,
+                    height_offset,
+                    direction_override,
+                    flight_mode,
+                )) => {
+                    if read_data
+                        .is_volume_riders
+                        .get(*self.entity)
+                        .is_some_and(|r| !r.is_steering_entity())
+                    {
+                        controller.push_event(ControlEvent::Unmount);
+                    }
+
+                    if self.traversal_config.vectored_propulsion {
+                        // This is the action for Airships.
+
+                        // Note - when the Agent code is run, the entity will be the captain that is
+                        // mounted on the ship and the movement calculations
+                        // must be done relative to the captain's position
+                        // which is offset from the ship's position and apparently scaled.
+                        // When the State system runs to apply the movement accel and velocity, the
+                        // ship entity will be the subject entity.
+
+                        // entities that have vectored propulsion should always be flying
+                        // and do not depend on forward movement or displacement to move.
+                        // E.g., Airships.
+                        controller.push_basic_input(InputKind::Fly);
+
+                        // These entities can either:
+                        // - Move in any direction, following the terrain
+                        // - Move essentially vertically, as in
+                        //   - Hover in place (station-keeping), like at a dock
+                        //   - Move straight up or down, as when taking off or landing
+
+                        // If there is lateral movement, then the entity's direction should be
+                        // aligned with that movement direction. If there is
+                        // no or minimal lateral movement, then the entity
+                        // is either hovering or moving vertically, and the entity's direction
+                        // should not change. This is indicated by the direction_override parameter.
+
+                        // If a direction override is provided, attempt to orient the entity in that
+                        // direction.
+                        if let Some(direction) = direction_override {
+                            controller.inputs.look_dir = direction;
+                        } else {
+                            // else orient the entity in the direction of travel, but keep it level
+                            controller.inputs.look_dir =
+                                Dir::from_unnormalized((travel_to - self.pos.0).xy().with_z(0.0))
+                                    .unwrap_or_default();
+                        }
+
+                        // the look_dir will be used as the orientation override. Orientation
+                        // override is always enabled for airships, so this
+                        // code must set controller.inputs.look_dir for
+                        // all cases (vertical or lateral movement).
+
+                        // When pid_mode is PureZ, only the z component of movement is is adjusted
+                        // by the PID controller.
+
+                        // If the PID controller is not set or the mode or gain has changed, create
+                        // a new one. PidControllers is a wrapper around one
+                        // or more PID controllers. Each controller acts on
+                        // one axis of movement. There are three controllers for FixedDirection mode
+                        // and one for PureZ mode.
+                        if agent
+                            .multi_pid_controllers
+                            .as_ref()
+                            .is_some_and(|mpid| mpid.mode != flight_mode)
                         {
-                            controller.push_action(ControlAction::Unwield);
+                            agent.multi_pid_controllers = None;
+                        }
+                        let mpid = agent.multi_pid_controllers.get_or_insert_with(|| {
+                            PidControllers::<16>::new_multi_pid_controllers(flight_mode, travel_to)
+                        });
+                        let sample_time = read_data.time.0;
+
+                        #[allow(unused_variables)]
+                        let terrain_alt_with_lookahead = |dist: f32| -> f32 {
+                            // look ahead some blocks to sample the terrain altitude
+                            #[cfg(feature = "worldgen")]
+                            let terrain_alt = read_data
+                                .world
+                                .sim()
+                                .get_alt_approx(
+                                    (self.pos.0.xy()
+                                        + controller.inputs.look_dir.to_vec().xy() * dist)
+                                        .map(|x: f32| x as i32),
+                                )
+                                .unwrap_or(0.0);
+                            #[cfg(not(feature = "worldgen"))]
+                            let terrain_alt = 0.0;
+                            terrain_alt
+                        };
+
+                        if flight_mode == FlightMode::FlyThrough {
+                            let travel_vec = travel_to - self.pos.0;
+                            let bearing =
+                                travel_vec.xy().try_normalized().unwrap_or_else(Vec2::zero);
+                            controller.inputs.move_dir = bearing * speed_factor;
+                            let terrain_alt = terrain_alt_with_lookahead(32.0);
+                            let height = height_offset.unwrap_or(100.0);
+                            if let Some(z_controller) = mpid.z_controller.as_mut() {
+                                z_controller.sp = terrain_alt + height;
+                            }
+                            mpid.add_measurement(sample_time, self.pos.0);
+                            // check if getting close to terrain
+                            if terrain_alt >= self.pos.0.z - 32.0 {
+                                // It's likely the airship will hit an upslope. Maximize the climb
+                                // rate.
+                                controller.inputs.move_z = 1.0 * speed_factor;
+                                // try to stop forward movement
+                                controller.inputs.move_dir =
+                                    self.vel.0.xy().try_normalized().unwrap_or_else(Vec2::zero)
+                                        * -1.0
+                                        * speed_factor;
+                            } else {
+                                controller.inputs.move_z =
+                                    mpid.calc_err_z().unwrap_or(0.0).min(1.0) * speed_factor;
+                            }
+                            // PID controllers that change the setpoint suffer from "windup", where
+                            // the integral term accumulates error.
+                            // There are several ways to compensate for this. One way is to limit
+                            // the integral term to a range.
+                            mpid.limit_windup_z(|z| *z = z.clamp(-20.0, 20.0));
+                        } else {
+                            // When doing step-wise movement, the target waypoint changes. Make sure
+                            // the PID controller setpoints keep up with
+                            // the changes.
+                            if let Some(x_controller) = mpid.x_controller.as_mut() {
+                                x_controller.sp = travel_to.x;
+                            }
+                            if let Some(y_controller) = mpid.y_controller.as_mut() {
+                                y_controller.sp = travel_to.y;
+                            }
+
+                            // If terrain following, get the terrain altitude at the current
+                            // position. Set the z setpoint to the max
+                            // of terrain alt + height offset or the
+                            // target z.
+                            let z_setpoint = if let Some(height) = height_offset {
+                                let clearance_alt = terrain_alt_with_lookahead(16.0) + height;
+                                clearance_alt.max(travel_to.z)
+                            } else {
+                                travel_to.z
+                            };
+                            if let Some(z_controller) = mpid.z_controller.as_mut() {
+                                z_controller.sp = z_setpoint;
+                            }
+
+                            mpid.add_measurement(sample_time, self.pos.0);
+                            controller.inputs.move_dir.x =
+                                mpid.calc_err_x().unwrap_or(0.0).min(1.0) * speed_factor;
+                            controller.inputs.move_dir.y =
+                                mpid.calc_err_y().unwrap_or(0.0).min(1.0) * speed_factor;
+                            controller.inputs.move_z =
+                                mpid.calc_err_z().unwrap_or(0.0).min(1.0) * speed_factor;
+
+                            // Limit the integral term to a range to prevent windup.
+                            mpid.limit_windup_x(|x| *x = x.clamp(-1.0, 1.0));
+                            mpid.limit_windup_y(|y| *y = y.clamp(-1.0, 1.0));
+                            mpid.limit_windup_z(|z| *z = z.clamp(-1.0, 1.0));
                         }
                     }
                     break 'activity; // Don't fall through to idle wandering

@@ -92,6 +92,8 @@ pub struct TraversalConfig {
     pub can_climb: bool,
     /// Whether the agent can fly.
     pub can_fly: bool,
+    /// Whether the agent has vectored propulsion.
+    pub vectored_propulsion: bool,
     /// Whether chunk containing target position is currently loaded
     pub is_target_loaded: bool,
 }

@@ -6,7 +6,7 @@ use crate::{
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     character::CharacterId,
-    comp,
+    comp::{self, agent::FlightMode},
     grid::Grid,
     resources::Time,
     rtsim::{
@@ -78,6 +78,24 @@ impl Controller {
 
     pub fn do_goto(&mut self, wpos: Vec3<f32>, speed_factor: f32) {
         self.activity = Some(NpcActivity::Goto(wpos, speed_factor));
+    }
+
+    /// go to with height above terrain and direction
+    pub fn do_goto_with_height_and_dir(
+        &mut self,
+        wpos: Vec3<f32>,
+        speed_factor: f32,
+        height: Option<f32>,
+        dir: Option<Dir>,
+        flight_mode: FlightMode,
+    ) {
+        self.activity = Some(NpcActivity::GotoFlying(
+            wpos,
+            speed_factor,
+            height,
+            dir,
+            flight_mode,
+        ));
     }
 
     pub fn do_gather(&mut self, resources: &'static [ChunkResource]) {
