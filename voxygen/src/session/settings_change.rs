@@ -129,6 +129,7 @@ pub enum Interface {
     CrosshairType(CrosshairType),
     Intro(Intro),
     ToggleXpBar(XpBar),
+    ToggleHealthPrefixes(bool),
     ToggleBarNumbers(BarNumbers),
     ToggleAlwaysShowBars(bool),
     TogglePoiseBar(bool),
@@ -623,6 +624,9 @@ impl SettingsChange {
                     },
                     Interface::TogglePoiseBar(enable_poise_bar) => {
                         settings.interface.enable_poise_bar = enable_poise_bar;
+                    },
+                    Interface::ToggleHealthPrefixes(use_health_prefixes) => {
+                        settings.interface.use_health_prefixes = use_health_prefixes;
                     },
                     Interface::ToggleShortcutNumbers(shortcut_numbers) => {
                         settings.interface.shortcut_numbers = shortcut_numbers;
