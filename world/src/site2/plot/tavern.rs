@@ -9,14 +9,17 @@ use common::{
 use enum_map::EnumMap;
 use enumset::EnumSet;
 use hashbrown::HashSet;
-use rand::{Rng, seq::IteratorRandom};
+use rand::{
+    Rng,
+    seq::{IteratorRandom, SliceRandom},
+};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
 use crate::{
     IndexRef, Land,
     site::namegen,
-    site2::{Dir, Fill, Site, Structure, gen::PrimitiveTransform},
+    site2::{Dir, Fill, Site, Structure, gen::PrimitiveTransform, util::Dir3},
     util::RandomField,
 };
 
@@ -63,12 +66,14 @@ enum RoofStyle {
     LeanTo { dir: Dir, max_z: i32 },
     Gable { dir: Dir, max_z: i32 },
     Hip { max_z: i32 },
+    Floor,
 }
 
 struct Roof {
     bounds: Aabr<i32>,
     min_z: i32,
     style: RoofStyle,
+    stairs: Option<(Aabb<i32>, Dir)>,
 }
 
 #[derive(Clone, Copy, EnumIter, enum_map::Enum)]
@@ -77,6 +82,7 @@ enum RoomKind {
     StageRoom,
     BarRoom,
     EntranceRoom,
+    Cellar,
 }
 
 impl RoomKind {
@@ -84,10 +90,93 @@ impl RoomKind {
     fn size_range(&self) -> (RangeInclusive<i32>, RangeInclusive<i32>) {
         match self {
             RoomKind::Garden => (4..=20, 25..=250),
+            RoomKind::Cellar => (5..=10, 26..=90),
             RoomKind::StageRoom => (10..=20, 130..=400),
             RoomKind::BarRoom => (7..=14, 56..=196),
             RoomKind::EntranceRoom => (3..=10, 9..=50),
         }
+    }
+
+    fn chance(&self, room_counts: &EnumMap<RoomKind, u32>) -> f32 {
+        match self {
+            RoomKind::Garden => 0.2 / (1.0 + room_counts[RoomKind::Garden] as f32 * 0.8),
+            RoomKind::StageRoom => 2.0 / (1.0 + room_counts[RoomKind::StageRoom] as f32).powi(2),
+            RoomKind::BarRoom => 2.0 / (1.0 + room_counts[RoomKind::BarRoom] as f32).powi(2),
+            RoomKind::EntranceRoom => {
+                // 0.05 / (1.0 + room_counts[RoomKind::EntranceRoom] as f32)
+                0.0
+            },
+            RoomKind::Cellar => 1.0,
+        }
+    }
+
+    fn fits(&self, max_bounds: Aabr<i32>) -> bool {
+        // the smallest side on the maximum bounds
+        let max_min_size = max_bounds.size().reduce_min();
+        // max bounds area
+        let max_area = max_bounds.size().product();
+
+        let (size_range, area_range) = self.size_range();
+        *size_range.start() <= max_min_size && *area_range.start() <= max_area
+    }
+
+    fn side_room_lottery(
+        &self,
+        max_bounds: Aabr<i32>,
+        room_counts: &EnumMap<RoomKind, u32>,
+    ) -> Option<Lottery<RoomKind>> {
+        let rooms: &[RoomKind] = match self {
+            RoomKind::Cellar => &[RoomKind::Cellar],
+            _ => &[RoomKind::StageRoom, RoomKind::Garden, RoomKind::BarRoom],
+        };
+        let lottery = rooms.iter()
+                // Filter out rooms that won't fit here.
+                .filter(|kind| kind.fits(max_bounds))
+                // Calculate chance for each room.
+                .map(|room_kind| {
+                    (
+                        room_kind.chance(room_counts),
+                        *room_kind,
+                    )
+                })
+                .collect::<Vec<_>>();
+
+        if lottery.is_empty() {
+            return None;
+        }
+
+        Some(Lottery::from(lottery))
+    }
+
+    fn basement_rooms(&self) -> &'static [RoomKind] {
+        match self {
+            RoomKind::BarRoom => &[RoomKind::Cellar],
+            _ => &[],
+        }
+    }
+
+    fn basement_lottery(
+        &self,
+        max_bounds: Aabr<i32>,
+        room_counts: &EnumMap<RoomKind, u32>,
+    ) -> Option<Lottery<RoomKind>> {
+        let lottery = self.basement_rooms().iter()
+                // Filter out rooms that won't fit here.
+                .filter(|kind| kind.fits(max_bounds))
+                // Calculate chance for each room.
+                .map(|room_kind| {
+                    (
+                        room_kind.chance(room_counts),
+                        *room_kind,
+                    )
+                })
+                .collect::<Vec<_>>();
+
+        if lottery.is_empty() {
+            return None;
+        }
+
+        Some(Lottery::from(lottery))
     }
 }
 
@@ -111,6 +200,7 @@ pub struct Room {
     kind: RoomKind,
     // stairs: Option<Id<Stairs>>,
     walls: EnumMap<Dir, Vec<Id<Wall>>>,
+    floors: Vec<Id<Roof>>,
     roofs: Vec<Id<Roof>>,
     detail_areas: Vec<Aabr<i32>>,
     pub details: Vec<Detail>,
@@ -121,6 +211,7 @@ impl Room {
         Self {
             bounds,
             kind,
+            floors: Default::default(),
             roofs: Default::default(),
             walls: Default::default(),
             detail_areas: Default::default(),
@@ -188,8 +279,17 @@ impl Tavern {
         let door_alt = land.get_alt_approx(door_wpos);
         let door_wpos = door_wpos.with_z(door_alt.ceil() as i32);
 
+        fn gen_range_snap(rng: &mut impl Rng, range: RangeInclusive<i32>, snap_max: i32) -> i32 {
+            let res = rng.gen_range(range.clone());
+            if snap_max <= *range.end() && snap_max - res <= 2 {
+                snap_max
+            } else {
+                res
+            }
+        }
+
         /// Place room in bounds.
-        fn place_room_in(
+        fn place_side_room(
             room: RoomKind,
             max_bounds: Aabr<i32>,
             in_dir: Dir,
@@ -197,22 +297,13 @@ impl Tavern {
             rng: &mut impl Rng,
         ) -> Option<Aabr<i32>> {
             let (size_range, area_range) = room.size_range();
-
-            let mut gen_range = |min, max, snap_max| {
-                let res = rng.gen_range(min..=max);
-                if snap_max <= max && snap_max - res <= 2 {
-                    snap_max
-                } else {
-                    res
-                }
-            };
             let min = *size_range.start();
             let snap_max = in_dir.select(max_bounds.size());
             let max = snap_max.min(*size_range.end());
             if max < min {
                 return None;
             }
-            let size_x = gen_range(min, max, snap_max);
+            let size_x = gen_range_snap(rng, min..=max, snap_max);
 
             let min = ((*area_range.start() + size_x - 1) / size_x).max(*size_range.start());
             let snap_max = in_dir.orthogonal().select(max_bounds.size());
@@ -223,7 +314,7 @@ impl Tavern {
             if max < min {
                 return None;
             }
-            let size_y = gen_range(min, max, snap_max);
+            let size_y = gen_range_snap(rng, min..=max, snap_max);
 
             // calculate a valid aabr
             let half_size_y = size_y / 2 + (size_y % 2) * rng.gen_range(0..=1);
@@ -236,21 +327,73 @@ impl Tavern {
             let bounds = Aabr { min, max }.made_valid();
             Some(bounds)
         }
+
+        fn place_down_room(
+            room: RoomKind,
+            max_bounds: Aabr<i32>,
+            from_bounds: Aabr<i32>,
+            rng: &mut impl Rng,
+        ) -> Option<Aabr<i32>> {
+            let (size_range, area_range) = room.size_range();
+            let min = Vec2::broadcast(*size_range.start());
+            let max = Vec2::from(max_bounds.size()).map(|e: i32| e.min(*size_range.end()));
+
+            let size_x = gen_range_snap(rng, min.x..=max.x, max_bounds.size().w);
+            let size_y = gen_range_snap(
+                rng,
+                min.y.max(area_range.start() / size_x)..=max.y.min(area_range.end() / size_x),
+                max_bounds.size().h,
+            );
+            let target_size = Vec2::new(size_x, size_y);
+            let dir = Dir::choose(rng);
+            let orth = *[dir.orthogonal(), dir.orthogonal().opposite()]
+                .choose(rng)
+                .unwrap();
+
+            let plane = dir.to_vec2() + orth.to_vec2();
+            let corner = dir.select_aabr_with(from_bounds, orth.select_aabr(from_bounds));
+            let aabr = Aabr {
+                min: corner,
+                max: corner - plane * target_size,
+            }
+            .made_valid();
+
+            let inside = aabr.intersection(max_bounds);
+            let mv = target_size - inside.size();
+            let aabr = Aabr {
+                min: aabr.min + mv * plane,
+                max: aabr.max + mv * plane,
+            };
+
+            let aabr = aabr.intersection(max_bounds);
+
+            let area = aabr.size().product();
+            if aabr.is_valid()
+                && area_range.contains(&area)
+                && size_range.contains(&aabr.size().reduce_min())
+            {
+                Some(aabr)
+            } else {
+                None
+            }
+        }
+
         struct RoomMeta {
             id: Id<Room>,
-            walls: EnumSet<Dir>,
+            free_walls: EnumSet<Dir>,
+            can_add_basement: bool,
         }
 
         let mut room_metas = Vec::new();
 
         {
             let entrance_rooms =
-                Lottery::from(vec![(1.0, RoomKind::Garden), (2.0, RoomKind::EntranceRoom)]);
+                Lottery::from(vec![(0.5, RoomKind::Garden), (2.0, RoomKind::EntranceRoom)]);
 
             let entrance_room = *entrance_rooms.choose_seeded(rng.gen());
             let entrance_room_hgt = rng.gen_range(3..=4);
             let entrance_room_aabr =
-                place_room_in(entrance_room, ibounds, -door_dir, door_wpos.xy(), rng)
+                place_side_room(entrance_room, ibounds, -door_dir, door_wpos.xy(), rng)
                     .expect("Not enough room in plot for a tavern");
             let entrance_room_aabb = Aabb {
                 min: entrance_room_aabr.min.with_z(door_wpos.z),
@@ -286,222 +429,287 @@ impl Tavern {
 
             room_metas.push(RoomMeta {
                 id: entrance_id,
-                walls: Dir::iter().filter(|d| *d != door_dir).collect(),
+                free_walls: Dir::iter().filter(|d| *d != door_dir).collect(),
+                can_add_basement: false,
             });
 
             room_counts[entrance_room] += 1;
         }
 
-        let to_aabr = |aabb: Aabb<i32>| Aabr {
-            min: aabb.min.xy(),
-            max: aabb.max.xy(),
-        };
-        // Extend a valid aabr
-        let extend_aabr = |aabr: Aabr<i32>, amount: i32| Aabr {
-            min: aabr.min - amount,
-            max: aabr.max + amount,
-        };
-        'room_gen: while !room_metas.is_empty() {
+        fn to_aabr(aabb: Aabb<i32>) -> Aabr<i32> {
+            Aabr {
+                min: aabb.min.xy(),
+                max: aabb.max.xy(),
+            }
+        }
+
+        fn extend_aabr(aabr: Aabr<i32>, amount: i32) -> Aabr<i32> {
+            Aabr {
+                min: aabr.min - amount,
+                max: aabr.max + amount,
+            }
+        }
+        while !room_metas.is_empty() {
             // Continue extending from a random existing room
             let mut room_meta = room_metas.swap_remove(rng.gen_range(0..room_metas.len()));
-            if room_meta.walls.is_empty() {
-                continue 'room_gen;
-            }
-
-            // Pick a direction to choose from
-            let Some(in_dir) = room_meta.walls.into_iter().choose(rng) else {
-                continue 'room_gen;
-            };
-            room_meta.walls.remove(in_dir);
-
-            let right = in_dir.orthogonal();
-            let left = -right;
-
             let from_id = room_meta.id;
             let from_room = &rooms[from_id];
 
-            // If there are more directions to continue from, push this room again.
-            if !room_meta.walls.is_empty() {
-                room_metas.push(room_meta);
-            }
-
             let from_bounds = to_aabr(from_room.bounds);
 
-            // The maximum bounds, limited by the plot bounds and other rooms.
-            let mut max_bounds = Aabr {
-                min: in_dir.select_aabr_with(from_bounds, ibounds.min) + in_dir.to_vec2() * 2,
-                max: in_dir.select_aabr_with(ibounds, ibounds.max),
-            }
-            .made_valid();
-            // Pick a  height of the new room
-            let room_hgt = rng.gen_range(3..=5);
-            let wanted_alt = land.get_alt_approx(max_bounds.center()) as i32 + 1;
-            let max_stair_length = (in_dir.select(if wanted_alt < from_room.bounds.min.z {
-                from_bounds.size()
-            } else {
-                max_bounds.size()
-            }) / 2)
-                .min(5);
-            let alt = wanted_alt.clamp(
-                from_room.bounds.min.z - max_stair_length,
-                from_room.bounds.min.z + max_stair_length,
-            );
-            let min_z = from_room.bounds.min.z.min(alt);
-            let max_z = from_room.bounds.max.z.max(alt + room_hgt);
-
-            // Take other rooms into account when calculating `max_bounds`. We don't care
-            // about this room if it's the originating room or at another
-            // height.
-            for (_, room) in rooms.iter().filter(|(room_id, room)| {
-                *room_id != from_id
-                    && room.bounds.min.z - 1 <= max_z
-                    && room.bounds.max.z + 1 >= min_z
-            }) {
-                let bounds = to_aabr(room.bounds);
-                let bounds = extend_aabr(bounds, 2);
-                let intersection = bounds.intersection(max_bounds);
-                if intersection.is_valid() {
-                    // Find the direction to shrink in that yields the highest area.
-                    let Some(bounds) = Dir::iter()
-                        .filter(|dir| {
-                            *dir != in_dir
-                                && dir.select_aabr(intersection) * dir.signum()
+            fn fit_room<'r>(
+                rooms: impl Iterator<Item = &'r Room>,
+                min_z: i32,
+                max_z: i32,
+                mut max_bounds: Aabr<i32>,
+                mut max_shrink_dir: impl FnMut(Dir) -> Option<i32>,
+            ) -> Option<Aabr<i32>> {
+                // Take other rooms into account when calculating `max_bounds`. We don't care
+                // about this room if it's the originating room or at another
+                // height.
+                for room in rooms
+                    .filter(|room| room.bounds.min.z - 1 <= max_z && room.bounds.max.z + 1 >= min_z)
+                {
+                    let test_bounds = to_aabr(room.bounds);
+                    let bounds = extend_aabr(test_bounds, 2);
+                    let intersection = bounds.intersection(max_bounds);
+                    if intersection.is_valid() {
+                        // Find the direction to shrink in that yields the highest area.
+                        let bounds = Dir::iter()
+                            .filter(|dir| {
+                                dir.select_aabr(intersection) * dir.signum()
                                     < dir.select_aabr(max_bounds) * dir.signum()
-                        })
-                        .map(|min_dir| {
-                            Aabr {
-                                min: min_dir.select_aabr_with(
-                                    max_bounds,
-                                    Vec2::broadcast(min_dir.rotated_ccw().select_aabr(max_bounds)),
-                                ),
-                                max: min_dir.select_aabr_with(
-                                    intersection,
-                                    Vec2::broadcast(min_dir.rotated_cw().select_aabr(max_bounds)),
-                                ),
+                            })
+                            .map(|min_dir| {
+                                let max_shrink = max_shrink_dir(min_dir);
+                                let limit = min_dir.vec2_abs(max_shrink, None);
+                                Aabr {
+                                    min: min_dir.select_aabr_with(
+                                        max_bounds,
+                                        Vec2::broadcast(
+                                            min_dir.rotated_ccw().select_aabr(max_bounds),
+                                        ),
+                                    ),
+                                    max: min_dir
+                                        .select_aabr_with(
+                                            intersection,
+                                            Vec2::broadcast(
+                                                min_dir.rotated_cw().select_aabr(max_bounds),
+                                            ),
+                                        )
+                                        .map2(limit, |a, b| {
+                                            b.map_or(a, |b| {
+                                                (a * min_dir.signum()).min(b * min_dir.signum())
+                                                    * min_dir.signum()
+                                            })
+                                        }),
+                                }
+                                .made_valid()
+                            })
+                            .filter(|bounds| !bounds.intersection(test_bounds).is_valid())
+                            .max_by_key(|bounds| bounds.size().product())?;
+
+                        max_bounds = bounds;
+                    }
+                }
+                Some(max_bounds)
+            }
+            'room_gen: {
+                if let Some(in_dir) = room_meta.free_walls.into_iter().choose(rng) {
+                    room_meta.free_walls.remove(in_dir);
+                    let right = in_dir.orthogonal();
+                    let left = -right;
+
+                    // The maximum bounds, limited by the plot bounds and other rooms.
+                    let max_bounds = Aabr {
+                        min: in_dir.select_aabr_with(from_bounds, ibounds.min)
+                            + in_dir.to_vec2() * 2,
+                        max: in_dir.select_aabr_with(ibounds, ibounds.max),
+                    }
+                    .made_valid();
+                    // Pick a  height of the new room
+                    let room_hgt = rng.gen_range(3..=5);
+
+                    let wanted_alt = land.get_alt_approx(max_bounds.center()) as i32 + 1;
+                    let max_stair_length =
+                        (in_dir.select(if wanted_alt < from_room.bounds.min.z {
+                            from_bounds.size()
+                        } else {
+                            max_bounds.size()
+                        }) / 2)
+                            .min(5);
+                    let alt = wanted_alt.clamp(
+                        from_room.bounds.min.z - max_stair_length,
+                        from_room.bounds.min.z + max_stair_length,
+                    );
+                    let min_z = from_room.bounds.min.z.min(alt);
+                    let max_z = from_room.bounds.max.z.max(alt + room_hgt);
+
+                    let Some(max_bounds) = fit_room(
+                        rooms
+                            .iter()
+                            .filter(|(id, _)| *id != from_id)
+                            .map(|(_, r)| r),
+                        min_z,
+                        max_z,
+                        max_bounds,
+                        |dir| {
+                            if dir == in_dir {
+                                // We always want the wall to stay in exact contact on the side the
+                                // door is.
+                                Some(dir.opposite().select_aabr(max_bounds))
+                            } else if dir == in_dir.opposite() {
+                                None
+                            } else {
+                                // We want the wall to touch at some point along the orthogonal axis
+                                // to the door.
+                                Some(dir.select_aabr(extend_aabr(from_bounds, -1)))
                             }
-                            .made_valid()
-                        })
-                        .filter(|bounds| {
-                            left.select_aabr(*bounds) < right.select_aabr(from_bounds)
-                                && right.select_aabr(*bounds) > left.select_aabr(from_bounds)
-                        })
-                        .max_by_key(|bounds| bounds.size().product())
-                    else {
-                        continue 'room_gen;
+                        },
+                    ) else {
+                        break 'room_gen;
                     };
 
-                    max_bounds = bounds;
-                }
-            }
+                    let Some(room_lottery) = rooms[room_meta.id]
+                        .kind
+                        .side_room_lottery(max_bounds, &room_counts)
+                    else {
+                        // We have no rooms to pick from
+                        break 'room_gen;
+                    };
 
-            // the smallest side on the maximum bounds
-            let max_min_size = max_bounds.size().reduce_min();
-            // max bounds area
-            let max_area = max_bounds.size().product();
+                    let room_kind = *room_lottery.choose_seeded(rng.gen());
 
-            let room_lottery = RoomKind::iter()
-                // Filter out rooms that won't fit here.
-                .filter(|room_kind| {
-                    let (size_range, area_range) = room_kind.size_range();
-                    *size_range.start() <= max_min_size && *area_range.start() <= max_area
-                })
-                // Calculate chance for each room.
-                .map(|room_kind| {
-                    (
-                        match room_kind {
-                            RoomKind::Garden => {
-                                0.5 / (1.0 + room_counts[RoomKind::Garden] as f32 * 0.8)
-                            },
-                            RoomKind::StageRoom => {
-                                2.0 / (1.0 + room_counts[RoomKind::StageRoom] as f32).powi(2)
-                            },
-                            RoomKind::BarRoom => {
-                                2.0 / (1.0 + room_counts[RoomKind::BarRoom] as f32).powi(2)
-                            },
-                            RoomKind::EntranceRoom => {
-                                0.05 / (1.0 + room_counts[RoomKind::EntranceRoom] as f32)
-                            },
-                        },
-                        room_kind,
-                    )
-                })
-                .collect::<Vec<_>>();
-            // We have no rooms to pick from.
-            if room_lottery.is_empty() {
-                continue 'room_gen;
-            }
-
-            // Pick a room.
-            let room_lottery = Lottery::from(room_lottery);
-            let room_kind = *room_lottery.choose_seeded(rng.gen());
-
-            // Select a door position
-            let mut min = left
-                .select_aabr(from_bounds)
-                .max(left.select_aabr(max_bounds));
-            let mut max = right
-                .select_aabr(from_bounds)
-                .min(right.select_aabr(max_bounds));
-            if max < min {
-                swap(&mut min, &mut max);
-            }
-            if min + 2 > max {
-                continue 'room_gen;
-            }
-            let in_pos = rng.gen_range(min + 1..=max - 1);
-            let in_pos =
-                in_dir.select_aabr_with(from_bounds, Vec2::broadcast(in_pos)) + in_dir.to_vec2();
-
-            // Place the room in the given max bounds
-            let Some(bounds) = place_room_in(room_kind, max_bounds, in_dir, in_pos, rng) else {
-                continue 'room_gen;
-            };
-
-            let bounds3 = Aabb {
-                min: bounds.min.with_z(alt),
-                max: bounds.max.with_z(alt + room_hgt),
-            };
-            let id = rooms.insert(Room::new(bounds3, room_kind));
-
-            let start = in_dir.select_aabr_with(
-                from_bounds,
-                Vec2::broadcast(left.select_aabr(from_bounds).max(left.select_aabr(bounds))),
-            ) + in_dir.to_vec2()
-                + left.to_vec2();
-
-            let end = in_dir.select_aabr_with(
-                from_bounds,
-                Vec2::broadcast(
-                    right
+                    // Select a door position
+                    let mut min = left
                         .select_aabr(from_bounds)
-                        .min(right.select_aabr(bounds)),
-                ),
-            ) + in_dir.to_vec2()
-                + right.to_vec2();
+                        .max(left.select_aabr(max_bounds));
+                    let mut max = right
+                        .select_aabr(from_bounds)
+                        .min(right.select_aabr(max_bounds));
+                    if max < min {
+                        swap(&mut min, &mut max);
+                    }
+                    if min + 2 > max {
+                        break 'room_gen;
+                    }
+                    let in_pos = rng.gen_range(min + 1..=max - 1);
+                    let in_pos = in_dir.select_aabr_with(from_bounds, Vec2::broadcast(in_pos))
+                        + in_dir.to_vec2();
 
-            let door_center = right.select(in_pos - start);
-            let b = rng.gen_bool(0.5);
-            let door_min = door_center - b as i32;
-            let door_max = door_center - (!b) as i32;
-            let wall_id = walls.insert(Wall {
-                start,
-                end,
-                base_alt: min_z,
-                top_alt: max_z,
-                from: Some(from_id),
-                to: Some(id),
-                to_dir: in_dir,
-                door: Some((door_min, door_max)),
-            });
+                    // Place the room in the given max bounds
+                    let Some(bounds) = place_side_room(room_kind, max_bounds, in_dir, in_pos, rng)
+                    else {
+                        break 'room_gen;
+                    };
 
-            rooms[id].walls[-in_dir].push(wall_id);
-            rooms[from_id].walls[in_dir].push(wall_id);
+                    let bounds3 = Aabb {
+                        min: bounds.min.with_z(min_z),
+                        max: bounds.max.with_z(max_z),
+                    };
+                    let id = rooms.insert(Room::new(bounds3, room_kind));
 
-            room_metas.push(RoomMeta {
-                id,
-                walls: Dir::iter().filter(|d| *d != -in_dir).collect(),
-            });
-            room_counts[room_kind] += 1;
+                    let start = in_dir.select_aabr_with(
+                        from_bounds,
+                        Vec2::broadcast(
+                            left.select_aabr(from_bounds).max(left.select_aabr(bounds)),
+                        ),
+                    ) + in_dir.to_vec2()
+                        + left.to_vec2();
+
+                    let end = in_dir.select_aabr_with(
+                        from_bounds,
+                        Vec2::broadcast(
+                            right
+                                .select_aabr(from_bounds)
+                                .min(right.select_aabr(bounds)),
+                        ),
+                    ) + in_dir.to_vec2()
+                        + right.to_vec2();
+
+                    let door_center = right.select(in_pos - start);
+                    let b = rng.gen_bool(0.5);
+                    let door_min = door_center - b as i32;
+                    let door_max = door_center - (!b) as i32;
+                    let wall_id = walls.insert(Wall {
+                        start,
+                        end,
+                        base_alt: min_z,
+                        top_alt: max_z,
+                        from: Some(from_id),
+                        to: Some(id),
+                        to_dir: in_dir,
+                        door: Some((door_min, door_max)),
+                    });
+
+                    rooms[id].walls[-in_dir].push(wall_id);
+                    rooms[from_id].walls[in_dir].push(wall_id);
+
+                    room_metas.push(RoomMeta {
+                        id,
+                        free_walls: Dir::iter().filter(|d| *d != -in_dir).collect(),
+                        can_add_basement: !room_kind.basement_rooms().is_empty(),
+                    });
+                    room_counts[room_kind] += 1;
+                } else if room_meta.can_add_basement {
+                    room_meta.can_add_basement = false;
+                    let max_bounds = ibounds;
+
+                    // Pick a  height of the new room
+                    let room_hgt = rng.gen_range(3..=5);
+                    let max_z = from_room.bounds.min.z - 2;
+                    let min_z = max_z - room_hgt;
+
+                    let Some(max_bounds) = fit_room(
+                        rooms
+                            .iter()
+                            .filter(|(id, _)| *id != from_id)
+                            .map(|(_, r)| r),
+                        min_z,
+                        max_z,
+                        max_bounds,
+                        |dir| Some(dir.opposite().select_aabr(extend_aabr(from_bounds, -2))),
+                    ) else {
+                        break 'room_gen;
+                    };
+
+                    let Some(room_lottery) = rooms[room_meta.id]
+                        .kind
+                        .basement_lottery(max_bounds, &room_counts)
+                    else {
+                        // We have no rooms to pick from
+                        break 'room_gen;
+                    };
+
+                    let room_kind = *room_lottery.choose_seeded(rng.gen());
+
+                    // Place the room in the given max bounds
+                    let Some(bounds) = place_down_room(room_kind, max_bounds, from_bounds, rng)
+                    else {
+                        break 'room_gen;
+                    };
+
+                    let bounds3 = Aabb {
+                        min: bounds.min.with_z(min_z),
+                        max: bounds.max.with_z(max_z),
+                    };
+                    let id = rooms.insert(Room::new(bounds3, room_kind));
+
+                    room_metas.push(RoomMeta {
+                        id,
+                        free_walls: EnumSet::all(),
+                        can_add_basement: !room_kind.basement_rooms().is_empty(),
+                    });
+                    room_counts[room_kind] += 1;
+                } else {
+                    break 'room_gen;
+                };
+            }
+
+            // If there are more directions to continue from, push this room again.
+            if !room_meta.free_walls.is_empty() || room_meta.can_add_basement {
+                room_metas.push(room_meta);
+            }
         }
 
         // Place walls where needed.
@@ -643,6 +851,235 @@ impl Tavern {
             }
         }
 
+        for room_id in rooms.ids() {
+            let room = &rooms[room_id];
+            // If a room is already fully covered by a roof, we skip it.
+            if room.is_covered_by_roof(&roofs) {
+                continue;
+            }
+            let roof_min_z = room.bounds.max.z + 1;
+            let mut roof_bounds = to_aabr(room.bounds);
+            roof_bounds.min -= 2;
+            roof_bounds.max += 2;
+            let mut dirs = Vec::from(Dir::ALL);
+
+            let mut over_rooms = vec![room_id];
+            let mut under_rooms = vec![];
+            // Extend roof over adjecent rooms.
+            while !dirs.is_empty() {
+                let dir = dirs.swap_remove(rng.gen_range(0..dirs.len()));
+                let orth = dir.orthogonal();
+                // Check for room intersections in this direction.
+                for (room_id, room) in rooms.iter() {
+                    let room_aabr = to_aabr(room.bounds);
+                    if room.bounds.max.z + 1 == roof_min_z
+                        && dir.select_aabr(roof_bounds) + dir.signum()
+                            == (-dir).select_aabr(room_aabr)
+                        && orth.select_aabr(roof_bounds) <= orth.select_aabr(room_aabr) + 2
+                        && (-orth).select_aabr(roof_bounds) >= (-orth).select_aabr(room_aabr) - 2
+                    {
+                        // If the room we found is fully covered by a roof already, we don't go in
+                        // this direction.
+                        if room.is_covered_by_roof(&roofs) {
+                            break;
+                        }
+                        roof_bounds = dir.extend_aabr(roof_bounds, dir.select(room_aabr.size()));
+                        dirs.push(dir);
+                        over_rooms.push(room_id);
+                        break;
+                    }
+                }
+            }
+            for (room_id, room) in rooms.iter() {
+                let room_aabr = to_aabr(room.bounds);
+                if room.bounds.min.z - 1 == roof_min_z && room_aabr.collides_with_aabr(roof_bounds)
+                {
+                    under_rooms.push(room_id);
+                }
+            }
+
+            let valid_styles = if !under_rooms.is_empty() {
+                vec![(1.0, RoofStyle::Floor)]
+            } else {
+                // Build a lottery of valid roofs to pick from
+                let mut valid_styles = vec![(0.5, RoofStyle::Flat)];
+
+                let gardens = over_rooms
+                    .iter()
+                    .filter(|id| matches!(rooms[**id].kind, RoomKind::Garden))
+                    .count();
+
+                // If we just have gardens, we can use FlatBars style.
+                if gardens == over_rooms.len() {
+                    let ratio = Dir::X.select(roof_bounds.size()) as f32
+                        / Dir::Y.select(roof_bounds.size()) as f32;
+                    valid_styles.extend([
+                        (5.0 * ratio, RoofStyle::FlatBars { dir: Dir::X }),
+                        (5.0 / ratio, RoofStyle::FlatBars { dir: Dir::Y }),
+                    ]);
+                }
+
+                // Find heights of possible adjecent rooms.
+                let mut dir_zs = EnumMap::default();
+                for dir in Dir::iter() {
+                    let orth = dir.orthogonal();
+                    for room in rooms.values() {
+                        let room_aabr = to_aabr(room.bounds);
+                        if room.bounds.max.z > roof_min_z
+                            && dir.select_aabr(roof_bounds) == (-dir).select_aabr(room_aabr)
+                            && orth.select_aabr(roof_bounds) <= orth.select_aabr(room_aabr) + 2
+                            && (-orth).select_aabr(roof_bounds)
+                                >= (-orth).select_aabr(room_aabr) - 2
+                        {
+                            dir_zs[dir] = Some(room.bounds.max.z);
+                            break;
+                        }
+                    }
+                }
+
+                for dir in [Dir::X, Dir::Y] {
+                    if dir_zs[dir.orthogonal()].is_none() && dir_zs[-dir.orthogonal()].is_none() {
+                        let max_z = roof_min_z
+                            + (dir.orthogonal().select(roof_bounds.size()) / 2 - 1).min(7);
+                        let max_z = match (dir_zs[dir], dir_zs[-dir]) {
+                            (Some(a), Some(b)) => {
+                                if a.min(b) >= roof_min_z + 3 {
+                                    max_z.min(a.min(b))
+                                } else {
+                                    max_z
+                                }
+                            },
+                            (None, None) => max_z,
+                            _ => continue,
+                        };
+
+                        for max_z in roof_min_z + 3..=max_z {
+                            valid_styles.push((1.0, RoofStyle::Gable { dir, max_z }))
+                        }
+                    }
+                }
+
+                for dir in Dir::iter() {
+                    if let (Some(h), None) = (dir_zs[dir], dir_zs[-dir]) {
+                        for max_z in roof_min_z + 2..=h {
+                            valid_styles.push((1.0, RoofStyle::LeanTo { dir, max_z }))
+                        }
+                    }
+                }
+
+                if Dir::iter().all(|d| dir_zs[d].is_none()) {
+                    for max_z in roof_min_z + 3..=roof_min_z + 7 {
+                        valid_styles.push((0.8, RoofStyle::Hip { max_z }))
+                    }
+                }
+
+                valid_styles
+            };
+
+            let style_lottery = Lottery::from(valid_styles);
+
+            debug_assert!(
+                roof_bounds.is_valid(),
+                "Roof bounds aren't valid: {:?}",
+                roof_bounds
+            );
+
+            let stairs = under_rooms
+                .iter()
+                .copied()
+                .flat_map(|to_room| {
+                    let rooms = &rooms;
+                    let walls = &walls;
+                    over_rooms
+                        .iter()
+                        .copied()
+                        .filter_map(move |in_room| {
+                            let to_room_bounds = rooms[to_room].bounds;
+                            let in_room_bounds = rooms[in_room].bounds;
+                            let max_bounds =
+                                to_aabr(to_room_bounds).intersection(to_aabr(in_room_bounds));
+                            let stair_length = to_room_bounds.min.z - 1 - in_room_bounds.min.z;
+                            if !max_bounds.is_valid()
+                                || max_bounds.size().reduce_min() <= stair_length
+                            {
+                                return None;
+                            }
+
+                            let in_aabr = to_aabr(in_room_bounds);
+                            let to_aabr = to_aabr(to_room_bounds);
+
+                            let valid_dirs = Dir::iter().filter(move |dir| {
+                                dir.select_aabr(in_aabr) == dir.select_aabr(max_bounds)
+                                    || dir.select_aabr(to_aabr) == dir.select_aabr(max_bounds)
+                            });
+
+                            Some(valid_dirs.clone().flat_map(move |dir| {
+                                valid_dirs
+                                    .clone()
+                                    .filter(move |d| d.abs() != dir.abs())
+                                    .filter_map(move |orth| {
+                                        let stair_width = 2;
+                                        let stair_aabr = orth.trim_aabr(
+                                            dir.trim_aabr(
+                                                max_bounds,
+                                                dir.select(max_bounds.size()) - stair_length,
+                                            ),
+                                            orth.select(max_bounds.size()) - stair_width + 1,
+                                        );
+
+                                        let test_aabr = Aabr {
+                                            min: stair_aabr.min - 1,
+                                            max: stair_aabr.max - 1,
+                                        };
+                                        if !stair_aabr.is_valid()
+                                            || rooms[in_room]
+                                                .walls
+                                                .values()
+                                                .chain(rooms[to_room].walls.values())
+                                                .flatten()
+                                                .any(|wall| {
+                                                    walls[*wall].door_bounds().is_some_and(
+                                                        |door_bounds| {
+                                                            test_aabr
+                                                                .collides_with_aabr(door_bounds)
+                                                        },
+                                                    )
+                                                })
+                                        {
+                                            return None;
+                                        }
+
+                                        Some((
+                                            Aabb {
+                                                min: stair_aabr.min.with_z(in_room_bounds.min.z),
+                                                max: stair_aabr
+                                                    .max
+                                                    .with_z(to_room_bounds.min.z - 1),
+                                            },
+                                            dir,
+                                        ))
+                                    })
+                            }))
+                        })
+                        .flatten()
+                })
+                .choose(rng);
+
+            let roof_id = roofs.insert(Roof {
+                bounds: roof_bounds,
+                min_z: roof_min_z,
+                stairs,
+                style: *style_lottery.choose_seeded(rng.gen()),
+            });
+
+            for room_id in over_rooms {
+                rooms[room_id].roofs.push(roof_id);
+            }
+            for room_id in under_rooms {
+                rooms[room_id].floors.push(roof_id);
+            }
+        }
+
         // Compute detail areas
         for room in rooms.values_mut() {
             let bounds = to_aabr(room.bounds);
@@ -665,6 +1102,16 @@ impl Tavern {
                         )
                     })
                 })
+                .chain(
+                    room.floors
+                        .iter()
+                        .chain(room.roofs.iter())
+                        .filter_map(|roof| {
+                            let aabr = to_aabr(roofs[*roof].stairs?.0);
+                            let intersection = aabr.intersection(bounds);
+                            intersection.is_valid().then_some(intersection)
+                        }),
+                )
                 .collect::<Vec<_>>();
 
             let mut x = bounds.min.x;
@@ -729,6 +1176,7 @@ impl Tavern {
                         true
                     }
                 }),
+                RoomKind::Cellar => {},
                 RoomKind::StageRoom => {
                     let mut best = None;
                     let mut best_score = 0;
@@ -783,134 +1231,6 @@ impl Tavern {
             }
         }
 
-        for room_id in rooms.ids() {
-            let room = &rooms[room_id];
-            // If a room is already fully covered by a roof, we skip it.
-            if room.is_covered_by_roof(&roofs) {
-                continue;
-            }
-            let roof_min_z = room.bounds.max.z + 1;
-            let mut roof_bounds = to_aabr(room.bounds);
-            roof_bounds.min -= 2;
-            roof_bounds.max += 2;
-            let mut dirs = Vec::from(Dir::ALL);
-
-            let mut over_rooms = vec![room_id];
-            // Extend roof over adjecent rooms.
-            while !dirs.is_empty() {
-                let dir = dirs.swap_remove(rng.gen_range(0..dirs.len()));
-                let orth = dir.orthogonal();
-                // Check for room intersections in this direction.
-                for (room_id, room) in rooms.iter() {
-                    let room_aabr = to_aabr(room.bounds);
-                    if room.bounds.max.z == roof_min_z
-                        && dir.select_aabr(roof_bounds) + dir.signum()
-                            == (-dir).select_aabr(room_aabr)
-                        && orth.select_aabr(roof_bounds) <= orth.select_aabr(room_aabr) + 2
-                        && (-orth).select_aabr(roof_bounds) >= (-orth).select_aabr(room_aabr) - 2
-                    {
-                        // If the room we found is fully covered by a roof already, we don't go in
-                        // this direction.
-                        if room.is_covered_by_roof(&roofs) {
-                            break;
-                        }
-                        roof_bounds = dir.extend_aabr(roof_bounds, dir.select(room_aabr.size()));
-                        dirs.push(dir);
-                        over_rooms.push(room_id);
-                        break;
-                    }
-                }
-            }
-
-            // Build a lottery of valid roofs to pick from
-            let mut valid_styles = vec![(0.5, RoofStyle::Flat)];
-
-            let gardens = over_rooms
-                .iter()
-                .filter(|id| matches!(rooms[**id].kind, RoomKind::Garden))
-                .count();
-
-            // If we just have gardens, we can use FlatBars style.
-            if gardens == over_rooms.len() {
-                let ratio = Dir::X.select(roof_bounds.size()) as f32
-                    / Dir::Y.select(roof_bounds.size()) as f32;
-                valid_styles.extend([
-                    (5.0 * ratio, RoofStyle::FlatBars { dir: Dir::X }),
-                    (5.0 / ratio, RoofStyle::FlatBars { dir: Dir::Y }),
-                ]);
-            }
-
-            // Find heights of possible adjecent rooms.
-            let mut dir_zs = EnumMap::default();
-            for dir in Dir::iter() {
-                let orth = dir.orthogonal();
-                for room in rooms.values() {
-                    let room_aabr = to_aabr(room.bounds);
-                    if room.bounds.max.z > roof_min_z
-                        && dir.select_aabr(roof_bounds) == (-dir).select_aabr(room_aabr)
-                        && orth.select_aabr(roof_bounds) <= orth.select_aabr(room_aabr) + 2
-                        && (-orth).select_aabr(roof_bounds) >= (-orth).select_aabr(room_aabr) - 2
-                    {
-                        dir_zs[dir] = Some(room.bounds.max.z);
-                        break;
-                    }
-                }
-            }
-
-            for dir in [Dir::X, Dir::Y] {
-                if dir_zs[dir.orthogonal()].is_none() && dir_zs[-dir.orthogonal()].is_none() {
-                    let max_z =
-                        roof_min_z + (dir.orthogonal().select(roof_bounds.size()) / 2 - 1).min(7);
-                    let max_z = match (dir_zs[dir], dir_zs[-dir]) {
-                        (Some(a), Some(b)) => {
-                            if a.min(b) >= roof_min_z + 3 {
-                                max_z.min(a.min(b))
-                            } else {
-                                max_z
-                            }
-                        },
-                        (None, None) => max_z,
-                        _ => continue,
-                    };
-
-                    for max_z in roof_min_z + 3..=max_z {
-                        valid_styles.push((1.0, RoofStyle::Gable { dir, max_z }))
-                    }
-                }
-            }
-
-            for dir in Dir::iter() {
-                if let (Some(h), None) = (dir_zs[dir], dir_zs[-dir]) {
-                    for max_z in roof_min_z + 2..=h {
-                        valid_styles.push((1.0, RoofStyle::LeanTo { dir, max_z }))
-                    }
-                }
-            }
-
-            if Dir::iter().all(|d| dir_zs[d].is_none()) {
-                for max_z in roof_min_z + 3..=roof_min_z + 7 {
-                    valid_styles.push((0.8, RoofStyle::Hip { max_z }))
-                }
-            }
-
-            let style_lottery = Lottery::from(valid_styles);
-
-            debug_assert!(
-                roof_bounds.is_valid(),
-                "Roof bounds aren't valid: {:?}",
-                roof_bounds
-            );
-            let roof_id = roofs.insert(Roof {
-                bounds: roof_bounds,
-                min_z: roof_min_z,
-                style: *style_lottery.choose_seeded(rng.gen()),
-            });
-
-            for room_id in over_rooms {
-                rooms[room_id].roofs.push(roof_id);
-            }
-        }
-
         Self {
             name,
             rooms,
@@ -934,8 +1254,9 @@ impl Structure for Tavern {
     const UPDATE_FN: &'static [u8] = b"render_tavern\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_tavern")]
-    fn render_inner(&self, _site: &Site, _land: &Land, painter: &crate::site2::Painter) {
+    fn render_inner(&self, _site: &Site, land: &Land, painter: &crate::site2::Painter) {
         let field = RandomField::new(740384);
+        let field_choose = RandomField::new(134598);
 
         const DOWN: i32 = 6;
 
@@ -1012,6 +1333,7 @@ impl Structure for Tavern {
                 })
         };
 
+        // Fill roofs
         for roof in self.roofs.values() {
             match roof.style {
                 RoofStyle::Flat => {
@@ -1021,6 +1343,14 @@ impl Structure for Tavern {
                             max: roof.bounds.max.with_z(roof.min_z),
                         }))
                         .fill(roof_fill.clone());
+                },
+                RoofStyle::Floor => {
+                    painter
+                        .aabb(aabb(Aabb {
+                            min: roof.bounds.min.with_z(roof.min_z),
+                            max: roof.bounds.max.with_z(roof.min_z),
+                        }))
+                        .fill(floor_fill.clone());
                 },
                 RoofStyle::FlatBars { dir } => painter
                     .aabb(aabb(Aabb {
@@ -1186,6 +1516,7 @@ impl Structure for Tavern {
             }
         }
 
+        // Fill floors
         for room in self.rooms.values() {
             painter
                 .aabb(aabb(Aabb {
@@ -1194,6 +1525,7 @@ impl Structure for Tavern {
                 }))
                 .fill(floor_fill.clone());
         }
+        // Fill walls
         for wall in self.walls.values() {
             let wall_aabb = Aabb {
                 min: wall.start.with_z(wall.base_alt),
@@ -1279,6 +1611,8 @@ impl Structure for Tavern {
                 }
             }
         }
+
+        // Add details per room
         for room in self.rooms.values() {
             painter.aabb(aabb(room.bounds)).clear();
 
@@ -1288,6 +1622,39 @@ impl Structure for Tavern {
             };
             match room.kind {
                 RoomKind::Garden => {},
+                RoomKind::Cellar => {
+                    for aabr in room.detail_areas.iter().copied() {
+                        for dir in Dir::iter()
+                            .filter(|dir| dir.select_aabr(aabr) == dir.select_aabr(room_aabr))
+                        {
+                            let pos = dir
+                                .select_aabr_with(aabr, aabr.center())
+                                .with_z(room.bounds.center().z + 1);
+
+                            painter.rotated_sprite(
+                                pos,
+                                SpriteKind::WallLampSmall,
+                                dir.opposite().sprite_ori(),
+                            );
+
+                            for x in dir.orthogonal().select(aabr.min)
+                                ..=dir.orthogonal().select(aabr.max)
+                            {
+                                let pos = dir.select_aabr_with(aabr, x).with_z(room.bounds.min.z);
+                                if field.chance(pos, 0.3) {
+                                    let sprite = field_choose
+                                        .choose(pos, &[
+                                            SpriteKind::Crate,
+                                            SpriteKind::Barrel,
+                                            SpriteKind::WaterBarrelWood,
+                                        ])
+                                        .unwrap();
+                                    painter.owned_resource_sprite(pos, *sprite, 0);
+                                }
+                            }
+                        }
+                    }
+                },
                 RoomKind::StageRoom => {
                     for aabr in room.detail_areas.iter().copied() {
                         for dir in Dir::iter().filter(|dir| {
@@ -1450,6 +1817,7 @@ impl Structure for Tavern {
             }
         }
 
+        // Fill in wall details
         for wall in self.walls.values() {
             let kinds = (wall.from.map(get_kind), wall.to.map(get_kind));
             let in_dir_room = if let (Some(room), to @ None) | (None, to @ Some(room)) = kinds {
@@ -1483,7 +1851,10 @@ impl Structure for Tavern {
                         }
                     },
                     _ => {
-                        if width >= 5 && door_dist > 3 {
+                        if width >= 5
+                            && door_dist > 3
+                            && wall.base_alt >= land.get_alt_approx(wall_center) as i32
+                        {
                             painter
                                 .aabb(aabb(Aabb {
                                     min: (wall_center + in_dir.rotated_ccw().to_vec2())
@@ -1581,6 +1952,30 @@ impl Structure for Tavern {
                         },
                     );
                 }
+            }
+        }
+
+        // Fill stairs
+        for roof in self.roofs.values() {
+            if let Some((stairs_aabb, dir)) = roof.stairs {
+                painter
+                    .aabb(aabb(dir.to_dir3().trim_aabb(
+                        Aabb {
+                            min: stairs_aabb.min.with_z(roof.min_z),
+                            max: stairs_aabb.max.with_z(roof.min_z),
+                        },
+                        (dir.to_dir3().select(stairs_aabb.size()) - 4).max(0),
+                    )))
+                    .clear();
+                painter
+                    .ramp(aabb(stairs_aabb), dir)
+                    .fill(floor_fill.clone());
+                painter
+                    .ramp(
+                        aabb(Dir3::NegZ.trim_aabb(dir.to_dir3().trim_aabb(stairs_aabb, 1), 1)),
+                        dir,
+                    )
+                    .clear();
             }
         }
     }

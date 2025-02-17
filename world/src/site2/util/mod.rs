@@ -116,6 +116,17 @@ impl Dir {
         }
     }
 
+    /// Create a vec2 where x is in the direction of `self`, and y is orthogonal
+    /// version of self.
+    pub fn vec2_abs<T>(self, x: T, y: T) -> Vec2<T> {
+        match self {
+            Dir::X => Vec2::new(x, y),
+            Dir::NegX => Vec2::new(x, y),
+            Dir::Y => Vec2::new(y, x),
+            Dir::NegY => Vec2::new(y, x),
+        }
+    }
+
     /// Returns a 3x3 matrix that rotates Vec3(1, 0, 0) to the direction you get
     /// in to_vec3. Inteded to be used with Primitive::Rotate.
     ///
@@ -252,7 +263,7 @@ impl Dir {
     }
 
     pub fn trim_aabr(self, aabr: Aabr<i32>, amount: i32) -> Aabr<i32> {
-        self.extend_aabr(aabr, -amount)
+        (-self).extend_aabr(aabr, -amount)
     }
 
     pub fn extend_aabr(self, aabr: Aabr<i32>, amount: i32) -> Aabr<i32> {
