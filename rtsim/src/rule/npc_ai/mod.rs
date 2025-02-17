@@ -604,8 +604,41 @@ fn adventure() -> impl Action<DefaultState> {
 fn hired<S: State>(tgt: Actor) -> impl Action<S> {
     follow_actor(tgt, 5.0)
         // Stop following if we're no longer hired
-        .stop_if(move |ctx: &mut NpcCtx| ctx.npc.hiring.is_some_and(|(a, _)| a != tgt))
+        .stop_if(move |ctx: &mut NpcCtx| ctx.npc.hiring.is_none_or(|(a, _)| a != tgt))
         .debug(move|| format!("hired by {tgt:?}"))
+        .interrupt_with(move |ctx, _| {
+            // End hiring for various reasons
+            if let Some((tgt, expires)) = ctx.npc.hiring {
+                // Hiring period has expired
+                if ctx.time > expires {
+                    ctx.controller.end_hiring();
+                    // If the actor exists, tell them that the hiring is over
+                    if util::actor_exists(ctx, tgt) {
+                        return Some(goto_actor(tgt, 2.0)
+                            .then(do_dialogue(tgt, |session| {
+                                session.say_statement(Content::localized("npc-dialogue-hire_expired"))
+                            }))
+                            .boxed());
+                    }
+                }
+
+                if ctx.sentiments.toward(tgt).is(Sentiment::RIVAL) {
+                    ctx.controller.end_hiring();
+                    // If the actor exists, tell them that the hiring is over
+                    if util::actor_exists(ctx, tgt) {
+                        return Some(goto_actor(tgt, 2.0)
+                            .then(do_dialogue(tgt, |session| {
+                                session.say_statement(Content::localized(
+                                    "npc-dialogue-hire_cancelled_unhappy",
+                                ))
+                            }))
+                            .boxed());
+                    }
+                }
+            }
+
+            None
+        })
         .map(|_, _| ())
 }
 
@@ -1223,32 +1256,6 @@ fn react_to_events<S: State>(ctx: &mut NpcCtx, _: &mut S) -> Option<impl Action<
 
 fn humanoid() -> impl Action<DefaultState> {
     choose(|ctx, _| {
-        // End hiring for various reasons
-        if let Some((tgt, expires)) = ctx.npc.hiring {
-            // Hiring period has expired
-            if ctx.time > expires {
-                ctx.controller.end_hiring();
-                // If the actor exists, tell them that the hiring is over
-                if util::actor_exists(ctx, tgt) {
-                    return important(goto_actor(tgt, 2.0).then(do_dialogue(tgt, |session| {
-                        session.say_statement(Content::localized("npc-dialogue-hire_expired"))
-                    })));
-                }
-            }
-
-            if ctx.sentiments.toward(tgt).is(Sentiment::RIVAL) {
-                ctx.controller.end_hiring();
-                // If the actor exists, tell them that the hiring is over
-                if util::actor_exists(ctx, tgt) {
-                    return important(goto_actor(tgt, 2.0).then(do_dialogue(tgt, |session| {
-                        session.say_statement(Content::localized(
-                            "npc-dialogue-hire_cancelled_unhappy",
-                        ))
-                    })));
-                }
-            }
-        }
-
         if let Some(riding) = &ctx.state.data().npcs.mounts.get_mount_link(ctx.npc_id) {
             if riding.is_steering {
                 if let Some(vehicle) = ctx.state.data().npcs.get(riding.mount) {
