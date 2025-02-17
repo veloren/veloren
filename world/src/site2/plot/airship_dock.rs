@@ -54,7 +54,7 @@ impl AirshipDock {
         };
         let mut docking_positions = vec![];
         for dir in CARDINALS {
-            let pos = (center + dir * 17).with_z(height + 9);
+            let pos = (center + dir * 19).with_z(height + 9);
             docking_positions.push(pos);
         }
         let campfire_pos = (center - (door_dir * 10)).with_z(height + 9);
@@ -764,9 +764,10 @@ impl Structure for AirshipDock {
                 .into_special(SpecialEntity::Waypoint),
         );
         // docks
-        for dock_pos in &self.docking_positions {
+        for dir in CARDINALS {
+            let pos = (center + dir * 15).with_z(height + 9);
             painter
-                .cylinder_with_radius(*dock_pos, 5.0, 1.0)
+                .cylinder_with_radius(pos, 5.0, 1.0)
                 .fill(wood.clone());
         }
     }
