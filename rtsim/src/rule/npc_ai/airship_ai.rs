@@ -14,13 +14,14 @@ use common::{
 };
 use rand::prelude::*;
 use std::{cmp::Ordering, time::Duration};
-use tracing::debug;
 use vek::*;
 use world::{
     civ::airship_travel::Airships,
     site::Site,
     util::{CARDINALS, DHashMap},
 };
+
+#[cfg(debug_assertions)] use tracing::debug;
 
 /// Airships can slow down or hold position to avoid collisions with other
 /// airships.
