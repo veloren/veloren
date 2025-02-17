@@ -182,7 +182,7 @@ pub enum TileKind {
     Field,
     Plaza,
     Road { a: u16, b: u16, w: u16 },
-    Path,
+    Path { c: Vec2<f32>, w: f32 },
     Building,
     Castle,
     Wall(Dir),
@@ -203,8 +203,8 @@ impl fmt::Display for TileKind {
             TileKind::Hazard(_) => write!(f, "Hazard"),
             TileKind::Field => write!(f, "Field"),
             TileKind::Plaza => write!(f, "Plaza"),
-            TileKind::Road { a: _, b: _, w: _ } => write!(f, "Road"),
-            TileKind::Path => write!(f, "Path"),
+            TileKind::Road { .. } => write!(f, "Road"),
+            TileKind::Path { .. } => write!(f, "Path"),
             TileKind::Building => write!(f, "Building"),
             TileKind::Castle => write!(f, "Castle"),
             TileKind::Wall(_) => write!(f, "Wall"),
@@ -256,7 +256,7 @@ impl Tile {
     pub fn is_road(&self) -> bool {
         matches!(
             self.kind,
-            TileKind::Plaza | TileKind::Road { .. } | TileKind::Path
+            TileKind::Plaza | TileKind::Road { .. } | TileKind::Path { .. }
         )
     }
 

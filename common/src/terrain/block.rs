@@ -390,7 +390,6 @@ impl Block {
                 | SpriteKind::WallSconce
                 | SpriteKind::FireBowlGround
                 | SpriteKind::MesaLantern
-                | SpriteKind::LanternpostWoodLantern
                 | SpriteKind::LampTerracotta
                 | SpriteKind::ChristmasOrnament
                 | SpriteKind::CliffDecorBlock
@@ -422,7 +421,7 @@ impl Block {
                 | SpriteKind::Diamond
                 | SpriteKind::Emerald
                 | SpriteKind::Topaz => 3,
-                SpriteKind::Lantern => 24,
+                SpriteKind::Lantern | SpriteKind::LanternpostWoodLantern => 24,
                 SpriteKind::TerracottaStatue => 8,
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => 16,
                 SpriteKind::SeaDecorEmblem => 12,

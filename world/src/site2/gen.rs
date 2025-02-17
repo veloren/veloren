@@ -1640,6 +1640,7 @@ pub trait Structure {
         _rng: &mut R,
         _col: &ColumnSample,
         _z_off: i32,
+        _site: &Site,
     ) -> Option<Block> {
         None
     }
