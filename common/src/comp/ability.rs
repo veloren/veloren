@@ -299,7 +299,7 @@ impl ActiveAbilities {
             .enumerate()
             .filter_map(move |(i, a)| match a {
                 AbilityKind::Simple(skill, _) => skill
-                    .map_or(true, |s| skill_set.is_some_and(|ss| ss.has_skill(s)))
+                    .is_none_or(|s| skill_set.is_some_and(|ss| ss.has_skill(s)))
                     .then_some(i),
                 AbilityKind::Contextualized {
                     pseudo_id: _,
@@ -307,7 +307,7 @@ impl ActiveAbilities {
                 } => abilities
                     .iter()
                     .any(|(_contexts, (skill, _))| {
-                        skill.map_or(true, |s| skill_set.is_some_and(|ss| ss.has_skill(s)))
+                        skill.is_none_or(|s| skill_set.is_some_and(|ss| ss.has_skill(s)))
                     })
                     .then_some(i),
             })
@@ -3155,9 +3155,8 @@ pub struct AbilityRequirements {
 impl AbilityRequirements {
     pub fn requirements_met(&self, stance: Option<&Stance>) -> bool {
         let AbilityRequirements { stance: req_stance } = self;
-        req_stance.map_or(true, |req_stance| {
-            stance.is_some_and(|char_stance| req_stance == *char_stance)
-        })
+        req_stance
+            .is_none_or(|req_stance| stance.is_some_and(|char_stance| req_stance == *char_stance))
     }
 }
 

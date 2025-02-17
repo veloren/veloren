@@ -1794,7 +1794,7 @@ impl ComboConsumption {
         let combo = data.combo.map_or(0, |c| c.counter());
         let to_consume = match self {
             Self::All => combo,
-            Self::Half => (combo + 1) / 2,
+            Self::Half => combo.div_ceil(2),
             Self::Cost => cost,
         };
         output_events.emit_server(ComboChangeEvent {

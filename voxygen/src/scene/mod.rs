@@ -755,7 +755,7 @@ impl Scene {
                     light_anim.col != Rgb::zero()
                         && light_anim.strength > 0.0
                         && pos.0.distance_squared(viewpoint_pos) < max_light_dist
-                        && h.map_or(true, |h| !h.is_dead)
+                        && h.is_none_or(|h| !h.is_dead)
                 })
                 .map(|(pos, interpolated, light_anim, _)| {
                     // Use interpolated values if they are available

@@ -187,7 +187,7 @@ pub fn goto<S: State>(wpos: Vec3<f32>, speed_factor: f32, goal_dist: f32) -> imp
 
     just(move |ctx, waypoint: &mut Option<Vec3<f32>>| {
         // If we're close to the next waypoint, complete it
-        if waypoint.map_or(false, |waypoint: Vec3<f32>| {
+        if waypoint.is_some_and(|waypoint: Vec3<f32>| {
             ctx.npc.wpos.xy().distance_squared(waypoint.xy()) < WAYPOINT_DIST.powi(2)
         }) {
             *waypoint = None;
@@ -261,7 +261,7 @@ fn goto_flying<S: State>(
 ) -> impl Action<S> {
     just(move |ctx, waypoint: &mut Option<Vec3<f32>>| {
         // If we're close to the next waypoint, complete it
-        if waypoint.map_or(false, |waypoint: Vec3<f32>| {
+        if waypoint.is_some_and(|waypoint: Vec3<f32>| {
             ctx.npc.wpos.distance_squared(waypoint) < waypoint_dist.powi(2)
         }) {
             *waypoint = None;

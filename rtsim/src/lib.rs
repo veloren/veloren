@@ -136,7 +136,7 @@
 //!
 //! See [`rule::npc_ai`].
 
-#![feature(never_type, let_chains, binary_heap_drain_sorted, trait_upcasting)]
+#![feature(never_type, let_chains, binary_heap_drain_sorted)]
 
 pub mod ai;
 pub mod data;

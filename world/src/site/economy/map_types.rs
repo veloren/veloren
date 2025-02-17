@@ -196,7 +196,7 @@ pub struct LaborMap<V> {
 impl<V: Default + Clone> Default for LaborMap<V> {
     fn default() -> Self {
         LaborMap {
-            data: std::iter::repeat(V::default()).take(*LABOR_COUNT).collect(),
+            data: std::iter::repeat_n(V::default(), *LABOR_COUNT).collect(),
         }
     }
 }
@@ -244,7 +244,7 @@ impl<V> LaborMap<V> {
 impl<V: Copy + Default> LaborMap<V> {
     pub fn from_default(default: V) -> Self {
         LaborMap {
-            data: std::iter::repeat(default).take(*LABOR_COUNT).collect(),
+            data: std::iter::repeat_n(default, *LABOR_COUNT).collect(),
         }
     }
 }

@@ -764,7 +764,7 @@ mod tests {
         let e = r.recv().await.unwrap();
         assert!(matches!(e, ProtocolEvent::CloseStream { .. }));
         let e = r.recv().await.unwrap();
-        assert!(matches!(e, ProtocolEvent::Shutdown { .. }));
+        assert!(matches!(e, ProtocolEvent::Shutdown));
     }
 
     #[tokio::test]

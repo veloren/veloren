@@ -317,7 +317,7 @@ pub fn try_salvage(
         let salvage_output: Vec<_> = salvage_item
             .salvage_output()
             .flat_map(|(material, quantity)| {
-                std::iter::repeat(Item::new_from_asset_expect(material)).take(quantity as usize)
+                std::iter::repeat_n(Item::new_from_asset_expect(material), quantity as usize)
             })
             .collect();
         if salvage_output.is_empty() {

@@ -114,7 +114,7 @@ impl RegionMap {
         // Add any untracked entities
         for (pos, id) in (&pos, &entities, presence.maybe(), !&self.tracked_entities)
             .join()
-            .filter(|(_, _, presence, _)| presence.map_or(true, |p| p.kind.sync_me()))
+            .filter(|(_, _, presence, _)| presence.is_none_or(|p| p.kind.sync_me()))
             .map(|(pos, e, _, _)| (pos, e.id()))
             .collect::<Vec<_>>()
         {

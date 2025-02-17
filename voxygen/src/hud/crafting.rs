@@ -728,7 +728,7 @@ impl Widget for Crafting<'_> {
                     self.client
                         .available_recipes()
                         .get(name.as_str()).is_some_and(|cs| {
-                            cs.map_or(true, |cs| {
+                            cs.is_none_or(|cs| {
                                 Some(cs) == self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
                             })
                         });
@@ -1506,7 +1506,7 @@ impl Widget for Crafting<'_> {
                             .available_recipes()
                             .get(&recipe_name)
                             .is_some_and(|cs| {
-                                cs.map_or(true, |cs| {
+                                cs.is_none_or(|cs| {
                                     Some(cs)
                                         == self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
                                 })

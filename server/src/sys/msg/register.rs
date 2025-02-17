@@ -88,7 +88,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
             .filter(|(_, _, client, _, _, _)| {
-                client.map_or(true, |client| client.client_type.emit_login_events())
+                client.is_none_or(|client| client.client_type.emit_login_events())
             })
             .map(|(entity, uid, _, player, stats, admin)| {
                 (
