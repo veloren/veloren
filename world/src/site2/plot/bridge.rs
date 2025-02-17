@@ -244,7 +244,9 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
 
     ramp_prim(ramp_aabr, 1).fill(light_rock.clone());
 
-    let ramp_aabr = orth_dir.trim_aabr(ramp_aabr, 1);
+    let ramp_aabr = orth_dir
+        .opposite()
+        .trim_aabr(orth_dir.trim_aabr(ramp_aabr, 1), 1);
     ramp_prim(ramp_aabr, 5).clear();
     ramp_prim(ramp_aabr, 0).fill(rock.clone());
 
@@ -277,7 +279,9 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
         .without(holes)
         .fill(light_rock);
 
-    let aabr = orth_dir.trim_aabr(aabr, 1);
+    let aabr = orth_dir
+        .opposite()
+        .trim_aabr(orth_dir.trim_aabr(aabr, 1), 1);
     painter
         .aabb(aabb(
             aabr.min.with_z(bridge.end.z + 1),
