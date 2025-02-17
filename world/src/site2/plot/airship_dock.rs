@@ -1,10 +1,8 @@
 use super::*;
 use crate::{
-    site2::gen::{spiral_staircase, PrimitiveTransform},
-    util::{RandomField, Sampler, CARDINALS},
     Land,
     site2::gen::{PrimitiveTransform, spiral_staircase},
-    util::{RandomField, Sampler},
+    util::{CARDINALS, RandomField, Sampler},
 };
 use common::{
     generation::SpecialEntity,
