@@ -155,9 +155,6 @@ sprites! {
         LogsWoodBranchS = 0x81,
         LogsWoodCleanL = 0x82,
         LogsWoodCoreL = 0x83,
-
-
-
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
     Plant = 3 has Growth, Owned, SnowCovered {

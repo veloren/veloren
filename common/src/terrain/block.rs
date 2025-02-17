@@ -390,6 +390,8 @@ impl Block {
                 | SpriteKind::WallSconce
                 | SpriteKind::FireBowlGround
                 | SpriteKind::MesaLantern
+                | SpriteKind::LanternpostWoodLantern
+                | SpriteKind::LampTerracotta
                 | SpriteKind::ChristmasOrnament
                 | SpriteKind::CliffDecorBlock
                 | SpriteKind::Orb

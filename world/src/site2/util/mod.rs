@@ -1,4 +1,5 @@
 pub mod gradient;
+pub mod sprites;
 
 use std::ops::{Add, Sub};
 
@@ -514,7 +515,7 @@ impl Dir3 {
     }
 
     pub fn trim_aabb(self, aabb: Aabb<i32>, amount: i32) -> Aabb<i32> {
-        self.extend_aabb(aabb, -amount)
+        (-self).extend_aabb(aabb, -amount)
     }
 
     pub fn extend_aabb(self, aabb: Aabb<i32>, amount: i32) -> Aabb<i32> {
