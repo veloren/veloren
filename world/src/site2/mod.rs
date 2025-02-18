@@ -244,17 +244,25 @@ impl Site {
         search_pos: Vec2<i32>,
         area_range: Range<u32>,
         min_dims: Extent2<u32>,
-    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>)> {
-        let ((aabr, door_dir), door_pos) = self.tiles.find_near(search_pos, |center, _| {
-            let dir = CARDINALS
-                .iter()
-                .find(|dir| self.tiles.get(center + *dir).is_road())?;
-            self.tiles
-                .grow_aabr(center, area_range.clone(), min_dims)
-                .ok()
-                .zip(Some(*dir))
-        })?;
-        Some((aabr, door_pos, door_dir))
+    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>, Option<i32>)> {
+        let ((aabr, (door_dir, hard_alt)), door_pos) =
+            self.tiles.find_near(search_pos, |center, _| {
+                let dir = CARDINALS
+                    .iter()
+                    .find(|dir| self.tiles.get(center + *dir).is_road())?;
+                let hard_alt = self.tiles.get(center + *dir).plot.and_then(|plot| {
+                    if let PlotKind::Plaza(p) = self.plots.get(plot).kind() {
+                        p.hard_alt
+                    } else {
+                        None
+                    }
+                });
+                self.tiles
+                    .grow_aabr(center, area_range.clone(), min_dims)
+                    .ok()
+                    .zip(Some((*dir, hard_alt)))
+            })?;
+        Some((aabr, door_pos, door_dir, hard_alt))
     }
 
     pub fn find_roadside_aabr(
@@ -262,7 +270,7 @@ impl Site {
         rng: &mut impl Rng,
         area_range: Range<u32>,
         min_dims: Extent2<u32>,
-    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>)> {
+    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>, Option<i32>)> {
         let dir = Vec2::<f32>::zero()
             .map(|_| rng.gen_range(-1.0..1.0))
             .normalized();
@@ -286,7 +294,7 @@ impl Site {
         rng: &mut impl Rng,
         area_range: Range<u32>,
         min_dims: Extent2<u32>,
-    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>)> {
+    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>, Option<i32>)> {
         let dir = Vec2::<f32>::zero()
             .map(|_| rng.gen_range(-1.0..1.0))
             .normalized();
@@ -763,7 +771,7 @@ impl Site {
                     // TerracottaHouse
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
-                    if let Some((aabr, _, _)) = attempt(32, || {
+                    if let Some((aabr, _, _, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             9..(size + 1).pow(2),
@@ -775,6 +783,7 @@ impl Site {
                             &mut reseed(&mut rng),
                             &site,
                             aabr,
+                            alt,
                         );
                         let terracotta_house_alt = terracotta_house.alt;
                         let plot = site.create_plot(Plot {
@@ -807,7 +816,7 @@ impl Site {
                     // TerracottaYard
                     generator_stats.attempt(&site.name, GenStatPlotKind::Yard);
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
-                    if let Some((aabr, _, _)) = attempt(32, || {
+                    if let Some((aabr, _, _, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             9..(size + 1).pow(2),
@@ -819,6 +828,7 @@ impl Site {
                             &mut reseed(&mut rng),
                             &site,
                             aabr,
+                            alt,
                         );
                         let terracotta_yard_alt = terracotta_yard.alt;
                         let plot = site.create_plot(Plot {
@@ -919,11 +929,11 @@ impl Site {
             // MyrmidonHouse
             generator_stats.attempt(&site.name, GenStatPlotKind::House);
             let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
-            if let Some((aabr, _, _)) = attempt(32, || {
+            if let Some((aabr, _, _, alt)) = attempt(32, || {
                 site.find_roadside_aabr(&mut rng, 9..(size + 1).pow(2), Extent2::broadcast(size))
             }) {
                 let myrmidon_house =
-                    plot::MyrmidonHouse::generate(land, &mut reseed(&mut rng), &site, aabr);
+                    plot::MyrmidonHouse::generate(land, &mut reseed(&mut rng), &site, aabr, alt);
                 let myrmidon_house_alt = myrmidon_house.alt;
                 let plot = site.create_plot(Plot {
                     kind: PlotKind::MyrmidonHouse(myrmidon_house),
@@ -1035,7 +1045,7 @@ impl Site {
                 n if (n == 5 && workshops < (size * 5.0) as i32) || workshops == 0 => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
                     let size = (3.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             4..(size + 1).pow(2),
@@ -1049,6 +1059,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let workshop_alt = workshop.alt;
                         let plot = site.create_plot(Plot {
@@ -1080,7 +1091,7 @@ impl Site {
                 1 => {
                     let size = (1.5 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             4..(size + 1).pow(2),
@@ -1095,6 +1106,7 @@ impl Site {
                             door_dir,
                             aabr,
                             calendar,
+                            alt,
                         );
                         let house_alt = house.alt;
                         let plot = site.create_plot(Plot {
@@ -1124,7 +1136,7 @@ impl Site {
                 // Guard tower
                 2 => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::GuardTower);
-                    if let Some((_aabr, _, _door_dir)) = attempt(10, || {
+                    if let Some((_aabr, _, _door_dir, _)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
                     }) {
                         // let plot = site.create_plot(Plot {
@@ -1153,7 +1165,7 @@ impl Site {
                 // Castle
                 4 if castles < 1 => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::Castle);
-                    if let Some((aabr, _entrance_tile, _door_dir)) = attempt(32, || {
+                    if let Some((aabr, _entrance_tile, _door_dir, _alt)) = attempt(32, || {
                         site.find_roadside_aabr(&mut rng, 16 * 16..18 * 18, Extent2::new(16, 16))
                     }) {
                         let offset = rng.gen_range(5..(aabr.size().w.min(aabr.size().h) - 4));
@@ -1301,59 +1313,60 @@ impl Site {
                 //airship dock
                 6 if (size > 0.125 && airship_docks == 0) => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
-                    if let Some((_aabr, _, _door_dir)) = attempt(10, || {
-                        site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
+                    // if let Some((_aabr, _, _door_dir, alt)) = attempt(10, || {
+                    //     site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
+                    // }) {
+                    let size = 3.0 as u32;
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            4..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
                     }) {
-                        let size = 3.0 as u32;
-                        if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
-                            site.find_roadside_aabr(
-                                &mut rng,
-                                4..(size + 1).pow(2),
-                                Extent2::broadcast(size),
-                            )
-                        }) {
-                            let airship_dock = plot::AirshipDock::generate(
-                                land,
-                                &mut reseed(&mut rng),
-                                &site,
-                                door_tile,
-                                door_dir,
-                                aabr,
-                            );
-                            let airship_dock_alt = airship_dock.alt;
-                            let plot = site.create_plot(Plot {
-                                kind: PlotKind::AirshipDock(airship_dock),
-                                root_tile: aabr.center(),
-                                tiles: aabr_tiles(aabr).collect(),
-                                seed: rng.gen(),
-                            });
+                        let airship_dock = plot::AirshipDock::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                            alt,
+                        );
+                        let airship_dock_alt = airship_dock.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::AirshipDock(airship_dock),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                            seed: rng.gen(),
+                        });
 
-                            site.blit_aabr(aabr, Tile {
-                                kind: TileKind::Building,
-                                plot: Some(plot),
-                                hard_alt: Some(airship_dock_alt),
-                            });
-                            airship_docks += 1;
-                            generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
-                        } else {
-                            site.make_plaza(
-                                land,
-                                index,
-                                &mut rng,
-                                generator_stats,
-                                &name,
-                                plot::RoadKind::Default,
-                            );
-                        }
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(airship_dock_alt),
+                        });
+                        airship_docks += 1;
+                        generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
+                    } else {
+                        site.make_plaza(
+                            land,
+                            index,
+                            &mut rng,
+                            generator_stats,
+                            &name,
+                            plot::RoadKind::Default,
+                        );
                     }
+                    // }
                 },
                 7 if (size > 0.125 && taverns < 2) => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::Tavern);
-                    let size = (3.5 + rng.gen::<f32>().powf(5.0) * 2.0).round() as u32;
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    let size = (4.5 + rng.gen::<f32>().powf(5.0) * 2.0).round() as u32;
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
-                            7..(size + 1).pow(2),
+                            8..(size + 1).pow(2),
                             Extent2::broadcast(size),
                         )
                     }) {
@@ -1365,6 +1378,7 @@ impl Site {
                             door_tile,
                             Dir::from_vec2(door_dir),
                             aabr,
+                            alt,
                         );
                         let tavern_alt = tavern.door_wpos.z;
                         let plot = site.create_plot(Plot {
@@ -1669,7 +1683,7 @@ impl Site {
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     let campfire = campfires < 4;
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             8..(size + 1).pow(2),
@@ -1685,6 +1699,7 @@ impl Site {
                             door_dir,
                             aabr,
                             campfire,
+                            alt,
                         );
                         let cliff_tower_alt = cliff_tower.alt;
                         let plot = site.create_plot(Plot {
@@ -1715,7 +1730,7 @@ impl Site {
                     // CliffTownAirshipDock
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             8..(size + 1).pow(2),
@@ -1730,6 +1745,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let cliff_town_airship_dock_alt = cliff_town_airship_dock.alt;
                         let plot = site.create_plot(Plot {
@@ -1802,7 +1818,7 @@ impl Site {
                     // SavannahWorkshop
                     let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             4..(size + 1).pow(2),
@@ -1816,6 +1832,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let savannah_workshop_alt = savannah_workshop.alt;
                         let plot = site.create_plot(Plot {
@@ -1848,7 +1865,7 @@ impl Site {
 
                     let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             4..(size + 1).pow(2),
@@ -1862,6 +1879,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let savannah_hut_alt = savannah_hut.alt;
                         let plot = site.create_plot(Plot {
@@ -1893,7 +1911,7 @@ impl Site {
 
                     let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             4..(size + 1).pow(2),
@@ -1907,6 +1925,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let savannah_airship_dock_alt = savannah_airship_dock.alt;
                         let plot = site.create_plot(Plot {
@@ -1983,7 +2002,7 @@ impl Site {
                     // CoastalWorkshop
                     let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             7..(size + 1).pow(2),
@@ -1997,6 +2016,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let coastal_workshop_alt = coastal_workshop.alt;
                         let plot = site.create_plot(Plot {
@@ -2029,7 +2049,7 @@ impl Site {
 
                     let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             7..(size + 1).pow(2),
@@ -2043,6 +2063,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let coastal_house_alt = coastal_house.alt;
                         let plot = site.create_plot(Plot {
@@ -2074,7 +2095,7 @@ impl Site {
                     // CoastalAirshipDock
                     let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             7..(size + 1).pow(2),
@@ -2088,6 +2109,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let coastal_airship_dock_alt = coastal_airship_dock.alt;
                         let plot = site.create_plot(Plot {
@@ -2200,7 +2222,7 @@ impl Site {
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::MultiPlot);
                     let campfire = campfires < 4;
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             8..(size + 1).pow(2),
@@ -2215,6 +2237,7 @@ impl Site {
                             door_dir,
                             aabr,
                             campfire,
+                            alt,
                         );
                         let desert_city_multi_plot_alt = desert_city_multi_plot.alt;
                         let plot = site.create_plot(Plot {
@@ -2246,7 +2269,7 @@ impl Site {
                 2 if temples < 1 => {
                     let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::Temple);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             8..(size + 1).pow(2),
@@ -2260,6 +2283,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let desert_city_temple_alt = desert_city_temple.alt;
                         let plot = site.create_plot(Plot {
@@ -2282,7 +2306,7 @@ impl Site {
                 3 if airship_docks < 1 => {
                     let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             8..(size + 1).pow(2),
@@ -2296,6 +2320,7 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
+                            alt,
                         );
                         let desert_city_airship_dock_alt = desert_city_airship_dock.alt;
                         let plot = site.create_plot(Plot {
@@ -2336,7 +2361,7 @@ impl Site {
         land: &Land,
     ) -> bool {
         let size = (3.0 + rng.gen::<f32>().powf(5.0) * 6.0).round() as u32;
-        if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+        if let Some((aabr, door_tile, door_dir, _alt)) = attempt(32, || {
             site.find_rural_aabr(&mut rng, 6..(size + 1).pow(2), Extent2::broadcast(size))
         }) {
             let field = plot::FarmField::generate(
@@ -2375,7 +2400,7 @@ impl Site {
         land: &Land,
     ) -> bool {
         let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
-        if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+        if let Some((aabr, door_tile, door_dir, _alt)) = attempt(32, || {
             site.find_rural_aabr(&mut rng, 9..(size + 1).pow(2), Extent2::broadcast(size))
         }) {
             let barn = plot::Barn::generate(

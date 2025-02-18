@@ -36,6 +36,7 @@ impl CliffTower {
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
         campfire: bool,
+        alt: Option<i32>,
     ) -> Self {
         let door_tile_pos = site.tile_center_wpos(door_tile);
         let bounds = Aabr {
@@ -51,7 +52,7 @@ impl CliffTower {
         Self {
             door_tile: door_tile_pos,
             bounds,
-            alt: land.get_alt_approx(door_tile_pos) as i32,
+            alt: alt.unwrap_or_else(|| land.get_alt_approx(door_tile_pos) as i32),
             campfire,
             door_dir,
             surface_color,

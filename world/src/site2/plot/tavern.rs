@@ -255,6 +255,7 @@ impl Tavern {
         door_tile: Vec2<i32>,
         door_dir: Dir,
         tile_aabr: Aabr<i32>,
+        alt: Option<i32>,
     ) -> Self {
         let name = namegen::NameGen::location(rng).generate_tavern();
 
@@ -276,8 +277,8 @@ impl Tavern {
         let door_tile_center = site.tile_center_wpos(door_tile);
         let door_wpos = door_dir.select_aabr_with(ibounds, door_tile_center);
 
-        let door_alt = land.get_alt_approx(door_wpos);
-        let door_wpos = door_wpos.with_z(door_alt.ceil() as i32);
+        let door_alt = alt.unwrap_or_else(|| land.get_alt_approx(door_wpos).ceil() as i32);
+        let door_wpos = door_wpos.with_z(door_alt);
 
         fn gen_range_snap(rng: &mut impl Rng, range: RangeInclusive<i32>, snap_max: i32) -> i32 {
             let res = rng.gen_range(range.clone());

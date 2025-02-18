@@ -21,7 +21,7 @@ pub struct Plaza {
     pub aabr: Aabr<i32>,
     pub kind: RoadKind,
     corner_meta: EnumMap<Dir, CornerMeta>,
-    hard_alt: Option<i32>,
+    pub hard_alt: Option<i32>,
 }
 
 impl Plaza {

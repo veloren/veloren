@@ -32,6 +32,7 @@ impl SavannahAirshipDock {
         door_tile: Vec2<i32>,
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
+        alt: Option<i32>,
     ) -> Self {
         let door_tile_pos = site.tile_center_wpos(door_tile);
         let bounds = Aabr {
@@ -39,7 +40,9 @@ impl SavannahAirshipDock {
             max: site.tile_wpos(tile_aabr.max),
         };
         let center = bounds.center();
-        let alt = land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32 + 2;
+        let alt = alt.unwrap_or_else(|| {
+            land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32
+        }) + 2;
         let base = alt + 1;
         let length = 18;
         let platform_height = 40;

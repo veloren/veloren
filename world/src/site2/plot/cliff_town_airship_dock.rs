@@ -37,6 +37,7 @@ impl CliffTownAirshipDock {
         door_tile: Vec2<i32>,
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
+        alt: Option<i32>,
     ) -> Self {
         let door_tile_pos = site.tile_center_wpos(door_tile);
         let bounds = Aabr {
@@ -44,7 +45,7 @@ impl CliffTownAirshipDock {
             max: site.tile_wpos(tile_aabr.max),
         };
         let center = bounds.center();
-        let alt = land.get_alt_approx(door_tile_pos) as i32;
+        let alt = alt.unwrap_or_else(|| land.get_alt_approx(door_tile_pos) as i32);
         let variant = 15;
         let storeys = 5 + (variant / 2);
         let platform_length = 2 * variant;
