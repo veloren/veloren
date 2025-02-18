@@ -5,9 +5,8 @@ use crate::{
     util::{CARDINALS, RandomField, Sampler},
 };
 use common::{
-    comp::Content,
     generation::SpecialEntity,
-    terrain::{BlockKind, SpriteCfg, SpriteKind},
+    terrain::{BlockKind, SpriteKind},
 };
 use rand::prelude::*;
 use std::sync::Arc;
@@ -43,15 +42,15 @@ impl CoastalAirshipDock {
         };
         let diameter = (bounds.max.x - bounds.min.x).min(bounds.max.y - bounds.min.y);
         let alt = land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32 + 2;
-        let size = (diameter / 3) + 2;
+        let size = 20;
         let bldg_height = 12;
         let base = alt + 1;
         let center = bounds.center();
         let mut docking_positions = vec![];
         let top_floor = base + (bldg_height * 6) - 3;
         for dir in CARDINALS {
-            let docking_pos = center + dir * size;
-            docking_positions.push(docking_pos.with_z(top_floor));
+            let docking_pos = center + dir * (size - 1);
+            docking_positions.push(docking_pos.with_z(top_floor - 1));
         }
         Self {
             door_tile: door_tile_pos,
@@ -62,6 +61,21 @@ impl CoastalAirshipDock {
             bldg_height,
             diameter,
             docking_positions,
+        }
+    }
+
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
+        SpawnRules {
+            trees: {
+                // dock is 3 tiles = 18 blocks in radius
+                // airships are 20 blocks wide.
+                // Leave extra space for tree width (at lease 15 extra).
+                // Don't allow trees within 18 + 20 + 15 = 53 blocks of the dock center
+                const AIRSHIP_MIN_TREE_DIST2: i32 = 53i32.pow(2);
+                wpos.distance_squared(self.center) > AIRSHIP_MIN_TREE_DIST2
+            },
+            waypoints: false,
+            ..SpawnRules::default()
         }
     }
 }
@@ -201,7 +215,7 @@ impl Structure for CoastalAirshipDock {
 
                     // docks
                     let gangway_pos = center + dir * (size / 2);
-                    let dock_pos = center + dir * (size - 3);
+                    let dock_pos = center + dir * (size - 4);
                     painter
                         .aabb(Aabb {
                             min: (gangway_pos - 3).with_z(bldg_base + bldg_height - 1),
@@ -278,17 +292,6 @@ impl Structure for CoastalAirshipDock {
                     );
                 }
             }
-        }
-        for dock_pos in &self.docking_positions {
-            painter.rotated_sprite_with_cfg(
-                *dock_pos,
-                SpriteKind::Sign,
-                Dir::from_vec2(dock_pos.xy() - self.center).sprite_ori(),
-                SpriteCfg {
-                    unlock: None,
-                    content: Some(Content::localized("common-signs-airship_dock")),
-                },
-            );
         }
     }
 }

@@ -5,9 +5,8 @@ use crate::{
     util::{CARDINALS, DIAGONALS, RandomField, Sampler},
 };
 use common::{
-    comp::Content,
     generation::SpecialEntity,
-    terrain::{BlockKind, SpriteCfg, SpriteKind},
+    terrain::{BlockKind, SpriteKind},
 };
 use rand::prelude::*;
 use std::{f32::consts::TAU, sync::Arc};
@@ -173,18 +172,6 @@ impl Structure for SavannahAirshipDock {
                     max: (dock_pos + 4).with_z(base + platform_height - 2),
                 })
                 .fill(wood_dark.clone());
-        }
-
-        for dock_pos in &self.docking_positions {
-            painter.rotated_sprite_with_cfg(
-                *dock_pos,
-                SpriteKind::Sign,
-                Dir::from_vec2(dock_pos.xy() - self.center).sprite_ori(),
-                SpriteCfg {
-                    unlock: None,
-                    content: Some(Content::localized("common-signs-airship_dock")),
-                },
-            );
         }
 
         // lanterns, crates & barrels

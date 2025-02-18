@@ -121,6 +121,9 @@ impl Site {
                 PlotKind::MyrmidonArena(ma) => Some(ma.spawn_rules(wpos)),
                 PlotKind::MyrmidonHouse(mh) => Some(mh.spawn_rules(wpos)),
                 PlotKind::AirshipDock(ad) => Some(ad.spawn_rules(wpos)),
+                PlotKind::CoastalAirshipDock(cad) => Some(cad.spawn_rules(wpos)),
+                PlotKind::CliffTownAirshipDock(clad) => Some(clad.spawn_rules(wpos)),
+                PlotKind::DesertCityAirshipDock(dcad) => Some(dcad.spawn_rules(wpos)),
                 PlotKind::SavannahAirshipDock(sad) => Some(sad.spawn_rules(wpos)),
                 _ => None,
             })

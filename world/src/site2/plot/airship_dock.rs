@@ -2,12 +2,11 @@ use super::*;
 use crate::{
     Land,
     site2::gen::{PrimitiveTransform, spiral_staircase},
-    util::{RandomField, Sampler},
+    util::{CARDINALS, DIAGONALS, RandomField, Sampler},
 };
 use common::{
-    comp::Content,
     generation::SpecialEntity,
-    terrain::{BlockKind, SpriteCfg, SpriteKind},
+    terrain::{BlockKind, SpriteKind},
 };
 use rand::prelude::*;
 use std::f32::consts::PI;
@@ -53,10 +52,11 @@ impl AirshipDock {
         } else {
             0.0
         };
-        let docking_positions = vec![
-            (center + (door_dir.yx() * 16)).with_z(height + 9),
-            (center - (door_dir.yx() * 21)).with_z(height + 9),
-        ];
+        let mut docking_positions = vec![];
+        for dir in CARDINALS {
+            let pos = (center + dir * 19).with_z(height + 9);
+            docking_positions.push(pos);
+        }
         let campfire_pos = (center - (door_dir * 10)).with_z(height + 9);
         Self {
             door_tile: door_tile_pos,
@@ -130,8 +130,8 @@ impl Structure for AirshipDock {
         painter
             .superquadric(
                 Aabb {
-                    min: Vec2::new(center.x - 13, center.y - 16).with_z(base + 35),
-                    max: Vec2::new(center.x + 17, center.y + 11).with_z(height + 11),
+                    min: (center - 17).with_z(base + 35),
+                    max: (center + 17).with_z(height + 11),
                 },
                 5.0,
             )
@@ -141,53 +141,21 @@ impl Structure for AirshipDock {
         painter
             .superquadric(
                 Aabb {
-                    min: Vec2::new(center.x - 12, center.y - 15).with_z(base + 36),
-                    max: Vec2::new(center.x + 16, center.y + 10).with_z(height + 11),
+                    min: (center - 16).with_z(base + 36),
+                    max: (center + 16).with_z(height + 11),
                 },
                 5.0,
             )
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
             .fill(wood.clone());
         painter
             .superquadric(
                 Aabb {
-                    min: Vec2::new(center.x - 12, center.y - 15).with_z(base + 37),
-                    max: Vec2::new(center.x + 16, center.y + 10).with_z(height + 12),
+                    min: (center - 16).with_z(base + 37),
+                    max: (center + 16).with_z(height + 12),
                 },
                 5.0,
             )
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
             .clear();
-        //platform walkway bits
-        painter
-            .aabb(Aabb {
-                min: Vec2::new(center.x - 2, center.y - 22).with_z(height + 8),
-                max: Vec2::new(center.x + 2, center.y + 16).with_z(height + 10),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(woodalt.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec2::new(center.x - 1, center.y - 22).with_z(height + 8),
-                max: Vec2::new(center.x + 1, center.y + 16).with_z(height + 10),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(wood.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec2::new(center.x - 2, center.y - 16).with_z(height + 9),
-                max: Vec2::new(center.x + 2, center.y + 10).with_z(height + 10),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .clear();
-        painter
-            .aabb(Aabb {
-                min: Vec2::new(center.x - 1, center.y - 22).with_z(height + 9),
-                max: Vec2::new(center.x + 1, center.y + 16).with_z(height + 10),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .clear();
-
         //column
         painter
             .cylinder_with_radius(center.with_z(base), 6.0, 45.0)
@@ -603,68 +571,11 @@ impl Structure for AirshipDock {
             6,
         );
         //upper lighting
-
+        for dir in DIAGONALS {
+            let pos = (center + dir * 12).with_z(height + 7);
+            painter.sprite(pos, SpriteKind::Lantern)
+        }
         let sprite_fill = Fill::Block(Block::air(SpriteKind::Lantern).with_ori(2).unwrap());
-
-        //on walkway lamps
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center.x - 2, center.y + 15, height + 7),
-                max: Vec3::new(center.x - 1, center.y + 16, height + 8),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(sprite_fill.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center.x + 1, center.y + 15, height + 7),
-                max: Vec3::new(center.x + 2, center.y + 16, height + 8),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(sprite_fill.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center.x - 2, center.y - 21, height + 7),
-                max: Vec3::new(center.x - 1, center.y - 22, height + 8),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(sprite_fill.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center.x + 1, center.y - 21, height + 7),
-                max: Vec3::new(center.x + 2, center.y - 22, height + 8),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(sprite_fill.clone());
-
-        //on platform lamps
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center.x - 11, center.y + 8, height + 7),
-                max: Vec3::new(center.x - 10, center.y + 9, height + 8),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(sprite_fill.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center.x + 14, center.y + 8, height + 7),
-                max: Vec3::new(center.x + 15, center.y + 9, height + 8),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(sprite_fill.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center.x - 11, center.y - 15, height + 7),
-                max: Vec3::new(center.x - 10, center.y - 14, height + 8),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(sprite_fill.clone());
-        painter
-            .aabb(Aabb {
-                min: Vec3::new(center.x + 14, center.y - 15, height + 7),
-                max: Vec3::new(center.x + 15, center.y - 14, height + 8),
-            })
-            .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
-            .fill(sprite_fill.clone());
         //on cone lamps
         painter
             .aabb(Aabb {
@@ -763,17 +674,12 @@ impl Structure for AirshipDock {
             EntityInfo::at(self.campfire_pos.map(|e| e as f32 + 0.5))
                 .into_special(SpecialEntity::Waypoint),
         );
-        // dock
-        for dock_pos in &self.docking_positions {
-            painter.rotated_sprite_with_cfg(
-                *dock_pos - self.door_dir.yx(),
-                SpriteKind::Sign,
-                Dir::from_vec2(dock_pos.xy() - self.center).sprite_ori(),
-                SpriteCfg {
-                    unlock: None,
-                    content: Some(Content::localized("common-signs-airship_dock")),
-                },
-            );
+        // docks
+        for dir in CARDINALS {
+            let pos = (center + dir * 15).with_z(height + 9);
+            painter
+                .cylinder_with_radius(pos, 5.0, 1.0)
+                .fill(wood.clone());
         }
     }
 }
