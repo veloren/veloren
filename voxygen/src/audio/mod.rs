@@ -64,11 +64,6 @@ pub fn to_decibels(amplitude: f32) -> Decibels {
     }
 }
 
-pub enum MasterEffect {
-    SfxFilter(FilterHandle),
-    AmbienceFilter(FilterHandle),
-}
-
 struct Tracks {
     music: TrackHandle,
     ui: TrackHandle,
@@ -166,8 +161,16 @@ enum AudioCreationError {
 }
 
 impl AudioFrontendInner {
-    fn new(num_sfx_channels: usize, num_ui_channels: usize) -> Result<Self, AudioCreationError> {
-        let mut manager = AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
+    fn new(
+        num_sfx_channels: usize,
+        num_ui_channels: usize,
+        buffer_size: usize,
+    ) -> Result<Self, AudioCreationError> {
+        let manager_settings = AudioManagerSettings {
+            internal_buffer_size: buffer_size,
+            ..Default::default()
+        };
+        let mut manager = AudioManager::<DefaultBackend>::new(manager_settings)
             .map_err(AudioCreationError::Manager)?;
 
         let mut clock = manager
@@ -296,8 +299,9 @@ impl AudioFrontend {
         num_ui_channels: usize,
         subtitles: bool,
         combat_music_enabled: bool,
+        buffer_size: usize,
     ) -> Self {
-        let inner = AudioFrontendInner::new(num_sfx_channels, num_ui_channels)
+        let inner = AudioFrontendInner::new(num_sfx_channels, num_ui_channels, buffer_size)
             .inspect_err(|err| match err {
                 AudioCreationError::Manager(e) => {
                     #[cfg(unix)]
