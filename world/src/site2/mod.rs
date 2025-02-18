@@ -418,12 +418,12 @@ impl Site {
                     }
                 }
                 if let Some((_, path_wpos, Path { width }, _)) = land.get_nearest_path(wpos) {
-                    let tile_aabb = Aabr {
+                    let tile_aabr = Aabr {
                         min: self.tile_wpos(tile),
                         max: self.tile_wpos(tile + 1) - 1,
                     };
 
-                    if (tile_aabb
+                    if (tile_aabr
                         .projected_point(path_wpos.as_())
                         .distance_squared(path_wpos.as_()) as f32)
                         < width.powi(2)
@@ -2776,22 +2776,41 @@ impl Site {
             max: start_tile.map2(end_tile, |a, b| a.max(b)) + 1 + orth * width,
         };
 
-        site.create_road(
-            land,
-            &mut rng,
-            bridge.dir.select_aabr_with(aabr, aabr.center()) + bridge.dir.to_vec2(),
-            bridge.dir.select_aabr_with(start_aabr, aabr.center()),
-            2,
-            plot::RoadKind::Default,
-        );
-        site.create_road(
-            land,
-            &mut rng,
-            (-bridge.dir).select_aabr_with(aabr, aabr.center()) - bridge.dir.to_vec2(),
-            (-bridge.dir).select_aabr_with(start_aabr, aabr.center()),
-            2,
-            plot::RoadKind::Default,
-        );
+        let line = LineSegment2 {
+            start: site.tile_wpos(bridge.dir.select_aabr_with(start_aabr, start_aabr.center())),
+            end: site.tile_wpos(
+                bridge
+                    .dir
+                    .opposite()
+                    .select_aabr_with(start_aabr, start_aabr.center()),
+            ),
+        }
+        .as_();
+
+        for y in start_aabr.min.y..start_aabr.max.y {
+            for x in start_aabr.min.x..start_aabr.max.x {
+                let tpos = Vec2::new(x, y);
+                let tile_aabr = Aabr {
+                    min: site.tile_wpos(tpos),
+                    max: site.tile_wpos(tpos + 1) - 1,
+                };
+                if let Some(tile) = site.tiles.get_mut(tpos) {
+                    let closest_point = line.projected_point(tile_aabr.center().as_());
+                    let w = TILE_SIZE as f32;
+                    if tile_aabr
+                        .as_()
+                        .projected_point(closest_point)
+                        .distance_squared(closest_point)
+                        < w.powi(2)
+                    {
+                        tile.kind = TileKind::Path {
+                            c: closest_point,
+                            w,
+                        };
+                    }
+                }
+            }
+        }
 
         let plot = site.create_plot(Plot {
             kind: PlotKind::Bridge(bridge),

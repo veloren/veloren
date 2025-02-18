@@ -702,13 +702,39 @@ impl Civs {
                         &mut rng,
                         wpos,
                     )),
-                    SiteKind::Bridge(a, b) => WorldSite::bridge(site2::Site::generate_bridge(
-                        &Land::from_sim(ctx.sim),
-                        index_ref,
-                        &mut rng,
-                        *a,
-                        *b,
-                    )),
+                    SiteKind::Bridge(a, b) => {
+                        let mut bridge_site = site2::Site::generate_bridge(
+                            &Land::from_sim(ctx.sim),
+                            index_ref,
+                            &mut rng,
+                            *a,
+                            *b,
+                        );
+
+                        // Update the path connecting to the bridge to line up better.
+                        if let Some(bridge) =
+                            bridge_site
+                                .plots
+                                .values()
+                                .find_map(|plot| match &plot.kind {
+                                    site2::PlotKind::Bridge(bridge) => Some(bridge),
+                                    _ => None,
+                                })
+                        {
+                            let mut update_offset = |original: Vec2<i32>, new: Vec2<i32>| {
+                                let chunk = original.wpos_to_cpos();
+                                if let Some(c) = ctx.sim.get_mut(chunk) {
+                                    c.path.0.offset = (new - chunk.cpos_to_wpos_center())
+                                        .map(|e| e.clamp(-16, 16) as i8);
+                                }
+                            };
+
+                            update_offset(bridge.original_start, bridge.start.xy());
+                            update_offset(bridge.original_end, bridge.end.xy());
+                        }
+                        bridge_site.demarcate_obstacles(&Land::from_sim(ctx.sim));
+                        WorldSite::bridge(bridge_site)
+                    },
                     SiteKind::Adlet => WorldSite::adlet(site2::Site::generate_adlet(
                         &Land::from_sim(ctx.sim),
                         &mut rng,
@@ -1383,7 +1409,6 @@ impl Civs {
                 if let Some((path, cost)) = find_path(ctx, get_bridge, start, end, max_novel_cost) {
                     // Write the track to the world as a path
                     for locs in path.nodes().windows(3) {
-                        let mut randomize_offset = false;
                         if let Some((i, _)) = NEIGHBORS
                             .iter()
                             .enumerate()
@@ -1392,7 +1417,6 @@ impl Civs {
                             ctx.sim.get_mut(locs[0]).unwrap().path.0.neighbors |=
                                 1 << ((i as u8 + 4) % 8);
                             ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |= 1 << (i as u8);
-                            randomize_offset = true;
                         }
 
                         if let Some((i, _)) = NEIGHBORS
@@ -1402,8 +1426,10 @@ impl Civs {
                         {
                             ctx.sim.get_mut(locs[2]).unwrap().path.0.neighbors |=
                                 1 << ((i as u8 + 4) % 8);
+
                             ctx.sim.get_mut(locs[1]).unwrap().path.0.neighbors |= 1 << (i as u8);
-                            randomize_offset = true;
+                            ctx.sim.get_mut(locs[1]).unwrap().path.0.offset =
+                                Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
                         } else if !self.bridges.contains_key(&locs[1]) {
                             let center = (locs[1] + locs[2]) / 2;
                             let id =
@@ -1441,11 +1467,6 @@ impl Civs {
                         chunk.path.0.neighbors |=
                             (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
                         */
-                        if randomize_offset {
-                            let chunk = ctx.sim.get_mut(locs[1]).unwrap();
-                            chunk.path.0.offset =
-                                Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
-                        }
                     }
 
                     // Take note of the track
