@@ -6266,7 +6266,7 @@ LanternpostWoodLantern: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern",
-            offset: (-5.5, -5.5, 0.0),
+            offset: (-9.5, -2.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -6276,7 +6276,7 @@ LanternpostWoodUpper: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.lantern.lanternpost_wood_upper",
-            offset: (-5.5, -5.5, 0.0),
+            offset: (-2.5, -2.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],

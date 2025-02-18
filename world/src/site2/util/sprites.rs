@@ -1,4 +1,4 @@
-use crate::site2::Painter;
+use crate::site2::{Fill, Painter};
 
 use super::Dir;
 use common::terrain::SpriteKind;
@@ -12,6 +12,7 @@ impl PainterSpriteExt for Painter {
     fn lanternpost_wood(&self, pos: Vec3<i32>, dir: Dir) {
         let sprite_ori = dir.rotated_cw().sprite_ori();
         self.rotated_sprite(pos, SpriteKind::LanternpostWoodBase, sprite_ori);
+        self.column(pos.xy(), pos.z + 1..pos.z + 4).clear();
         self.rotated_sprite(
             pos + Vec3::unit_z() * 3,
             SpriteKind::LanternpostWoodUpper,

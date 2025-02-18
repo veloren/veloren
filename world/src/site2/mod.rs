@@ -301,6 +301,7 @@ impl Site {
     pub fn make_plaza_at(
         &mut self,
         land: &Land,
+        index: IndexRef,
         pos: &Vec2<i32>,
         radius: i32,
         rng: &mut impl Rng,
@@ -313,7 +314,7 @@ impl Site {
             max: pos + Vec2::broadcast(radius + 1),
         };
         let plaza = self.create_plot(Plot {
-            kind: PlotKind::Plaza,
+            kind: PlotKind::Plaza(plot::Plaza::generate(aabr, road_kind, self, land, index)),
             root_tile: *pos,
             tiles: aabr_tiles(aabr).collect(),
             seed: rng.gen(),
@@ -368,6 +369,7 @@ impl Site {
     pub fn make_plaza(
         &mut self,
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         generator_stats: &mut SitesGenMeta,
         site_name: &String,
@@ -396,7 +398,7 @@ impl Site {
                 })
         })?;
         generator_stats.success(site_name, GenStatPlotKind::Plaza);
-        self.make_plaza_at(land, &pos, plaza_radius, rng, road_kind)
+        self.make_plaza_at(land, index, &pos, plaza_radius, rng, road_kind)
     }
 
     pub fn demarcate_obstacles(&mut self, land: &Land) {
@@ -414,6 +416,7 @@ impl Site {
                         // `get_mut` doesn't increase generation bounds
                         self.tiles
                             .get_mut(tile - rpos - 1)
+                            .filter(|tile| tile.is_natural())
                             .map(|tile| tile.kind = TileKind::Hazard(kind));
                     }
                 }
@@ -428,12 +431,15 @@ impl Site {
                         .distance_squared(path_wpos.as_()) as f32)
                         < width.powi(2)
                     {
-                        self.tiles.get_mut(tile).map(|tile| {
-                            tile.kind = TileKind::Path {
-                                c: path_wpos,
-                                w: width,
-                            }
-                        });
+                        self.tiles
+                            .get_mut(tile)
+                            .filter(|tile| tile.is_natural())
+                            .map(|tile| {
+                                tile.kind = TileKind::Path {
+                                    c: path_wpos,
+                                    w: width,
+                                }
+                            });
                     }
                 }
             });
@@ -458,6 +464,7 @@ impl Site {
     pub fn make_initial_plaza(
         &mut self,
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         plaza_radius: u32,
         search_inner_radius: u32,
@@ -487,14 +494,14 @@ impl Site {
             // No suitable plaza locations were found, it's unlikely that the town will be
             // able to be generated, but we can try to make a plaza anyway with
             // the original make_plaza function.
-            self.make_plaza(land, rng, generator_stats, site_name, road_kind)
+            self.make_plaza(land, index, rng, generator_stats, site_name, road_kind)
         } else {
             // Choose the minimum distance from the town center.
             plaza_locations.sort_by_key(|&pos| pos.distance_squared(Vec2::zero()));
             // use the first plaza location as the plaza position
             let pos = plaza_locations.first()?;
             generator_stats.success(site_name, GenStatPlotKind::InitialPlaza);
-            self.make_plaza_at(land, pos, plaza_radius as i32, rng, road_kind)
+            self.make_plaza_at(land, index, pos, plaza_radius as i32, rng, road_kind)
         }
     }
 
@@ -520,6 +527,7 @@ impl Site {
     pub fn make_initial_plaza_default(
         &mut self,
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         generator_stats: &mut SitesGenMeta,
         site_name: &String,
@@ -534,6 +542,7 @@ impl Site {
         const PLAZA_MAX_SEARCH_RADIUS: u32 = 24;
         self.make_initial_plaza(
             land,
+            index,
             rng,
             plaza_radius,
             search_inner_radius,
@@ -675,6 +684,7 @@ impl Site {
 
     pub fn generate_terracotta(
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         origin: Vec2<i32>,
         generator_stats: &mut SitesGenMeta,
@@ -714,6 +724,7 @@ impl Site {
         generator_stats.add(&site.name, GenStatSiteKind::Terracotta);
         site.make_initial_plaza(
             land,
+            index,
             &mut rng,
             TERRACOTTA_PLAZA_RADIUS,
             TERRACOTTA_PLAZA_SEARCH_INNER,
@@ -783,6 +794,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -826,6 +838,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -841,6 +854,7 @@ impl Site {
 
     pub fn generate_myrmidon(
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         origin: Vec2<i32>,
         generator_stats: &mut SitesGenMeta,
@@ -869,6 +883,7 @@ impl Site {
         generator_stats.attempt(&site.name, GenStatPlotKind::InitialPlaza);
         site.make_initial_plaza(
             land,
+            index,
             &mut rng,
             MYRMIDON_PLAZA_RADIUS,
             MYRMIDON_PLAZA_SEARCH_INNER,
@@ -927,6 +942,7 @@ impl Site {
             } else {
                 site.make_plaza(
                     land,
+                    index,
                     &mut rng,
                     generator_stats,
                     &name,
@@ -989,6 +1005,7 @@ impl Site {
         generator_stats.add(&site.name, GenStatSiteKind::City);
         site.make_initial_plaza_default(
             land,
+            index,
             &mut rng,
             generator_stats,
             &name,
@@ -1051,6 +1068,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -1095,6 +1113,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -1319,6 +1338,7 @@ impl Site {
                         } else {
                             site.make_plaza(
                                 land,
+                                index,
                                 &mut rng,
                                 generator_stats,
                                 &name,
@@ -1365,6 +1385,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -1632,6 +1653,7 @@ impl Site {
         generator_stats.add(&site.name, GenStatSiteKind::CliffTown);
         site.make_initial_plaza_default(
             land,
+            index,
             &mut rng,
             generator_stats,
             &name,
@@ -1681,6 +1703,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -1726,6 +1749,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -1737,11 +1761,13 @@ impl Site {
             }
         }
 
+        site.demarcate_obstacles(land);
         site
     }
 
     pub fn generate_savannah_town(
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         origin: Vec2<i32>,
         generator_stats: &mut SitesGenMeta,
@@ -1759,6 +1785,7 @@ impl Site {
         generator_stats.add(&site.name, GenStatSiteKind::SavannahTown);
         site.make_initial_plaza_default(
             land,
+            index,
             &mut rng,
             generator_stats,
             &name,
@@ -1808,6 +1835,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -1852,6 +1880,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -1897,6 +1926,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -1919,6 +1949,7 @@ impl Site {
 
     pub fn generate_coastal_town(
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         origin: Vec2<i32>,
         generator_stats: &mut SitesGenMeta,
@@ -1936,6 +1967,7 @@ impl Site {
         generator_stats.add(&site.name, GenStatSiteKind::CoastalTown);
         site.make_initial_plaza_default(
             land,
+            index,
             &mut rng,
             generator_stats,
             &name,
@@ -1984,6 +2016,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -2029,6 +2062,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -2073,6 +2107,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -2095,6 +2130,7 @@ impl Site {
 
     pub fn generate_desert_city(
         land: &Land,
+        index: IndexRef,
         rng: &mut impl Rng,
         origin: Vec2<i32>,
         generator_stats: &mut SitesGenMeta,
@@ -2118,6 +2154,7 @@ impl Site {
         generator_stats.add(&site.name, GenStatSiteKind::DesertCity);
         site.make_initial_plaza(
             land,
+            index,
             &mut rng,
             DESERT_CITY_PLAZA_RADIUS,
             DESERT_CITY_PLAZA_SEARCH_INNER,
@@ -2197,6 +2234,7 @@ impl Site {
                     } else {
                         site.make_plaza(
                             land,
+                            index,
                             &mut rng,
                             generator_stats,
                             &name,
@@ -2842,128 +2880,60 @@ impl Site {
         self.origin + tile * TILE_SIZE as i32 + TILE_SIZE as i32 / 2
     }
 
-    pub fn render_tile(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng, tpos: Vec2<i32>) {
+    pub fn render_tile(&self, canvas: &mut Canvas, tpos: Vec2<i32>) {
         let tile = self.tiles.get(tpos);
         let twpos = self.tile_wpos(tpos);
-        let twpos_center = self.tile_center_wpos(tpos);
         let border = TILE_SIZE as i32;
         let cols = (-border..TILE_SIZE as i32 + border).flat_map(|y| {
             (-border..TILE_SIZE as i32 + border)
                 .map(move |x| (twpos + Vec2::new(x, y), Vec2::new(x, y)))
         });
-        let calendar = None;
+        if let TileKind::Path { c, w } = &tile.kind {
+            let near_roads = CARDINALS.iter().filter_map(|rpos| {
+                let tile = self.tiles.get(tpos + rpos);
+                if tile.is_road() && !matches!(tile.kind, TileKind::Path { .. }) {
+                    Some(Aabr {
+                        min: self.tile_wpos(tpos).map(|e| e as f32),
+                        max: self.tile_wpos(tpos + 1).map(|e| e as f32),
+                    })
+                } else {
+                    None
+                }
+            });
+            cols.for_each(|(wpos2d, _offs)| {
+                let wpos2df = wpos2d.map(|e| e as f32);
+                let dist = near_roads
+                    .clone()
+                    .map(|aabr| aabr.distance_to_point(wpos2df))
+                    .min_by_key(|d| (*d * 100.0) as i32);
 
-        match &tile.kind {
-            TileKind::Plaza => {
-                let near_roads = CARDINALS.iter().filter_map(|rpos| {
-                    if self.tiles.get(tpos + rpos) == tile {
-                        Some(Aabr {
-                            min: self.tile_wpos(tpos).map(|e| e as f32),
-                            max: self.tile_wpos(tpos + 1).map(|e| e as f32),
-                        })
-                    } else {
-                        None
-                    }
-                });
-
-                cols.for_each(|(wpos2d, _offs)| {
-                    let wpos2df = wpos2d.map(|e| e as f32);
-                    let dist = near_roads
-                        .clone()
-                        .map(|aabr| aabr.distance_to_point(wpos2df))
-                        .min_by_key(|d| (*d * 100.0) as i32);
-
-                    if dist.is_some_and(|d| d <= 1.5) {
-                        let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
-                        let sub_surface_color = canvas
-                            .col(wpos2d)
-                            .map_or(Rgb::zero(), |col| col.sub_surface_color * 0.5);
-                        for z in -8..6 {
-                            canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
-                                if b.kind() == BlockKind::Snow {
-                                    b.into_vacant()
-                                } else if b.is_filled() {
-                                    if b.is_terrain() {
-                                        Block::new(
-                                            BlockKind::Earth,
-                                            (sub_surface_color * 255.0).as_(),
-                                        )
-                                    } else {
-                                        b
-                                    }
+                if c.distance_squared(wpos2d.as_()) < w.powi(2) || dist.is_some_and(|d| d <= 1.5) {
+                    let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
+                    let sub_surface_color = canvas
+                        .col(wpos2d)
+                        .map_or(Rgb::zero(), |col| col.sub_surface_color * 0.5);
+                    for z in -8..6 {
+                        canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
+                            if b.kind() == BlockKind::Snow {
+                                b.into_vacant()
+                            } else if b.is_filled() {
+                                if b.is_terrain() {
+                                    Block::new(BlockKind::Earth, (sub_surface_color * 255.0).as_())
                                 } else {
-                                    b.into_vacant()
+                                    b
                                 }
-                            })
-                        }
-                        if wpos2d == twpos_center && dynamic_rng.gen_bool(0.01) {
-                            let spec = [
-                                "common.entity.wild.peaceful.cat",
-                                "common.entity.wild.peaceful.dog",
-                            ]
-                            .choose(dynamic_rng)
-                            .unwrap();
-                            canvas.spawn(
-                                EntityInfo::at(Vec3::new(wpos2d.x, wpos2d.y, alt).as_())
-                                    .with_asset_expect(spec, dynamic_rng, calendar)
-                                    .with_alignment(Alignment::Tame),
-                            );
-                        }
-                    }
-                });
-            },
-            TileKind::Path { c, w } => {
-                let near_roads = CARDINALS.iter().filter_map(|rpos| {
-                    let tile = self.tiles.get(tpos + rpos);
-                    if tile.is_road() && !matches!(tile.kind, TileKind::Path { .. }) {
-                        Some(Aabr {
-                            min: self.tile_wpos(tpos).map(|e| e as f32),
-                            max: self.tile_wpos(tpos + 1).map(|e| e as f32),
+                            } else {
+                                b.into_vacant()
+                            }
                         })
-                    } else {
-                        None
                     }
-                });
-                cols.for_each(|(wpos2d, _offs)| {
-                    let wpos2df = wpos2d.map(|e| e as f32);
-                    let dist = near_roads
-                        .clone()
-                        .map(|aabr| aabr.distance_to_point(wpos2df))
-                        .min_by_key(|d| (*d * 100.0) as i32);
-
-                    if c.distance_squared(wpos2d.as_()) < w.powi(2)
-                        || dist.is_some_and(|d| d <= 1.5)
-                    {
-                        let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
-                        let sub_surface_color = canvas
-                            .col(wpos2d)
-                            .map_or(Rgb::zero(), |col| col.sub_surface_color * 0.5);
-                        for z in -8..6 {
-                            canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
-                                if b.kind() == BlockKind::Snow {
-                                    b.into_vacant()
-                                } else if b.is_filled() {
-                                    if b.is_terrain() {
-                                        Block::new(
-                                            BlockKind::Earth,
-                                            (sub_surface_color * 255.0).as_(),
-                                        )
-                                    } else {
-                                        b
-                                    }
-                                } else {
-                                    b.into_vacant()
-                                }
-                            })
-                        }
-                    }
-                });
-            },
-            _ => {},
+                }
+            });
         }
     }
 
     pub fn render(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
+        let mut spawn_buffer = Vec::new();
         canvas.foreach_col(|canvas, wpos2d, col| {
             let tile = self.wpos_tile(wpos2d);
             let seed = tile.plot.map_or(0, |p| self.plot(p).seed);
@@ -3011,9 +2981,21 @@ impl Site {
             for z_off in (-2..4).rev() {
                 if let Some(plot) = tile.plot.map(|p| &self.plots[p]) {
                     canvas.map_resource(
-                        Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z_off),
-                        |block| foreach_plot!(&plot.kind, plot => plot.terrain_surface_at(wpos2d, block, dynamic_rng, col, z_off, self).unwrap_or(block), block),
-                    )
+                        Vec3::new(wpos2d.x, wpos2d.y, foreach_plot!(&plot.kind, plot => plot.rel_terrain_offset(col)) + z_off),
+                        |block| foreach_plot!(
+                            &plot.kind,
+                            plot => plot.terrain_surface_at(
+                                wpos2d,
+                                block,
+                                dynamic_rng,
+                                col,
+                                z_off,
+                                self,
+                            ).unwrap_or(block),
+                        ),
+                    );
+
+                    canvas.entities.append(&mut spawn_buffer);
                 }
             }
         });
@@ -3030,7 +3012,7 @@ impl Site {
 
         for y in tile_aabr.min.y..tile_aabr.max.y {
             for x in tile_aabr.min.x..tile_aabr.max.x {
-                self.render_tile(canvas, dynamic_rng, Vec2::new(x, y));
+                self.render_tile(canvas, Vec2::new(x, y));
 
                 if let Some(plot) = self.tiles.get(Vec2::new(x, y)).plot {
                     plots.insert(plot);
@@ -3057,7 +3039,8 @@ impl Site {
         let info = canvas.info();
 
         for plot in plots_to_render {
-            let (prim_tree, fills, mut entities) = foreach_plot!(&self.plots[plot].kind, plot => plot.render_collect(self, canvas), continue);
+            let (prim_tree, fills, mut entities) =
+                foreach_plot!(&self.plots[plot].kind, plot => plot.render_collect(self, canvas));
 
             let mut spawn = |pos, last_block| {
                 if let Some(entity) = match &self.plots[plot].kind {
@@ -3197,5 +3180,3 @@ pub fn aabr_tiles(aabr: Aabr<i32>) -> impl Iterator<Item = Vec2<i32>> {
     (0..aabr.size().h)
         .flat_map(move |y| (0..aabr.size().w).map(move |x| aabr.min + Vec2::new(x, y)))
 }
-
-pub struct Plaza {}

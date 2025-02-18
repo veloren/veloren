@@ -107,7 +107,7 @@ impl Structure for House {
     fn render_inner(&self, site: &Site, _land: &Land, painter: &Painter) {
         let storey = STOREY;
         let roof = storey * self.levels as i32 - 1;
-        let foundations = 12;
+        let foundations = 20;
         let alt = self.alt + 1;
 
         // Roof

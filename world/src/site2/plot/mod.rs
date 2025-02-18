@@ -28,6 +28,7 @@ mod jungle_ruin;
 mod myrmidon_arena;
 mod myrmidon_house;
 mod pirate_hideout;
+mod plaza;
 mod road;
 mod rock_circle;
 mod sahagin;
@@ -74,6 +75,7 @@ pub use self::{
     myrmidon_arena::MyrmidonArena,
     myrmidon_house::MyrmidonHouse,
     pirate_hideout::PirateHideout,
+    plaza::Plaza,
     road::{Road, RoadKind},
     rock_circle::RockCircle,
     sahagin::Sahagin,
@@ -160,7 +162,7 @@ pub enum PlotKind {
     DesertCityAirshipDock(DesertCityAirshipDock),
     SeaChapel(SeaChapel),
     JungleRuin(JungleRuin),
-    Plaza,
+    Plaza(Plaza),
     Castle(Castle),
     Cultist(Cultist),
     Road(Road),
@@ -255,7 +257,7 @@ impl PlotKind {
             | PlotKind::JungleRuin(_)
             | PlotKind::DesertCityArena(_)
             | PlotKind::DesertCityMultiPlot(_)
-            | PlotKind::Plaza
+            | PlotKind::Plaza(_)
             | PlotKind::Castle(_)
             | PlotKind::Road(_)
             | PlotKind::GiantTree(_)
@@ -277,11 +279,11 @@ impl PlotKind {
 
 /// # Syntax
 /// ```ignore
-/// foreach_plot!(expr, plot => plot.something(), else_expr)
+/// foreach_plot!(expr, plot => plot.something())
 /// ```
 #[macro_export]
 macro_rules! foreach_plot {
-    ($p:expr, $x:ident => $y:expr, $z:expr) => {
+    ($p:expr, $x:ident => $y:expr $(,)?) => {
         match $p {
             PlotKind::House($x) => $y,
             PlotKind::AirshipDock($x) => $y,
@@ -295,7 +297,7 @@ macro_rules! foreach_plot {
             PlotKind::DesertCityArena($x) => $y,
             PlotKind::SeaChapel($x) => $y,
             PlotKind::JungleRuin($x) => $y,
-            PlotKind::Plaza => $z,
+            PlotKind::Plaza($x) => $y,
             PlotKind::Castle($x) => $y,
             PlotKind::Road($x) => $y,
             PlotKind::Gnarling($x) => $y,

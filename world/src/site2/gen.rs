@@ -1633,6 +1633,10 @@ pub trait Structure {
         )
     }
 
+    /// What `z_off` in `terrain_surface_at` should be relative to for each
+    /// column.
+    fn rel_terrain_offset(&self, col: &ColumnSample) -> i32 { col.alt as i32 }
+
     fn terrain_surface_at<R: Rng>(
         &self,
         _wpos: Vec2<i32>,

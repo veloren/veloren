@@ -624,6 +624,7 @@ impl Civs {
                     SiteKind::SavannahTown => {
                         WorldSite::savannah_town(site2::Site::generate_savannah_town(
                             &Land::from_sim(ctx.sim),
+                            index_ref,
                             &mut rng,
                             wpos,
                             &mut gen_meta,
@@ -632,6 +633,7 @@ impl Civs {
                     SiteKind::CoastalTown => {
                         WorldSite::coastal_town(site2::Site::generate_coastal_town(
                             &Land::from_sim(ctx.sim),
+                            index_ref,
                             &mut rng,
                             wpos,
                             &mut gen_meta,
@@ -663,6 +665,7 @@ impl Civs {
                     SiteKind::DesertCity => {
                         WorldSite::desert_city(site2::Site::generate_desert_city(
                             &Land::from_sim(ctx.sim),
+                            index_ref,
                             &mut rng,
                             wpos,
                             &mut gen_meta,
@@ -692,6 +695,7 @@ impl Civs {
                     SiteKind::Terracotta => {
                         WorldSite::terracotta(site2::Site::generate_terracotta(
                             &Land::from_sim(ctx.sim),
+                            index_ref,
                             &mut rng,
                             wpos,
                             &mut gen_meta,
@@ -753,6 +757,7 @@ impl Civs {
                     )),
                     SiteKind::Myrmidon => WorldSite::myrmidon(site2::Site::generate_myrmidon(
                         &Land::from_sim(ctx.sim),
+                        index_ref,
                         &mut rng,
                         wpos,
                         &mut gen_meta,
