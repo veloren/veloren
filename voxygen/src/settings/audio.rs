@@ -49,6 +49,9 @@ pub struct AudioSettings {
     pub music_spacing: f32,
     pub subtitles: bool,
     pub combat_music_enabled: bool,
+    /// The size of the sample buffer Kira uses. Increasing this may improve
+    /// audio performance at the cost of audio latency.
+    pub buffer_size: usize,
 
     /// Audio Device that Voxygen will use to play audio.
     pub output: AudioOutput,
@@ -62,12 +65,13 @@ impl Default for AudioSettings {
             music_volume: AudioVolume::new(0.5, false),
             sfx_volume: AudioVolume::new(0.8, false),
             ambience_volume: AudioVolume::new(0.8, false),
-            num_sfx_channels: 64,
+            num_sfx_channels: 48,
             num_ui_channels: 16,
             music_spacing: 1.0,
             subtitles: false,
             output: AudioOutput::Automatic,
             combat_music_enabled: false,
+            buffer_size: 256,
         }
     }
 }
