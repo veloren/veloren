@@ -89,17 +89,17 @@ impl RoomKind {
     /// Returns the (side length size range, area size range)
     fn size_range(&self) -> (RangeInclusive<i32>, RangeInclusive<i32>) {
         match self {
-            RoomKind::Garden => (4..=20, 25..=250),
-            RoomKind::Cellar => (5..=10, 26..=90),
-            RoomKind::StageRoom => (10..=20, 130..=400),
-            RoomKind::BarRoom => (7..=14, 56..=196),
-            RoomKind::EntranceRoom => (3..=10, 9..=50),
+            RoomKind::Garden => (5..=20, 35..=250),
+            RoomKind::Cellar => (6..=12, 35..=110),
+            RoomKind::StageRoom => (11..=22, 150..=400),
+            RoomKind::BarRoom => (9..=16, 80..=196),
+            RoomKind::EntranceRoom => (3..=7, 12..=40),
         }
     }
 
     fn chance(&self, room_counts: &EnumMap<RoomKind, u32>) -> f32 {
         match self {
-            RoomKind::Garden => 0.2 / (1.0 + room_counts[RoomKind::Garden] as f32 * 0.8),
+            RoomKind::Garden => 0.1 / (1.0 + room_counts[RoomKind::Garden] as f32 * 0.8),
             RoomKind::StageRoom => 2.0 / (1.0 + room_counts[RoomKind::StageRoom] as f32).powi(2),
             RoomKind::BarRoom => 2.0 / (1.0 + room_counts[RoomKind::BarRoom] as f32).powi(2),
             RoomKind::EntranceRoom => {
