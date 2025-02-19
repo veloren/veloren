@@ -12,7 +12,7 @@ pub use self::{
     location::Location,
     map::{sample_pos, sample_wpos},
     util::get_horizon_map,
-    way::{Cave, Path, Way},
+    way::{Path, Way},
 };
 pub(crate) use self::{
     erosion::{
@@ -737,7 +737,6 @@ impl WorldSim {
                 place: None,
                 poi: None,
                 path: Default::default(),
-                cave: Default::default(),
                 cliff_height: 0.0,
                 spot: None,
                 contains_waypoint: false,
@@ -2383,10 +2382,6 @@ impl WorldSim {
         self.get_nearest_way(wpos, |chunk| Some(chunk.path))
     }
 
-    pub fn get_nearest_cave(&self, wpos: Vec2<i32>) -> Option<(f32, Vec2<f32>, Cave, Vec2<f32>)> {
-        self.get_nearest_way(wpos, |chunk| Some(chunk.cave))
-    }
-
     /// Create a [`Lottery<Option<ForestKind>>`] that generates [`ForestKind`]s
     /// according to the conditions at the given position. If no or fewer
     /// trees are appropriate for the conditions, `None` may be generated.
@@ -2478,7 +2473,6 @@ pub struct SimChunk {
     pub poi: Option<Id<PointOfInterest>>,
 
     pub path: (Way, Path),
-    pub cave: (Way, Cave),
     pub cliff_height: f32,
     pub spot: Option<Spot>,
 
@@ -2735,7 +2729,6 @@ impl SimChunk {
             place: None,
             poi: None,
             path: Default::default(),
-            cave: Default::default(),
             cliff_height: 0.0,
             spot: None,
 

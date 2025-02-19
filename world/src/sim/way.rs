@@ -42,35 +42,3 @@ impl Path {
     /// Get the surface colour of a path given the surrounding surface color
     pub fn surface_color(&self, col: Rgb<u8>) -> Rgb<u8> { col.map(|e| (e as f32 * 0.7) as u8) }
 }
-
-#[derive(Copy, Clone, Debug)]
-pub struct Cave {
-    pub width: f32, // Actually radius
-    pub alt: f32,   // Actually radius
-    pub water_alt: i32,
-    pub water_dist: f32,
-}
-
-impl Default for Cave {
-    fn default() -> Self {
-        Self {
-            width: 32.0,
-            alt: 0.0,
-            water_alt: i32::MIN,
-            water_dist: f32::INFINITY,
-        }
-    }
-}
-
-impl Lerp for Cave {
-    type Output = Self;
-
-    fn lerp_unclamped(from: Self, to: Self, factor: f32) -> Self::Output {
-        Self {
-            width: Lerp::lerp(from.width, to.width, factor),
-            alt: Lerp::lerp(from.alt, to.alt, factor),
-            water_alt: from.water_alt.max(to.water_alt),
-            water_dist: Lerp::lerp(from.water_dist, to.water_dist, factor),
-        }
-    }
-}

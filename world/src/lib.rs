@@ -171,30 +171,34 @@ impl World {
     pub fn get_map_data(&self, index: IndexRef, threadpool: &rayon::ThreadPool) -> WorldMapMsg {
         prof_span!("World::get_map_data");
         threadpool.install(|| {
-            // we need these numbers to create unique ids for cave ends
-            let num_sites = self.civs().sites().count() as u64;
-            let num_caves = self.civs().caves.values().count() as u64;
             WorldMapMsg {
-                pois: self.civs().pois.iter().map(|(_, poi)| {
-                    world_msg::PoiInfo {
+                pois: self
+                    .civs()
+                    .pois
+                    .iter()
+                    .map(|(_, poi)| world_msg::PoiInfo {
                         name: poi.name.clone(),
                         kind: match &poi.kind {
                             civ::PoiKind::Peak(alt) => world_msg::PoiKind::Peak(*alt),
                             civ::PoiKind::Biome(size) => world_msg::PoiKind::Lake(*size),
                         },
                         wpos: poi.loc * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                    }
-                }).collect(),
+                    })
+                    .collect(),
                 sites: self
                     .civs()
                     .sites
                     .iter()
-                    .filter(|(_, site)| !matches!(&site.kind,
-                        civ::SiteKind::PirateHideout
-                        | civ::SiteKind::JungleRuin
-                        | civ::SiteKind::RockCircle
-                        | civ::SiteKind::TrollCave
-                        | civ::SiteKind::Camp))
+                    .filter(|(_, site)| {
+                        !matches!(
+                            &site.kind,
+                            civ::SiteKind::PirateHideout
+                                | civ::SiteKind::JungleRuin
+                                | civ::SiteKind::RockCircle
+                                | civ::SiteKind::TrollCave
+                                | civ::SiteKind::Camp
+                        )
+                    })
                     .map(|(_, site)| {
                         world_msg::SiteInfo {
                             id: site.site_tmp.map(|i| i.id()).unwrap_or_default(),
@@ -213,7 +217,9 @@ impl World {
                                 | civ::SiteKind::TrollCave
                                 | civ::SiteKind::Camp => world_msg::SiteKind::Town,
                                 civ::SiteKind::Castle => world_msg::SiteKind::Castle,
-                                civ::SiteKind::Tree | civ::SiteKind::GiantTree => world_msg::SiteKind::Tree,
+                                civ::SiteKind::Tree | civ::SiteKind::GiantTree => {
+                                    world_msg::SiteKind::Tree
+                                },
                                 // TODO: Maybe change?
                                 civ::SiteKind::Gnarling => world_msg::SiteKind::Gnarling,
                                 civ::SiteKind::DwarvenMine => world_msg::SiteKind::DwarvenMine,
@@ -233,30 +239,15 @@ impl World {
                         }
                     })
                     .chain(
-                        self.civs()
-                            .caves
-                            .iter()
-                            .flat_map(|(id, info)| {
-                                // separate the two locations, combine with name
-                                std::iter::once((id.id() + num_sites, info.name.clone(), info.location.0))
-                                    // unfortunately we have to introduce a fake id (as it gets stored in a map in the client)
-                                    .chain(std::iter::once((id.id() + num_sites + num_caves, info.name.clone(), info.location.1)))
-                            }) // unwrap inner iteration
-                            .map(|(id, name, pos)| world_msg::SiteInfo {
-                                id,
-                                name: Some(name),
+                        layer::cave::surface_entrances(&Land::from_sim(self.sim()))
+                            .enumerate()
+                            .map(|(i, wpos)| world_msg::SiteInfo {
+                                id: 65536 + i as u64, // Generate a fake ID, TODO: don't do this
+                                name: None,
                                 kind: world_msg::SiteKind::Cave,
-                                wpos: pos,
+                                wpos,
                             }),
                     )
-                    .chain(layer::cave::surface_entrances(&Land::from_sim(self.sim()))
-                        .enumerate()
-                        .map(|(i, wpos)| world_msg::SiteInfo {
-                            id: 65536 + i as u64, // Generate a fake ID, TODO: don't do this
-                            name: None,
-                            kind: world_msg::SiteKind::Cave,
-                            wpos,
-                        }))
                     .collect(),
                 possible_starting_sites: {
                     const STARTING_SITE_COUNT: usize = 5;
@@ -271,8 +262,9 @@ impl World {
 
                             let (site2, mut score) = match &index.sites[site_id].kind {
                                 SiteKind::Refactor(site2) => (site2, 2.0),
-                                // Non-town sites should not be chosen as starting sites and get a score of 0
-                                _ => return (site_id.id(), 0.0)
+                                // Non-town sites should not be chosen as starting sites and get a
+                                // score of 0
+                                _ => return (site_id.id(), 0.0),
                             };
 
                             /// Optimal number of plots in a starter town
@@ -281,36 +273,46 @@ impl World {
                             // Prefer sites of a medium size
                             let plots = site2.plots().len() as f32;
                             let size_score = if plots > OPTIMAL_STARTER_TOWN_SIZE {
-                                1.0 + (1.0 / (1.0 + ((plots - OPTIMAL_STARTER_TOWN_SIZE) / 15.0).powi(3)))
+                                1.0 + (1.0
+                                    / (1.0 + ((plots - OPTIMAL_STARTER_TOWN_SIZE) / 15.0).powi(3)))
                             } else {
-                               (2.05 / (1.0 + ((OPTIMAL_STARTER_TOWN_SIZE - plots) / 15.0).powi(5))) - 0.05
-                            }.max(0.01);
+                                (2.05
+                                    / (1.0 + ((OPTIMAL_STARTER_TOWN_SIZE - plots) / 15.0).powi(5)))
+                                    - 0.05
+                            }
+                            .max(0.01);
 
                             score *= size_score;
 
                             // Prefer sites that are close to the centre of the world
-                            let pos_score = (
-                                10.0 / (
-                                    1.0 + (
-                                        civ_site.center.map2(self.sim().get_size(),
-                                            |e, sz|
-                                            (e as f32 / sz as f32 - 0.5).abs() * 2.0).reduce_partial_max()
-                                    ).powi(6) * 25.0
-                                )
-                            ).max(0.02);
+                            let pos_score = (10.0
+                                / (1.0
+                                    + (civ_site
+                                        .center
+                                        .map2(self.sim().get_size(), |e, sz| {
+                                            (e as f32 / sz as f32 - 0.5).abs() * 2.0
+                                        })
+                                        .reduce_partial_max())
+                                    .powi(6)
+                                        * 25.0))
+                                .max(0.02);
                             score *= pos_score;
 
                             // Check if neighboring biomes are beginner friendly
                             let mut chunk_scores = 2.0;
-                            for (chunk, distance) in Spiral2d::with_radius(10)
-                                .filter_map(|rel_pos| {
+                            for (chunk, distance) in
+                                Spiral2d::with_radius(10).filter_map(|rel_pos| {
                                     let chunk_pos = civ_site.center + rel_pos * 2;
-                                    self.sim().get(chunk_pos).zip(Some(rel_pos.as_::<f32>().magnitude()))
+                                    self.sim()
+                                        .get(chunk_pos)
+                                        .zip(Some(rel_pos.as_::<f32>().magnitude()))
                                 })
                             {
                                 let weight = 1.0 / (distance * std::f32::consts::TAU + 1.0);
-                                let chunk_difficulty = 20.0 / (20.0 + chunk.get_biome().difficulty().pow(4) as f32 / 5.0);
-                                // let chunk_difficulty = 1.0 / chunk.get_biome().difficulty() as f32;
+                                let chunk_difficulty = 20.0
+                                    / (20.0 + chunk.get_biome().difficulty().pow(4) as f32 / 5.0);
+                                // let chunk_difficulty = 1.0 / chunk.get_biome().difficulty() as
+                                // f32;
 
                                 chunk_scores *= 1.0 - weight + chunk_difficulty * weight;
                             }
@@ -321,7 +323,11 @@ impl World {
                         })
                         .collect::<Vec<_>>();
                     candidates.sort_by_key(|(_, score)| -(*score * 1000.0) as i32);
-                    candidates.into_iter().map(|(site_id, _)| site_id).take(STARTING_SITE_COUNT).collect()
+                    candidates
+                        .into_iter()
+                        .map(|(site_id, _)| site_id)
+                        .take(STARTING_SITE_COUNT)
+                        .collect()
                 },
                 ..self.sim.get_map(index, self.sim().calendar.as_ref())
             }
@@ -410,13 +416,11 @@ impl World {
                 return Ok((self.sim().generate_oob_chunk(), ChunkSupplement::default()));
             },
         };
-
         let meta = TerrainChunkMeta::new(
             sim_chunk.get_location_name(&index.sites, &self.civs.pois, chunk_center_wpos2d),
             sim_chunk.get_biome(),
             sim_chunk.alt,
             sim_chunk.tree_density,
-            sim_chunk.cave.1.alt != 0.0,
             sim_chunk.river.is_river(),
             sim_chunk.river.near_water(),
             sim_chunk.river.velocity,
@@ -509,8 +513,7 @@ impl World {
             layer::apply_caverns_to(&mut canvas, &mut dynamic_rng);
         }
         if index.features.caves {
-            layer::apply_caves2_to(&mut canvas, &mut dynamic_rng);
-            // layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
+            layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
         }
         if index.features.rocks {
             layer::apply_rocks_to(&mut canvas, &mut dynamic_rng);
@@ -574,16 +577,6 @@ impl World {
                     .add_entity(EntityInfo::at(waypoint_pos).into_special(SpecialEntity::Waypoint));
             }
         }
-
-        // Apply layer supplement
-        layer::apply_caves_supplement(
-            &mut dynamic_rng,
-            chunk_wpos2d,
-            sample_get,
-            &chunk,
-            index,
-            &mut supplement,
-        );
 
         // Apply layer supplement
         layer::wildlife::apply_wildlife_supplement(
