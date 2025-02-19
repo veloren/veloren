@@ -2108,12 +2108,10 @@ impl Client {
         if let Some(position) = self.current::<comp::Pos>() {
             player_alt = position.0.z;
         }
-        //let mut contains_cave = false;
         let mut terrain_alt = 0.0;
         let mut site = None;
         if let Some(chunk) = self.current_chunk() {
             terrain_alt = chunk.meta().alt();
-            //contains_cave = chunk.meta().contains_cave();
             site = chunk.meta().site();
         }
         if player_alt < terrain_alt - 40.0 {

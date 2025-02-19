@@ -119,7 +119,6 @@ impl<'a> CanvasInfo<'a> {
             place: None,
             poi: None,
             path: Default::default(),
-            cave: Default::default(),
             cliff_height: 0.0,
             contains_waypoint: false,
             spot: None,

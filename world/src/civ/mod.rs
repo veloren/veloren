@@ -42,11 +42,6 @@ fn initial_civ_count(map_size_lg: MapSizeLg) -> u32 {
     cnt.max(1) // we need at least one civ in order to generate a starting site
 }
 
-pub struct CaveInfo {
-    pub location: (Vec2<i32>, Vec2<i32>),
-    pub name: String,
-}
-
 #[derive(Default)]
 pub struct Civs {
     pub civs: Store<Civ>,
@@ -63,7 +58,6 @@ pub struct Civs {
     pub bridges: DHashMap<Vec2<i32>, (Vec2<i32>, Id<Site>)>,
 
     pub sites: Store<Site>,
-    pub caves: Store<CaveInfo>,
     pub airships: Airships,
 }
 
@@ -826,141 +820,6 @@ impl Civs {
             .for_each(|(_, s)| s.economy.cache_economy());
 
         this
-    }
-
-    fn generate_caves(&mut self, ctx: &mut GenCtx<impl Rng>) {
-        let mut water_caves = Vec::new();
-        for _ in 0..ctx.sim.get_size().product() / 10_000 {
-            self.generate_cave(ctx, &mut water_caves);
-        }
-
-        // Floodfills cave water.
-        while let Some(loc) = water_caves.pop() {
-            let cave = ctx.sim.get(loc).unwrap().cave.1;
-            for l in NEIGHBORS {
-                let l = loc + l;
-                if let Some(o_cave) = ctx.sim.get_mut(l).map(|c| &mut c.cave.1) {
-                    // Contains cave
-                    if o_cave.alt != 0.0 {
-                        let should_fill = o_cave.water_alt < cave.water_alt
-                            && o_cave.alt - o_cave.width < cave.water_alt as f32;
-                        if should_fill {
-                            o_cave.water_alt = cave.water_alt;
-                            o_cave.water_dist = 0.0;
-                            water_caves.push(l);
-                        }
-                        // If we don't fill and the cave has no water, continue filling distance
-                        else if o_cave.water_alt == i32::MIN
-                            && o_cave.water_dist > cave.water_dist + 1.0
-                        {
-                            o_cave.water_dist = cave.water_dist + 1.0;
-                            water_caves.push(l);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // TODO: Move this
-    fn generate_cave(
-        &mut self,
-        ctx: &mut GenCtx<impl Rng>,
-        submerged_cave_chunks: &mut Vec<Vec2<i32>>,
-    ) {
-        let mut pos = ctx
-            .sim
-            .get_size()
-            .map(|sz| ctx.rng.gen_range(0..sz as i32) as f32);
-        let mut vel = pos
-            .map2(ctx.sim.get_size(), |pos, sz| sz as f32 / 2.0 - pos)
-            .try_normalized()
-            .unwrap_or_else(Vec2::unit_y);
-
-        let path = (-100..100)
-            .filter_map(|i: i32| {
-                let depth = (i.abs() as f32 / 100.0 * std::f32::consts::PI / 2.0).cos();
-                vel = (vel
-                    + Vec2::new(
-                        ctx.rng.gen_range(-0.35..0.35),
-                        ctx.rng.gen_range(-0.35..0.35),
-                    ))
-                .try_normalized()
-                .unwrap_or_else(Vec2::unit_y);
-                let old_pos = pos.map(|e| e as i32);
-                pos = (pos + vel * 0.5)
-                    .clamped(Vec2::zero(), ctx.sim.get_size().map(|e| e as f32 - 1.0));
-                Some((pos.map(|e| e as i32), depth)).filter(|(pos, _)| *pos != old_pos)
-            })
-            .collect::<Vec<_>>();
-
-        for locs in path.windows(3) {
-            let to_prev_idx = NEIGHBORS
-                .iter()
-                .enumerate()
-                .find(|(_, dir)| **dir == locs[0].0 - locs[1].0)
-                .expect("Track locations must be neighbors")
-                .0;
-            let to_next_idx = NEIGHBORS
-                .iter()
-                .enumerate()
-                .find(|(_, dir)| **dir == locs[2].0 - locs[1].0)
-                .expect("Track locations must be neighbors")
-                .0;
-
-            ctx.sim.get_mut(locs[0].0).unwrap().cave.0.neighbors |=
-                1 << ((to_prev_idx as u8 + 4) % 8);
-            ctx.sim.get_mut(locs[1].0).unwrap().cave.0.neighbors |=
-                (1 << (to_prev_idx as u8)) | (1 << (to_next_idx as u8));
-            ctx.sim.get_mut(locs[2].0).unwrap().cave.0.neighbors |=
-                1 << ((to_next_idx as u8 + 4) % 8);
-        }
-        for loc in path.iter() {
-            let chunk = ctx.sim.get_mut(loc.0).unwrap();
-            let depth = loc.1 * 250.0 - 20.0;
-            chunk.cave.1.alt =
-                chunk.alt - depth + ctx.rng.gen_range(-4.0..4.0) * (depth > 10.0) as i32 as f32;
-            chunk.cave.1.width = ctx.rng.gen_range(6.0..32.0);
-            chunk.cave.0.offset = Vec2::new(ctx.rng.gen_range(-16..17), ctx.rng.gen_range(-16..17));
-
-            if chunk.cave.1.alt + chunk.cave.1.width + 5.0 > chunk.alt {
-                chunk.spawn_rate = 0.0;
-            }
-            let cave_min_alt = chunk.cave.1.alt - chunk.cave.1.width;
-            let cave_max_alt = chunk.cave.1.alt + chunk.cave.1.width;
-
-            let submerged = chunk.alt - 2.0 < chunk.water_alt
-                && chunk.alt < cave_max_alt
-                && cave_min_alt < chunk.water_alt
-                && chunk.river.near_water()
-                // Only do this for caves at the sea level for now.
-                // The reason being that floodfilling from a water alt to an alt lower than the water alt causes problems.
-                && chunk.water_alt <= CONFIG.sea_level;
-            if submerged {
-                submerged_cave_chunks.push(loc.0);
-                chunk.cave.1.water_alt = chunk.water_alt as i32;
-                chunk.cave.1.water_dist = 0.0;
-            }
-        }
-
-        self.caves.insert(CaveInfo {
-            location: (
-                path.first().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32),
-                path.last().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32),
-            ),
-            name: {
-                let name = NameGen::location(&mut ctx.rng).generate();
-                match ctx.rng.gen_range(0..7) {
-                    0 => format!("{} Hole", name),
-                    1 => format!("{} Cavern", name),
-                    2 => format!("{} Hollow", name),
-                    3 => format!("{} Tunnel", name),
-                    4 => format!("{} Mouth", name),
-                    5 => format!("{} Grotto", name),
-                    _ => format!("{} Den", name),
-                }
-            },
-        });
     }
 
     pub fn place(&self, id: Id<Place>) -> &Place { self.places.get(id) }

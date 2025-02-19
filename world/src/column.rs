@@ -1,7 +1,7 @@
 use crate::{
     CONFIG, IndexRef,
     all::ForestKind,
-    sim::{Cave, Path, RiverKind, SimChunk, WorldSim, local_cells},
+    sim::{Path, RiverKind, SimChunk, WorldSim, local_cells},
     site::SpawnRules,
     util::{RandomField, RandomPerm, Sampler},
 };
@@ -1194,7 +1194,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             None
         };
-        let cave = sim.get_nearest_cave(wpos);
 
         let ice_depth = if snow_factor < -0.25
             && water_vel.magnitude_squared() < (0.1f32 + marble_mid * 0.2).powi(2)
@@ -1258,7 +1257,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             water_dist,
             gradient,
             path,
-            cave,
             snow_cover,
             cliff_offset,
             cliff_height,
@@ -1293,7 +1291,6 @@ pub struct ColumnSample<'a> {
     pub water_dist: Option<f32>,
     pub gradient: Option<f32>,
     pub path: Option<(f32, Vec2<f32>, Path, Vec2<f32>)>,
-    pub cave: Option<(f32, Vec2<f32>, Cave, Vec2<f32>)>,
     pub snow_cover: bool,
     pub cliff_offset: f32,
     pub cliff_height: f32,
