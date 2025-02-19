@@ -120,7 +120,7 @@ impl PrioManager {
 
         if cur_bytes < total_bytes {
             // Add optional bandwidth
-            for prio in 0..=HIGHEST_PRIO {
+            'outer: for prio in 0..=HIGHEST_PRIO {
                 if prios[prio as usize] == 0 {
                     continue;
                 }
@@ -131,7 +131,7 @@ impl PrioManager {
                     }
                     process_stream(sid, stream, per_stream_bytes, &mut cur_bytes);
                     if cur_bytes >= total_bytes {
-                        break;
+                        break 'outer;
                     }
                 }
             }
