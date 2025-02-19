@@ -6,7 +6,7 @@ ComboMelee2(
                     damage: 13,
                     poise: 5,
                     knockback: 0,
-                    energy_regen: 4,
+                    energy_regen: 0,
                 ),
                 range: 3.0,
                 angle: 45.0,
