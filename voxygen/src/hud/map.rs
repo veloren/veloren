@@ -10,7 +10,7 @@ use crate::{
     ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts, img_ids},
     window::KeyMouse,
 };
-use client::{self, Client, SiteInfoRich};
+use client::{self, Client, SiteMarker};
 use common::{
     comp,
     comp::group::Role,
@@ -18,7 +18,7 @@ use common::{
     trade::Good,
     vol::RectVolSize,
 };
-use common_net::msg::world_msg::{PoiKind, SiteId, SiteKind};
+use common_net::msg::world_msg::{MarkerKind, PoiKind, SiteId};
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     input::MouseButton as ConrodMouseButton,
@@ -173,10 +173,9 @@ pub enum Event {
     RemoveMarker,
 }
 
-fn get_site_economy(site_rich: &SiteInfoRich) -> String {
+fn get_site_economy(site: &SiteMarker) -> String {
     if SHOW_ECONOMY {
-        let site = &site_rich.site;
-        if let Some(economy) = &site_rich.economy {
+        if let Some(economy) = &site.economy {
             use common::trade::Good::{Armor, Coin, Food, Ingredients, Potions, Tools};
             let mut result = format!("\n\nPopulation {:?}", economy.population);
             result += "\nStock";
@@ -199,7 +198,7 @@ fn get_site_economy(site_rich: &SiteInfoRich) -> String {
             }
             result
         } else {
-            format!("\nloading economy for\n{:?}", site.id)
+            format!("\nloading economy for\n{:?}", site.marker.id)
         }
     } else {
         "".into()
@@ -895,20 +894,20 @@ impl Widget for Map<'_> {
                     .resize(self.client.pois().len(), &mut ui.widget_id_generator())
             });
         }
-        if state.ids.mmap_site_icons.len() < self.client.sites().len() {
+        if state.ids.mmap_site_icons.len() < self.client.markers().len() {
             state.update(|state| {
                 state
                     .ids
                     .mmap_site_icons
-                    .resize(self.client.sites().len(), &mut ui.widget_id_generator())
+                    .resize(self.client.markers().len(), &mut ui.widget_id_generator())
             });
         }
-        if state.ids.site_difs.len() < self.client.sites().len() {
+        if state.ids.site_difs.len() < self.client.markers().len() {
             state.update(|state| {
                 state
                     .ids
                     .site_difs
-                    .resize(self.client.sites().len(), &mut ui.widget_id_generator())
+                    .resize(self.client.markers().len(), &mut ui.widget_id_generator())
             });
         }
 
@@ -938,13 +937,11 @@ impl Widget for Map<'_> {
                 }
             };
 
-        for (i, site_rich) in self.client.sites().values().enumerate() {
-            let site = &site_rich.site;
-
+        for (i, marker) in self.client.markers().enumerate() {
             let rside = zoom as f32 * 8.0 * 1.2;
 
             let (rpos, fade) = match wpos_to_rpos_fade(
-                site.wpos.map(|e| e as f32),
+                marker.wpos.map(|e| e as f32),
                 Vec2::from(rside / 2.0),
                 rside / 2.0,
             ) {
@@ -952,65 +949,71 @@ impl Widget for Map<'_> {
                 None => continue,
             };
 
-            let title =
-                site.name
-                    .as_deref()
-                    .map(Cow::Borrowed)
-                    .unwrap_or_else(|| match &site.kind {
-                        SiteKind::Town => i18n.get_msg("hud-map-town"),
-                        SiteKind::Castle => i18n.get_msg("hud-map-castle"),
-                        SiteKind::Cave => i18n.get_msg("hud-map-cave"),
-                        SiteKind::Tree => i18n.get_msg("hud-map-tree"),
-                        SiteKind::Gnarling => i18n.get_msg("hud-map-gnarling"),
-                        SiteKind::ChapelSite => i18n.get_msg("hud-map-chapel_site"),
-                        SiteKind::Terracotta => i18n.get_msg("hud-map-terracotta"),
-                        SiteKind::Bridge => i18n.get_msg("hud-map-bridge"),
-                        SiteKind::GliderCourse => i18n.get_msg("hud-map-glider_course"),
-                        SiteKind::Adlet => i18n.get_msg("hud-map-adlet"),
-                        SiteKind::Haniwa => i18n.get_msg("hud-map-haniwa"),
-                        SiteKind::Cultist => i18n.get_msg("hud-map-cultist"),
-                        SiteKind::Sahagin => i18n.get_msg("hud-map-sahagin"),
-                        SiteKind::Myrmidon => i18n.get_msg("hud-map-myrmidon"),
-                        SiteKind::DwarvenMine => i18n.get_msg("hud-map-df_mine"),
-                        SiteKind::VampireCastle => i18n.get_msg("hud-map-vampire_castle"),
-                    });
-            let (difficulty, desc) = match &site.kind {
-                SiteKind::Town => (None, i18n.get_msg("hud-map-town")),
-                SiteKind::Castle => (None, i18n.get_msg("hud-map-castle")),
-                SiteKind::Cave => (None, i18n.get_msg("hud-map-cave")),
-                SiteKind::Tree => (None, i18n.get_msg("hud-map-tree")),
-                SiteKind::Gnarling => (Some(0), i18n.get_msg("hud-map-gnarling")),
-                SiteKind::Terracotta => (Some(5), i18n.get_msg("hud-map-terracotta")),
-                SiteKind::ChapelSite => (Some(4), i18n.get_msg("hud-map-chapel_site")),
-                SiteKind::Bridge => (None, i18n.get_msg("hud-map-bridge")),
-                SiteKind::GliderCourse => (None, i18n.get_msg("hud-map-glider_course")),
-                SiteKind::Adlet => (Some(1), i18n.get_msg("hud-map-adlet")),
-                SiteKind::Haniwa => (Some(3), i18n.get_msg("hud-map-haniwa")),
-                SiteKind::Cultist => (Some(5), i18n.get_msg("hud-map-cultist")),
-                SiteKind::Sahagin => (Some(2), i18n.get_msg("hud-map-sahagin")),
-                SiteKind::Myrmidon => (Some(4), i18n.get_msg("hud-map-myrmidon")),
-                SiteKind::DwarvenMine => (Some(5), i18n.get_msg("hud-map-df_mine")),
-                SiteKind::VampireCastle => (Some(3), i18n.get_msg("hud-map-vampire_castle")),
+            let title = marker
+                .name
+                .as_deref()
+                .map(Cow::Borrowed)
+                .unwrap_or_else(|| match &marker.kind {
+                    MarkerKind::Town => i18n.get_msg("hud-map-town"),
+                    MarkerKind::Castle => i18n.get_msg("hud-map-castle"),
+                    MarkerKind::Cave => i18n.get_msg("hud-map-cave"),
+                    MarkerKind::Tree => i18n.get_msg("hud-map-tree"),
+                    MarkerKind::Gnarling => i18n.get_msg("hud-map-gnarling"),
+                    MarkerKind::ChapelSite => i18n.get_msg("hud-map-chapel_site"),
+                    MarkerKind::Terracotta => i18n.get_msg("hud-map-terracotta"),
+                    MarkerKind::Bridge => i18n.get_msg("hud-map-bridge"),
+                    MarkerKind::GliderCourse => i18n.get_msg("hud-map-glider_course"),
+                    MarkerKind::Adlet => i18n.get_msg("hud-map-adlet"),
+                    MarkerKind::Haniwa => i18n.get_msg("hud-map-haniwa"),
+                    MarkerKind::Cultist => i18n.get_msg("hud-map-cultist"),
+                    MarkerKind::Sahagin => i18n.get_msg("hud-map-sahagin"),
+                    MarkerKind::Myrmidon => i18n.get_msg("hud-map-myrmidon"),
+                    MarkerKind::DwarvenMine => i18n.get_msg("hud-map-df_mine"),
+                    MarkerKind::VampireCastle => i18n.get_msg("hud-map-vampire_castle"),
+                });
+            let (difficulty, desc) = match &marker.kind {
+                MarkerKind::Town => (None, i18n.get_msg("hud-map-town")),
+                MarkerKind::Castle => (None, i18n.get_msg("hud-map-castle")),
+                MarkerKind::Cave => (None, i18n.get_msg("hud-map-cave")),
+                MarkerKind::Tree => (None, i18n.get_msg("hud-map-tree")),
+                MarkerKind::Gnarling => (Some(0), i18n.get_msg("hud-map-gnarling")),
+                MarkerKind::Terracotta => (Some(5), i18n.get_msg("hud-map-terracotta")),
+                MarkerKind::ChapelSite => (Some(4), i18n.get_msg("hud-map-chapel_site")),
+                MarkerKind::Bridge => (None, i18n.get_msg("hud-map-bridge")),
+                MarkerKind::GliderCourse => (None, i18n.get_msg("hud-map-glider_course")),
+                MarkerKind::Adlet => (Some(1), i18n.get_msg("hud-map-adlet")),
+                MarkerKind::Haniwa => (Some(3), i18n.get_msg("hud-map-haniwa")),
+                MarkerKind::Cultist => (Some(5), i18n.get_msg("hud-map-cultist")),
+                MarkerKind::Sahagin => (Some(2), i18n.get_msg("hud-map-sahagin")),
+                MarkerKind::Myrmidon => (Some(4), i18n.get_msg("hud-map-myrmidon")),
+                MarkerKind::DwarvenMine => (Some(5), i18n.get_msg("hud-map-df_mine")),
+                MarkerKind::VampireCastle => (Some(3), i18n.get_msg("hud-map-vampire_castle")),
             };
-            let desc = desc.into_owned() + &get_site_economy(site_rich);
-            let site_btn = Button::image(match &site.kind {
-                SiteKind::Town => self.imgs.mmap_site_town,
-                SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
-                SiteKind::Terracotta => self.imgs.mmap_site_terracotta,
-                SiteKind::Castle => self.imgs.mmap_site_castle,
-                SiteKind::Cave => self.imgs.mmap_site_cave,
-                SiteKind::Tree => self.imgs.mmap_site_tree,
-                SiteKind::Gnarling => self.imgs.mmap_site_gnarling,
-                SiteKind::Adlet => self.imgs.mmap_site_adlet,
-                SiteKind::Haniwa => self.imgs.mmap_site_haniwa,
-                SiteKind::Cultist => self.imgs.mmap_site_cultist,
-                SiteKind::Sahagin => self.imgs.mmap_site_sahagin,
-                SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon,
-                SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
-                SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
+            let desc = if let Some(site_id) = marker.id
+                && let Some(site) = self.client.sites().get(&site_id)
+            {
+                desc.into_owned() + &get_site_economy(site)
+            } else {
+                desc.into_owned()
+            };
+            let site_btn = Button::image(match &marker.kind {
+                MarkerKind::Town => self.imgs.mmap_site_town,
+                MarkerKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
+                MarkerKind::Terracotta => self.imgs.mmap_site_terracotta,
+                MarkerKind::Castle => self.imgs.mmap_site_castle,
+                MarkerKind::Cave => self.imgs.mmap_site_cave,
+                MarkerKind::Tree => self.imgs.mmap_site_tree,
+                MarkerKind::Gnarling => self.imgs.mmap_site_gnarling,
+                MarkerKind::Adlet => self.imgs.mmap_site_adlet,
+                MarkerKind::Haniwa => self.imgs.mmap_site_haniwa,
+                MarkerKind::Cultist => self.imgs.mmap_site_cultist,
+                MarkerKind::Sahagin => self.imgs.mmap_site_sahagin,
+                MarkerKind::Myrmidon => self.imgs.mmap_site_myrmidon,
+                MarkerKind::DwarvenMine => self.imgs.mmap_site_mine,
+                MarkerKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
 
-                SiteKind::Bridge => self.imgs.mmap_site_bridge,
-                SiteKind::GliderCourse => self.imgs.mmap_site_glider_course,
+                MarkerKind::Bridge => self.imgs.mmap_site_bridge,
+                MarkerKind::GliderCourse => self.imgs.mmap_site_glider_course,
             })
             .x_y_position_relative_to(
                 state.ids.map_layers[0],
@@ -1018,23 +1021,23 @@ impl Widget for Map<'_> {
                 position::Relative::Scalar(rpos.y as f64),
             )
             .w_h(rside as f64, rside as f64)
-            .hover_image(match &site.kind {
-                SiteKind::Town => self.imgs.mmap_site_town_hover,
-                SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel_hover,
-                SiteKind::Terracotta => self.imgs.mmap_site_terracotta_hover,
-                SiteKind::Castle => self.imgs.mmap_site_castle_hover,
-                SiteKind::Cave => self.imgs.mmap_site_cave_hover,
-                SiteKind::Tree => self.imgs.mmap_site_tree_hover,
-                SiteKind::Gnarling => self.imgs.mmap_site_gnarling_hover,
-                SiteKind::Adlet => self.imgs.mmap_site_adlet_hover,
-                SiteKind::Haniwa => self.imgs.mmap_site_haniwa_hover,
-                SiteKind::Cultist => self.imgs.mmap_site_cultist_hover,
-                SiteKind::Sahagin => self.imgs.mmap_site_sahagin_hover,
-                SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon_hover,
-                SiteKind::DwarvenMine => self.imgs.mmap_site_mine_hover,
-                SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle_hover,
-                SiteKind::Bridge => self.imgs.mmap_site_bridge_hover,
-                SiteKind::GliderCourse => self.imgs.mmap_site_glider_course_hover,
+            .hover_image(match &marker.kind {
+                MarkerKind::Town => self.imgs.mmap_site_town_hover,
+                MarkerKind::ChapelSite => self.imgs.mmap_site_sea_chapel_hover,
+                MarkerKind::Terracotta => self.imgs.mmap_site_terracotta_hover,
+                MarkerKind::Castle => self.imgs.mmap_site_castle_hover,
+                MarkerKind::Cave => self.imgs.mmap_site_cave_hover,
+                MarkerKind::Tree => self.imgs.mmap_site_tree_hover,
+                MarkerKind::Gnarling => self.imgs.mmap_site_gnarling_hover,
+                MarkerKind::Adlet => self.imgs.mmap_site_adlet_hover,
+                MarkerKind::Haniwa => self.imgs.mmap_site_haniwa_hover,
+                MarkerKind::Cultist => self.imgs.mmap_site_cultist_hover,
+                MarkerKind::Sahagin => self.imgs.mmap_site_sahagin_hover,
+                MarkerKind::Myrmidon => self.imgs.mmap_site_myrmidon_hover,
+                MarkerKind::DwarvenMine => self.imgs.mmap_site_mine_hover,
+                MarkerKind::VampireCastle => self.imgs.mmap_site_vampire_castle_hover,
+                MarkerKind::Bridge => self.imgs.mmap_site_bridge_hover,
+                MarkerKind::GliderCourse => self.imgs.mmap_site_glider_course_hover,
             })
             .image_color(UI_HIGHLIGHT_0.alpha(fade))
             .with_tooltip(
@@ -1042,17 +1045,17 @@ impl Widget for Map<'_> {
                 &title,
                 &desc,
                 &site_tooltip,
-                match &site.kind {
-                    SiteKind::Gnarling
-                    | SiteKind::ChapelSite
-                    | SiteKind::Terracotta
-                    | SiteKind::Adlet
-                    | SiteKind::VampireCastle
-                    | SiteKind::Haniwa
-                    | SiteKind::Cultist
-                    | SiteKind::Sahagin
-                    | SiteKind::Myrmidon
-                    | SiteKind::DwarvenMine => match difficulty {
+                match &marker.kind {
+                    MarkerKind::Gnarling
+                    | MarkerKind::ChapelSite
+                    | MarkerKind::Terracotta
+                    | MarkerKind::Adlet
+                    | MarkerKind::VampireCastle
+                    | MarkerKind::Haniwa
+                    | MarkerKind::Cultist
+                    | MarkerKind::Sahagin
+                    | MarkerKind::Myrmidon
+                    | MarkerKind::DwarvenMine => match difficulty {
                         Some(0) => QUALITY_LOW,
                         Some(1) => QUALITY_COMMON,
                         Some(2) => QUALITY_MODERATE,
@@ -1066,36 +1069,41 @@ impl Widget for Map<'_> {
 
             handle_widget_mouse_events(
                 state.ids.mmap_site_icons[i],
-                MarkerChange::Pos(site.wpos.map(|e| e as f32)),
+                MarkerChange::Pos(marker.wpos.map(|e| e as f32)),
                 ui,
                 &mut events,
                 state.ids.map_layers[0],
             );
 
             // Only display sites that are toggled on
-            let show_site = match &site.kind {
-                SiteKind::Town => show_towns,
-                SiteKind::Gnarling
-                | SiteKind::ChapelSite
-                | SiteKind::DwarvenMine
-                | SiteKind::Haniwa
-                | SiteKind::Cultist
-                | SiteKind::Sahagin
-                | SiteKind::Myrmidon
-                | SiteKind::Terracotta
-                | SiteKind::Adlet
-                | SiteKind::VampireCastle => show_dungeons,
-                SiteKind::Castle => show_castles,
-                SiteKind::Cave => show_caves,
-                SiteKind::Tree => show_trees,
-                SiteKind::Bridge => show_bridges,
-                SiteKind::GliderCourse => show_glider_courses,
+            let show_site = match &marker.kind {
+                MarkerKind::Town => show_towns,
+                MarkerKind::Gnarling
+                | MarkerKind::ChapelSite
+                | MarkerKind::DwarvenMine
+                | MarkerKind::Haniwa
+                | MarkerKind::Cultist
+                | MarkerKind::Sahagin
+                | MarkerKind::Myrmidon
+                | MarkerKind::Terracotta
+                | MarkerKind::Adlet
+                | MarkerKind::VampireCastle => show_dungeons,
+                MarkerKind::Castle => show_castles,
+                MarkerKind::Cave => show_caves,
+                MarkerKind::Tree => show_trees,
+                MarkerKind::Bridge => show_bridges,
+                MarkerKind::GliderCourse => show_glider_courses,
             };
             if show_site {
                 let tooltip_visible = site_btn.set_ext(state.ids.mmap_site_icons[i], ui).1;
 
-                if SHOW_ECONOMY && tooltip_visible && site_rich.economy.is_none() {
-                    events.push(Event::RequestSiteInfo(site.id));
+                if SHOW_ECONOMY
+                    && tooltip_visible
+                    && let Some(site_id) = marker.id
+                    && let Some(site) = self.client.sites().get(&site_id)
+                    && site.economy.is_none()
+                {
+                    events.push(Event::RequestSiteInfo(site_id));
                 }
             }
 
@@ -1136,51 +1144,51 @@ impl Widget for Map<'_> {
                     Some(4 | 5) => QUALITY_EPIC, // Change this whenever difficulty is fixed
                     _ => TEXT_COLOR,
                 }));
-                match &site.kind {
-                    SiteKind::Town => {
+                match &marker.kind {
+                    MarkerKind::Town => {
                         if show_towns {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Gnarling
-                    | SiteKind::ChapelSite
-                    | SiteKind::Haniwa
-                    | SiteKind::Cultist
-                    | SiteKind::Sahagin
-                    | SiteKind::Myrmidon
-                    | SiteKind::Terracotta
-                    | SiteKind::Adlet
-                    | SiteKind::VampireCastle => {
+                    MarkerKind::Gnarling
+                    | MarkerKind::ChapelSite
+                    | MarkerKind::Haniwa
+                    | MarkerKind::Cultist
+                    | MarkerKind::Sahagin
+                    | MarkerKind::Myrmidon
+                    | MarkerKind::Terracotta
+                    | MarkerKind::Adlet
+                    | MarkerKind::VampireCastle => {
                         if show_dungeons {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::DwarvenMine => {
+                    MarkerKind::DwarvenMine => {
                         if show_dungeons {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Castle => {
+                    MarkerKind::Castle => {
                         if show_castles {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Cave => {
+                    MarkerKind::Cave => {
                         if show_caves {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Tree => {
+                    MarkerKind::Tree => {
                         if show_trees {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Bridge => {
+                    MarkerKind::Bridge => {
                         if show_bridges {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::GliderCourse => {
+                    MarkerKind::GliderCourse => {
                         if show_glider_courses {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
@@ -1189,7 +1197,7 @@ impl Widget for Map<'_> {
 
                 handle_widget_mouse_events(
                     state.ids.site_difs[i],
-                    MarkerChange::Pos(site.wpos.map(|e| e as f32)),
+                    MarkerChange::Pos(marker.wpos.map(|e| e as f32)),
                     ui,
                     &mut events,
                     state.ids.map_layers[0],

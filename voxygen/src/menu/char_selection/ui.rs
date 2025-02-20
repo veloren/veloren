@@ -30,7 +30,7 @@ use common::{
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
-use common_net::msg::world_msg::{SiteId, SiteInfo};
+use common_net::msg::world_msg::{Marker, SiteId};
 use i18n::{Localization, LocalizationHandle};
 use rand::{Rng, thread_rng};
 //ImageFrame, Tooltip,
@@ -318,7 +318,7 @@ struct Controls {
     selected: Option<CharacterId>,
     default_name: String,
     map_img: GraphicId,
-    possible_starting_sites: Vec<SiteInfo>,
+    possible_starting_sites: Vec<Marker>,
     world_sz: Vec2<u32>,
     has_rules: bool,
 }
@@ -369,7 +369,7 @@ impl Controls {
         default_name: String,
         server_info: &ServerInfo,
         map_img: GraphicId,
-        possible_starting_sites: Vec<SiteInfo>,
+        possible_starting_sites: Vec<Marker>,
         world_sz: Vec2<u32>,
         has_rules: bool,
     ) -> Self {
@@ -1874,7 +1874,7 @@ impl Controls {
                         start_site: self
                             .possible_starting_sites
                             .get(start_site_idx.unwrap_or_default())
-                            .map(|info| info.id),
+                            .and_then(|info| info.id),
                     });
                     self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
                 }
@@ -2108,7 +2108,7 @@ impl CharSelectionUi {
                 .possible_starting_sites()
                 .iter()
                 .filter_map(|site_id| client.sites().get(site_id))
-                .map(|info| info.site.clone())
+                .map(|info| info.marker.clone())
                 .collect(),
             client.world_data().chunk_size().as_(),
             client.server_description().rules.is_some(),

@@ -120,7 +120,7 @@ pub struct WorldMapMsg {
     /// angles, or that we don't need as much precision as we currently have
     /// (256 possible angles).
     pub horizons: [(Vec<u8>, Vec<u8>); 2],
-    pub sites: Vec<SiteInfo>,
+    pub sites: Vec<Marker>,
     pub possible_starting_sites: Vec<SiteId>,
     pub pois: Vec<PoiInfo>,
     /// Default chunk (representing the ocean outside the map bounds).  Sea
@@ -132,16 +132,16 @@ pub struct WorldMapMsg {
 pub type SiteId = common::trade::SiteId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SiteInfo {
-    pub id: SiteId,
-    pub kind: SiteKind,
+pub struct Marker {
+    pub id: Option<SiteId>,
+    pub kind: MarkerKind,
     pub wpos: Vec2<i32>,
     pub name: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[repr(u8)]
-pub enum SiteKind {
+pub enum MarkerKind {
     Town,
     Castle,
     Cave,

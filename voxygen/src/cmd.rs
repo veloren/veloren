@@ -665,9 +665,9 @@ fn complete_site(mut part: &str, client: &Client) -> Vec<String> {
     client
         .sites()
         .values()
-        .filter_map(|site| match site.site.kind {
-            common_net::msg::world_msg::SiteKind::Cave => None,
-            _ => site.site.name.as_ref(),
+        .filter_map(|site| match site.marker.kind {
+            common_net::msg::world_msg::MarkerKind::Cave => None,
+            _ => site.marker.name.as_ref(),
         })
         .filter(|name| name.starts_with(part))
         .map(|name| {
