@@ -737,10 +737,12 @@ impl Inventory {
         if self.item_count(item_def) >= amount {
             let mut removed_items = Vec::new();
             for slot in self.slots_mut() {
-                return if amount == 0 {
+                if amount == 0 {
                     // We've collected enough
-                    Some(removed_items)
-                } else if let Some(item) = slot {
+                    return Some(removed_items);
+                } else if let Some(item) = slot
+                    && item.is_same_item_def(item_def)
+                {
                     if amount < item.amount() as u64 {
                         // Remove just the amount we need to finish off
                         // Note: Unwrap is fine, we've already checked that amount > 0
@@ -748,16 +750,13 @@ impl Inventory {
                         // less than the existing amount
                         removed_items
                             .push(item.take_amount(ability_map, msm, amount as u32).unwrap());
-                        Some(removed_items)
+                        return Some(removed_items);
                     } else {
                         // Take the whole item and keep going
                         amount -= item.amount() as u64;
                         removed_items.push(slot.take().unwrap());
-                        continue;
                     }
-                } else {
-                    continue;
-                };
+                }
             }
             Some(removed_items)
         } else {
