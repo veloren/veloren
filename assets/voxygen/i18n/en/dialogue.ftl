@@ -21,6 +21,7 @@ dialogue-buy_hire_days = { $days ->
 }
 dialogue-cancel_interaction = I've changed my mind.
 
-dialogue-direction-tavern = The nearest tavern
+dialogue-direction-tavern = The local tavern
 dialogue-direction-plaza = The nearest town square
-dialogue-direction-workshop = The nearest workshop
+dialogue-direction-workshop = A workshop
+dialogue-direction-airship_dock = The airship dock

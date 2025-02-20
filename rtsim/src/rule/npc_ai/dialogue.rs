@@ -190,80 +190,44 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
         if let Some(current_site) = ctx.npc.current_site
             && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
         {
-            // The nearest tavern
+            let direction_to_nearest = |f: fn(&&world::site2::Plot) -> bool| {
+                now(move |ctx, _| {
+                    if let Some(ws) = ctx.index.sites.get(ws_id).site2() {
+                        if let Some(p) = ws.plots().filter(f).min_by_key(|p| {
+                            ws.tile_center_wpos(p.root_tile())
+                                .distance_squared(ctx.npc.wpos.xy().as_())
+                        }) {
+                            ctx.controller.dialogue_marker(
+                                session,
+                                ws.tile_center_wpos(p.root_tile()),
+                                Content::localized("hud-map-plaza"),
+                            );
+                            session.say_statement(Content::localized("npc-response-directions"))
+                        } else {
+                            session.say_statement(Content::localized("npc-response-doesnt_exist"))
+                        }
+                    } else {
+                        session.say_statement(Content::localized("npc-info-unknown"))
+                    }
+                })
+                .boxed()
+            };
+
             responses.push((
                 Content::localized("dialogue-direction-tavern"),
-                now(move |ctx, _| {
-                    if let Some(ws) = ctx.index.sites.get(ws_id).site2()
-                        && let Some(tavern) = ws
-                            .plots()
-                            .filter_map(|p| match p.kind() {
-                                PlotKind::Tavern(a) => Some(a),
-                                _ => None,
-                            })
-                            .min_by_key(|t| t.door_wpos.distance_squared(ctx.npc.wpos.as_()))
-                    {
-                        ctx.controller.dialogue_marker(
-                            session,
-                            tavern.door_wpos.xy(),
-                            Content::Plain(tavern.name.clone()),
-                        );
-                        session.say_statement(Content::localized("npc-response-directions"))
-                    } else {
-                        session.say_statement(Content::localized("npc-info-unknown"))
-                    }
-                })
-                .boxed(),
+                direction_to_nearest(|p| matches!(p.kind(), PlotKind::Tavern(_))),
             ));
-            // The nearest town square
             responses.push((
                 Content::localized("dialogue-direction-plaza"),
-                now(move |ctx, _| {
-                    if let Some(ws) = ctx.index.sites.get(ws_id).site2()
-                        && let Some(p) = ws
-                            .plots()
-                            .filter(|p| matches!(p.kind(), PlotKind::Plaza))
-                            .min_by_key(|p| {
-                                ws.tile_center_wpos(p.root_tile())
-                                    .distance_squared(ctx.npc.wpos.xy().as_())
-                            })
-                    {
-                        ctx.controller.dialogue_marker(
-                            session,
-                            ws.tile_center_wpos(p.root_tile()),
-                            Content::localized("hud-map-plaza"),
-                        );
-                        session.say_statement(Content::localized("npc-response-directions"))
-                    } else {
-                        session.say_statement(Content::localized("npc-info-unknown"))
-                    }
-                })
-                .boxed(),
+                direction_to_nearest(|p| matches!(p.kind(), PlotKind::Plaza(_))),
             ));
-            // The nearest workshop
             responses.push((
                 Content::localized("dialogue-direction-workshop"),
-                now(move |ctx, _| {
-                    if let Some(ws) = ctx.index.sites.get(ws_id).site2()
-                        && let Some(p) = ws
-                            .plots()
-                            .filter(|p| matches!(p.kind(), PlotKind::Workshop(_)))
-                            .min_by_key(|p| {
-                                ws.tile_center_wpos(p.root_tile())
-                                    .distance_squared(ctx.npc.wpos.xy().as_())
-                            })
-                    {
-                        ctx.controller.dialogue_marker(
-                            session,
-                            ws.tile_center_wpos(p.root_tile()),
-                            Content::localized("hud-map-workshop"),
-                        );
-                        session.say_statement(Content::localized("npc-response-directions"))
-                    } else {
-                        session.say_statement(Content::localized("npc-info-unknown"))
-                    }
-                })
-                .boxed(),
+                direction_to_nearest(|p| matches!(p.kind(), PlotKind::Workshop(_))),
+            ));
+            responses.push((
+                Content::localized("dialogue-direction-airship_dock"),
+                direction_to_nearest(|p| matches!(p.kind(), PlotKind::AirshipDock(_))),
             ));
         }
 

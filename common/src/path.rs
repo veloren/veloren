@@ -140,7 +140,7 @@ impl Route {
 
             // If, in any direction, there is a column of open air of several blocks
             let open_space_nearby = DIAGONALS.iter().any(|pos| {
-                (-1..2).all(|z| {
+                (-2..2).all(|z| {
                     vol.get(next0 + Vec3::new(pos.x, pos.y, z))
                         .map(|b| !b.is_solid())
                         .unwrap_or(false)
@@ -149,30 +149,36 @@ impl Route {
 
             // If, in any direction, there is a solid wall
             let wall_nearby = DIAGONALS.iter().any(|pos| {
-                (0..2).all(|z| {
-                    vol.get(next0 + Vec3::new(pos.x, pos.y, z))
-                        .map(|b| b.is_solid())
-                        .unwrap_or(true)
-                })
+                vol.get(next0 + Vec3::new(pos.x, pos.y, 1))
+                    .map(|b| b.is_solid())
+                    .unwrap_or(true)
             });
 
             // Unwalkable obstacles, such as walls or open space can affect path-finding
-            let be_precise = open_space_nearby | wall_nearby;
+            let be_precise = open_space_nearby || wall_nearby;
 
             // Map position of node to middle of block
             let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            let closest_tgt = next_tgt.map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()));
+            let closest_tgt = if be_precise {
+                next_tgt
+            } else {
+                next_tgt
+                    .map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()))
+                    .xy()
+                    .with_z(next_tgt.z)
+            };
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
             if dist_sqrd
-                < traversal_cfg.node_tolerance.powi(2)
+                < (traversal_cfg.node_tolerance
                     * if be_precise {
-                        0.25
+                        0.5
                     } else if traversal_cfg.in_liquid {
                         2.5
                     } else {
                         1.0
-                    }
+                    })
+                .powi(2)
                 && (((pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
                     && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
                     && vel.z <= 0.0
@@ -345,7 +351,7 @@ impl Route {
             // Control the entity's speed to hopefully stop us falling off walls on sharp
             // corners. This code is very imperfect: it does its best but it
             // can still fail for particularly fast entities.
-            straight_factor * traversal_cfg.slow_factor + (1.0 - traversal_cfg.slow_factor),
+            1.0 - (traversal_cfg.slow_factor * (1.0 - straight_factor)).min(0.9),
         ))
         .filter(|(bearing, _)| bearing.z < 2.1)
     }

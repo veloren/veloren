@@ -254,7 +254,7 @@ impl Widget for Quest<'_> {
             };
 
             for (i, (response_id, response)) in responses.iter().enumerate() {
-                let frame = Button::image(self.imgs.nothing).w_h(186.0, 40.0);
+                let frame = Button::image(self.imgs.nothing).w_h(186.0, 30.0);
                 let frame = if i == 0 {
                     frame.top_left_with_margins_on(
                         state.ids.topics_align,
@@ -262,7 +262,7 @@ impl Widget for Quest<'_> {
                         tweak!(2.0),
                     )
                 } else {
-                    frame.down_from(state.ids.quest_responses_frames[i - 1], tweak!(10.0))
+                    frame.down_from(state.ids.quest_responses_frames[i - 1], 0.0)
                 };
                 frame.set(state.ids.quest_responses_frames[i], ui);
 
