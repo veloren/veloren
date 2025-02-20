@@ -22,3 +22,4 @@ dialogue-buy_hire_days = { $days ->
 dialogue-cancel_interaction = I've changed my mind.
 
 dialogue-direction-tavern = The nearest tavern
+dialogue-direction-plaza = The nearest town square

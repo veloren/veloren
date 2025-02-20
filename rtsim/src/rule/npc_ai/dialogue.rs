@@ -184,29 +184,64 @@ fn hire<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
 }
 
 fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
-    session.ask_question(Content::localized("npc-question-directions"), [(
-        Content::localized("dialogue-direction-tavern"),
-        now(move |ctx, _| {
-            if let Some(current_site) = ctx.npc.current_site
-                && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
-                && let Some(ws) = ctx.index.sites.get(ws_id).site2()
-                && let Some(tavern) = ws
-                    .plots()
-                    .filter_map(|p| match p.kind() {
-                        PlotKind::Tavern(a) => Some(a),
-                        _ => None,
-                    })
-                    .min_by_key(|t| t.door_wpos.distance_squared(ctx.npc.wpos.as_()))
-            {
-                ctx.controller.dialogue_marker(
-                    session,
-                    tavern.door_wpos.xy(),
-                    Content::Plain(tavern.name.clone()),
-                );
-                session.say_statement(Content::localized("npc-response-directions"))
-            } else {
-                session.say_statement(Content::localized("npc-info-unknown"))
-            }
-        }),
-    )])
+    now(move |ctx, _| {
+        let mut responses = Vec::new();
+
+        if let Some(current_site) = ctx.npc.current_site
+            && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
+        {
+            // The nearest tavern
+            responses.push((
+                Content::localized("dialogue-direction-tavern"),
+                now(move |ctx, _| {
+                    if let Some(ws) = ctx.index.sites.get(ws_id).site2()
+                        && let Some(tavern) = ws
+                            .plots()
+                            .filter_map(|p| match p.kind() {
+                                PlotKind::Tavern(a) => Some(a),
+                                _ => None,
+                            })
+                            .min_by_key(|t| t.door_wpos.distance_squared(ctx.npc.wpos.as_()))
+                    {
+                        ctx.controller.dialogue_marker(
+                            session,
+                            tavern.door_wpos.xy(),
+                            Content::Plain(tavern.name.clone()),
+                        );
+                        session.say_statement(Content::localized("npc-response-directions"))
+                    } else {
+                        session.say_statement(Content::localized("npc-info-unknown"))
+                    }
+                })
+                .boxed(),
+            ));
+            // The nearest town square
+            responses.push((
+                Content::localized("dialogue-direction-plaza"),
+                now(move |ctx, _| {
+                    if let Some(ws) = ctx.index.sites.get(ws_id).site2()
+                        && let Some(p) = ws
+                            .plots()
+                            .filter(|p| matches!(p.kind(), PlotKind::Plaza))
+                            .min_by_key(|p| {
+                                ws.tile_center_wpos(p.root_tile())
+                                    .distance_squared(ctx.npc.wpos.xy().as_())
+                            })
+                    {
+                        ctx.controller.dialogue_marker(
+                            session,
+                            ws.tile_center_wpos(p.root_tile()),
+                            Content::localized("hud-map-plaza"),
+                        );
+                        session.say_statement(Content::localized("npc-response-directions"))
+                    } else {
+                        session.say_statement(Content::localized("npc-info-unknown"))
+                    }
+                })
+                .boxed(),
+            ));
+        }
+
+        session.ask_question(Content::localized("npc-question-directions"), responses)
+    })
 }
