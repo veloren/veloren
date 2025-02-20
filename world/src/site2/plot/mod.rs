@@ -194,6 +194,14 @@ pub enum PlotKind {
 }
 
 impl PlotKind {
+    pub fn render_ordering(&self) -> u32 {
+        match self {
+            PlotKind::Bridge(_) => 1,
+            PlotKind::Road(_) | PlotKind::Plaza(_) => 2,
+            _ => 0,
+        }
+    }
+
     pub fn meta(&self) -> Option<PlotKindMeta<'_>> {
         match self {
             PlotKind::SavannahAirshipDock(d) => Some(PlotKindMeta::AirshipDock {

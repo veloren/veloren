@@ -50,15 +50,36 @@ impl Structure for Road {
                 continue;
             }
 
-            let TileKind::Road { w, .. } = site.tiles.get(*p).kind else {
+            let current_tile = site.tiles.get(*p);
+            let TileKind::Road {
+                w,
+                a: this_a,
+                b: this_b,
+                ..
+            } = current_tile.kind
+            else {
                 continue;
             };
 
+            let center = site.tile_center_wpos(*p);
+
+            let light_wpos = |dir: Dir| {
+                let width = w as i32 * 2 - 1 - (dir.signum() + 1) / 2;
+                center + dir.to_vec2() * width
+            };
             let available_dirs: EnumSet<Dir> = Dir::iter()
                 .filter(|dir| {
-                    let n = *p + dir.to_vec2();
-                    let tile = site.tiles.get(n);
-                    !tile.is_road()
+                    let light_wpos = light_wpos(*dir);
+                    let tpos = site.wpos_tile_pos(light_wpos);
+                    [tpos, tpos + dir.to_vec2()].into_iter().all(|tpos| {
+                        let tile = site.tiles.get(tpos);
+                        tile.is_natural()
+                            || if let TileKind::Road { a, b, .. } = tile.kind {
+                                current_tile.plot == tile.plot && this_a == a && this_b == b
+                            } else {
+                                false
+                            }
+                    })
                 })
                 .collect();
 
@@ -71,9 +92,7 @@ impl Structure for Road {
                 continue;
             };
 
-            let width = w as i32 * 2 - 1 - (dir.signum() + 1) / 2;
-            let tile_wpos = site.tile_center_wpos(*p);
-            let wpos = tile_wpos + dir.to_vec2() * width;
+            let wpos = light_wpos(dir);
 
             // TODO: Not sure if this is always correct
             let alt =

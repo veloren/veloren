@@ -1046,7 +1046,6 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                 })
             ).choose(&mut ctx.rng) {
 
-                
             let face_dir = Dir::from_unnormalized((room_center - bar_pos).as_::<f32>().with_z(0.0)).unwrap_or_else(|| Dir::random_2d(&mut ctx.rng));
 
             return casual(

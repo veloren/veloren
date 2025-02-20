@@ -310,25 +310,23 @@ impl Site {
         &mut self,
         land: &Land,
         index: IndexRef,
-        pos: &Vec2<i32>,
-        radius: i32,
+        tile_aabr: Aabr<i32>,
         rng: &mut impl Rng,
         road_kind: plot::RoadKind,
     ) -> Option<Id<Plot>> {
-        let plaza_alt = land.get_alt_approx(self.tile_center_wpos(*pos)) as i32;
+        let tpos = tile_aabr.center();
+        let plaza_alt = land.get_alt_approx(self.tile_center_wpos(tpos)) as i32;
 
-        let aabr = Aabr {
-            min: pos + Vec2::broadcast(-radius),
-            max: pos + Vec2::broadcast(radius + 1),
-        };
         let plaza = self.create_plot(Plot {
-            kind: PlotKind::Plaza(plot::Plaza::generate(aabr, road_kind, self, land, index)),
-            root_tile: *pos,
-            tiles: aabr_tiles(aabr).collect(),
+            kind: PlotKind::Plaza(plot::Plaza::generate(
+                tile_aabr, road_kind, self, land, index,
+            )),
+            root_tile: tpos,
+            tiles: aabr_tiles(tile_aabr).collect(),
             seed: rng.gen(),
         });
         self.plazas.push(plaza);
-        self.blit_aabr(aabr, Tile {
+        self.blit_aabr(tile_aabr, Tile {
             kind: TileKind::Plaza,
             plot: Some(plaza),
             hard_alt: Some(plaza_alt),
@@ -344,24 +342,24 @@ impl Site {
                     !already_pathed.contains(&p)
                         && p != plaza
                         && already_pathed.iter().all(|&ap| {
-                            (self.plot(ap).root_tile - pos)
+                            (self.plot(ap).root_tile - tpos)
                                 .map(|e| e as f32)
                                 .normalized()
                                 .dot(
-                                    (self.plot(p).root_tile - pos)
+                                    (self.plot(p).root_tile - tpos)
                                         .map(|e| e as f32)
                                         .normalized(),
                                 )
                                 < 0.0
                         })
                 })
-                .min_by_key(|&&p| self.plot(p).root_tile.distance_squared(*pos))
+                .min_by_key(|&&p| self.plot(p).root_tile.distance_squared(tpos))
             {
                 self.create_road(
                     land,
                     rng,
                     self.plot(p).root_tile,
-                    *pos,
+                    tpos,
                     2, /* + i */
                     road_kind,
                 );
@@ -385,8 +383,8 @@ impl Site {
     ) -> Option<Id<Plot>> {
         generator_stats.attempt(site_name, GenStatPlotKind::Plaza);
         let plaza_radius = rng.gen_range(1..4);
-        let plaza_dist = 6.5 + plaza_radius as f32 * 4.0;
-        let pos = attempt(32, || {
+        let plaza_dist = 6.5 + plaza_radius as f32 * 3.0;
+        let aabr = attempt(32, || {
             self.plazas
                 .choose(rng)
                 .map(|&p| {
@@ -397,16 +395,32 @@ impl Site {
                             .map(|e| e as i32)
                 })
                 .or_else(|| Some(Vec2::zero()))
-                .filter(|tile| !self.tiles.get(*tile).is_obstacle())
-                .filter(|&tile| {
+                .map(|center_tile| Aabr {
+                    min: center_tile + Vec2::broadcast(-plaza_radius),
+                    max: center_tile + Vec2::broadcast(plaza_radius + 1),
+                })
+                .filter(|&aabr| {
+                    rng.gen_range(0..48) > aabr.center().map(|e| e.abs()).reduce_max()
+                        && aabr_tiles(aabr).all(|tile| !self.tiles.get(tile).is_obstacle())
+                })
+                .filter(|&aabr| {
                     self.plazas.iter().all(|&p| {
-                        self.plot(p).root_tile.distance_squared(tile) as f32
-                            > (plaza_dist * 0.85).powi(2)
-                    }) && rng.gen_range(0..48) > tile.map(|e| e.abs()).reduce_max()
+                        let dist_sqr = if let PlotKind::Plaza(plaza) = &self.plot(p).kind {
+                            let intersection = plaza.aabr.intersection(aabr);
+                            // If the size of the intersection is greater than zero they intersect
+                            // on that axis and the distance on that axis is 0.
+                            intersection.size().map(|e| e.min(0)).magnitude_squared()
+                        } else {
+                            let r = self.plot(p).root_tile();
+                            let closest_point = aabr.projected_point(r);
+                            closest_point.distance_squared(r)
+                        };
+                        dist_sqr as f32 > (plaza_dist * 0.85).powi(2)
+                    })
                 })
         })?;
         generator_stats.success(site_name, GenStatPlotKind::Plaza);
-        self.make_plaza_at(land, index, &pos, plaza_radius, rng, road_kind)
+        self.make_plaza_at(land, index, aabr, rng, road_kind)
     }
 
     pub fn demarcate_obstacles(&mut self, land: &Land) {
@@ -485,17 +499,15 @@ impl Site {
         // Find all the suitable locations for a plaza.
         let mut plaza_locations = vec![];
         // Search over a spiral ring pattern
-        Spiral2d::with_ring(search_inner_radius, search_width).for_each(|tile| {
-            // if the tile is not a hazard or road
-            if self.tiles.get_known(tile).is_none() {
-                // if all the tiles in the proposed plaza location are also not hazards or roads
-                // then add the tile as a candidate for a plaza location
-                if Spiral2d::new()
-                    .take((plaza_radius * 2 + 1).pow(2) as usize)
-                    .all(|rpos| self.tiles.get_known(rpos + tile).is_none())
-                {
-                    plaza_locations.push(tile);
-                }
+        Spiral2d::with_ring(search_inner_radius, search_width).for_each(|tpos| {
+            let aabr = Aabr {
+                min: tpos - Vec2::broadcast(plaza_radius as i32),
+                max: tpos + Vec2::broadcast(plaza_radius as i32 + 1),
+            };
+            // if all the tiles in the proposed plaza location are also not hazards or roads
+            // then add the tile as a candidate for a plaza location
+            if aabr_tiles(aabr).all(|tpos| self.tiles.get(tpos).is_empty()) {
+                plaza_locations.push(aabr);
             }
         });
         if plaza_locations.is_empty() {
@@ -505,11 +517,15 @@ impl Site {
             self.make_plaza(land, index, rng, generator_stats, site_name, road_kind)
         } else {
             // Choose the minimum distance from the town center.
-            plaza_locations.sort_by_key(|&pos| pos.distance_squared(Vec2::zero()));
+            plaza_locations.sort_by_key(|&aabr| {
+                aabr.min
+                    .map2(aabr.max, |a, b| a.abs().min(b.abs()))
+                    .magnitude_squared()
+            });
             // use the first plaza location as the plaza position
-            let pos = plaza_locations.first()?;
+            let aabr = plaza_locations.first()?;
             generator_stats.success(site_name, GenStatPlotKind::InitialPlaza);
-            self.make_plaza_at(land, index, pos, plaza_radius as i32, rng, road_kind)
+            self.make_plaza_at(land, index, *aabr, rng, road_kind)
         }
     }
 
@@ -3053,7 +3069,9 @@ impl Site {
         }
 
         let mut plots_to_render = plots.into_iter().collect::<Vec<_>>();
-        plots_to_render.sort_unstable();
+        // First sort by priority, then id.
+        plots_to_render
+            .sort_unstable_by_key(|plot| (self.plots[*plot].kind.render_ordering(), *plot));
 
         let wpos2d = canvas.info().wpos();
         let chunk_aabr = Aabr {
