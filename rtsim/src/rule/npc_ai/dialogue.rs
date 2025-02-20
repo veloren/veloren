@@ -240,6 +240,31 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
                 })
                 .boxed(),
             ));
+            // The nearest workshop
+            responses.push((
+                Content::localized("dialogue-direction-workshop"),
+                now(move |ctx, _| {
+                    if let Some(ws) = ctx.index.sites.get(ws_id).site2()
+                        && let Some(p) = ws
+                            .plots()
+                            .filter(|p| matches!(p.kind(), PlotKind::Workshop(_)))
+                            .min_by_key(|p| {
+                                ws.tile_center_wpos(p.root_tile())
+                                    .distance_squared(ctx.npc.wpos.xy().as_())
+                            })
+                    {
+                        ctx.controller.dialogue_marker(
+                            session,
+                            ws.tile_center_wpos(p.root_tile()),
+                            Content::localized("hud-map-workshop"),
+                        );
+                        session.say_statement(Content::localized("npc-response-directions"))
+                    } else {
+                        session.say_statement(Content::localized("npc-info-unknown"))
+                    }
+                })
+                .boxed(),
+            ));
         }
 
         session.ask_question(Content::localized("npc-question-directions"), responses)

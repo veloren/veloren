@@ -22,6 +22,7 @@ hud-map-glider_courses = Glider Courses
 hud-map-dungeon = Dungeon
 hud-map-df_mine = Mine
 hud-map-plaza = Town square
+hud-map-workshop = Workshop
 hud-map-difficulty_dungeon =
     Dungeon
 
