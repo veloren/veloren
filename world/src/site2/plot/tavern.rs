@@ -127,6 +127,18 @@ impl RoomKind {
         *size_range.start() <= max_min_size && *area_range.start() <= max_area
     }
 
+    fn entrance_room_lottery(temperature: f32) -> Lottery<RoomKind> {
+        let rooms = [
+            (0.5 * temperature, RoomKind::Garden),
+            (2.0, RoomKind::Entrance),
+        ]
+        .into_iter()
+        .filter(|(c, _)| *c > 0.0)
+        .collect::<Vec<_>>();
+
+        Lottery::from(rooms)
+    }
+
     fn side_room_lottery(
         &self,
         max_bounds: Aabr<i32>,
@@ -408,8 +420,7 @@ impl Tavern {
         let mut room_metas = Vec::new();
 
         {
-            let entrance_rooms =
-                Lottery::from(vec![(0.5, RoomKind::Garden), (2.0, RoomKind::Entrance)]);
+            let entrance_rooms = RoomKind::entrance_room_lottery(temperature);
 
             let entrance_room = *entrance_rooms.choose_seeded(rng.gen());
             let entrance_room_hgt = rng.gen_range(3..=4);
