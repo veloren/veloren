@@ -3548,11 +3548,11 @@
     ),
     Simple("common.items.mineral.ore.velorite"): VoxTrans(
         "voxel.sprite.velorite.velorite_ore",
-        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.8,
     ),
     Simple("common.items.mineral.ore.veloritefrag"): VoxTrans(
         "voxel.sprite.velorite.velorite",
-        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.7,
     ),
     Simple("common.items.food.apple_mushroom_curry"): VoxTrans(
         "voxel.object.mushroom_curry",

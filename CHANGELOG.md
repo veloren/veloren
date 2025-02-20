@@ -37,7 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hammer balance tweaks.
 - Minor balance change to Terracotta Statue blast attack.
 - Poise bar is shown by default.
-- Purple Geode is dropped again, now from Basilisks.now from basilisk.)
+- Purple Geode is dropped again, now from Basilisks.
+- Updated velorite and fragment item models to match mining sprites.
 
 ### Removed
 
