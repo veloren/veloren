@@ -17,6 +17,7 @@ use common::{
 };
 use common_i18n::Content;
 use common_net::sync::WorldSyncExt;
+use i18n::Localization;
 use itertools::Itertools;
 use levenshtein::levenshtein;
 use specs::{Join, WorldExt};
@@ -547,11 +548,11 @@ fn handle_experimental_shader(
 }
 
 trait TabComplete {
-    fn complete(&self, part: &str, client: &Client) -> Vec<String>;
+    fn complete(&self, part: &str, client: &Client, i18n: &Localization) -> Vec<String>;
 }
 
 impl TabComplete for ArgumentSpec {
-    fn complete(&self, part: &str, client: &Client) -> Vec<String> {
+    fn complete(&self, part: &str, client: &Client, i18n: &Localization) -> Vec<String> {
         match self {
             ArgumentSpec::PlayerName(_) => complete_player(part, client),
             ArgumentSpec::EntityTarget(_) => {
@@ -595,7 +596,7 @@ impl TabComplete for ArgumentSpec {
                     complete_player(part, client)
                 }
             },
-            ArgumentSpec::SiteName(_) => complete_site(part, client),
+            ArgumentSpec::SiteName(_) => complete_site(part, client, i18n),
             ArgumentSpec::Float(_, x, _) => {
                 if part.is_empty() {
                     vec![format!("{:.1}", x)]
@@ -658,7 +659,7 @@ fn complete_player(part: &str, client: &Client) -> Vec<String> {
         .collect()
 }
 
-fn complete_site(mut part: &str, client: &Client) -> Vec<String> {
+fn complete_site(mut part: &str, client: &Client, i18n: &Localization) -> Vec<String> {
     if let Some(p) = part.strip_prefix('"') {
         part = p;
     }
@@ -667,7 +668,7 @@ fn complete_site(mut part: &str, client: &Client) -> Vec<String> {
         .values()
         .filter_map(|site| match site.marker.kind {
             common_net::msg::world_msg::MarkerKind::Cave => None,
-            _ => site.marker.name.as_ref(),
+            _ => Some(i18n.get_content(site.marker.name.as_ref()?)),
         })
         .filter(|name| name.starts_with(part))
         .map(|name| {
@@ -712,7 +713,7 @@ fn complete_command(part: &str, prefix: &str) -> Vec<String> {
         .collect()
 }
 
-pub fn complete(line: &str, client: &Client, cmd_prefix: &str) -> Vec<String> {
+pub fn complete(line: &str, client: &Client, i18n: &Localization, cmd_prefix: &str) -> Vec<String> {
     let word = if line.chars().last().is_none_or(char::is_whitespace) {
         ""
     } else {
@@ -744,13 +745,13 @@ pub fn complete(line: &str, client: &Client, cmd_prefix: &str) -> Vec<String> {
         if let Some(args) = args {
             if let Some(arg) = args.get(i - 1) {
                 // Complete ith argument
-                arg.complete(word, client)
+                arg.complete(word, client, i18n)
             } else {
                 // Complete past the last argument
                 match args.last() {
                     Some(ArgumentSpec::SubCommand) => {
                         if let Some(index) = nth_word(line, args.len()) {
-                            complete(&line[index..], client, "")
+                            complete(&line[index..], client, i18n, "")
                         } else {
                             vec![]
                         }

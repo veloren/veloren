@@ -163,7 +163,8 @@ impl ServerEvent for DialogueEvent {
                     DialogueKind::Start
                     | DialogueKind::End
                     | DialogueKind::Statement(..)
-                    | DialogueKind::Question { .. } => {},
+                    | DialogueKind::Question { .. }
+                    | DialogueKind::Marker { .. } => {},
                     DialogueKind::Response { response, .. } => {
                         // If the response requires an item to be given, perform exchange (or exit)
                         if let Some((item_def, amount)) = &response.given_item {

@@ -1433,8 +1433,9 @@ impl Controls {
                         let site_name = Text::new(
                             self.possible_starting_sites[start_site_idx.unwrap_or_default()]
                                 .name
-                                .as_deref()
-                                .unwrap_or("Unknown"),
+                                .as_ref()
+                                .map(|name| i18n.get_content(name))
+                                .unwrap_or_else(|| "Unknown".to_string()),
                         )
                         .horizontal_alignment(HorizontalAlignment::Left)
                         .color(Color::from_rgb(131.0, 102.0, 0.0));

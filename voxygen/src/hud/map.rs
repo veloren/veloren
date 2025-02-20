@@ -18,7 +18,7 @@ use common::{
     trade::Good,
     vol::RectVolSize,
 };
-use common_net::msg::world_msg::{MarkerKind, PoiKind, SiteId};
+use common_net::msg::world_msg::{Marker, MarkerKind, PoiKind, SiteId};
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     input::MouseButton as ConrodMouseButton,
@@ -26,6 +26,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids,
 };
+use hashbrown::HashMap;
 use i18n::Localization;
 use specs::WorldExt;
 use std::borrow::Cow;
@@ -128,6 +129,7 @@ pub struct Map<'a> {
     tooltip_manager: &'a mut TooltipManager,
     location_markers: &'a MapMarkers,
     map_drag: Vec2<f64>,
+    extra_markers: &'a HashMap<Vec2<i32>, Marker>,
 }
 impl<'a> Map<'a> {
     pub fn new(
@@ -142,6 +144,7 @@ impl<'a> Map<'a> {
         tooltip_manager: &'a mut TooltipManager,
         location_markers: &'a MapMarkers,
         map_drag: Vec2<f64>,
+        extra_markers: &'a HashMap<Vec2<i32>, Marker>,
     ) -> Self {
         Self {
             imgs,
@@ -156,6 +159,7 @@ impl<'a> Map<'a> {
             tooltip_manager,
             location_markers,
             map_drag,
+            extra_markers,
         }
     }
 }
@@ -894,20 +898,27 @@ impl Widget for Map<'_> {
                     .resize(self.client.pois().len(), &mut ui.widget_id_generator())
             });
         }
-        if state.ids.mmap_site_icons.len() < self.client.markers().len() {
+
+        let markers = self
+            .client
+            .markers()
+            .chain(self.extra_markers.values())
+            .collect::<Vec<_>>();
+
+        if state.ids.mmap_site_icons.len() < markers.len() {
             state.update(|state| {
                 state
                     .ids
                     .mmap_site_icons
-                    .resize(self.client.markers().len(), &mut ui.widget_id_generator())
+                    .resize(markers.len(), &mut ui.widget_id_generator())
             });
         }
-        if state.ids.site_difs.len() < self.client.markers().len() {
+        if state.ids.site_difs.len() < markers.len() {
             state.update(|state| {
                 state
                     .ids
                     .site_difs
-                    .resize(self.client.markers().len(), &mut ui.widget_id_generator())
+                    .resize(markers.len(), &mut ui.widget_id_generator())
             });
         }
 
@@ -937,7 +948,7 @@ impl Widget for Map<'_> {
                 }
             };
 
-        for (i, marker) in self.client.markers().enumerate() {
+        for (i, marker) in markers.iter().enumerate() {
             let rside = zoom as f32 * 8.0 * 1.2;
 
             let (rpos, fade) = match wpos_to_rpos_fade(
@@ -951,9 +962,11 @@ impl Widget for Map<'_> {
 
             let title = marker
                 .name
-                .as_deref()
-                .map(Cow::Borrowed)
+                .as_ref()
+                .map(|name| i18n.get_content(name))
+                .map(Cow::Owned)
                 .unwrap_or_else(|| match &marker.kind {
+                    MarkerKind::Unknown => i18n.get_msg("hud-map-unknown"),
                     MarkerKind::Town => i18n.get_msg("hud-map-town"),
                     MarkerKind::Castle => i18n.get_msg("hud-map-castle"),
                     MarkerKind::Cave => i18n.get_msg("hud-map-cave"),
@@ -972,6 +985,7 @@ impl Widget for Map<'_> {
                     MarkerKind::VampireCastle => i18n.get_msg("hud-map-vampire_castle"),
                 });
             let (difficulty, desc) = match &marker.kind {
+                MarkerKind::Unknown => (None, i18n.get_msg("hud-map-unknown")),
                 MarkerKind::Town => (None, i18n.get_msg("hud-map-town")),
                 MarkerKind::Castle => (None, i18n.get_msg("hud-map-castle")),
                 MarkerKind::Cave => (None, i18n.get_msg("hud-map-cave")),
@@ -997,6 +1011,7 @@ impl Widget for Map<'_> {
                 desc.into_owned()
             };
             let site_btn = Button::image(match &marker.kind {
+                MarkerKind::Unknown => self.imgs.mmap_unknown,
                 MarkerKind::Town => self.imgs.mmap_site_town,
                 MarkerKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
                 MarkerKind::Terracotta => self.imgs.mmap_site_terracotta,
@@ -1022,6 +1037,7 @@ impl Widget for Map<'_> {
             )
             .w_h(rside as f64, rside as f64)
             .hover_image(match &marker.kind {
+                MarkerKind::Unknown => self.imgs.mmap_unknown_hover,
                 MarkerKind::Town => self.imgs.mmap_site_town_hover,
                 MarkerKind::ChapelSite => self.imgs.mmap_site_sea_chapel_hover,
                 MarkerKind::Terracotta => self.imgs.mmap_site_terracotta_hover,
@@ -1077,6 +1093,7 @@ impl Widget for Map<'_> {
 
             // Only display sites that are toggled on
             let show_site = match &marker.kind {
+                MarkerKind::Unknown => true,
                 MarkerKind::Town => show_towns,
                 MarkerKind::Gnarling
                 | MarkerKind::ChapelSite
@@ -1145,6 +1162,7 @@ impl Widget for Map<'_> {
                     _ => TEXT_COLOR,
                 }));
                 match &marker.kind {
+                    MarkerKind::Unknown => dif_img.set(state.ids.site_difs[i], ui),
                     MarkerKind::Town => {
                         if show_towns {
                             dif_img.set(state.ids.site_difs[i], ui)

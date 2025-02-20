@@ -205,16 +205,10 @@ impl Widget for Quest<'_> {
             .set(state.ids.topics_align, ui);
 
         // Define type of quest to change introduction text
-        let msg_text = match &self.dialogue.kind {
-            rtsim::DialogueKind::Start | rtsim::DialogueKind::End => None,
-            rtsim::DialogueKind::Statement(msg) => Some(self.localized_strings.get_content(msg)),
-            rtsim::DialogueKind::Question { msg, .. } => {
-                Some(self.localized_strings.get_content(msg))
-            },
-            rtsim::DialogueKind::Response { response, .. } => {
-                Some(self.localized_strings.get_content(&response.msg))
-            },
-        };
+        let msg_text = self
+            .dialogue
+            .message()
+            .map(|msg| self.localized_strings.get_content(msg));
 
         if let Some(msg_text) = msg_text {
             state.update(|s| {

@@ -20,7 +20,7 @@ use common::{
     },
     vol::{ReadVol, RectVolSize},
 };
-use common_net::msg::world_msg::MarkerKind;
+use common_net::msg::world_msg::{Marker, MarkerKind};
 use common_state::TerrainChanges;
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color, position,
@@ -416,6 +416,7 @@ pub struct MiniMap<'a> {
     global_state: &'a GlobalState,
     location_markers: &'a MapMarkers,
     voxel_minimap: &'a VoxelMinimap,
+    extra_markers: &'a HashMap<Vec2<i32>, Marker>,
 }
 
 impl<'a> MiniMap<'a> {
@@ -429,6 +430,7 @@ impl<'a> MiniMap<'a> {
         global_state: &'a GlobalState,
         location_markers: &'a MapMarkers,
         voxel_minimap: &'a VoxelMinimap,
+        extra_markers: &'a HashMap<Vec2<i32>, Marker>,
     ) -> Self {
         Self {
             client,
@@ -441,6 +443,7 @@ impl<'a> MiniMap<'a> {
             global_state,
             location_markers,
             voxel_minimap,
+            extra_markers,
         }
     }
 }
@@ -672,21 +675,27 @@ impl Widget for MiniMap<'_> {
                     .set(state.ids.voxel_minimap, ui);
             }
 
+            let markers = self
+                .client
+                .markers()
+                .chain(self.extra_markers.values())
+                .collect::<Vec<_>>();
+
             // Map icons
-            if state.ids.mmap_site_icons.len() < self.client.markers().len() {
+            if state.ids.mmap_site_icons.len() < markers.len() {
                 state.update(|state| {
                     state
                         .ids
                         .mmap_site_icons
-                        .resize(self.client.markers().len(), &mut ui.widget_id_generator())
+                        .resize(markers.len(), &mut ui.widget_id_generator())
                 });
             }
-            if state.ids.mmap_site_icons_bgs.len() < self.client.markers().len() {
+            if state.ids.mmap_site_icons_bgs.len() < markers.len() {
                 state.update(|state| {
                     state
                         .ids
                         .mmap_site_icons_bgs
-                        .resize(self.client.markers().len(), &mut ui.widget_id_generator())
+                        .resize(markers.len(), &mut ui.widget_id_generator())
                 });
             }
 
@@ -717,12 +726,13 @@ impl Widget for MiniMap<'_> {
                 }
             };
 
-            for (i, marker) in self.client.markers().enumerate() {
+            for (i, marker) in markers.iter().enumerate() {
                 let rpos = match wpos_to_rpos(marker.wpos.map(|e| e as f32), false) {
                     Some(rpos) => rpos,
                     None => continue,
                 };
                 let difficulty = match &marker.kind {
+                    MarkerKind::Unknown => None,
                     MarkerKind::Town => None,
                     MarkerKind::ChapelSite => Some(4),
                     MarkerKind::Terracotta => Some(5),
@@ -741,6 +751,7 @@ impl Widget for MiniMap<'_> {
                 };
 
                 Image::new(match &marker.kind {
+                    MarkerKind::Unknown => self.imgs.mmap_unknown_bg,
                     MarkerKind::Town => self.imgs.mmap_site_town_bg,
                     MarkerKind::ChapelSite => self.imgs.mmap_site_sea_chapel_bg,
                     MarkerKind::Terracotta => self.imgs.mmap_site_terracotta_bg,
@@ -775,6 +786,7 @@ impl Widget for MiniMap<'_> {
                 }))
                 .set(state.ids.mmap_site_icons_bgs[i], ui);
                 Image::new(match &marker.kind {
+                    MarkerKind::Unknown => self.imgs.mmap_unknown,
                     MarkerKind::Town => self.imgs.mmap_site_town,
                     MarkerKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
                     MarkerKind::Terracotta => self.imgs.mmap_site_terracotta,

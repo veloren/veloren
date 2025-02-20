@@ -36,7 +36,6 @@ pub use block::BlockGen;
 use civ::WorldCivStage;
 pub use column::ColumnSample;
 pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta};
-use common::{spiral::Spiral2d, terrain::CoordinateConversions};
 pub use index::{IndexOwned, IndexRef};
 use sim::WorldSimStage;
 
@@ -50,13 +49,16 @@ use crate::{
 use common::{
     assets,
     calendar::Calendar,
+    comp::Content,
     generation::{ChunkSupplement, EntityInfo, SpecialEntity},
     lod,
     resources::TimeOfDay,
     rtsim::ChunkResource,
     spot::Spot,
+    spiral::Spiral2d,
     terrain::{
-        Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
+        Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunk, TerrainChunkMeta,
+        TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
@@ -203,7 +205,9 @@ impl World {
                     .map(|(_, site)| {
                         world_msg::Marker {
                             id: site.site_tmp.map(|i| i.id()),
-                            name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
+                            name: site
+                                .site_tmp
+                                .map(|id| Content::Plain(index.sites[id].name().to_string())),
                             // TODO: Probably unify these, at some point
                             kind: match &site.kind {
                                 civ::SiteKind::Settlement

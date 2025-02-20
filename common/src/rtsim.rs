@@ -291,7 +291,7 @@ impl<const IS_VALIDATED: bool> core::cmp::Eq for Dialogue<IS_VALIDATED> {}
 impl<const IS_VALIDATED: bool> Dialogue<IS_VALIDATED> {
     pub fn message(&self) -> Option<&Content> {
         match &self.kind {
-            DialogueKind::Start | DialogueKind::End => None,
+            DialogueKind::Start | DialogueKind::End | DialogueKind::Marker { .. } => None,
             DialogueKind::Statement(msg) | DialogueKind::Question { msg, .. } => Some(msg),
             DialogueKind::Response { response, .. } => Some(&response.msg),
         }
@@ -319,6 +319,10 @@ pub enum DialogueKind {
         tag: u32,
         response: Response,
         response_id: u16,
+    },
+    Marker {
+        wpos: Vec2<i32>,
+        name: Content,
     },
 }
 

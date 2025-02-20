@@ -1,4 +1,4 @@
-use common::{grid::Grid, terrain::TerrainChunk, trade::Good};
+use common::{comp::Content, grid::Grid, terrain::TerrainChunk, trade::Good};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 use vek::*;
@@ -136,7 +136,7 @@ pub struct Marker {
     pub id: Option<SiteId>,
     pub kind: MarkerKind,
     pub wpos: Vec2<i32>,
-    pub name: Option<String>,
+    pub name: Option<Content>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -158,6 +158,7 @@ pub enum MarkerKind {
     Sahagin,
     VampireCastle,
     Myrmidon,
+    Unknown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

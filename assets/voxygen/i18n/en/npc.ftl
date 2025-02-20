@@ -411,6 +411,11 @@ npc-response-dislike_you =
     .a0 = I don't like you much.
     .a1 = You don't seem very nice.
 
+npc-question-directions =
+    .a0 = Where do you want to go?
+    .a1 = What are you looking for?
+npc-response-directions = I've marked it on your map. Good luck!
+
 ## NPC reactions
 
 npc-speech-witness_murder =

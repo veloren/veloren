@@ -33,6 +33,10 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                 dialogue::hire(tgt, session).boxed(),
             ));
         }
+        responses.push((
+            Response::from(Content::localized("dialogue-question-directions")),
+            dialogue::directions(session).boxed(),
+        ));
 
         session.ask_question(Content::localized("npc-question-general"), responses)
     })
@@ -177,4 +181,32 @@ fn hire<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
                 .boxed()
         }
     })
+}
+
+fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
+    session.ask_question(Content::localized("npc-question-directions"), [(
+        Content::localized("dialogue-direction-tavern"),
+        now(move |ctx, _| {
+            if let Some(current_site) = ctx.npc.current_site
+                && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
+                && let Some(ws) = ctx.index.sites.get(ws_id).site2()
+                && let Some(tavern) = ws
+                    .plots()
+                    .filter_map(|p| match p.kind() {
+                        PlotKind::Tavern(a) => Some(a),
+                        _ => None,
+                    })
+                    .min_by_key(|t| t.door_wpos.distance_squared(ctx.npc.wpos.as_()))
+            {
+                ctx.controller.dialogue_marker(
+                    session,
+                    tavern.door_wpos.xy(),
+                    Content::Plain(tavern.name.clone()),
+                );
+                session.say_statement(Content::localized("npc-response-directions"))
+            } else {
+                session.say_statement(Content::localized("npc-info-unknown"))
+            }
+        }),
+    )])
 }
