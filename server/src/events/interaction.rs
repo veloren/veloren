@@ -109,7 +109,7 @@ impl ServerEvent for NpcInteractEvent {
         events: impl ExactSizeIterator<Item = Self>,
         (mut agents, positions, uids): Self::SystemData<'_>,
     ) {
-        for NpcInteractEvent(interactor, npc_entity, subject) in events {
+        for NpcInteractEvent(interactor, npc_entity) in events {
             let within_range = {
                 positions
                     .get(interactor)
@@ -125,9 +125,7 @@ impl ServerEvent for NpcInteractEvent {
                 && agent.target.is_none()
             {
                 if let Some(interactor_uid) = uids.get(interactor) {
-                    agent
-                        .inbox
-                        .push_back(AgentEvent::Talk(*interactor_uid, subject));
+                    agent.inbox.push_back(AgentEvent::Talk(*interactor_uid));
                 }
             }
         }

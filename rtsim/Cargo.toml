@@ -24,3 +24,4 @@ fxhash = { workspace = true }
 itertools = { workspace = true }
 rayon = { workspace = true }
 specs = { workspace = true, features = ["shred-derive"] }
+take-once = "0.1.2"

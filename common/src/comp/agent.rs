@@ -14,7 +14,7 @@ use std::{collections::VecDeque, fmt};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
-use super::{Group, Pos, dialogue::Subject};
+use super::{Group, Pos};
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
@@ -473,7 +473,7 @@ impl Psyche {
 /// Events that affect agent behavior from other entities/players/environment
 pub enum AgentEvent {
     /// Engage in conversation with entity with Uid
-    Talk(Uid, Subject),
+    Talk(Uid),
     TradeInvite(Uid),
     TradeAccepted(Uid),
     FinishedTrade(TradeResult),

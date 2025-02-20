@@ -1,7 +1,6 @@
 use crate::{
     comp::{
         BuffKind, ability,
-        dialogue::Subject,
         inventory::{
             item::tool::ToolKind,
             slot::{EquipSlot, InvSlotId, Slot},
@@ -150,7 +149,7 @@ pub enum ControlEvent {
     //ToggleLantern,
     EnableLantern,
     DisableLantern,
-    Interact(Uid, Subject),
+    Interact(Uid),
     InitiateInvite(Uid, InviteKind),
     InviteResponse(InviteResponse),
     PerformTradeAction(TradeId, TradeAction),

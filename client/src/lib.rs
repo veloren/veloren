@@ -22,7 +22,6 @@ use common::{
         InventoryUpdateEvent, MapMarkerChange, PresenceKind, UtteranceKind,
         chat::KillSource,
         controller::CraftEvent,
-        dialogue::Subject,
         group,
         inventory::item::{ItemKind, modular, tool},
         invite::{InviteKind, InviteResponse},
@@ -1488,16 +1487,14 @@ impl Client {
         }
     }
 
-    pub fn npc_interact(&mut self, npc_entity: EcsEntity, subject: Subject) {
+    pub fn npc_interact(&mut self, npc_entity: EcsEntity) {
         // If we're dead, exit before sending message
         if self.is_dead() {
             return;
         }
 
         if let Some(uid) = self.state.read_component_copied(npc_entity) {
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(
-                uid, subject,
-            )));
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(uid)));
         }
     }
 

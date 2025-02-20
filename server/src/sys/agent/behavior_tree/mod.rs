@@ -7,9 +7,7 @@ use common::{
             AgentEvent, AwarenessState, DEFAULT_INTERACTION_TIME, TRADE_INTERACTION_TIME, Target,
             TimerAction,
         },
-        body,
-        dialogue::Subject,
-        is_downed,
+        body, is_downed,
     },
     consts::MAX_INTERACT_RANGE,
     interaction::InteractionKind,
@@ -626,7 +624,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                         if let Some(target_uid) = bdata.read_data.uids.get(target) {
                             bdata
                                 .controller
-                                .push_event(ControlEvent::Interact(*target_uid, Subject::Regular));
+                                .push_event(ControlEvent::Interact(*target_uid));
                         }
                     }
                     bdata.controller.push_utterance(UtteranceKind::Greeting);

@@ -5,7 +5,6 @@ use crate::{
     comp::{
         self, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
         agent::Sound,
-        dialogue::Subject,
         invite::{InviteKind, InviteResponse},
         slot::EquipSlot,
     },
@@ -387,7 +386,7 @@ pub struct LandOnGroundEvent {
 
 pub struct SetLanternEvent(pub EcsEntity, pub bool);
 
-pub struct NpcInteractEvent(pub EcsEntity, pub EcsEntity, pub Subject);
+pub struct NpcInteractEvent(pub EcsEntity, pub EcsEntity);
 
 pub struct DialogueEvent(pub EcsEntity, pub EcsEntity, pub rtsim::Dialogue);
 

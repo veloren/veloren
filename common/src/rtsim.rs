@@ -5,7 +5,7 @@
 
 use crate::{
     character::CharacterId,
-    comp::{agent::FlightMode, dialogue::Subject, inventory::item::ItemDef},
+    comp::{agent::FlightMode, inventory::item::ItemDef},
     util::Dir,
 };
 use common_i18n::Content;
@@ -341,7 +341,7 @@ impl From<Content> for Response {
 #[derive(Clone, Debug)]
 pub enum NpcInput {
     Report(ReportId),
-    Interaction(Actor, Subject),
+    Interaction(Actor),
     Dialogue(Actor, Dialogue<true>),
 }
 
