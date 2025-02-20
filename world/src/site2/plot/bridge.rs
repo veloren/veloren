@@ -244,7 +244,9 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
 
     ramp_prim(ramp_aabr, 1).fill(light_rock.clone());
 
-    let ramp_aabr = orth_dir.trim_aabr(ramp_aabr, 1);
+    let ramp_aabr = orth_dir
+        .opposite()
+        .trim_aabr(orth_dir.trim_aabr(ramp_aabr, 1), 1);
     ramp_prim(ramp_aabr, 5).clear();
     ramp_prim(ramp_aabr, 0).fill(rock.clone());
 
@@ -277,7 +279,9 @@ fn render_flat(bridge: &Bridge, painter: &Painter) {
         .without(holes)
         .fill(light_rock);
 
-    let aabr = orth_dir.trim_aabr(aabr, 1);
+    let aabr = orth_dir
+        .opposite()
+        .trim_aabr(orth_dir.trim_aabr(aabr, 1), 1);
     painter
         .aabb(aabb(
             aabr.min.with_z(bridge.end.z + 1),
@@ -862,6 +866,11 @@ fn render_hang(bridge: &Bridge, painter: &Painter) {
 }
 
 pub struct Bridge {
+    /// The original start position in world coords.
+    pub(crate) original_start: Vec2<i32>,
+    /// The original end position in world coords.
+    pub(crate) original_end: Vec2<i32>,
+
     pub(crate) start: Vec3<i32>,
     pub(crate) end: Vec3<i32>,
     pub(crate) dir: Dir,
@@ -879,8 +888,8 @@ impl Bridge {
         start: Vec2<i32>,
         end: Vec2<i32>,
     ) -> Self {
-        let start = site.tile_wpos(start);
-        let end = site.tile_wpos(end);
+        let original_start = site.tile_wpos(start);
+        let original_end = site.tile_wpos(end);
 
         let min_water_dist = 5;
         let find_edge = |start: Vec2<i32>, end: Vec2<i32>| {
@@ -920,9 +929,9 @@ impl Bridge {
             }
         };
 
-        let (test_start, start_dist) = find_edge(start, end);
+        let (test_start, start_dist) = find_edge(original_start, original_end);
 
-        let (test_end, end_dist) = find_edge(end, start);
+        let (test_end, end_dist) = find_edge(original_end, original_start);
 
         let (start, start_dist, end, end_dist) = if test_start.z < test_end.z {
             (test_start, start_dist, test_end, end_dist)
@@ -936,6 +945,8 @@ impl Bridge {
         let water_alt = col.water_level as i32;
         let bridge = BridgeKind::random(rng, start, start_dist, end, end_dist, water_alt);
         Self {
+            original_start,
+            original_end,
             start,
             end,
             center,

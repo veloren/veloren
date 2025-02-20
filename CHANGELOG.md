@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Poise bar is shown by default.
 - Purple Geode is dropped again, now from Basilisks.
 - Updated velorite and fragment item models to match mining sprites.
+- Tavern changes, cellars, better layout, more rtsim behaviour related to taverns.
+- Town layout improvements, lantern pole sprites at the sides of roads, more smooth paths.
 
 ### Removed
 

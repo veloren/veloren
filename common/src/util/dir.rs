@@ -82,12 +82,9 @@ impl Dir {
 
     /// Generates a random direction that has a z component of 0
     pub fn random_2d(rng: &mut impl Rng) -> Self {
-        Self::from_unnormalized(Vec3::new(
-            rng.gen_range(-1.0..=1.0),
-            rng.gen_range(-1.0..=1.0),
-            0.0,
-        ))
-        .unwrap_or(Self::new(Vec3::unit_x()))
+        let a = rng.gen_range(0.0..std::f32::consts::TAU);
+        // This will always be normalized.
+        Self::new(Vec3::new(a.cos(), a.sin(), 0.0))
     }
 
     pub fn slerp(from: Self, to: Self, factor: f32) -> Self {

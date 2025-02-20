@@ -164,6 +164,7 @@ impl Structure for FarmField {
     const UPDATE_FN: &'static [u8] = b"render_farmfield\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_farmfield")]
+    fn render_inner(&self, _site: &Site, _land: &Land, _painter: &Painter) {}
 
     fn terrain_surface_at<R: Rng>(
         &self,
@@ -172,6 +173,7 @@ impl Structure for FarmField {
         rng: &mut R,
         col: &ColumnSample,
         z_off: i32,
+        _site: &Site,
     ) -> Option<Block> {
         let t = (self.ori * wpos.as_()).magnitude();
         let is_trench = self

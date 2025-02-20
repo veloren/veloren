@@ -125,7 +125,7 @@ impl Data {
                         | PlotKind::Workshop(_)
                         | PlotKind::AirshipDock(_)
                         | PlotKind::Tavern(_)
-                        | PlotKind::Plaza
+                        | PlotKind::Plaza(_)
                         | PlotKind::SavannahAirshipDock(_)
                         | PlotKind::SavannahHut(_)
                         | PlotKind::SavannahWorkshop(_)
@@ -136,7 +136,7 @@ impl Data {
                         | PlotKind::CoastalWorkshop(_)
                 )
             }) as _;
-            let matches_plazas = (|kind: &PlotKind| matches!(kind, PlotKind::Plaza)) as _;
+            let matches_plazas = (|kind: &PlotKind| matches!(kind, PlotKind::Plaza(_))) as _;
             if good_or_evil {
                 for _ in 0..site2.plots().len() {
                     this.npcs.create_npc(

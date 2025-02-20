@@ -1,4 +1,9 @@
-use crate::{ColumnSample, IndexRef, column::ColumnGen, sim, util::Sampler};
+use crate::{
+    ColumnSample, IndexRef,
+    column::ColumnGen,
+    sim::{self, SimChunk},
+    util::Sampler,
+};
 use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 
@@ -14,6 +19,22 @@ impl<'a> Land<'a> {
     pub fn size(&self) -> Vec2<u32> { self.sim.map_or(Vec2::one(), |s| s.get_size()) }
 
     pub fn from_sim(sim: &'a sim::WorldSim) -> Self { Self { sim: Some(sim) } }
+
+    pub fn get_interpolated<T>(&self, wpos: Vec2<i32>, f: impl FnMut(&SimChunk) -> T) -> T
+    where
+        T: Copy + Default + std::ops::Add<Output = T> + std::ops::Mul<f32, Output = T>,
+    {
+        self.sim
+            .and_then(|sim| sim.get_interpolated(wpos, f))
+            .unwrap_or_default()
+    }
+
+    /// See `WorldSim::get_surface_alt_approx`.
+    pub fn get_surface_alt_approx(&self, wpos: Vec2<i32>) -> f32 {
+        self.sim
+            .map(|sim| sim.get_surface_alt_approx(wpos))
+            .unwrap_or(0.0)
+    }
 
     pub fn get_alt_approx(&self, wpos: Vec2<i32>) -> f32 {
         self.sim

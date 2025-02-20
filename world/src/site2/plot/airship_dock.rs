@@ -33,6 +33,7 @@ impl AirshipDock {
         door_tile: Vec2<i32>,
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
+        alt: Option<i32>,
     ) -> Self {
         let door_tile_pos: Vec2<i32> = site.tile_center_wpos(door_tile);
         let bounds = Aabr {
@@ -40,7 +41,9 @@ impl AirshipDock {
             max: site.tile_wpos(tile_aabr.max),
         };
         let center = bounds.center();
-        let alt = land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32;
+        let alt = alt.unwrap_or_else(|| {
+            land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32
+        });
         let base = alt + 3;
         let height = base + 28;
         let rotation = if door_dir.y < 0 {

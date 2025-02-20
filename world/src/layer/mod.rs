@@ -83,7 +83,6 @@ impl PathLocals {
 }
 
 pub fn apply_paths_to(canvas: &mut Canvas) {
-    let info = canvas.info();
     canvas.foreach_col(|canvas, wpos2d, col| {
         let surface_z = col.riverless_alt.floor() as i32;
 
@@ -105,24 +104,19 @@ pub fn apply_paths_to(canvas: &mut Canvas) {
                 riverless_alt,
                 alt: _,
                 water_dist: _,
-                bridge_offset,
-                depth,
+                bridge_offset: _,
+                depth: _,
             } = PathLocals::new(&canvas.info(), col, path_nearest);
-            let surface_z = (riverless_alt + bridge_offset).floor() as i32;
+
+            let depth = 4;
+            let surface_z = riverless_alt.floor() as i32;
 
             for z in inset - depth..inset {
+                let path_color =
+                    path.surface_color(col.sub_surface_color.map(|e| (e * 255.0) as u8));
                 canvas.set(
                     Vec3::new(wpos2d.x, wpos2d.y, surface_z + z),
-                    if bridge_offset >= 2.0 && path_dist >= 3.0 || z < inset - 1 {
-                        Block::new(
-                            BlockKind::Rock,
-                            noisy_color(info.index().colors.layer.bridge.into(), 8),
-                        )
-                    } else {
-                        let path_color =
-                            path.surface_color(col.sub_surface_color.map(|e| (e * 255.0) as u8));
-                        Block::new(BlockKind::Earth, noisy_color(path_color, 8))
-                    },
+                    Block::new(BlockKind::Earth, noisy_color(path_color, 8)),
                 );
             }
             let head_space = path.head_space(path_dist);

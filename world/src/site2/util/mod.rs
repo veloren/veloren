@@ -1,4 +1,5 @@
 pub mod gradient;
+pub mod sprites;
 
 use std::ops::{Add, Sub};
 
@@ -21,7 +22,7 @@ impl Dir {
         match rng.gen_range(0..4) {
             0 => Dir::X,
             1 => Dir::Y,
-            3 => Dir::NegX,
+            2 => Dir::NegX,
             _ => Dir::NegY,
         }
     }
@@ -35,6 +36,8 @@ impl Dir {
             Dir::NegY
         }
     }
+
+    pub fn to_dir3(self) -> Dir3 { Dir3::from_dir(self) }
 
     #[must_use]
     pub fn opposite(self) -> Dir {
@@ -59,14 +62,7 @@ impl Dir {
 
     /// Rotate the direction clock wise
     #[must_use]
-    pub fn rotated_cw(self) -> Dir {
-        match self {
-            Dir::X => Dir::NegY,
-            Dir::NegX => Dir::Y,
-            Dir::Y => Dir::X,
-            Dir::NegY => Dir::NegX,
-        }
-    }
+    pub fn rotated_cw(self) -> Dir { self.rotated_ccw().opposite() }
 
     #[must_use]
     pub fn orthogonal(self) -> Dir {
@@ -118,6 +114,17 @@ impl Dir {
             Dir::NegX => Vec2::new(-x, -y),
             Dir::Y => Vec2::new(y, x),
             Dir::NegY => Vec2::new(-y, -x),
+        }
+    }
+
+    /// Create a vec2 where x is in the direction of `self`, and y is orthogonal
+    /// version of self.
+    pub fn vec2_abs<T>(self, x: T, y: T) -> Vec2<T> {
+        match self {
+            Dir::X => Vec2::new(x, y),
+            Dir::NegX => Vec2::new(x, y),
+            Dir::Y => Vec2::new(y, x),
+            Dir::NegY => Vec2::new(y, x),
         }
     }
 
@@ -181,6 +188,10 @@ impl Dir {
 
     /// Is this direction parallel to y
     pub fn is_y(self) -> bool { matches!(self, Dir::Y | Dir::NegY) }
+
+    pub fn is_positive(self) -> bool { matches!(self, Dir::X | Dir::Y) }
+
+    pub fn is_negative(self) -> bool { !self.is_positive() }
 
     /// Returns the component that the direction is parallell to
     pub fn select(self, vec: impl Into<Vec2<i32>>) -> i32 {
@@ -252,52 +263,19 @@ impl Dir {
         }
     }
 
-    /// Try to split an aabr in a certain direction
-    pub fn try_split_aabr<T>(self, aabr: Aabr<T>, sp: T) -> Option<[Aabr<T>; 2]>
-    where
-        T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T>,
-    {
-        match self {
-            Dir::NegX | Dir::X => {
-                if aabr.min.x <= sp && sp <= aabr.max.x {
-                    Some(aabr.split_at_x(sp))
-                } else {
-                    None
-                }
-            },
-            Dir::NegY | Dir::Y => {
-                if aabr.min.y <= sp && sp <= aabr.max.y {
-                    Some(aabr.split_at_y(sp))
-                } else {
-                    None
-                }
-            },
-        }
-    }
-
-    pub fn trim_aabr(self, aabr: Aabr<i32>, offset: i32) -> Aabr<i32> {
-        Aabr {
-            min: aabr.min + self.abs().to_vec2() * offset,
-            max: aabr.max - self.abs().to_vec2() * offset,
-        }
+    pub fn trim_aabr(self, aabr: Aabr<i32>, amount: i32) -> Aabr<i32> {
+        (-self).extend_aabr(aabr, -amount)
     }
 
     pub fn extend_aabr(self, aabr: Aabr<i32>, amount: i32) -> Aabr<i32> {
+        let offset = self.to_vec2() * amount;
         match self {
-            Dir::X => Aabr {
+            _ if self.is_positive() => Aabr {
                 min: aabr.min,
-                max: aabr.max + Vec2::new(amount, 0),
+                max: aabr.max + offset,
             },
-            Dir::Y => Aabr {
-                min: aabr.min,
-                max: aabr.max + Vec2::new(0, amount),
-            },
-            Dir::NegX => Aabr {
-                min: aabr.min - Vec2::new(amount, 0),
-                max: aabr.max,
-            },
-            Dir::NegY => Aabr {
-                min: aabr.min - Vec2::new(0, amount),
+            _ => Aabr {
+                min: aabr.min + offset,
                 max: aabr.max,
             },
         }
@@ -306,6 +284,256 @@ impl Dir {
 
 impl std::ops::Neg for Dir {
     type Output = Dir;
+
+    fn neg(self) -> Self::Output { self.opposite() }
+}
+
+/// A 3d direction.
+#[derive(Debug, enum_map::Enum, strum::EnumIter, enumset::EnumSetType)]
+pub enum Dir3 {
+    X,
+    Y,
+    Z,
+    NegX,
+    NegY,
+    NegZ,
+}
+
+impl Dir3 {
+    pub const ALL: [Dir; 4] = [Dir::X, Dir::Y, Dir::NegX, Dir::NegY];
+
+    pub fn choose(rng: &mut impl Rng) -> Dir3 {
+        match rng.gen_range(0..6) {
+            0 => Dir3::X,
+            1 => Dir3::Y,
+            2 => Dir3::Z,
+            3 => Dir3::NegX,
+            4 => Dir3::NegY,
+            _ => Dir3::NegZ,
+        }
+    }
+
+    pub fn from_dir(dir: Dir) -> Dir3 {
+        match dir {
+            Dir::X => Dir3::X,
+            Dir::Y => Dir3::Y,
+            Dir::NegX => Dir3::NegX,
+            Dir::NegY => Dir3::NegY,
+        }
+    }
+
+    pub fn to_dir(self) -> Option<Dir> {
+        match self {
+            Dir3::X => Some(Dir::X),
+            Dir3::Y => Some(Dir::Y),
+            Dir3::NegX => Some(Dir::NegX),
+            Dir3::NegY => Some(Dir::NegY),
+            _ => None,
+        }
+    }
+
+    pub fn from_vec3(vec: Vec3<i32>) -> Dir3 {
+        if vec.x.abs() > vec.y.abs() && vec.x.abs() > vec.z.abs() {
+            if vec.x > 0 { Dir3::X } else { Dir3::NegX }
+        } else if vec.y.abs() > vec.z.abs() {
+            if vec.y > 0 { Dir3::Y } else { Dir3::NegY }
+        } else if vec.z > 0 {
+            Dir3::Z
+        } else {
+            Dir3::NegZ
+        }
+    }
+
+    #[must_use]
+    pub fn opposite(self) -> Dir3 {
+        match self {
+            Dir3::X => Dir3::NegX,
+            Dir3::NegX => Dir3::X,
+            Dir3::Y => Dir3::NegY,
+            Dir3::NegY => Dir3::Y,
+            Dir3::Z => Dir3::NegZ,
+            Dir3::NegZ => Dir3::Z,
+        }
+    }
+
+    /// Rotate counter clockwise around an axis by 90 degrees.
+    pub fn rotate_axis_ccw(self, axis: Dir3) -> Dir3 {
+        match axis {
+            Dir3::X | Dir3::NegX => match self {
+                Dir3::Y => Dir3::Z,
+                Dir3::NegY => Dir3::NegZ,
+                Dir3::Z => Dir3::NegY,
+                Dir3::NegZ => Dir3::Y,
+                x => x,
+            },
+            Dir3::Y | Dir3::NegY => match self {
+                Dir3::X => Dir3::Z,
+                Dir3::NegX => Dir3::NegZ,
+                Dir3::Z => Dir3::NegX,
+                Dir3::NegZ => Dir3::X,
+                y => y,
+            },
+            Dir3::Z | Dir3::NegZ => match self {
+                Dir3::X => Dir3::Y,
+                Dir3::NegX => Dir3::NegY,
+                Dir3::Y => Dir3::NegX,
+                Dir3::NegY => Dir3::X,
+                z => z,
+            },
+        }
+    }
+
+    /// Rotate clockwise around an axis by 90 degrees.
+    pub fn rotate_axis_cw(self, axis: Dir3) -> Dir3 { self.rotate_axis_ccw(axis).opposite() }
+
+    /// Get a direction that is orthogonal to both directions, always a positive
+    /// direction.
+    pub fn cross(self, other: Dir3) -> Dir3 {
+        match (self, other) {
+            (Dir3::X | Dir3::NegX, Dir3::Y | Dir3::NegY)
+            | (Dir3::Y | Dir3::NegY, Dir3::X | Dir3::NegX) => Dir3::Z,
+            (Dir3::X | Dir3::NegX, Dir3::Z | Dir3::NegZ)
+            | (Dir3::Z | Dir3::NegZ, Dir3::X | Dir3::NegX) => Dir3::Y,
+            (Dir3::Z | Dir3::NegZ, Dir3::Y | Dir3::NegY)
+            | (Dir3::Y | Dir3::NegY, Dir3::Z | Dir3::NegZ) => Dir3::X,
+            (Dir3::X | Dir3::NegX, Dir3::X | Dir3::NegX) => Dir3::Y,
+            (Dir3::Y | Dir3::NegY, Dir3::Y | Dir3::NegY) => Dir3::X,
+            (Dir3::Z | Dir3::NegZ, Dir3::Z | Dir3::NegZ) => Dir3::Y,
+        }
+    }
+
+    #[must_use]
+    pub fn abs(self) -> Dir3 {
+        match self {
+            Dir3::X | Dir3::NegX => Dir3::X,
+            Dir3::Y | Dir3::NegY => Dir3::Y,
+            Dir3::Z | Dir3::NegZ => Dir3::Z,
+        }
+    }
+
+    #[must_use]
+    pub fn signum(self) -> i32 {
+        match self {
+            Dir3::X | Dir3::Y | Dir3::Z => 1,
+            Dir3::NegX | Dir3::NegY | Dir3::NegZ => -1,
+        }
+    }
+
+    pub fn to_vec3(self) -> Vec3<i32> {
+        match self {
+            Dir3::X => Vec3::new(1, 0, 0),
+            Dir3::NegX => Vec3::new(-1, 0, 0),
+            Dir3::Y => Vec3::new(0, 1, 0),
+            Dir3::NegY => Vec3::new(0, -1, 0),
+            Dir3::Z => Vec3::new(0, 0, 1),
+            Dir3::NegZ => Vec3::new(0, 0, -1),
+        }
+    }
+
+    /// Is this direction parallel to x
+    pub fn is_x(self) -> bool { matches!(self, Dir3::X | Dir3::NegX) }
+
+    /// Is this direction parallel to y
+    pub fn is_y(self) -> bool { matches!(self, Dir3::Y | Dir3::NegY) }
+
+    /// Is this direction parallel to z
+    pub fn is_z(self) -> bool { matches!(self, Dir3::Z | Dir3::NegZ) }
+
+    pub fn is_positive(self) -> bool { matches!(self, Dir3::X | Dir3::Y | Dir3::Z) }
+
+    pub fn is_negative(self) -> bool { !self.is_positive() }
+
+    /// Returns the component that the direction is parallell to
+    pub fn select(self, vec: impl Into<Vec3<i32>>) -> i32 {
+        let vec = vec.into();
+        match self {
+            Dir3::X | Dir3::NegX => vec.x,
+            Dir3::Y | Dir3::NegY => vec.y,
+            Dir3::Z | Dir3::NegZ => vec.z,
+        }
+    }
+
+    /// Select one component the direction is parallel to from vec and select
+    /// the other components from other
+    pub fn select_with(self, vec: impl Into<Vec3<i32>>, other: impl Into<Vec3<i32>>) -> Vec3<i32> {
+        let vec = vec.into();
+        let other = other.into();
+        match self {
+            Dir3::X | Dir3::NegX => Vec3::new(vec.x, other.y, other.z),
+            Dir3::Y | Dir3::NegY => Vec3::new(other.x, vec.y, other.z),
+            Dir3::Z | Dir3::NegZ => Vec3::new(other.x, other.y, vec.z),
+        }
+    }
+
+    /// Returns the side of an aabb that the direction is pointing to
+    pub fn select_aabb<T>(self, aabb: Aabb<T>) -> T {
+        match self {
+            Dir3::X => aabb.max.x,
+            Dir3::NegX => aabb.min.x,
+            Dir3::Y => aabb.max.y,
+            Dir3::NegY => aabb.min.y,
+            Dir3::Z => aabb.max.z,
+            Dir3::NegZ => aabb.min.z,
+        }
+    }
+
+    /// Select one component from the side the direction is pointing to from
+    /// aabr and select the other components from other
+    pub fn select_aabb_with<T>(self, aabb: Aabb<T>, other: impl Into<Vec3<T>>) -> Vec3<T> {
+        let other = other.into();
+        match self {
+            Dir3::X => Vec3::new(aabb.max.x, other.y, other.z),
+            Dir3::NegX => Vec3::new(aabb.min.x, other.y, other.z),
+            Dir3::Y => Vec3::new(other.x, aabb.max.y, other.z),
+            Dir3::NegY => Vec3::new(other.x, aabb.min.y, other.z),
+            Dir3::Z => Vec3::new(other.x, other.y, aabb.max.z),
+            Dir3::NegZ => Vec3::new(other.x, other.y, aabb.min.z),
+        }
+    }
+
+    pub fn split_aabb_offset<T>(self, aabb: Aabb<T>, offset: T) -> [Aabb<T>; 2]
+    where
+        T: Copy + PartialOrd + Add<T, Output = T> + Sub<T, Output = T>,
+    {
+        match self {
+            Dir3::X => aabb.split_at_x(aabb.min.x + offset),
+            Dir3::NegX => {
+                let res = aabb.split_at_x(aabb.max.x - offset);
+                [res[1], res[0]]
+            },
+            Dir3::Y => aabb.split_at_y(aabb.min.y + offset),
+            Dir3::NegY => {
+                let res = aabb.split_at_y(aabb.max.y - offset);
+                [res[1], res[0]]
+            },
+            Dir3::Z => aabb.split_at_z(aabb.min.z + offset),
+            Dir3::NegZ => {
+                let res = aabb.split_at_z(aabb.max.z - offset);
+                [res[1], res[0]]
+            },
+        }
+    }
+
+    pub fn trim_aabb(self, aabb: Aabb<i32>, amount: i32) -> Aabb<i32> {
+        (-self).extend_aabb(aabb, -amount)
+    }
+
+    pub fn extend_aabb(self, aabb: Aabb<i32>, amount: i32) -> Aabb<i32> {
+        let offset = self.to_vec3() * amount;
+        match self {
+            _ if self.is_positive() => Aabb {
+                min: aabb.min,
+                max: aabb.max + offset,
+            },
+            _ => Aabb {
+                min: aabb.min + offset,
+                max: aabb.max,
+            },
+        }
+    }
+}
+impl std::ops::Neg for Dir3 {
+    type Output = Dir3;
 
     fn neg(self) -> Self::Output { self.opposite() }
 }

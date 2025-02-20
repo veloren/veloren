@@ -18,16 +18,24 @@ pub struct MyrmidonHouse {
 }
 
 impl MyrmidonHouse {
-    pub fn generate(land: &Land, _rng: &mut impl Rng, site: &Site, tile_aabr: Aabr<i32>) -> Self {
+    pub fn generate(
+        land: &Land,
+        _rng: &mut impl Rng,
+        site: &Site,
+        tile_aabr: Aabr<i32>,
+        alt: Option<i32>,
+    ) -> Self {
         let bounds = Aabr {
             min: site.tile_wpos(tile_aabr.min),
             max: site.tile_wpos(tile_aabr.max),
         };
         Self {
             bounds,
-            alt: land.get_alt_approx(site.tile_center_wpos((tile_aabr.max - tile_aabr.min) / 2))
-                as i32
-                + 2,
+            alt: alt.unwrap_or_else(|| {
+                land.get_alt_approx(site.tile_center_wpos((tile_aabr.max - tile_aabr.min) / 2))
+                    as i32
+                    + 2
+            }),
         }
     }
 

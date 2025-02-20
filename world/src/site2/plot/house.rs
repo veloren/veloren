@@ -41,6 +41,7 @@ impl House {
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
         calendar: Option<&Calendar>,
+        alt: Option<i32>,
     ) -> Self {
         let levels = rng.gen_range(1..2 + (tile_aabr.max - tile_aabr.min).product() / 6) as u32;
         let door_tile_pos = site.tile_center_wpos(door_tile);
@@ -62,7 +63,9 @@ impl House {
             door_tile: door_tile_pos,
             tile_aabr,
             bounds,
-            alt: land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32,
+            alt: alt.unwrap_or_else(|| {
+                land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32
+            }),
             levels,
             overhang: if levels > 3 {
                 // Overhangs of 3 at this building height are ill-advised.
@@ -107,7 +110,7 @@ impl Structure for House {
     fn render_inner(&self, site: &Site, _land: &Land, painter: &Painter) {
         let storey = STOREY;
         let roof = storey * self.levels as i32 - 1;
-        let foundations = 12;
+        let foundations = 20;
         let alt = self.alt + 1;
 
         // Roof

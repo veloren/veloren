@@ -28,6 +28,8 @@ mod jungle_ruin;
 mod myrmidon_arena;
 mod myrmidon_house;
 mod pirate_hideout;
+mod plaza;
+mod road;
 mod rock_circle;
 mod sahagin;
 mod savannah_airship_dock;
@@ -43,20 +45,50 @@ mod vampire_castle;
 mod workshop;
 
 pub use self::{
-    adlet::AdletStronghold, airship_dock::AirshipDock, barn::Barn, bridge::Bridge, camp::Camp,
-    castle::Castle, citadel::Citadel, cliff_tower::CliffTower,
-    cliff_town_airship_dock::CliffTownAirshipDock, coastal_airship_dock::CoastalAirshipDock,
-    coastal_house::CoastalHouse, coastal_workshop::CoastalWorkshop, cultist::Cultist,
-    desert_city_airship_dock::DesertCityAirshipDock, desert_city_arena::DesertCityArena,
-    desert_city_multiplot::DesertCityMultiPlot, desert_city_temple::DesertCityTemple,
-    dwarven_mine::DwarvenMine, farm_field::FarmField, giant_tree::GiantTree,
-    glider_finish::GliderFinish, glider_platform::GliderPlatform, glider_ring::GliderRing,
-    gnarling::GnarlingFortification, haniwa::Haniwa, house::House, jungle_ruin::JungleRuin,
-    myrmidon_arena::MyrmidonArena, myrmidon_house::MyrmidonHouse, pirate_hideout::PirateHideout,
-    rock_circle::RockCircle, sahagin::Sahagin, savannah_airship_dock::SavannahAirshipDock,
-    savannah_hut::SavannahHut, savannah_workshop::SavannahWorkshop, sea_chapel::SeaChapel,
-    tavern::Tavern, terracotta_house::TerracottaHouse, terracotta_palace::TerracottaPalace,
-    terracotta_yard::TerracottaYard, troll_cave::TrollCave, vampire_castle::VampireCastle,
+    adlet::AdletStronghold,
+    airship_dock::AirshipDock,
+    barn::Barn,
+    bridge::Bridge,
+    camp::Camp,
+    castle::Castle,
+    citadel::Citadel,
+    cliff_tower::CliffTower,
+    cliff_town_airship_dock::CliffTownAirshipDock,
+    coastal_airship_dock::CoastalAirshipDock,
+    coastal_house::CoastalHouse,
+    coastal_workshop::CoastalWorkshop,
+    cultist::Cultist,
+    desert_city_airship_dock::DesertCityAirshipDock,
+    desert_city_arena::DesertCityArena,
+    desert_city_multiplot::DesertCityMultiPlot,
+    desert_city_temple::DesertCityTemple,
+    dwarven_mine::DwarvenMine,
+    farm_field::FarmField,
+    giant_tree::GiantTree,
+    glider_finish::GliderFinish,
+    glider_platform::GliderPlatform,
+    glider_ring::GliderRing,
+    gnarling::GnarlingFortification,
+    haniwa::Haniwa,
+    house::House,
+    jungle_ruin::JungleRuin,
+    myrmidon_arena::MyrmidonArena,
+    myrmidon_house::MyrmidonHouse,
+    pirate_hideout::PirateHideout,
+    plaza::Plaza,
+    road::{Road, RoadKind},
+    rock_circle::RockCircle,
+    sahagin::Sahagin,
+    savannah_airship_dock::SavannahAirshipDock,
+    savannah_hut::SavannahHut,
+    savannah_workshop::SavannahWorkshop,
+    sea_chapel::SeaChapel,
+    tavern::Tavern,
+    terracotta_house::TerracottaHouse,
+    terracotta_palace::TerracottaPalace,
+    terracotta_yard::TerracottaYard,
+    troll_cave::TrollCave,
+    vampire_castle::VampireCastle,
     workshop::Workshop,
 };
 
@@ -130,10 +162,10 @@ pub enum PlotKind {
     DesertCityAirshipDock(DesertCityAirshipDock),
     SeaChapel(SeaChapel),
     JungleRuin(JungleRuin),
-    Plaza,
+    Plaza(Plaza),
     Castle(Castle),
     Cultist(Cultist),
-    Road(Path<Vec2<i32>>),
+    Road(Road),
     Gnarling(GnarlingFortification),
     Adlet(AdletStronghold),
     Haniwa(Haniwa),
@@ -162,6 +194,14 @@ pub enum PlotKind {
 }
 
 impl PlotKind {
+    pub fn render_ordering(&self) -> u32 {
+        match self {
+            PlotKind::Bridge(_) => 1,
+            PlotKind::Road(_) | PlotKind::Plaza(_) => 2,
+            _ => 0,
+        }
+    }
+
     pub fn meta(&self) -> Option<PlotKindMeta<'_>> {
         match self {
             PlotKind::SavannahAirshipDock(d) => Some(PlotKindMeta::AirshipDock {
@@ -225,7 +265,7 @@ impl PlotKind {
             | PlotKind::JungleRuin(_)
             | PlotKind::DesertCityArena(_)
             | PlotKind::DesertCityMultiPlot(_)
-            | PlotKind::Plaza
+            | PlotKind::Plaza(_)
             | PlotKind::Castle(_)
             | PlotKind::Road(_)
             | PlotKind::GiantTree(_)
@@ -245,9 +285,13 @@ impl PlotKind {
     }
 }
 
+/// # Syntax
+/// ```ignore
+/// foreach_plot!(expr, plot => plot.something())
+/// ```
 #[macro_export]
 macro_rules! foreach_plot {
-    ($p:expr, $x:ident => $y:expr, $z:expr) => {
+    ($p:expr, $x:ident => $y:expr $(,)?) => {
         match $p {
             PlotKind::House($x) => $y,
             PlotKind::AirshipDock($x) => $y,
@@ -261,9 +305,9 @@ macro_rules! foreach_plot {
             PlotKind::DesertCityArena($x) => $y,
             PlotKind::SeaChapel($x) => $y,
             PlotKind::JungleRuin($x) => $y,
-            PlotKind::Plaza => $z,
+            PlotKind::Plaza($x) => $y,
             PlotKind::Castle($x) => $y,
-            PlotKind::Road(_) => $z,
+            PlotKind::Road($x) => $y,
             PlotKind::Gnarling($x) => $y,
             PlotKind::Adlet($x) => $y,
             PlotKind::GiantTree($x) => $y,
