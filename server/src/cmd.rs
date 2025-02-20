@@ -1633,9 +1633,13 @@ fn handle_rtsim_npc(
                 if let Some(species_meta) = npc_names.get_species_meta(&npc.body) {
                     tags.push(species_meta.keyword.clone());
                 }
-                terms
-                    .iter()
-                    .all(|term| tags.iter().any(|tag| term.eq_ignore_ascii_case(tag.trim())))
+                if let Some(brain) = &npc.brain {
+                    rtsim::ai::Action::backtrace(&brain.action, &mut tags);
+                }
+                terms.iter().all(|term| {
+                    tags.iter()
+                        .any(|tag| tag.trim().to_lowercase().contains(term.as_str()))
+                })
             })
             .collect::<Vec<_>>();
         if let Ok(pos) = position(server, target, "target") {

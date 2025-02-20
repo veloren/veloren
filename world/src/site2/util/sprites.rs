@@ -1,4 +1,4 @@
-use crate::site2::{Fill, Painter};
+use crate::site2::Painter;
 
 use super::Dir;
 use common::terrain::SpriteKind;

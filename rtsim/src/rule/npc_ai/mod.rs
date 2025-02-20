@@ -755,6 +755,11 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
         }
         let day_period = DayPeriod::from(ctx.time_of_day.0);
         let is_weekend = ctx.time_of_day.day() as u64 % 6 == 0;
+        let is_evening = day_period == DayPeriod::Evening;
+
+        let is_free_time = is_weekend || is_evening;
+
+        // Go to a house if it's dark
         if day_period.is_dark()
             && !matches!(ctx.npc.profession(), Some(Profession::Guard))
         {
@@ -799,9 +804,9 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
         // Go do something fun on evenings and holidays, or on random days.
         else if
             // Ain't no rest for the wicked
-            !matches!(ctx.npc.profession(), Some(Profession::Guard))
-            && (matches!(day_period, DayPeriod::Evening) || is_weekend || ctx.rng.gen_bool(0.05)) {
-            let mut fun_stuff = Vec::new();
+            !matches!(ctx.npc.profession(), Some(Profession::Guard | Profession::Chef))
+            && (matches!(day_period, DayPeriod::Evening) || is_free_time || ctx.rng.gen_bool(0.05)) {
+            let mut fun_activities = Vec::new();
 
             if let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site
                 && let Some(ws) = ctx.index.sites.get(ws_id).site2() {
@@ -838,9 +843,10 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                                 .stop_if(timeout(wait_time)))
                             .map(|_, _| ())
                             .boxed());
-                    fun_stuff.push(action);
+                    fun_activities.push(action);
                 }
                 if let Some(tavern) = ws.plots().filter_map(|p| match p.kind() {  PlotKind::Tavern(a) => Some(a), _ => None }).choose(&mut ctx.rng) {
+                    let tavern_name = tavern.name.clone();
                     let wait_time = ctx.rng.gen_range(100.0..300.0);
 
                     let (stage_aabr, stage_z) = tavern.rooms.values().flat_map(|room| {
@@ -880,16 +886,18 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
 
                     let action = casual(travel_to_point(tavern.door_wpos.xy().as_() + 0.5, 0.8).then(choose(move |ctx, (last_action, _)| {
                             let action = [0, 1, 2].into_iter().filter(|i| *last_action != Some(*i)).choose(&mut ctx.rng).expect("We have at least 2 elements");
-                            let socialize = || socialize().map_state(|(_, timer)| timer).repeat();
+                            let socialize_repeat = || socialize().map_state(|(_, timer)| timer).repeat();
                             match action {
                                 // Go and dance on a stage.
                                 0 => {
-                                    casual(now(move |ctx, (last_action, _)| {
-                                        *last_action = Some(action);
-                                        goto(stage_aabr.min.map2(stage_aabr.max, |a, b| ctx.rng.gen_range(a..b)).with_z(stage_z), WALKING_SPEED, 1.0)
-                                    })
-                                    .then(just(move |ctx,_| ctx.controller.do_dance(None)).repeat().stop_if(timeout(ctx.rng.gen_range(20.0..30.0))))
-                                    .map(|_, _| ())
+                                    casual(
+                                        now(move |ctx, (last_action, _)| {
+                                            *last_action = Some(action);
+                                            goto(stage_aabr.min.map2(stage_aabr.max, |a, b| ctx.rng.gen_range(a..b)).with_z(stage_z), WALKING_SPEED, 1.0)
+                                        })
+                                        .then(just(move |ctx,_| ctx.controller.do_dance(None)).repeat().stop_if(timeout(ctx.rng.gen_range(20.0..30.0))))
+                                        .map(|_, _| ())
+                                        .debug(|| "Dancing on the stage")
                                     )
                                 },
                                 // Go and sit at a table.
@@ -897,8 +905,14 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                                     casual(
                                         now(move |ctx, (last_action, _)| {
                                             *last_action = Some(action);
-                                            goto(chair_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(just(move |ctx, _| ctx.controller.do_sit(None, Some(chair_pos)))).then(socialize().stop_if(timeout(ctx.rng.gen_range(30.0..60.0)))).map(|_, _| ())
+                                            goto(chair_pos.as_() + 0.5, WALKING_SPEED, 1.0)
+                                                .then(just(move |ctx, _| ctx.controller.do_sit(None, Some(chair_pos)))
+                                                    // .then(socialize().map_state(|(_, timer)| timer))
+                                                    .repeat().stop_if(timeout(ctx.rng.gen_range(30.0..60.0)))
+                                                )
+                                                .map(|_, _| ())
                                         })
+                                        .debug(move || format!("Sitting in a chair at {} {} {}", chair_pos.x, chair_pos.y, chair_pos.z))
                                     )
                                 },
                                 // Go to the bar.
@@ -906,8 +920,8 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                                     casual(
                                         now(move |ctx, (last_action, _)| {
                                             *last_action = Some(action);
-                                            goto(bar_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(socialize().stop_if(timeout(ctx.rng.gen_range(10.0..25.0)))).map(|_, _| ())
-                                        })
+                                            goto(bar_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(socialize_repeat().stop_if(timeout(ctx.rng.gen_range(10.0..25.0)))).map(|_, _| ())
+                                        }).debug(|| "At the bar")
                                     )
                                 },
                             }
@@ -916,17 +930,18 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                         .repeat()
                         .stop_if(timeout(wait_time)))
                         .map(|_, _| ())
+                        .debug(move || format!("At the tavern '{}'", tavern_name))
                         .boxed()
                     );
 
-                    fun_stuff.push(action);
+                    fun_activities.push(action);
                 }
             }
 
 
-            if !fun_stuff.is_empty() {
-                let i = ctx.rng.gen_range(0..fun_stuff.len());
-                return fun_stuff.swap_remove(i);
+            if !fun_activities.is_empty() {
+                let i = ctx.rng.gen_range(0..fun_activities.len());
+                return fun_activities.swap_remove(i);
             }
         }
         // Villagers with roles should perform those roles
@@ -1016,6 +1031,31 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                 .debug(|| "sell wares")
                 .map(|_, _| ()),
             );
+        } else if matches!(ctx.npc.profession(), Some(Profession::Chef))
+            && ctx.rng.gen_bool(0.8)
+            && let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site
+            && let Some(ws) = ctx.index.sites.get(ws_id).site2()
+            && let Some(tavern) = ws.plots().filter_map(|p| match p.kind() {  PlotKind::Tavern(a) => Some(a), _ => None }).choose(&mut ctx.rng)
+            && let Some((bar_pos, room_center)) = tavern.rooms.values().flat_map(|room|
+                room.details.iter().filter_map(|detail| match detail {
+                    tavern::Detail::Bar { aabr } => {
+                        let center = aabr.center();
+                        Some((center.with_z(room.bounds.min.z), room.bounds.center().xy()))
+                    }
+                    _ => None,
+                })
+            ).choose(&mut ctx.rng) {
+
+                
+            let face_dir = Dir::from_unnormalized((room_center - bar_pos).as_::<f32>().with_z(0.0)).unwrap_or_else(|| Dir::random_2d(&mut ctx.rng));
+
+            return casual(
+                travel_to_point(tavern.door_wpos.xy().as_(), 0.5)
+                    .then(goto(bar_pos.as_() + Vec2::new(0.5, 0.5), WALKING_SPEED, 2.0))
+                    // TODO: Just dance there for now, in the future do other stuff.
+                    .then(just(move |ctx, _| ctx.controller.do_dance(Some(face_dir))).repeat().stop_if(timeout(60.0)))
+                    .debug(|| "cook food").map(|_, _| ())
+            )
         }
 
         // If nothing else needs doing, walk between plazas and socialize

@@ -79,9 +79,10 @@ struct Roof {
 #[derive(Clone, Copy, EnumIter, enum_map::Enum)]
 enum RoomKind {
     Garden,
-    StageRoom,
-    BarRoom,
-    EntranceRoom,
+    Stage,
+    Bar,
+    Seating,
+    Entrance,
     Cellar,
 }
 
@@ -90,22 +91,28 @@ impl RoomKind {
     fn size_range(&self) -> (RangeInclusive<i32>, RangeInclusive<i32>) {
         match self {
             RoomKind::Garden => (5..=20, 35..=250),
+            RoomKind::Seating => (4..=20, 35..=250),
             RoomKind::Cellar => (6..=12, 35..=110),
-            RoomKind::StageRoom => (11..=22, 150..=400),
-            RoomKind::BarRoom => (9..=16, 80..=196),
-            RoomKind::EntranceRoom => (3..=7, 12..=40),
+            RoomKind::Stage => (11..=22, 150..=400),
+            RoomKind::Bar => (9..=16, 80..=196),
+            RoomKind::Entrance => (3..=7, 12..=40),
         }
     }
 
     fn chance(&self, room_counts: &EnumMap<RoomKind, u32>) -> f32 {
         match self {
-            RoomKind::Garden => 0.1 / (1.0 + room_counts[RoomKind::Garden] as f32 * 0.8),
-            RoomKind::StageRoom => 2.0 / (1.0 + room_counts[RoomKind::StageRoom] as f32).powi(2),
-            RoomKind::BarRoom => 2.0 / (1.0 + room_counts[RoomKind::BarRoom] as f32).powi(2),
-            RoomKind::EntranceRoom => {
-                // 0.05 / (1.0 + room_counts[RoomKind::EntranceRoom] as f32)
-                0.0
+            RoomKind::Garden => 0.05 / (1.0 + room_counts[RoomKind::Garden] as f32).powi(2),
+            RoomKind::Seating => 0.4 / (1.0 + room_counts[RoomKind::Seating] as f32),
+            RoomKind::Stage => match room_counts[RoomKind::Stage] {
+                0 => 1.0,
+                _ => 0.0,
             },
+            RoomKind::Bar => match room_counts[RoomKind::Bar] {
+                0 => 1.0,
+                1 => 0.01,
+                _ => 0.0,
+            },
+            RoomKind::Entrance => 0.0,
             RoomKind::Cellar => 1.0,
         }
     }
@@ -124,21 +131,33 @@ impl RoomKind {
         &self,
         max_bounds: Aabr<i32>,
         room_counts: &EnumMap<RoomKind, u32>,
+        temperature: f32,
     ) -> Option<Lottery<RoomKind>> {
         let rooms: &[RoomKind] = match self {
             RoomKind::Cellar => &[RoomKind::Cellar],
-            _ => &[RoomKind::StageRoom, RoomKind::Garden, RoomKind::BarRoom],
+            _ => &[
+                RoomKind::Stage,
+                RoomKind::Garden,
+                RoomKind::Bar,
+                RoomKind::Seating,
+            ],
         };
         let lottery = rooms.iter()
                 // Filter out rooms that won't fit here.
                 .filter(|kind| kind.fits(max_bounds))
                 // Calculate chance for each room.
                 .map(|room_kind| {
+                    let temp_scale = match room_kind {
+                        RoomKind::Garden => temperature,
+                        _ => 1.0,
+                    };
+
                     (
-                        room_kind.chance(room_counts),
+                        room_kind.chance(room_counts) * temp_scale,
                         *room_kind,
                     )
                 })
+                .filter(|(c, _)| *c > 0.0)
                 .collect::<Vec<_>>();
 
         if lottery.is_empty() {
@@ -150,7 +169,7 @@ impl RoomKind {
 
     fn basement_rooms(&self) -> &'static [RoomKind] {
         match self {
-            RoomKind::BarRoom => &[RoomKind::Cellar],
+            RoomKind::Bar => &[RoomKind::Cellar],
             _ => &[],
         }
     }
@@ -235,7 +254,7 @@ impl Room {
 }
 
 pub struct Tavern {
-    name: String,
+    pub name: String,
     pub rooms: Store<Room>,
     walls: Store<Wall>,
     roofs: Store<Roof>,
@@ -276,6 +295,7 @@ impl Tavern {
 
         let door_tile_center = site.tile_center_wpos(door_tile);
         let door_wpos = door_dir.select_aabr_with(ibounds, door_tile_center);
+        let temperature = land.get_interpolated(door_wpos, |c| c.temp);
 
         let door_alt = alt.unwrap_or_else(|| land.get_alt_approx(door_wpos).ceil() as i32);
         let door_wpos = door_wpos.with_z(door_alt);
@@ -389,7 +409,7 @@ impl Tavern {
 
         {
             let entrance_rooms =
-                Lottery::from(vec![(0.5, RoomKind::Garden), (2.0, RoomKind::EntranceRoom)]);
+                Lottery::from(vec![(0.5, RoomKind::Garden), (2.0, RoomKind::Entrance)]);
 
             let entrance_room = *entrance_rooms.choose_seeded(rng.gen());
             let entrance_room_hgt = rng.gen_range(3..=4);
@@ -571,10 +591,11 @@ impl Tavern {
                         break 'room_gen;
                     };
 
-                    let Some(room_lottery) = rooms[room_meta.id]
-                        .kind
-                        .side_room_lottery(max_bounds, &room_counts)
-                    else {
+                    let Some(room_lottery) = rooms[room_meta.id].kind.side_room_lottery(
+                        max_bounds,
+                        &room_counts,
+                        temperature,
+                    ) else {
                         // We have no rooms to pick from
                         break 'room_gen;
                     };
@@ -806,7 +827,11 @@ impl Tavern {
                     let min = orth.select(start);
                     let max = orth.select(end);
                     split_range(to_dir, min, max);
-                    let door = if max - min > 2 && max_z - min_z > 3 && rng.gen_bool(0.8) {
+                    let door = if max - min > 2
+                        && max_z - min_z > 3
+                        && (rooms[from_id].bounds.min.z - rooms[to_id].bounds.min.z).abs() < 4
+                        && rng.gen_bool(0.8)
+                    {
                         let door_center = rng.gen_range(1..=max - min - 2);
                         Some((door_center, door_center + 1))
                     } else {
@@ -1169,7 +1194,7 @@ impl Tavern {
                     .collect(),
             };
             match room.kind {
-                RoomKind::Garden => room.detail_areas.retain(|&aabr| {
+                RoomKind::Garden | RoomKind::Seating => room.detail_areas.retain(|&aabr| {
                     if aabr.size().reduce_max() > 1 && rng.gen_bool(0.7) {
                         room.details.push(table(aabr.center(), aabr));
                         false
@@ -1178,7 +1203,7 @@ impl Tavern {
                     }
                 }),
                 RoomKind::Cellar => {},
-                RoomKind::StageRoom => {
+                RoomKind::Stage => {
                     let mut best = None;
                     let mut best_score = 0;
                     for (i, aabr) in room.detail_areas.iter().enumerate() {
@@ -1203,7 +1228,7 @@ impl Tavern {
                         }
                     });
                 },
-                RoomKind::BarRoom => {
+                RoomKind::Bar => {
                     let mut best = None;
                     let mut best_score = 0;
                     for (i, aabr) in room.detail_areas.iter().enumerate() {
@@ -1228,7 +1253,7 @@ impl Tavern {
                         }
                     });
                 },
-                RoomKind::EntranceRoom => {},
+                RoomKind::Entrance => {},
             }
         }
 
@@ -1656,7 +1681,7 @@ impl Structure for Tavern {
                         }
                     }
                 },
-                RoomKind::StageRoom => {
+                RoomKind::Stage => {
                     for aabr in room.detail_areas.iter().copied() {
                         for dir in Dir::iter().filter(|dir| {
                             dir.select_aabr(aabr) == dir.select_aabr(room_aabr)
@@ -1671,7 +1696,7 @@ impl Structure for Tavern {
                         }
                     }
                 },
-                RoomKind::BarRoom => {
+                RoomKind::Bar | RoomKind::Seating => {
                     for aabr in room.detail_areas.iter().copied() {
                         for dir in Dir::iter()
                             .filter(|dir| dir.select_aabr(aabr) == dir.select_aabr(room_aabr))
@@ -1679,6 +1704,15 @@ impl Structure for Tavern {
                             let pos = dir
                                 .select_aabr_with(aabr, aabr.center())
                                 .with_z(room.bounds.center().z);
+                            let orth = dir.orthogonal();
+                            if room.walls[dir].iter().any(|wall| {
+                                let wall = &self.walls[*wall];
+                                (orth.select(wall.start)..=orth.select(wall.end))
+                                    .contains(&orth.select(pos))
+                                    && (wall.from.is_none() || wall.to.is_none())
+                            }) {
+                                continue;
+                            }
 
                             painter.rotated_sprite(
                                 pos,
@@ -1688,7 +1722,7 @@ impl Structure for Tavern {
                         }
                     }
                 },
-                RoomKind::EntranceRoom => {
+                RoomKind::Entrance => {
                     for aabr in room.detail_areas.iter() {
                         let edges = Dir::iter()
                             .filter(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))

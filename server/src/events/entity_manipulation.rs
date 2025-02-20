@@ -974,7 +974,6 @@ impl ServerEvent for DestroyEvent {
                             create_item_drop.emit(CreateItemDropEvent {
                                 pos: Pos(pos.0 + Vec3::unit_z() * 0.25 + offset),
                                 vel: vel.copied().unwrap_or(comp::Vel(Vec3::zero())),
-                                // TODO: Random
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                                 item: PickupItem::new(item, *data.program_time),
                                 loot_owner: if let Some(loot_owner) = loot_owner {
