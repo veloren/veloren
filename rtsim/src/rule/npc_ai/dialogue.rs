@@ -190,44 +190,62 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
         if let Some(current_site) = ctx.npc.current_site
             && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
         {
-            let direction_to_nearest = |f: fn(&&world::site2::Plot) -> bool| {
-                now(move |ctx, _| {
-                    if let Some(ws) = ctx.index.sites.get(ws_id).site2() {
-                        if let Some(p) = ws.plots().filter(f).min_by_key(|p| {
-                            ws.tile_center_wpos(p.root_tile())
-                                .distance_squared(ctx.npc.wpos.xy().as_())
-                        }) {
-                            ctx.controller.dialogue_marker(
-                                session,
-                                ws.tile_center_wpos(p.root_tile()),
-                                Content::localized("hud-map-plaza"),
-                            );
-                            session.say_statement(Content::localized("npc-response-directions"))
+            let direction_to_nearest =
+                |f: fn(&&world::site2::Plot) -> bool,
+                 plot_name: fn(&world::site2::Plot) -> Content| {
+                    now(move |ctx, _| {
+                        if let Some(ws) = ctx.index.sites.get(ws_id).site2() {
+                            if let Some(p) = ws.plots().filter(f).min_by_key(|p| {
+                                ws.tile_center_wpos(p.root_tile())
+                                    .distance_squared(ctx.npc.wpos.xy().as_())
+                            }) {
+                                ctx.controller.dialogue_marker(
+                                    session,
+                                    ws.tile_center_wpos(p.root_tile()),
+                                    plot_name(p),
+                                );
+                                session.say_statement(Content::localized("npc-response-directions"))
+                            } else {
+                                session
+                                    .say_statement(Content::localized("npc-response-doesnt_exist"))
+                            }
                         } else {
-                            session.say_statement(Content::localized("npc-response-doesnt_exist"))
+                            session.say_statement(Content::localized("npc-info-unknown"))
                         }
-                    } else {
-                        session.say_statement(Content::localized("npc-info-unknown"))
-                    }
-                })
-                .boxed()
-            };
+                    })
+                    .boxed()
+                };
 
             responses.push((
                 Content::localized("dialogue-direction-tavern"),
-                direction_to_nearest(|p| matches!(p.kind(), PlotKind::Tavern(_))),
+                direction_to_nearest(
+                    |p| matches!(p.kind(), PlotKind::Tavern(_)),
+                    |p| match p.kind() {
+                        PlotKind::Tavern(t) => Content::Plain(t.name.clone()),
+                        _ => unreachable!(),
+                    },
+                ),
             ));
             responses.push((
                 Content::localized("dialogue-direction-plaza"),
-                direction_to_nearest(|p| matches!(p.kind(), PlotKind::Plaza(_))),
+                direction_to_nearest(
+                    |p| matches!(p.kind(), PlotKind::Plaza(_)),
+                    |_| Content::localized("hud-map-plaza"),
+                ),
             ));
             responses.push((
                 Content::localized("dialogue-direction-workshop"),
-                direction_to_nearest(|p| matches!(p.kind(), PlotKind::Workshop(_))),
+                direction_to_nearest(
+                    |p| matches!(p.kind(), PlotKind::Workshop(_)),
+                    |_| Content::localized("hud-map-workshop"),
+                ),
             ));
             responses.push((
                 Content::localized("dialogue-direction-airship_dock"),
-                direction_to_nearest(|p| matches!(p.kind(), PlotKind::AirshipDock(_))),
+                direction_to_nearest(
+                    |p| matches!(p.kind(), PlotKind::AirshipDock(_)),
+                    |_| Content::localized("hud-map-airship_dock"),
+                ),
             ));
         }
 

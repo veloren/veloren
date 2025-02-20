@@ -25,3 +25,10 @@ dialogue-direction-tavern = The local tavern
 dialogue-direction-plaza = The nearest town square
 dialogue-direction-workshop = A workshop
 dialogue-direction-airship_dock = The airship dock
+
+dialogue-accept =
+    .a0 = Sure!
+    .a1 = Yes.
+dialogue-decline =
+    .a1 = No thanks.
+    .a2 = Sorry, not now.

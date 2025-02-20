@@ -32,10 +32,10 @@ pub fn talk<S: State>(tgt: Actor) -> impl Action<S> + Clone {
     just(move |ctx, _| ctx.controller.do_talk(tgt)).debug(|| "talking")
 }
 
-pub fn do_dialogue<S: State, A: Action<S>>(
+pub fn do_dialogue<S: State, T: Default + Clone + Send + Sync + 'static, A: Action<S, T>>(
     tgt: Actor,
     f: impl Fn(DialogueSession) -> A + Send + Sync + 'static,
-) -> impl Action<S> {
+) -> impl Action<S, T> {
     now(move |ctx, _| {
         let session = ctx.controller.dialogue_start(tgt);
         f(session)
@@ -55,9 +55,10 @@ pub fn do_dialogue<S: State, A: Action<S>>(
                 });
                 stop
             })
-            .then(just(move |ctx, _| {
+            .and_then(move |x: Option<T>| just(move |ctx, _| {
                 ctx.controller.do_idle();
                 ctx.controller.dialogue_end(session);
+                x.clone().unwrap_or_default()
             }))
     })
 }
@@ -67,11 +68,16 @@ impl DialogueSession {
     ///
     /// Responses will be verified against the original response options and
     /// dialogue participant to prevent spoofing.
-    pub fn ask_question<S: State, R: Into<Response>, A: Action<S>>(
+    pub fn ask_question<
+        S: State,
+        R: Into<Response>,
+        T: Default + Send + Sync + 'static,
+        A: Action<S, T>,
+    >(
         self,
         question: Content,
         responses: impl IntoIterator<Item = (R, A)> + Send + Sync + 'static,
-    ) -> impl Action<S, ()> {
+    ) -> impl Action<S, T> {
         let (responses, actions): (Vec<_>, Vec<_>) = responses
             .into_iter()
             .enumerate()
@@ -120,9 +126,9 @@ impl DialogueSession {
             .stop_if(timeout(60.0))
             .and_then(move |resp: Option<u16>| {
                 if let Some(action) = resp.and_then(|resp| actions_once.take().unwrap().into_iter().nth(resp as usize)) {
-                    action.boxed()
+                    action.map(|x, _| x).boxed()
                 } else {
-                    idle().boxed()
+                    idle().map(|_, _| Default::default()).boxed()
                 }
             })
     }
