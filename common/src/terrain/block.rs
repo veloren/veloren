@@ -381,7 +381,7 @@ impl Block {
             BlockKind::GlowingRock | BlockKind::GlowingWeakRock => 10,
             BlockKind::GlowingMushroom => 20,
             _ => match self.get_sprite()? {
-                SpriteKind::StreetLamp | SpriteKind::StreetLampTall => 24,
+                SpriteKind::StreetLamp | SpriteKind::StreetLampTall | SpriteKind::BonfireMLit => 24,
                 SpriteKind::Ember | SpriteKind::FireBlock => 20,
                 SpriteKind::WallLamp
                 | SpriteKind::WallLampSmall

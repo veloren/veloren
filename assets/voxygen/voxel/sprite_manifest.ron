@@ -6252,15 +6252,25 @@ CrateBlock: [(
     ],
     wind_sway: 0.0,
 )],
-WaterBarrelWood: [(
+BarrelWoodWater: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.furniture.water_barrel_wood",
+            model: "voxygen.voxel.sprite.furniture.barrel_wood_water",
             offset: (-7, -7, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0.0,
+)],
+BarrelWoodCoal: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.barrel_wood_coal",
+            offset: (-7.0, -7.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
 )],
 LanternpostWoodLantern: [(
     variations: [
@@ -6402,16 +6412,6 @@ CarpenterLogCutter: [(
     ],
     wind_sway: 0,
 )],
-CoalBarrelWood: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.coal_barrel_wood",
-            offset: (-7.0, -7.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
 HandCartWood: [(
     variations: [
         (
@@ -6422,21 +6422,236 @@ HandCartWood: [(
     ],
     wind_sway: 0.0,
 )],
-LogsWoodBranchL: [(
+BasketWovenL: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_L",
-            offset: (-8.5, -16.5, 0.0),
+            model: "voxygen.voxel.sprite.furniture.basket_woven_L",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+	    (
+            model: "voxygen.voxel.sprite.furniture.basket_woven_L_lid",
+            offset: (-6.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0,
 )],
-LogsWoodBranchM: [(
+BasketWovenM: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_M",
-            offset: (-8.5, -11.0, 0.0),
+            model: "voxygen.voxel.sprite.furniture.basket_woven_M",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+	(
+            model: "voxygen.voxel.sprite.furniture.basket_woven_M_lid",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BasketWovenS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.basket_woven_S",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BonfireMLit: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bonfire_M_lit",
+            offset: (-11.0, -11.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BonfireMUnlit: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bonfire_M_unlit",
+            offset: (-11.0, -11.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BucketWoodM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bucket_wood_M-0",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+	(
+            model: "voxygen.voxel.sprite.furniture.bucket_wood_M-1",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+JugClayM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.jug_clay_M",
+            offset: (-4.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+MirrorWoodM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.mirror_wood_M",
+            offset: (-6.5, -1.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+SackLeatherM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.sack_leather_M",
+            offset: (-6.0, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+TrophyframeWoodBear: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.trophyframe_wood_bear",
+            offset: (-8.5, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+TrophyframeWoodDeer: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.trophyframe_wood_deer",
+            offset: (-8.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+DiningtableWoodCorner: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.diningtable_wood_corner",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+DiningtableWoodBody: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.diningtable_wood_body",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+ChestWoodDouble: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.chest_wood_double_half",
+            offset: (-5.5, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BenchWoodEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood_end",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BenchWoodMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood_middle",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodCoreEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_core_end",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodCoreMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_core_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBarkEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_bark_end",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBarkMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_bark_middle",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBranchEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_end",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBranchMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_middle",
+            offset: (-6.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -6452,25 +6667,5 @@ LogsWoodBranchS: [(
     ],
     wind_sway: 0,
 )],
-LogsWoodCleanL: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_clean_L",
-            offset: (-6.5, -16.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LogsWoodCoreL: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_core_L",
-            offset: (-5.5, -16.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)]
 
 }
