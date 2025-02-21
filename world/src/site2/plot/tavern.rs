@@ -1683,7 +1683,7 @@ impl Structure for Tavern {
                                         .choose(pos, &[
                                             SpriteKind::Crate,
                                             SpriteKind::Barrel,
-                                            SpriteKind::WaterBarrelWood,
+                                            SpriteKind::BarrelWoodWater,
                                         ])
                                         .unwrap();
                                     painter.owned_resource_sprite(pos, *sprite, 0);
