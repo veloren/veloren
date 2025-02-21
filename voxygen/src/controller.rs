@@ -139,12 +139,6 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.glide)
                     .or_default()
                     .push(GameInput::Glide);
-                map.entry(settings.game_buttons.climb)
-                    .or_default()
-                    .push(GameInput::Climb);
-                map.entry(settings.game_buttons.climb_down)
-                    .or_default()
-                    .push(GameInput::ClimbDown);
                 map.entry(settings.game_buttons.swimup)
                     .or_default()
                     .push(GameInput::SwimUp);
@@ -374,12 +368,6 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_layer_buttons.glide)
                     .or_default()
                     .push(GameInput::Glide);
-                map.entry(settings.game_layer_buttons.climb)
-                    .or_default()
-                    .push(GameInput::Climb);
-                map.entry(settings.game_layer_buttons.climb_down)
-                    .or_default()
-                    .push(GameInput::ClimbDown);
                 map.entry(settings.game_layer_buttons.swimup)
                     .or_default()
                     .push(GameInput::SwimUp);

@@ -26,7 +26,8 @@ impl CharacterBehavior for Data {
         } else {
             handle_wield(data, &mut update);
         }
-        handle_jump(data, output_events, &mut update, 1.0);
+
+        handle_walljump(data, output_events, &mut update);
         handle_climb(data, &mut update);
 
         {

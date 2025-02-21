@@ -141,8 +141,6 @@ impl ControlSettings {
             GameInput::Dance => Some(KeyMouse::Key(VirtualKeyCode::J)),
             GameInput::Greet => Some(KeyMouse::Key(VirtualKeyCode::H)),
             GameInput::Glide => Some(KeyMouse::Key(VirtualKeyCode::LControl)),
-            GameInput::Climb => Some(KeyMouse::Key(VirtualKeyCode::Space)),
-            GameInput::ClimbDown => Some(KeyMouse::Key(VirtualKeyCode::LShift)),
             GameInput::SwimUp => Some(KeyMouse::Key(VirtualKeyCode::Space)),
             GameInput::SwimDown => Some(KeyMouse::Key(VirtualKeyCode::LShift)),
             GameInput::Fly => Some(KeyMouse::Key(VirtualKeyCode::H)),

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - You can now engage NPCs in two-way conversation.
 - NPCs can now be hired for a short time.
 - Pairs of Airships now travel between designated sites.
+- Added ability to jump off walls.
 
 ### Changed
 
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated velorite and fragment item models to match mining sprites.
 - Tavern changes, cellars, better layout, more rtsim behaviour related to taverns.
 - Town layout improvements, lantern pole sprites at the sides of roads, more smooth paths.
+- Reworked climbing controls.
 
 ### Removed
 

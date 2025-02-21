@@ -1,11 +1,10 @@
 use crate::{
     comp::{
-        CharacterState, Climb, InputKind, Ori, StateUpdate,
+        CharacterState, Ori, StateUpdate,
         character_state::OutputEvents,
         skills::{ClimbSkill::*, SKILL_MODIFIERS, Skill},
     },
     consts::GRAVITY,
-    event::LocalEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         idle,
@@ -59,46 +58,31 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        // If no wall is in front of character or we stopped climbing;
-        let (wall_dir, climb) = if let (Some(wall_dir), Some(climb), None) = (
-            data.physics.on_wall,
-            data.inputs.climb,
-            data.physics.on_ground,
-        ) {
-            (wall_dir, climb)
-        } else {
-            if let Some(impulse) = input_is_pressed(data, InputKind::Jump)
-                .then(|| data.body.jump_impulse())
-                .flatten()
-            {
-                // How strong the climb boost is relative to a normal jump
-                const CLIMB_BOOST_JUMP_FACTOR: f32 = 0.5;
-                // They've climbed atop something, give them a boost
-                output_events.emit_local(LocalEvent::Jump(
-                    data.entity,
-                    CLIMB_BOOST_JUMP_FACTOR * impulse / data.mass.0
-                        * data.scale.map_or(1.0, |s| s.0.powf(13.0).powf(0.25)),
-                ));
-            };
+        let Some(wall_dir) = data.physics.on_wall else {
             update.character = CharacterState::Idle(idle::Data::default());
             return update;
         };
-        // Move player
-        update.vel.0 += Vec2::broadcast(data.dt.0)
-            * data.inputs.move_dir
-            * if update.vel.0.magnitude_squared() < self.static_data.movement_speed.powi(2) {
-                self.static_data.movement_speed.powi(2)
-            } else {
-                0.0
-            };
 
-        // Expend energy if climbing
-        let energy_use = match climb {
-            Climb::Up => self.static_data.energy_cost,
-            Climb::Down => 1.0,
-            Climb::Hold => 1.0,
+        // Exit climb if ground below
+        if data.physics.on_ground.is_some() {
+            update.character = CharacterState::Idle(idle::Data::default());
+            return update;
+        }
+
+        // Positive if walking into wall, negative if away
+        let wall_relative_movement =
+            data.inputs.move_dir * data.inputs.look_dir.map(|e| e.signum()) * wall_dir;
+
+        // If we move relative to the wall use up energy else default of 1.0
+        // (maybe something lower like 0.5)
+        let energy_use = if wall_relative_movement.reduce_partial_max() > 0.5 {
+            self.static_data.energy_cost
+        } else {
+            1.0
         };
+        handle_walljump(data, output_events, &mut update);
 
+        // Update energy and exit climbing state if not enough
         if update
             .energy
             .try_change_by(-energy_use * data.dt.0)
@@ -107,8 +91,8 @@ impl CharacterBehavior for Data {
             update.character = CharacterState::Idle(idle::Data::default());
         }
 
-        // Set orientation direction based on wall direction
-        if let Some(ori_dir) = Dir::from_unnormalized(Vec2::from(wall_dir).into()) {
+        // Set orientation based on wall direction
+        if let Some(ori_dir) = Dir::from_unnormalized(wall_dir.with_z(0.0)) {
             // Smooth orientation
             update.ori = update.ori.slerped_towards(
                 Ori::from(ori_dir),
@@ -120,20 +104,18 @@ impl CharacterBehavior for Data {
             );
         };
 
-        // Apply Vertical Climbing Movement
-        match climb {
-            Climb::Down => {
-                update.vel.0.z += data.dt.0
-                    * (GRAVITY
-                        - self.static_data.movement_speed.powi(2) * data.scale.map_or(1.0, |s| s.0))
-            },
-            Climb::Up => {
-                update.vel.0.z += data.dt.0
-                    * (GRAVITY
-                        + self.static_data.movement_speed.powi(2) * data.scale.map_or(1.0, |s| s.0))
-            },
-            Climb::Hold => update.vel.0.z += data.dt.0 * GRAVITY,
-        }
+        // By default idle on wall
+        update.vel.0.z += data.dt.0 * GRAVITY;
+
+        // Map movement direction onto wall
+        let upwards_vel = data.inputs.move_dir.dot(wall_dir.xy());
+        let crossed = wall_dir.cross(Vec3::unit_z());
+        let lateral_vel = crossed * data.inputs.move_dir.dot(crossed.xy());
+
+        update.vel.0 += data.dt.0
+            * (lateral_vel.with_z(upwards_vel) + wall_dir)
+            * self.static_data.movement_speed.powi(2)
+            * data.scale.map_or(1.0, |s| s.0);
 
         update
     }

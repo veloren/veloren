@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     comp::{
         Alignment, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction, Melee,
-        Pos, StateUpdate,
+        Ori, Pos, StateUpdate,
         ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
         buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource, DestInfo},
@@ -976,19 +976,21 @@ pub fn attempt_sneak(data: &JoinData<'_>, update: &mut StateUpdate) {
 
 /// Checks that player can `Climb` and updates `CharacterState` if so
 pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
-    if data.inputs.climb.is_some()
-        && data.physics.on_wall.is_some()
-        && data.physics.on_ground.is_none()
-        && !data
-            .physics
-            .in_liquid()
-            .map(|depth| depth > 1.0)
-            .unwrap_or(false)
-        //&& update.vel.0.z < 0.0
-        // *All* entities can climb when in liquids, to let them climb out near the surface
-        && (data.body.can_climb() || data.physics.in_liquid().is_some())
-        && update.energy.current() > 1.0
-    {
+    let Some(wall_dir) = data.physics.on_wall else {
+        return false;
+    };
+
+    let towards_wall = data.inputs.move_dir.dot(wall_dir.xy()) > 0.0;
+    // Only allow climbing if we are near the surface
+    let underwater = data
+        .physics
+        .in_liquid()
+        .map(|depth| depth > 2.0)
+        .unwrap_or(false);
+    let can_climb = data.body.can_climb() || data.physics.in_liquid().is_some();
+    let in_air = data.physics.on_ground.is_none();
+    if towards_wall && in_air && !underwater && can_climb && update.energy.current() > 1.0 {
+        update.removed_inputs.push(InputKind::Jump);
         update.character = CharacterState::Climb(climb::Data::create_adjusted_by_skills(data));
         true
     } else {
@@ -1002,6 +1004,7 @@ pub fn handle_wallrun(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
         && data.physics.in_liquid().is_none()
         && data.body.can_climb()
     {
+        update.removed_inputs.push(InputKind::Jump);
         update.character = CharacterState::Wallrun(wallrun::Data {
             was_wielded: data.character.is_wield() || data.character.was_wielded(),
         });
@@ -1328,6 +1331,56 @@ pub fn handle_jump(
             ));
         })
         .is_some()
+}
+
+pub fn handle_walljump(
+    data: &JoinData<'_>,
+    output_events: &mut OutputEvents,
+    update: &mut StateUpdate,
+) -> bool {
+    let Some(wall_dir) = data.physics.on_wall else {
+        return false;
+    };
+    // Wall jump which can be initiated after a short time of climbing
+    if input_is_pressed(data, InputKind::Jump) {
+        const WALL_JUMP_Z: f32 = 0.7;
+        let look_dir = data.inputs.look_dir.vec();
+
+        // If looking at wall jump into look direction reflected off of the wall
+        let jump_dir = if look_dir.xy().dot(wall_dir.xy()) > 0.0 {
+            look_dir.xy().reflected(-wall_dir.xy()).with_z(WALL_JUMP_Z)
+        } else {
+            *look_dir
+        };
+
+        // If there is move input while walljumping favour the input direction
+        let jump_dir = if data.inputs.move_dir.dot(-wall_dir.xy()) > 0.0 {
+            data.inputs.move_dir.with_z(WALL_JUMP_Z)
+        } else {
+            jump_dir
+        }
+        .try_normalized()
+        .unwrap_or(Vec3::zero());
+
+        if let Some(jump_impulse) = data.body.jump_impulse() {
+            // Update orientation to look towards jump direction
+            update.ori = update
+                .ori
+                .slerped_towards(Ori::from(Dir::new(jump_dir)), 20.0);
+            // How strong the climb boost is relative to a normal jump
+            const WALL_JUMP_FACTOR: f32 = 1.1;
+            // Apply force
+            output_events.emit_local(LocalEvent::ApplyImpulse {
+                entity: data.entity,
+                impulse: jump_dir * WALL_JUMP_FACTOR * jump_impulse / data.mass.0
+                    * data.scale.map_or(1.0, |s| s.0.powf(13.0).powf(0.25)),
+            });
+        }
+
+        update.character = CharacterState::Idle(idle::Data::default());
+        return true;
+    }
+    false
 }
 
 fn handle_ability(

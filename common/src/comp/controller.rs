@@ -251,16 +251,8 @@ pub struct InputAttr {
     pub target_entity: Option<Uid>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Climb {
-    Up,
-    Down,
-    Hold,
-}
-
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ControllerInputs {
-    pub climb: Option<Climb>,
     pub move_dir: Vec2<f32>,
     pub move_z: f32, /* z axis (not combined with move_dir because they may have independent
                       * limits) */
@@ -298,7 +290,6 @@ impl ControllerInputs {
 
     /// Updates Controller inputs with new version received from the client
     pub fn update_with_new(&mut self, new: Self) {
-        self.climb = new.climb;
         self.move_dir = new.move_dir;
         self.move_z = new.move_z;
         self.look_dir = new.look_dir;

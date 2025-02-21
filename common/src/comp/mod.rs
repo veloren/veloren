@@ -67,7 +67,7 @@ pub use self::{
     },
     combo::Combo,
     controller::{
-        Climb, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InputAttr,
+        ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InputAttr,
         InputKind, InventoryAction, InventoryEvent, InventoryManip, UtteranceKind,
     },
     energy::Energy,
