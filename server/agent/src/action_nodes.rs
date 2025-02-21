@@ -177,17 +177,14 @@ impl AgentData<'_> {
     fn traverse(&self, controller: &mut Controller, bearing: Vec3<f32>, speed: f32) {
         controller.inputs.move_dir =
             bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-        let climbing_out_of_water = self.physics_state.in_liquid().is_some_and(|h| h < 1.0)
-            && bearing.z > 0.0
-            && self.physics_state.on_wall.is_some();
+
+        // Only jump if we are grounded and can't blockhop or if we can fly
         self.jump_if(
-            bearing.z > 1.5 || climbing_out_of_water || self.traversal_config.can_fly,
+            (self.physics_state.on_ground.is_some() && bearing.z > 1.5)
+                || self.traversal_config.can_fly,
             controller,
         );
         controller.inputs.move_z = bearing.z;
-        if bearing.z > 0.0 {
-            controller.inputs.climb = Some(comp::Climb::Up);
-        }
     }
 
     pub fn jump_if(&self, condition: bool, controller: &mut Controller) {

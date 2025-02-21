@@ -5,8 +5,6 @@ pub struct KeyState {
     pub left: bool,
     pub up: bool,
     pub down: bool,
-    pub climb_up: bool,
-    pub climb_down: bool,
     pub swim_up: bool,
     pub swim_down: bool,
     pub fly: bool,
@@ -23,8 +21,6 @@ impl Default for KeyState {
             left: false,
             up: false,
             down: false,
-            climb_up: false,
-            climb_down: false,
             swim_up: false,
             swim_down: false,
             fly: false,
@@ -54,16 +50,6 @@ impl KeyState {
             dir
         } else {
             dir.normalized()
-        }
-    }
-
-    pub fn climb(&self) -> Option<common::comp::Climb> {
-        use common::comp::Climb;
-        match (self.climb_up, self.climb_down) {
-            (true, false) => Some(Climb::Up),
-            (false, true) => Some(Climb::Down),
-            (true, true) => Some(Climb::Hold),
-            (false, false) => None,
         }
     }
 }

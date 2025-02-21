@@ -466,8 +466,6 @@ impl SessionState {
                 | GameInput::Roll
                 | GameInput::Sneak
                 | GameInput::AutoWalk
-                | GameInput::Climb
-                | GameInput::ClimbDown
                 | GameInput::SwimUp
                 | GameInput::SwimDown
                 | GameInput::SwapLoadout
@@ -926,12 +924,6 @@ impl PlayState for SessionState {
                                     None,
                                     self.target_entity,
                                 );
-                            },
-                            GameInput::Climb => {
-                                self.key_state.climb_up = state;
-                            },
-                            GameInput::ClimbDown => {
-                                self.key_state.climb_down = state;
                             },
                             GameInput::ToggleWield => {
                                 if state && controlling_char {
@@ -1461,7 +1453,6 @@ impl PlayState for SessionState {
                     ));
                 }
 
-                self.inputs.climb = self.key_state.climb();
                 self.inputs.move_z =
                     self.key_state.swim_up as i32 as f32 - self.key_state.swim_down as i32 as f32;
             }

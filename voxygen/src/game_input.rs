@@ -67,10 +67,6 @@ pub enum GameInput {
     Greet,
     #[strum(serialize = "gameinput-glide")]
     Glide,
-    #[strum(serialize = "gameinput-climb")]
-    Climb,
-    #[strum(serialize = "gameinput-climbdown")]
-    ClimbDown,
     #[strum(serialize = "gameinput-swimup")]
     SwimUp,
     #[strum(serialize = "gameinput-swimdown")]
@@ -195,7 +191,6 @@ impl GameInput {
     fn get_representative_binding(&self) -> GameInput {
         match self {
             GameInput::Jump => GameInput::Jump,
-            GameInput::Climb => GameInput::Jump,
             GameInput::SwimUp => GameInput::Jump,
             GameInput::Respawn => GameInput::Jump,
 
