@@ -833,6 +833,10 @@ impl ItemDef {
         )
     }
 
+    /// NOTE: invariant that amount() ≤ max_amount(), 1 ≤ max_amount(),
+    /// and if !self.is_stackable(), self.max_amount() = 1.
+    pub fn max_amount(&self) -> u32 { if self.is_stackable() { u32::MAX } else { 1 } }
+
     // currently needed by trade_pricing
     pub fn id(&self) -> &str { &self.item_definition_id }
 
@@ -1332,11 +1336,19 @@ impl Item {
         }
     }
 
-    pub fn num_slots(&self) -> u16 { self.item_base.num_slots() }
-
     /// NOTE: invariant that amount() ≤ max_amount(), 1 ≤ max_amount(),
     /// and if !self.is_stackable(), self.max_amount() = 1.
-    pub fn max_amount(&self) -> u32 { if self.is_stackable() { u32::MAX } else { 1 } }
+    pub fn max_amount(&self) -> u32 {
+        match &self.item_base {
+            ItemBase::Simple(item_def) => item_def.max_amount(),
+            ItemBase::Modular(_) => {
+                debug_assert!(!self.is_stackable());
+                1
+            },
+        }
+    }
+
+    pub fn num_slots(&self) -> u16 { self.item_base.num_slots() }
 
     pub fn quality(&self) -> Quality {
         match &self.item_base {
