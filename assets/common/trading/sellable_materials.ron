@@ -26,6 +26,7 @@
     // Mob Drops
     (0.3, Item("common.items.crafting_ing.animal_misc.grim_eyeball")),
     (0.3, Item("common.items.crafting_ing.animal_misc.icy_fang")),
+    (0.3, Item("common.items.crafting_ing.animal_misc.large_horn")),
     (0.3, Item("common.items.crafting_ing.animal_misc.long_tusk")),
     (0.3, Item("common.items.crafting_ing.animal_misc.elegant_crest")),
     (0.4, Item("common.items.crafting_ing.animal_misc.strong_pincer")),
