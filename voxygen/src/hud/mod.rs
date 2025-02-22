@@ -2231,8 +2231,8 @@ impl Hud {
                             })
                         });
 
-                if let Some(sprite) = block.get_sprite()
-                    && let (Some(desc), quality) = interactable_item.map_or_else(
+                if let Some(sprite) = block.get_sprite() {
+                    let (desc, quality) = interactable_item.map_or_else(
                         || (get_sprite_desc(sprite, i18n), overitem::TEXT_COLOR),
                         |item| {
                             (
@@ -2240,8 +2240,8 @@ impl Hud {
                                 get_quality_col(item.quality()),
                             )
                         },
-                    )
-                {
+                    );
+                    let desc = desc.unwrap_or(Cow::Borrowed(""));
                     overitem::Overitem::new(
                         desc,
                         quality,
@@ -5392,20 +5392,8 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::TerracottaChest => "common-sprite-chest",
         SpriteKind::Mud => "common-sprite-mud",
         SpriteKind::Grave => "common-sprite-grave",
-        SpriteKind::ChairWoodWoodland
-        | SpriteKind::ChairWoodWoodland2
-        | SpriteKind::BenchWoodWoodland
-        | SpriteKind::BenchWoodWoodlandGreen1
-        | SpriteKind::BenchWoodWoodlandGreen2
-        | SpriteKind::BenchWoodWoodlandGreen3
-        | SpriteKind::BenchCoastal => "common-sprite-chair",
         SpriteKind::Crate => "common-sprite-crate",
-        SpriteKind::HangingSign => "common-sprite-signboard",
-        SpriteKind::StreetLamp => "common-sprite-street_lamp",
-        SpriteKind::Lantern => "common-sprite-lantern",
-        SpriteKind::SeashellLantern => "common-sprite-seashell_lantern",
-        SpriteKind::FireBowlGround => "common-sprite-firebowl_ground",
-        sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
+        _ => return None,
     };
     Some(localized_strings.get_msg(i18n_key))
 }
