@@ -173,6 +173,8 @@ sprites! {
         LogsWoodBranchEnd = 0x93,
         LogsWoodBranchMiddle = 0x94,
         HandCartWood = 0x95,
+        SeatWoodBlueMiddle = 0x96,
+        SeatWoodBlueSide = 0x97,
 
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
@@ -673,7 +675,7 @@ impl SpriteKind {
             SpriteKind::Bamboo => 9.0 / 11.0,
             SpriteKind::MagicalBarrier => 3.0,
             SpriteKind::MagicalSeal => 1.0,
-            SpriteKind::Helm => 1.7,
+            SpriteKind::Helm => 1.909,
             SpriteKind::Sign => 16.0 / 11.0,
             SpriteKind::SmithingTable => 13.0 / 11.0,
             SpriteKind::Forge0 => 17.0 / 11.0,
@@ -715,6 +717,8 @@ impl SpriteKind {
             SpriteKind::LogsWoodBranchEnd => 1.091,
             SpriteKind::LogsWoodBranchMiddle => 1.091,
             SpriteKind::LogsWoodBranchS => 1.091,
+            SpriteKind::SeatWoodBlueMiddle => 1.818,
+            SpriteKind::SeatWoodBlueSide => 1.818,
 
             _ => return None,
         })

@@ -3066,12 +3066,12 @@ ChairDouble: [(
 Helm: [(
     variations: [
         (
-           model: "voxygen.voxel.sprite.furniture.helm",
-           offset: (-5.5, -5.5, 0.0),
+            model: "voxygen.voxel.sprite.furniture.helm_wood",
+            offset: (-5.0, -5.5, 0.0),
            lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
-    wind_sway: 0.0,
+    wind_sway: 0,
 )],
 // CoatRack
 CoatRack: [(
@@ -6662,6 +6662,26 @@ LogsWoodBranchS: [(
         (
             model: "voxygen.voxel.sprite.furniture.logs_wood_branch_S",
             offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+SeatWoodBlueMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.seat_wood_blue_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+SeatWoodBlueSide: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.seat_wood_blue_side",
+            offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
