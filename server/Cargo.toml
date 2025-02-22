@@ -7,7 +7,7 @@ edition = "2021"
 [features]
 worldgen = ["server-agent/worldgen"]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-state/plugins"]
+plugins = ["common-state/plugins", "common-systems/plugins"]
 persistent_world = []
 hot-reloading = ["common/hot-reloading"]
 hot-agent = ["server-agent/use-dyn-lib"]
