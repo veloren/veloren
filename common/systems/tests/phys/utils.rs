@@ -14,7 +14,7 @@ use common::{
 use common_ecs::{System, dispatch};
 use common_net::sync::WorldSyncExt;
 use common_state::State;
-use rand::{prelude::*, rngs::SmallRng};
+use rand::prelude::*;
 use specs::{Builder, Entity, WorldExt};
 use std::{error::Error, sync::Arc, time::Duration};
 use vek::{Rgb, Vec2, Vec3};
@@ -41,6 +41,7 @@ pub fn setup(add_systems: impl Fn(&mut specs::DispatcherBuilder)) -> State {
         DEFAULT_WORLD_CHUNKS_LG,
         Arc::new(TerrainChunk::water(0)),
         add_systems,
+        #[cfg(feature = "plugins")]
         common_state::plugin::PluginMgr::default(),
     );
     state.ecs_mut().insert(MaterialStatManifest::with_empty());
