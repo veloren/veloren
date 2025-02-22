@@ -207,8 +207,8 @@ pub mod figuredata {
         assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
         figure::TerrainSegment,
         terrain::{
+            StructureSprite,
             block::{Block, BlockKind},
-            sprite::SpriteKind,
             structure::load_base_structure,
         },
     };
@@ -226,22 +226,16 @@ pub mod figuredata {
     #[derive(Deserialize)]
     pub enum DeBlock {
         Block(BlockKind),
-        Air(SpriteKind, #[serde(default)] u8),
-        Water(SpriteKind, #[serde(default)] u8),
+        Air(StructureSprite),
+        Water(StructureSprite),
     }
 
     impl DeBlock {
         fn to_block(&self, color: Rgb<u8>) -> Block {
             match *self {
                 DeBlock::Block(block) => Block::new(block, color),
-                DeBlock::Air(sprite, ori) => {
-                    let block = Block::new(BlockKind::Air, color).with_sprite(sprite);
-                    block.with_ori(ori).unwrap_or(block)
-                },
-                DeBlock::Water(sprite, ori) => {
-                    let block = Block::new(BlockKind::Water, color).with_sprite(sprite);
-                    block.with_ori(ori).unwrap_or(block)
-                },
+                DeBlock::Air(sprite) => sprite.get_block(Block::air),
+                DeBlock::Water(sprite) => sprite.get_block(Block::water),
             }
         }
     }

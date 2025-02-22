@@ -6,7 +6,7 @@
         center: (32, 28, 15),
         /// ( X, Y, Z, )
         custom_indices: {
-            48: Sprite(Bones),
+            48: Sprite(Bones()),
          },
     ),
 ]

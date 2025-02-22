@@ -404,6 +404,174 @@ impl Spot {
     }
 }
 
+#[derive(Default)]
+struct SpotConfig<'a> {
+    // The manifest containing a list of possible base structures for the spot (one will be
+    // chosen)
+    base_structures: Option<&'a str>,
+    // The maximum distance from the centre of the spot that entities will spawn
+    entity_radius: f32,
+    // The entities that should be spawned in the spot, from closest to furthest
+    // (count_range, spec)
+    // count_range = number of entities, chosen randomly within this range (not inclusive!)
+    // spec = Manifest spec for the entity kind
+    entities: &'a [(Range<i32>, &'a str)],
+}
+fn spot_config(spot: &Spot) -> SpotConfig {
+    match spot {
+        // Themed Spots
+        Spot::DwarvenGrave => SpotConfig {
+            base_structures: Some("spots_grasslands.dwarven_grave"),
+            entity_radius: 60.0,
+            entities: &[(6..12, "common.entity.spot.dwarf_grave_robber")],
+        },
+        Spot::SaurokAltar => SpotConfig {
+            base_structures: Some("spots.jungle.saurok-altar"),
+            entity_radius: 12.0,
+            entities: &[
+                (0..3, "common.entity.wild.aggressive.occult_saurok"),
+                (0..3, "common.entity.wild.aggressive.sly_saurok"),
+                (0..3, "common.entity.wild.aggressive.mighty_saurok"),
+            ],
+        },
+        Spot::SaurokTotem => SpotConfig {
+            base_structures: Some("spots.jungle.saurok_totem"),
+            entity_radius: 20.0,
+            entities: &[
+                (0..3, "common.entity.wild.aggressive.occult_saurok"),
+                (0..3, "common.entity.wild.aggressive.sly_saurok"),
+                (0..3, "common.entity.wild.aggressive.mighty_saurok"),
+            ],
+        },
+        Spot::JungleOutpost => SpotConfig {
+            base_structures: Some("spots.jungle.outpost"),
+            entity_radius: 40.0,
+            entities: &[(6..12, "common.entity.spot.grim_salvager")],
+        },
+        Spot::JungleTemple => SpotConfig {
+            base_structures: Some("spots.jungle.temple_small"),
+            entity_radius: 40.0,
+            entities: &[
+                (2..8, "common.entity.wild.aggressive.occult_saurok"),
+                (2..8, "common.entity.wild.aggressive.sly_saurok"),
+                (2..8, "common.entity.wild.aggressive.mighty_saurok"),
+            ],
+        },
+        Spot::MyrmidonTemple => SpotConfig {
+            base_structures: Some("spots.myrmidon-temple"),
+            entity_radius: 10.0,
+            entities: &[
+                (3..5, "common.entity.dungeon.myrmidon.hoplite"),
+                (3..5, "common.entity.dungeon.myrmidon.strategian"),
+                (2..3, "common.entity.dungeon.myrmidon.marksman"),
+            ],
+        },
+        Spot::WitchHouse => SpotConfig {
+            base_structures: Some("spots_general.witch_hut"),
+            entity_radius: 1.0,
+            entities: &[
+                (1..2, "common.entity.spot.witch_dark"),
+                (0..4, "common.entity.wild.peaceful.cat"),
+                (0..3, "common.entity.wild.peaceful.frog"),
+            ],
+        },
+        Spot::Igloo => SpotConfig {
+            base_structures: Some("spots_general.igloo"),
+            entity_radius: 2.0,
+            entities: &[
+                (3..5, "common.entity.dungeon.adlet.hunter"),
+                (3..5, "common.entity.dungeon.adlet.icepicker"),
+                (2..3, "common.entity.dungeon.adlet.tracker"),
+            ],
+        },
+        Spot::GnarlingTotem => SpotConfig {
+            base_structures: Some("site_structures.gnarling.totem"),
+            entity_radius: 30.0,
+            entities: &[
+                (3..5, "common.entity.dungeon.gnarling.mugger"),
+                (3..5, "common.entity.dungeon.gnarling.stalker"),
+                (3..5, "common.entity.dungeon.gnarling.logger"),
+                (2..4, "common.entity.dungeon.gnarling.mandragora"),
+                (1..3, "common.entity.wild.aggressive.deadwood"),
+                (1..2, "common.entity.dungeon.gnarling.woodgolem"),
+            ],
+        },
+        Spot::FallenTree => SpotConfig {
+            base_structures: Some("spots_grasslands.fallen_tree"),
+            entity_radius: 64.0,
+            entities: &[
+                (1..2, "common.entity.dungeon.gnarling.mandragora"),
+                (2..6, "common.entity.wild.aggressive.deadwood"),
+                (0..2, "common.entity.wild.aggressive.mossdrake"),
+            ],
+        },
+        // Random World Objects
+        Spot::LionRock => SpotConfig {
+            base_structures: Some("spots_savannah.lion_rock"),
+            entity_radius: 30.0,
+            entities: &[
+                (5..10, "common.entity.spot.female_lion"),
+                (1..2, "common.entity.wild.aggressive.male_lion"),
+            ],
+        },
+        Spot::WolfBurrow => SpotConfig {
+            base_structures: Some("spots_savannah.wolf_burrow"),
+            entity_radius: 10.0,
+            entities: &[(5..8, "common.entity.wild.aggressive.wolf")],
+        },
+        Spot::TreeStumpForest => SpotConfig {
+            base_structures: Some("trees.oak_stumps"),
+            entity_radius: 30.0,
+            entities: &[(0..2, "common.entity.wild.aggressive.deadwood")],
+        },
+        Spot::DesertBones => SpotConfig {
+            base_structures: Some("spots.bones"),
+            entity_radius: 40.0,
+            entities: &[(4..9, "common.entity.wild.aggressive.hyena")],
+        },
+        Spot::Arch => SpotConfig {
+            base_structures: Some("spots.arch"),
+            entity_radius: 50.0,
+            entities: &[],
+        },
+        Spot::AirshipCrash => SpotConfig {
+            base_structures: Some("trees.airship_crash"),
+            entity_radius: 20.0,
+            entities: &[(4..9, "common.entity.spot.grim_salvager")],
+        },
+        Spot::FruitTree => SpotConfig {
+            base_structures: Some("trees.fruit_trees"),
+            entity_radius: 2.0,
+            entities: &[(0..2, "common.entity.wild.peaceful.bear")],
+        },
+        Spot::GnomeSpring => SpotConfig {
+            base_structures: Some("spots.gnome_spring"),
+            entity_radius: 40.0,
+            entities: &[(7..10, "common.entity.spot.gnome.spear")],
+        },
+        Spot::Shipwreck => SpotConfig {
+            base_structures: Some("spots.water.shipwreck"),
+            entity_radius: 2.0,
+            entities: &[(0..2, "common.entity.wild.peaceful.clownfish")],
+        },
+        Spot::Shipwreck2 => SpotConfig {
+            base_structures: Some("spots.water.shipwreck2"),
+            entity_radius: 20.0,
+            entities: &[(0..3, "common.entity.wild.peaceful.clownfish")],
+        },
+        Spot::GraveSmall => SpotConfig {
+            base_structures: Some("spots.grave_small"),
+            entity_radius: 2.0,
+            entities: &[],
+        },
+        Spot::RonFile(properties) => SpotConfig {
+            base_structures: Some(&properties.base_structures),
+            entity_radius: 1.0,
+            entities: &[],
+        },
+    }
+}
+
 pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
     let nearby_spots = canvas.nearby_spots().collect::<Vec<_>>();
 
@@ -412,172 +580,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
 
         let units = UnitChooser::new(seed).get(seed).into();
 
-        #[derive(Default)]
-        struct SpotConfig<'a> {
-            // The manifest containing a list of possible base structures for the spot (one will be
-            // chosen)
-            base_structures: Option<&'a str>,
-            // The maximum distance from the centre of the spot that entities will spawn
-            entity_radius: f32,
-            // The entities that should be spawned in the spot, from closest to furthest
-            // (count_range, spec)
-            // count_range = number of entities, chosen randomly within this range (not inclusive!)
-            // spec = Manifest spec for the entity kind
-            entities: &'a [(Range<i32>, &'a str)],
-        }
-
-        let spot_config = match spot {
-            // Themed Spots
-            Spot::DwarvenGrave => SpotConfig {
-                base_structures: Some("spots_grasslands.dwarven_grave"),
-                entity_radius: 60.0,
-                entities: &[(6..12, "common.entity.spot.dwarf_grave_robber")],
-            },
-            Spot::SaurokAltar => SpotConfig {
-                base_structures: Some("spots.jungle.saurok-altar"),
-                entity_radius: 12.0,
-                entities: &[
-                    (0..3, "common.entity.wild.aggressive.occult_saurok"),
-                    (0..3, "common.entity.wild.aggressive.sly_saurok"),
-                    (0..3, "common.entity.wild.aggressive.mighty_saurok"),
-                ],
-            },
-            Spot::SaurokTotem => SpotConfig {
-                base_structures: Some("spots.jungle.saurok_totem"),
-                entity_radius: 20.0,
-                entities: &[
-                    (0..3, "common.entity.wild.aggressive.occult_saurok"),
-                    (0..3, "common.entity.wild.aggressive.sly_saurok"),
-                    (0..3, "common.entity.wild.aggressive.mighty_saurok"),
-                ],
-            },
-            Spot::JungleOutpost => SpotConfig {
-                base_structures: Some("spots.jungle.outpost"),
-                entity_radius: 40.0,
-                entities: &[(6..12, "common.entity.spot.grim_salvager")],
-            },
-            Spot::JungleTemple => SpotConfig {
-                base_structures: Some("spots.jungle.temple_small"),
-                entity_radius: 40.0,
-                entities: &[
-                    (2..8, "common.entity.wild.aggressive.occult_saurok"),
-                    (2..8, "common.entity.wild.aggressive.sly_saurok"),
-                    (2..8, "common.entity.wild.aggressive.mighty_saurok"),
-                ],
-            },
-            Spot::MyrmidonTemple => SpotConfig {
-                base_structures: Some("spots.myrmidon-temple"),
-                entity_radius: 10.0,
-                entities: &[
-                    (3..5, "common.entity.dungeon.myrmidon.hoplite"),
-                    (3..5, "common.entity.dungeon.myrmidon.strategian"),
-                    (2..3, "common.entity.dungeon.myrmidon.marksman"),
-                ],
-            },
-            Spot::WitchHouse => SpotConfig {
-                base_structures: Some("spots_general.witch_hut"),
-                entity_radius: 1.0,
-                entities: &[
-                    (1..2, "common.entity.spot.witch_dark"),
-                    (0..4, "common.entity.wild.peaceful.cat"),
-                    (0..3, "common.entity.wild.peaceful.frog"),
-                ],
-            },
-            Spot::Igloo => SpotConfig {
-                base_structures: Some("spots_general.igloo"),
-                entity_radius: 2.0,
-                entities: &[
-                    (3..5, "common.entity.dungeon.adlet.hunter"),
-                    (3..5, "common.entity.dungeon.adlet.icepicker"),
-                    (2..3, "common.entity.dungeon.adlet.tracker"),
-                ],
-            },
-            Spot::GnarlingTotem => SpotConfig {
-                base_structures: Some("site_structures.gnarling.totem"),
-                entity_radius: 30.0,
-                entities: &[
-                    (3..5, "common.entity.dungeon.gnarling.mugger"),
-                    (3..5, "common.entity.dungeon.gnarling.stalker"),
-                    (3..5, "common.entity.dungeon.gnarling.logger"),
-                    (2..4, "common.entity.dungeon.gnarling.mandragora"),
-                    (1..3, "common.entity.wild.aggressive.deadwood"),
-                    (1..2, "common.entity.dungeon.gnarling.woodgolem"),
-                ],
-            },
-            Spot::FallenTree => SpotConfig {
-                base_structures: Some("spots_grasslands.fallen_tree"),
-                entity_radius: 64.0,
-                entities: &[
-                    (1..2, "common.entity.dungeon.gnarling.mandragora"),
-                    (2..6, "common.entity.wild.aggressive.deadwood"),
-                    (0..2, "common.entity.wild.aggressive.mossdrake"),
-                ],
-            },
-            // Random World Objects
-            Spot::LionRock => SpotConfig {
-                base_structures: Some("spots_savannah.lion_rock"),
-                entity_radius: 30.0,
-                entities: &[
-                    (5..10, "common.entity.spot.female_lion"),
-                    (1..2, "common.entity.wild.aggressive.male_lion"),
-                ],
-            },
-            Spot::WolfBurrow => SpotConfig {
-                base_structures: Some("spots_savannah.wolf_burrow"),
-                entity_radius: 10.0,
-                entities: &[(5..8, "common.entity.wild.aggressive.wolf")],
-            },
-            Spot::TreeStumpForest => SpotConfig {
-                base_structures: Some("trees.oak_stumps"),
-                entity_radius: 30.0,
-                entities: &[(0..2, "common.entity.wild.aggressive.deadwood")],
-            },
-            Spot::DesertBones => SpotConfig {
-                base_structures: Some("spots.bones"),
-                entity_radius: 40.0,
-                entities: &[(4..9, "common.entity.wild.aggressive.hyena")],
-            },
-            Spot::Arch => SpotConfig {
-                base_structures: Some("spots.arch"),
-                entity_radius: 50.0,
-                entities: &[],
-            },
-            Spot::AirshipCrash => SpotConfig {
-                base_structures: Some("trees.airship_crash"),
-                entity_radius: 20.0,
-                entities: &[(4..9, "common.entity.spot.grim_salvager")],
-            },
-            Spot::FruitTree => SpotConfig {
-                base_structures: Some("trees.fruit_trees"),
-                entity_radius: 2.0,
-                entities: &[(0..2, "common.entity.wild.peaceful.bear")],
-            },
-            Spot::GnomeSpring => SpotConfig {
-                base_structures: Some("spots.gnome_spring"),
-                entity_radius: 40.0,
-                entities: &[(7..10, "common.entity.spot.gnome.spear")],
-            },
-            Spot::Shipwreck => SpotConfig {
-                base_structures: Some("spots.water.shipwreck"),
-                entity_radius: 2.0,
-                entities: &[(0..2, "common.entity.wild.peaceful.clownfish")],
-            },
-            Spot::Shipwreck2 => SpotConfig {
-                base_structures: Some("spots.water.shipwreck2"),
-                entity_radius: 20.0,
-                entities: &[(0..3, "common.entity.wild.peaceful.clownfish")],
-            },
-            Spot::GraveSmall => SpotConfig {
-                base_structures: Some("spots.grave_small"),
-                entity_radius: 2.0,
-                entities: &[],
-            },
-            Spot::RonFile(properties) => SpotConfig {
-                base_structures: Some(&properties.base_structures),
-                entity_radius: 1.0,
-                entities: &[],
-            },
-        };
+        let spot_config = spot_config(&spot);
         // Blit base structure
         if let Some(base_structures) = spot_config.base_structures {
             let structures = Structure::load_group(base_structures).read();
@@ -642,4 +645,44 @@ pub fn is_valid(condition: &SpotCondition, g: f32, c: &SimChunk) -> bool {
             SpotCondition::All(conditions) => conditions.iter().all(|cond| is_valid(cond, g, c)),
             SpotCondition::Any(conditions) => conditions.iter().any(|cond| is_valid(cond, g, c)),
         }
+}
+
+#[test]
+fn test_spot_configs() {
+    let all_spots = [
+        Spot::DwarvenGrave,
+        Spot::SaurokAltar,
+        Spot::MyrmidonTemple,
+        Spot::GnarlingTotem,
+        Spot::WitchHouse,
+        Spot::GnomeSpring,
+        Spot::WolfBurrow,
+        Spot::Igloo,
+        Spot::LionRock,
+        Spot::TreeStumpForest,
+        Spot::DesertBones,
+        Spot::Arch,
+        Spot::AirshipCrash,
+        Spot::FruitTree,
+        Spot::Shipwreck,
+        Spot::Shipwreck2,
+        Spot::FallenTree,
+        Spot::GraveSmall,
+        Spot::JungleTemple,
+        Spot::SaurokTotem,
+        Spot::JungleOutpost,
+    ];
+
+    for spot in all_spots
+        .into_iter()
+        .chain(RON_SPOT_PROPERTIES.0.iter().map(Spot::RonFile))
+    {
+        let config = spot_config(&spot);
+
+        if let Some(base_structures) = config.base_structures {
+            let _structures = Structure::load_group(base_structures).read();
+        }
+        // Entities are tested in another test so don't really need to test it
+        // here.
+    }
 }

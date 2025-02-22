@@ -6,8 +6,8 @@
         center: (58, 55, 0),
         custom_indices: {
             8: Filled(Air, (r: 255, g: 255, b: 255)),
-            50: RotatedSprite(OneWayWall, 2),
-            51: RotatedSprite(OneWayWall, 4),
+            50: Sprite(OneWayWall((Ori(2)))),
+            51: Sprite(OneWayWall((Ori(4)))),
             128: Filled(Air, (r: 255, g: 255, b: 255)),
             136: Sprite(Lantern),
             137: Sprite(Anvil),

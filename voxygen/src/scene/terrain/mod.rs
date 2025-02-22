@@ -29,7 +29,7 @@ use common::{
     assets::{AssetExt, DotVoxAsset},
     figure::Segment,
     spiral::Spiral2d,
-    terrain::{Block, SpriteKind, TerrainChunk, sprite::Ori},
+    terrain::{Block, SpriteKind, TerrainChunk},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol},
     volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
@@ -192,7 +192,7 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
         // % 4 is non uniform, take 7 and combine two lesser probable outcomes
         let rot = block
             .sprite_z_rot()
-            .unwrap_or((seed % 7).div_ceil(2) as f32 / 1.5 * std::f32::consts::PI);
+            .unwrap_or((seed % 17 / 4).min(3) as f32 / 2.0 * std::f32::consts::PI);
         let mirror = block.sprite_mirror_vec();
         // try to make the variation more uniform as the PRNG is highly unfair
         let variation = match data.variations.len() {

@@ -6,7 +6,7 @@
         center: (3, 3, 1),
         custom_indices: {
             8: Filled(Air, (r: 255, g: 255, b: 255)),
-            9: RotatedSprite(BedrollPirate, 0),
+            9: Sprite(BedrollPirate),
             10: Grass,
             11: Sprite(CommonLockedChest),
             12: Filled(Air, (r: 255, g: 255, b: 255)),

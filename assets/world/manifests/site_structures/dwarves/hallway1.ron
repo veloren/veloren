@@ -8,7 +8,7 @@
             8: Filled(Air, (r: 255, g: 255, b: 255)),
             212: Filled(Air, (r: 255, g: 255, b: 255)),
             208: Filled(Water, (r: 75, g: 158, b: 191)),
-            216: RotatedSprite(OneWayWall, 6),
+            216: Sprite(OneWayWall((Ori(6)))),
             136: Sprite(Lantern),
             140: Sprite(Crate),
             137: Sprite(Anvil),

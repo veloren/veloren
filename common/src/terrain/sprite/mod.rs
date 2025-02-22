@@ -55,6 +55,16 @@ use std::{
 use strum::EnumIter;
 use vek::*;
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(transparent)]
+pub struct StructureSprite(StructureSpriteKind);
+
+impl StructureSprite {
+    pub fn get_block(self, with_sprite: impl FnMut(SpriteKind) -> Block) -> Block {
+        self.0.get_block(with_sprite)
+    }
+}
+
 sprites! {
     Void = 0 {
         Empty = 0,
@@ -70,7 +80,7 @@ sprites! {
     },
     // Furniture. In the future, we might add an attribute to customise material
     // TODO: Remove sizes and variants, represent with attributes
-    Furniture = 2 has Ori, MirrorX {
+    Furniture = 2 has Ori,MirrorX {
         // Indoor
         BookshelfArabic    = 0x0D,
         WallTableArabic    = 0x0E,
@@ -472,20 +482,20 @@ attributes! {
 }
 
 // The orientation of the sprite, 0..16
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
 pub struct Ori(pub u8);
 
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
 pub struct MirrorX(pub bool);
 
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
 pub struct MirrorY(pub bool);
 
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
 pub struct MirrorZ(pub bool);
 
 // The growth of the plant, 0..16
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
 pub struct Growth(pub u8);
 
 impl Default for Growth {
@@ -493,15 +503,15 @@ impl Default for Growth {
 }
 
 // Whether a light has been toggled on or off.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
 pub struct LightEnabled(pub bool);
-
-#[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Owned(pub bool);
 
 impl Default for LightEnabled {
     fn default() -> Self { Self(true) }
 }
+
+#[derive(Default, Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
+pub struct Owned(pub bool);
 
 /** Relative Neighbor Position:
     an enum to determine the exact sprite for AdjacentType sprites
@@ -523,19 +533,24 @@ pub enum RelativeNeighborPosition {
     End,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
+#[serde(from = "RelativeNeighborPosition")]
 pub struct AdjacentType(pub u8);
 
+impl From<RelativeNeighborPosition> for AdjacentType {
+    fn from(value: RelativeNeighborPosition) -> Self { Self(value as u8) }
+}
+
 impl Default for AdjacentType {
-    fn default() -> Self { Self(RelativeNeighborPosition::I as u8) }
+    fn default() -> Self { Self::from(RelativeNeighborPosition::I) }
 }
 
 // Damage of an ore
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Deserialize)]
 pub struct Damage(pub u8);
 
 // Whether a sprite has snow on it
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
 pub struct SnowCovered(pub bool);
 
 impl SpriteKind {
@@ -939,6 +954,9 @@ impl SpriteKind {
             | SpriteKind::BenchWoodWoodlandGreen2
             | SpriteKind::BenchWoodWoodlandGreen3
             | SpriteKind::BenchWoodWoodland
+            | SpriteKind::Bench
+            | SpriteKind::BenchWoodEnd
+            | SpriteKind::BenchWoodMiddle
             | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y())),
             SpriteKind::Helm => Some((Vec3::new(0.0, -1.1, 0.0), Vec3::unit_y())),
             SpriteKind::BedWoodWoodlandHead => Some((Vec3::new(1.4, 0.0, 0.5), Vec3::unit_y())),

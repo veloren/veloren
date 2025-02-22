@@ -57,7 +57,7 @@ use common::{
     resources::{BattleMode, ProgramTime, Secs, Time, TimeOfDay, TimeScale},
     rtsim::{Actor, Role},
     spiral::Spiral2d,
-    terrain::{Block, BlockKind, CoordinateConversions, SpriteKind},
+    terrain::{Block, BlockKind, CoordinateConversions, SpriteKind, StructureSprite},
     tether::Tethered,
     uid::Uid,
     vol::ReadVol,
@@ -880,16 +880,15 @@ fn handle_make_sprite(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let Some(sprite_name) = parse_cmd_args!(args, String) {
-        if let Ok(sk) = SpriteKind::try_from(sprite_name.as_str()) {
-            let pos = position(server, target, "target")?;
-            let pos = pos.0.map(|e| e.floor() as i32);
-            let new_block = server
+        let pos = position(server, target, "target")?;
+        let pos = pos.0.map(|e| e.floor() as i32);
+        let old_block = server
                 .state
                 .get_block(pos)
                 // TODO: Make more principled.
-                .unwrap_or_else(|| Block::air(SpriteKind::Empty))
-                .with_sprite(sk);
-            server.state.set_block(pos, new_block);
+                .unwrap_or_else(|| Block::air(SpriteKind::Empty));
+        let set_block = |block| {
+            server.state.set_block(pos, block);
             #[cfg(feature = "persistent_world")]
             if let Some(terrain_persistence) = server
                 .state
@@ -897,8 +896,16 @@ fn handle_make_sprite(
                 .try_fetch_mut::<crate::TerrainPersistence>()
                 .as_mut()
             {
-                terrain_persistence.set_block(pos, new_block);
+                terrain_persistence.set_block(pos, block);
             }
+        };
+        if let Ok(sk) = SpriteKind::try_from(sprite_name.as_str()) {
+            set_block(old_block.with_sprite(sk));
+
+            Ok(())
+        } else if let Ok(sprite) = ron::from_str::<StructureSprite>(sprite_name.as_str()) {
+            set_block(sprite.get_block(|s| old_block.with_sprite(s)));
+
             Ok(())
         } else {
             Err(Content::localized_with_args("command-invalid-sprite", [(

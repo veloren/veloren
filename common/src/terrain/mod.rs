@@ -14,7 +14,7 @@ pub use self::{
     block::{Block, BlockKind},
     map::MapSizeLg,
     site::SiteKindMeta,
-    sprite::{SpriteCfg, SpriteKind, UnlockKind},
+    sprite::{SpriteCfg, SpriteKind, StructureSprite, UnlockKind},
     structure::{Structure, StructuresGroup},
 };
 use hashbrown::HashMap;
