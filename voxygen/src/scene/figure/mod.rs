@@ -1343,26 +1343,12 @@ impl FigureMgr {
             } else if let Some(is_volume_rider) = is_volume_rider
                 && matches!(is_volume_rider.pos.kind, Volume::Entity(_))
             {
-                let (mut mat, _, block) = is_volume_rider.pos.get_block_and_transform(
+                let (mat, _) = is_volume_rider.pos.get_mount_mat(
                     &read_data.terrain_grid,
                     &read_data.id_maps,
                     |e| read_data.interpolated.get(e).map(|i| (Pos(i.pos), i.ori)),
                     &read_data.colliders,
                 )?;
-
-                let (mount_offset, _) = block.mount_offset()?;
-
-                let _ = if let Some(ori) = is_volume_rider.block.get_ori() {
-                    mat *= Mat4::identity()
-                        .translated_3d(mount_offset)
-                        .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
-                        .translated_3d(Vec3::new(0.5, 0.5, 0.0));
-                    ori
-                } else {
-                    mat *= Mat4::identity().translated_3d(mount_offset + Vec3::new(0.5, 0.5, 0.0));
-                    0
-                };
-
                 Some((anim::vek::Transform::default(), mat.mul_point(Vec3::zero())))
             } else {
                 None

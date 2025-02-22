@@ -2080,7 +2080,7 @@ impl Hud {
                                 },
                                 &ecs.read_storage(),
                             )
-                            .map(|(mat, _, _)| (mat, *position, interactions, *block))
+                            .map(|(mat, _)| (mat, *position, interactions, *block))
                     })
             {
                 let overitem_id = overitem_walker.next(
@@ -5012,7 +5012,7 @@ impl Hud {
                                 },
                                 &client.state().read_storage(),
                             )
-                            .is_some_and(|(mat, _, block)| {
+                            .is_some_and(|(mat, block)| {
                                 block.get_sprite() == Some(*sprite)
                                     && mat.mul_point(Vec3::broadcast(0.5)).distance(player_pos)
                                         < MAX_PICKUP_RANGE

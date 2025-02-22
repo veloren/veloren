@@ -250,11 +250,10 @@ impl VolumePos {
         id_maps: &IdMaps,
         mut read_pos_and_ori: impl FnMut(Entity) -> Option<(comp::Pos, comp::Ori)>,
         colliders: &ReadStorage<comp::Collider>,
-    ) -> Option<(Mat4<f32>, comp::Ori, Block)> {
+    ) -> Option<(Mat4<f32>, Block)> {
         match self.kind {
             Volume::Terrain => Some((
                 Mat4::translation_3d(self.pos.as_()),
-                comp::Ori::default(),
                 *terrain.get(self.pos).ok()?,
             )),
             Volume::Entity(uid) => id_maps.uid_entity(uid).and_then(|entity| {
@@ -271,7 +270,7 @@ impl VolumePos {
                 let trans = Mat4::from(ori.to_quat()).translated_3d(pos.0)
                     * Mat4::<f32>::translation_3d(local_translation);
 
-                Some((trans, ori, block))
+                Some((trans, block))
             }),
         }
     }
@@ -296,6 +295,33 @@ impl VolumePos {
                 Some(block)
             }),
         }
+    }
+
+    pub fn get_mount_mat(
+        &self,
+        terrain: &TerrainGrid,
+        id_maps: &IdMaps,
+        read_pos_and_ori: impl FnMut(Entity) -> Option<(comp::Pos, comp::Ori)>,
+        colliders: &ReadStorage<comp::Collider>,
+    ) -> Option<(Mat4<f32>, Block)> {
+        let (mut mat, block) =
+            self.get_block_and_transform(terrain, id_maps, read_pos_and_ori, colliders)?;
+
+        let (mount_offset, mount_dir) = block.mount_offset()?;
+        let mount_rot = comp::Ori::from_unnormalized_vec(mount_dir)
+            .unwrap_or_default()
+            .to_quat();
+
+        let rot = block.sprite_z_rot().unwrap_or(0.0);
+        let mirror = block.sprite_mirror_vec();
+
+        mat *= Mat4::from(mount_rot)
+            .translated_3d(mount_offset)
+            .scaled_3d(mirror)
+            .rotated_z(rot)
+            .translated_3d(Vec3::new(0.5, 0.5, 0.0));
+
+        Some((mat, block))
     }
 }
 

@@ -929,7 +929,7 @@ impl ServerEvent for InventoryManipEvent {
                                         },
                                         &data.colliders,
                                     )
-                                    .map(|(mat, _, _)| mat.mul_point(Vec3::broadcast(0.5)))
+                                    .map(|(mat, _)| mat.mul_point(Vec3::broadcast(0.5)))
                                 });
                                 if !in_range {
                                     debug!(

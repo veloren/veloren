@@ -70,7 +70,7 @@ sprites! {
     },
     // Furniture. In the future, we might add an attribute to customise material
     // TODO: Remove sizes and variants, represent with attributes
-    Furniture = 2 has Ori {
+    Furniture = 2 has Ori, MirrorX {
         // Indoor
         BookshelfArabic    = 0x0D,
         WallTableArabic    = 0x0E,
@@ -459,7 +459,10 @@ sprites! {
 }
 
 attributes! {
-    Ori { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },
+    Ori { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },
+    MirrorX { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |MirrorX(x)| x as u16 },
+    MirrorY { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |MirrorY(x)| x as u16 },
+    MirrorZ { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |MirrorZ(x)| x as u16 },
     Growth { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Growth(x)| x as u16 },
     LightEnabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightEnabled(x)| x as u16 },
     Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
@@ -471,6 +474,15 @@ attributes! {
 // The orientation of the sprite, 0..16
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
 pub struct Ori(pub u8);
+
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+pub struct MirrorX(pub bool);
+
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+pub struct MirrorY(pub bool);
+
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+pub struct MirrorZ(pub bool);
 
 // The growth of the plant, 0..16
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -791,12 +803,18 @@ impl SpriteKind {
                 let is_moving_into = move_dir.dot(resolve_dir) <= 0.0;
 
                 is_moving_into
-                    && parent.get_ori().is_some_and(|ori| {
-                        Vec2::unit_y()
-                            .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
-                            .with_z(0.0)
-                            .map2(resolve_dir, |e, r| (e - r).abs() < 0.1)
-                            .reduce_and()
+                    && parent.get_attr().is_ok_and(|Ori(ori)| {
+                        Vec2::new(
+                            0.0,
+                            parent.get_attr::<MirrorY>().map_or(1.0, |m| match m.0 {
+                                true => -1.0,
+                                false => 1.0,
+                            }),
+                        )
+                        .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
+                        .with_z(0.0)
+                        .map2(resolve_dir, |e, r| (e - r).abs() < 0.1)
+                        .reduce_and()
                     })
             },
             _ => true,
