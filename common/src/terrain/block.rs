@@ -421,7 +421,18 @@ impl Block {
                 | SpriteKind::Diamond
                 | SpriteKind::Emerald
                 | SpriteKind::Topaz => 3,
-                SpriteKind::Lantern | SpriteKind::LanternpostWoodLantern => 24,
+                SpriteKind::Lantern
+                | SpriteKind::LanternpostWoodLantern 
+                | SpriteKind::LanternAirshipWallBlackS
+                | SpriteKind::LanternAirshipWallBrownS
+                | SpriteKind::LanternAirshipWallChestnutS
+                | SpriteKind::LanternAirshipWallRedS
+                | SpriteKind::LanternAirshipGroundBlackS
+                | SpriteKind::LanternAirshipGroundBrownS
+                | SpriteKind::LanternAirshipGroundChestnutS
+                | SpriteKind::LanternAirshipGroundRedS 
+                | SpriteKind::LampMetalShinglesCyan
+                | SpriteKind::LampMetalShinglesRed => 24,
                 SpriteKind::TerracottaStatue => 8,
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => 16,
                 SpriteKind::SeaDecorEmblem => 12,
