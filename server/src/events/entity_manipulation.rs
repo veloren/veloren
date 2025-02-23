@@ -325,26 +325,53 @@ impl ServerEvent for KillEvent {
     }
 }
 
-impl ServerEvent for HelpDownedEvent {
-    type SystemData<'a> = (
-        Read<'a, IdMaps>,
-        WriteStorage<'a, comp::CharacterState>,
-        WriteStorage<'a, comp::Health>,
-    );
+#[derive(SystemData)]
+pub struct HelpDownedEventData<'a> {
+    id_maps: Read<'a, IdMaps>,
+    #[cfg(feature = "worldgen")]
+    rtsim: WriteExpect<'a, RtSim>,
+    #[cfg(feature = "worldgen")]
+    world: ReadExpect<'a, Arc<World>>,
+    #[cfg(feature = "worldgen")]
+    index: ReadExpect<'a, IndexOwned>,
+    #[cfg(feature = "worldgen")]
+    rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    #[cfg(feature = "worldgen")]
+    presences: ReadStorage<'a, Presence>,
+    character_states: WriteStorage<'a, comp::CharacterState>,
+    healths: WriteStorage<'a, comp::Health>,
+}
 
-    fn handle(
-        events: impl ExactSizeIterator<Item = Self>,
-        (id_maps, mut character_states, mut healths): Self::SystemData<'_>,
-    ) {
+impl ServerEvent for HelpDownedEvent {
+    type SystemData<'a> = HelpDownedEventData<'a>;
+
+    fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
         for ev in events {
-            if let Some(entity) = id_maps.uid_entity(ev.target) {
-                if let Some(mut health) = healths.get_mut(entity) {
+            if let Some(entity) = data.id_maps.uid_entity(ev.target) {
+                if let Some(mut health) = data.healths.get_mut(entity) {
                     health.refresh_death_protection();
                 }
-                if let Some(mut character_state) = character_states.get_mut(entity)
+                if let Some(mut character_state) = data.character_states.get_mut(entity)
                     && matches!(*character_state, comp::CharacterState::Crawl)
                 {
                     *character_state = CharacterState::Idle(Default::default());
+                }
+
+                #[cfg(feature = "worldgen")]
+                let entity_as_actor =
+                    |entity| entity_as_actor(entity, &data.rtsim_entities, &data.presences);
+                #[cfg(feature = "worldgen")]
+                if let Some(actor) = entity_as_actor(entity) {
+                    let saver = ev
+                        .helper
+                        .and_then(|uid| data.id_maps.uid_entity(uid))
+                        .and_then(entity_as_actor);
+                    data.rtsim.hook_rtsim_actor_saved(
+                        &data.world,
+                        data.index.as_index_ref(),
+                        actor,
+                        saver,
+                    );
                 }
             }
         }

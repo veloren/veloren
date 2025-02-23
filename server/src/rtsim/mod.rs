@@ -16,7 +16,7 @@ use enum_map::EnumMap;
 use rtsim::{
     RtState,
     data::{Data, ReadError, npc::SimulationMode},
-    event::{OnDeath, OnHealthChange, OnMountVolume, OnSetup, OnTheft},
+    event::{OnDeath, OnHealthChange, OnMountVolume, OnSaved, OnSetup, OnTheft},
 };
 use specs::DispatcherBuilder;
 use std::{
@@ -255,6 +255,17 @@ impl RtSim {
             world,
             index,
         );
+    }
+
+    pub fn hook_rtsim_actor_saved(
+        &mut self,
+        world: &World,
+        index: IndexRef,
+        actor: Actor,
+        saver: Option<Actor>,
+    ) {
+        self.state
+            .emit(OnSaved { actor, saver }, &mut (), world, index);
     }
 
     pub fn save(&mut self, wait_until_finished: bool) {

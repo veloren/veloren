@@ -49,6 +49,15 @@ impl Event for OnDeath {
 }
 
 #[derive(Clone)]
+pub struct OnSaved {
+    pub actor: Actor,
+    pub saver: Option<Actor>,
+}
+impl Event for OnSaved {
+    type SystemData<'a> = ();
+}
+
+#[derive(Clone)]
 pub struct OnHealthChange {
     pub actor: Actor,
     pub cause: Option<Actor>,

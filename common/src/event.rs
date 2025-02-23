@@ -225,6 +225,7 @@ pub struct KillEvent {
 }
 
 pub struct HelpDownedEvent {
+    pub helper: Option<Uid>,
     pub target: Uid,
 }
 
