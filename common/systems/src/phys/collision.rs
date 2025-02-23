@@ -5,6 +5,7 @@ use common::{
         fluid_dynamics::{Fluid, LiquidKind},
     },
     consts::FRIC_GROUND,
+    outcome::Outcome,
     resources::DeltaTime,
     terrain::{Block, BlockKind},
     uid::Uid,
@@ -520,6 +521,109 @@ pub(super) fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
         }
         physics_state.skating_active = false;
     }
+}
+
+pub(super) fn point_voxel_collision(
+    entity: Entity,
+    pos: &mut Pos,
+    pos_delta: Vec3<f32>,
+    vel: &mut Vel,
+    physics_state: &mut PhysicsState,
+    sticky: bool,
+    outcomes: &mut Vec<Outcome>,
+    read: &PhysicsRead,
+) {
+    // TODO: If the velocity is exactly 0,
+    // a raycast may not pick up the current block.
+    //
+    // Handle this.
+    let (dist, block) = if let Some(block) = read
+        .terrain
+        .get(pos.0.map(|e| e.floor() as i32))
+        .ok()
+        .filter(|b| b.is_solid())
+    {
+        (0.0, Some(block))
+    } else {
+        let (dist, block) = read
+            .terrain
+            .ray(pos.0, pos.0 + pos_delta)
+            .until(|block: &Block| block.is_solid())
+            .ignore_error()
+            .cast();
+        // Can't fail since we do ignore_error above
+        (dist, block.unwrap())
+    };
+
+    pos.0 += pos_delta.try_normalized().unwrap_or_else(Vec3::zero) * dist;
+
+    // TODO: Not all projectiles should count as sticky!
+    if sticky {
+        if let Some((projectile, body)) = read
+            .projectiles
+            .get(entity)
+            .filter(|_| vel.0.magnitude_squared() > 1.0 && block.is_some())
+            .zip(read.bodies.get(entity).copied())
+        {
+            outcomes.push(Outcome::ProjectileHit {
+                pos: pos.0 + pos_delta * dist,
+                body,
+                vel: vel.0,
+                source: projectile.owner,
+                target: None,
+            });
+        }
+    }
+
+    if block.is_some() {
+        let block_center = pos.0.map(|e| e.floor()) + 0.5;
+        let block_rpos = (pos.0 - block_center)
+            .try_normalized()
+            .unwrap_or_else(Vec3::zero);
+
+        // See whether we're on the top/bottom of a block,
+        // or the side
+        if block_rpos.z.abs() > block_rpos.xy().map(|e| e.abs()).reduce_partial_max() {
+            if block_rpos.z > 0.0 {
+                physics_state.on_ground = block.copied();
+            } else {
+                physics_state.on_ceiling = true;
+            }
+            vel.0.z = 0.0;
+        } else {
+            physics_state.on_wall = Some(if block_rpos.x.abs() > block_rpos.y.abs() {
+                vel.0.x = 0.0;
+                Vec3::unit_x() * -block_rpos.x.signum()
+            } else {
+                vel.0.y = 0.0;
+                Vec3::unit_y() * -block_rpos.y.signum()
+            });
+        }
+
+        // Sticky things shouldn't move
+        if sticky {
+            vel.0 = physics_state.ground_vel;
+        }
+    }
+
+    physics_state.in_fluid = read
+        .terrain
+        .get(pos.0.map(|e| e.floor() as i32))
+        .ok()
+        .and_then(|vox| {
+            vox.liquid_kind().map(|kind| Fluid::Liquid {
+                kind,
+                depth: 1.0,
+                vel: Vel::zero(),
+            })
+        })
+        .or_else(|| match physics_state.in_fluid {
+            Some(Fluid::Liquid { .. }) | None => Some(Fluid::Air {
+                elevation: pos.0.z,
+                vel: Vel::default(),
+            }),
+            fluid => fluid,
+        });
 }
 
 pub(super) fn voxel_collider_bounding_sphere(
