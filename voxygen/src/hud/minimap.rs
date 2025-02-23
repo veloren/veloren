@@ -512,6 +512,10 @@ impl Widget for MiniMap<'_> {
             }
 
             // Zoom Buttons
+            // Don't forget to update the code in src/mop/hud.rs:4728 in the
+            // `handle_map_zoom` fn when updating this! TODO: Consolidate
+            // minimap zooming, because having duplicate handlers for hotkey and interface
+            // is error prone. Find the other occurrence by searching for this comment.
 
             // Pressing + multiplies, and - divides, zoom by ZOOM_FACTOR.
             const ZOOM_FACTOR: f64 = 2.0;
@@ -543,10 +547,11 @@ impl Widget for MiniMap<'_> {
                 && can_zoom_out
             {
                 // Set the image dimensions here, rather than recomputing each time.
-                zoom = min_zoom.max(zoom / ZOOM_FACTOR);
+                zoom = (zoom / ZOOM_FACTOR).clamp(min_zoom, max_zoom);
                 // set_image_dims(zoom);
                 events.push(Event::SettingsChange(MinimapZoom(zoom)));
             }
+
             if Button::image(self.imgs.mmap_plus)
                 .w_h(18.0 * SCALE, 18.0 * SCALE)
                 .hover_image(self.imgs.mmap_plus_hover)
@@ -558,7 +563,7 @@ impl Widget for MiniMap<'_> {
                 .was_clicked()
                 && can_zoom_in
             {
-                zoom = min_zoom.max(zoom * ZOOM_FACTOR);
+                zoom = (zoom * ZOOM_FACTOR).clamp(min_zoom, max_zoom);
                 // set_image_dims(zoom);
                 events.push(Event::SettingsChange(MinimapZoom(zoom)));
             }
