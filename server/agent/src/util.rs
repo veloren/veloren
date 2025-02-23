@@ -35,6 +35,13 @@ pub fn is_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
     buffs.is_some_and(|b| b.kinds[BuffKind::Invulnerability].is_some())
 }
 
+pub fn is_steering(entity: EcsEntity, read_data: &ReadData) -> bool {
+    read_data
+        .is_volume_riders
+        .get(entity)
+        .is_some_and(|r| r.is_steering_entity())
+}
+
 /// Gets alignment of owner if alignment given is `Owned`.
 /// Returns original alignment if not owned.
 pub fn try_owner_alignment<'a>(

@@ -325,6 +325,11 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                                     .say_statement(Content::localized("npc-response-already_hired"))
                                     .boxed()
                             } else if ctx.npc.hiring.is_none() && ctx.npc.rng(38792).gen_bool(0.5) {
+                                let hire_level = match ctx.npc.profession() {
+                                    Some(Profession::Adventurer(l)) => l,
+                                    _ => 0,
+                                };
+                                let price_mul = 1u32 << hire_level.min(31);
                                 session
                                     .ask_question(Content::localized("npc-response-hire_time"), [
                                         (
@@ -343,7 +348,7 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                                                     "common.items.utility.coins",
                                                 )
                                                 .unwrap(),
-                                                100,
+                                                price_mul.saturating_mul(60),
                                             )),
                                         }),
                                         (7, Response {
@@ -356,7 +361,7 @@ fn talk_to<S: State>(tgt: Actor, _subject: Option<Subject>) -> impl Action<S> {
                                                     "common.items.utility.coins",
                                                 )
                                                 .unwrap(),
-                                                500,
+                                                price_mul.saturating_mul(300),
                                             )),
                                         }),
                                     ])

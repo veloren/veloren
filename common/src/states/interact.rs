@@ -157,7 +157,10 @@ impl CharacterBehavior for Data {
                                 InteractKind::Invalid => unreachable!(),
                                 InteractKind::Entity { target, kind, .. } => match kind {
                                     crate::interaction::InteractionKind::HelpDowned => {
-                                        output_events.emit_server(HelpDownedEvent { target });
+                                        output_events.emit_server(HelpDownedEvent {
+                                            target,
+                                            helper: Some(*data.uid),
+                                        });
                                     },
                                     crate::interaction::InteractionKind::Pet => {},
                                 },

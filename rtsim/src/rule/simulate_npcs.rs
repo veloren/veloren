@@ -1,7 +1,7 @@
 use crate::{
     RtState, Rule, RuleError,
-    data::{Npc, npc::SimulationMode},
-    event::{EventCtx, OnDeath, OnMountVolume, OnTick},
+    data::{Npc, Sentiment, npc::SimulationMode},
+    event::{EventCtx, OnDeath, OnHealthChange, OnHelped, OnMountVolume, OnTick},
 };
 use common::{
     comp::{self, Body},
@@ -22,8 +22,10 @@ pub struct SimulateNpcs;
 impl Rule for SimulateNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind(on_death);
-        rtstate.bind(on_tick);
+        rtstate.bind(on_helped);
+        rtstate.bind(on_health_changed);
         rtstate.bind(on_mount_volume);
+        rtstate.bind(on_tick);
 
         Ok(Self)
     }
@@ -179,6 +181,42 @@ fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
         } else {
             error!("Trying to respawn non-existent NPC");
         }
+    }
+}
+
+fn on_health_changed(ctx: EventCtx<SimulateNpcs, OnHealthChange>) {
+    let data = &mut *ctx.state.data_mut();
+
+    if let Some(cause) = ctx.event.cause
+        && let Actor::Npc(npc) = ctx.event.actor
+        && let Some(npc) = data.npcs.get_mut(npc)
+    {
+        if ctx.event.change < 0.0 {
+            npc.sentiments
+                .toward_mut(cause)
+                .change_by(-0.1, Sentiment::ENEMY);
+        } else if ctx.event.change > 0.0 {
+            npc.sentiments
+                .toward_mut(cause)
+                .change_by(0.05, Sentiment::POSITIVE);
+        }
+    }
+}
+
+fn on_helped(ctx: EventCtx<SimulateNpcs, OnHelped>) {
+    let data = &mut *ctx.state.data_mut();
+
+    if let Some(saver) = ctx.event.saver
+        && let Actor::Npc(npc) = ctx.event.actor
+        && let Some(npc) = data.npcs.get_mut(npc)
+    {
+        npc.controller.actions.push(NpcAction::Say(
+            Some(ctx.event.actor),
+            comp::Content::localized("npc-speech-thank_you"),
+        ));
+        npc.sentiments
+            .toward_mut(saver)
+            .change_by(0.3, Sentiment::FRIEND);
     }
 }
 
