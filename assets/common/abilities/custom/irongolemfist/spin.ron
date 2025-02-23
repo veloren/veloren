@@ -21,6 +21,5 @@ BasicMelee(
         ))),
     ),
     hit_timing: 0.5,
-    ori_modifier: 1.0,
     frontend_specifier: Some(FlameTornado),
 )

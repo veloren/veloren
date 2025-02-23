@@ -18,7 +18,6 @@ ComboMelee2(
             movement: (
                 recover: Some(Reverse(1.5)),
             ),
-            ori_modifier: 1.0,
         ),
     ],
     energy_cost_per_strike: 0,

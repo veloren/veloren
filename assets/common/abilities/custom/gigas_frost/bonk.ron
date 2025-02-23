@@ -16,5 +16,9 @@ BasicMelee(
         attack_effect: Some((Poise(1000), TargetBlocking)),
         multi_target: Some(Normal),
     ),
-    ori_modifier: 0.8,
+    ori_modifier: (
+        buildup: Some(0.8),
+        swing: Some(0.8),
+        recover: Some(0.8),
+    ),
 )

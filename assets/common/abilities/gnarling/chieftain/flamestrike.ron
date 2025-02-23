@@ -20,5 +20,9 @@ BasicMelee(
             chance: 0.5,
         ))),
     ),
-    ori_modifier: 0.7,
+    ori_modifier: (
+        buildup: Some(0.7),
+        swing: Some(0.7),
+        recover: Some(0.7),
+    ),
 )

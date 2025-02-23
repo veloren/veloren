@@ -34,8 +34,12 @@ pub struct Strike<T> {
     /// How much forward movement there is in the swing portion of the stage
     #[serde(default)]
     pub movement: StrikeMovement,
-    /// Adjusts turning rate during the attack
-    pub ori_modifier: f32,
+    /// Adjusts move speed during the attack per stage
+    #[serde(default)]
+    pub movement_modifier: MovementModifier,
+    /// Adjusts turning rate during the attack per stage
+    #[serde(default)]
+    pub ori_modifier: OrientationModifier,
     #[serde(default)]
     pub custom_combo: CustomCombo,
 }
@@ -49,6 +53,7 @@ impl Strike<f32> {
             hit_timing: self.hit_timing,
             recover_duration: Duration::from_secs_f32(self.recover_duration),
             movement: self.movement,
+            movement_modifier: self.movement_modifier,
             ori_modifier: self.ori_modifier,
             custom_combo: self.custom_combo,
         }
@@ -63,6 +68,7 @@ impl Strike<f32> {
             hit_timing: self.hit_timing,
             recover_duration: self.recover_duration / stats.speed,
             movement: self.movement,
+            movement_modifier: self.movement_modifier,
             ori_modifier: self.ori_modifier,
             custom_combo: self.custom_combo,
         }
@@ -112,14 +118,18 @@ pub struct Data {
     /// Index of the strike that is currently in progress, or if not in a strike
     /// currently the next strike that will occur
     pub completed_strikes: usize,
+    /// Adjusts move speed during the attack
+    pub movement_modifier: Option<f32>,
+    /// How fast the entity should turn
+    pub ori_modifier: Option<f32>,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 0.7);
+        handle_orientation(data, &mut update, self.ori_modifier.unwrap_or(1.0), None);
+        handle_move(data, &mut update, self.movement_modifier.unwrap_or(0.7));
         handle_interrupts(data, &mut update, output_events);
 
         let strike_data = self.strike_data();
@@ -139,6 +149,8 @@ impl CharacterBehavior for Data {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Action;
+                        c.movement_modifier = strike_data.movement_modifier.swing;
+                        c.ori_modifier = strike_data.ori_modifier.swing;
                     }
                 }
                 if let Some(FrontendSpecifier::ClayGolemDash) = self.static_data.specifier {
@@ -217,12 +229,14 @@ impl CharacterBehavior for Data {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.completed_strikes += 1;
                     }
-                    next_strike(data, &mut update);
+                    next_strike(data, &mut update, strike_data);
                 } else {
                     // Transitions to recover section of stage
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Recover;
+                        c.movement_modifier = strike_data.movement_modifier.recover;
+                        c.ori_modifier = strike_data.ori_modifier.recover;
                     }
                 }
             },
@@ -260,7 +274,7 @@ impl Data {
     }
 }
 
-fn next_strike(data: &JoinData, update: &mut StateUpdate) {
+fn next_strike(data: &JoinData, update: &mut StateUpdate, strike_data: &Strike<Duration>) {
     let revert_to_wield = if let CharacterState::ComboMelee2(c) = &mut update.character {
         if update
             .energy
@@ -271,6 +285,8 @@ fn next_strike(data: &JoinData, update: &mut StateUpdate) {
             c.start_next_strike = false;
             c.timer = Duration::default();
             c.stage_section = StageSection::Buildup;
+            c.movement_modifier = strike_data.movement_modifier.buildup;
+            c.ori_modifier = strike_data.ori_modifier.buildup;
             false
         } else {
             true

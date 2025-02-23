@@ -25,7 +25,10 @@ use crate::{
     states::{
         behavior::JoinData,
         sprite_summon::SpriteSummonAnchor,
-        utils::{AbilityInfo, ComboConsumption, ScalingKind, StageSection},
+        utils::{
+            AbilityInfo, ComboConsumption, MovementModifier, OrientationModifier, ScalingKind,
+            StageSection,
+        },
         *,
     },
     terrain::SpriteKind,
@@ -780,7 +783,10 @@ pub enum CharacterAbility {
         hit_timing: f32,
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
-        ori_modifier: f32,
+        #[serde(default)]
+        movement_modifier: MovementModifier,
+        #[serde(default)]
+        ori_modifier: OrientationModifier,
         frontend_specifier: Option<basic_melee::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1178,7 +1184,8 @@ impl Default for CharacterAbility {
                 precision_flank_multipliers: Default::default(),
                 precision_flank_invert: false,
             },
-            ori_modifier: 1.0,
+            movement_modifier: Default::default(),
+            ori_modifier: Default::default(),
             frontend_specifier: None,
             meta: Default::default(),
         }
@@ -1347,6 +1354,7 @@ impl CharacterAbility {
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut melee_constructor,
+                movement_modifier: _,
                 ori_modifier: _,
                 hit_timing: _,
                 frontend_specifier: _,
@@ -2319,6 +2327,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 hit_timing,
                 recover_duration,
                 melee_constructor,
+                movement_modifier,
                 ori_modifier,
                 frontend_specifier,
                 energy_cost: _,
@@ -2330,6 +2339,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     hit_timing: hit_timing.clamp(0.0, 1.0),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     melee_constructor: *melee_constructor,
+                    movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
                     frontend_specifier: *frontend_specifier,
                     ability_info,
@@ -2337,6 +2347,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
+                movement_modifier: movement_modifier.buildup,
+                ori_modifier: ori_modifier.buildup,
             }),
             CharacterAbility::BasicRanged {
                 buildup_duration,
@@ -2493,6 +2505,8 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 completed_strikes: 0,
+                movement_modifier: strikes.first().and_then(|s| s.movement_modifier.buildup),
+                ori_modifier: strikes.first().and_then(|s| s.ori_modifier.buildup),
             }),
             CharacterAbility::LeapMelee {
                 energy_cost: _,

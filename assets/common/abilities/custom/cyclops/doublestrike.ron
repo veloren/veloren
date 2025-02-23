@@ -18,7 +18,6 @@ ComboMelee2(
             movement: (
                 swing: Some(Forward(0.3)),
             ),
-            ori_modifier: 0.65,
         ),
         (
             melee_constructor: (
@@ -44,7 +43,6 @@ ComboMelee2(
             movement: (
                 swing: Some(Forward(0.2)),
             ),
-            ori_modifier: 0.65,
         ),
     ],
     energy_cost_per_strike: 0,
