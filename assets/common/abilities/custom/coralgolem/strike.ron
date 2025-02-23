@@ -14,5 +14,9 @@ BasicMelee(
         range: 4.0,
         angle: 45.0,
     ),
-    ori_modifier: 0.4,
+    ori_modifier: (
+        buildup: Some(0.4),
+        swing: Some(0.4),
+        recover: Some(0.4),
+    ),
 )

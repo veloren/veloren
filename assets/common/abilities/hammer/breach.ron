@@ -17,5 +17,9 @@ BasicMelee(
         precision_flank_multipliers: (back: 1.0, side: 1.0, front: 1.5),
         precision_flank_invert: true,
     ),
-    ori_modifier: 0.6,
+    ori_modifier: (
+        buildup: Some(0.6),
+        swing: Some(0.6),
+        recover: Some(0.6),
+    ),
 )

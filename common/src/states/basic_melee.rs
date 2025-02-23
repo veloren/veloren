@@ -27,8 +27,12 @@ pub struct StaticData {
     pub hit_timing: f32,
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
-    /// Adjusts turning rate during the attack
-    pub ori_modifier: f32,
+    /// Adjusts move speed during the attack per stage
+    #[serde(default)]
+    pub movement_modifier: MovementModifier,
+    /// Adjusts turning rate during the attack per stage
+    #[serde(default)]
+    pub ori_modifier: OrientationModifier,
     /// Used to indicate to the frontend what ability this is for any special
     /// effects
     pub frontend_specifier: Option<FrontendSpecifier>,
@@ -47,14 +51,18 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack can deal more damage
     pub exhausted: bool,
+    /// Adjusts move speed during the attack
+    pub movement_modifier: Option<f32>,
+    /// How fast the entity should turn
+    pub ori_modifier: Option<f32>,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
-        handle_move(data, &mut update, 0.7);
+        handle_orientation(data, &mut update, self.ori_modifier.unwrap_or(1.0), None);
+        handle_move(data, &mut update, self.movement_modifier.unwrap_or(0.7));
         handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
@@ -70,6 +78,8 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicMelee(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Action,
+                        movement_modifier: self.static_data.movement_modifier.swing,
+                        ori_modifier: self.static_data.ori_modifier.swing,
                         ..*self
                     });
                 }
@@ -125,6 +135,8 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicMelee(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
+                        movement_modifier: self.static_data.movement_modifier.recover,
+                        ori_modifier: self.static_data.ori_modifier.recover,
                         ..*self
                     });
                 }
@@ -138,6 +150,8 @@ impl CharacterBehavior for Data {
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
                         ),
+                        movement_modifier: self.static_data.movement_modifier.recover,
+                        ori_modifier: self.static_data.ori_modifier.recover,
                         ..*self
                     });
                 } else {

@@ -20,7 +20,6 @@ ComboMelee2(
                 swing: Some(Reverse(2)),
                 recover: Some(Reverse(1.5)),
             ),
-            ori_modifier: 0.6,
         ),
     ],
     energy_cost_per_strike: 0,

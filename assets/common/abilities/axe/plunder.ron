@@ -19,7 +19,6 @@ ComboMelee2(
                 buildup: Some(Forward(0.5)),
                 swing: Some(Forward(0.7)),
             ),
-            ori_modifier: 0.6,
             custom_combo: (
                 base: Some(3),
                 conditional: Some((3, TargetPoised)),
