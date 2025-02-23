@@ -7,7 +7,7 @@ use crate::{
     util::{
         aim_projectile, are_our_owners_hostile, entities_have_line_of_sight, get_attacker,
         get_entity_by_id, is_dead_or_invulnerable, is_dressed_as_cultist, is_invulnerable,
-        is_village_guard, is_villager,
+        is_steering, is_village_guard, is_villager,
     },
 };
 use common::{
@@ -838,7 +838,9 @@ impl AgentData<'_> {
         read_data: &ReadData,
         target: EcsEntity,
     ) -> bool {
-        if let Some(tgt_pos) = read_data.positions.get(target) {
+        if let Some(tgt_pos) = read_data.positions.get(target)
+            && !is_steering(*self.entity, read_data)
+        {
             let eye_offset = self.body.map_or(0.0, |b| b.eye_height(self.scale));
             let tgt_eye_offset = read_data.bodies.get(target).map_or(0.0, |b| {
                 b.eye_height(read_data.scales.get(target).map_or(1.0, |s| s.0))
@@ -1978,7 +1980,7 @@ impl AgentData<'_> {
     ) {
         agent.forget_old_sounds(read_data.time.0);
 
-        if is_invulnerable(*self.entity, read_data) {
+        if is_invulnerable(*self.entity, read_data) || is_steering(*self.entity, read_data) {
             self.idle(agent, controller, read_data, emitters, rng);
             return;
         }

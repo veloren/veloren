@@ -16,7 +16,7 @@ use common::{
     rtsim::{NpcAction, RtSimEntity},
 };
 use rand::{Rng, prelude::ThreadRng, thread_rng};
-use server_agent::data::AgentEmitters;
+use server_agent::{data::AgentEmitters, util::is_steering};
 use specs::Entity as EcsEntity;
 use tracing::warn;
 use vek::{Vec2, Vec3};
@@ -341,7 +341,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
 ///
 /// This function will never stop the BehaviorTree
 fn do_target_tree_if_target_else_do_idle_tree(bdata: &mut BehaviorData) -> bool {
-    if bdata.agent.target.is_some() {
+    if bdata.agent.target.is_some() && !is_steering(*bdata.agent_data.entity, bdata.read_data) {
         BehaviorTree::target().run(bdata);
     } else {
         BehaviorTree::idle().run(bdata);
