@@ -10,6 +10,7 @@ use crate::{
     GlobalState,
     game_input::GameInput,
     hud::{ComboFloater, Position, PositionSpecifier, animation::animation_timer},
+    key_state::GIVE_UP_HOLD_TIME,
     ui::{
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
@@ -26,6 +27,7 @@ use common::{
         self, Ability, ActiveAbilities, Body, CharacterState, Combo, Energy, Hardcore, Health,
         Inventory, Poise, PoiseState, SkillSet, Stats,
         ability::{AbilityInput, Stance},
+        is_downed,
         item::{
             ItemDesc, ItemI18n, MaterialStatManifest,
             tool::{AbilityContext, ToolKind},
@@ -289,7 +291,7 @@ pub enum Event {
 #[derive(WidgetCommon)]
 pub struct Skillbar<'a> {
     client: &'a Client,
-    info: &'a HudInfo,
+    info: &'a HudInfo<'a>,
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
@@ -579,7 +581,9 @@ impl<'a> Skillbar<'a> {
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
         let bar_values = self.global_state.settings.interface.bar_numbers;
+        let is_downed = is_downed(Some(self.health), self.char_state);
         let show_health = self.global_state.settings.interface.always_show_bars
+            || is_downed
             || (self.health.current() - self.health.maximum()).abs() > Health::HEALTH_EPSILON;
         let show_energy = self.global_state.settings.interface.always_show_bars
             || (self.energy.current() - self.energy.maximum()).abs() > Energy::ENERGY_EPSILON;
@@ -590,6 +594,14 @@ impl<'a> Skillbar<'a> {
 
         if show_health && !self.health.is_dead || decayed_health > 0.0 {
             let offset = 1.0;
+            let hp_percentage = if is_downed {
+                100.0
+                    * (1.0 - self.info.key_state.give_up.unwrap_or(0.0) / GIVE_UP_HOLD_TIME)
+                        .clamp(0.0, 1.0) as f64
+            } else {
+                hp_percentage
+            };
+
             Image::new(self.imgs.health_bg)
                 .w_h(484.0, 24.0)
                 .mid_top_with_margin_on(state.ids.frame, -offset)
@@ -598,6 +610,7 @@ impl<'a> Skillbar<'a> {
                 .top_left_with_margins_on(state.ids.bg_health, 2.0, 2.0)
                 .set(state.ids.hp_alignment, ui);
             let health_col = match hp_percentage as u8 {
+                _ if is_downed => crit_hp_color,
                 0..=20 => crit_hp_color,
                 21..=40 => LOW_HP_COLOR,
                 _ => HP_COLOR,
@@ -979,6 +992,8 @@ impl<'a> Skillbar<'a> {
             None
         };
         if let Some((hp_txt, energy_txt, poise_txt)) = bar_text {
+            let hp_txt = if is_downed { String::new() } else { hp_txt };
+
             Text::new(&hp_txt)
                 .middle_of(state.ids.frame_health)
                 .font_size(self.fonts.cyri.scale(12))

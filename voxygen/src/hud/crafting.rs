@@ -154,7 +154,7 @@ impl Default for CraftingShow {
 #[derive(WidgetCommon)]
 pub struct Crafting<'a> {
     client: &'a Client,
-    info: &'a HudInfo,
+    info: &'a HudInfo<'a>,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,

@@ -821,9 +821,13 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::GiveUp => {
-                                if state {
-                                    self.client.borrow_mut().give_up();
-                                }
+                                self.key_state.give_up = state.then_some(0.0).filter(|_| {
+                                    let client = self.client.borrow();
+                                    comp::is_downed(
+                                        client.current().as_ref(),
+                                        client.current().as_ref(),
+                                    )
+                                });
                             },
                             GameInput::Respawn => {
                                 self.walking_speed = false;
@@ -1315,6 +1319,14 @@ impl PlayState for SessionState {
             let (axis_right, axis_up) = (input_vec[0], input_vec[1]);
             let dt = global_state.clock.get_stable_dt().as_secs_f32();
 
+            if let Some(ref mut timer) = self.key_state.give_up {
+                *timer += dt;
+
+                if *timer > crate::key_state::GIVE_UP_HOLD_TIME {
+                    self.client.borrow_mut().give_up();
+                }
+            }
+
             if mutable_viewpoint {
                 // If auto-gliding, point camera into the wind
                 if let Some(dir) = self
@@ -1621,6 +1633,7 @@ impl PlayState for SessionState {
                     target_entity: self.target_entity,
                     selected_entity: self.selected_entity,
                     persistence_load_error: self.metadata.skill_set_persistence_load_error,
+                    key_state: &self.key_state,
                 },
                 inverted_interactable_map,
             );

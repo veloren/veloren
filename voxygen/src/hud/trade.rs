@@ -90,7 +90,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Trade<'a> {
     client: &'a Client,
-    info: &'a HudInfo,
+    info: &'a HudInfo<'a>,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,

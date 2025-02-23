@@ -68,6 +68,7 @@ use crate::{
     ecs::comp::{self as vcomp, HpFloater, HpFloaterList},
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
+    key_state::KeyState,
     render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
@@ -673,7 +674,7 @@ pub struct DebugInfo {
     pub active_channels: ActiveChannels,
 }
 
-pub struct HudInfo {
+pub struct HudInfo<'a> {
     pub is_aiming: bool,
     pub active_mine_tool: Option<ToolKind>,
     pub is_first_person: bool,
@@ -682,6 +683,7 @@ pub struct HudInfo {
     pub target_entity: Option<specs::Entity>,
     pub selected_entity: Option<(specs::Entity, Instant)>,
     pub persistence_load_error: Option<SkillsPersistenceError>,
+    pub key_state: &'a KeyState,
 }
 
 #[derive(Clone)]
