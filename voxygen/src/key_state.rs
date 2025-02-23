@@ -1,5 +1,7 @@
 use vek::Vec2;
 
+pub const GIVE_UP_HOLD_TIME: f32 = 2.0;
+
 pub struct KeyState {
     pub right: bool,
     pub left: bool,
@@ -11,6 +13,7 @@ pub struct KeyState {
     pub auto_walk: bool,
     pub speed_mul: f32,
     pub trade: bool,
+    pub give_up: Option<f32>,
     pub analog_matrix: Vec2<f32>,
 }
 
@@ -27,6 +30,7 @@ impl Default for KeyState {
             auto_walk: false,
             speed_mul: 1.0,
             trade: false,
+            give_up: None,
             analog_matrix: Vec2::zero(),
         }
     }

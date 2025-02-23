@@ -59,7 +59,7 @@ pub struct LootScroller<'a> {
     new_messages: &'a mut VecDeque<LootMessage>,
 
     client: &'a Client,
-    info: &'a HudInfo,
+    info: &'a HudInfo<'a>,
     show: &'a Show,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,

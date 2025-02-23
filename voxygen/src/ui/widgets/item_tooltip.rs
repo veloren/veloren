@@ -298,7 +298,7 @@ pub struct ItemTooltip<'a> {
     transparency: f32,
     image_frame: ImageFrame,
     client: &'a Client,
-    info: &'a HudInfo,
+    info: &'a HudInfo<'a>,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     pulse: f32,

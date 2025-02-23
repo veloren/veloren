@@ -656,7 +656,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Bag<'a> {
     client: &'a Client,
-    info: &'a HudInfo,
+    info: &'a HudInfo<'a>,
     global_state: &'a GlobalState,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
