@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Town layout improvements, lantern pole sprites at the sides of roads, more smooth paths.
 - Reworked climbing controls.
 - You now need to hold the give up button to give up.
+- Dealing damage to an npc reduces sentiment, helping a downed npc increases sentiment.
 
 ### Removed
 
@@ -56,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Can no longer ride while dead.
 - Realignment of airship dock signs in forest towns.
 - Fixed rotation of Bloodmoon Relic.
+- Captains turning towards sounds or targets.
 
 ## [0.17.0] - 2024-12-28
 
