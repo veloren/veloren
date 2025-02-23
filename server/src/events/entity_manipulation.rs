@@ -254,23 +254,25 @@ impl ServerEvent for HealthChangeEvent {
                 }
 
                 #[cfg(feature = "worldgen")]
-                let entity_as_actor =
-                    |entity| entity_as_actor(entity, &data.rtsim_entities, &data.presences);
-                #[cfg(feature = "worldgen")]
-                if let Some(actor) = entity_as_actor(ev.entity) {
-                    let cause = ev
-                        .change
-                        .damage_by()
-                        .map(|by| by.uid())
-                        .and_then(|uid| data.id_maps.uid_entity(uid))
-                        .and_then(entity_as_actor);
-                    data.rtsim.hook_rtsim_actor_hp_change(
-                        &data.world,
-                        data.index.as_index_ref(),
-                        actor,
-                        cause,
-                        health.fraction(),
-                    );
+                if changed {
+                    let entity_as_actor =
+                        |entity| entity_as_actor(entity, &data.rtsim_entities, &data.presences);
+                    if let Some(actor) = entity_as_actor(ev.entity) {
+                        let cause = ev
+                            .change
+                            .damage_by()
+                            .map(|by| by.uid())
+                            .and_then(|uid| data.id_maps.uid_entity(uid))
+                            .and_then(entity_as_actor);
+                        data.rtsim.hook_rtsim_actor_hp_change(
+                            &data.world,
+                            data.index.as_index_ref(),
+                            actor,
+                            cause,
+                            health.fraction(),
+                            ev.change.amount,
+                        );
+                    }
                 }
 
                 if let (Some(pos), Some(uid)) = (pos, uid) {
@@ -366,7 +368,7 @@ impl ServerEvent for HelpDownedEvent {
                         .helper
                         .and_then(|uid| data.id_maps.uid_entity(uid))
                         .and_then(entity_as_actor);
-                    data.rtsim.hook_rtsim_actor_saved(
+                    data.rtsim.hook_rtsim_actor_helped(
                         &data.world,
                         data.index.as_index_ref(),
                         actor,

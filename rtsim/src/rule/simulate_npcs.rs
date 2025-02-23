@@ -1,7 +1,7 @@
 use crate::{
     RtState, Rule, RuleError,
     data::{Npc, Sentiment, npc::SimulationMode},
-    event::{EventCtx, OnDeath, OnHealthChange, OnMountVolume, OnSaved, OnTick},
+    event::{EventCtx, OnDeath, OnHealthChange, OnHelped, OnMountVolume, OnTick},
 };
 use common::{
     comp::{self, Body},
@@ -22,7 +22,7 @@ pub struct SimulateNpcs;
 impl Rule for SimulateNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind(on_death);
-        rtstate.bind(on_saved);
+        rtstate.bind(on_helped);
         rtstate.bind(on_health_changed);
         rtstate.bind(on_mount_volume);
         rtstate.bind(on_tick);
@@ -191,13 +191,19 @@ fn on_health_changed(ctx: EventCtx<SimulateNpcs, OnHealthChange>) {
         && let Actor::Npc(npc) = ctx.event.actor
         && let Some(npc) = data.npcs.get_mut(npc)
     {
-        npc.sentiments
-            .toward_mut(cause)
-            .change_by(-0.1, Sentiment::ENEMY);
+        if ctx.event.change < 0.0 {
+            npc.sentiments
+                .toward_mut(cause)
+                .change_by(-0.1, Sentiment::ENEMY);
+        } else if ctx.event.change > 0.0 {
+            npc.sentiments
+                .toward_mut(cause)
+                .change_by(0.05, Sentiment::POSITIVE);
+        }
     }
 }
 
-fn on_saved(ctx: EventCtx<SimulateNpcs, OnSaved>) {
+fn on_helped(ctx: EventCtx<SimulateNpcs, OnHelped>) {
     let data = &mut *ctx.state.data_mut();
 
     if let Some(saver) = ctx.event.saver
