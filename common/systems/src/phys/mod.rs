@@ -30,7 +30,6 @@ use vek::*;
 
 mod collision;
 mod weather;
-pub use collision::closest_points_3d;
 use collision::*;
 
 /// The density of the fluid as a function of submersion ratio in given fluid

@@ -9,11 +9,13 @@ use common::{
     mounting::{Mount, Rider},
     terrain::Block,
     uid::Uid,
-    util::find_dist::{Cylinder, FindDist},
+    util::{
+        find_dist::{Cylinder, FindDist},
+        lines::closest_points_3d,
+    },
     vol::ReadVol,
 };
 use common_base::span;
-use common_systems::phys::closest_points_3d;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Target<T> {

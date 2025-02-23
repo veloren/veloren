@@ -2,6 +2,7 @@ mod color;
 pub mod dir;
 pub mod find_dist;
 mod grid_hasher;
+pub mod lines;
 mod option;
 pub mod plane;
 pub mod projection;
