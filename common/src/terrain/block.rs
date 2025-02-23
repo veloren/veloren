@@ -422,7 +422,7 @@ impl Block {
                 | SpriteKind::Emerald
                 | SpriteKind::Topaz => 3,
                 SpriteKind::Lantern
-                | SpriteKind::LanternpostWoodLantern 
+                | SpriteKind::LanternpostWoodLantern
                 | SpriteKind::LanternAirshipWallBlackS
                 | SpriteKind::LanternAirshipWallBrownS
                 | SpriteKind::LanternAirshipWallChestnutS
@@ -430,7 +430,7 @@ impl Block {
                 | SpriteKind::LanternAirshipGroundBlackS
                 | SpriteKind::LanternAirshipGroundBrownS
                 | SpriteKind::LanternAirshipGroundChestnutS
-                | SpriteKind::LanternAirshipGroundRedS 
+                | SpriteKind::LanternAirshipGroundRedS
                 | SpriteKind::LampMetalShinglesCyan
                 | SpriteKind::LampMetalShinglesRed => 24,
                 SpriteKind::TerracottaStatue => 8,
