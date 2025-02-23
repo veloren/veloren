@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - You now need to hold the give up button to give up.
 - Dealing damage to an npc reduces sentiment, helping a downed npc increases sentiment.
 - Metal lineage armor model updates.
+- No longer show names of most sprite interactions.
 
 ### Removed
 
