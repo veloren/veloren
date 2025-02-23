@@ -3066,12 +3066,12 @@ ChairDouble: [(
 Helm: [(
     variations: [
         (
-           model: "voxygen.voxel.sprite.furniture.helm",
-           offset: (-5.5, -5.5, 0.0),
+            model: "voxygen.voxel.sprite.furniture.helm_wood",
+            offset: (-8.5, -5.0, 0.0),
            lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
-    wind_sway: 0.0,
+    wind_sway: 0,
 )],
 // CoatRack
 CoatRack: [(
@@ -6275,12 +6275,24 @@ BarrelWoodCoal: [(
 LanternpostWoodLantern: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern",
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern_off",
             offset: (-9.5, -2.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0,
+    filter: (light_enabled: false)
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern_on",
+            offset: (-9.5, -2.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
 )],
 LanternpostWoodUpper: [(
     variations: [
@@ -6302,20 +6314,49 @@ LanternpostWoodBase: [(
     ],
     wind_sway: 0,
 )],
-LampMetal: [(
+LampMetalShinglesRed: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.lantern.lamp_metal_blue_shingles",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.lantern.lamp_metal_red_shingles",
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_red_off",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0,
+    filter: (light_enabled: false),
+        ),
+        (
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_red_on",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LampMetalShinglesCyan: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_cyan_off",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_cyan_on",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
 )],
 LampMetalBase: [(
     variations: [
@@ -6330,12 +6371,24 @@ LampMetalBase: [(
 LampTerracotta: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.lantern.lamp_terracotta",
+            model: "voxygen.voxel.sprite.lantern.lamp_terracotta_off",
             offset: (-6.5, -6.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_terracotta_on",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
 )],
 BlacksmithBellows: [(
     variations: [
@@ -6667,5 +6720,210 @@ LogsWoodBranchS: [(
     ],
     wind_sway: 0,
 )],
-
+SeatWoodBlueMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.seat_wood_blue_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+SeatWoodBlueSide: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.seat_wood_blue_side",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LanternAirshipWallBlackS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_black_S_off",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_black_S_on",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],   
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipWallBrownS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_brown_S_off",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_brown_S_on",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+LanternAirshipWallChestnutS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_chestnut_S_off",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_chestnut_S_on",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipWallRedS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_red_S_off",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_red_S_on",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipGroundBlackS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_black_S_off",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_black_S_on",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipGroundBrownS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_brown_S_off",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_brown_S_on",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+LanternAirshipGroundChestnutS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_chestnut_S_off",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_chestnut_S_on",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipGroundRedS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_red_S_off",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_red_S_on",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+RopeCoilM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.ropecoil_M",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
 }

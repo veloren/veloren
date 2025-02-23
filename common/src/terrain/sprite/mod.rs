@@ -173,7 +173,9 @@ sprites! {
         LogsWoodBranchEnd = 0x93,
         LogsWoodBranchMiddle = 0x94,
         HandCartWood = 0x95,
-
+        SeatWoodBlueMiddle = 0x96,
+        SeatWoodBlueSide = 0x97,
+        RopeCoilM = 0x98,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
     Plant = 3 has Growth, Owned, SnowCovered {
@@ -402,17 +404,24 @@ sprites! {
     },
     Lamp = 8 has Ori, LightEnabled {
         // Standalone lights
-        Lantern         = 0,
-        StreetLamp      = 1,
-        StreetLampTall  = 2,
-        SeashellLantern = 3,
-        FireBowlGround  = 4,
-        MesaLantern     = 5,
-        LanternpostWoodLantern = 6,
-        LampMetal = 7,
-        LampTerracotta = 8,
-
-
+        Lantern         = 0x00,
+        StreetLamp      = 0x01,
+        StreetLampTall  = 0x02,
+        SeashellLantern = 0x03,
+        FireBowlGround  = 0x04,
+        MesaLantern     = 0x05,
+        LanternpostWoodLantern = 0x06,
+        LampMetalShinglesRed = 0x07,
+        LampTerracotta = 0x08,
+        LampMetalShinglesCyan = 0x09,
+        LanternAirshipWallBlackS = 0x0A,
+        LanternAirshipWallBrownS = 0x0B,
+        LanternAirshipWallChestnutS = 0x0C,
+        LanternAirshipWallRedS = 0x0D,
+        LanternAirshipGroundBlackS = 0x0E,
+        LanternAirshipGroundBrownS = 0x0F,
+        LanternAirshipGroundChestnutS = 0x10,
+        LanternAirshipGroundRedS = 0x11,
     },
     Container = 9 has Ori, Owned {
         Chest             = 0x00,
@@ -673,7 +682,7 @@ impl SpriteKind {
             SpriteKind::Bamboo => 9.0 / 11.0,
             SpriteKind::MagicalBarrier => 3.0,
             SpriteKind::MagicalSeal => 1.0,
-            SpriteKind::Helm => 1.7,
+            SpriteKind::Helm => 1.909,
             SpriteKind::Sign => 16.0 / 11.0,
             SpriteKind::SmithingTable => 13.0 / 11.0,
             SpriteKind::Forge0 => 17.0 / 11.0,
@@ -685,7 +694,8 @@ impl SpriteKind {
             SpriteKind::BarrelWoodWater | SpriteKind::BarrelWoodCoal => 1.545,
             SpriteKind::LanternpostWoodLantern | SpriteKind::LanternpostWoodUpper => 2.000,
             SpriteKind::LanternpostWoodBase => 3.000,
-            SpriteKind::LampMetal => 1.000,
+            SpriteKind::LampMetalShinglesRed => 1.000,
+            SpriteKind::LampMetalShinglesCyan => 1.000,
             SpriteKind::LampMetalBase => 2.818,
             SpriteKind::LampTerracotta => 1.727,
             SpriteKind::BlacksmithBellows => 0.545,
@@ -715,7 +725,17 @@ impl SpriteKind {
             SpriteKind::LogsWoodBranchEnd => 1.091,
             SpriteKind::LogsWoodBranchMiddle => 1.091,
             SpriteKind::LogsWoodBranchS => 1.091,
-
+            SpriteKind::SeatWoodBlueMiddle => 1.818,
+            SpriteKind::SeatWoodBlueSide => 1.818,
+            SpriteKind::LanternAirshipWallBlackS
+            | SpriteKind::LanternAirshipWallBrownS
+            | SpriteKind::LanternAirshipWallChestnutS
+            | SpriteKind::LanternAirshipWallRedS => 1.182,
+            SpriteKind::LanternAirshipGroundBlackS
+            | SpriteKind::LanternAirshipGroundBrownS
+            | SpriteKind::LanternAirshipGroundChestnutS
+            | SpriteKind::LanternAirshipGroundRedS => 0.909,
+            SpriteKind::RopeCoilM => 0.363,
             _ => return None,
         })
     }
@@ -872,7 +892,7 @@ impl SpriteKind {
             | SpriteKind::ChairDouble
             | SpriteKind::Bench
             | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y())),
-            SpriteKind::Helm => Some((Vec3::new(0.0, -1.0, 0.0), Vec3::unit_y())),
+            SpriteKind::Helm => Some((Vec3::new(0.0, -1.1, 0.0), Vec3::unit_y())),
             SpriteKind::Bed => Some((Vec3::new(0.0, 0.0, 0.6), -Vec3::unit_y())),
             SpriteKind::BedMesa => Some((Vec3::new(0.0, 0.0, 0.6), -Vec3::unit_y())),
             SpriteKind::BedrollSnow | SpriteKind::BedrollPirate => {
