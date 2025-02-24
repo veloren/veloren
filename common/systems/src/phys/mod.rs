@@ -30,7 +30,7 @@ use vek::*;
 
 mod collision;
 mod weather;
-use collision::*;
+use collision::ColliderData;
 
 /// The density of the fluid as a function of submersion ratio in given fluid
 /// where it is assumed that any unsubmersed part is is air.
@@ -496,7 +496,7 @@ impl PhysicsData<'_> {
                                     // We are not interested if collision succeed
                                     // or no as of now.
                                     // Collision reaction is done inside.
-                                    let _ = resolve_e2e_collision(
+                                    let _ = collision::resolve_e2e_collision(
                                         // utility variables for our entity
                                         &mut collision_registered,
                                         &mut entity_entity_collisions,
@@ -589,7 +589,7 @@ impl PhysicsData<'_> {
             let vol = collider.get_vol(&voxel_colliders_manifest);
 
             if let Some(vol) = vol {
-                let sphere = voxel_collider_bounding_sphere(vol, pos, ori, scale);
+                let sphere = collision::voxel_collider_bounding_sphere(vol, pos, ori, scale);
                 let radius = sphere.radius.ceil() as u32;
                 let pos_2d = sphere.center.xy().map(|e| e as i32);
                 const POS_TRUNCATION_ERROR: u32 = 1;
@@ -961,7 +961,7 @@ impl PhysicsData<'_> {
 
                             let mut cpos = *pos;
                             let cylinder = (radius, z_min, z_max);
-                            box_voxel_collision(
+                            collision::box_voxel_collision(
                                 cylinder,
                                 &*read.terrain,
                                 entity,
@@ -996,7 +996,7 @@ impl PhysicsData<'_> {
 
                             let cylinder = (radius, z_min, z_max);
                             let mut cpos = *pos;
-                            box_voxel_collision(
+                            collision::box_voxel_collision(
                                 cylinder,
                                 &*read.terrain,
                                 entity,
@@ -1026,7 +1026,7 @@ impl PhysicsData<'_> {
                         Collider::Point => {
                             let mut pos = *pos;
 
-                            point_voxel_collision(
+                            collision::point_voxel_collision(
                                 entity,
                                 &mut pos,
                                 pos_delta,
@@ -1113,7 +1113,7 @@ impl PhysicsData<'_> {
 
                                 if let Some(voxel_collider) = voxel_collider {
                                     // TODO: cache/precompute sphere?
-                                    let voxel_sphere = voxel_collider_bounding_sphere(
+                                    let voxel_sphere = collision::voxel_collider_bounding_sphere(
                                         voxel_collider,
                                         pos_other,
                                         ori_other,
@@ -1198,7 +1198,7 @@ impl PhysicsData<'_> {
                                             * (vel.0 - vel_other);
 
                                         // Perform collision resolution
-                                        box_voxel_collision(
+                                        collision::box_voxel_collision(
                                             (radius, z_min, z_max),
                                             &voxel_collider.volume(),
                                             entity,
