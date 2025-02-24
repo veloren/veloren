@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Realignment of airship dock signs in forest towns.
 - Fixed rotation of Bloodmoon Relic.
 - Captains turning towards sounds or targets.
+- Soldier Crabs no longer spawn under the floor at Sahagin Island dungeons.
 
 ## [0.17.0] - 2024-12-28
 

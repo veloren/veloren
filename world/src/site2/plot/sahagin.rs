@@ -442,14 +442,12 @@ impl Structure for Sahagin {
                 );
             }
             for c in 0..5 {
-                let crab_pos = room_center.with_z(ground_floor + (room_size / 3));
-                painter.spawn(
-                    EntityInfo::at((crab_pos - (1 * c)).as_()).with_asset_expect(
-                        "common.entity.dungeon.sahagin.soldier_crab",
-                        &mut thread_rng,
-                        None,
-                    ),
-                );
+                let crab_pos = (room_center - c).with_z(ground_floor + (room_size / 3));
+                painter.spawn(EntityInfo::at(crab_pos.as_()).with_asset_expect(
+                    "common.entity.dungeon.sahagin.soldier_crab",
+                    &mut thread_rng,
+                    None,
+                ));
             }
             if r == key_chest_index_2 {
                 painter.sprite(
@@ -732,7 +730,7 @@ impl Structure for Sahagin {
             ),
         );
         for c in 0..5 {
-            let crab_pos = (npc_pos + (1 * c)).with_z(base + (room_size / 4));
+            let crab_pos = (npc_pos + c).with_z(base + (room_size / 4));
             painter.spawn(EntityInfo::at(crab_pos.as_()).with_asset_expect(
                 "common.entity.dungeon.sahagin.soldier_crab",
                 &mut thread_rng,
@@ -753,14 +751,12 @@ impl Structure for Sahagin {
         }
 
         for c in 0..5 {
-            let crab_pos = center.with_z(base + room_size + 5);
-            painter.spawn(
-                EntityInfo::at((crab_pos - (1 * c)).as_()).with_asset_expect(
-                    "common.entity.dungeon.sahagin.soldier_crab",
-                    &mut thread_rng,
-                    None,
-                ),
-            );
+            let crab_pos = (center - c).with_z(base + room_size + 5);
+            painter.spawn(EntityInfo::at(crab_pos.as_()).with_asset_expect(
+                "common.entity.dungeon.sahagin.soldier_crab",
+                &mut thread_rng,
+                None,
+            ));
         }
 
         for pos in random_npcs {
