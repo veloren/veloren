@@ -104,7 +104,7 @@ impl<'a> Quest<'a> {
 
         // Check if we have a new message
         let is_new_message = state.text_position == 0
-            || state.text_position > msg_text.len()
+            || state.text_position > msg_text.chars().count()
             || state.last_displayed_text.as_deref() != Some(msg_text);
 
         if is_new_message {
@@ -119,19 +119,23 @@ impl<'a> Quest<'a> {
 
         if let Some(start_time) = state.text_timer {
             if now.duration_since(start_time) >= Duration::from_millis(10)
-                && state.text_position < msg_text.len()
+                && state.text_position < msg_text.chars().count()
             {
                 state.text_position += 1;
                 state.text_timer = Some(now);
             }
         }
 
-        let display_text = &msg_text[..state.text_position.min(msg_text.len())];
-        Text::new(display_text)
-            .top_left_with_margins_on(state.ids.text_align, tweak!(8.0), tweak!(8.0))
+        let display_text: String = msg_text
+            .chars()
+            .take(state.text_position.min(msg_text.chars().count()))
+            .collect();
+
+        Text::new(&display_text)
+            .top_left_with_margins_on(state.ids.text_align, 8.0, 8.0)
             .w(500.0)
             .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(tweak!(20)))
+            .font_size(self.fonts.cyri.scale(20))
             .color(TEXT_COLOR)
             .set(state.ids.desc_txt_0, ui);
     }
