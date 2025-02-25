@@ -15,7 +15,7 @@
         ],
     ),
     (
-        name: "Moutain Peak",
+        name: "Mountain Peak",
         position: (10, 10),
         kind: Settlement,
         neighbors: [
