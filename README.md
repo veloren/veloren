@@ -7,7 +7,6 @@
 [![code contributor count](https://badgen.net/gitlab/contributors/veloren/veloren?label=code%20contributors)](https://gitlab.com/veloren/veloren/-/graphs/master)
 [![financial contributor count](https://badgen.net/opencollective/backers/veloren?label=financial%20contributors)](https://opencollective.com/veloren)
 [![discord](https://badgen.net/discord/members/veloren-community-449602562165833758?icon=discord&label=discord)](https://discord.gg/veloren-community-449602562165833758)
-[![matrix](https://badgen.net/matrix/members/veloren-space/fachschaften.org)](https://matrix.to/#/#veloren-space:fachschaften.org)
 
 <a href="https://opencollective.com/veloren/donate?interval=month&amount=5" target="_blank">
   <img src="https://opencollective.com/veloren/contribute/button@2x.png?color=blue" width="29%" />
