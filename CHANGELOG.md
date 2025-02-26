@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs can now be hired for a short time.
 - Pairs of Airships now travel between designated sites.
 - Added ability to jump off walls.
+- All metal lineage armor sets have helmets.
 
 ### Changed
 
@@ -45,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reworked climbing controls.
 - You now need to hold the give up button to give up.
 - Dealing damage to an npc reduces sentiment, helping a downed npc increases sentiment.
+- Metal lineage armor model updates.
 
 ### Removed
 

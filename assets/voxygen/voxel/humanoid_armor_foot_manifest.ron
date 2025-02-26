@@ -149,23 +149,23 @@
             color: None
         ),
         "common.items.armor.mail.bronze.foot": (
-            vox_spec: ("armor.mail.bronze.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.mail.bronze", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.mail.iron.foot": (
-            vox_spec: ("armor.mail.iron.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.mail.iron", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.mail.steel.foot": (
-            vox_spec: ("armor.mail.steel.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.mail.steel", (-2.5, -4.5, -2.0), 6),
             color: None
         ),
         "common.items.armor.mail.cobalt.foot": (
-            vox_spec: ("armor.mail.cobalt.foot", (-2.5, -4.5, -2.0)),
+            vox_spec: ("armor.mail.cobalt", (-2.5, -4.5, -2.0), 0),
             color: None
         ),
         "common.items.armor.mail.bloodsteel.foot": (
-            vox_spec: ("armor.mail.bloodsteel.foot", (-2.5, -4.5, -2.0)),
+            vox_spec: ("armor.mail.bloodsteel", (-2.5, -4.5, -2.0), 6),
             color: None
         ),
         "common.items.armor.mail.orichalcum.foot": (

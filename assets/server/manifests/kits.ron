@@ -152,6 +152,7 @@
         (Item("common.items.armor.mail.bloodsteel.hand"), 1),
         (Item("common.items.armor.mail.bloodsteel.pants"), 1),
         (Item("common.items.armor.mail.bloodsteel.shoulder"), 1),
+        (Item("common.items.armor.mail.bloodsteel.head"), 1),
 
         // Weapons
         (ModularWeapon(tool: Sword, material: Bloodsteel),1),
@@ -191,6 +192,7 @@
         (Item("common.items.armor.mail.cobalt.hand"), 1),
         (Item("common.items.armor.mail.cobalt.pants"), 1),
         (Item("common.items.armor.mail.cobalt.shoulder"), 1),
+        (Item("common.items.armor.mail.cobalt.head"), 1),
 
         // Weapons
         (ModularWeapon(tool: Sword, material: Cobalt),1),
@@ -230,6 +232,7 @@
         (Item("common.items.armor.mail.steel.hand"), 1),
         (Item("common.items.armor.mail.steel.pants"), 1),
         (Item("common.items.armor.mail.steel.shoulder"), 1),
+        (Item("common.items.armor.mail.steel.head"), 1),
 
         // Weapons
         (ModularWeapon(tool: Sword, material: Steel),1),
@@ -269,6 +272,7 @@
         (Item("common.items.armor.mail.iron.hand"), 1),
         (Item("common.items.armor.mail.iron.pants"), 1),
         (Item("common.items.armor.mail.iron.shoulder"), 1),
+        (Item("common.items.armor.mail.iron.head"), 1),
 
         // Weapons
         (ModularWeapon(tool: Sword, material: Iron),1),
@@ -308,6 +312,7 @@
         (Item("common.items.armor.mail.bronze.hand"), 1),
         (Item("common.items.armor.mail.bronze.pants"), 1),
         (Item("common.items.armor.mail.bronze.shoulder"), 1),
+        (Item("common.items.armor.mail.bronze.head"), 1),
 
         // weapons
         (ModularWeapon(tool: Sword, material: Bronze),1),

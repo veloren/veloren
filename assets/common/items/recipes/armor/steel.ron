@@ -11,6 +11,7 @@ ItemDef(
             "steel_hands",
             "steel_pants",
             "steel_shoulder",
+            "steel_head",
         ],
     ),
     quality: Common,

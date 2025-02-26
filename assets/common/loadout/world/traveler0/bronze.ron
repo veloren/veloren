@@ -10,6 +10,10 @@
     belt: Item("common.items.armor.mail.bronze.belt"),
     legs: Item("common.items.armor.mail.bronze.pants"),
     feet: Item("common.items.armor.mail.bronze.foot"),
+    head: Choice([
+        (1, Item("common.items.armor.mail.bronze.head")),
+        (1, None),
+    ]),
     lantern: Choice([
         (1, Item("common.items.lantern.black_0")),
     ]),
