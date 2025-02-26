@@ -423,61 +423,61 @@
         ),
         "common.items.armor.mail.bronze.shoulder": (
             left: (
-                vox_spec: ("armor.mail.bronze.shoulder", (-5.0, -3.5 , 0.0)),
+                vox_spec: ("armor.mail.bronze", (-3.0, -3.5 , 0.0), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bronze.shoulder", (-1.0, -3.5, 0.0)),
+                vox_spec: ("armor.mail.bronze", (-1.0, -3.5, 0.0), 4),
                 color: None
             )
         ),
         "common.items.armor.mail.iron.shoulder": (
             left: (
-                vox_spec: ("armor.mail.iron.shoulder", (-5.0, -3.5, -1.0)),
+                vox_spec: ("armor.mail.iron", (-4.0, -3.5, -1.0), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.iron.shoulder", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.mail.iron", (-1.0, -3.5, -1.0), 4),
                 color: None
             )
         ),
         "common.items.armor.mail.steel.shoulder": (
             left: (
-                vox_spec: ("armor.mail.steel.shoulder", (-6.0, -3.5 , -1.0)),
+                vox_spec: ("armor.mail.steel", (-5.5, -4.0 , -1.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.steel.shoulder", (-1.0, -3.5, -1.0)),
+                vox_spec: ("armor.mail.steel", (-0.5, -4.0, -1.5), 3),
                 color: None
             )
         ),
         "common.items.armor.mail.cobalt.shoulder": (
             left: (
-                vox_spec: ("armor.mail.cobalt.shoulder", (-6.0, -4.5 , -1.0)),
+                vox_spec: ("armor.mail.cobalt", (-6.0, -3.5 , -1.0), 2),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.cobalt.shoulder", (-1.0, -4.5, -1.0)),
+                vox_spec: ("armor.mail.cobalt", (-1.0, -3.5, -1.0), 2),
                 color: None
             )
         ),
         "common.items.armor.mail.bloodsteel.shoulder": (
             left: (
-                vox_spec: ("armor.mail.bloodsteel.shoulder", (-8.0, -5.5, -3.0)),
+                vox_spec: ("armor.mail.bloodsteel", (-6.5, -4.0, -1.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bloodsteel.shoulder", (-1.0, -5.5, -3.0)),
+                vox_spec: ("armor.mail.bloodsteel", (-1.5, -4.0, -1.5), 3),
                 color: None
             )
         ),
         "common.items.armor.mail.orichalcum.shoulder": (
             left: (
-                vox_spec: ("armor.mail.orichalcum", (-6.0, -3.5, -2.0), 7),
+                vox_spec: ("armor.mail.orichalcum", (-6.0, -3.5, -2.0), 5),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.orichalcum", (-1.0, -3.5, -2.0), 7),
+                vox_spec: ("armor.mail.orichalcum", (-1.0, -3.5, -2.0), 5),
                 color: None
             )
         ),

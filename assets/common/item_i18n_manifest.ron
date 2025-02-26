@@ -1714,6 +1714,9 @@
             "common.items.armor.mail.bloodsteel.shoulder",
         ): "armor-mail-bloodsteel-shoulder",
         Simple(
+            "common.items.armor.mail.bloodsteel.head",
+        ): "armor-mail-bloodsteel-head",
+        Simple(
             "common.items.armor.mail.cobalt.back",
         ): "armor-mail-cobalt-back",
         Simple(
@@ -1734,6 +1737,9 @@
         Simple(
             "common.items.armor.mail.cobalt.shoulder",
         ): "armor-mail-cobalt-shoulder",
+        Simple(
+            "common.items.armor.mail.cobalt.head",
+        ): "armor-mail-cobalt-head",
         Simple(
             "common.items.armor.mail.bronze.back",
         ): "armor-mail-bronze-back",
@@ -1756,29 +1762,32 @@
             "common.items.armor.mail.bronze.shoulder",
         ): "armor-mail-bronze-shoulder",
         Simple(
+            "common.items.armor.mail.bronze.head",
+        ): "armor-mail-bronze-head",
+        Simple(
             "common.items.armor.mail.orichalcum.back",
-        ): "armor-mail-orichalcum-6",
+        ): "armor-mail-orichalcum-back",
         Simple(
             "common.items.armor.mail.orichalcum.belt",
-        ): "armor-mail-orichalcum-2",
+        ): "armor-mail-orichalcum-belt",
         Simple(
             "common.items.armor.mail.orichalcum.chest",
-        ): "armor-mail-orichalcum",
+        ): "armor-mail-orichalcum-chest",
         Simple(
             "common.items.armor.mail.orichalcum.foot",
-        ): "armor-mail-orichalcum-3",
+        ): "armor-mail-orichalcum-foot",
         Simple(
             "common.items.armor.mail.orichalcum.hand",
-        ): "armor-mail-orichalcum-4",
+        ): "armor-mail-orichalcum-hand",
         Simple(
             "common.items.armor.mail.orichalcum.pants",
-        ): "armor-mail-orichalcum-1",
+        ): "armor-mail-orichalcum-pants",
         Simple(
             "common.items.armor.mail.orichalcum.shoulder",
-        ): "armor-mail-orichalcum-5",
+        ): "armor-mail-orichalcum-shoulder",
         Simple(
             "common.items.armor.mail.orichalcum.head",
-        ): "armor-mail-orichalcum-7",
+        ): "armor-mail-orichalcum-head",
         Simple(
             "common.items.armor.golemite.back",
         ): "armor-golemite-back",
@@ -1849,6 +1858,9 @@
             "common.items.armor.mail.steel.shoulder",
         ): "armor-mail-steel-shoulder",
         Simple(
+            "common.items.armor.mail.steel.head",
+        ): "armor-mail-steel-head",
+        Simple(
             "common.items.armor.mail.iron.back",
         ): "armor-mail-iron-back",
         Simple(
@@ -1869,6 +1881,9 @@
         Simple(
             "common.items.armor.mail.iron.shoulder",
         ): "armor-mail-iron-shoulder",
+        Simple(
+            "common.items.armor.mail.iron.head",
+        ): "armor-mail-iron-head",
         Simple(
             "common.items.armor.cloth_purple.belt",
         ): "armor-cloth_purple-belt",

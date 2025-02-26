@@ -6,4 +6,5 @@
     (1.0, Item("common.items.armor.mail.bloodsteel.hand")),
     (1.0, Item("common.items.armor.mail.bloodsteel.pants")),
     (1.0, Item("common.items.armor.mail.bloodsteel.shoulder")),
+    (1.0, Item("common.items.armor.mail.bloodsteel.head")),
 ]

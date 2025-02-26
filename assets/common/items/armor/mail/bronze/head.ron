@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "Bronze Cap",
+    legacy_description: "'Heavy and dull, but it can take a punch.'",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(5.0)),
+            poise_resilience: Some(Normal(3.0)),
+        )),
+    )),
+    quality: Low,
+    tags: [
+        Material(Bronze),
+        SalvageInto(Bronze, 1),
+    ],
+)

@@ -231,27 +231,27 @@
             color: None
         ),
         "common.items.armor.mail.bronze.chest": (
-            vox_spec: ("armor.mail.bronze.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.mail.bronze", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.mail.iron.chest": (
-            vox_spec: ("armor.mail.iron.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.mail.iron", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.mail.steel.chest": (
-            vox_spec: ("armor.mail.steel.chest", (-8.0, -4.5, 2.0)),
+            vox_spec: ("armor.mail.steel", (-8.0, -4.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.mail.cobalt.chest": (
-            vox_spec: ("armor.mail.cobalt.chest", (-8.0, -4.5, 2.0)),
+            vox_spec: ("armor.mail.cobalt", (-8.0, -4.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.mail.bloodsteel.chest": (
-            vox_spec: ("armor.mail.bloodsteel.chest", (-8.0, -4.5, 2.0)),
+            vox_spec: ("armor.mail.bloodsteel", (-8.0, -4.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.mail.orichalcum.chest": (
-            vox_spec: ("armor.mail.orichalcum", (-7.0, -3.5, 2.0), 2),
+            vox_spec: ("armor.mail.orichalcum", (-7.0, -3.5, 2.0), 1),
             color: None
         ),
         "common.items.armor.golemite.chest": (

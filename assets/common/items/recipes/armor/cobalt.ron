@@ -11,6 +11,7 @@ ItemDef(
             "cobalt_hands",
             "cobalt_pants",
             "cobalt_shoulder",
+            "cobalt_head",
         ],
     ),
     quality: Common,

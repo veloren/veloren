@@ -114,6 +114,7 @@
     },
     armor_stats: {
         // Metals
+        // Address these ratios to have a consistent prot to poise res.
         "Bronze": (
             protection: Some(Normal(45.0)),
             poise_resilience: Some(Normal(27.0)),
@@ -123,16 +124,16 @@
             poise_resilience: Some(Normal(36.0)),
         ),
         "Steel": (
-            protection: Some(Normal(99.0)),
-            poise_resilience: Some(Normal(43.2)),
+            protection: Some(Normal(102.0)),
+            poise_resilience: Some(Normal(40.5)),
         ),
         "Cobalt": (
             protection: Some(Normal(117.0)),
-            poise_resilience: Some(Normal(48.6)),
+            poise_resilience: Some(Normal(46.8)),
         ),
         "Bloodsteel": (
             protection: Some(Normal(129.0)),
-            poise_resilience: Some(Normal(52.8)),
+            poise_resilience: Some(Normal(52.2)),
         ),
         "Orichalcum": (
             protection: Some(Normal(135.0)),

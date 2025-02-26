@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "Cobalt Barbute",
+    legacy_description: "Ornamental and impenetrable, the metal will never dull.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(13.0)),
+            poise_resilience: Some(Normal(5.4)),
+        )),
+    )),
+    quality: High,
+    tags: [
+        Material(Cobalt),
+        SalvageInto(Cobalt, 1),
+    ],
+)

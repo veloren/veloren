@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "Bloodsteel Crown",
+    legacy_description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(14.33)),
+            poise_resilience: Some(Normal(5.8)),
+        )),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Bloodsteel),
+        SalvageInto(Bloodsteel, 1),
+    ],
+)

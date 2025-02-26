@@ -1376,6 +1376,14 @@
         ],
         craft_sprite: Some(Anvil),
     ),
+    "bronze_head": (
+        output: ("common.items.armor.mail.bronze.head", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 3, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
     //ARMOR/MAIL/IRON
     "iron_back": (
         output: ("common.items.armor.mail.iron.back", 1),
@@ -1433,12 +1441,20 @@
         ],
         craft_sprite: Some(Anvil),
     ),
+    "iron_head": (
+        output: ("common.items.armor.mail.iron.head", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 3, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
     //ARMOR/MAIL/STEEL
     "steel_back": (
         output: ("common.items.armor.mail.steel.back", 1),
         inputs: [
             (Item("common.items.mineral.ingot.steel"), 3, false),
-            (Item("common.items.crafting_ing.cloth.linen"), 2, false),
+            (Item("common.items.crafting_ing.leather.thick_leather"), 3, false),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -1490,12 +1506,20 @@
         ],
         craft_sprite: Some(Anvil),
     ),
+    "steel_head": (
+        output: ("common.items.armor.mail.steel.head", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 3, false),
+            (Item("common.items.crafting_ing.leather.thick_leather"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
     //ARMOR/MAIL/COBALT
     "cobalt_back": (
         output: ("common.items.armor.mail.cobalt.back", 1),
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 3, false),
-            (Item("common.items.crafting_ing.cloth.silk"), 4, false),
+            (Item("common.items.crafting_ing.cloth.wool"), 4, false),
             (Item("common.items.mineral.gem.sapphire"), 2, false),
         ],
         craft_sprite: Some(Anvil),
@@ -1504,7 +1528,7 @@
         output: ("common.items.armor.mail.cobalt.belt", 1),
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 2, false),
-            (Item("common.items.crafting_ing.cloth.silk"), 2, false),
+            (Item("common.items.crafting_ing.cloth.wool"), 2, false),
             (Item("common.items.mineral.gem.sapphire"), 1, false),
         ],
         craft_sprite: Some(Anvil),
@@ -1513,7 +1537,7 @@
         output: ("common.items.armor.mail.cobalt.chest", 1),
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 10, false),
-            (Item("common.items.crafting_ing.cloth.silk"), 3, false),
+            (Item("common.items.crafting_ing.cloth.wool"), 3, false),
             (Item("common.items.mineral.gem.sapphire"), 3, false),
         ],
         craft_sprite: Some(Anvil),
@@ -1522,7 +1546,7 @@
         output: ("common.items.armor.mail.cobalt.foot", 1),
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 3, false),
-            (Item("common.items.crafting_ing.cloth.silk"), 3, false),
+            (Item("common.items.crafting_ing.cloth.wool"), 3, false),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -1530,7 +1554,7 @@
         output: ("common.items.armor.mail.cobalt.hand", 1),
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 3, false),
-            (Item("common.items.crafting_ing.cloth.silk"), 3, false),
+            (Item("common.items.crafting_ing.cloth.wool"), 3, false),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -1538,7 +1562,7 @@
         output: ("common.items.armor.mail.cobalt.pants", 1),
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 8, false),
-            (Item("common.items.crafting_ing.cloth.silk"), 3, false),
+            (Item("common.items.crafting_ing.cloth.wool"), 3, false),
             (Item("common.items.mineral.gem.sapphire"), 2, false),
         ],
         craft_sprite: Some(Anvil),
@@ -1547,8 +1571,17 @@
         output: ("common.items.armor.mail.cobalt.shoulder", 1),
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 8, false),
-            (Item("common.items.crafting_ing.cloth.silk"), 3, false),
+            (Item("common.items.crafting_ing.cloth.wool"), 3, false),
             (Item("common.items.mineral.gem.sapphire"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "cobalt_head": (
+        output: ("common.items.armor.mail.cobalt.head", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 3, false),
+            (Item("common.items.crafting_ing.cloth.wool"), 2, false),
+            (Item("common.items.mineral.ingot.silver"), 2, false),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -1558,8 +1591,7 @@
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 3, false),
             (Item("common.items.crafting_ing.hide.carapace"), 1, false),
-            (Item("common.items.crafting_ing.cloth.lifecloth"), 3, false),
-            (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.crafting_ing.cloth.linen_red"), 6, false),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -1568,6 +1600,7 @@
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 2, false),
             (Item("common.items.crafting_ing.hide.carapace"), 2, false),
+            (Item("common.items.mineral.gem.ruby"), 1, false),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -1602,7 +1635,8 @@
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 8, false),
             (Item("common.items.crafting_ing.hide.carapace"), 3, false),
-            (Item("common.items.mineral.gem.ruby"), 2, false),
+            (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.crafting_ing.cloth.linen_red"), 4, false),
         ],
         craft_sprite: Some(Anvil),
     ),
@@ -1612,6 +1646,15 @@
             (Item("common.items.mineral.ingot.bloodsteel"), 8, false),
             (Item("common.items.crafting_ing.hide.carapace"), 4, false),
             (Item("common.items.mineral.gem.ruby"), 2, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    "bloodsteel_head": (
+        output: ("common.items.armor.mail.bloodsteel.head", 1),
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 3, false),
+            (Item("common.items.crafting_ing.hide.carapace"), 2, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
         ],
         craft_sprite: Some(Anvil),
     ),

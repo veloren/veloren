@@ -11,6 +11,7 @@ ItemDef(
             "bloodsteel_hands",
             "bloodsteel_pants",
             "bloodsteel_shoulder",
+            "bloodsteel_head",
         ],
     ),
     quality: Common,
