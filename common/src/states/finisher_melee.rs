@@ -109,7 +109,12 @@ impl CharacterBehavior for Data {
 
                     data.updater.insert(
                         data.entity,
-                        melee_constructor.create_melee(precision_mult, tool_stats, data.stats),
+                        melee_constructor.create_melee(
+                            precision_mult,
+                            tool_stats,
+                            data.stats,
+                            self.static_data.ability_info,
+                        ),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

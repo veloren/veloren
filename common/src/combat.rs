@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, HealthChange,
-        Inventory, Mass, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
+        InputKind, Inventory, Mass, Ori, Player, Poise, PoiseChange, SkillSet, Stats,
         ability::Capability,
         aura::{AuraKindVariant, EnteredAuras},
         buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource, DestInfo},
@@ -22,7 +22,7 @@ use crate::{
     },
     outcome::Outcome,
     resources::{Secs, Time},
-    states::utils::StageSection,
+    states::utils::{AbilityInfo, StageSection},
     uid::{IdMaps, Uid},
     util::Dir,
 };
@@ -118,7 +118,8 @@ pub struct Attack {
     damages: Vec<AttackDamage>,
     effects: Vec<AttackEffect>,
     precision_multiplier: f32,
-    pub blockable: bool,
+    pub(crate) blockable: bool,
+    ability_info: Option<AbilityInfo>,
 }
 
 impl Default for Attack {
@@ -128,6 +129,7 @@ impl Default for Attack {
             effects: Vec::new(),
             precision_multiplier: 1.0,
             blockable: true,
+            ability_info: None,
         }
     }
 }
@@ -154,6 +156,12 @@ impl Attack {
     #[must_use]
     pub fn with_blockable(mut self, blockable: bool) -> Self {
         self.blockable = blockable;
+        self
+    }
+
+    #[must_use]
+    pub fn with_ability_info(mut self, ability_info: AbilityInfo) -> Self {
+        self.ability_info = Some(ability_info);
         self
     }
 
@@ -338,8 +346,16 @@ impl Attack {
                 s.conditional_precision_modifiers
                     .iter()
                     .filter_map(|(req, mult, ovrd)| {
-                        req.requirement_met(target, attacker, 0.0, emitters, dir, attack_source)
-                            .then_some((*mult, *ovrd))
+                        req.requirement_met(
+                            target,
+                            attacker,
+                            0.0,
+                            emitters,
+                            dir,
+                            attack_source,
+                            self.ability_info,
+                        )
+                        .then_some((*mult, *ovrd))
                     })
                     .chain(
                         s.precision_multiplier_override
@@ -700,6 +716,7 @@ impl Attack {
                     emitters,
                     dir,
                     attack_source,
+                    self.ability_info,
                 )
             });
             if requirements_met {
@@ -1167,6 +1184,7 @@ pub enum CombatRequirement {
     TargetBlocking,
     TargetUnwielded,
     AttackSource(AttackSource),
+    AttackInput(InputKind),
 }
 
 impl CombatRequirement {
@@ -1187,6 +1205,7 @@ impl CombatRequirement {
              ),
         dir: Dir,
         attack_source: AttackSource,
+        ability_info: Option<AbilityInfo>,
     ) -> bool {
         match self {
             CombatRequirement::AnyDamage => damage > 0.0 && target.health.is_some(),
@@ -1247,6 +1266,9 @@ impl CombatRequirement {
                 .is_some_and(|cs| cs.is_block(attack_source) || cs.is_parry(attack_source)),
             CombatRequirement::TargetUnwielded => target.char_state.is_some_and(|cs| cs.is_wield()),
             CombatRequirement::AttackSource(source) => attack_source == *source,
+            CombatRequirement::AttackInput(input) => {
+                ability_info.is_some_and(|ai| ai.input == *input)
+            },
         }
     }
 }

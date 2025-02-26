@@ -489,3 +489,6 @@ common-abilities-bow-lesser_scatterburst = Scatterburst
 common-sbilities-bow-greater_scatterburst = Scatterburst
     .desc =
         Carefully pull the handful of arrows back, bringing your bow to a full draw before releasing them.
+common-abilities-bow-eagle_eye = Eagle Eye
+    .desc =
+        Take aim, and as your arrows hit their marks your adrenaline rises.

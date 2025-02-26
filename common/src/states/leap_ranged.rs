@@ -68,7 +68,12 @@ impl CharacterBehavior for Data {
                         if let Some(melee) = self.static_data.melee {
                             data.updater.insert(
                                 data.entity,
-                                melee.create_melee(precision_mult, tool_stats, data.stats),
+                                melee.create_melee(
+                                    precision_mult,
+                                    tool_stats,
+                                    data.stats,
+                                    self.static_data.ability_info,
+                                ),
                             );
                         }
 
@@ -116,6 +121,7 @@ impl CharacterBehavior for Data {
                             Some(*data.uid),
                             precision_mult,
                             data.stats,
+                            Some(self.static_data.ability_info),
                         );
 
                         let body_offsets = data.body.projectile_offsets(

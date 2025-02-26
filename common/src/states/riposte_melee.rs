@@ -82,6 +82,7 @@ impl CharacterBehavior for Data {
                             precision_mult,
                             tool_stats,
                             data.stats,
+                            self.static_data.ability_info,
                         ),
                     );
                 } else if self.timer < self.static_data.swing_duration {

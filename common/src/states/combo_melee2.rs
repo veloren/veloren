@@ -189,13 +189,19 @@ impl CharacterBehavior for Data {
                         strike_data
                             .melee_constructor
                             .custom_combo(strike_data.custom_combo)
-                            .create_melee(precision_mult, tool_stats, data.stats),
+                            .create_melee(
+                                precision_mult,
+                                tool_stats,
+                                data.stats,
+                                self.static_data.ability_info,
+                            ),
                     );
                 } else if self.timer < strike_data.swing_duration {
                     // Swings
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
+                    // TODO: Remove this, this should never have been added in this way
                     if self.static_data.specifier == Some(FrontendSpecifier::IronGolemFist) {
                         let damage = AttackDamage::new(
                             Damage {
@@ -207,6 +213,7 @@ impl CharacterBehavior for Data {
                             rand::random(),
                         );
                         let attack = Attack::default()
+                            .with_ability_info(self.static_data.ability_info)
                             .with_stat_adjustments(data.stats)
                             .with_damage(damage);
                         let explosion = Explosion {

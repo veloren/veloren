@@ -123,6 +123,7 @@ impl CharacterBehavior for Data {
                         Some(*data.uid),
                         precision_mult,
                         data.stats,
+                        Some(self.static_data.ability_info),
                     );
                     // Shoots all projectiles simultaneously
                     let num_projectiles = self

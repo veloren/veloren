@@ -191,6 +191,9 @@ buff-heavynock = Heavy Nock
 ## Heartseeker
 buff-heartseeker = Heartseeker
     .desc = Your next arrow will strike your enemy as if it'd dealt a heartwound, causing a more serious wound and giving you energy.
+## Eagle Eye
+buff-eagleeye = Eagle Eye
+    .desc = As your arrows sink into your target, you feel your adrenaline rise.
 ## Util
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove

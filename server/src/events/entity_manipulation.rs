@@ -2026,6 +2026,7 @@ impl ServerEvent for BonkEvent {
                                         None,
                                         1.0,
                                         &comp::Stats::empty(Body::Object(comp::object::Body::Bomb)),
+                                        None,
                                     ),
                                     speed: vel.0.magnitude(),
                                     object: None,

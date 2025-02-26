@@ -1686,6 +1686,12 @@ impl Animation for BasicAction {
 
                 next.hand_l.position += Vec3::new(0.0, 5.0, 0.0) * ((move1 + move2) * 10.0).sin();
             },
+            Some("common.abilities.bow.eagle_eye") => {
+                bow_start(&mut next, s_a);
+
+                next.control.orientation.rotate_x(move1 * 0.8);
+                next.control.position += Vec3::new(5.0, 0.0, 7.0) * move1;
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================

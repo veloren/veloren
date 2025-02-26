@@ -144,6 +144,7 @@ impl CharacterBehavior for Data {
                         Some(*data.uid),
                         precision_mult,
                         data.stats,
+                        Some(self.static_data.ability_info),
                     );
                     output_events.emit_server(ShootEvent {
                         entity: Some(data.entity),

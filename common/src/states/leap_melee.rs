@@ -145,6 +145,7 @@ impl CharacterBehavior for Data {
                             precision_mult,
                             tool_stats,
                             data.stats,
+                            self.static_data.ability_info,
                         ),
                     );
 

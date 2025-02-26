@@ -3,7 +3,7 @@ use crate::{
         AttackEffect, AttackSource, CombatBuff, CombatBuffStrength, CombatEffect,
         CombatModification, CombatRequirement, DamagedEffect, DeathEffect, Knockback, KnockbackDir,
     },
-    comp::{Mass, Stats, aura::AuraKey},
+    comp::{InputKind, Mass, Stats, aura::AuraKey},
     link::DynWeakLinkHandle,
     match_some,
     resources::{Secs, Time},
@@ -162,6 +162,10 @@ pub enum BuffKind {
     /// energy.
     /// Strength linearly increases the precision override and energy restored.
     Heartseeker,
+    /// Causes primary attacks to generate additional combo, and secondary
+    /// attacks to generate four times as much additional combo.
+    /// Strength linearly increases the amount of additional combo generated.
+    EagleEye,
     // =================
     //      DEBUFFS
     // =================
@@ -292,7 +296,8 @@ impl BuffKind {
             | BuffKind::SnareShot
             | BuffKind::OwlTalon
             | BuffKind::HeavyNock
-            | BuffKind::Heartseeker => BuffDescriptor::SimplePositive,
+            | BuffKind::Heartseeker
+            | BuffKind::EagleEye => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -633,6 +638,22 @@ impl BuffKind {
                         false,
                     ),
                     BuffEffect::AttackEffect(energy),
+                ]
+            },
+            BuffKind::EagleEye => {
+                let prim = AttackEffect::new(
+                    None,
+                    CombatEffect::Combo((data.strength).round().max(1.0) as i32),
+                )
+                .with_requirement(CombatRequirement::AttackInput(InputKind::Primary));
+                let sec = AttackEffect::new(
+                    None,
+                    CombatEffect::Combo((data.strength * 4.0).round().max(1.0) as i32),
+                )
+                .with_requirement(CombatRequirement::AttackInput(InputKind::Secondary));
+                vec![
+                    BuffEffect::AttackEffect(prim),
+                    BuffEffect::AttackEffect(sec),
                 ]
             },
         }

@@ -209,6 +209,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::OwlTalon => "buff-owltalon",
         BuffKind::HeavyNock => "buff-heavynock",
         BuffKind::Heartseeker => "buff-heartseeker",
+        BuffKind::EagleEye => "buff-eagleeye",
         // Debuffs
         BuffKind::Bleeding => "buff-bleed",
         BuffKind::Cursed => "buff-cursed",
@@ -368,7 +369,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::SnareShot
                         | BuffKind::OwlTalon
                         | BuffKind::HeavyNock
-                        | BuffKind::Heartseeker => Cow::Borrowed(""),
+                        | BuffKind::Heartseeker
+                        | BuffKind::EagleEye => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -647,6 +649,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.scatterburst" => imgs.bow_scatterburst,
         "common.abilities.bow.lesser_scatterburst" => imgs.bow_lesser_scatterburst,
         "common.abilities.bow.greater_scatterburst" => imgs.bow_greater_scatterburst,
+        "common.abilities.bow.eagle_eye" => imgs.bow_eagle_eye,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

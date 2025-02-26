@@ -165,6 +165,7 @@ impl CharacterBehavior for Data {
                     }
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let attack = Attack::default()
+                        .with_ability_info(self.static_data.ability_info)
                         .with_stat_adjustments(data.stats)
                         .with_damage(damage)
                         .with_precision(precision_mult)
@@ -188,6 +189,7 @@ impl CharacterBehavior for Data {
                     });
                     // Send local event used for frontend shenanigans
                     match self.static_data.specifier {
+                        // TODO: Remove this, attacks should never be added this way
                         shockwave::FrontendSpecifier::IceSpikes => {
                             let damage = AttackDamage::new(
                                 Damage {
@@ -199,6 +201,7 @@ impl CharacterBehavior for Data {
                                 rand::random(),
                             );
                             let attack = Attack::default()
+                                .with_ability_info(self.static_data.ability_info)
                                 .with_stat_adjustments(data.stats)
                                 .with_damage(damage)
                                 .with_effect(AttackEffect::new(

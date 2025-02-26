@@ -94,6 +94,7 @@ impl CharacterBehavior for Data {
                             precision_mult,
                             tool_stats,
                             data.stats,
+                            self.static_data.ability_info,
                         ),
                     );
                 } else if self.timer < self.static_data.swing_duration {
@@ -109,6 +110,7 @@ impl CharacterBehavior for Data {
                     .try_change_by(-self.static_data.energy_cost)
                     .is_ok()
                 {
+                    // TODO: Remove this, this should never have been added this way
                     if self.static_data.frontend_specifier == Some(FrontendSpecifier::CultistVortex)
                     {
                         let damage = AttackDamage::new(
@@ -120,7 +122,9 @@ impl CharacterBehavior for Data {
                             Some(GroupTarget::OutOfGroup),
                             rand::random(),
                         );
-                        let attack = Attack::default().with_damage(damage);
+                        let attack = Attack::default()
+                            .with_ability_info(self.static_data.ability_info)
+                            .with_damage(damage);
                         let explosion = Explosion {
                             effects: vec![RadiusEffect::Attack {
                                 attack,

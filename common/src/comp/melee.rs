@@ -9,6 +9,7 @@ use crate::{
         buff::BuffKind,
         tool::{Stats, ToolKind},
     },
+    states::utils::AbilityInfo,
 };
 use common_base::dev_panic;
 use serde::{Deserialize, Serialize};
@@ -108,6 +109,7 @@ impl MeleeConstructor {
         precision_mult: f32,
         tool_stats: Stats,
         entity_stats: &comp::Stats,
+        ability_info: AbilityInfo,
     ) -> Melee {
         if self.scaled.is_some() {
             dev_panic!(
@@ -161,6 +163,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_ability_info(ability_info)
                     .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(energy)
@@ -210,6 +213,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_ability_info(ability_info)
                     .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(energy)
@@ -251,6 +255,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_ability_info(ability_info)
                     .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(energy)
@@ -297,6 +302,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_ability_info(ability_info)
                     .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(poise)
@@ -337,6 +343,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_ability_info(ability_info)
                     .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(energy)
@@ -374,6 +381,7 @@ impl MeleeConstructor {
                 .with_requirement(CombatRequirement::AnyDamage);
 
                 Attack::default()
+                    .with_ability_info(ability_info)
                     .with_stat_adjustments(entity_stats)
                     .with_damage(damage)
                     .with_effect(poise)

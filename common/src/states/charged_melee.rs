@@ -97,7 +97,12 @@ impl CharacterBehavior for Data {
                         let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                         data.updater.insert(
                             data.entity,
-                            strike.create_melee(precision_mult, tool_stats, data.stats),
+                            strike.create_melee(
+                                precision_mult,
+                                tool_stats,
+                                data.stats,
+                                self.static_data.ability_info,
+                            ),
                         );
 
                         if let CharacterState::ChargedMelee(c) = &mut update.character {
@@ -188,7 +193,12 @@ impl CharacterBehavior for Data {
                             .melee_constructor
                             .custom_combo(custom_combo)
                             .handle_scaling(self.charge_amount)
-                            .create_melee(precision_mult, tool_stats, data.stats),
+                            .create_melee(
+                                precision_mult,
+                                tool_stats,
+                                data.stats,
+                                self.static_data.ability_info,
+                            ),
                     );
 
                     if let Some(FrontendSpecifier::GroundCleave) = self.static_data.specifier {

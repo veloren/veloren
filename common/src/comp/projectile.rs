@@ -10,6 +10,7 @@ use crate::{
     },
     explosion::{ColorPreset, Explosion, RadiusEffect},
     resources::Secs,
+    states::utils::AbilityInfo,
     uid::Uid,
 };
 use common_base::dev_panic;
@@ -135,6 +136,7 @@ impl ProjectileConstructor {
         owner: Option<Uid>,
         precision_mult: f32,
         entity_stats: &comp::Stats,
+        ability_info: Option<AbilityInfo>,
     ) -> Projectile {
         if self.scaled.is_some() {
             dev_panic!(
@@ -217,6 +219,10 @@ impl ProjectileConstructor {
                 .with_damage(damage)
                 .with_precision(precision_mult)
                 .with_blockable(a.blockable);
+
+            if let Some(ai) = ability_info {
+                attack = attack.with_ability_info(ai);
+            }
 
             if !a.without_combo {
                 attack = attack.with_combo_increment();

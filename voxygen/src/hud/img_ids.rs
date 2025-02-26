@@ -337,6 +337,7 @@ image_ids! {
         bow_scatterburst: "voxygen.element.skills.bow.scatterburst",
         bow_lesser_scatterburst: "voxygen.element.skills.bow.lesser_scatterburst",
         bow_greater_scatterburst: "voxygen.element.skills.bow.greater_scatterburst",
+        bow_eagle_eye: "voxygen.element.skills.bow.eagle_eye",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
@@ -848,6 +849,7 @@ image_ids! {
         buff_owltalon: "voxygen.element.de_buffs.buff_owltalon",
         buff_heavynock: "voxygen.element.de_buffs.buff_heavynock",
         buff_heartseeker: "voxygen.element.de_buffs.buff_heartseeker",
+        buff_eagleeye: "voxygen.element.de_buffs.buff_eagleeye",
 
         // Debuffs
         debuff_cursed_0: "voxygen.element.de_buffs.debuff_cursed_0",

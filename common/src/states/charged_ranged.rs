@@ -105,7 +105,12 @@ impl CharacterBehavior for Data {
                         .static_data
                         .projectile
                         .handle_scaling(charge_frac)
-                        .create_projectile(Some(*data.uid), precision_mult, data.stats);
+                        .create_projectile(
+                            Some(*data.uid),
+                            precision_mult,
+                            data.stats,
+                            Some(self.static_data.ability_info),
+                        );
 
                     let num_projectiles = self
                         .static_data

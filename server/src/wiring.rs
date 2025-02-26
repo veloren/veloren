@@ -192,6 +192,7 @@ impl WiringAction {
                                 None,
                                 1.0,
                                 &comp::Stats::empty(Body::Object(object::Body::Arrow)),
+                                None,
                             ),
                             light: None,
                             speed: 5.0,
