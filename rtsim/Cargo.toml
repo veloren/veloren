@@ -16,7 +16,7 @@ vek = { workspace = true }
 rmp-serde = "1.1.0"
 anymap2 = "0.13"
 tracing = { workspace = true }
-atomic_refcell = "0.1"
+atomic_refcell = { workspace = true }
 slotmap = { version = "1.0.6", features = ["serde"] }
 rand = { workspace = true, features = ["small_rng"] }
 rand_chacha = { workspace = true }

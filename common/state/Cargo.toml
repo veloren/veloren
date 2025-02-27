@@ -9,7 +9,7 @@ workspace = true
 
 [features]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-assets/plugins", "toml", "wasmtime", "wasmtime-wasi", "tar", "bincode", "serde", "dep:sha2", "dep:hex"]
+plugins = ["common-assets/plugins", "toml", "wasmtime", "wasmtime-wasi", "tar", "bincode", "serde", "dep:sha2", "dep:hex", "dep:atomic_refcell"]
 
 default = ["simd"]
 
@@ -32,6 +32,7 @@ hashbrown = { workspace = true }
 specs = { workspace = true, features = ["serde", "storage-event-control", "derive"] }
 
 # Plugins
+atomic_refcell = { workspace = true, optional = true }
 scopeguard = "1.1.0"
 serde = { workspace = true, optional = true }
 toml = { version = "0.8", optional = true }
