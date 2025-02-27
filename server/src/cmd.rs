@@ -63,7 +63,10 @@ use common::{
     vol::ReadVol,
 };
 #[cfg(feature = "worldgen")]
-use common::{terrain::TerrainChunkSize, weather};
+use common::{
+    terrain::{TERRAIN_CHUNK_BLOCKS_LG, TerrainChunkSize},
+    weather,
+};
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
@@ -165,6 +168,7 @@ fn do_command(
         ServerChatCommand::Faction => handle_faction,
         ServerChatCommand::GiveItem => handle_give_item,
         ServerChatCommand::Goto => handle_goto,
+        ServerChatCommand::GotoRand => handle_goto_rand,
         ServerChatCommand::Group => handle_group,
         ServerChatCommand::GroupInvite => handle_group_invite,
         ServerChatCommand::GroupKick => handle_group_kick,
@@ -1036,6 +1040,42 @@ fn handle_goto(
     } else {
         Err(action.help_content())
     }
+}
+
+#[cfg(feature = "worldgen")]
+fn handle_goto_rand(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let mut rng = rand::thread_rng();
+    let map_size = server.world.sim().map_size_lg().vec();
+    let chunk_side = 2_u32.pow(TERRAIN_CHUNK_BLOCKS_LG);
+    let pos2d = Vec2::new(
+        rng.gen_range(0..(2_u32.pow(map_size.x) * chunk_side)) as f32,
+        rng.gen_range(0..(2_u32.pow(map_size.y) * chunk_side)) as f32,
+    );
+    let pos3d = pos2d.with_z(server.world.sim().get_surface_alt_approx(pos2d.as_()));
+    server.state.position_mut(
+        target,
+        parse_cmd_args!(args, bool).unwrap_or(true),
+        |current_pos| current_pos.0 = pos3d,
+    )
+}
+
+#[cfg(not(feature = "worldgen"))]
+fn handle_goto_rand(
+    _server: &mut Server,
+    _client: EcsEntity,
+    _target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    Err(Content::Plain(
+        "Unsupported without worldgen enabled".into(),
+    ))
 }
 
 #[cfg(not(feature = "worldgen"))]

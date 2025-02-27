@@ -38,6 +38,7 @@ command-explosion-desc = Explodes the ground around you
 command-faction-desc = Send messages to your faction
 command-give_item-desc = Give yourself some items. For an example or to auto complete use Tab.
 command-goto-desc = Teleport to a position
+command-goto-rand = Teleport to a random position
 command-group-desc = Send messages to your group
 command-group_invite-desc = Invite a player to join a group
 command-group_kick-desc = Remove a player from a group

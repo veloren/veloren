@@ -357,6 +357,7 @@ pub enum ServerChatCommand {
     Faction,
     GiveItem,
     Goto,
+    GotoRand,
     Group,
     GroupInvite,
     GroupKick,
@@ -639,6 +640,11 @@ impl ServerChatCommand {
                     Boolean("Dismount from ship", "true".to_string(), Optional),
                 ],
                 Content::localized("command-goto-desc"),
+                Some(Admin),
+            ),
+            ServerChatCommand::GotoRand => cmd(
+                vec![Boolean("Dismount from ship", "true".to_string(), Optional)],
+                Content::localized("command-goto-rand"),
                 Some(Admin),
             ),
             ServerChatCommand::Group => cmd(
@@ -1103,6 +1109,7 @@ impl ServerChatCommand {
             ServerChatCommand::Faction => "faction",
             ServerChatCommand::GiveItem => "give_item",
             ServerChatCommand::Goto => "goto",
+            ServerChatCommand::GotoRand => "goto_rand",
             ServerChatCommand::Group => "group",
             ServerChatCommand::GroupInvite => "group_invite",
             ServerChatCommand::GroupKick => "group_kick",
