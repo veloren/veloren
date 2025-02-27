@@ -227,10 +227,6 @@ impl Structure for SavannahHut {
 
         // furniture
         let mut sprites = vec![
-            SpriteKind::DrawerSmall,
-            SpriteKind::ChairSingle,
-            SpriteKind::CoatRack,
-            SpriteKind::WardrobeSingle,
             SpriteKind::CushionArabic,
             SpriteKind::TableArabicSmall,
             SpriteKind::DecorSetArabic,
@@ -260,7 +256,7 @@ impl Structure for SavannahHut {
         // add bed at random diagonal
         let random_diag = DIAGONALS.get(random_index).unwrap();
         let bed_pos = center + random_diag * (length - 9);
-        painter.sprite(bed_pos.with_z(base - 2), SpriteKind::Bed);
+        painter.sprite(bed_pos.with_z(base - 2), SpriteKind::BedWoodWoodlandHead);
 
         // reed roof lines
         for n in 1..=reed_parts as i32 {

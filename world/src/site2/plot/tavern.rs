@@ -1740,7 +1740,7 @@ impl Structure for Tavern {
                             .count();
                         let hanger_pos = if edges == 2 {
                             let pos = aabr.center().with_z(room.bounds.min.z);
-                            painter.sprite(pos, SpriteKind::CoatRack);
+                            painter.sprite(pos, SpriteKind::CoatrackMetalWoodland);
                             Some(pos)
                         } else {
                             None
@@ -1850,11 +1850,11 @@ impl Structure for Tavern {
                     },
                     Detail::Table { pos, chairs } => {
                         let pos = pos.with_z(room.bounds.min.z);
-                        painter.sprite(pos, SpriteKind::TableDining);
+                        painter.sprite(pos, SpriteKind::DiningtableWoodWoodlandSquare);
                         for dir in chairs.into_iter() {
                             painter.rotated_sprite(
                                 pos + dir.to_vec2(),
-                                SpriteKind::ChairSingle,
+                                SpriteKind::ChairWoodWoodland2,
                                 dir.opposite().sprite_ori(),
                             );
                         }

@@ -537,7 +537,7 @@ impl Archetype for House {
                         )) % 14
                         {
                             0..=1 => SpriteKind::Crate,
-                            2 => SpriteKind::Bench,
+                            2 => SpriteKind::BenchWoodWoodland,
                             3 => SpriteKind::Anvil,
                             4 => SpriteKind::CookingPot,
                             5 => SpriteKind::CraftingBench,
@@ -574,9 +574,9 @@ impl Archetype for House {
                         )) % 12
                         {
                             0 => SpriteKind::Planter,
-                            1 => SpriteKind::ChairSingle,
-                            2 => SpriteKind::ChairDouble,
-                            3 => SpriteKind::CoatRack,
+                            1 => SpriteKind::ChairWoodWoodland,
+                            2 => SpriteKind::BenchWoodWoodlandGreen1,
+                            3 => SpriteKind::CoatrackWoodWoodland,
                             4 => {
                                 if dynamic_rng.gen_range(0..8) == 0 {
                                     SpriteKind::Chest
@@ -584,10 +584,10 @@ impl Archetype for House {
                                     SpriteKind::Crate
                                 }
                             },
-                            6 => SpriteKind::DrawerMedium,
-                            7 => SpriteKind::DrawerSmall,
-                            8 => SpriteKind::TableSide,
-                            9 => SpriteKind::WardrobeSingle,
+                            6 => SpriteKind::DrawerWoodWoodlandM1,
+                            7 => SpriteKind::DrawerWoodWoodlandS,
+                            8 => SpriteKind::TableWoodFancyWoodlandCorner,
+                            9 => SpriteKind::WardrobesingleWoodWoodland,
                             10 => {
                                 if dynamic_rng.gen_range(0..10) == 0 {
                                     SpriteKind::PotionMinor
@@ -599,7 +599,7 @@ impl Archetype for House {
                                 if dynamic_rng.gen_range(0..2) == 0 {
                                     SpriteKind::Bowl
                                 } else {
-                                    SpriteKind::Pot
+                                    SpriteKind::FlowerpotWoodWoodlandS
                                 }
                             },
                         };

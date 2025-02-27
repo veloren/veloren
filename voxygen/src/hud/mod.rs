@@ -2176,7 +2176,7 @@ impl Hud {
                         let key = match block.get_sprite() {
                             Some(SpriteKind::Helm) => "hud-steer",
                             Some(
-                                SpriteKind::Bed
+                                SpriteKind::BedWoodWoodlandHead
                                 | SpriteKind::Bedroll
                                 | SpriteKind::BedrollSnow
                                 | SpriteKind::BedrollPirate,
@@ -5379,9 +5379,12 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::TerracottaChest => "common-sprite-chest",
         SpriteKind::Mud => "common-sprite-mud",
         SpriteKind::Grave => "common-sprite-grave",
-        SpriteKind::ChairSingle
-        | SpriteKind::ChairDouble
-        | SpriteKind::Bench
+        SpriteKind::ChairWoodWoodland
+        | SpriteKind::ChairWoodWoodland2
+        | SpriteKind::BenchWoodWoodland
+        | SpriteKind::BenchWoodWoodlandGreen1
+        | SpriteKind::BenchWoodWoodlandGreen2
+        | SpriteKind::BenchWoodWoodlandGreen3
         | SpriteKind::BenchCoastal => "common-sprite-chair",
         SpriteKind::Crate => "common-sprite-crate",
         SpriteKind::HangingSign => "common-sprite-signboard",

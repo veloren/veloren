@@ -18,7 +18,7 @@
         ),
 
         custom_indices: {
-            1: Air(ChairSingle, 4),
+            1: Air(ChairWoodWoodland2, 4),
             2: Air(Helm, 0),
             3: Air(DoorWide, 4),
             8: Air(DoorWide, 0),
@@ -72,7 +72,7 @@
         ),
 
         custom_indices: {
-            1: Air(ChairSingle, 4),
+            1: Air(ChairWoodWoodland2, 4),
             2: Air(Helm, 0),
             3: Air(Door, 6),
             4: Air(Door, 2),
@@ -108,7 +108,7 @@
         ),
 
         custom_indices: {
-            1: Air(ChairSingle, 4),
+            1: Air(ChairWoodWoodland2, 4),
             2: Air(Helm, 0),
             3: Air(DoorWide, 4),
             4: Air(DoorWide, 0),
@@ -144,7 +144,7 @@
         ),
 
         custom_indices: {
-            1: Air(ChairSingle, 4),
+            1: Air(ChairWoodWoodland2, 4),
             2: Air(Helm, 0),
             3: Air(Door, 4),
             4: Air(Door, 0),
@@ -180,7 +180,7 @@
         ),
 
         custom_indices: {
-            1: Air(ChairSingle, 4),
+            1: Air(ChairWoodWoodland2, 4),
             2: Air(Helm, 0),
             3: Air(Door, 4),
             4: Air(Door, 0),
@@ -216,7 +216,7 @@
         ),
 
         custom_indices: {
-            1: Air(ChairSingle, 4),
+            1: Air(ChairWoodWoodland2, 4),
             2: Air(Helm, 0),
             3: Air(Door, 4),
             4: Air(Door, 0),
@@ -227,7 +227,7 @@
             13: Air(Window1, 2),
             14: Air(Crate, 0),
             15: Air(Cauldron, 2),
-            16: Air(ChairSingle, 0),
+            16: Air(ChairWoodWoodland2, 0),
             17: Air(CookingPot, 0),
             18: Air(WallLampSmall, 4),
             19: Air(Lantern, 4),
@@ -252,10 +252,10 @@
         ),
 
         custom_indices: {
-            1: Air(ChairSingle, 4),
+            1: Air(ChairWoodWoodland2, 4),
             2: Air(Helm, 0),
-            3: Air(ChairSingle, 2),
-            4: Air(ChairSingle, 6),
+            3: Air(ChairWoodWoodland2, 2),
+            4: Air(ChairWoodWoodland2, 6),
             9: Air(CraftingBench, 0),
             10: Air(Window1, 0),
             11: Air(RepairBench, 0),
@@ -263,7 +263,7 @@
             13: Air(Window1, 2),
             14: Air(Crate, 0),
             15: Air(Cauldron, 2),
-            16: Air(ChairSingle, 0),
+            16: Air(ChairWoodWoodland2, 0),
             17: Air(CookingPot, 0),
             18: Air(WallLampSmall, 4),
             19: Air(Lantern, 4),

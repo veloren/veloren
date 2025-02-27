@@ -2851,8 +2851,8 @@ impl Structure for SeaChapel {
                     painter.sprite(bldg_room_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_floor_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_cellar_chest_pos, SpriteKind::DungeonChest1);
-                    painter.sprite(bldg_floor_bed_pos, SpriteKind::Bed);
-                    painter.sprite(bldg_floor_drawer_pos, SpriteKind::DrawerSmall);
+                    painter.sprite(bldg_floor_bed_pos, SpriteKind::BedWoodWoodlandHead);
+                    painter.sprite(bldg_floor_drawer_pos, SpriteKind::DrawerWoodWoodlandS);
                     painter.sprite(bldg_floor_potion_pos, SpriteKind::PotionMinor);
                     // bldg floor Sea Clerics
                     for _ in 0..(1
@@ -2990,11 +2990,11 @@ impl Structure for SeaChapel {
                     painter.sprite(bldg_floor_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_floor2_lantern_pos, SpriteKind::SeashellLantern);
                     painter.sprite(bldg_floor3_lantern_pos, SpriteKind::SeashellLantern);
-                    painter.sprite(bldg_floor3_drawer_pos, SpriteKind::DrawerSmall);
+                    painter.sprite(bldg_floor3_drawer_pos, SpriteKind::DrawerWoodWoodlandS);
                     painter.sprite(bldg_floor3_potion_pos, SpriteKind::PotionMinor);
                     painter.sprite(bldg_cellar_chest_pos, SpriteKind::DungeonChest1);
-                    painter.sprite(bldg_floor_bed_pos, SpriteKind::Bed);
-                    painter.sprite(bldg_floor_drawer_pos, SpriteKind::DrawerSmall);
+                    painter.sprite(bldg_floor_bed_pos, SpriteKind::BedWoodWoodlandHead);
+                    painter.sprite(bldg_floor_drawer_pos, SpriteKind::DrawerWoodWoodlandS);
                     painter.sprite(bldg_floor_potion_pos, SpriteKind::PotionMinor);
                     // bldg floor Sea Clerics
                     for _ in 0..(1
@@ -3335,9 +3335,10 @@ impl Structure for SeaChapel {
                             painter.aabb(su_bldg_ropefix2).fill(ropefix2.clone());
                             painter.aabb(su_bldg_rope).fill(rope.clone());
                             painter.sprite(su_bldg_floor_lantern_pos, SpriteKind::SeashellLantern);
-                            painter.sprite(su_bldg_floor_drawer_pos, SpriteKind::DrawerSmall);
+                            painter
+                                .sprite(su_bldg_floor_drawer_pos, SpriteKind::DrawerWoodWoodlandS);
                             painter.sprite(su_bldg_floor_potion_pos, SpriteKind::PotionMinor);
-                            painter.sprite(su_bldg_floor_bed_pos, SpriteKind::Bed);
+                            painter.sprite(su_bldg_floor_bed_pos, SpriteKind::BedWoodWoodlandHead);
                         },
                         _ => {
                             // small pavillon, some with prisoners

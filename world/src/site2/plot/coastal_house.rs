@@ -332,13 +332,10 @@ impl Structure for CoastalHouse {
                 .fill(white.clone());
             // furniture
             let mut sprites = vec![
-                SpriteKind::DrawerSmall,
-                SpriteKind::CoatRack,
                 SpriteKind::Bowl,
                 SpriteKind::VialEmpty,
                 SpriteKind::FountainArabic,
                 SpriteKind::Crate,
-                SpriteKind::Pot,
                 SpriteKind::Lantern,
             ];
             'outer: for dir in NEIGHBORS {
@@ -380,7 +377,10 @@ impl Structure for CoastalHouse {
                     center.y + dir.y * ((width / 2) - 2),
                 );
                 if d == random_index_1 {
-                    painter.sprite(bed_pos.with_z(base - 2 + (s * height)), SpriteKind::Bed);
+                    painter.sprite(
+                        bed_pos.with_z(base - 2 + (s * height)),
+                        SpriteKind::BedWoodWoodlandHead,
+                    );
                 } else if d == random_index_2 {
                     painter.rotated_sprite(
                         table_pos.with_z(base - 2 + (s * height)),
