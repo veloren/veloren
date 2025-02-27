@@ -27,6 +27,8 @@ members = [
     "network/protocol",
 ]
 
+### PROFILES ###
+
 # default profile for devs, fast to compile, okay enough to run, no debug information
 [profile.dev]
 opt-level = 2
@@ -42,7 +44,6 @@ incremental = true
 opt-level = 3
 [profile.dev.package."veloren-network-protocol"]
 opt-level = 3
-
 
 # this profile is used by developers if dev doesn't has enough debug information,
 # the name must != debug, as debug is used by dev because....
@@ -111,6 +112,8 @@ incremental = true
 inherits = 'release'
 debug = 1
 
+### NIX ###
+
 [workspace.metadata.nix]
 systems = ["x86_64-linux"]
 
@@ -118,13 +121,13 @@ systems = ["x86_64-linux"]
 name = "veloren-nix"
 key = "veloren-nix.cachix.org-1:zokfKJqVsNV6kI/oJdLF6TYBdNPYGSb+diMVQPn/5Rc="
 
+### DEPENDENCIES ###
+
 [workspace.dependencies]
-lazy_static = "1.4.0"
-rand = { version = "0.8" }
-rand_chacha = { version = "0.3" }
+async-trait = "0.1.42"
 bincode = { version = "1.3.3" }
 bitflags = { version = "2.2.1" }
-slab = { version = "0.4.2" }
+clap = { version = "4.2", features = ["derive", "env"] }
 chrono = { version = "0.4.24", default-features = false, features = [
     "clock",
     "std",
@@ -132,16 +135,11 @@ chrono = { version = "0.4.24", default-features = false, features = [
     "serde",
 ] }
 chrono-tz = { version = "0.10", features = ["serde"] }
-inline_tweak = { version = "1.0.8" }
-
-tokio = { version = "1.28", default-features = false, features = ["rt"] }
-tracing = { version = "0.1" }
-futures-util = { version = "0.3.7", default-features = false }
-prometheus = { version = "0.13", default-features = false }
-prometheus-hyper = "0.2"
-
-strum = { version = "0.26.3", features = ["derive"] }
+crossbeam-channel = { version = "0.5" }
+crossbeam-utils = { version = "0.8.1" }
 enum-map = { version = "2.4" }
+futures-util = { version = "0.3.7", default-features = false }
+fxhash = { version = "0.2.1" }
 hashbrown = { version = "0.15", default-features = false, features = [
     "rayon",
     "serde",
@@ -150,39 +148,39 @@ hashbrown = { version = "0.15", default-features = false, features = [
     "inline-more",
     "equivalent",
 ] }
-fxhash = { version = "0.2.1" }
-crossbeam-utils = { version = "0.8.1" }
-crossbeam-channel = { version = "0.5" }
-ordered-float = { version = "4.2", default-features = true }
+hex = "0.4.3"
+inline_tweak = { version = "1.0.8" }
+image = { version = "0.25", default-features = false, features = ["png"] }
+itertools = { version = "0.14" }
+kiddo = "=4.2.0"
+lazy_static = "1.4.0"
+noise = { version = "0.9", default-features = false }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
-vek = { version = "0.17.0", features = ["serde", "mint"] }
-itertools = { version = "0.14" }
-
-serde = { version = "1.0.118", features = ["derive"] }
-serde_json = { version = "1.0.50" }
-ron = { version = "0.8", default-features = false }
-
-specs = { version = "0.20", features = ["nightly"] }
-image = { version = "0.25", default-features = false, features = ["png"] }
+ordered-float = { version = "4.2", default-features = true }
+prometheus = { version = "0.13", default-features = false }
+prometheus-hyper = "0.2"
+rand = { version = "0.8" }
+rand_chacha = { version = "0.3" }
 rayon = { version = "1.5" }
+ron = { version = "0.8", default-features = false }
+rustls = { version = "0.23", default-features = false, features = ["std"] }
 rusqlite = { version = "0.31", features = [
     "array",
     "vtab",
     "bundled",
     "trace",
 ] }
-
-clap = { version = "4.2", features = ["derive", "env"] }
-async-trait = "0.1.42"
+serde = { version = "1.0.118", features = ["derive"] }
+serde_json = { version = "1.0.50" }
 sha2 = "0.10"
-hex = "0.4.3"
-
-rustls = { version = "0.23", default-features = false, features = ["std"] }
+slab = { version = "0.4.2" }
+specs = { version = "0.20", features = ["nightly"] }
+strum = { version = "0.26.3", features = ["derive"] }
+tokio = { version = "1.28", default-features = false, features = ["rt"] }
+tracing = { version = "0.1" }
+vek = { version = "0.17.0", features = ["serde", "mint"] }
 quinn = { version = "0.11" }
-
-noise = { version = "0.9", default-features = false }
-kiddo = "=4.2.0"
 
 [patch.crates-io]
 # until next specs release
