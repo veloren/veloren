@@ -207,6 +207,7 @@ fn do_command(
         ServerChatCommand::Safezone => handle_safezone,
         ServerChatCommand::Say => handle_say,
         ServerChatCommand::ServerPhysics => handle_server_physics,
+        ServerChatCommand::SetBodyType => handle_set_body_type,
         ServerChatCommand::SetMotd => handle_set_motd,
         ServerChatCommand::SetWaypoint => handle_set_waypoint,
         ServerChatCommand::Ship => handle_spawn_ship,
@@ -1106,6 +1107,123 @@ fn handle_set_motd(
             })
         },
         _ => Err(action.help_content()),
+    }
+}
+
+fn handle_set_body_type(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let (Some(new_body_type), permanent) = parse_cmd_args!(args, String, bool) {
+        let permananet = permanent.unwrap_or(false);
+        let body = server
+            .state
+            .ecs()
+            .read_storage::<comp::Body>()
+            .get(target)
+            .copied();
+        if let Some(mut body) = body {
+            fn parse_body_type<B: FromStr + std::fmt::Display>(
+                input: &str,
+                all_types: impl IntoIterator<Item = B>,
+            ) -> CmdResult<B> {
+                FromStr::from_str(input).map_err(|_| {
+                    Content::localized_with_args("cmd-set_body_type-not_found", [(
+                        "options",
+                        all_types
+                            .into_iter()
+                            .map(|b| b.to_string())
+                            .reduce(|mut a, b| {
+                                a.push_str(",\n");
+                                a.push_str(&b);
+                                a
+                            })
+                            .unwrap_or_default(),
+                    )])
+                })
+            }
+            let old_body = body;
+            match &mut body {
+                comp::Body::Humanoid(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::humanoid::ALL_BODY_TYPES)?;
+                },
+                comp::Body::QuadrupedSmall(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::quadruped_small::ALL_BODY_TYPES)?;
+                },
+                comp::Body::QuadrupedMedium(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::quadruped_medium::ALL_BODY_TYPES)?;
+                },
+                comp::Body::BirdMedium(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::bird_medium::ALL_BODY_TYPES)?;
+                },
+                comp::Body::FishMedium(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::fish_medium::ALL_BODY_TYPES)?;
+                },
+                comp::Body::Dragon(body) => {
+                    body.body_type = parse_body_type(&new_body_type, comp::dragon::ALL_BODY_TYPES)?;
+                },
+                comp::Body::BirdLarge(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::bird_large::ALL_BODY_TYPES)?;
+                },
+                comp::Body::FishSmall(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::fish_small::ALL_BODY_TYPES)?;
+                },
+                comp::Body::BipedLarge(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::biped_large::ALL_BODY_TYPES)?;
+                },
+                comp::Body::BipedSmall(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::biped_small::ALL_BODY_TYPES)?;
+                },
+                comp::Body::Object(_) => {},
+                comp::Body::Golem(body) => {
+                    body.body_type = parse_body_type(&new_body_type, comp::golem::ALL_BODY_TYPES)?;
+                },
+                comp::Body::Theropod(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::theropod::ALL_BODY_TYPES)?;
+                },
+                comp::Body::QuadrupedLow(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::quadruped_low::ALL_BODY_TYPES)?;
+                },
+                comp::Body::Ship(_) => {},
+                comp::Body::Arthropod(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::arthropod::ALL_BODY_TYPES)?;
+                },
+                comp::Body::Item(_) => {},
+                comp::Body::Crustacean(body) => {
+                    body.body_type =
+                        parse_body_type(&new_body_type, comp::crustacean::ALL_BODY_TYPES)?;
+                },
+                comp::Body::Plugin(_) => {},
+            };
+
+            if old_body != body {
+                assign_body(server, target, body)?;
+
+                if permananet {
+                    todo!()
+                }
+            }
+            Ok(())
+        } else {
+            Err(Content::localized("cmd-set_body_type-no_body"))
+        }
+    } else {
+        Err(action.help_content())
     }
 }
 
@@ -5730,6 +5848,24 @@ fn handle_lightning(
     Ok(())
 }
 
+fn assign_body(server: &mut Server, target: EcsEntity, body: comp::Body) -> CmdResult<()> {
+    insert_or_replace_component(server, target, body, "body")?;
+    insert_or_replace_component(server, target, body.mass(), "mass")?;
+    insert_or_replace_component(server, target, body.density(), "density")?;
+    insert_or_replace_component(server, target, body.collider(), "collider")?;
+
+    if let Some(mut stat) = server
+        .state
+        .ecs_mut()
+        .write_storage::<comp::Stats>()
+        .get_mut(target)
+    {
+        stat.original_body = body;
+    }
+
+    Ok(())
+}
+
 fn handle_body(
     server: &mut Server,
     _client: EcsEntity,
@@ -5739,20 +5875,8 @@ fn handle_body(
 ) -> CmdResult<()> {
     if let Some(npc::NpcBody(_id, mut body)) = parse_cmd_args!(args, npc::NpcBody) {
         let body = body();
-        insert_or_replace_component(server, target, body, "body")?;
-        insert_or_replace_component(server, target, body.mass(), "mass")?;
-        insert_or_replace_component(server, target, body.density(), "density")?;
-        insert_or_replace_component(server, target, body.collider(), "collider")?;
 
-        if let Some(mut stat) = server
-            .state
-            .ecs_mut()
-            .write_storage::<comp::Stats>()
-            .get_mut(target)
-        {
-            stat.original_body = body;
-        }
-        Ok(())
+        assign_body(server, target, body)
     } else {
         Err(action.help_content())
     }

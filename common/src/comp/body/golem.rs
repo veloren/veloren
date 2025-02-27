@@ -1,6 +1,7 @@
 use common_base::{enum_iter, struct_iter};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -90,7 +91,7 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
 
 enum_iter! {
     ~const_array(ALL)
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumString, Display)]
     #[repr(u32)]
     pub enum BodyType {
         Female = 0,
