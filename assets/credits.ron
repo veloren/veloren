@@ -32,7 +32,138 @@
     ///     notes: "Other information",
     /// )
     /// ```
-    music: [],
+    music: [
+    (
+        name: "Life of a Background Mob",
+        authors: ["GeekyGami"],
+        asset_path: "voxygen/audio/soundtrack/town/life_of_a_background_mob.ogg",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: 
+        "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay
+        - official releases of veloren on platforms that have relevant restrictions
+        - Appearances in content relevant to veloren
+        - Appearances in educational content
+        
+        Added restrictions: 
+        - Should not be used in other games than Veloren unless it is parody."
+    ),
+    (
+        name: "Moonlit Canopy",
+        authors: ["GeekyGami"],
+        asset_path: "voxygen/audio/soundtrack/overworld/moonlit_canopy.ogg",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: 
+        "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay
+        - official releases of veloren on platforms that have relevant restrictions
+        - Appearances in content relevant to veloren
+        - Appearances in educational content
+        
+        Added restrictions: 
+        - Should not be used in other games than Veloren unless it is parody."
+    ),
+    (
+        name: "A Heart's IceCold Protection",
+        authors: ["GeekyGami"],
+        asset_path: "voxygen/audio/soundtrack/dungeon/a_hearts_ice-cold_protection.ogg",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: 
+        "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay
+        - official releases of veloren on platforms that have relevant restrictions
+        - Appearances in content relevant to veloren
+        - Appearances in educational content
+        
+        Added restrictions: 
+        - Should not be used in other games than Veloren unless it is parody."
+    ),
+    (
+        name: "Stargazing",
+        authors: ["GeekyGami"],
+        asset_path: "voxygen/audio/soundtrack/overworld/stargazing.ogg",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: 
+        "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay
+        - official releases of veloren on platforms that have relevant restrictions
+        - Appearances in content relevant to veloren
+        - Appearances in educational content
+        
+        Added restrictions: 
+        - Should not be used in other games than Veloren unless it is parody."
+    ),
+    (
+        name: "Cavernous Hollow",
+        authors: ["GeekyGami"],
+        asset_path: "voxygen/audio/soundtrack/cave/cavernous_hollow.ogg",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: 
+        "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay
+        - official releases of veloren on platforms that have relevant restrictions
+        - Appearances in content relevant to veloren
+        - Appearances in educational content
+        
+        Added restrictions: 
+        - Should not be used in other games than Veloren unless it is parody."
+    ),
+    (
+        name: "Cavernous Hollow",
+        authors: ["GeekyGami"],
+        asset_path: "voxygen/audio/soundtrack/cave/cavernous_hollow.ogg",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: 
+        "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay
+        - official releases of veloren on platforms that have relevant restrictions
+        - Appearances in content relevant to veloren
+        - Appearances in educational content
+        
+        Added restrictions: 
+        - Should not be used in other games than Veloren unless it is parody."
+    ),
+    (
+        name: "Still Heart's Coffin",
+        authors: ["GeekyGami"],
+        asset_path: "voxygen/audio/soundtrack/dungeon/still_hearts_coffin.ogg",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: 
+        "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay
+        - official releases of veloren on platforms that have relevant restrictions
+        - Appearances in content relevant to veloren
+        - Appearances in educational content
+        
+        Added restrictions: 
+        - Should not be used in other games than Veloren unless it is parody."
+    ),
+    (
+        name: "Ballerine Macabre",
+        authors: ["GeekyGami"],
+        asset_path: "voxygen/audio/soundtrack/overworld/ballerine_macabre.ogg",
+        license: "CC-BY-NC-SA 4.0",
+        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+        notes: 
+        "exceptions (to the extent to which the license is prohibitive):
+        - appearances in images and videos (including streams) of veloren gameplay
+        - official releases of veloren on platforms that have relevant restrictions
+        - Appearances in content relevant to veloren
+        - Appearances in educative content
+        
+        Added restrictions: 
+        - Should not be used in other games than Veloren unless it is parody."
+    )
+
+
+    ],
     fonts: [(
         name: "Alkhemikal",
         source_link: "https://fontenddev.com/fonts/alkhemikal/",
@@ -166,6 +297,8 @@
         name: "imbris",
     ), (
         name: "Christof",
+    ),(
+        name: "GeekyGami",
     ), (
         name: "AngelOnFira",
     )],
