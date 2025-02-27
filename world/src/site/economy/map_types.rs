@@ -359,7 +359,7 @@ impl Labor {
             .map_or([].iter(), |l| l.orders.iter())
     }
 
-    pub fn orders(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> {
+    pub fn orders(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> + use<> {
         LABOR
             .get(self.0 as usize)
             .map_or([].iter(), |l| l.orders.iter())

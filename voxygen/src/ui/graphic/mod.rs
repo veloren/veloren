@@ -112,10 +112,10 @@ impl CachedDetails {
     /// Invalidate this cache entry.
     fn invalidate(&mut self) {
         match self {
-            Self::Atlas { ref mut valid, .. } => {
+            Self::Atlas { valid, .. } => {
                 *valid = false;
             },
-            Self::Texture { ref mut valid, .. } => {
+            Self::Texture { valid, .. } => {
                 *valid = false;
             },
         }
@@ -123,10 +123,10 @@ impl CachedDetails {
 
     fn set_valid(&mut self) {
         match self {
-            Self::Atlas { ref mut valid, .. } => {
+            Self::Atlas { valid, .. } => {
                 *valid = true;
             },
-            Self::Texture { ref mut valid, .. } => {
+            Self::Texture { valid, .. } => {
                 *valid = true;
             },
         }
@@ -499,7 +499,7 @@ impl GraphicCache {
                         texture_parameters.size.map(u32::from).into_tuple()
                     );
                     // Transfer to the gpu
-                    let (ref texture, _, ref mut upload_batch) = &mut textures[idx];
+                    let &mut (ref texture, _, ref mut upload_batch) = &mut textures[idx];
                     upload_image(renderer, texture, upload_batch, &image, aabr, gpu_premul);
                     details.set_valid();
                 }
@@ -554,7 +554,7 @@ impl GraphicCache {
                         valid: true,
                         aabr,
                     });
-                    let (ref texture, _, ref mut upload_batch) = &mut textures[texture_idx];
+                    let &mut (ref texture, _, ref mut upload_batch) = &mut textures[texture_idx];
                     upload_image(renderer, texture, upload_batch, &image, aabr, gpu_premul);
                     break;
                 }
@@ -573,7 +573,7 @@ impl GraphicCache {
                     let tex_idx = textures.insert((tex, bind, UiUploadBatchId::default()));
                     let atlas_idx = atlases.len();
                     atlases.push((atlas, tex_idx));
-                    let (ref texture, _, ref mut upload_batch) = &mut textures[tex_idx];
+                    let &mut (ref texture, _, ref mut upload_batch) = &mut textures[tex_idx];
                     upload_image(renderer, texture, upload_batch, &image, aabr, gpu_premul);
                     CachedDetails::Atlas {
                         atlas_idx,

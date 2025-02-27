@@ -1865,7 +1865,7 @@ pub fn get_lakes<F: FloatCore>(
     (*downhill)
         .iter()
         .enumerate()
-        .filter(|(_, &dh_idx)| dh_idx < 0)
+        .filter(|&(_, &dh_idx)| dh_idx < 0)
         .for_each(|(chunk_idx, &dh)| {
             if dh == -2 {
                 // On the boundary, add to the boundary vector.
@@ -2297,7 +2297,7 @@ pub fn mrec_downhill(
     map_size_lg: MapSizeLg,
     mrec: &[u8],
     posi: usize,
-) -> impl Clone + Iterator<Item = (usize, usize)> {
+) -> impl Clone + Iterator<Item = (usize, usize)> + use<> {
     let pos = uniform_idx_as_vec2(map_size_lg, posi);
     let mrec_i = mrec[posi];
     NEIGHBOR_DELTA

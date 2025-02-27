@@ -108,7 +108,7 @@ impl assets::Compound for Shaders {
 }
 
 impl Shaders {
-    pub fn get(&self, shader: &str) -> Option<impl core::ops::Deref<Target = Glsl>> {
+    pub fn get(&self, shader: &str) -> Option<impl core::ops::Deref<Target = Glsl> + use<>> {
         self.shaders.get(shader).map(|a| a.read())
     }
 }

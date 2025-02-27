@@ -1685,7 +1685,7 @@ impl CharacterAbility {
                 auras.iter_mut().for_each(
                     |aura::AuraBuffConstructor {
                          kind: _,
-                         ref mut strength,
+                         strength,
                          duration: _,
                          category: _,
                      }| {
@@ -1713,7 +1713,7 @@ impl CharacterAbility {
                 auras.iter_mut().for_each(
                     |aura::AuraBuffConstructor {
                          kind: _,
-                         ref mut strength,
+                         strength,
                          duration: _,
                          category: _,
                      }| {
@@ -2049,9 +2049,9 @@ impl CharacterAbility {
         use skills::MiningSkill::Speed;
 
         if let CharacterAbility::BasicMelee {
-            ref mut buildup_duration,
-            ref mut swing_duration,
-            ref mut recover_duration,
+            buildup_duration,
+            swing_duration,
+            recover_duration,
             ..
         } = self
         {
@@ -2072,11 +2072,11 @@ impl CharacterAbility {
         let projectile_speed_modifier = SKILL_MODIFIERS.bow_tree.universal.projectile_speed;
         match self {
             CharacterAbility::ChargedRanged {
-                ref mut projectile,
-                ref mut move_speed,
-                ref mut initial_projectile_speed,
-                ref mut scaled_projectile_speed,
-                ref mut charge_duration,
+                projectile,
+                move_speed,
+                initial_projectile_speed,
+                scaled_projectile_speed,
+                charge_duration,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.bow_tree.charged;
@@ -2106,10 +2106,10 @@ impl CharacterAbility {
                 }
             },
             CharacterAbility::RepeaterRanged {
-                ref mut energy_cost,
-                ref mut projectile,
-                ref mut max_speed,
-                ref mut projectile_speed,
+                energy_cost,
+                projectile,
+                max_speed,
+                projectile_speed,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.bow_tree.repeater;
@@ -2128,11 +2128,11 @@ impl CharacterAbility {
                 }
             },
             CharacterAbility::BasicRanged {
-                ref mut projectile,
-                ref mut energy_cost,
-                ref mut num_projectiles,
-                ref mut projectile_spread,
-                ref mut projectile_speed,
+                projectile,
+                energy_cost,
+                num_projectiles,
+                projectile_spread,
+                projectile_speed,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.bow_tree.shotgun;
@@ -2162,7 +2162,7 @@ impl CharacterAbility {
 
         match self {
             CharacterAbility::BasicRanged {
-                ref mut projectile, ..
+                projectile, ..
             } => {
                 let modifiers = SKILL_MODIFIERS.staff_tree.fireball;
                 let damage_level = skillset.skill_level(Staff(BDamage)).unwrap_or(0);
@@ -2174,10 +2174,10 @@ impl CharacterAbility {
                 *projectile = projectile.legacy_modified_by_skills(power, regen, range, 1_f32);
             },
             CharacterAbility::BasicBeam {
-                ref mut damage,
-                ref mut range,
-                ref mut energy_drain,
-                ref mut beam_duration,
+                damage,
+                range,
+                energy_drain,
+                beam_duration,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.staff_tree.flamethrower;
@@ -2200,10 +2200,10 @@ impl CharacterAbility {
                 }
             },
             CharacterAbility::Shockwave {
-                ref mut damage,
-                ref mut knockback,
-                ref mut shockwave_duration,
-                ref mut energy_cost,
+                damage,
+                knockback,
+                shockwave_duration,
+                energy_cost,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.staff_tree.shockwave;
@@ -2230,11 +2230,11 @@ impl CharacterAbility {
 
         match self {
             CharacterAbility::BasicBeam {
-                ref mut damage,
-                ref mut range,
-                ref mut beam_duration,
-                ref mut damage_effect,
-                ref mut energy_regen,
+                damage,
+                range,
+                beam_duration,
+                damage_effect,
+                energy_regen,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.sceptre_tree.beam;
@@ -2250,16 +2250,16 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Sceptre(LRegen)) {
                     *energy_regen *= modifiers.energy_regen.powi(level.into());
                 }
-                if let (Ok(level), Some(CombatEffect::Lifesteal(ref mut lifesteal))) =
+                if let (Ok(level), Some(CombatEffect::Lifesteal(lifesteal))) =
                     (skillset.skill_level(Sceptre(LLifesteal)), damage_effect)
                 {
                     *lifesteal *= modifiers.lifesteal.powi(level.into());
                 }
             },
             CharacterAbility::BasicAura {
-                ref mut auras,
-                ref mut range,
-                ref mut energy_cost,
+                auras,
+                range,
+                energy_cost,
                 specifier: Some(aura::Specifier::HealingAura),
                 ..
             } => {
@@ -2284,9 +2284,9 @@ impl CharacterAbility {
                 }
             },
             CharacterAbility::BasicAura {
-                ref mut auras,
-                ref mut range,
-                ref mut energy_cost,
+                auras,
+                range,
+                energy_cost,
                 specifier: Some(aura::Specifier::WardingAura),
                 ..
             } => {

@@ -97,7 +97,7 @@ impl TakeScreenshot {
     /// closure that needs to be called after submitting the encoder
     /// to the queue. When called, the closure will spawn a new thread for
     /// async mapping of the buffer and downloading of the screenshot.
-    pub fn copy_to_buffer(self, encoder: &mut wgpu::CommandEncoder) -> impl FnOnce() {
+    pub fn copy_to_buffer(self, encoder: &mut wgpu::CommandEncoder) -> impl FnOnce() + use<> {
         // Calculate padded bytes per row
         let padded_bytes_per_row = padded_bytes_per_row(self.width, self.bytes_per_pixel);
         // Copy image to a buffer

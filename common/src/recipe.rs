@@ -109,7 +109,7 @@ impl Recipe {
         self.inputs
             .iter()
             .enumerate()
-            .for_each(|(i, (input, amount, mut is_component))| {
+            .for_each(|(i, &(ref input, ref amount, mut is_component))| {
                 let mut required = *amount;
                 // Check used for recipes that have an input that is not consumed, e.g.
                 // craftsman hammer
@@ -990,7 +990,7 @@ impl RepairRecipe {
         inventory_contains_ingredients(self.inputs(item), inv, 1)
     }
 
-    pub fn inputs(&self, item: &Item) -> impl Iterator<Item = (&RecipeInput, u32)> {
+    pub fn inputs(&self, item: &Item) -> impl Iterator<Item = (&RecipeInput, u32)> + use<'_> {
         let item_durability = item.durability_lost().unwrap_or(0);
         self.inputs
             .iter()

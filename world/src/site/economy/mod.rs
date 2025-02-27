@@ -231,7 +231,7 @@ impl Economy {
     }
 
     /// resources consumed by everyone (no matter which profession)
-    fn get_orders_everyone(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> {
+    fn get_orders_everyone(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> + use<> {
         Labor::orders_everyone()
     }
 
@@ -610,14 +610,14 @@ impl Economy {
             let mut sorted_sell: Vec<(GoodIndex, f32, f32)> = o
                 .amount
                 .iter()
-                .filter(|(_, &a)| a > 0.0)
+                .filter(|&(_, &a)| a > 0.0)
                 .map(|(g, a)| (g, *a, prices[g]))
                 .collect();
             sorted_sell.sort_by(|a, b| (a.2.partial_cmp(&b.2).unwrap_or(Less)));
             let mut sorted_buy: Vec<(GoodIndex, f32, f32)> = o
                 .amount
                 .iter()
-                .filter(|(_, &a)| a < 0.0)
+                .filter(|&(_, &a)| a < 0.0)
                 .map(|(g, a)| (g, *a, prices[g]))
                 .collect();
             sorted_buy.sort_by(|a, b| (b.2.partial_cmp(&a.2).unwrap_or(Less)));
@@ -1394,15 +1394,15 @@ impl Default for GraphInfo {
 impl GraphInfo {
     pub fn get_orders(&self) -> &'static LaborMap<Vec<(GoodIndex, f32)>> { self.dummy.get_orders() }
 
-    pub fn get_orders_everyone(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> {
+    pub fn get_orders_everyone(&self) -> impl Iterator<Item = &'static (GoodIndex, f32)> + use<> {
         self.dummy.get_orders_everyone()
     }
 
     pub fn get_production(&self) -> LaborMap<(GoodIndex, f32)> { self.dummy.get_production() }
 
-    pub fn good_list(&self) -> impl Iterator<Item = GoodIndex> { good_list() }
+    pub fn good_list(&self) -> impl Iterator<Item = GoodIndex> + use<> { good_list() }
 
-    pub fn labor_list(&self) -> impl Iterator<Item = Labor> { Labor::list() }
+    pub fn labor_list(&self) -> impl Iterator<Item = Labor> + use<> { Labor::list() }
 
     pub fn can_store(&self, g: &GoodIndex) -> bool { direct_use_goods().contains(g) }
 }

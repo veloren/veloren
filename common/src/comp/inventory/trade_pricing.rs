@@ -200,7 +200,7 @@ impl FreqEntries {
         // Increase probability if already in entries, or add new entry
         if let Some(FreqEntry {
             name: asset,
-            freq: ref mut old_probability,
+            freq: old_probability,
             sell: old_can_sell,
             stackable: _,
         }) = old

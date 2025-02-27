@@ -68,7 +68,7 @@ impl StructureGen2d {
 
     /// Note: Generates all possible closest samples for elements in the range
     /// of min to max, *exclusive.*
-    pub fn iter(&self, min: Vec2<i32>, max: Vec2<i32>) -> impl Iterator<Item = StructureField> {
+    pub fn iter(&self, min: Vec2<i32>, max: Vec2<i32>) -> impl Iterator<Item = StructureField> + use<> {
         let freq = self.freq;
         let spread = self.spread;
         let spread_mul = Self::spread_mul(spread);

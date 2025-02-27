@@ -361,7 +361,7 @@ pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity 
                             // Don't try to persist non-tameable pets (likely spawned
                             // using /spawn) since there isn't any code to handle
                             // persisting them
-                            common::comp::Alignment::Owned(ref pet_owner)
+                            common::comp::Alignment::Owned(pet_owner)
                                 if pet_owner == player_uid && is_tameable(body) =>
                             {
                                 Some(((*pet).clone(), *body, stats.clone()))

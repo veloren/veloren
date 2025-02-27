@@ -335,7 +335,7 @@ impl Npc {
         self
     }
 
-    pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed.wrapping_add(perm)) }
+    pub fn rng(&self, perm: u32) -> impl Rng + use<> { RandomPerm::new(self.seed.wrapping_add(perm)) }
 
     // TODO: Don't make this depend on deterministic RNG, actually persist names
     // once we've decided that we want to

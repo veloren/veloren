@@ -56,7 +56,7 @@ impl<T> Store<T> {
         self.items.get_mut(id.0 as usize).unwrap()
     }
 
-    pub fn ids(&self) -> impl Iterator<Item = Id<T>> {
+    pub fn ids(&self) -> impl Iterator<Item = Id<T>> + use<T> {
         (0..self.items.len()).map(|i| Id(i as u64, PhantomData))
     }
 
