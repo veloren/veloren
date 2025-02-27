@@ -27,10 +27,7 @@ impl<T: Clone> InterpBuffer<T> {
     }
 
     fn push(&mut self, time: f64, x: T) {
-        let InterpBuffer {
-            buf,
-            i,
-        } = self;
+        let InterpBuffer { buf, i } = self;
         *i += 1;
         *i %= buf.len();
         buf[*i] = (time, x);

@@ -2161,9 +2161,7 @@ impl CharacterAbility {
         use skills::{Skill::Staff, StaffSkill::*};
 
         match self {
-            CharacterAbility::BasicRanged {
-                projectile, ..
-            } => {
+            CharacterAbility::BasicRanged { projectile, .. } => {
                 let modifiers = SKILL_MODIFIERS.staff_tree.fireball;
                 let damage_level = skillset.skill_level(Staff(BDamage)).unwrap_or(0);
                 let regen_level = skillset.skill_level(Staff(BRegen)).unwrap_or(0);

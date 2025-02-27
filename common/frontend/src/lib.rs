@@ -33,7 +33,10 @@ const RUST_LOG_ENV: &str = "RUST_LOG";
 ///
 /// By default a few directives are set to `warn` by default, until explicitly
 /// overwritten! e.g. `RUST_LOG="gfx_device_gl=debug"`
-pub fn init<W2>(log_path_file: Option<(&Path, &str)>, terminal: &'static W2) -> Vec<impl Drop + use<W2>>
+pub fn init<W2>(
+    log_path_file: Option<(&Path, &str)>,
+    terminal: &'static W2,
+) -> Vec<impl Drop + use<W2>>
 where
     W2: MakeWriter<'static> + 'static,
     <W2 as MakeWriter<'static>>::Writer: 'static + Send + Sync,
