@@ -500,7 +500,10 @@ impl Structure for DesertCityMultiPlot {
                             }
                             for dir in NEIGHBORS {
                                 let pos = center + dir * 8;
-                                painter.sprite(pos.with_z(floor_level), SpriteKind::DrawerSmall);
+                                painter.sprite(
+                                    pos.with_z(floor_level),
+                                    SpriteKind::DrawerWoodWoodlandS,
+                                );
                             }
 
                             for dir in SQUARE_4 {
@@ -512,7 +515,7 @@ impl Structure for DesertCityMultiPlot {
                                 );
                                 painter.rotated_sprite(
                                     planter_pos.with_z(floor_level),
-                                    SpriteKind::DrawerMedium,
+                                    SpriteKind::DrawerWoodWoodlandM1,
                                     4 - (4 * dir.y) as u8,
                                 );
                             }
@@ -533,7 +536,7 @@ impl Structure for DesertCityMultiPlot {
                                 );
                                 painter.rotated_sprite(
                                     planter_pos.with_z(floor_level),
-                                    SpriteKind::DrawerSmall,
+                                    SpriteKind::DrawerWoodWoodlandS,
                                     4 - (4 * dir.y) as u8,
                                 );
                             }
@@ -1280,7 +1283,7 @@ impl Structure for DesertCityMultiPlot {
                                                 bed_pos.with_z(floor_level),
                                                 // TODO: create bed sprite specific for desert
                                                 // houses
-                                                SpriteKind::Bed,
+                                                SpriteKind::BedWoodWoodlandHead,
                                                 4_u8,
                                             );
 
@@ -1300,8 +1303,8 @@ impl Structure for DesertCityMultiPlot {
                                                     {
                                                         0 => SpriteKind::TableArabicLarge,
                                                         1 => SpriteKind::DecorSetArabic,
-                                                        2 => SpriteKind::DrawerSmall,
-                                                        3 => SpriteKind::CoatRack,
+                                                        2 => SpriteKind::DrawerWoodWoodlandS,
+                                                        3 => SpriteKind::CoatrackWoodWoodland,
                                                         4 => SpriteKind::TableArabicSmall,
                                                         _ => SpriteKind::SepareArabic,
                                                     },
@@ -1569,12 +1572,12 @@ impl Structure for DesertCityMultiPlot {
                                     painter.sprite(
                                         sprite_pos,
                                         match (RandomField::new(0).get(sprite_pos)) % 6 {
-                                            0 => SpriteKind::DrawerSmall,
-                                            1 => SpriteKind::ChairSingle,
-                                            2 => SpriteKind::CoatRack,
-                                            3 => SpriteKind::Bench,
-                                            4 => SpriteKind::ChairDouble,
-                                            _ => SpriteKind::TableDining,
+                                            0 => SpriteKind::DrawerWoodWoodlandS,
+                                            1 => SpriteKind::ChairWoodWoodland,
+                                            2 => SpriteKind::CoatrackWoodWoodland,
+                                            3 => SpriteKind::BenchWoodWoodland,
+                                            4 => SpriteKind::BenchWoodWoodlandGreen1,
+                                            _ => SpriteKind::DiningtableWoodWoodlandRound,
                                         },
                                     );
                                 }

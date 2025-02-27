@@ -1562,9 +1562,9 @@ impl Structure for House {
                     _ => Vec2::new(half_x, half_y),
                 };
                 let nightstand_pos = Vec2::new(bed_pos.x + 2, bed_pos.y + 1);
-                painter.sprite(bed_pos.with_z(base), SpriteKind::Bed);
+                painter.sprite(bed_pos.with_z(base), SpriteKind::BedWoodWoodlandHead);
                 // drawer next to bed
-                painter.sprite(nightstand_pos.with_z(base), SpriteKind::DrawerSmall);
+                painter.sprite(nightstand_pos.with_z(base), SpriteKind::DrawerWoodWoodlandS);
                 // collectible on top of drawer
                 let rng0 = RandomField::new(0).get(nightstand_pos.with_z(base + 1));
                 let rng1 = RandomField::new(1).get(nightstand_pos.with_z(base + 1));
@@ -1588,7 +1588,7 @@ impl Structure for House {
                 };
                 painter.rotated_sprite(
                     wardrobe_pos.with_z(base),
-                    SpriteKind::WardrobeDouble,
+                    SpriteKind::WardrobedoubleWoodWoodland,
                     drawer_ori,
                 );
             } else {
@@ -1602,8 +1602,8 @@ impl Structure for House {
                         sprite_pos.with_z(base),
                         match rng0 % 32 {
                             0..=2 => SpriteKind::Crate,
-                            3..=4 => SpriteKind::CoatRack,
-                            5..=7 => SpriteKind::Pot,
+                            3..=4 => SpriteKind::CoatrackWoodWoodland,
+                            5..=7 => SpriteKind::FlowerpotWoodWoodlandS,
                             8..=9 => SpriteKind::Lantern,
                             _ => SpriteKind::Empty,
                         },
@@ -1616,12 +1616,15 @@ impl Structure for House {
                 {
                     let table_pos = Vec2::new(half_x, half_y);
                     // room is smaller, so use small table
-                    painter.sprite(table_pos.with_z(base), SpriteKind::TableDining);
+                    painter.sprite(
+                        table_pos.with_z(base),
+                        SpriteKind::DiningtableWoodWoodlandRound,
+                    );
                     for dir in Dir::iter() {
                         let chair_pos = table_pos + dir.to_vec2();
                         painter.rotated_sprite(
                             chair_pos.with_z(base),
-                            SpriteKind::ChairSingle,
+                            SpriteKind::ChairWoodWoodland,
                             dir.opposite().sprite_ori(),
                         );
                     }
@@ -1632,12 +1635,15 @@ impl Structure for House {
                         Dir::X => Vec2::new(half_x, half_y),
                         _ => Vec2::new(quarter_x, half_y),
                     };
-                    painter.sprite(table_pos.with_z(base), SpriteKind::TableDouble);
+                    painter.sprite(
+                        table_pos.with_z(base),
+                        SpriteKind::TableWoodFancyWoodlandCorner,
+                    );
                     for dir in Dir::iter() {
                         let chair_pos = table_pos + dir.select((2, 1)) * dir.to_vec2();
                         painter.rotated_sprite(
                             chair_pos.with_z(base),
-                            SpriteKind::ChairSingle,
+                            SpriteKind::ChairWoodWoodland,
                             dir.opposite().sprite_ori(),
                         );
                     }
@@ -1651,7 +1657,7 @@ impl Structure for House {
                 };
                 painter.rotated_sprite(
                     drawer_pos.with_z(base),
-                    SpriteKind::DrawerLarge,
+                    SpriteKind::DrawerWoodWoodlandL1,
                     drawer_ori,
                 );
             }
@@ -2089,7 +2095,11 @@ impl Structure for House {
                 };
             }
 
-            painter.rotated_sprite(bed_pos.with_z(alt), SpriteKind::Bed, bed_ori);
+            painter.rotated_sprite(
+                bed_pos.with_z(alt),
+                SpriteKind::BedWoodWoodlandHead,
+                bed_ori,
+            );
         }
 
         if self.christmas_decorations {

@@ -1703,9 +1703,9 @@ impl Structure for AdletStronghold {
                         .fill(bone_fill.clone());
                     let cook_sprites = Fill::Sampling(Arc::new(|wpos| {
                         Some(match (RandomField::new(0).get(wpos)) % 20 {
-                            0 => Block::air(SpriteKind::Pot),
+                            0 => Block::air(SpriteKind::FlowerpotWoodWoodlandS),
                             1 => Block::air(SpriteKind::Bowl),
-                            2 => Block::air(SpriteKind::Pot),
+                            2 => Block::air(SpriteKind::FlowerpotWoodWoodlandS),
                             3 => Block::air(SpriteKind::VialEmpty),
                             4 => Block::air(SpriteKind::Lantern),
                             _ => Block::air(SpriteKind::Empty),

@@ -1585,7 +1585,7 @@ impl FigureMgr {
                                         skeleton_attr,
                                     )
                                 },
-                                SpriteKind::Bed
+                                SpriteKind::BedWoodWoodlandHead
                                 | SpriteKind::Bedroll
                                 | SpriteKind::BedrollSnow
                                 | SpriteKind::BedrollPirate => {

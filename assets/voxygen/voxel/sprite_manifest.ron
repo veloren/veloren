@@ -2,7 +2,76 @@
 {
 // Represents the lack of a sprite.
 Empty: [()],
-// Windows
+
+//TOWN AND DUNGEON SPRITES - INCLUDES NICHE SPRITES LIKE TRAPS (EVEN NATURAL TRAPS LIKE COBWEBS), ONE-WAY PORTALS, BARRIER BLOCKS, ETC.
+//IF EVER IN DOUBT, ASK - IS THIS MORE MAN-MADE OR NATURAL? MAN-MADE STUFF AND TRAPS GO HERE
+
+DungeonWallDecor: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-0",
+            offset: (-5.5, -1.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-2",
+            offset: (-5.5, -3.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-3",
+            offset: (-1.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-4",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-5",
+            offset: (-5.5, -0.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-6",
+            offset: (-5.5, -1.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-7",
+            offset: (-5.5, -1.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-8",
+            offset: (-5.5, -1.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.dungeon_wall-9",
+            offset: (-1.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// WitchWindow
+WitchWindow: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.window.witch_purple",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
 Window1: [(
     variations: [
         (
@@ -39,6 +108,3123 @@ Window4: [(
             model: "voxygen.voxel.sprite.window.window-3",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+OneWayWall: [()],
+Sign: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.sign.basic",
+            offset: (-8.5, -2.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+WoodBarricades: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.barricades_wood.barricades-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.barricades_wood.barricades-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.barricades_wood.barricades-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.barricades_wood.barricades-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+
+    ],
+    wind_sway: 0.0,
+)],
+DiamondLight: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.floating_diamond",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+SmithingTable: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.smith_table-0",
+            offset: (-7.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Forge0: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.forge-0",
+            offset: (-3.5, -7.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+GearWheel0: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.gear_wheel-0",
+            offset: (-8.5, -8.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Quench0: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.quench-0",
+            offset: (-2.5, -2.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+HotSurface: [()],
+Barrel: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.barrel",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+CrateBlock: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.crate_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BarrelWoodWater: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.barrel_wood_water",
+            offset: (-7, -7, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BarrelWoodCoal: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.barrel_wood_coal",
+            offset: (-7.0, -7.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LanternpostWoodLantern: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern_off",
+            offset: (-9.5, -2.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+    filter: (light_enabled: false)
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern_on",
+            offset: (-9.5, -2.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+LanternpostWoodUpper: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_upper",
+            offset: (-2.5, -2.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LanternpostWoodBase: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_base",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LampMetalShinglesRed: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_red_off",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+    filter: (light_enabled: false),
+        ),
+        (
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_red_on",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LampMetalShinglesCyan: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_cyan_off",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_cyan_on",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+LampMetalBase: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_metal_base",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LampTerracotta: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_terracotta_off",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lamp_terracotta_on",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+BlacksmithBellows: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.blacksmith_bellows",
+            offset: (-7.5, -10.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterTable: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_table-0",
+            offset: (-11.0, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_table-1",
+            offset: (-11.0, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterCrateWoodS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_crate_wood_S",
+            offset: (-4.0, -4.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterCrateWoodL: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_crate_wood_L",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterToolsWall: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_tools_wall",
+            offset: (-5.5, -1.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CarpenterLogCutter: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-0",
+            offset: (-10.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-1",
+            offset: (-10.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-2",
+            offset: (-10.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BasketWovenL: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.basket_woven_L",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+	    (
+            model: "voxygen.voxel.sprite.furniture.basket_woven_L_lid",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BasketWovenM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.basket_woven_M",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+	(
+            model: "voxygen.voxel.sprite.furniture.basket_woven_M_lid",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BasketWovenS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.basket_woven_S",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BonfireMLit: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bonfire_M_lit",
+            offset: (-11.0, -11.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BonfireMUnlit: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bonfire_M_unlit",
+            offset: (-11.0, -11.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BucketWoodM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bucket_wood_M-0",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+	(
+            model: "voxygen.voxel.sprite.furniture.bucket_wood_M-1",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+JugClayM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.jug_clay_M",
+            offset: (-4.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+MirrorWoodM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.mirror_wood_M",
+            offset: (-6.5, -1.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+SackLeatherM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.sack_leather_M",
+            offset: (-6.0, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+TrophyframeWoodBear: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.trophyframe_wood_bear",
+            offset: (-8.5, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+TrophyframeWoodDeer: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.trophyframe_wood_deer",
+            offset: (-8.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+DiningtableWoodCorner: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.diningtable_wood_corner",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+DiningtableWoodBody: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.diningtable_wood_body",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+ChestWoodDouble: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.chest_wood_double_half",
+            offset: (-5.5, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BenchWoodEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood_end",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BenchWoodMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood_middle",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodCoreEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_core_end",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodCoreMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_core_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBarkEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_bark_end",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBarkMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_bark_middle",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBranchEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_end",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBranchMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_middle",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LogsWoodBranchS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_S",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+SeatWoodBlueMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.seat_wood_blue_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+SeatWoodBlueSide: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.seat_wood_blue_side",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+LanternAirshipWallBlackS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_black_S_off",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_black_S_on",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],   
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipWallBrownS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_brown_S_off",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_brown_S_on",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+LanternAirshipWallChestnutS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_chestnut_S_off",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_chestnut_S_on",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipWallRedS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_red_S_off",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_red_S_on",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipGroundBlackS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_black_S_off",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_black_S_on",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipGroundBrownS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_brown_S_off",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_brown_S_on",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+LanternAirshipGroundChestnutS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_chestnut_S_off",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_chestnut_S_on",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)], 
+LanternAirshipGroundRedS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_red_S_off",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+    filter: (light_enabled: false),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_red_S_on",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],    
+    wind_sway: 0,
+    filter: (light_enabled: true),
+)],
+RopeCoilM: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.ropecoil_M",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+Chest: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.chests.chest_dark",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.chests.chest_vines",
+            offset: (-8.5, -7.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+CommonLockedChest: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_gold",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+
+    ],
+    wind_sway: 0.0,
+)],
+// Dungeon Chests
+DungeonChest0: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_vines",
+            offset: (-8.5, -7.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DungeonChest1: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_skull",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DungeonChest2: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_light",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DungeonChest3: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_gold",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DungeonChest4: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_gold",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DungeonChest5: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_demon",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Underwater Chests
+ChestBuried: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.underwater_chests.chest_skull",
+            offset: (-10.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+             model: "voxygen.voxel.sprite.underwater_chests.chest_vines",
+            offset: (-10.0, -8.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Rope
+Rope: [(
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.rope",
+            offset: (-5.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)],
+// Coral Chest
+CoralChest: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_coral",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Sea DecorChain
+SeaDecorChain: [(
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.misc.sea_decor_chain",
+                offset: (-5.5, -5.5, -0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+)],
+// Sea DecorBlock
+SeaDecorBlock: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.misc.sea_decor_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+// Sea DecorWindow Horizontal
+SeaDecorWindowHor: [(
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_window_hor",
+            offset: (-5.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)],
+// Sea DecorWindow Vertical
+SeaDecorWindowVer: [(
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_window_ver",
+            offset: (-5.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)],
+// Sea Decor Emblem
+SeaDecorEmblem: [(
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_emblem",
+            offset: (-16.0, -16.0, -4.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)],
+// Sea Decor Pillar
+SeaDecorPillar: [(
+     variations: [
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-6",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-7",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)],
+// SeashellLantern
+SeashellLantern: [(
+     variations: [
+         (
+            model: "voxygen.voxel.object.seashell_lantern",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+         ),
+     ],
+     wind_sway: 0.0,
+)],
+// GlassBarrier
+GlassBarrier: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.glass_barrier_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+GlassKeyhole: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.glass_keyhole_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+VampireKeyDoor: [(
+     variations: [
+         (
+                model: "voxygen.voxel.sprite.furniture.vampire_keydoor",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+VampireKeyhole: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.vampire_keyhole",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+HaniwaKeyDoor: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+HaniwaKeyhole: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.haniwa_keyhole_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+HaniwaUrn: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_haniwa_urn",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+
+    ],
+    wind_sway: 0.0,
+)],
+// Haniwa Trap
+HaniwaTrap: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+HaniwaTrapTriggered: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.haniwa_trap_triggered-0",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+         (
+             model: "voxygen.voxel.sprite.furniture.haniwa_trap_triggered-1",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+// Sahagin Door, Keyhole, Chest, Statue
+SahaginKeyDoor: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.sahagin_keydoor",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+SahaginKeyhole: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.sahagin_keyhole",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+SahaginChest: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_sahagin",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Terracotta Door, Keyhole, Chest, Statue
+TerracottaKeyDoor: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_keydoor",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+TerracottaKeyhole: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_keyhole",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+TerracottaChest: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_terracotta",
+            offset: (-7.0, -5.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+TerracottaStatue: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_statue_0",
+            offset: (-22.0, -18.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_statue_1",
+            offset: (-22.0, -18.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.terracotta_statue_2",
+            offset: (-22.0, -18.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+TerracottaBlock: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-0",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-1",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-2",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-3",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-5",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.misc.terracotta_block-6",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Fences
+Fence: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.farms.fence_0",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (adjacent_type: I),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.farms.fence_1",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (adjacent_type: L),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.farms.fence_2",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (adjacent_type: T),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.farms.fence_3",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (adjacent_type: X),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.farms.fence_4",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (adjacent_type: End),
+    ),
+],
+MyrmidonKeyDoor: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.myrmidon_door_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+MyrmidonKeyhole: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.myrmidon_keyhole_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+MinotaurKeyhole: [(
+     variations: [
+         (
+             model: "voxygen.voxel.sprite.furniture.myrmidon_keyhole_block",
+             offset: (-5.5, -5.5, -0.0),
+             lod_axes: (1.0, 1.0, 1.0),
+         ),
+     ],
+    wind_sway: 0.0,
+)],
+// MetalChain
+MetalChain: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.metal_chain",
+            offset: (-5.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Ember
+Ember: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.ember.1",
+            offset: (-5.5, -5.5, -2.9),
+            lod_axes: (1.0, 1.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// FireBlock
+FireBlock: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.misc.fireblock",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Smoke dummy
+SmokeDummy: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.ember.dummy",
+            offset: (-5.5, -5.5, -5.5),
+            lod_axes: (1.0, 1.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.8,
+)],
+
+// Scarecrow
+Scarecrow: [(
+    variations: [
+    (
+        model: "voxygen.voxel.sprite.misc.scarecrow",
+        offset: (-9.5, -3.0, -0.25),
+        lod_axes: (0.0, 0.0, 1.0),
+    ),
+    ],
+    wind_sway: 0.0,
+)],
+// Street Light
+StreetLamp: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.street_lamp",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (0.0, 0.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+StreetLampTall: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.street_lamp-0",
+            offset: (-10.5, -10.5, 0.0),
+            lod_axes: (0.0, 0.0, 1.0),
+        ),
+
+    ],
+    wind_sway: 0.0,
+)],
+// Door
+// To make doors swing add them in voxygen\src\scene\terrain L. 333
+Door: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.door.door-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DoorDark: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.door.door_dark-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DoorWide: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.door.door-wide",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Helm
+Helm: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.helm_wood",
+            offset: (-8.5, -5.0, 0.0),
+           lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Bed 
+
+BedWoodWoodlandHead: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_wood_woodland_head_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedWoodWoodlandMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_wood_woodland_middle_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedWoodWoodlandTail: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_wood_woodland_tail_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+//HandCartWood
+
+HandCartWoodHead: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.handcart_wood_head_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+HandCartWoodMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.handcart_wood_middle_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+HandCartWoodTail: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.handcart_wood_tail_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+// Bench
+
+BenchWoodWoodland: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood_woodland_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+//ChairSingle
+
+ChairWoodWoodland: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.chair_wood_woodland",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+ChairWoodWoodland2: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.chair_wood_woodland2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+//ChairDouble
+   
+BenchWoodWoodlandGreen1: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood_woodland_green1_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BenchWoodWoodlandGreen2: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood_woodland_green2_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BenchWoodWoodlandGreen3: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood_woodland_green3_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+    
+// CoatRack
+
+CoatrackMetalWoodland: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.coatrack_metal_woodland",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CoatrackWoodWoodland: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.coatrack_wood_woodland",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+// Crate
+// Contributor Supa, Feb 26, 2025 - froze the other sprites here to match actual hitbox
+Crate: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.crate-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        // (
+        //     model: "voxygen.voxel.sprite.furniture.crate-1",
+        //     offset: (-5.5, -5.5, 0.0),
+        //     lod_axes: (1.0, 1.0, 1.0),
+        // ),
+        // (
+        //     model: "voxygen.voxel.sprite.furniture.crate-2",
+        //     offset: (-3.0, -3.0, 0.0),
+        //     lod_axes: (1.0, 1.0, 1.0),
+        // ),
+        // (
+        //     model: "voxygen.voxel.sprite.furniture.crate-3",
+        //     offset: (-6.0, -3.5, 0.0),
+        //     lod_axes: (1.0, 1.0, 1.0),
+        // ),
+        // (
+        //     model: "voxygen.voxel.sprite.furniture.crate-4",
+        //     offset: (-6.0, -3.5, 0.0),
+        //     lod_axes: (1.0, 1.0, 1.0),
+        // ),
+        // (
+        //     model: "voxygen.voxel.sprite.furniture.crate-5",
+        //     offset: (-5.5, -3.0, 0.0),
+        //     lod_axes: (1.0, 1.0, 1.0),
+        // ),
+        // (
+        //     model: "voxygen.voxel.sprite.furniture.crate-6",
+        //     offset: (-4.5, -3.0, 0.0),
+        //     lod_axes: (1.0, 1.0, 1.0),
+        // ),
+    ],
+    wind_sway: 0.0,
+)],
+
+// DrawerLarge
+
+DrawerWoodWoodlandL1: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.drawer_wood_woodland_L1_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+DrawerWoodWoodlandL2: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.drawer_wood_woodland_L2_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+//DrawerMedium
+
+DrawerWoodWoodlandM1: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.drawer_wood_woodland_M1_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+DrawerWoodWoodlandM2: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.drawer_wood_woodland_M2_half",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+// DrawerSmall
+    
+DrawerWoodWoodlandS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.drawer_wood_woodland_S-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.drawer_wood_woodland_S-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+//TableSide
+
+// TableDining
+
+DiningtableWoodWoodlandRound: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.diningtable_wood_woodland_round",
+            offset: (-8.5, -8.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+DiningtableWoodWoodlandSquare: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.diningtable_wood_woodland_square",
+            offset: (-8.5, -8.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+// TableDouble
+
+TableWoodFancyWoodlandCorner: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.table_wood_fancy_woodland_corner",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+TableWoodFancyWoodlandBody: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.table_wood_fancy_woodland_body",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+// WardrobeDouble
+
+WardrobedoubleWoodWoodland: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobedouble_wood_woodland_half",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+WardrobedoubleWoodWoodland2: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobedouble_wood_woodland2_half",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+// WardrobeSingle
+
+WardrobesingleWoodWoodland: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobesingle_wood_woodland_half",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+WardrobesingleWoodWoodland2: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobesingle_wood_woodland2_half",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+// Pot
+
+FlowerpotWoodWoodlandS: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.flowerpot_wood_woodland_S",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Drop Gate Parts
+DropGate: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.castle.drop_gate_bars-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DropGateBottom: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.castle.drop_gate_bottom-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Empty Flask
+VialEmpty: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.potion_empty",
+            offset: (-5.0, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Bowls
+Bowl: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.crafting_ing.bowl",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Minor Potion
+PotionMinor: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.potion_red",
+            offset: (-5.0, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+],
+    wind_sway: 0.0,
+)],
+PotionDummy: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.potion_green",
+            offset: (-5.0, -5.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+],
+    wind_sway: 0.0,
+)],
+// Ground Fire Bowls
+FireBowlGround: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.lantern_ground_open",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+],
+    wind_sway: 0.0,
+)],
+
+// HangingBasket
+HangingBasket: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.hanging_basket-0",
+            offset: (-6.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.hanging_basket-1",
+            offset: (-9.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// HangingSign
+HangingSign: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.hanging_sign-0",
+            offset: (-3.5, -16.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// WallLamp
+WallLamp: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.lamp_wall-1",
+            offset: (-10.5, -12.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// WallLampSmall
+WallLampSmall: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.lamp_wall-0",
+            offset: (-5.5, 0.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+WallLampWizard: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.lamp_wall-2",
+            offset: (-5.5, 0.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+ChristmasOrnament: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.snowflake_light",
+            offset: (-5.5, 0.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.hirdrasil-antler",
+            offset: (-10.5, -2.5, -3.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.hirdrasil-antler-1",
+            offset: (-6.5, -2.5, -3.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.moravian-star-orange",
+            offset: (-5.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.2,
+)],
+ChristmasWreath: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wreath-0",
+            offset: (-6.5, 0.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// WallSconce
+WallSconce: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.sconce_wall-0",
+            offset: (-2.5, -1.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Planter
+Planter: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.planter-0",
+            offset: (-6.0, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.planter-1",
+            offset: (-13.0, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.planter-2",
+            offset: (-6.0, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.planter-3",
+            offset: (-6.0, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.planter-4",
+            offset: (-6.0, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.planter-5",
+            offset: (-6.0, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.planter-6",
+            offset: (-7.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Shelf
+Shelf: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.shelf-0",
+            offset: (-14.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.shelf-1",
+            offset: (-13.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Lantern
+Lantern: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.mine_lamp",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.2),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// CliffTown & DesertCity Decor
+WindowArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.window.window_arabic",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BookshelfArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.bookshelf_arabic",
+           offset: (-24.5, -5.5, -6.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DecorSetArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.decor_set_arabic-0",
+           offset: (-10.5, -10.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+SepareArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.separe_arabic",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+CushionArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.cushion_arabic",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+JugArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.jug_arabic",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+TableArabicSmall: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.table_arabic_small",
+           offset: (-7.5, -7.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+TableArabicLarge: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.table_arabic_large",
+           offset: (-21.0, -13.0, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+CanapeArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.canape_arabic",
+           offset: (-12.5, -14.0, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+CupboardArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.cupboard_arabic",
+           offset: (-9.5, -5.5, 4.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+WallTableArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.wall_table_arabic",
+           offset: (-15.0, -5.5, 2.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+JugAndBowlArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.jug_and_bowl_arabic",
+           offset: (-15.0, -7.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Melon: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.melon_cut",
+           offset: (-4.5, -4.5, -0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.melon",
+           offset: (-5.5, -4.5, -0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+FountainArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.fountain_arabic",
+           offset: (-15.5, -15.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+OvenArabic: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.oven_arabic",
+           offset: (-6.5, -8.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Hearth: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.hearth",
+           offset: (-19.0, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+ForgeTools: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.forge_tools",
+           offset: (-19.0, -5.0, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// CoastalTown Sprites
+TableCoastalLarge: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.table_coastal_large",
+           offset: (-10.5, -16.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BenchCoastal: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_coastal-0",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_coastal-1",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_coastal-2",
+            offset: (-5.5, -3.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+JugAndCupsCoastal: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.jug_and_cups_coastal",
+           offset: (-6.0, -7.0, 3.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// CliffTown Sprites
+CliffDecorBlock: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-0",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),           
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-1",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-2",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-3",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-4",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-5",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-6",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-7",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-8",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-9",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-10",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-11",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),                                                                                                        
+    ],
+    wind_sway: 0.0,
+)],
+BedMesa: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_mesa",
+            offset: (-9.0, -16.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+CupboardMesa: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.cupboard_mesa",
+            offset: (-8.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+WallLampMesa: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wall_lamp_mesa",
+            offset: (-4.5, 0.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+MesaLantern: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lantern.lantern_mesa",
+            offset: (-3.5, -3.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.2),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+MirrorMesa: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.mirror_mesa",
+            offset: (-10.5, -2.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+WallTableMesa: [(
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.wall_table_mesa",
+           offset: (-7.5, -5.5, 3.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+WardrobeDoubleMesa: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobe_double_mesa-0",
+            offset: (-17.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobe_double_mesa-1",
+            offset: (-12.5, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobe_double_mesa-2",
+            offset: (-10.5, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+WardrobeSingleMesa: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobe_single_mesa-0",
+            offset: (-7.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.wardrobe_single_mesa-1",
+            offset: (-7.0, -6.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Anvil
+Anvil: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.anvil.anvil-0",
+            offset: (-5.5, -7.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Cauldron
+Cauldron: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cauldron.cauldron-0",
+            offset: (-10.0, -9.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Forge
+Forge: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.forge",
+            offset: (-6.5, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Loom: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.loom",
+            offset: (-6.0, -4.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// DismantlingBench
+DismantlingBench: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.salvaging_station.salvaging_station-0",
+            offset: (-7.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+SpinningWheel: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.spinning_wheel",
+            offset: (-7.5, -5.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+TanningRack: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.tanning_rack",
+            offset: (-7.5, -4.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Crafting Bench
+CraftingBench: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.crafting_bench.crafting_bench-0",
+            offset: (-9.5, -7.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Cooking Pot
+CookingPot: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cooking_pot.pot-0",
+            offset: (-7.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Repair Bench
+RepairBench: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.repair_bench.repair_bench-0",
+            offset: (-7.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Ensnaring Vines
+EnsnaringVines: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.ensnaring_vines",
+            offset: (-5.0, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Iron Spike
+IronSpike: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.iron_spike",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+
+Keyhole: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.keyhole_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+KeyDoor: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.door_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BoneKeyhole: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bone_keyhole_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BoneKeyDoor: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bone_door_block",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Bomb: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.bomb",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.5, 0.5, 0.5),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Bedrolls
+Bedroll: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.camp.camp",
+            offset: (-8.0, -16.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Tent: [(
+    variations: [
+        (
+            model: "voxygen.voxel.object.tent",
+            offset: (-7.5, -15.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BedrollSnow: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.camp.camp_snow",
+            offset: (-8.0, -16.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+BedrollPirate: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.camp.camp_pirate",
+            offset: (-8.0, -16.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Wizard assets
+MagicalBarrier: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wizard.magical_barrier",
+            offset: (-10.0, -0.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+MagicalSeal: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wizard.magical_seal",
+            offset: (-16.0, -16.0, -1.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Candle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wizard.candle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DoorBars: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.bars.0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+KeyholeBars: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.bars.keyhole",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+EnsnaringWeb: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.ensnaring_web",
+            offset: (-5.0, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Ice spike
+IceSpike: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.icespike",
+            offset: (-5.0, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// Graves
+Grave: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grave.mud",
+            offset: (-6.0, -7.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Gravestone: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.grave.grave_0",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_1",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_2",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_3",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_4",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_5",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.grave.grave_6",
+            offset: (1.0, -6.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //ASSOCIATED WITH NATURE AND DECORATIVE SPRITES; THIS DOES NOT INCLUDE TRAPS
+)],
+// WOOOOOOD
+Wood: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.wood",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Bamboo: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.bamboo",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Hardwood: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.hardwood",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Ironwood: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.ironwood",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Frostwood: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.frostwood",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Eldwood: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.eldwood",
+            offset: (-4.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+IceCrystal: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_6",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_7",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_8",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_9",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_10",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.ice_crystal_11",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+GlowIceCrystal: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_0",
+            offset: (8.5, -9.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_1",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_2",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_3",
+            offset: (-8.5, -9.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_4",
+            offset: (-8.0, -8.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_5",
+            offset: (-11.5, -12.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
         ),
     ],
     wind_sway: 0.0,
@@ -119,7 +3305,7 @@ ShortCactus: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.cacti.cactus_short",
-            offset: (-14.5, -5.5, 0.0),
+            offset: (-12.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -1390,596 +4576,6 @@ Liana: [(
     ],
     wind_sway: 0.5,
 )],
-// Velorite
-Velorite: [
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.mineral.gem.velorite_1",
-                offset: (-5.0, -5.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (damage: (start: 0, end: 1)),
-    ),
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.mineral.gem.velorite_2",
-                offset: (-5.0, -5.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (damage: (start: 1, end: 2)),
-    ),
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.mineral.gem.velorite_3",
-                offset: (-5.0, -5.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (damage: (start: 2, end: 3)),
-    ),
-],
-VeloriteFrag: [
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.mineral.gem.velorite_frag_1",
-                offset: (-4.0, -5.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (damage: (start: 0, end: 1)),
-    ),
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.mineral.gem.velorite_frag_2",
-                offset: (-4.0, -5.0, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (damage: (start: 1, end: 2)),
-    ),
-],
-// Chests
-Chest: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.chests.chest_dark",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.chests.chest_vines",
-            offset: (-8.5, -7.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-CommonLockedChest: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_gold",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-
-    ],
-    wind_sway: 0.0,
-)],
-// Dungeon Chests
-DungeonChest0: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_vines",
-            offset: (-8.5, -7.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DungeonChest1: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_skull",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DungeonChest2: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_light",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DungeonChest3: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_gold",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DungeonChest4: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_gold",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DungeonChest5: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_demon",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Rope
-Rope: [(
-     variations: [
-         (
-            model: "voxygen.voxel.sprite.misc.rope",
-            offset: (-5.5, -5.5, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-     wind_sway: 0.0,
-)],
-// Coral Chest
-CoralChest: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_coral",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Sea DecorChain
-SeaDecorChain: [(
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.misc.sea_decor_chain",
-                offset: (-5.5, -5.5, -0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-)],
-// Sea DecorBlock
-SeaDecorBlock: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.misc.sea_decor_block",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-// Sea DecorWindow Horizontal
-SeaDecorWindowHor: [(
-     variations: [
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_window_hor",
-            offset: (-5.5, -5.5, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-     wind_sway: 0.0,
-)],
-// Sea DecorWindow Vertical
-SeaDecorWindowVer: [(
-     variations: [
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_window_ver",
-            offset: (-5.5, -5.5, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-     wind_sway: 0.0,
-)],
-// Sea Decor Emblem
-SeaDecorEmblem: [(
-     variations: [
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_emblem",
-            offset: (-16.0, -16.0, -4.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-     wind_sway: 0.0,
-)],
-// Sea Decor Pillar
-SeaDecorPillar: [(
-     variations: [
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-2",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-3",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-4",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-5",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-6",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-         (
-            model: "voxygen.voxel.sprite.misc.sea_decor_pillar-7",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-     wind_sway: 0.0,
-)],
-// SeashellLantern
-SeashellLantern: [(
-     variations: [
-         (
-            model: "voxygen.voxel.object.seashell_lantern",
-            offset: (-4.5, -4.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-         ),
-     ],
-     wind_sway: 0.0,
-)],
-// GlassBarrier
-GlassBarrier: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.glass_barrier_block",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-GlassKeyhole: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.glass_keyhole_block",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.5),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-VampireKeyDoor: [(
-     variations: [
-         (
-                model: "voxygen.voxel.sprite.furniture.vampire_keydoor",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-VampireKeyhole: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.vampire_keyhole",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-HaniwaKeyDoor: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-HaniwaKeyhole: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.haniwa_keyhole_block",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-HaniwaUrn: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_haniwa_urn",
-            offset: (-7.5, -6.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-
-    ],
-    wind_sway: 0.0,
-)],
-// Haniwa Trap
-HaniwaTrap: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.haniwa_door_block",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-HaniwaTrapTriggered: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.haniwa_trap_triggered-0",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-         (
-             model: "voxygen.voxel.sprite.furniture.haniwa_trap_triggered-1",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-// Sahagin Door, Keyhole, Chest, Statue
-SahaginKeyDoor: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.sahagin_keydoor",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-SahaginKeyhole: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.sahagin_keyhole",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-SahaginChest: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_sahagin",
-            offset: (-7.0, -5.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Terracotta Door, Keyhole, Chest, Statue
-TerracottaKeyDoor: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.terracotta_keydoor",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-TerracottaKeyhole: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.terracotta_keyhole",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-TerracottaChest: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.chests.chest_terracotta",
-            offset: (-7.0, -5.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-TerracottaStatue: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.terracotta_statue_0",
-            offset: (-22.0, -18.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.terracotta_statue_1",
-            offset: (-22.0, -18.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.terracotta_statue_2",
-            offset: (-22.0, -18.0, -0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-TerracottaBlock: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.misc.terracotta_block-0",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.misc.terracotta_block-1",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.misc.terracotta_block-2",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.misc.terracotta_block-3",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.misc.terracotta_block-5",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.misc.terracotta_block-6",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Fences
-Fence: [
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.farms.fence_0",
-                offset: (-5.5, -5.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (adjacent_type: I),
-    ),
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.farms.fence_1",
-                offset: (-5.5, -5.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (adjacent_type: L),
-    ),
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.farms.fence_2",
-                offset: (-5.5, -5.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (adjacent_type: T),
-    ),
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.farms.fence_3",
-                offset: (-5.5, -5.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (adjacent_type: X),
-    ),
-    (
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.farms.fence_4",
-                offset: (-5.5, -5.5, 0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
-        filter: (adjacent_type: End),
-    ),
-],
-MyrmidonKeyDoor: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.myrmidon_door_block",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-MyrmidonKeyhole: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.myrmidon_keyhole_block",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
-MinotaurKeyhole: [(
-     variations: [
-         (
-             model: "voxygen.voxel.sprite.furniture.myrmidon_keyhole_block",
-             offset: (-5.5, -5.5, -0.0),
-             lod_axes: (1.0, 1.0, 1.0),
-         ),
-     ],
-    wind_sway: 0.0,
-)],
 // Welwitch
 Welwitch: [(
     variations: [
@@ -1990,17 +4586,6 @@ Welwitch: [(
         ),
     ],
     wind_sway: 0.1,
-)],
-// MetalChain
-MetalChain: [(
-        variations: [
-            (
-                model: "voxygen.voxel.sprite.misc.metal_chain",
-                offset: (-5.5, -5.5, -0.0),
-                lod_axes: (1.0, 1.0, 1.0),
-            ),
-        ],
-        wind_sway: 0.0,
 )],
 // Pumpkins
 Pumpkin: [(
@@ -2561,39 +5146,6 @@ Blueberry: [()]/* [(
     wind_sway: 0.0,
 )]
 */,
-// Ember
-Ember: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.ember.1",
-            offset: (-5.5, -5.5, -2.9),
-            lod_axes: (1.0, 1.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// FireBlock
-FireBlock: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.misc.fireblock",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Smoke dummy
-SmokeDummy: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.ember.dummy",
-            offset: (-5.5, -5.5, -5.5),
-            lod_axes: (1.0, 1.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.8,
-)],
 // Corn
 Corn: [(
     variations: [
@@ -2944,550 +5496,6 @@ Coconut: [(
     ],
     wind_sway: 0.0,
 )],
-// Scarecrow
-Scarecrow: [(
-    variations: [
-    (
-        model: "voxygen.voxel.sprite.misc.scarecrow",
-        offset: (-9.5, -3.0, -0.25),
-        lod_axes: (0.0, 0.0, 1.0),
-    ),
-    ],
-    wind_sway: 0.0,
-)],
-// Street Light
-StreetLamp: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.misc.street_lamp",
-            offset: (-4.5, -4.5, 0.0),
-            lod_axes: (0.0, 0.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-StreetLampTall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.street_lamp-0",
-            offset: (-10.5, -10.5, 0.0),
-            lod_axes: (0.0, 0.0, 1.0),
-        ),
-
-    ],
-    wind_sway: 0.0,
-)],
-// Door
-// To make doors swing add them in voxygen\src\scene\terrain L. 333
-Door: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.door.door-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DoorDark: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.door.door_dark-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DoorWide: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.door.door-wide",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Bed
-Bed: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bed-0",
-            offset: (-9.0, -13.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Bench
-Bench: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bench-0",
-            offset: (-14.0, -4.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Chair
-ChairSingle: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.chair_single-0",
-            offset: (-5.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.chair_single-1",
-            offset: (-5.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-ChairDouble: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.chair_double-0",
-            offset: (-9.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.chair_double-1",
-            offset: (-9.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Helm
-Helm: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.helm_wood",
-            offset: (-8.5, -5.0, 0.0),
-           lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-// CoatRack
-CoatRack: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.coatrack-0",
-            offset: (-6.5, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.coatrack-1",
-            offset: (-6.5, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Crate
-Crate: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.crate-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.crate-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.crate-2",
-            offset: (-3.0, -3.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.crate-3",
-            offset: (-6.0, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.crate-4",
-            offset: (-6.0, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.crate-5",
-            offset: (-5.5, -3.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.crate-6",
-            offset: (-4.5, -3.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// DrawerLarge
-DrawerLarge: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.drawer_large-0",
-            offset: (-11.5, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.drawer_large-1",
-            offset: (-11.5, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// DrawerMedium
-DrawerMedium: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.drawer_medium-0",
-            offset: (-11.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.drawer_medium-1",
-            offset: (-11.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// DrawerSmall
-DrawerSmall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.drawer_small-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.drawer_small-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// DungeonWallDecor
-DungeonWallDecor: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-0",
-            offset: (-5.5, -1.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-2",
-            offset: (-5.5, -3.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-3",
-            offset: (-1.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-4",
-            offset: (-5.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-5",
-            offset: (-5.5, -0.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-6",
-            offset: (-5.5, -1.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-7",
-            offset: (-5.5, -1.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-8",
-            offset: (-5.5, -1.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.dungeon_wall-9",
-            offset: (-1.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// HangingBasket
-HangingBasket: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.hanging_basket-0",
-            offset: (-6.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.hanging_basket-1",
-            offset: (-9.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// HangingSign
-HangingSign: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.hanging_sign-0",
-            offset: (-3.5, -16.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// WallLamp
-WallLamp: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.lamp_wall-1",
-            offset: (-10.5, -12.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// WallLampSmall
-WallLampSmall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.lamp_wall-0",
-            offset: (-5.5, 0.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-WallLampWizard: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.lamp_wall-2",
-            offset: (-5.5, 0.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-ChristmasOrnament: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.snowflake_light",
-            offset: (-5.5, 0.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.hirdrasil-antler",
-            offset: (-10.5, -2.5, -3.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.hirdrasil-antler-1",
-            offset: (-6.5, -2.5, -3.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.moravian-star-orange",
-            offset: (-5.5, -7.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.2,
-)],
-ChristmasWreath: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.wreath-0",
-            offset: (-6.5, 0.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// WallSconce
-WallSconce: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.sconce_wall-0",
-            offset: (-2.5, -1.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Planter
-Planter: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.planter-0",
-            offset: (-6.0, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.planter-1",
-            offset: (-13.0, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.planter-2",
-            offset: (-6.0, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.planter-3",
-            offset: (-6.0, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.planter-4",
-            offset: (-6.0, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.planter-5",
-            offset: (-6.0, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.planter-6",
-            offset: (-7.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Shelf
-Shelf: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.shelf-0",
-            offset: (-14.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.shelf-1",
-            offset: (-13.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// TableSide
-TableSide: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.table_side-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.table_side-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// TableDining
-TableDining: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.table_dining-0",
-            offset: (-8.5, -8.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.table_dining-1",
-            offset: (-8.5, -8.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// TableDouble
-TableDouble: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.table_double-0",
-            offset: (-18.5, -11.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-
-    ],
-    wind_sway: 0.0,
-)],
-// WardrobeDouble
-WardrobeDouble: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_double-0",
-            offset: (-10.5, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_double-1",
-            offset: (-10.5, -6.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// WardrobeSingle
-WardrobeSingle: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_single-0",
-            offset: (-5.5, -6.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_single-1",
-            offset: (-5.5, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Pot
-Pot: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.pot-0",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.pot-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
 // Stones
 Stones: [
     (
@@ -3579,27 +5587,6 @@ Twigs: [(
         (
             model: "voxygen.voxel.sprite.twigs.twigs-2",
             offset: (-4.0, -4.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Drop Gate Parts
-DropGate: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.castle.drop_gate_bars-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DropGateBottom: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.castle.drop_gate_bottom-0",
-            offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -3715,103 +5702,6 @@ Reed: [(
         ),
     ],
     wind_sway: 0.3,
-)],
-// Beehive
-Beehive: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.beehive.beehive",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.1,
-)],
-// Empty Flask
-VialEmpty: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.potion_empty",
-            offset: (-5.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Bowls
-Bowl: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.crafting_ing.bowl",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Minor Potion
-PotionMinor: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.potion_red",
-            offset: (-5.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-],
-    wind_sway: 0.0,
-)],
-PotionDummy: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.potion_green",
-            offset: (-5.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-],
-    wind_sway: 0.0,
-)],
-// Ground Fire Bowls
-FireBowlGround: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.misc.lantern_ground_open",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-],
-    wind_sway: 0.0,
-)],
-// Underwater Grass
-GrassBlue: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.underwater_grass.blue-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.5),
-        ),
-        (
-            model: "voxygen.voxel.sprite.underwater_grass.blue-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.5),
-        ),
-    ],
-    wind_sway: 1.0,
-)],
-// Underwater Chests
-ChestBuried: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.underwater_chests.chest_skull",
-            offset: (-10.0, -8.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.5),
-        ),
-        (
-             model: "voxygen.voxel.sprite.underwater_chests.chest_vines",
-            offset: (-10.0, -8.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.5),
-        ),
-    ],
-    wind_sway: 0.0,
 )],
 // Stony Coral
 StonyCoral: [(
@@ -4320,6 +6210,93 @@ Mud: [(
     ],
     wind_sway: 0.0,
 )],
+// Beehive
+Beehive: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.beehive.beehive",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.1,
+)],
+// Underwater Grass
+GrassBlue: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.underwater_grass.blue-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.underwater_grass.blue-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+    ],
+    wind_sway: 1.0,
+)],
+// Velorite
+Velorite: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_1",
+                offset: (-5.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 1)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_2",
+                offset: (-5.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 1, end: 2)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_3",
+                offset: (-5.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 2, end: 3)),
+    ),
+],
+VeloriteFrag: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_frag_1",
+                offset: (-4.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 0, end: 1)),
+    ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.mineral.gem.velorite_frag_2",
+                offset: (-4.0, -5.0, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (damage: (start: 1, end: 2)),
+    ),
+],
 // Amethyst Ore
 Amethyst: [
     (
@@ -4986,586 +6963,6 @@ WildFlax: [(
     ],
     wind_sway: 0.4,
 )],
-// Lantern
-Lantern: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.mine_lamp",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.2),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// CliffTown & DesertCity Decor
-WindowArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.window.window_arabic",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BookshelfArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.bookshelf_arabic",
-           offset: (-24.5, -5.5, -6.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DecorSetArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.decor_set_arabic-0",
-           offset: (-10.5, -10.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-SepareArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.separe_arabic",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-CushionArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.cushion_arabic",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-JugArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.jug_arabic",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-TableArabicSmall: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.table_arabic_small",
-           offset: (-7.5, -7.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-TableArabicLarge: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.table_arabic_large",
-           offset: (-21.0, -13.0, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-CanapeArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.canape_arabic",
-           offset: (-12.5, -14.0, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-CupboardArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.cupboard_arabic",
-           offset: (-9.5, -5.5, 4.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-WallTableArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.wall_table_arabic",
-           offset: (-15.0, -5.5, 2.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-JugAndBowlArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.jug_and_bowl_arabic",
-           offset: (-15.0, -7.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Melon: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.melon_cut",
-           offset: (-4.5, -4.5, -0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.melon",
-           offset: (-5.5, -4.5, -0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-FountainArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.fountain_arabic",
-           offset: (-15.5, -15.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-OvenArabic: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.oven_arabic",
-           offset: (-6.5, -8.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Hearth: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.hearth",
-           offset: (-19.0, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-ForgeTools: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.forge_tools",
-           offset: (-19.0, -5.0, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// CoastalTown Sprites
-TableCoastalLarge: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.table_coastal_large",
-           offset: (-10.5, -16.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BenchCoastal: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bench_coastal-0",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.bench_coastal-1",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.bench_coastal-2",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-JugAndCupsCoastal: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.jug_and_cups_coastal",
-           offset: (-6.0, -7.0, 3.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// CliffTown Sprites
-CliffDecorBlock: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-0",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),           
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-1",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-2",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-3",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-4",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-5",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-6",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-7",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-8",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-9",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-10",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-           model: "voxygen.voxel.sprite.furniture.cliff_decor_block-11",
-           offset: (-5.5, -5.5, 0.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),                                                                                                        
-    ],
-    wind_sway: 0.0,
-)],
-BedMesa: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bed_mesa",
-            offset: (-9.0, -16.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-CupboardMesa: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.cupboard_mesa",
-            offset: (-8.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-WallLampMesa: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.wall_lamp_mesa",
-            offset: (-4.5, 0.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-MesaLantern: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lantern_mesa",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.2),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-MirrorMesa: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.mirror_mesa",
-            offset: (-10.5, -2.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-WallTableMesa: [(
-    variations: [
-        (
-           model: "voxygen.voxel.sprite.furniture.wall_table_mesa",
-           offset: (-7.5, -5.5, 3.0),
-           lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-WardrobeDoubleMesa: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_double_mesa-0",
-            offset: (-17.0, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_double_mesa-1",
-            offset: (-12.5, -6.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_double_mesa-2",
-            offset: (-10.5, -6.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-WardrobeSingleMesa: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_single-0",
-            offset: (-7.0, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.wardrobe_single-1",
-            offset: (-7.0, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Anvil
-Anvil: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.anvil.anvil-0",
-            offset: (-5.5, -7.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Cauldron
-Cauldron: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.cauldron.cauldron-0",
-            offset: (-10.0, -9.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Forge
-Forge: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.forge",
-            offset: (-6.5, -6.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Loom: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.loom",
-            offset: (-6.0, -4.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// DismantlingBench
-DismantlingBench: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.salvaging_station.salvaging_station-0",
-            offset: (-7.0, -8.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-SpinningWheel: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.spinning_wheel",
-            offset: (-7.5, -5.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-TanningRack: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.tanning_rack",
-            offset: (-7.5, -4.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Crafting Bench
-CraftingBench: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.crafting_bench.crafting_bench-0",
-            offset: (-9.5, -7.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Cooking Pot
-CookingPot: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.cooking_pot.pot-0",
-            offset: (-7.0, -8.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Repair Bench
-RepairBench: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.repair_bench.repair_bench-0",
-            offset: (-7.0, -8.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Ensnaring Vines
-EnsnaringVines: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.misc.ensnaring_vines",
-            offset: (-5.0, -6.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Sea Urchin
-SeaUrchin: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.sea_urchin",
-            offset: (-5.0, -6.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Iron Spike
-IronSpike: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.iron_spike",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// WitchWindow
-WitchWindow: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.window.witch_purple",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.5),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Keyhole: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.keyhole_block",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.5),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-KeyDoor: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.door_block",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.5),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BoneKeyhole: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bone_keyhole_block",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.5),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BoneKeyDoor: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bone_door_block",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.5),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
 // Bones
 Bones: [(
     variations: [
@@ -5808,1122 +7205,15 @@ LillyPads: [(
     ],
     wind_sway: 0.6,
 )],
-Bomb: [(
+// Sea Urchin
+SeaUrchin: [(
     variations: [
         (
-            model: "voxygen.voxel.object.bomb",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.5, 0.5, 0.5),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-EnsnaringWeb: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.misc.ensnaring_web",
+            model: "voxygen.voxel.object.sea_urchin",
             offset: (-5.0, -6.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],
     wind_sway: 0.0,
-)],
-// Ice spike
-IceSpike: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.misc.icespike",
-            offset: (-5.0, -6.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// WOOOOOOD
-Wood: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wood.log.wood",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Bamboo: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wood.log.bamboo",
-            offset: (-6.5, -6.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Hardwood: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wood.log.hardwood",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Ironwood: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wood.log.ironwood",
-            offset: (-6.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Frostwood: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wood.log.frostwood",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Eldwood: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wood.log.eldwood",
-            offset: (-4.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Bedrolls
-Bedroll: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.camp.camp",
-            offset: (-8.0, -16.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Tent: [(
-    variations: [
-        (
-            model: "voxygen.voxel.object.tent",
-            offset: (-7.5, -15.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BedrollSnow: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.camp.camp_snow",
-            offset: (-8.0, -16.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BedrollPirate: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.camp.camp_pirate",
-            offset: (-8.0, -16.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Graves
-Grave: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.grave.mud",
-            offset: (-6.0, -7.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Gravestone: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.grave.grave_0",
-            offset: (1.0, -6.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.grave.grave_1",
-            offset: (1.0, -6.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.grave.grave_2",
-            offset: (1.0, -6.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.grave.grave_3",
-            offset: (1.0, -6.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.grave.grave_4",
-            offset: (1.0, -6.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.grave.grave_5",
-            offset: (1.0, -6.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.grave.grave_6",
-            offset: (1.0, -6.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-// Wizard assets
-MagicalBarrier: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wizard.magical_barrier",
-            offset: (-10.0, -0.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-MagicalSeal: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wizard.magical_seal",
-            offset: (-16.0, -16.0, -1.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Candle: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.wizard.candle",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-DoorBars: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.bars.0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-KeyholeBars: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.bars.keyhole",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-IceCrystal: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_2",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_3",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_4",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_5",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_6",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_7",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_8",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_9",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_10",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.ice_crystal_11",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-
-GlowIceCrystal: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_0",
-            offset: (8.5, -9.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_1",
-            offset: (-8.0, -8.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_2",
-            offset: (-11.5, -12.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_3",
-            offset: (-8.5, -9.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_4",
-            offset: (-8.0, -8.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.crystal.glow_ice_crystal_5",
-            offset: (-11.5, -12.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-OneWayWall: [()],
-Sign: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.sign.basic",
-            offset: (-8.5, -2.0, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-WoodBarricades: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.barricades_wood.barricades-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.barricades_wood.barricades-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.barricades_wood.barricades-2",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.barricades_wood.barricades-3",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-
-    ],
-    wind_sway: 0.0,
-)],
-DiamondLight: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.misc.floating_diamond",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (0.0, 0.0, 0.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-SmithingTable: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.smith_table-0",
-            offset: (-7.5, -7.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Forge0: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.forge-0",
-            offset: (-3.5, -7.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-GearWheel0: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.gear_wheel-0",
-            offset: (-8.5, -8.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-Quench0: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.quench-0",
-            offset: (-2.5, -2.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-HotSurface: [()],
-Barrel: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.barrel",
-            offset: (-4.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-CrateBlock: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.crate_block",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BarrelWoodWater: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.barrel_wood_water",
-            offset: (-7, -7, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BarrelWoodCoal: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.barrel_wood_coal",
-            offset: (-7.0, -7.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LanternpostWoodLantern: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern_off",
-            offset: (-9.5, -2.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-    filter: (light_enabled: false)
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern_on",
-            offset: (-9.5, -2.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)],
-LanternpostWoodUpper: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_upper",
-            offset: (-2.5, -2.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LanternpostWoodBase: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternpost_wood_base",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LampMetalShinglesRed: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_red_off",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-    filter: (light_enabled: false),
-        ),
-        (
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_red_on",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)], 
-LampMetalShinglesCyan: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_cyan_off",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lamp_metal_shingles_cyan_on",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)],
-LampMetalBase: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lamp_metal_base",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LampTerracotta: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lamp_terracotta_off",
-            offset: (-6.5, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lamp_terracotta_on",
-            offset: (-6.5, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)],
-BlacksmithBellows: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.blacksmith_bellows",
-            offset: (-7.5, -10.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-CarpenterTable: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.carpenter_table-0",
-            offset: (-11.0, -7.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.carpenter_table-1",
-            offset: (-11.0, -7.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-CarpenterCrateWoodS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.carpenter_crate_wood_S",
-            offset: (-4.0, -4.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-CarpenterCrateWoodL: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.carpenter_crate_wood_L",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-CarpenterToolsWall: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.carpenter_tools_wall",
-            offset: (-5.5, -1.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-CarpenterLogCutter: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-0",
-            offset: (-10.0, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-1",
-            offset: (-10.0, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.furniture.carpenter_log_cutter-2",
-            offset: (-10.0, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-HandCartWood: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.hand_cart_wood",
-            offset: (-16.5, -11.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-)],
-BasketWovenL: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.basket_woven_L",
-            offset: (-6.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-	    (
-            model: "voxygen.voxel.sprite.furniture.basket_woven_L_lid",
-            offset: (-6.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-BasketWovenM: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.basket_woven_M",
-            offset: (-5.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-	(
-            model: "voxygen.voxel.sprite.furniture.basket_woven_M_lid",
-            offset: (-5.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-BasketWovenS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.basket_woven_S",
-            offset: (-4.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-BonfireMLit: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bonfire_M_lit",
-            offset: (-11.0, -11.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-BonfireMUnlit: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bonfire_M_unlit",
-            offset: (-11.0, -11.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-BucketWoodM: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bucket_wood_M-0",
-            offset: (-4.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-	(
-            model: "voxygen.voxel.sprite.furniture.bucket_wood_M-1",
-            offset: (-4.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-JugClayM: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.jug_clay_M",
-            offset: (-4.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-MirrorWoodM: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.mirror_wood_M",
-            offset: (-6.5, -1.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-SackLeatherM: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.sack_leather_M",
-            offset: (-6.0, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-TrophyframeWoodBear: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.trophyframe_wood_bear",
-            offset: (-8.5, -6.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-TrophyframeWoodDeer: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.trophyframe_wood_deer",
-            offset: (-8.0, -6.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-DiningtableWoodCorner: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.diningtable_wood_corner",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-DiningtableWoodBody: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.diningtable_wood_body",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-ChestWoodDouble: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.chest_wood_double_half",
-            offset: (-5.5, -6.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-BenchWoodEnd: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bench_wood_end",
-            offset: (-5.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-BenchWoodMiddle: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.bench_wood_middle",
-            offset: (-5.5, -4.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LogsWoodCoreEnd: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_core_end",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LogsWoodCoreMiddle: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_core_middle",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LogsWoodBarkEnd: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_bark_end",
-            offset: (-6.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LogsWoodBarkMiddle: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_bark_middle",
-            offset: (-6.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LogsWoodBranchEnd: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_end",
-            offset: (-6.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LogsWoodBranchMiddle: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_middle",
-            offset: (-6.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LogsWoodBranchS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.logs_wood_branch_S",
-            offset: (-6.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-SeatWoodBlueMiddle: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.seat_wood_blue_middle",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-SeatWoodBlueSide: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.seat_wood_blue_side",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
-)],
-LanternAirshipWallBlackS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_black_S_off",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_black_S_on",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],   
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)], 
-LanternAirshipWallBrownS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_brown_S_off",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_brown_S_on",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)],
-LanternAirshipWallChestnutS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_chestnut_S_off",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_chestnut_S_on",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)], 
-LanternAirshipWallRedS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_red_S_off",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_wall_red_S_on",
-            offset: (-5.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)], 
-LanternAirshipGroundBlackS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_black_S_off",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_black_S_on",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)], 
-LanternAirshipGroundBrownS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_brown_S_off",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_brown_S_on",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)],
-LanternAirshipGroundChestnutS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_chestnut_S_off",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_chestnut_S_on",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)], 
-LanternAirshipGroundRedS: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_red_S_off",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0.0,
-    filter: (light_enabled: false),
-),
-(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.lantern.lanternairship_ground_red_S_on",
-            offset: (-3.5, -3.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],    
-    wind_sway: 0,
-    filter: (light_enabled: true),
-)],
-RopeCoilM: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.furniture.ropecoil_M",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-    ],
-    wind_sway: 0,
 )],
 }

@@ -34,9 +34,8 @@
 //! of the three bytes gives us the [`SpriteKind`].
 
 mod magic;
-
+//use inline_tweak::tweak_fn;
 pub use self::magic::{Attribute, AttributeError};
-
 use crate::{
     attributes,
     comp::{item::ItemDefinitionIdOwned, tool::ToolKind},
@@ -73,19 +72,6 @@ sprites! {
     // TODO: Remove sizes and variants, represent with attributes
     Furniture = 2 has Ori {
         // Indoor
-        CoatRack           = 0x00,
-        Bed                = 0x01,
-        Bench              = 0x02,
-        ChairSingle        = 0x03,
-        ChairDouble        = 0x04,
-        DrawerLarge        = 0x05,
-        DrawerMedium       = 0x06,
-        DrawerSmall        = 0x07,
-        TableSide          = 0x08,
-        TableDining        = 0x09,
-        TableDouble        = 0x0A,
-        WardrobeSingle     = 0x0B,
-        WardrobeDouble     = 0x0C,
         BookshelfArabic    = 0x0D,
         WallTableArabic    = 0x0E,
         TableArabicLarge   = 0x0F,
@@ -96,7 +82,6 @@ sprites! {
         CanapeArabic       = 0x14,
         Shelf              = 0x15,
         Planter            = 0x16,
-        Pot                = 0x17,
         BedMesa            = 0x18,
         WallTableMesa      = 0x19,
         MirrorMesa         = 0x1A,
@@ -172,10 +157,37 @@ sprites! {
         LogsWoodBarkMiddle = 0x92,
         LogsWoodBranchEnd = 0x93,
         LogsWoodBranchMiddle = 0x94,
-        HandCartWood = 0x95,
-        SeatWoodBlueMiddle = 0x96,
-        SeatWoodBlueSide = 0x97,
-        RopeCoilM = 0x98,
+        SeatWoodBlueMiddle = 0x95,
+        SeatWoodBlueSide = 0x96,
+        RopeCoilM = 0x97,
+        BedWoodWoodlandHead = 0x99,
+        BedWoodWoodlandMiddle = 0x9A,
+        BedWoodWoodlandTail = 0x9B,
+        BenchWoodWoodlandGreen1 = 0x9C,
+        BenchWoodWoodlandGreen2 = 0x9D,
+        BenchWoodWoodlandGreen3 = 0x9E,
+        BenchWoodWoodland = 0xA0,
+        ChairWoodWoodland = 0xA1,
+        ChairWoodWoodland2 = 0xA2,
+        CoatrackMetalWoodland = 0xA3,
+        CoatrackWoodWoodland = 0xA4,
+        DrawerWoodWoodlandL1 = 0xA5,
+        DrawerWoodWoodlandL2 = 0xA6,
+        DrawerWoodWoodlandM1 = 0xA7,
+        DrawerWoodWoodlandM2 = 0xA8,
+        DrawerWoodWoodlandS = 0xA9,
+        HandCartWoodHead = 0xAA,
+        HandCartWoodMiddle = 0xAB,
+        HandCartWoodTail = 0xAC,
+        FlowerpotWoodWoodlandS = 0xAD,
+        DiningtableWoodWoodlandRound = 0xAE,
+        DiningtableWoodWoodlandSquare = 0xAF,
+        TableWoodFancyWoodlandCorner = 0xB0,
+        TableWoodFancyWoodlandBody = 0xB1,
+        WardrobedoubleWoodWoodland = 0xB2,
+        WardrobedoubleWoodWoodland2 = 0xB3,
+        WardrobesingleWoodWoodland = 0xB4,
+        WardrobesingleWoodWoodland2 = 0xB5,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
     Plant = 3 has Growth, Owned, SnowCovered {
@@ -516,6 +528,7 @@ pub struct SnowCovered(pub bool);
 
 impl SpriteKind {
     #[inline]
+    //#[tweak_fn]
     pub fn solid_height(&self) -> Option<f32> {
         // Beware: the height *must* be <= `MAX_HEIGHT` or the collision system will not
         // properly detect it!
@@ -524,7 +537,7 @@ impl SpriteKind {
             SpriteKind::BedrollSnow => 0.4,
             SpriteKind::BedrollPirate => 0.3,
             SpriteKind::Tomato => 1.65,
-            SpriteKind::BarrelCactus => 1.0,
+            SpriteKind::BarrelCactus => 0.909,
             SpriteKind::LargeCactus => 3.0,
             SpriteKind::TallCactus => 2.63,
             SpriteKind::Scarecrow => 3.0,
@@ -559,38 +572,23 @@ impl SpriteKind {
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,
             SpriteKind::FireBowlGround => 0.55,
-            SpriteKind::Bed => 0.72,
             SpriteKind::BedMesa => 0.82,
-            SpriteKind::Bench => 0.5,
-            SpriteKind::ChairSingle => 0.5,
-            SpriteKind::ChairDouble => 0.5,
-            SpriteKind::CoatRack => 2.36,
-            SpriteKind::Crate => 0.90,
-            SpriteKind::DrawerSmall => 1.0,
-            SpriteKind::DrawerMedium => 2.0,
-            SpriteKind::DrawerLarge => 2.0,
             SpriteKind::DungeonWallDecor => 1.0,
             SpriteKind::Planter => 1.09,
-            SpriteKind::TableSide => 1.27,
-            SpriteKind::TableDining => 1.45,
-            SpriteKind::TableDouble => 1.45,
-            SpriteKind::WardrobeSingle => 3.0,
-            SpriteKind::WardrobeDouble => 3.0,
             SpriteKind::WardrobeSingleMesa => 2.0,
             SpriteKind::WardrobeDoubleMesa => 2.0,
             SpriteKind::MirrorMesa => 2.0,
-            SpriteKind::Pot => 0.90,
             SpriteKind::Mud => 0.36,
             SpriteKind::ChestBuried => 0.91,
             SpriteKind::StonyCoral => 1.4,
             SpriteKind::CraftingBench => 1.18,
-            SpriteKind::Forge => 2.7,
+            SpriteKind::Forge => 1.818,
             SpriteKind::Cauldron => 1.27,
-            SpriteKind::SpinningWheel => 1.6,
-            SpriteKind::TanningRack => 2.2,
-            SpriteKind::Loom => 1.27,
+            SpriteKind::SpinningWheel => 1.454,
+            SpriteKind::TanningRack => 1.454,
+            SpriteKind::Loom => 1.636,
             SpriteKind::Anvil => 1.18,
-            SpriteKind::CookingPot => 1.36,
+            SpriteKind::CookingPot => 1.090,
             SpriteKind::DismantlingBench => 1.18,
             SpriteKind::IceSpike => 1.0,
             SpriteKind::RepairBench => 1.2,
@@ -702,9 +700,7 @@ impl SpriteKind {
             SpriteKind::CarpenterTable => 2.000,
             SpriteKind::CarpenterCrateWoodS => 0.727,
             SpriteKind::CarpenterCrateWoodL => 1.273,
-            SpriteKind::CarpenterToolsWall => 1.000,
             SpriteKind::CarpenterLogCutter => 1.545,
-            SpriteKind::HandCartWood => 3.000,
             SpriteKind::BasketWovenL | SpriteKind::JugClayM => 1.000,
             SpriteKind::BasketWovenM => 0.909,
             SpriteKind::BasketWovenS => 0.818,
@@ -736,6 +732,35 @@ impl SpriteKind {
             | SpriteKind::LanternAirshipGroundChestnutS
             | SpriteKind::LanternAirshipGroundRedS => 0.909,
             SpriteKind::RopeCoilM => 0.363,
+            SpriteKind::BedWoodWoodlandHead => 0.636,
+            SpriteKind::BedWoodWoodlandMiddle => 0.636,
+            SpriteKind::BedWoodWoodlandTail => 0.636,
+            SpriteKind::BenchWoodWoodlandGreen1 => 1.545,
+            SpriteKind::BenchWoodWoodlandGreen2 => 1.545,
+            SpriteKind::BenchWoodWoodlandGreen3 => 1.545,
+            SpriteKind::BenchWoodWoodland => 1.545,
+            SpriteKind::ChairWoodWoodland => 1.636,
+            SpriteKind::ChairWoodWoodland2 => 1.727,
+            SpriteKind::CoatrackMetalWoodland => 2.364,
+            SpriteKind::CoatrackWoodWoodland => 2.364,
+            SpriteKind::Crate => 0.909,
+            SpriteKind::DrawerWoodWoodlandS => 1.000,
+            SpriteKind::DrawerWoodWoodlandM1 => 0.909,
+            SpriteKind::DrawerWoodWoodlandM2 => 0.909,
+            SpriteKind::DrawerWoodWoodlandL1 => 1.273,
+            SpriteKind::DrawerWoodWoodlandL2 => 1.273,
+            SpriteKind::DiningtableWoodWoodlandRound => 1.273,
+            SpriteKind::DiningtableWoodWoodlandSquare => 1.273,
+            SpriteKind::TableWoodFancyWoodlandCorner => 1.273,
+            SpriteKind::TableWoodFancyWoodlandBody => 1.273,
+            SpriteKind::WardrobesingleWoodWoodland => 2.364,
+            SpriteKind::WardrobesingleWoodWoodland2 => 2.364,
+            SpriteKind::WardrobedoubleWoodWoodland => 2.364,
+            SpriteKind::WardrobedoubleWoodWoodland2 => 2.364,
+            SpriteKind::FlowerpotWoodWoodlandS => 0.455,
+            SpriteKind::HandCartWoodHead => 1.091,
+            SpriteKind::HandCartWoodMiddle => 1.091,
+            SpriteKind::HandCartWoodTail => 1.091,
             _ => return None,
         })
     }
@@ -783,6 +808,7 @@ impl SpriteKind {
     /// Some(None) = block can be collected, but does not give back an item
     /// Some(Some(_)) = block can be collected and gives back an item
     #[inline]
+    //#[tweak_fn]
     pub fn collectible_id(&self) -> Option<Option<LootSpec<&'static str>>> {
         let item = LootSpec::Item;
         let table = LootSpec::LootTable;
@@ -886,14 +912,18 @@ impl SpriteKind {
 
     /// Get the position and direction to mount this sprite if any.
     #[inline]
+    //#[tweak_fn]
     pub fn mount_offset(&self) -> Option<(Vec3<f32>, Vec3<f32>)> {
         match self {
-            SpriteKind::ChairSingle
-            | SpriteKind::ChairDouble
-            | SpriteKind::Bench
+            SpriteKind::ChairWoodWoodland
+            | SpriteKind::ChairWoodWoodland2
+            | SpriteKind::BenchWoodWoodlandGreen1
+            | SpriteKind::BenchWoodWoodlandGreen2
+            | SpriteKind::BenchWoodWoodlandGreen3
+            | SpriteKind::BenchWoodWoodland
             | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y())),
             SpriteKind::Helm => Some((Vec3::new(0.0, -1.1, 0.0), Vec3::unit_y())),
-            SpriteKind::Bed => Some((Vec3::new(0.0, 0.0, 0.6), -Vec3::unit_y())),
+            SpriteKind::BedWoodWoodlandHead => Some((Vec3::new(1.4, 0.0, 0.5), Vec3::unit_y())),
             SpriteKind::BedMesa => Some((Vec3::new(0.0, 0.0, 0.6), -Vec3::unit_y())),
             SpriteKind::BedrollSnow | SpriteKind::BedrollPirate => {
                 Some((Vec3::new(0.0, 0.0, 0.1), -Vec3::unit_x()))

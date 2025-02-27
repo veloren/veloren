@@ -229,7 +229,7 @@ impl Structure for CliffTower {
                                     0 => SpriteKind::Bowl,
                                     1 => SpriteKind::VialEmpty,
                                     2 => SpriteKind::Crate,
-                                    3 => SpriteKind::Pot,
+                                    3 => SpriteKind::FlowerpotWoodWoodlandS,
                                     _ => SpriteKind::MesaLantern,
                                 },
                                 0,
@@ -512,7 +512,7 @@ impl Structure for CliffTower {
                                                 % 9
                                             {
                                                 0 => SpriteKind::WardrobeSingleMesa,
-                                                1 => SpriteKind::CoatRack,
+                                                1 => SpriteKind::CoatrackMetalWoodland,
                                                 2 => SpriteKind::MirrorMesa,
                                                 3 => SpriteKind::CushionArabic,
                                                 4 => SpriteKind::JugArabic,
@@ -628,8 +628,8 @@ impl Structure for CliffTower {
                                             match (RandomField::new(0).get(pos.with_z(floor_level)))
                                                 % 12
                                             {
-                                                0 => SpriteKind::DrawerSmall,
-                                                1 => SpriteKind::CoatRack,
+                                                0 => SpriteKind::DrawerWoodWoodlandS,
+                                                1 => SpriteKind::CoatrackWoodWoodland,
                                                 2 => SpriteKind::TableArabicSmall,
                                                 3 => SpriteKind::CushionArabic,
                                                 4 => SpriteKind::JugArabic,
