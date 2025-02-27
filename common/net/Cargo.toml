@@ -4,6 +4,9 @@ edition = "2021"
 name = "veloren-common-net"
 version = "0.10.0"
 
+[lints]
+workspace = true
+
 [features]
 simd = ["vek/platform_intrinsics"]
 

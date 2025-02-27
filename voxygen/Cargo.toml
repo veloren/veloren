@@ -11,6 +11,9 @@ version = "0.17.0"
 # Uncomment below and comment out default-run if you want to avoid this
 # autobins = false
 
+[lints]
+workspace = true
+
 [package.metadata.nix]
 build = true
 app = true

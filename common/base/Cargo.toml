@@ -5,6 +5,9 @@ name = "veloren-common-base"
 description = "minimal dependency for crates to now depend on whole common"
 version = "0.10.0"
 
+[lints]
+workspace = true
+
 [features]
 tracy = ["profiling", "profiling/profile-with-tracy"]
 

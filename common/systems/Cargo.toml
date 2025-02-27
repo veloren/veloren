@@ -4,6 +4,9 @@ edition = "2021"
 name = "veloren-common-systems"
 version = "0.10.0"
 
+[lints]
+workspace = true
+
 [features]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]

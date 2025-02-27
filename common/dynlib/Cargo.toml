@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Ben Wallis <atomyc@gmail.com>"]
 edition = "2021"
 
+[lints]
+workspace = true
+
 [dependencies]
 find_folder = {version = "0.3.0"}
 libloading = {version = "0.8"}

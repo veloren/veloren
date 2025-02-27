@@ -4,6 +4,9 @@ edition = "2021"
 name = "veloren-voxygen-anim"
 version = "0.10.0"
 
+[lints]
+workspace = true
+
 [features]
 use-dyn-lib = ["lazy_static", "common-dynlib"]
 be-dyn-lib = []
