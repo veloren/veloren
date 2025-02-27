@@ -5,6 +5,9 @@ name = "veloren-common-assets"
 description = "Crate for game loading assets for veloren."
 version = "0.10.0"
 
+[lints]
+workspace = true
+
 [dependencies]
 lazy_static = { workspace = true }
 assets_manager = { version = "0.12", features = ["bincode", "ron", "json"] }

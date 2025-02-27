@@ -4,6 +4,9 @@ name = "veloren-server-agent"
 edition = "2021"
 version = "0.1.0"
 
+[lints]
+workspace = true
+
 [features]
 worldgen = []
 use-dyn-lib = ["common-dynlib"]

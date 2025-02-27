@@ -4,6 +4,9 @@ version = "0.10.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2021"
 
+[lints]
+workspace = true
+
 [features]
 use-dyn-lib = ["common-dynlib"]
 be-dyn-lib = []

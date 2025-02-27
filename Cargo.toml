@@ -27,6 +27,13 @@ members = [
     "network/protocol",
 ]
 
+### LINTS ###
+
+# Note, crates not in this workspace don't include these lints. We have added a
+# [workspace.lints] entry to those crates, so they can be found by searching
+# for this.
+[workspace.lints]
+
 ### PROFILES ###
 
 # default profile for devs, fast to compile, okay enough to run, no debug information

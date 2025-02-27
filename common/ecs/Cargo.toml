@@ -4,6 +4,9 @@ edition = "2021"
 name = "veloren-common-ecs"
 version = "0.10.0"
 
+[lints]
+workspace = true
+
 [features]
 
 [dependencies]

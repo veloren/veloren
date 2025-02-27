@@ -5,6 +5,9 @@ name = "veloren-client-i18n"
 description = "Optional crate for internalization and diagnostic of existing localizations for frontends to consume"
 version = "0.13.0"
 
+[lints]
+workspace = true
+
 [dependencies]
 # Assets
 common-assets = {package = "veloren-common-assets", path = "../../common/assets"}

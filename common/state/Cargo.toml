@@ -4,6 +4,9 @@ edition = "2021"
 name = "veloren-common-state"
 version = "0.10.0"
 
+[lints]
+workspace = true
+
 [features]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-assets/plugins", "toml", "wasmtime", "wasmtime-wasi", "tar", "bincode", "serde", "dep:sha2", "dep:hex"]

@@ -4,6 +4,9 @@ version = "0.17.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2021"
 
+[lints]
+workspace = true
+
 [features]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]

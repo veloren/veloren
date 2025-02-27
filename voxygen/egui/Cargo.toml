@@ -4,6 +4,9 @@ name = "veloren-voxygen-egui"
 edition = "2021"
 version = "0.9.0"
 
+[lints]
+workspace = true
+
 [features]
 use-dyn-lib = ["common-dynlib"]
 be-dyn-lib = []

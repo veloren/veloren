@@ -5,6 +5,9 @@ name = "veloren-common-frontend"
 description = "common stuff that is used by server-cli and voxygen directly"
 version = "0.10.0"
 
+[lints]
+workspace = true
+
 [features]
 tracy = ["common-base/tracy", "tracing-tracy"]
 

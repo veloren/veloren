@@ -8,6 +8,9 @@ authors = [
 ]
 edition = "2021"
 
+[lints]
+workspace = true
+
 [features]
 no-assets = []
 hot-reloading = ["common-assets/hot-reloading"]

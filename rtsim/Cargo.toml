@@ -3,6 +3,9 @@ name = "veloren-rtsim"
 version = "0.10.0"
 edition = "2021"
 
+[lints]
+workspace = true
+
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
