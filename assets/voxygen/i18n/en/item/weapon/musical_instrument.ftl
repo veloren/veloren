@@ -52,10 +52,10 @@ weapon-tool-banjo = Banjo
 weapon-tool-viola_pizzicato = Viola Pizzicato
     .desc = Viola Pizzicato.
 
-weapon-tool-conch = Starlight Conch
+weapon-tool-starlight_conch = Starlight Conch
     .desc = Starlight Conch.
 
-weapon-tool-tambourine = Timbrel Of Chaos
+weapon-tool-timbrel_of_chaos = Timbrel Of Chaos
     .desc = Timbrel Of Chaos.
 
 weapon-tool-rhythmo = Rhythmo

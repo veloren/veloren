@@ -2577,11 +2577,11 @@
             "common.items.tool.instruments.viola_pizzicato",
         ): "weapon-tool-viola_pizzicato",
         Simple(
-            "common.items.tool.instruments.conch",
-        ): "weapon-tool-conch",
+            "common.items.tool.instruments.starlight_conch",
+        ): "weapon-tool-starlight_conch",
         Simple(
-            "common.items.tool.instruments.tambourine",
-        ): "weapon-tool-tambourine",
+            "common.items.tool.instruments.timbrel_of_chaos",
+        ): "weapon-tool-timbrel_of_chaos",
         Simple(
             "common.items.tool.instruments.rhythmo",
         ): "weapon-tool-rhythmo",
