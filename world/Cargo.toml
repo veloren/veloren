@@ -55,6 +55,8 @@ ron = { workspace = true }
 kiddo = { workspace = true }
 fixed = "1"
 strum = { workspace = true }
+delaunator = "1.0.2"
+line_drawing = "1.0.1"
 
 # compression benchmarks
 lz-fear = { version = "0.2", optional = true }

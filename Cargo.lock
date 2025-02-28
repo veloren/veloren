@@ -1735,6 +1735,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "delaunator"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ab46e386c7a38300a0d93b0f3e484bc2ee0aded66c47b14762ec9ab383934fa"
+dependencies = [
+ "robust",
+]
+
+[[package]]
 name = "deranged"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3911,6 +3920,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "line_drawing"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5f309016f7f96b0147c6f223d5a8c4e678bf13ae8fb4f85f60c3bb5e0598ea8"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "linked-hash-map"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5987,6 +6005,12 @@ dependencies = [
  "rmp",
  "serde",
 ]
+
+[[package]]
+name = "robust"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5864e7ef1a6b7bcf1d6ca3f655e65e724ed3b52546a0d0a663c991522f552ea"
 
 [[package]]
 name = "ron"
@@ -8326,6 +8350,7 @@ dependencies = [
  "criterion",
  "csv",
  "deflate",
+ "delaunator",
  "enum-map",
  "enumset",
  "fallible-iterator",
@@ -8338,6 +8363,7 @@ dependencies = [
  "itertools 0.14.0",
  "kiddo",
  "lazy_static",
+ "line_drawing",
  "lz-fear",
  "minifb",
  "noise",

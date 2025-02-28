@@ -1,6 +1,7 @@
 #![expect(dead_code)]
 
 pub mod airship_travel;
+pub mod airship_route_map;
 mod econ;
 
 use crate::{
@@ -740,6 +741,13 @@ impl Civs {
             }
         }
 
+        prof_span!(guard, "generate airship routes");
+        this.airships
+            .generate_airship_routes(ctx.sim, index);
+        this.airships
+            .generate_airship_routes2(ctx.sim, index);
+        drop(guard);
+
         // TODO: this looks optimizable
 
         // collect natural resources
@@ -760,11 +768,6 @@ impl Civs {
                     .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
             }
         });
-        drop(guard);
-
-        prof_span!(guard, "generate airship routes");
-        this.airships
-            .generate_airship_routes(sites, sim, index.seed);
         drop(guard);
 
         sites.iter_mut().for_each(|(_, s)| {

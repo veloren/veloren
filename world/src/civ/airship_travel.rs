@@ -1,4 +1,6 @@
 use crate::{
+    civ::airship_route_map::*,
+    Index,
     sim::WorldSim,
     site::{self, Site, plot::PlotKindMeta},
     util::{DHashMap, DHashSet, seed_expan},
@@ -8,13 +10,14 @@ use common::{
     terrain::CoordinateConversions,
     util::Dir,
 };
+use delaunator::{Point, triangulate};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use std::{fs::OpenOptions, io::Write};
 use tracing::{debug, warn};
 use vek::*;
 
-const AIRSHIP_TRAVEL_DEBUG: bool = false;
+const AIRSHIP_TRAVEL_DEBUG: bool = true;
 
 macro_rules! debug_airships {
     ($($arg:tt)*) => {
@@ -237,7 +240,7 @@ impl Airships {
     pub fn takeoff_ascent_height() -> f32 { Airships::TAKEOFF_ASCENT_ALT }
 
     /// Get all the airship docking positions from the world sites.
-    fn all_airshipdock_positions(sites: &mut Store<Site>) -> Vec<AirshipDockPositions> {
+    fn all_airshipdock_positions(sites: &Store<Site>) -> Vec<AirshipDockPositions> {
         let mut dock_pos_id = 0;
         sites
             .iter()
@@ -292,13 +295,12 @@ impl Airships {
     /// travel to deconflict as much as possible.
     pub fn generate_airship_routes(
         &mut self,
-        sites: &mut Store<Site>,
         world_sim: &mut WorldSim,
-        seed: u32,
+        index: &Index,
     ) {
-        let all_docking_positions = Airships::all_airshipdock_positions(sites);
+        let all_docking_positions = Airships::all_airshipdock_positions(&index.sites);
         // Create a map of all possible dock to dock connections.
-        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(index.seed));
         let mut routes = DHashMap::<DockConnectionHashKey, AirRouteConnection>::default();
         all_docking_positions.iter().for_each(|from_dock| {
             all_docking_positions
@@ -554,6 +556,36 @@ impl Airships {
                 }
             });
         });
+        if AIRSHIP_TRAVEL_DEBUG {
+            save_airship_routes_map(self, index, world_sim);
+        }
+    }
+
+    pub fn generate_airship_routes2(
+        &mut self,
+        world_sim: &mut WorldSim,
+        index: &Index,
+    ) {
+        let all_dock_positions = Airships::all_airshipdock_positions(&index.sites);
+        let all_dock_points = all_dock_positions.iter()
+            .map(|dock| Point { x: dock.center.x as f64, y: dock.center.y as f64})
+            .collect::<Vec<_>>();
+        
+        let result = triangulate(&all_dock_points);        
+        println!("triangles (len {}) {:?}", result.triangles.len(), result.triangles);
+        println!("hull (len {}) {:?}", result.hull.len(), result.hull);
+        println!("halfedges (len {}):", result.halfedges.len());
+        for i in 0..result.halfedges.len() {
+            if result.halfedges[i] == delaunator::EMPTY {
+                let vertex = result.triangles[i];
+                println!("{}, {}, {}, 4294967295, 0, 0", vertex, all_dock_points[vertex].x, all_dock_points[vertex].y);
+            } else {
+                let vertex1 = result.triangles[i];
+                let vertex2 = result.triangles[result.halfedges[i]];
+                println!("{}, {}, {}, {}, {}, {}", vertex1, all_dock_points[vertex1].x, all_dock_points[vertex1].y, vertex2, all_dock_points[vertex2].x, all_dock_points[vertex2].y);
+            }
+        }
+        save_airship_routes_triangulation(&result, &all_dock_points, index, world_sim);
     }
 
     /// Given a docking position, find the airship route and approach index
