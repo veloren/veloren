@@ -44,7 +44,6 @@ impl House {
         alt: Option<i32>,
     ) -> Self {
         let levels = rng.gen_range(1..2 + (tile_aabr.max - tile_aabr.min).product() / 6) as u32;
-        let door_tile_pos = site.tile_center_wpos(door_tile);
         let bounds = Aabr {
             min: site.tile_wpos(tile_aabr.min),
             max: site.tile_wpos(tile_aabr.max),
@@ -60,7 +59,7 @@ impl House {
         let christmas_decorations = calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas));
 
         Self {
-            door_tile: door_tile_pos,
+            door_tile,
             tile_aabr,
             bounds,
             alt: alt.unwrap_or_else(|| {
@@ -112,6 +111,7 @@ impl Structure for House {
         let roof = storey * self.levels as i32 - 1;
         let foundations = 20;
         let alt = self.alt + 1;
+        let door_tile_wpos = site.tile_center_wpos(self.door_tile);
 
         // Roof
         let roof_lip = 1;
@@ -2153,20 +2153,20 @@ impl Structure for House {
         // Fill around the door with wall
         let doorway1 = match self.front {
             Dir::Y => Aabb {
-                min: Vec2::new(self.door_tile.x - 1, self.bounds.max.y).with_z(alt),
-                max: Vec2::new(self.door_tile.x + 3, self.bounds.max.y + 1).with_z(alt + 4),
+                min: Vec2::new(door_tile_wpos.x - 1, self.bounds.max.y).with_z(alt),
+                max: Vec2::new(door_tile_wpos.x + 3, self.bounds.max.y + 1).with_z(alt + 4),
             },
             Dir::X => Aabb {
-                min: Vec2::new(self.bounds.max.x, self.door_tile.y - 1).with_z(alt),
-                max: Vec2::new(self.bounds.max.x + 1, self.door_tile.y + 3).with_z(alt + 4),
+                min: Vec2::new(self.bounds.max.x, door_tile_wpos.y - 1).with_z(alt),
+                max: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y + 3).with_z(alt + 4),
             },
             Dir::NegY => Aabb {
-                min: Vec2::new(self.door_tile.x - 1, self.bounds.min.y).with_z(alt),
-                max: Vec2::new(self.door_tile.x + 3, self.bounds.min.y + 1).with_z(alt + 4),
+                min: Vec2::new(door_tile_wpos.x - 1, self.bounds.min.y).with_z(alt),
+                max: Vec2::new(door_tile_wpos.x + 3, self.bounds.min.y + 1).with_z(alt + 4),
             },
             _ => Aabb {
-                min: Vec2::new(self.bounds.min.x, self.door_tile.y - 1).with_z(alt),
-                max: Vec2::new(self.bounds.min.x + 1, self.door_tile.y + 3).with_z(alt + 4),
+                min: Vec2::new(self.bounds.min.x, door_tile_wpos.y - 1).with_z(alt),
+                max: Vec2::new(self.bounds.min.x + 1, door_tile_wpos.y + 3).with_z(alt + 4),
             },
         };
         painter.fill(
@@ -2177,20 +2177,20 @@ impl Structure for House {
         // Carve out the doorway with air
         let doorway2 = match self.front {
             Dir::Y => Aabb {
-                min: Vec2::new(self.door_tile.x, self.bounds.max.y).with_z(alt),
-                max: Vec2::new(self.door_tile.x + 2, self.bounds.max.y + 1).with_z(alt + 3),
+                min: Vec2::new(door_tile_wpos.x, self.bounds.max.y).with_z(alt),
+                max: Vec2::new(door_tile_wpos.x + 2, self.bounds.max.y + 1).with_z(alt + 3),
             },
             Dir::X => Aabb {
-                min: Vec2::new(self.bounds.max.x, self.door_tile.y).with_z(alt),
-                max: Vec2::new(self.bounds.max.x + 1, self.door_tile.y + 2).with_z(alt + 3),
+                min: Vec2::new(self.bounds.max.x, door_tile_wpos.y).with_z(alt),
+                max: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y + 2).with_z(alt + 3),
             },
             Dir::NegY => Aabb {
-                min: Vec2::new(self.door_tile.x, self.bounds.min.y).with_z(alt),
-                max: Vec2::new(self.door_tile.x + 2, self.bounds.min.y + 1).with_z(alt + 3),
+                min: Vec2::new(door_tile_wpos.x, self.bounds.min.y).with_z(alt),
+                max: Vec2::new(door_tile_wpos.x + 2, self.bounds.min.y + 1).with_z(alt + 3),
             },
             _ => Aabb {
-                min: Vec2::new(self.bounds.min.x, self.door_tile.y).with_z(alt),
-                max: Vec2::new(self.bounds.min.x + 1, self.door_tile.y + 2).with_z(alt + 3),
+                min: Vec2::new(self.bounds.min.x, door_tile_wpos.y).with_z(alt),
+                max: Vec2::new(self.bounds.min.x + 1, door_tile_wpos.y + 2).with_z(alt + 3),
             },
         };
         painter.fill(
@@ -2202,65 +2202,65 @@ impl Structure for House {
         let (door_gap, door1, door1_ori, door2, door2_ori) = match self.front {
             Dir::Y => (
                 Aabb {
-                    min: Vec2::new(self.door_tile.x - 1, self.bounds.max.y + 1).with_z(alt),
-                    max: Vec2::new(self.door_tile.x + 3, self.bounds.max.y + 4).with_z(alt + 3),
+                    min: Vec2::new(door_tile_wpos.x - 1, self.bounds.max.y + 1).with_z(alt),
+                    max: Vec2::new(door_tile_wpos.x + 3, self.bounds.max.y + 4).with_z(alt + 3),
                 },
                 Aabb {
-                    min: Vec2::new(self.door_tile.x, self.bounds.max.y).with_z(alt),
-                    max: Vec2::new(self.door_tile.x + 1, self.bounds.max.y + 1).with_z(alt + 1),
+                    min: Vec2::new(door_tile_wpos.x, self.bounds.max.y).with_z(alt),
+                    max: Vec2::new(door_tile_wpos.x + 1, self.bounds.max.y + 1).with_z(alt + 1),
                 },
                 0,
                 Aabb {
-                    min: Vec2::new(self.door_tile.x + 1, self.bounds.max.y).with_z(alt),
-                    max: Vec2::new(self.door_tile.x + 2, self.bounds.max.y + 1).with_z(alt + 1),
+                    min: Vec2::new(door_tile_wpos.x + 1, self.bounds.max.y).with_z(alt),
+                    max: Vec2::new(door_tile_wpos.x + 2, self.bounds.max.y + 1).with_z(alt + 1),
                 },
                 4,
             ),
             Dir::X => (
                 Aabb {
-                    min: Vec2::new(self.bounds.max.x + 1, self.door_tile.y - 1).with_z(alt),
-                    max: Vec2::new(self.bounds.max.x + 4, self.door_tile.y + 3).with_z(alt + 3),
+                    min: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y - 1).with_z(alt),
+                    max: Vec2::new(self.bounds.max.x + 4, door_tile_wpos.y + 3).with_z(alt + 3),
                 },
                 Aabb {
-                    min: Vec2::new(self.bounds.max.x, self.door_tile.y).with_z(alt),
-                    max: Vec2::new(self.bounds.max.x + 1, self.door_tile.y + 1).with_z(alt + 1),
+                    min: Vec2::new(self.bounds.max.x, door_tile_wpos.y).with_z(alt),
+                    max: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y + 1).with_z(alt + 1),
                 },
                 2,
                 Aabb {
-                    min: Vec2::new(self.bounds.max.x, self.door_tile.y + 1).with_z(alt),
-                    max: Vec2::new(self.bounds.max.x + 1, self.door_tile.y + 2).with_z(alt + 1),
+                    min: Vec2::new(self.bounds.max.x, door_tile_wpos.y + 1).with_z(alt),
+                    max: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y + 2).with_z(alt + 1),
                 },
                 6,
             ),
             Dir::NegY => (
                 Aabb {
-                    min: Vec2::new(self.door_tile.x - 1, self.bounds.min.y - 4).with_z(alt),
-                    max: Vec2::new(self.door_tile.x + 3, self.bounds.min.y).with_z(alt + 3),
+                    min: Vec2::new(door_tile_wpos.x - 1, self.bounds.min.y - 4).with_z(alt),
+                    max: Vec2::new(door_tile_wpos.x + 3, self.bounds.min.y).with_z(alt + 3),
                 },
                 Aabb {
-                    min: Vec2::new(self.door_tile.x, self.bounds.min.y).with_z(alt),
-                    max: Vec2::new(self.door_tile.x + 1, self.bounds.min.y + 1).with_z(alt + 1),
+                    min: Vec2::new(door_tile_wpos.x, self.bounds.min.y).with_z(alt),
+                    max: Vec2::new(door_tile_wpos.x + 1, self.bounds.min.y + 1).with_z(alt + 1),
                 },
                 0,
                 Aabb {
-                    min: Vec2::new(self.door_tile.x + 1, self.bounds.min.y).with_z(alt),
-                    max: Vec2::new(self.door_tile.x + 2, self.bounds.min.y + 1).with_z(alt + 1),
+                    min: Vec2::new(door_tile_wpos.x + 1, self.bounds.min.y).with_z(alt),
+                    max: Vec2::new(door_tile_wpos.x + 2, self.bounds.min.y + 1).with_z(alt + 1),
                 },
                 4,
             ),
             _ => (
                 Aabb {
-                    min: Vec2::new(self.bounds.min.x - 4, self.door_tile.y - 1).with_z(alt),
-                    max: Vec2::new(self.bounds.min.x, self.door_tile.y + 3).with_z(alt + 3),
+                    min: Vec2::new(self.bounds.min.x - 4, door_tile_wpos.y - 1).with_z(alt),
+                    max: Vec2::new(self.bounds.min.x, door_tile_wpos.y + 3).with_z(alt + 3),
                 },
                 Aabb {
-                    min: Vec2::new(self.bounds.min.x, self.door_tile.y).with_z(alt),
-                    max: Vec2::new(self.bounds.min.x + 1, self.door_tile.y + 1).with_z(alt + 1),
+                    min: Vec2::new(self.bounds.min.x, door_tile_wpos.y).with_z(alt),
+                    max: Vec2::new(self.bounds.min.x + 1, door_tile_wpos.y + 1).with_z(alt + 1),
                 },
                 2,
                 Aabb {
-                    min: Vec2::new(self.bounds.min.x, self.door_tile.y + 1).with_z(alt),
-                    max: Vec2::new(self.bounds.min.x + 1, self.door_tile.y + 2).with_z(alt + 1),
+                    min: Vec2::new(self.bounds.min.x, door_tile_wpos.y + 1).with_z(alt),
+                    max: Vec2::new(self.bounds.min.x + 1, door_tile_wpos.y + 2).with_z(alt + 1),
                 },
                 6,
             ),
@@ -2279,41 +2279,41 @@ impl Structure for House {
         );
         if self.christmas_decorations {
             // we need to randomize position to see both variants
-            let rng = RandomField::new(0).get(self.door_tile.with_z(alt + 3));
+            let rng = RandomField::new(0).get(door_tile_wpos.with_z(alt + 3));
             let right = (rng % 2) as i32;
             let (door_light_pos, door_light_ori) = match self.front {
                 Dir::Y => (
                     Aabb {
-                        min: Vec2::new(self.door_tile.x + right, self.bounds.max.y + 1)
+                        min: Vec2::new(door_tile_wpos.x + right, self.bounds.max.y + 1)
                             .with_z(alt + 3),
-                        max: Vec2::new(self.door_tile.x + 1 + right, self.bounds.max.y + 2)
+                        max: Vec2::new(door_tile_wpos.x + 1 + right, self.bounds.max.y + 2)
                             .with_z(alt + 4),
                     },
                     4,
                 ),
                 Dir::X => (
                     Aabb {
-                        min: Vec2::new(self.bounds.max.x + 1, self.door_tile.y + right)
+                        min: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y + right)
                             .with_z(alt + 3),
-                        max: Vec2::new(self.bounds.max.x + 2, self.door_tile.y + 1 + right)
+                        max: Vec2::new(self.bounds.max.x + 2, door_tile_wpos.y + 1 + right)
                             .with_z(alt + 4),
                     },
                     2,
                 ),
                 Dir::NegY => (
                     Aabb {
-                        min: Vec2::new(self.door_tile.x + right, self.bounds.min.y - 1)
+                        min: Vec2::new(door_tile_wpos.x + right, self.bounds.min.y - 1)
                             .with_z(alt + 3),
-                        max: Vec2::new(self.door_tile.x + 1 + right, self.bounds.min.y)
+                        max: Vec2::new(door_tile_wpos.x + 1 + right, self.bounds.min.y)
                             .with_z(alt + 4),
                     },
                     0,
                 ),
                 _ => (
                     Aabb {
-                        min: Vec2::new(self.bounds.min.x - 1, self.door_tile.y + right)
+                        min: Vec2::new(self.bounds.min.x - 1, door_tile_wpos.y + right)
                             .with_z(alt + 3),
-                        max: Vec2::new(self.bounds.min.x, self.door_tile.y + 1 + right)
+                        max: Vec2::new(self.bounds.min.x, door_tile_wpos.y + 1 + right)
                             .with_z(alt + 4),
                     },
                     6,

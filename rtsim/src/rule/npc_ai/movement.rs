@@ -27,14 +27,12 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             | TileKind::DwarvenMine
             | TileKind::GnarlingFortification => 5.0,
         };
-        let is_door_tile =
-            |plot: Id<site2::Plot>, tile: Vec2<i32>| match site.plot(plot).kind().meta() {
-                Some(PlotKindMeta::House { door_tile }) => door_tile == tile,
-                Some(PlotKindMeta::Workshop { door_tile }) => {
-                    door_tile.is_none_or(|door_tile| door_tile == tile)
-                },
-                _ => false,
-            };
+        let is_door_tile = |plot: Id<site2::Plot>, tile: Vec2<i32>| {
+            site.plot(plot)
+                .kind()
+                .meta()
+                .is_some_and(|meta| meta.door_tile() == Some(tile))
+        };
         let building = if a_tile.is_building() && b_tile.is_road() {
             a_tile
                 .plot

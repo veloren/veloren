@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ability to jump off walls.
 - All metal lineage armor sets have helmets.
 - Added `/goto_rand` command for admins to teleport to random position.
+- Town road variations.
 
 ### Changed
 

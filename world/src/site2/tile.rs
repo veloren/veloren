@@ -182,7 +182,7 @@ pub enum TileKind {
     Field,
     Plaza,
     Road { a: u16, b: u16, w: u16 },
-    Path { c: Vec2<f32>, w: f32 },
+    Path { closest_pos: Vec2<f32>, path: Path },
     Building,
     Castle,
     Wall(Dir),
