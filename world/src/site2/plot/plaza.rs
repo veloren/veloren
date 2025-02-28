@@ -1,5 +1,5 @@
 use super::*;
-use crate::{ColumnSample, Land};
+use crate::{ColumnSample, Land, util::RandomField};
 use common::terrain::{Block, BlockKind};
 use enum_map::EnumMap;
 use rand::prelude::*;
@@ -22,6 +22,7 @@ pub struct Plaza {
     pub kind: RoadKind,
     corner_meta: EnumMap<Dir, CornerMeta>,
     pub hard_alt: Option<i32>,
+    dir: Dir,
 }
 
 impl Plaza {
@@ -69,6 +70,9 @@ impl Plaza {
             } else {
                 None
             },
+            dir: *RandomField::new(51)
+                .choose(aabr.center().with_z(center.alt), &Dir::ALL)
+                .expect("Dir::ALL has len 4"),
         }
     }
 }
@@ -163,7 +167,7 @@ impl Structure for Plaza {
 
     fn terrain_surface_at<R: Rng>(
         &self,
-        _wpos: Vec2<i32>,
+        wpos: Vec2<i32>,
         old: Block,
         _rng: &mut R,
         col: &ColumnSample,
@@ -175,9 +179,7 @@ impl Structure for Plaza {
             return None;
         };
         if z_off <= 0 {
-            let sub_surface_color = col.sub_surface_color * 0.5;
-
-            let block = Block::new(BlockKind::Earth, (sub_surface_color * 255.0).as_());
+            let block = self.kind.block(col, wpos.with_z(z), self.dir);
             if old.is_filled() {
                 if old.is_terrain() { Some(block) } else { None }
             } else if self.hard_alt.is_none() {

@@ -159,7 +159,6 @@ impl Site {
     pub fn create_road(
         &mut self,
         land: &Land,
-        rng: &mut impl Rng,
         a: Vec2<i32>,
         b: Vec2<i32>,
         w: u16,
@@ -212,7 +211,6 @@ impl Site {
             }),
             root_tile: a,
             tiles: path.iter().map(|(tile, _)| *tile).collect(),
-            seed: rng.gen(),
         });
 
         self.roads.push(plot);
@@ -221,7 +219,10 @@ impl Site {
             for y in range.clone() {
                 for x in range.clone() {
                     let tile = tile + Vec2::new(x, y);
-                    if self.tiles.get(tile).is_empty() {
+                    if matches!(
+                        self.tiles.get(tile).kind,
+                        TileKind::Empty | TileKind::Path { .. }
+                    ) {
                         self.tiles.set(tile, Tile {
                             kind: TileKind::Road {
                                 a: i.saturating_sub(1) as u16,
@@ -323,7 +324,6 @@ impl Site {
             )),
             root_tile: tpos,
             tiles: aabr_tiles(tile_aabr).collect(),
-            seed: rng.gen(),
         });
         self.plazas.push(plaza);
         self.blit_aabr(tile_aabr, Tile {
@@ -357,7 +357,6 @@ impl Site {
             {
                 self.create_road(
                     land,
-                    rng,
                     self.plot(p).root_tile,
                     tpos,
                     2, /* + i */
@@ -442,7 +441,7 @@ impl Site {
                             .map(|tile| tile.kind = TileKind::Hazard(kind));
                     }
                 }
-                if let Some((_, path_wpos, Path { width }, _)) = land.get_nearest_path(wpos) {
+                if let Some((_, path_wpos, path, _)) = land.get_nearest_path(wpos) {
                     let tile_aabr = Aabr {
                         min: self.tile_wpos(tile),
                         max: self.tile_wpos(tile + 1) - 1,
@@ -451,15 +450,15 @@ impl Site {
                     if (tile_aabr
                         .projected_point(path_wpos.as_())
                         .distance_squared(path_wpos.as_()) as f32)
-                        < width.powi(2)
+                        < path.width.powi(2)
                     {
                         self.tiles
                             .get_mut(tile)
                             .filter(|tile| tile.is_natural())
                             .map(|tile| {
                                 tile.kind = TileKind::Path {
-                                    c: path_wpos,
-                                    w: width,
+                                    closest_pos: path_wpos,
+                                    path,
                                 }
                             });
                     }
@@ -602,7 +601,6 @@ impl Site {
             kind: PlotKind::DwarvenMine(dwarven_mine),
             root_tile: aabr.center(),
             tiles: aabr_tiles(aabr).collect(),
-            seed: rng.gen(),
         });
 
         site.blit_aabr(aabr, Tile {
@@ -632,7 +630,6 @@ impl Site {
             kind: PlotKind::Citadel(citadel),
             root_tile: aabr.center(),
             tiles: aabr_tiles(aabr).collect(),
-            seed: rng.gen(),
         });
         site.blit_aabr(aabr, Tile {
             kind: TileKind::Building,
@@ -660,7 +657,6 @@ impl Site {
             kind: PlotKind::Gnarling(gnarling_fortification),
             root_tile: aabr.center(),
             tiles: aabr_tiles(aabr).collect(),
-            seed: rng.gen(),
         });
         site.blit_aabr(aabr, Tile {
             kind: TileKind::GnarlingFortification,
@@ -691,7 +687,6 @@ impl Site {
             tiles: aabr_tiles(cavern_aabr)
                 .chain(aabr_tiles(wall_aabr))
                 .collect(),
-            seed: rng.gen(),
         });
         site.blit_aabr(cavern_aabr, Tile {
             kind: TileKind::AdletStronghold,
@@ -746,6 +741,10 @@ impl Site {
         const TERRACOTTA_PLAZA_SEARCH_INNER: u32 = 17;
         const TERRACOTTA_PLAZA_SEARCH_WIDTH: u32 = 12;
         generator_stats.add(&site.name, GenStatSiteKind::Terracotta);
+        let road_kind = plot::RoadKind {
+            lights: plot::RoadLights::Terracotta,
+            material: plot::RoadMaterial::Sandstone,
+        };
         site.make_initial_plaza(
             land,
             index,
@@ -755,7 +754,7 @@ impl Site {
             TERRACOTTA_PLAZA_SEARCH_WIDTH,
             generator_stats,
             &name,
-            plot::RoadKind::Terracotta,
+            road_kind,
         );
 
         let size = 15.0 as i32;
@@ -771,7 +770,6 @@ impl Site {
                 kind: PlotKind::TerracottaPalace(terracotta_palace),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -806,7 +804,6 @@ impl Site {
                             kind: PlotKind::TerracottaHouse(terracotta_house),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -817,14 +814,7 @@ impl Site {
 
                         generator_stats.success(&site.name, GenStatPlotKind::House);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Terracotta,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
 
@@ -851,7 +841,6 @@ impl Site {
                             kind: PlotKind::TerracottaYard(terracotta_yard),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -862,14 +851,7 @@ impl Site {
 
                         generator_stats.success(&site.name, GenStatPlotKind::Yard);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Terracotta,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 _ => {},
@@ -898,6 +880,11 @@ impl Site {
             ..Site::default()
         };
 
+        let road_kind = plot::RoadKind {
+            lights: plot::RoadLights::Default,
+            material: plot::RoadMaterial::Dirt,
+        };
+
         // place the initial plaza
         site.demarcate_obstacles(land);
         // The myrmidon_arena is 16 tiles in radius, so the plaza should be outside the
@@ -916,7 +903,7 @@ impl Site {
             MYRMIDON_PLAZA_SEARCH_WIDTH,
             generator_stats,
             &name,
-            plot::RoadKind::Default,
+            road_kind,
         );
 
         let size = 16.0 as i32;
@@ -932,7 +919,6 @@ impl Site {
                 kind: PlotKind::MyrmidonArena(myrmidon_arena),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -955,7 +941,6 @@ impl Site {
                     kind: PlotKind::MyrmidonHouse(myrmidon_house),
                     root_tile: aabr.center(),
                     tiles: aabr_tiles(aabr).collect(),
-                    seed: rng.gen(),
                 });
 
                 site.blit_aabr(aabr, Tile {
@@ -966,14 +951,7 @@ impl Site {
 
                 generator_stats.success(&site.name, GenStatPlotKind::House);
             } else {
-                site.make_plaza(
-                    land,
-                    index,
-                    &mut rng,
-                    generator_stats,
-                    &name,
-                    plot::RoadKind::Default,
-                );
+                site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
             }
         }
 
@@ -998,7 +976,6 @@ impl Site {
             kind: PlotKind::GiantTree(giant_tree),
             root_tile: aabr.center(),
             tiles: aabr_tiles(aabr).collect(),
-            seed: rng.gen(),
         });
         site.blit_aabr(aabr, Tile {
             kind: TileKind::Building,
@@ -1025,18 +1002,15 @@ impl Site {
             name: name.clone(),
             ..Site::default()
         };
+        let road_kind = plot::RoadKind {
+            lights: plot::RoadLights::Default,
+            material: plot::RoadMaterial::Cobblestone,
+        };
 
         // place the initial plaza
         site.demarcate_obstacles(land);
         generator_stats.add(&site.name, GenStatSiteKind::City);
-        site.make_initial_plaza_default(
-            land,
-            index,
-            &mut rng,
-            generator_stats,
-            &name,
-            plot::RoadKind::Default,
-        );
+        site.make_initial_plaza_default(land, index, &mut rng, generator_stats, &name, road_kind);
 
         let build_chance = Lottery::from(vec![
             (64.0, 1), // house
@@ -1082,7 +1056,6 @@ impl Site {
                             kind: PlotKind::Workshop(workshop),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -1093,14 +1066,7 @@ impl Site {
                         workshops += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::Workshop);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 // House
@@ -1129,7 +1095,6 @@ impl Site {
                             kind: PlotKind::House(house),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -1139,14 +1104,7 @@ impl Site {
                         });
                         generator_stats.success(&site.name, GenStatPlotKind::House);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 // Guard tower
@@ -1164,7 +1122,6 @@ impl Site {
                         //     )),
                         //     root_tile: aabr.center(),
                         //     tiles: aabr_tiles(aabr).collect(),
-                        //     seed: rng.gen(),
                         // });
 
                         // site.blit_aabr(aabr, Tile {
@@ -1195,7 +1152,6 @@ impl Site {
                             kind: PlotKind::Castle(castle),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         let wall_north = Tile {
@@ -1354,7 +1310,6 @@ impl Site {
                             kind: PlotKind::AirshipDock(airship_dock),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -1365,14 +1320,7 @@ impl Site {
                         airship_docks += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                     // }
                 },
@@ -1401,7 +1349,6 @@ impl Site {
                             kind: PlotKind::Tavern(tavern),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -1413,14 +1360,7 @@ impl Site {
                         taverns += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::Tavern);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 8 => {
@@ -1566,7 +1506,6 @@ impl Site {
                             kind: PlotKind::GliderPlatform(glider_platform),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
                         site.blit_aabr(aabr, Tile {
                             kind: TileKind::Building,
@@ -1597,7 +1536,6 @@ impl Site {
                             kind: PlotKind::GliderRing(glider_ring),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
                         site.blit_aabr(aabr, Tile {
                             kind: TileKind::Building,
@@ -1625,7 +1563,6 @@ impl Site {
                             kind: PlotKind::GliderRing(glider_ring),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
                         site.blit_aabr(aabr, Tile {
                             kind: TileKind::Building,
@@ -1648,7 +1585,6 @@ impl Site {
                             kind: PlotKind::GliderFinish(glider_finish),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
                         site.blit_aabr(aabr, Tile {
                             kind: TileKind::Building,
@@ -1678,17 +1614,14 @@ impl Site {
             ..Site::default()
         };
         let mut campfires = 0;
+        let road_kind = plot::RoadKind {
+            lights: plot::RoadLights::Default,
+            material: plot::RoadMaterial::Sandstone,
+        };
 
         // place the initial plaza
         generator_stats.add(&site.name, GenStatSiteKind::CliffTown);
-        site.make_initial_plaza_default(
-            land,
-            index,
-            &mut rng,
-            generator_stats,
-            &name,
-            plot::RoadKind::Default,
-        );
+        site.make_initial_plaza_default(land, index, &mut rng, generator_stats, &name, road_kind);
 
         let build_chance = Lottery::from(vec![(30.0, 1), (50.0, 2)]);
         let mut airship_docks = 0;
@@ -1722,7 +1655,6 @@ impl Site {
                             kind: PlotKind::CliffTower(cliff_tower),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
                         site.blit_aabr(aabr, Tile {
                             kind: TileKind::Building,
@@ -1732,14 +1664,7 @@ impl Site {
                         campfires += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::House);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 2 if airship_docks < 1 => {
@@ -1768,7 +1693,6 @@ impl Site {
                             kind: PlotKind::CliffTownAirshipDock(cliff_town_airship_dock),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -1779,14 +1703,7 @@ impl Site {
                         airship_docks += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 _ => {},
@@ -1811,18 +1728,15 @@ impl Site {
             name: name.clone(),
             ..Site::default()
         };
+        let road_kind = plot::RoadKind {
+            lights: plot::RoadLights::Default,
+            material: plot::RoadMaterial::Dirt,
+        };
 
         // place the initial plaza
         site.demarcate_obstacles(land);
         generator_stats.add(&site.name, GenStatSiteKind::SavannahTown);
-        site.make_initial_plaza_default(
-            land,
-            index,
-            &mut rng,
-            generator_stats,
-            &name,
-            plot::RoadKind::Default,
-        );
+        site.make_initial_plaza_default(land, index, &mut rng, generator_stats, &name, road_kind);
 
         let mut workshops = 0;
         let mut airship_dock = 0;
@@ -1855,7 +1769,6 @@ impl Site {
                             kind: PlotKind::SavannahWorkshop(savannah_workshop),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -1866,14 +1779,7 @@ impl Site {
                         workshops += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::Workshop);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 1 => {
@@ -1902,7 +1808,6 @@ impl Site {
                             kind: PlotKind::SavannahHut(savannah_hut),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -1912,14 +1817,7 @@ impl Site {
                         });
                         generator_stats.success(&site.name, GenStatPlotKind::House);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 3 if airship_dock < 1 => {
@@ -1948,7 +1846,6 @@ impl Site {
                             kind: PlotKind::SavannahAirshipDock(savannah_airship_dock),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -1959,14 +1856,7 @@ impl Site {
                         airship_dock += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 // Field
@@ -1996,18 +1886,15 @@ impl Site {
             name: name.clone(),
             ..Site::default()
         };
+        let road_kind = plot::RoadKind {
+            lights: plot::RoadLights::Default,
+            material: plot::RoadMaterial::Marble,
+        };
 
         // place the initial plaza
         site.demarcate_obstacles(land);
         generator_stats.add(&site.name, GenStatSiteKind::CoastalTown);
-        site.make_initial_plaza_default(
-            land,
-            index,
-            &mut rng,
-            generator_stats,
-            &name,
-            plot::RoadKind::Default,
-        );
+        site.make_initial_plaza_default(land, index, &mut rng, generator_stats, &name, road_kind);
 
         let mut workshops = 0;
         let build_chance = Lottery::from(vec![(38.0, 1), (5.0, 2), (15.0, 3), (15.0, 4), (5.0, 5)]);
@@ -2039,7 +1926,6 @@ impl Site {
                             kind: PlotKind::CoastalWorkshop(coastal_workshop),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -2050,14 +1936,7 @@ impl Site {
                         workshops += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::Workshop);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 1 => {
@@ -2086,7 +1965,6 @@ impl Site {
                             kind: PlotKind::CoastalHouse(coastal_house),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -2097,14 +1975,7 @@ impl Site {
 
                         generator_stats.success(&site.name, GenStatPlotKind::House);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 3 if airship_docks < 1 => {
@@ -2132,7 +2003,6 @@ impl Site {
                             kind: PlotKind::CoastalAirshipDock(coastal_airship_dock),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -2143,14 +2013,7 @@ impl Site {
                         airship_docks += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 // Field
@@ -2181,6 +2044,10 @@ impl Site {
             name: name.clone(),
             ..Site::default()
         };
+        let road_kind = plot::RoadKind {
+            lights: plot::RoadLights::Default,
+            material: plot::RoadMaterial::Sandstone,
+        };
 
         // place the initial plaza
         site.demarcate_obstacles(land);
@@ -2199,7 +2066,7 @@ impl Site {
             DESERT_CITY_PLAZA_SEARCH_WIDTH,
             generator_stats,
             &name,
-            plot::RoadKind::Default,
+            road_kind,
         );
 
         let size = 17.0 as i32;
@@ -2216,7 +2083,6 @@ impl Site {
             kind: PlotKind::DesertCityArena(desert_city_arena),
             root_tile: aabr.center(),
             tiles: aabr_tiles(aabr).collect(),
-            seed: rng.gen(),
         });
 
         site.blit_aabr(aabr, Tile {
@@ -2260,7 +2126,6 @@ impl Site {
                             kind: PlotKind::DesertCityMultiPlot(desert_city_multi_plot),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -2271,14 +2136,7 @@ impl Site {
                         campfires += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::MultiPlot);
                     } else {
-                        site.make_plaza(
-                            land,
-                            index,
-                            &mut rng,
-                            generator_stats,
-                            &name,
-                            plot::RoadKind::Default,
-                        );
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 // DesertCityTemple
@@ -2306,7 +2164,6 @@ impl Site {
                             kind: PlotKind::DesertCityTemple(desert_city_temple),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -2343,7 +2200,6 @@ impl Site {
                             kind: PlotKind::DesertCityAirshipDock(desert_city_airship_dock),
                             root_tile: aabr.center(),
                             tiles: aabr_tiles(aabr).collect(),
-                            seed: rng.gen(),
                         });
 
                         site.blit_aabr(aabr, Tile {
@@ -2395,7 +2251,6 @@ impl Site {
                 kind: PlotKind::FarmField(field),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2433,7 +2288,6 @@ impl Site {
                 kind: PlotKind::Barn(barn),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2484,7 +2338,6 @@ impl Site {
                 kind: PlotKind::Haniwa(haniwa),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2517,7 +2370,6 @@ impl Site {
                 kind: PlotKind::SeaChapel(sea_chapel),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2550,7 +2402,6 @@ impl Site {
                 kind: PlotKind::PirateHideout(pirate_hideout),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2581,7 +2432,6 @@ impl Site {
                 kind: PlotKind::JungleRuin(jungle_ruin),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2612,7 +2462,6 @@ impl Site {
                 kind: PlotKind::RockCircle(rock_circle),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2645,7 +2494,6 @@ impl Site {
                 kind: PlotKind::TrollCave(troll_cave),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2677,7 +2525,6 @@ impl Site {
                 kind: PlotKind::Camp(camp),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2717,7 +2564,6 @@ impl Site {
                 kind: PlotKind::Cultist(cultist),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2762,7 +2608,6 @@ impl Site {
                 kind: PlotKind::Sahagin(sahagin),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2802,7 +2647,6 @@ impl Site {
                 kind: PlotKind::VampireCastle(vampire_castle),
                 root_tile: aabr.center(),
                 tiles: aabr_tiles(aabr).collect(),
-                seed: rng.gen(),
             });
 
             site.blit_aabr(aabr, Tile {
@@ -2883,8 +2727,8 @@ impl Site {
                         < w.powi(2)
                     {
                         tile.kind = TileKind::Path {
-                            c: closest_point,
-                            w,
+                            closest_pos: closest_point,
+                            path: Path { width: w },
                         };
                     }
                 }
@@ -2895,7 +2739,6 @@ impl Site {
             kind: PlotKind::Bridge(bridge),
             root_tile: start_tile,
             tiles: aabr_tiles(aabr).collect(),
-            seed: rng.gen(),
         });
 
         site.blit_aabr(aabr, Tile {
@@ -2929,37 +2772,70 @@ impl Site {
             (-border..TILE_SIZE as i32 + border)
                 .map(move |x| (twpos + Vec2::new(x, y), Vec2::new(x, y)))
         });
-        if let TileKind::Path { c, w } = &tile.kind {
-            let near_roads = CARDINALS.iter().filter_map(|rpos| {
-                let tile = self.tiles.get(tpos + rpos);
-                if tile.is_road() && !matches!(tile.kind, TileKind::Path { .. }) {
-                    Some(Aabr {
-                        min: self.tile_wpos(tpos).map(|e| e as f32),
-                        max: self.tile_wpos(tpos + 1).map(|e| e as f32),
-                    })
-                } else {
-                    None
+        if let TileKind::Path { closest_pos, path } = &tile.kind {
+            let near_connections = CARDINALS.iter().filter_map(|rpos| {
+                let npos = tpos + rpos;
+                let tile = self.tiles.get(npos);
+                let tile_aabr = Aabr {
+                    min: self.tile_wpos(tpos).map(|e| e as f32),
+                    max: self.tile_wpos(tpos + 1).map(|e| e as f32) - 1.0,
+                };
+                match tile.kind {
+                    TileKind::Road { a, b, w } => {
+                        if let Some(PlotKind::Road(road)) = tile.plot.map(|p| &self.plot(p).kind) {
+                            let start = road.path.nodes[a as usize];
+                            let end = road.path.nodes[b as usize];
+                            let dir = Dir::from_vec2(end - start);
+                            let orth = dir.orthogonal();
+                            let aabr = Aabr {
+                                min: self.tile_center_wpos(start)
+                                    - w as i32 * 2 * orth.to_vec2()
+                                    - dir.to_vec2() * TILE_SIZE as i32 / 2,
+                                max: self.tile_center_wpos(end)
+                                    + w as i32 * 2 * orth.to_vec2()
+                                    + dir.to_vec2() * TILE_SIZE as i32 / 2,
+                            }
+                            .made_valid()
+                            .as_();
+                            Some(aabr)
+                        } else {
+                            None
+                        }
+                    },
+                    TileKind::Bridge | TileKind::Plaza => Some(tile_aabr),
+                    _ => tile
+                        .plot
+                        .and_then(|plot| self.plot(plot).kind().meta())
+                        .and_then(|meta| meta.door_tile())
+                        .is_some_and(|door_tile| door_tile == npos)
+                        .then_some(tile_aabr),
                 }
             });
             cols.for_each(|(wpos2d, _offs)| {
                 let wpos2df = wpos2d.map(|e| e as f32);
-                let dist = near_roads
-                    .clone()
-                    .map(|aabr| aabr.distance_to_point(wpos2df))
-                    .min_by_key(|d| (*d * 100.0) as i32);
 
-                if c.distance_squared(wpos2d.as_()) < w.powi(2) || dist.is_some_and(|d| d <= 1.5) {
+                if closest_pos.distance_squared(wpos2d.as_()) < path.width.powi(2)
+                    || near_connections
+                        .clone()
+                        .map(|aabr| aabr.distance_to_point(wpos2df))
+                        .min_by_key(|d| (*d * 100.0) as i32)
+                        .is_some_and(|d| d <= 1.5)
+                {
                     let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
                     let sub_surface_color = canvas
                         .col(wpos2d)
-                        .map_or(Rgb::zero(), |col| col.sub_surface_color * 0.5);
+                        .map_or(Rgb::zero(), |col| col.sub_surface_color);
                     for z in -8..6 {
-                        canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
+                        let wpos = Vec3::new(wpos2d.x, wpos2d.y, alt + z);
+                        canvas.map(wpos, |b| {
                             if b.kind() == BlockKind::Snow {
                                 b.into_vacant()
                             } else if b.is_filled() {
                                 if b.is_terrain() {
-                                    Block::new(BlockKind::Earth, (sub_surface_color * 255.0).as_())
+                                    Block::new(
+                                        BlockKind::Earth,
+                                        path.surface_color((sub_surface_color * 255.0).as_(), wpos),
+                                    )
                                 } else {
                                     b
                                 }
@@ -2974,73 +2850,6 @@ impl Site {
     }
 
     pub fn render(&self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
-        let mut spawn_buffer = Vec::new();
-        canvas.foreach_col(|canvas, wpos2d, col| {
-            let tile = self.wpos_tile(wpos2d);
-            let seed = tile.plot.map_or(0, |p| self.plot(p).seed);
-            match tile.kind {
-                TileKind::Field /*| TileKind::Road*/ => (-4..5).for_each(|z| canvas.map(
-                    Vec3::new(wpos2d.x, wpos2d.y, col.alt as i32 + z),
-                    |b| if [
-                        BlockKind::Grass,
-                        BlockKind::Earth,
-                        BlockKind::Sand,
-                        BlockKind::Snow,
-                        BlockKind::Rock,
-                    ]
-                    .contains(&b.kind()) {
-                        match tile.kind {
-                            TileKind::Field => Block::new(BlockKind::Earth, Rgb::new(40, 5 + (seed % 32) as u8, 0)),
-                            TileKind::Road { .. } => Block::new(BlockKind::Rock, Rgb::new(55, 45, 65)),
-                            _ => unreachable!(),
-                        }
-                    } else {
-                        b.with_sprite(SpriteKind::Empty)
-                    },
-                )),
-                // TileKind::Building => {
-                //     let base_alt = tile.plot.map(|p| self.plot(p)).map_or(col.alt as i32, |p| p.base_alt);
-                //     for z in base_alt - 12..base_alt + 16 {
-                //         canvas.set(
-                //             Vec3::new(wpos2d.x, wpos2d.y, z),
-                //             Block::new(BlockKind::Wood, Rgb::new(180, 90 + (seed % 64) as u8, 120))
-                //         );
-                //     }
-                // },
-                // TileKind::Castle | TileKind::Wall => {
-                //     let base_alt = tile.plot.map(|p| self.plot(p)).map_or(col.alt as i32, |p| p.base_alt);
-                //     for z in base_alt - 12..base_alt + if tile.kind == TileKind::Wall { 24 } else { 40 } {
-                //         canvas.set(
-                //             Vec3::new(wpos2d.x, wpos2d.y, z),
-                //             Block::new(BlockKind::Wood, Rgb::new(40, 40, 55))
-                //         );
-                //     }
-                // },
-                _ => {},
-            }
-
-            for z_off in (-2..4).rev() {
-                if let Some(plot) = tile.plot.map(|p| &self.plots[p]) {
-                    canvas.map_resource(
-                        Vec3::new(wpos2d.x, wpos2d.y, foreach_plot!(&plot.kind, plot => plot.rel_terrain_offset(col)) + z_off),
-                        |block| foreach_plot!(
-                            &plot.kind,
-                            plot => plot.terrain_surface_at(
-                                wpos2d,
-                                block,
-                                dynamic_rng,
-                                col,
-                                z_off,
-                                self,
-                            ).unwrap_or(block),
-                        ),
-                    );
-
-                    canvas.entities.append(&mut spawn_buffer);
-                }
-            }
-        });
-
         let tile_aabr = Aabr {
             min: self.wpos_tile_pos(canvas.wpos()) - 1,
             max: self
@@ -3060,6 +2869,34 @@ impl Site {
                 }
             }
         }
+
+        canvas.foreach_col(|canvas, wpos2d, col| {
+            let tile = self.wpos_tile(wpos2d);
+            for z_off in (-2..4).rev() {
+                if let Some(plot) = tile.plot.map(|p| &self.plots[p]) {
+                    canvas.map_resource(
+                        Vec3::new(
+                            wpos2d.x,
+                            wpos2d.y,
+                            foreach_plot!(&plot.kind, plot => plot.rel_terrain_offset(col)) + z_off,
+                        ),
+                        |block| {
+                            foreach_plot!(
+                                &plot.kind,
+                                plot => plot.terrain_surface_at(
+                                    wpos2d,
+                                    block,
+                                    dynamic_rng,
+                                    col,
+                                    z_off,
+                                    self,
+                                ).unwrap_or(block),
+                            )
+                        },
+                    );
+                }
+            }
+        });
 
         // TODO: Solve the 'trees are too big' problem and remove this
         for (id, plot) in self.plots.iter() {

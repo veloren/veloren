@@ -76,7 +76,7 @@ pub use self::{
     myrmidon_house::MyrmidonHouse,
     pirate_hideout::PirateHideout,
     plaza::Plaza,
-    road::{Road, RoadKind},
+    road::{Road, RoadKind, RoadLights, RoadMaterial},
     rock_circle::RockCircle,
     sahagin::Sahagin,
     savannah_airship_dock::SavannahAirshipDock,
@@ -101,7 +101,6 @@ pub struct Plot {
     pub(crate) kind: PlotKind,
     pub(crate) root_tile: Vec2<i32>,
     pub(crate) tiles: DHashSet<Vec2<i32>>,
-    pub(crate) seed: u32,
 }
 
 impl Plot {
@@ -142,7 +141,22 @@ pub enum PlotKindMeta<'plot> {
     House {
         door_tile: Vec2<i32>,
     },
+    Other {
+        door_tile: Vec2<i32>,
+    },
     Dungeon,
+}
+
+impl PlotKindMeta<'_> {
+    pub fn door_tile(&self) -> Option<Vec2<i32>> {
+        match self {
+            PlotKindMeta::AirshipDock { door_tile, .. }
+            | PlotKindMeta::House { door_tile }
+            | PlotKindMeta::Other { door_tile } => Some(*door_tile),
+            PlotKindMeta::Workshop { door_tile } => *door_tile,
+            PlotKindMeta::Dungeon => None,
+        }
+    }
 }
 
 pub enum PlotKind {
@@ -249,6 +263,9 @@ impl PlotKind {
             PlotKind::SavannahWorkshop(w) => Some(PlotKindMeta::Workshop {
                 door_tile: Some(w.door_tile),
             }),
+            PlotKind::Tavern(t) => Some(PlotKindMeta::Other {
+                door_tile: t.door_tile,
+            }),
             PlotKind::SeaChapel(_) => Some(PlotKindMeta::Dungeon),
             PlotKind::Cultist(_) => Some(PlotKindMeta::Dungeon),
             PlotKind::Gnarling(_) => Some(PlotKindMeta::Dungeon),
@@ -261,7 +278,6 @@ impl PlotKind {
             PlotKind::GliderRing(_)
             | PlotKind::GliderPlatform(_)
             | PlotKind::GliderFinish(_)
-            | PlotKind::Tavern(_)
             | PlotKind::JungleRuin(_)
             | PlotKind::DesertCityArena(_)
             | PlotKind::DesertCityMultiPlot(_)

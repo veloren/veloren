@@ -11,9 +11,23 @@ use util::sprites::PainterSpriteExt;
 use vek::*;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum RoadKind {
+pub enum RoadLights {
     Default,
     Terracotta,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum RoadMaterial {
+    Dirt,
+    Cobblestone,
+    Sandstone,
+    Marble,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct RoadKind {
+    pub lights: RoadLights,
+    pub material: RoadMaterial,
 }
 
 impl RoadKind {
@@ -24,9 +38,39 @@ impl RoadKind {
             .column(pos.xy(), pos.z - 4..pos.z)
             .sample_with_column(|p, col| p.z > col.riverless_alt as i32)
             .fill(wood_corner);
-        match self {
-            RoadKind::Default => painter.lanternpost_wood(pos, dir),
-            RoadKind::Terracotta => painter.sprite(pos, SpriteKind::LampTerracotta),
+        match self.lights {
+            RoadLights::Default => painter.lanternpost_wood(pos, dir),
+            RoadLights::Terracotta => painter.sprite(pos, SpriteKind::LampTerracotta),
+        }
+    }
+
+    pub fn block(&self, col: &ColumnSample, wpos: Vec3<i32>, dir: Dir) -> Block {
+        match self.material {
+            RoadMaterial::Dirt => Block::new(
+                BlockKind::Earth,
+                crate::sim::Path::default()
+                    .surface_color((col.sub_surface_color * 255.0).as_(), wpos),
+            ),
+            RoadMaterial::Cobblestone => Block::new(
+                BlockKind::Rock,
+                (col.stone_col.as_() * 0.4
+                    + (col.sub_surface_color * 0.4 * 255.0)
+                    + (RandomField::new(15).get(wpos / (dir.orthogonal().to_vec2() + 1).with_z(1))
+                        % 20) as f32)
+                    .as_(),
+            ),
+            RoadMaterial::Sandstone => Block::new(
+                BlockKind::Rock,
+                (col.stone_col.as_() * 0.2
+                    + (col.surface_color * 0.5 * 255.0)
+                    + (RandomField::new(15).get(wpos / (dir.orthogonal().to_vec2() + 1).with_z(1))
+                        % 20) as f32)
+                    .as_(),
+            ),
+            RoadMaterial::Marble => Block::new(
+                BlockKind::Rock,
+                Rgb::broadcast((col.marble_small * 0.5 + 0.4) * 255.0).as_(),
+            ),
         }
     }
 }
@@ -162,12 +206,11 @@ impl Structure for Road {
             });
 
             let wposf = wpos.map(|e| e as f32);
-            if near_roads.any(|(line, w)| line.distance_to_point(wposf) < w as f32 * 2.0) {
-                let sub_surface_color = col.sub_surface_color * 0.5;
-                Some(Block::new(
-                    BlockKind::Earth,
-                    (sub_surface_color * 255.0).as_(),
-                ))
+            if let Some((line, _)) =
+                near_roads.find(|(line, w)| line.distance_to_point(wposf) < *w as f32 * 2.0)
+            {
+                let dir = Dir::from_vec2((line.start - line.end).as_());
+                Some(self.kind.block(col, wpos.with_z(z), dir))
             } else {
                 None
             }
