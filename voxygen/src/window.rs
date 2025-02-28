@@ -13,12 +13,26 @@ use hashbrown::HashMap;
 use itertools::Itertools;
 use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, EnumIter};
 use tracing::{error, warn};
 use vek::*;
 use winit::monitor::VideoMode;
 
 /// Represents a key that the game menus recognise after input mapping
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Deserialize,
+    Serialize,
+    AsRefStr,
+    EnumIter,
+)]
 pub enum MenuInput {
     Up,
     Down,
@@ -33,6 +47,10 @@ pub enum MenuInput {
     Apply,
     Back,
     Exit,
+}
+
+impl MenuInput {
+    pub fn get_localization_key(&self) -> &str { self.as_ref() }
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
@@ -640,21 +658,21 @@ impl Window {
 
                     // have to check l_entry1 and then l_entry2 so LB+RB can be treated equivalent
                     // to RB+LB
-                    if let Some(evs) = settings.layer_button_map.get(&l_entry1) {
+                    if let Some(evs) = settings.inverse_layer_button_map.get(&l_entry1) {
                         for ev in evs {
                             events.push(Event::InputUpdate(*ev, is_pressed));
                         }
-                    } else if let Some(evs) = settings.layer_button_map.get(&l_entry2) {
-                        for ev in evs {
-                            events.push(Event::InputUpdate(*ev, is_pressed));
-                        }
-                    }
-                    if let Some(evs) = settings.game_button_map.get(button) {
+                    } else if let Some(evs) = settings.inverse_layer_button_map.get(&l_entry2) {
                         for ev in evs {
                             events.push(Event::InputUpdate(*ev, is_pressed));
                         }
                     }
-                    if let Some(evs) = settings.menu_button_map.get(button) {
+                    if let Some(evs) = settings.inverse_game_button_map.get(button) {
+                        for ev in evs {
+                            events.push(Event::InputUpdate(*ev, is_pressed));
+                        }
+                    }
+                    if let Some(evs) = settings.inverse_menu_button_map.get(button) {
                         for ev in evs {
                             events.push(Event::MenuInput(*ev, is_pressed));
                         }
@@ -684,7 +702,7 @@ impl Window {
                     EventType::ButtonChanged(button, _value, code) => {
                         if let Some(actions) = self
                             .controller_settings
-                            .game_analog_button_map
+                            .inverse_game_analog_button_map
                             .get(&AnalogButton::from((button, code)))
                         {
                             #[expect(clippy::never_loop)]
@@ -694,7 +712,7 @@ impl Window {
                         }
                         if let Some(actions) = self
                             .controller_settings
-                            .menu_analog_button_map
+                            .inverse_menu_analog_button_map
                             .get(&AnalogButton::from((button, code)))
                         {
                             #[expect(clippy::never_loop)]
@@ -722,7 +740,7 @@ impl Window {
                         if self.cursor_grabbed {
                             if let Some(actions) = self
                                 .controller_settings
-                                .game_axis_map
+                                .inverse_game_axis_map
                                 .get(&Axis::from((axis, code)))
                             {
                                 for action in actions {
@@ -769,7 +787,7 @@ impl Window {
                             }
                         } else if let Some(actions) = self
                             .controller_settings
-                            .menu_axis_map
+                            .inverse_menu_axis_map
                             .get(&Axis::from((axis, code)))
                         {
                             // TODO: possibly add sensitivity settings when this is used

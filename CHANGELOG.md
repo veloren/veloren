@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All metal lineage armor sets have helmets.
 - Added `/goto_rand` command for admins to teleport to random position.
 - Town road variations.
+- Gamepad bindings can now be viewed in the 'Controls Settings' menu.
 
 ### Changed
 

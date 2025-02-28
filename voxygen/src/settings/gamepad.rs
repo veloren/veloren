@@ -42,6 +42,7 @@ impl Default for GamepadSettings {
 pub mod con_settings {
     use crate::controller::*;
     use gilrs::{Axis as GilAxis, Button as GilButton};
+    use i18n::Localization;
     use serde::{Deserialize, Serialize};
 
     // represents a controller button to fire a GameInput on
@@ -62,6 +63,37 @@ pub mod con_settings {
                 mod1: Button::Simple(GilButton::Unknown),
                 mod2: Button::Simple(GilButton::Unknown),
             }
+        }
+    }
+
+    impl LayerEntry {
+        pub fn display_string(&self, localized_strings: &Localization) -> String {
+            use self::Button::*;
+
+            let mod1: Option<String> = match self.mod1 {
+                Simple(GilButton::Unknown) => None,
+                _ => self
+                    .mod1
+                    .try_shortened()
+                    .map_or(Some(self.mod1.display_string(localized_strings)), Some),
+            };
+            let mod2: Option<String> = match self.mod2 {
+                Simple(GilButton::Unknown) => None,
+                _ => self
+                    .mod2
+                    .try_shortened()
+                    .map_or(Some(self.mod2.display_string(localized_strings)), Some),
+            };
+
+            format!(
+                "{}{}{} {}",
+                mod1.map_or("".to_owned(), |m1| format!("{} + ", m1)),
+                mod2.map_or("".to_owned(), |m2| format!("{} + ", m2)),
+                self.button.display_string(localized_strings),
+                self.button
+                    .try_shortened()
+                    .map_or("".to_owned(), |short| format!("({})", short))
+            )
         }
     }
 
