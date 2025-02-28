@@ -393,8 +393,6 @@ pub struct Window {
     needs_refresh_resize: bool,
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
     pub remapping_keybindings: Option<GameInput>,
-    //true for remapping keybinds, false for clearing keybinds
-    pub keybinding_mode: bool,
     events: Vec<Event>,
     pub focused: bool,
     gilrs: Option<Gilrs>,
@@ -508,7 +506,6 @@ impl Window {
             needs_refresh_resize: false,
             keypress_map,
             remapping_keybindings: None,
-            keybinding_mode: true,
             events: Vec::new(),
             focused: true,
             gilrs,
@@ -1416,8 +1413,6 @@ impl Window {
     pub fn set_keybinding_mode(&mut self, game_input: GameInput) {
         self.remapping_keybindings = Some(game_input);
     }
-
-    pub fn toggle_keybinding_mode(&mut self) { self.keybinding_mode = !self.keybinding_mode; }
 
     pub fn window(&self) -> &winit::window::Window { &self.window }
 
