@@ -1246,25 +1246,13 @@ pub(crate) fn delete_entity_common(
     maybe_uid: Option<Uid>,
     sync_me: bool,
 ) -> Result<(), specs::error::WrongGeneration> {
-    if maybe_uid.is_none() {
-        // For now we expect all entities have a Uid component.
-        error!("Deleting entity without Uid component");
-    }
     let maybe_pos = state.read_component_copied::<comp::Pos>(entity);
-
-    // TODO: workaround for https://github.com/amethyst/specs/pull/766
-    let actual_gen = state.ecs().entities().entity(entity.id()).gen();
-    let res = if actual_gen == entity.gen() {
-        state.ecs_mut().delete_entity(entity)
-    } else {
-        Err(specs::error::WrongGeneration {
-            action: "delete",
-            actual_gen,
-            entity,
-        })
-    };
-
-    if res.is_ok() {
+    let result = state.ecs_mut().delete_entity(entity);
+    if result.is_ok() {
+        if maybe_uid.is_none() {
+            // For now we expect all entities have a Uid component.
+            error!("Deleting entity without Uid component");
+        }
         let region_map = state.mut_resource::<common::region::RegionMap>();
         let uid_pos_region_key = maybe_uid
             .zip(maybe_pos)
@@ -1297,5 +1285,5 @@ pub(crate) fn delete_entity_common(
             }
         }
     }
-    res
+    result
 }
