@@ -1081,46 +1081,48 @@ mod tests {
             let dock_pos = Vec3::new(10.0f32, 10.0, 0.0);
             let airship_dock_center = Vec2::new(0.0, 0.0);
             {
-                let (airship_pos, airship_dir) =
-                    Airships::airship_vec_for_docking_pos(dock_pos, airship_dock_center, None);
-                if airship_pos.x > 21.0 {
-                    assert_relative_eq!(
-                        airship_pos,
-                        Vec3 {
-                            x: 24.84924,
-                            y: 20.606606,
-                            z: 3.0
-                        },
-                        epsilon = 0.00001
-                    );
-                    assert_relative_eq!(
-                        airship_dir.to_vec(),
-                        Vec3 {
-                            x: 0.70710677,
-                            y: -0.70710677,
-                            z: 0.0
-                        },
-                        epsilon = 0.00001
-                    );
-                } else {
-                    assert_relative_eq!(
-                        airship_pos,
-                        Vec3 {
-                            x: 20.606598,
-                            y: 24.849243,
-                            z: 3.0
-                        },
-                        epsilon = 0.00001
-                    );
-                    assert_relative_eq!(
-                        airship_dir.to_vec(),
-                        Vec3 {
-                            x: -0.70710677,
-                            y: 0.70710677,
-                            z: 0.0
-                        },
-                        epsilon = 0.00001
-                    );
+                for _ in 0..100 {
+                    let (airship_pos, airship_dir) =
+                        Airships::airship_vec_for_docking_pos(dock_pos, airship_dock_center, None);
+                    if airship_pos.x > 21.0 {
+                        assert_relative_eq!(
+                            airship_pos,
+                            Vec3 {
+                                x: 29.091883,
+                                y: 17.778175,
+                                z: -4.0
+                            },
+                            epsilon = 0.00001
+                        );
+                        assert_relative_eq!(
+                            airship_dir.to_vec(),
+                            Vec3 {
+                                x: -0.70710677,
+                                y: 0.70710677,
+                                z: 0.0
+                            },
+                            epsilon = 0.00001
+                        );
+                    } else {
+                        assert_relative_eq!(
+                            airship_pos,
+                            Vec3 {
+                                x: 17.778172,
+                                y: 29.091885,
+                                z: -4.0
+                            },
+                            epsilon = 0.00001
+                        );
+                        assert_relative_eq!(
+                            airship_dir.to_vec(),
+                            Vec3 {
+                                x: 0.70710677,
+                                y: -0.70710677,
+                                z: 0.0
+                            },
+                            epsilon = 0.00001
+                        );
+                    }
                 }
             }
             {
@@ -1132,9 +1134,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 20.606598,
-                        y: 24.849243,
-                        z: 3.0
+                        x: 29.091883,
+                        y: 17.778175,
+                        z: -4.0
                     },
                     epsilon = 0.00001
                 );
@@ -1157,9 +1159,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 24.84924,
-                        y: 20.606606,
-                        z: 3.0
+                        x: 17.778172,
+                        y: 29.091885,
+                        z: -4.0
                     },
                     epsilon = 0.00001
                 );
@@ -1186,9 +1188,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 28856.0,
-                        y: 18558.0,
-                        z: 3.0
+                        x: 28855.0,
+                        y: 18569.0,
+                        z: -4.0
                     },
                     epsilon = 0.00001
                 );
@@ -1211,9 +1213,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 28856.0,
-                        y: 18564.0,
-                        z: 3.0
+                        x: 28855.0,
+                        y: 18553.0,
+                        z: -4.0
                     },
                     epsilon = 0.00001
                 );
