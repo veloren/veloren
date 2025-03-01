@@ -206,17 +206,36 @@ impl<'a> DockConnection<'a> {
 }
 
 impl Airships {
-    const AIRSHIP_PORT_OFFSET: Vec2<f32> = Vec2::new(
-        -Airships::AIRSHIP_TO_DOCK_CENTERLINE_OFFSET,
-        -Airships::AIRSHIP_TO_DOCK_FORE_AFT_OFFSET,
-    );
-    const AIRSHIP_STARBOARD_OFFSET: Vec2<f32> = Vec2::new(
-        -Airships::AIRSHIP_TO_DOCK_CENTERLINE_OFFSET,
-        Airships::AIRSHIP_TO_DOCK_FORE_AFT_OFFSET,
-    );
-    const AIRSHIP_TO_DOCK_CENTERLINE_OFFSET: f32 = 18.0;
-    const AIRSHIP_TO_DOCK_FORE_AFT_OFFSET: f32 = 3.0;
+    const AIRSHIP_DOCKING_POSITIONS_Z_OFFSET: f32 = 1.0;
+    const AIRSHIP_TO_DOCK_Z_OFFSET: f32 = -5.0;
+    /// The absolute offset from the captain's position to the docking alignment
+    /// point on the X axis. The airship is assumed to be facing positive Y.
+    /// This is absolute assuming that the captain is in the center of the
+    /// airship. If the captain is not in the center, the
+    /// DOCK_ALIGN_POS_TO_CAPT_STARBOARD and DOCK_ALIGN_POS_TO_CAPT_PORT
+    /// need to be adjusted.
+    const CAPT_TO_DOCK_ALIGN_X: f32 = 19.0;
+    // const CAPT_TO_DOCK_ALIGN_X: f32 = 15.0;
+    /// The offset from the captain's position to the docking alignment point on
+    /// the Y axis. The airship is assumed to be facing positive Y.
+    /// This is positive if the docking alignment point is above (positive Y)
+    /// the captain's position.
+    // const CAPT_TO_DOCK_ALIGN_Y: f32 = -3.0;
+    const CAPT_TO_DOCK_ALIGN_Y: f32 = 8.0;
+    // the generated docking positions in world gen are a little low
     const DEFAULT_DOCK_DURATION: f32 = 90.0;
+    /// The vector from the dock alignment point on the airship to the captain's
+    /// position when the airship is docked on the port side.
+    const DOCK_ALIGN_POS_TO_CAPT_PORT: Vec2<f32> = Vec2::new(
+        Airships::CAPT_TO_DOCK_ALIGN_X,
+        -Airships::CAPT_TO_DOCK_ALIGN_Y,
+    );
+    /// The vector from the dock alignment point on the airship to the captain's
+    /// position when the airship is docked on the starboard side.
+    const DOCK_ALIGN_POS_TO_CAPT_STARBOARD: Vec2<f32> = Vec2::new(
+        -Airships::CAPT_TO_DOCK_ALIGN_X,
+        -Airships::CAPT_TO_DOCK_ALIGN_Y,
+    );
     const ROUTES_NORTH: Vec2<f32> = Vec2::new(0.0, 15000.0);
     const STD_CRUISE_HAT: f32 = 300.0;
     const TAKEOFF_ASCENT_ALT: f32 = 150.0;
@@ -620,58 +639,65 @@ impl Airships {
 
     /// Get the position and direction for the airship to dock at the given
     /// docking position. If use_starboard_boarding is None, the side for
-    /// boarding is randomly chosen. This assumes that the edge of the
-    /// docking position is perpendicular to vector from the dock plot
-    /// center to the docking position. The center of the airship position with
+    /// boarding is randomly chosen. The center of the airship position with
     /// respect to the docking position is an asymmetrical offset depending on
-    /// which side of the airship will be used for boarding.
+    /// which side of the airship will be used for boarding and where the
+    /// captain is located on the airship. The returned position is the
+    /// position where the captain will be when the airship is docked
+    /// (because the captain NPC is the one that is positioned in the agent
+    /// or rtsim code).
     pub fn airship_vec_for_docking_pos(
         docking_pos: Vec3<f32>,
         airship_dock_center: Vec2<f32>,
         docking_side: Option<AirshipDockingSide>,
     ) -> (Vec3<f32>, Dir) {
-        // get the vector from the dock center to the docking station.
-        let dock_pos_offset = (docking_pos - airship_dock_center).xy();
-        // get the offset from the ship's center to the docking position and whether the
-        // ship will touch the dock on the left or right side.
-        let (ship_center_offset, reverse_ship) = match docking_side {
-            // Todo: get the docking platform offsets from the ship body?
-            Some(AirshipDockingSide::Starboard) => (Airships::AIRSHIP_STARBOARD_OFFSET, false), /* dock on ship's right side */
-            Some(AirshipDockingSide::Port) => (Airships::AIRSHIP_PORT_OFFSET, true), /* dock on ship's left side */
-            None => {
-                if thread_rng().gen::<bool>() {
-                    (Airships::AIRSHIP_STARBOARD_OFFSET, false) // randomly choose right side
-                } else {
-                    (Airships::AIRSHIP_PORT_OFFSET, true) // randomly choose left side
-                }
-            },
-        };
-        // Use unit_y as the reference vector.
-        let refvec = Vec2::unit_y();
-        // get the CW angle from the reference vector to the docking position direction.
-        let dock_pos_anglecw = Airships::angle_between_vectors_cw(refvec, dock_pos_offset);
-        // rotate the ship center offset by the angle from the reference vector to the
-        // docking position direction plus 90 degrees (because the ship will be
-        // rotated 90 degrees to the right or left when docking). Note that the
-        // Vec3::rotated_z function rotates the vector CCW, so account for that.
-        let airship_offset = ship_center_offset
-            .rotated_z(std::f32::consts::TAU - (dock_pos_anglecw + std::f32::consts::FRAC_PI_2))
-            .with_z(3.0);
-        // rotate the dock_pos_offset 90 degrees so that the side of the ship touching
-        // the dock is perpendicular to the docking pos. (rotate 90 degrees for
-        // the right side, 270 degrees for the left side, again accounting for the CCW
-        // rotation).
-        let rotation_angle = if reverse_ship {
-            std::f32::consts::FRAC_PI_2
+        // choose a random side for docking if not specified
+        let dock_side = docking_side.unwrap_or_else(|| {
+            if thread_rng().gen::<bool>() {
+                AirshipDockingSide::Starboard
+            } else {
+                AirshipDockingSide::Port
+            }
+        });
+        // Get the vector from the dock alignment position on the airship to the
+        // captain's position and the rotation angle for the ship to dock on the
+        // specified side. The dock alignment position is where the airship
+        // should touch or come closest to the dock. The side_rotation is the
+        // angle the ship needs to rotate from to be perpendicular to the vector
+        // from the dock center to the docking position. For example, if the docking
+        // position is directly north (0 degrees, or aligned with the unit_y
+        // vector), the ship needs to rotate 90 degrees CCW to dock on the port
+        // side or 270 degrees CCW to dock on the starboard side.
+        let (dock_align_to_captain, side_rotation) = if dock_side == AirshipDockingSide::Starboard {
+            (
+                Airships::DOCK_ALIGN_POS_TO_CAPT_STARBOARD,
+                3.0 * std::f32::consts::FRAC_PI_2,
+            )
         } else {
-            std::f32::consts::FRAC_PI_2 * 3.0
+            (
+                Airships::DOCK_ALIGN_POS_TO_CAPT_PORT,
+                std::f32::consts::FRAC_PI_2,
+            )
         };
+        // get the vector from the dock center to the docking platform point where the
+        // airship should touch or come closest to.
+        let dock_pos_offset = (docking_pos - airship_dock_center).xy();
+        // The airship direction when docked is the dock_pos_offset rotated by the
+        // side_rotation angle.
         let airship_dir =
-            Dir::from_unnormalized(dock_pos_offset.rotated_z(rotation_angle).with_z(0.0))
+            Dir::from_unnormalized(dock_pos_offset.rotated_z(side_rotation).with_z(0.0))
                 .unwrap_or_default();
+        // The dock_align_to_captain vector is rotated by the angle between unit_y and
+        // the airship direction.
+        let ship_dock_rotation =
+            Airships::angle_between_vectors_ccw(Vec2::unit_y(), airship_dir.vec().xy());
+        let captain_offset = dock_align_to_captain.rotated_z(ship_dock_rotation).with_z(
+            Airships::AIRSHIP_TO_DOCK_Z_OFFSET + Airships::AIRSHIP_DOCKING_POSITIONS_Z_OFFSET,
+        );
 
-        // The docking positions seem to be a little low.
-        (docking_pos + airship_offset, airship_dir)
+        // To get the location of the pilot when the ship is docked, add the
+        // captain_offset to the docking position.
+        (docking_pos + captain_offset, airship_dir)
     }
 
     // Get the docking approach for the given docking position.
@@ -786,10 +812,16 @@ impl Airships {
                 site_id,
             }
         } else {
+            // recalculate the actual airship position and direction for the port side.
+            let (airship_pos, airship_direction) = Airships::airship_vec_for_docking_pos(
+                docking_pos.1,
+                dest_center,
+                Some(AirshipDockingSide::Port),
+            );
             AirshipDockingApproach {
                 dock_pos: *docking_pos,
                 airship_pos,
-                airship_direction: -airship_direction,
+                airship_direction,
                 dock_center: dest_center,
                 height,
                 approach_initial_pos: initial_pos_fn(port_final_pos),
