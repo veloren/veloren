@@ -326,7 +326,7 @@
         ): "common-items-npc_armor-biped_small-ashen-chest-warrior",
         Simple(
             "common.items.npc_armor.biped_small.ashen.hand.warrior",
-        ): "common-items-npc_armor-biped_small-ashen-hand-warrior",        
+        ): "common-items-npc_armor-biped_small-ashen-hand-warrior",
         Simple(
             "common.items.npc_armor.biped_small.bushly.foot.bushly",
         ): "common-items-npc_armor-biped_small-bushly-foot-bushly",
@@ -2695,7 +2695,7 @@
         ): "weapon-tool-wooden_lute",
         Simple(
             "common.items.tool.instruments.oud",
-        ): "weapon-tool-wooden_oud",        
+        ): "weapon-tool-wooden_oud",
         Simple(
             "common.items.tool.instruments.lyre",
         ): "weapon-tool-wooden_lyre",
@@ -2819,7 +2819,7 @@
         ): "common-items-npc_weapons-biped_small-ashen-axe",
         Simple(
             "common.items.npc_weapons.biped_small.ashen.staff",
-        ): "common-items-npc_weapons-biped_small-ashen-staff",        
+        ): "common-items-npc_weapons-biped_small-ashen-staff",
         Simple(
             "common.items.npc_weapons.biped_small.haniwa.archer",
         ): "common-items-npc_weapons-biped_small-haniwa-archer",
@@ -3716,7 +3716,7 @@
         ): "lantern-bloodmoon_relic",
         Simple(
             "common.items.lantern.crux",
-        ): "lantern-crux",                
+        ): "lantern-crux",
         Simple(
             "common.items.charms.burning_charm",
         ): "object-burning_charm",
@@ -7626,5 +7626,6 @@
         Simple("common.items.recipes.weapons.frostwood"): "recipe-weapons-frostwood",
         Simple("common.items.recipes.weapons.eldwood"): "recipe-weapons-eldwood",
         Simple("common.items.recipes.default"): "recipe-default",
+        Simple("common.items.consumable.firedrop"): "object-ingredient-firedrop",
     },
 )

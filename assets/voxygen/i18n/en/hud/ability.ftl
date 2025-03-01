@@ -358,34 +358,27 @@ common-abilities-axe-capsize = Capsize
 
 # Hammer abilities
 common-abilities-hammer-solid_smash = Solid Smash
-    .desc =
-        A solid smash, that'll hurt
+    .desc = A solid smash, that'll hurt
 common-abilities-hammer-wide_wallop = Wide Wallop
-    .desc =
-        Pull back and send them flying
+    .desc = Pull back and send them flying
 common-abilities-hammer-scornful_swipe = Scornful Swipe
     .desc =
         Increases your poise resistance and energy reward.
         If you fall to an enemy their attack damage and vulnerability to damage are increased.
 common-abilities-hammer-tremor = Tremor
-    .desc =
-        Strike the earth with enough force that the ground beneath your foes trembles.
+    .desc = Strike the earth with enough force that the ground beneath your foes trembles.
 common-abilities-hammer-vigorous_bash = Vigorous Bash
     .desc =
         Use the head of your hammer to quickly strike your foes.
         Awards 4 combo bonus if your enemy is stunned.
 common-abilities-hammer-heavy_whorl = Heavy Whorl
-    .desc =
-        You strike all foes surrounding you with your hammer.
+    .desc = You strike all foes surrounding you with your hammer.
 common-abilities-hammer-dual_heavy_whorl = Heavy Whorl
-    .desc =
-        You strike all foes surrounding you with your hammers.
+    .desc = You strike all foes surrounding you with your hammers.
 common-abilities-hammer-intercept = Intercept
-    .desc =
-        Charge forward with your hammer throwing your weight behind your strike.
+    .desc = Charge forward with your hammer throwing your weight behind your strike.
 common-abilities-hammer-dual_intercept = Intercept
-    .desc =
-        Charge forward with your hammers throwing your weight behind your strike.
+    .desc = Charge forward with your hammers throwing your weight behind your strike.
 common-abilities-hammer-retaliate = Retaliate
     .desc =
         Block and counter your foe's attack in one swift move!
@@ -411,11 +404,9 @@ common-abilities-hammer-helm_crusher = Helm Crusher
         Bash your enemy's head with your hammer, concussing them.
         Requires { $min_combo } combo to use.
 common-abilities-hammer-iron_tempest = Iron Tempest
-    .desc =
-        Swing swiftly enough that your hammer becomes like a storm, scattering your enemies.
+    .desc = Swing swiftly enough that your hammer becomes like a storm, scattering your enemies.
 common-abilities-hammer-dual_iron_tempest = Iron Tempest
-    .desc =
-        Swing swiftly enough that your hammers becomes like a storm, scattering your enemies.
+    .desc = Swing swiftly enough that your hammers becomes like a storm, scattering your enemies.
 common-abilities-hammer-upheaval = Upheaval
     .desc =
         Slam your hammer into your foe, knocking them into the air.
@@ -454,41 +445,34 @@ common-abilities-hammer-judgement = Judgement
 
 # Bow Abilities
 common-abilities-bow-arrow_shot = Arrow Shot
-    .desc =
-        Nock an arrow and release.
+    .desc = Nock an arrow and release.
 common-abilities-bow-broadhead = Broadhead
-    .desc =
-        Nock a heavier arrow, and release.
+    .desc = Nock a heavier arrow, and release.
 common-abilities-bow-foothold = Foothold
-    .desc =
-        Kick off of a foe to jump backwards while shooting an arrow at them.
+    .desc = Kick off of a foe to jump backwards while shooting an arrow at them.
 common-abilities-bow-snare_shot = Snare Shot
-    .desc =
-        Your next arrow will pin the target where they are.
+    .desc = Your next arrow will pin the target where they are.
 common-abilities-bow-barrage = Barrage
-    .desc =
-        Replace your broadhead arrow with a bandolier of smaller arrows to quickly barrage at your foes.
+    .desc = Replace your broadhead arrow with a bandolier of smaller arrows to quickly barrage at your foes.
 common-abilities-bow-barrage_shot = Barrage
-    .desc =
-        Quickly fire a number of smaller arrows to barrage your enemies with an unending stream of arrows.
+    .desc = Quickly fire a number of smaller arrows to barrage your enemies with an unending stream of arrows.
 common-abilities-bow-owl_talon = Owl Talon
-    .desc =
-        You carefully aim your next shot, slipping the arrow in between your enemy's defenses before they're prepared.
+    .desc = You carefully aim your next shot, slipping the arrow in between your enemy's defenses before they're prepared.
 common-abilities-bow-heavy_nock = Heavy Nock
-    .desc =
-        Locating your heaviest arrow, you nock it to your bow. Surely it will do a little bit more than your other arrows?
+    .desc = Locating your heaviest arrow, you nock it to your bow. Surely it will do a little bit more than your other arrows?
 common-abilities-bow-heartseeker = Heartseeker
-    .desc =
-        You take careful aim, and your next arrow released will wound your enemy as if it pierced their heart, and will bless you with some of their energy.
+    .desc = You take careful aim, and your next arrow released will wound your enemy as if it pierced their heart, and will bless you with some of their energy.
 common-abilities-bow-scatterburst = Scatterburst
-    .desc =
-        Haphazardly grab a handful of arrows, nocking them to your bow.
+    .desc = Haphazardly grab a handful of arrows, nocking them to your bow.
 common-abilities-bow-lesser_scatterburst = Scatterburst
-    .desc =
-        Quickly pull the handful of arrows back, releasing them before you drop any.
+    .desc = Quickly pull the handful of arrows back, releasing them before you drop any.
 common-sbilities-bow-greater_scatterburst = Scatterburst
-    .desc =
-        Carefully pull the handful of arrows back, bringing your bow to a full draw before releasing them.
+    .desc = Carefully pull the handful of arrows back, bringing your bow to a full draw before releasing them.
 common-abilities-bow-eagle_eye = Eagle Eye
-    .desc =
-        Take aim, and as your arrows hit their marks your adrenaline rises.
+    .desc = Take aim, and as your arrows hit their marks your adrenaline rises.
+common-abilities-bow-ignite_arrow = Ignite Arrow
+    .desc = Pull a firedrop out and apply it to your next arrow.
+common-abilities-bow-burning_arrow = Burning Arrow
+    .desc = As your arrow sinks into your target, they get set ablaze from the firedrop coating.
+common-abilities-bow-burning_broadhead = Burning Broadhead
+    .desc = Your next arrow carries enough force that the unstable firedrop coating will explode on impact.

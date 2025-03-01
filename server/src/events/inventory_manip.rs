@@ -17,8 +17,9 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     event::{
-        BuffEvent, ChangeBodyEvent, CreateItemDropEvent, CreateObjectEvent, DeleteEvent, EmitExt,
-        HealthChangeEvent, InventoryManipEvent, PoiseChangeEvent, TamePetEvent,
+        BuffEvent, ChangeBodyEvent, ChangeStanceEvent, CreateItemDropEvent, CreateObjectEvent,
+        DeleteEvent, EmitExt, HealthChangeEvent, InventoryManipEvent, PoiseChangeEvent,
+        TamePetEvent,
     },
     event_emitters, match_some,
     mounting::VolumePos,
@@ -71,6 +72,7 @@ event_emitters! {
         buff: BuffEvent,
         change_body: ChangeBodyEvent,
         outcome: Outcome,
+        stance: ChangeStanceEvent,
     }
 }
 #[derive(SystemData)]
@@ -1153,6 +1155,9 @@ impl ServerEvent for InventoryManipEvent {
                 },
                 comp::InventoryManip::SwapEquippedWeapons => {
                     inventory.swap_equipped_weapons(*data.time);
+                },
+                comp::InventoryManip::Delete(slot, amount) => {
+                    let _ = inventory.take_amount(slot, amount, &data.ability_map, &data.msm);
                 },
             }
             if data.trades.in_mutable_trade(uid) {

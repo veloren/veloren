@@ -718,6 +718,7 @@ impl ParticleMgr {
             self.maintain_aura_particles(scene_data);
             self.maintain_buff_particles(scene_data);
             self.maintain_fluid_particles(scene_data);
+            self.maintain_stance_particles(scene_data);
 
             self.upload_particles(renderer);
         } else {
@@ -3786,6 +3787,60 @@ impl ParticleMgr {
                         }
                     }
                 },
+            }
+        }
+    }
+
+    fn maintain_stance_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+        let mut rng = rand::rng();
+
+        for (interp, pos, stance, body, ori) in (
+            ecs.read_storage::<Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<comp::Stance>(),
+            &ecs.read_storage::<Body>(),
+            &ecs.read_storage::<Ori>(),
+        )
+            .join()
+        {
+            let pos = interp.map_or(pos.0, |i| i.pos);
+
+            use comp::ability::{BowStance, Stance};
+            #[allow(clippy::single_match)]
+            match stance {
+                Stance::Bow(BowStance::IgniteArrow) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(150))),
+                        || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.45
+                                + ori.look_dir().xy().rotated_z(0.6) * body.front_radius() * 2.5
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            let end_pos = start_pos
+                                + Vec3::unit_z() * 0.7
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            Particle::new_directed(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::FlameThrower,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        },
+                    );
+                },
+                _ => {},
             }
         }
     }

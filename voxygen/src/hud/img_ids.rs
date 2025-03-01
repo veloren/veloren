@@ -338,6 +338,9 @@ image_ids! {
         bow_lesser_scatterburst: "voxygen.element.skills.bow.lesser_scatterburst",
         bow_greater_scatterburst: "voxygen.element.skills.bow.greater_scatterburst",
         bow_eagle_eye: "voxygen.element.skills.bow.eagle_eye",
+        bow_ignite_arrow: "voxygen.element.skills.bow.ignite_arrow",
+        bow_burning_arrow: "voxygen.element.skills.bow.burning_arrow",
+        bow_burning_broadhead: "voxygen.element.skills.bow.burning_broadhead",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

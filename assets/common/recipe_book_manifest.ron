@@ -2881,9 +2881,17 @@
     "shield": (
         output: ("common.items.weapons.shield.starter_shield", 1),
         inputs: [
-             (Item("common.items.log.wood"), 5, false),
-             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false)
+            (Item("common.items.log.wood"), 5, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false)
         ],
         craft_sprite: Some(CraftingBench),
+    ),
+    "firedrop": (
+        output: ("common.items.consumable.firedrop", 20),
+        inputs: [
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
     ),
 }

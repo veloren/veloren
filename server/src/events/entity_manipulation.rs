@@ -126,6 +126,7 @@ event_emitters! {
         bonk: BonkEvent,
         change_body: ChangeBodyEvent,
         outcome: Outcome,
+        stance: ChangeStanceEvent,
     }
 
     struct ReadEntityAttackedHookEvents[EntityAttackedHookEmitters] {
@@ -1646,6 +1647,8 @@ impl ServerEvent for ExplosionEvent {
                             .join()
                             .filter(|(_, _, h, _)| !h.is_dead)
                         {
+                            let pos_b = Pos(pos_b.0
+                                + Vec3::unit_z() * body_b_maybe.map_or(0.5, |b| b.height() / 2.0));
                             let dist_sqrd = ev.pos.distance_squared(pos_b.0);
 
                             // Check if it is a hit
@@ -1855,6 +1858,7 @@ pub fn emit_effect_events(
              + EmitExt<BuffEvent>
              + EmitExt<ChangeBodyEvent>
              + EmitExt<Outcome>
+             + EmitExt<ChangeStanceEvent>
          ),
     time: Time,
     entity: EcsEntity,
@@ -1946,6 +1950,9 @@ pub fn emit_effect_events(
                     }
                 }
             },
+        },
+        common::effect::Effect::Stance(stance) => {
+            emitters.emit(ChangeStanceEvent { entity, stance });
         },
     }
 }

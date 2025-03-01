@@ -1686,7 +1686,7 @@
     Simple("common.items.tool.instruments.oud"): VoxTrans(
         "voxel.weapon.tool.wooden_oud",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
-    ),    
+    ),
     Simple("common.items.tool.instruments.steeltonguedrum"): VoxTrans(
         "voxel.weapon.tool.steeltonguedrum",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
@@ -3920,6 +3920,10 @@
         "voxel.item.food.salad_tomato",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
+    Simple("common.items.consumable.firedrop"): VoxTrans(
+        "voxel.object.firedrop",
+        (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
+    ),
     // Admin consumables
     Simple("common.items.debug.golden_cheese"): VoxTrans(
         "voxel.item.food.item_cheese",
@@ -3932,7 +3936,7 @@
     ),
     Simple("common.items.utility.surprise_egg"): VoxTrans(
         "voxel.object.surprise_egg",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Simple("common.items.utility.firework_blue"): VoxTrans(
         "voxel.weapon.projectile.fireworks_blue-0",

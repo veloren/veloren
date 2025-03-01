@@ -6,7 +6,7 @@ use crate::{
         inventory::{
             Inventory,
             item::{
-                ItemKind, Tool,
+                ItemDefinitionIdOwned, ItemKind, Tool,
                 tool::{
                     AbilityContext, AbilityItem, AbilityKind, ContextualIndex, Stats, ToolKind,
                 },
@@ -1327,7 +1327,7 @@ impl CharacterAbility {
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         let from_meta = {
             let AbilityMeta { requirements, .. } = self.ability_meta();
-            requirements.requirements_met(data.stance)
+            requirements.requirements_met(data.stance, data.inventory)
         };
         from_meta
             && match self {
@@ -3603,41 +3603,45 @@ pub enum StatField {
     Power,
 }
 
+// Reviewers: Please don't let me name this "ItemEnum"
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ItemEnum {
+    Firedrop,
+}
+
+impl ItemEnum {
+    pub fn item_def_id(&self) -> ItemDefinitionIdOwned {
+        match self {
+            Self::Firedrop => {
+                ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.firedrop"))
+            },
+        }
+    }
+}
+
 // TODO: Later move over things like energy and combo into here
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AbilityRequirements {
     pub stance: Option<Stance>,
+    pub item: Option<ItemEnum>,
 }
 
 impl AbilityRequirements {
-    pub fn requirements_met(&self, stance: Option<&Stance>) -> bool {
-        let AbilityRequirements { stance: req_stance } = self;
-        req_stance
-            .is_none_or(|req_stance| stance.is_some_and(|char_stance| req_stance == *char_stance))
+    pub fn requirements_met(&self, stance: Option<&Stance>, inv: Option<&Inventory>) -> bool {
+        let AbilityRequirements {
+            stance: req_stance,
+            item,
+        } = self;
+        let stance_met = req_stance
+            .is_none_or(|req_stance| stance.is_some_and(|char_stance| req_stance == *char_stance));
+        let item_met = item.is_none_or(|item| {
+            inv.is_some_and(|inv| {
+                inv.get_slot_of_item_by_def_id(&item.item_def_id())
+                    .is_some()
+            })
+        });
+        stance_met && item_met
     }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
-pub enum SwordStance {
-    Crippling,
-    Cleaving,
-    Defensive,
-    Heavy,
-    Agile,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
-pub enum BowStance {
-    Barrage,
-    Scatterburst,
-    IgniteArrow,
-    DrenchArrow,
-    FreezeArrow,
-    JoltArrow,
-    PiercingGale,
-    Hawkstrike,
-    Fusillade,
-    DeathValley,
 }
 
 bitflags::bitflags! {
@@ -3696,6 +3700,29 @@ impl Stance {
             Stance::None => "veloren.core.pseudo_abilities.no_stance",
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
+pub enum SwordStance {
+    Crippling,
+    Cleaving,
+    Defensive,
+    Heavy,
+    Agile,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
+pub enum BowStance {
+    Barrage,
+    Scatterburst,
+    IgniteArrow,
+    DrenchArrow,
+    FreezeArrow,
+    JoltArrow,
+    PiercingGale,
+    Hawkstrike,
+    Fusillade,
+    DeathValley,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

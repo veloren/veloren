@@ -1331,7 +1331,9 @@ impl<'a> Skillbar<'a> {
                 .is_some_and(|(a, _, _)| {
                     self.energy.current() >= a.energy_cost()
                         && self.combo.is_some_and(|c| c.counter() >= a.combo_cost())
-                        && a.ability_meta().requirements.requirements_met(self.stance)
+                        && a.ability_meta()
+                            .requirements
+                            .requirements_met(self.stance, Some(self.inventory))
                 })
             {
                 Color::Rgba(1.0, 1.0, 1.0, 1.0)

@@ -1597,7 +1597,9 @@ impl Animation for BasicAction {
             //                BOW
             // ==================================
             Some(
-                "common.abilities.bow.arrow_shot" | "common.abilities.bow.lesser_scatterburst",
+                "common.abilities.bow.arrow_shot"
+                | "common.abilities.bow.lesser_scatterburst"
+                | "common.abilities.bow.burning_arrow",
             ) => {
                 bow_start(&mut next, s_a);
 
@@ -1610,7 +1612,9 @@ impl Animation for BasicAction {
                     Vec3::new(0.0, charge * -3.0, 0.0) + Vec3::one() * tension * 0.05;
             },
             Some(
-                "common.abilities.bow.broadhead" | "common.abilities.bow.greater_scatterburst",
+                "common.abilities.bow.broadhead"
+                | "common.abilities.bow.greater_scatterburst"
+                | "common.abilities.bow.burning_broadhead",
             ) => {
                 bow_start(&mut next, s_a);
 
@@ -1691,6 +1695,9 @@ impl Animation for BasicAction {
 
                 next.control.orientation.rotate_x(move1 * 0.8);
                 next.control.position += Vec3::new(5.0, 0.0, 7.0) * move1;
+            },
+            Some("common.abilities.bow.ignite_arrow") => {
+                bow_start(&mut next, s_a);
             },
             // ==================================
             //             FIRE STAFF

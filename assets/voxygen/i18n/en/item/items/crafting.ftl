@@ -75,12 +75,12 @@ sprite-crafting_ing-alkahest = Alkahest
 
 sprite-crafting_ing-dwarven_battery = Dwarven Battery
     .desc = Container of magical energy.
-    
+
 sprite-crafting_ing-bloody_tear = Bloody Tear
     .desc = The hardened, concentrated blood of the beasts' countless victims.
-    
+
 sprite-crafting_ing-molten_core = Molten Core
-    .desc = Compacted liquid-sword forged in the great furnace of the earth.       
+    .desc = Compacted liquid-sword forged in the great furnace of the earth.
 
 sprite-rocks-rock-0 = Stones
     .desc = Pebbles from the ground, nothing out of the ordinary.
@@ -116,9 +116,9 @@ sprite-crafting_ing-hide-tough_hide = Tough Hide
     .desc = A relatively tough, rough hide. Becomes leather.
 
 sprite-crafting_ing-animal_misc-claw = Predator Claw
-    .desc = 
+    .desc =
         The nimble claw of a fierce predator.
-        
+
         Can be used to craft fast and agile weapons.
 
 sprite-crafting_ing-animal_misc-fur = Soft Fur
@@ -128,9 +128,9 @@ sprite-crafting_ing-animal_misc-grim_eyeball = Grim Eyeball
     .desc = Casts a petrifying gaze.
 
 sprite-crafting_ing-animal_misc-large_horn = Large Horn
-    .desc = 
+    .desc =
         A large horn from a fearsome beast.
-        
+
         Weapons made with it have strengthened ability effects.
 
 sprite-crafting_ing-animal_misc-lively_vine = Lively Vine
@@ -140,9 +140,9 @@ sprite-crafting_ing-animal_misc-phoenix_feather = Phoenix Feather
     .desc = Said to have magical properties.
 
 sprite-crafting_ing-animal_misc-sharp_fang = Sharp Fang
-    .desc = 
+    .desc =
         Razor-sharp tooth from a ferocious animal.
-        
+
         Weapons made with it have more potent lasting effects.
 
 sprite-crafting_ing-animal_misc-venom_sac = Venom Sac
@@ -236,34 +236,34 @@ object-honey = Honey
     .desc = Stolen from a beehive. Surely the bees won't be happy with this!
 
 object-glowing_remains = Glowing Remains
-    .desc = 
+    .desc =
         Looted from an evil being.
-        
+
         With some additional work it can surely be
         brought back to its former glory...
 
 object-elegant_crest = Elegant Crest
-    .desc = 
+    .desc =
         Bright plumage formerly part of a colorful creature.
-        
+
         Can be used to craft quick and energy-efficient weapons.
 
 object-ice_shard = Icy Shard
     .desc = Looted from a frosty creature.
 
 object-long_tusk = Long Tusk
-    .desc = 
+    .desc =
         An impressively long tusk from a proud beast.
-        
+
         Can be used to craft efficient, long-range weapons.
 
 object-raptor_feather = Raptor Feather
     .desc = A large colorful feather from a raptor.
 
 object-strong_pincer = Strong Pincer
-    .desc = 
+    .desc =
         A powerful pincer from a hard-shelled creature.
-        
+
         Has power-enhancing effects when crafting weapons.
 
 sprite-mineral-ore-bloodstone = Bloodstone Ore
@@ -300,21 +300,21 @@ sprite-velorite-velorite = Velorite Fragment
     .desc = Small runes sparkle on its surface, though you don't know what it means.
 
 sprite-mineral-ingot-bloodsteel = Bloodsteel Ingot
-    .desc = 
+    .desc =
         An alloy of bloodstone and iron, with a dark red color.
-        
+
         This can be used when crafting metal weapons.
 
 sprite-mineral-ingot-bronze = Bronze Ingot
-    .desc = 
+    .desc =
         A sturdy alloy made from combining copper and tin.
-        
+
         This can be used when crafting metal weapons.
 
 sprite-mineral-ingot-cobalt = Cobalt Ingot
-    .desc = 
+    .desc =
         A strikingly blue ingot.
-        
+
         This can be used when crafting metal weapons.
 
 sprite-mineral-ingot-copper = Copper Ingot
@@ -324,24 +324,24 @@ sprite-mineral-ingot-gold = Gold Ingot
     .desc = An ingot made of refined metallic gold.
 
 sprite-mineral-ingot-iron = Iron Ingot
-    .desc = 
+    .desc =
         An incredibly commonplace metal.
-        
+
         This can be used when crafting metal weapons.
 
 sprite-mineral-ingot-orichalcum = Orichalcum Ingot
-    .desc = 
+    .desc =
         An ingot made of refined orichalcum.
-        
+
         This can be used when crafting metal weapons.
 
 sprite-mineral-ingot-silver = Silver Ingot
     .desc = An ingot made of refined metallic silver.
 
 sprite-mineral-ingot-steel = Steel Ingot
-    .desc = 
+    .desc =
         An alloy of iron and coal that is much tougher than its components.
-        
+
         This can be used when crafting metal weapons.
 
 sprite-mineral-ingot-tin = Tin Ingot
@@ -364,3 +364,6 @@ sprite-mineral-gem-sapphiregem = Sapphire
 
 sprite-mineral-gem-topazgem = Topaz
     .desc = An outstanding orange gem.
+
+object-ingredient-firedrop = Firedrop
+    .desc = A small viscous piece of flammable fuel.

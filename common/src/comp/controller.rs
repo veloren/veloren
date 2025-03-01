@@ -16,7 +16,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::Component;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, num::NonZeroU32};
 use vek::*;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -67,6 +67,7 @@ pub enum InventoryManip {
         craft_sprite: Option<VolumePos>,
     },
     SwapEquippedWeapons,
+    Delete(InvSlotId, NonZeroU32),
 }
 
 impl From<InventoryEvent> for InventoryManip {

@@ -246,6 +246,7 @@
             pseudo_id: "common.abilities.bow.arrow_shot",
             abilities: [
                 ((stance: Bow(Scatterburst)), (Bow(Scatterburst), "common.abilities.bow.lesser_scatterburst")),
+                ((stance: Bow(IgniteArrow)), (Bow(IgniteArrow), "common.abilities.bow.burning_arrow")),
                 ((), (None, "common.abilities.bow.arrow_shot")),
             ],
         ),
@@ -253,6 +254,7 @@
             pseudo_id: "common.abilities.bow.broadhead",
             abilities: [
                 ((stance: Bow(Scatterburst)), (Bow(Scatterburst), "common.abilities.bow.greater_scatterburst")),
+                ((stance: Bow(IgniteArrow)), (Bow(IgniteArrow), "common.abilities.bow.burning_broadhead")),
                 ((stance: Bow(Barrage)), (Bow(Barrage), "common.abilities.bow.barrage_shot")),
                 ((), (None, "common.abilities.bow.broadhead")),
             ],

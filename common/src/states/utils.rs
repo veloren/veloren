@@ -3,7 +3,10 @@ use crate::{
     comp::{
         Alignment, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction, Melee,
         Ori, Pos, Scale, StateUpdate,
-        ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
+        ability::{
+            AbilityInitEvent, AbilityMeta, AbilityRequirements, Capability, SpecifiedAbility,
+            Stance,
+        },
         arthropod, biped_large, biped_small, bird_medium,
         buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource, DestInfo},
         character_state::OutputEvents,
@@ -36,6 +39,7 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::PI,
+    num::NonZeroU32,
     ops::{Add, Div, Mul},
     time::Duration,
 };
@@ -1448,15 +1452,26 @@ fn handle_ability(
             })
             .filter(|(ability, _, _)| ability.requirements_paid(data, update))
     {
+        // TODO: Change requirements_paid to requirements_met, and then pay requirements
+        // here (necessary after energy and combo moved to AbilityMeta)
+        let ability_meta = ability.ability_meta();
+        {
+            let AbilityRequirements { stance: _, item } = ability_meta.requirements;
+            let inv_slot = item.and_then(|item| {
+                data.inventory
+                    .and_then(|inv| inv.get_slot_of_item_by_def_id(&item.item_def_id()))
+            });
+            if let Some(inv_slot) = inv_slot {
+                let inv_manip = InventoryManip::Delete(
+                    inv_slot,
+                    NonZeroU32::new(1).expect("1 is greater than 0"),
+                );
+                output_events.emit_server(InventoryManipEvent(data.entity, inv_manip));
+            }
+        }
         match CharacterState::try_from((
             &ability,
-            AbilityInfo::new(
-                data,
-                from_offhand,
-                input,
-                Some(spec_ability),
-                ability.ability_meta(),
-            ),
+            AbilityInfo::new(data, from_offhand, input, Some(spec_ability), ability_meta),
             data,
         )) {
             Ok(character_state) => {

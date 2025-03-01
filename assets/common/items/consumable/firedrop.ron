@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Firedrop",
+    legacy_description: "description.txt",
+    kind: Utility(
+        kind: AbilityReq,
+    ),
+    quality: Common,
+    tags: [],
+)
