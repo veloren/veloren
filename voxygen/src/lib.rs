@@ -53,7 +53,7 @@ use common_base::span;
 use i18n::LocalizationHandle;
 use std::path::PathBuf;
 
-use std::sync::Arc;
+use std::{collections::VecDeque, sync::Arc};
 use tokio::runtime::Runtime;
 
 /// A type used to store state that is shared between all play states.
@@ -69,13 +69,22 @@ pub struct GlobalState {
     pub lazy_init: scene::terrain::SpriteRenderContextLazy,
     pub audio: AudioFrontend,
     pub info_message: Option<String>,
+    /// Chat messages received from the client before entering the
+    /// `SessionState`.
+    ///
+    /// We transfer these to HUD when it is displayed in `SessionState`.
+    ///
+    /// Messages that aren't show in the chat box aren't retained (e.g. ones
+    /// that would just show as in-world chat bubbles).
+    pub message_backlog: VecDeque<common::comp::ChatMsg>,
     pub clock: Clock,
     #[cfg(feature = "singleplayer")]
     pub singleplayer: SingleplayerState,
     // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
     pub i18n: LocalizationHandle,
     pub clipboard: iced_winit::Clipboard,
-    // Used to clear the shadow textures when entering a PlayState that doesn't utilise shadows
+    /// Used to clear the shadow textures when entering a PlayState that doesn't
+    /// utilise shadows.
     pub clear_shadows_next_frame: bool,
     /// CLI arguments passed to voxygen
     pub args: crate::cli::Args,

@@ -276,6 +276,10 @@ impl SessionState {
             self.mumble_link.update(player_pos, player_pos);
         }
 
+        // Send hud any messages that queued while not in the session state.
+        self.hud
+            .add_backlog_messages(core::mem::take(&mut global_state.message_backlog));
+
         for event in client.tick(self.inputs.clone(), dt)? {
             match event {
                 client::Event::Chat(m) => {

@@ -29,6 +29,7 @@ pub mod img_ids;
 pub mod item_imgs;
 pub mod util;
 
+pub use chat::{MAX_MESSAGES, show_in_chatbox};
 pub use crafting::CraftingTab;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
@@ -1276,8 +1277,12 @@ pub struct Hud {
     failed_entity_pickups: HashMap<EcsEntity, CollectFailedData>,
     new_loot_messages: VecDeque<LootMessage>,
     new_messages: VecDeque<comp::ChatMsg>,
-    // NOTE Used for storing messages sent while the chat is hidden. This is needed because NPC
-    // speech uses new_messages so we need to clear it every frame.
+    /// Stores messages sent while the chat is hidden.
+    ///
+    /// This is needed because messages in new_messages are also shown as new
+    /// chat bubbles, so new_messages must be cleared every frame.
+    ///
+    /// Uses VecDeque to pop excess messages.
     message_backlog: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
@@ -3527,15 +3532,15 @@ impl Hud {
 
         self.new_loot_messages.clear();
 
-        // Don't put NPC messages in chat box.
-        self.new_messages
-            .retain(|m| !matches!(m.chat_type, comp::ChatType::Npc(_)));
+        self.new_messages.retain(chat::show_in_chatbox);
 
         // Chat box
         // Draw this after loot scroller and subtitles so it can be dragged
         // even when hovering over them
         // TODO look into parenting and then settings movable widgets to floating
         if global_state.settings.interface.toggle_chat || self.force_chat {
+            // `rev` since we push to the front of the queue and want the oldest message to
+            // be the last pushed to the front.
             for hidden in self.message_backlog.drain(..).rev() {
                 self.new_messages.push_front(hidden);
             }
@@ -4617,6 +4622,20 @@ impl Hud {
     }
 
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
+
+    /// Add chat messages that were received while outside the session state
+    /// where the hud is displayed.
+    ///
+    /// These messages are from the past so they won't be displayed as chat
+    /// bubbles and will be ordered before any messages added via
+    /// [`new_message`][Self::new_message] this tick.
+    pub fn add_backlog_messages(&mut self, messages: VecDeque<comp::ChatMsg>) {
+        // Messages in `message_backlog` won't be displayed as chat bubbles.
+        self.message_backlog.extend(messages);
+        while self.message_backlog.len() > chat::MAX_MESSAGES {
+            self.message_backlog.pop_front();
+        }
+    }
 
     pub fn new_notification(&mut self, msg: Notification) { self.new_notifications.push_back(msg); }
 

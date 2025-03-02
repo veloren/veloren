@@ -260,6 +260,15 @@ impl PlayState for CharSelectionState {
                                 );
                                 return PlayStateResult::Pop;
                             },
+                            client::Event::Chat(m) => {
+                                let message_backlog = &mut global_state.message_backlog;
+                                if crate::hud::show_in_chatbox(&m) {
+                                    message_backlog.push_back(m);
+                                    if message_backlog.len() > crate::hud::MAX_MESSAGES {
+                                        message_backlog.pop_front();
+                                    }
+                                }
+                            },
                             client::Event::CharacterCreated(character_id) => {
                                 self.char_selection_ui.select_character(character_id);
                             },

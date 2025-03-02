@@ -29,6 +29,28 @@ use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
 use vek::{Vec2, approx::AbsDiffEq};
 
+/// Determines whether a message will be sent to the chat box.
+///
+/// Some messages like NPC messages are only displayed as in-world chat bubbles.
+pub fn show_in_chatbox(msg: &ChatMsg) -> bool {
+    // Don't put NPC messages in chat box.
+    !matches!(msg.chat_type, ChatType::Npc(_))
+}
+
+pub const MAX_MESSAGES: usize = 100;
+
+const CHAT_ICON_WIDTH: f64 = 16.0;
+const CHAT_MARGIN_THICKNESS: f64 = 2.0;
+const CHAT_ICON_HEIGHT: f64 = 16.0;
+const MIN_DIMENSION: Vec2<f64> = Vec2::new(400.0, 150.0);
+const MAX_DIMENSION: Vec2<f64> = Vec2::new(650.0, 500.0);
+
+const CHAT_TAB_HEIGHT: f64 = 20.0;
+const CHAT_TAB_ALL_WIDTH: f64 = 40.0;
+
+/*#[const_tweaker::tweak(min = 0.0, max = 60.0, step = 1.0)]
+const X: f64 = 18.0;*/
+
 widget_ids! {
     struct Ids {
         draggable_area,
@@ -54,19 +76,6 @@ widget_ids! {
         chat_tab_tooltip_text,
     }
 }
-/*#[const_tweaker::tweak(min = 0.0, max = 60.0, step = 1.0)]
-const X: f64 = 18.0;*/
-
-pub const MAX_MESSAGES: usize = 100;
-
-const CHAT_ICON_WIDTH: f64 = 16.0;
-const CHAT_MARGIN_THICKNESS: f64 = 2.0;
-const CHAT_ICON_HEIGHT: f64 = 16.0;
-const MIN_DIMENSION: Vec2<f64> = Vec2::new(400.0, 150.0);
-const MAX_DIMENSION: Vec2<f64> = Vec2::new(650.0, 500.0);
-
-const CHAT_TAB_HEIGHT: f64 = 20.0;
-const CHAT_TAB_ALL_WIDTH: f64 = 40.0;
 
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {

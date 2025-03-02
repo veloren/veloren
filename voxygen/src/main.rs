@@ -237,6 +237,7 @@ fn main() {
         #[cfg(feature = "egui-ui")]
         egui_state,
         lazy_init,
+        message_backlog: std::collections::VecDeque::new(),
         clock: Clock::new(std::time::Duration::from_secs_f64(
             1.0 / get_fps(settings.graphics.max_fps) as f64,
         )),

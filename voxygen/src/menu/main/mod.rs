@@ -287,6 +287,15 @@ impl PlayState for MainMenuState {
                                 );
                                 self.init = InitState::None;
                             },
+                            client::Event::Chat(m) => {
+                                let message_backlog = &mut global_state.message_backlog;
+                                if crate::hud::show_in_chatbox(&m) {
+                                    message_backlog.push_back(m);
+                                    if message_backlog.len() > crate::hud::MAX_MESSAGES {
+                                        message_backlog.pop_front();
+                                    }
+                                }
+                            },
                             #[cfg_attr(not(feature = "plugins"), expect(unused_variables))]
                             client::Event::PluginDataReceived(data) => {
                                 #[cfg(feature = "plugins")]
