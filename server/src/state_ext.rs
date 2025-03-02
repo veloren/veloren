@@ -852,13 +852,13 @@ impl StateExt for State {
                         }
                     }
                 },
-                comp::ChatType::Tell(from, to) => {
-                    for (client, uid) in
-                        (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
-                    {
-                        if uid == from || uid == to {
-                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
-                        }
+                &comp::ChatType::Tell(from, to) => {
+                    let clients = ecs.read_storage::<Client>();
+                    if let Some(from_client) = entity_from_uid(from).and_then(|e| clients.get(e)) {
+                        from_client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                    }
+                    if let Some(to_client) = entity_from_uid(to).and_then(|e| clients.get(e)) {
+                        to_client.send_fallible(ServerGeneral::ChatMsg(resolved_msg));
                     }
                 },
                 comp::ChatType::Kill(kill_source, uid) => {
@@ -955,13 +955,13 @@ impl StateExt for State {
                         }
                     }
                 },
-                comp::ChatType::NpcTell(from, to) => {
-                    for (client, uid) in
-                        (&ecs.read_storage::<Client>(), &ecs.read_storage::<Uid>()).join()
-                    {
-                        if uid == from || uid == to {
-                            client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
-                        }
+                &comp::ChatType::NpcTell(from, to) => {
+                    let clients = ecs.read_storage::<Client>();
+                    if let Some(from_client) = entity_from_uid(from).and_then(|e| clients.get(e)) {
+                        from_client.send_fallible(ServerGeneral::ChatMsg(resolved_msg.clone()));
+                    }
+                    if let Some(to_client) = entity_from_uid(to).and_then(|e| clients.get(e)) {
+                        to_client.send_fallible(ServerGeneral::ChatMsg(resolved_msg));
                     }
                 },
                 comp::ChatType::FactionMeta(s) | comp::ChatType::Faction(_, s) => {
