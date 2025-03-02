@@ -3659,21 +3659,13 @@ fn handle_tell(
         let target_uid = uid(server, target, "target")?;
         let player_uid = uid(server, player, "player")?;
         let mode = comp::ChatMode::Tell(player_uid);
-        let players = ecs.read_storage::<comp::Player>();
-        let sender = players.get(target).ok_or(Content::localized_with_args(
-            "command-player-info-unavailable",
-            [("target", "sender")],
-        ))?;
-        let msg = if message_opt.is_empty() {
-            Content::localized_with_args("command-tell-request", [("sender", sender.alias.clone())])
-        } else {
-            Content::Plain(message_opt.join(" "))
-        };
-        drop(players);
         insert_or_replace_component(server, target, mode.clone(), "target")?;
-        server
-            .state
-            .send_chat(mode.to_msg(target_uid, msg, None)?, false);
+        if !message_opt.is_empty() {
+            let msg = Content::Plain(message_opt.join(" "));
+            server
+                .state
+                .send_chat(mode.to_msg(target_uid, msg, None)?, false);
+        };
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
     } else {
