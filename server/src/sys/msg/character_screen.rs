@@ -88,7 +88,10 @@ impl Sys {
                 && !client.login_msg_sent.load(Ordering::Relaxed)
             {
                 if let Some(player_uid) = uids.get(entity) {
-                    emitters.emit(ChatEvent(ChatType::Online(*player_uid).into_plain_msg("")));
+                    emitters.emit(ChatEvent {
+                        msg: ChatType::Online(*player_uid).into_plain_msg(""),
+                        from_client: false,
+                    });
 
                     client.login_msg_sent.store(true, Ordering::Relaxed);
                 }

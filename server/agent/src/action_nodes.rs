@@ -2094,7 +2094,10 @@ impl AgentData<'_> {
     }
 
     pub fn chat_npc(&self, content: Content, emitters: &mut AgentEmitters) {
-        emitters.emit(ChatEvent(UnresolvedChatMsg::npc(*self.uid, content)));
+        emitters.emit(ChatEvent {
+            msg: UnresolvedChatMsg::npc(*self.uid, content),
+            from_client: false,
+        });
     }
 
     fn emit_scream(&self, time: f64, emitters: &mut AgentEmitters) {

@@ -402,7 +402,7 @@ fn server_loop(
                 Message::SendGlobalMsg { msg } => {
                     use server::state_ext::StateExt;
                     let msg = ChatType::Meta.into_plain_msg(msg);
-                    server.state().send_chat(msg);
+                    server.state().send_chat(msg, false);
                 },
             }
             false

@@ -140,8 +140,13 @@ pub trait StateExt {
         player: EcsEntity,
         chat_type: &comp::ChatType<comp::Group>,
         msg: &Content,
+        // Whether the message is directly from a client or was generated on the server.
+        //
+        // Note, clients can influence the content of messages generated on the server (e.g. via
+        // chat commands like `/tell`), this is just used for logging purposes.
+        from_client: bool,
     ) -> bool;
-    fn send_chat(&self, msg: comp::UnresolvedChatMsg);
+    fn send_chat(&self, msg: comp::UnresolvedChatMsg, from_client: bool);
     fn notify_players(&self, msg: ServerGeneral);
     fn notify_in_game_clients(&self, msg: ServerGeneral);
     /// Create a new link between entities (see [`common::mounting`] for an
@@ -747,6 +752,7 @@ impl StateExt for State {
         entity: EcsEntity,
         chat_type: &comp::ChatType<comp::Group>,
         msg: &Content,
+        from_client: bool,
     ) -> bool {
         let mut automod = self.ecs().write_resource::<AutoMod>();
         let client = self.ecs().read_storage::<Client>();
@@ -762,6 +768,13 @@ impl StateExt for State {
         // TODO: Eventually, it would be nice for players to be able to send messages
         // that get localised on their client!
         let Some(msg) = msg.as_plain() else {
+            if !from_client {
+                warn!(
+                    "Non-plain chat message with a player as the sender was filtered out. This \
+                     message did not come directly from the client so this is probably a bug in \
+                     the server as these message types are not allowed currently."
+                )
+            }
             return false;
         };
 
@@ -796,7 +809,7 @@ impl StateExt for State {
 
     /// Send the chat message to the proper players. Say and region are limited
     /// by location. Faction and group are limited by component.
-    fn send_chat(&self, msg: comp::UnresolvedChatMsg) {
+    fn send_chat(&self, msg: comp::UnresolvedChatMsg, from_client: bool) {
         let ecs = self.ecs();
         let is_within =
             |target, a: &comp::Pos, b: &comp::Pos| a.0.distance_squared(b.0) < target * target;
@@ -818,8 +831,9 @@ impl StateExt for State {
         let entity_from_uid = |uid| id_maps.uid_entity(uid);
 
         if msg.chat_type.uid().is_none_or(|sender| {
-            entity_from_uid(sender)
-                .is_some_and(|e| self.validate_chat_msg(e, &msg.chat_type, msg.content()))
+            entity_from_uid(sender).is_some_and(|e| {
+                self.validate_chat_msg(e, &msg.chat_type, msg.content(), from_client)
+            })
         }) {
             match &msg.chat_type {
                 comp::ChatType::Offline(_)
