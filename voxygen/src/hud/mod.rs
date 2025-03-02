@@ -141,7 +141,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use tracing::warn;
+use tracing::{instrument, trace, warn};
 use vek::*;
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
@@ -4706,12 +4706,15 @@ impl Hud {
             }
         }
 
+        #[instrument(skip(show, global_state))]
         fn handle_map_zoom(
             factor: f64,
             world_size: Vec2<u32>,
             show: &Show,
             global_state: &mut GlobalState,
         ) -> bool {
+            trace!("Handling map Zoom");
+
             let max_zoom = world_size.reduce_partial_max() as f64;
 
             if show.map {
@@ -4719,7 +4722,17 @@ impl Hud {
                     .clamped(1.25, max_zoom / 64.0);
                 global_state.settings.interface.map_zoom = new_zoom_lvl;
             } else if global_state.settings.interface.minimap_show {
-                let new_zoom_lvl = global_state.settings.interface.minimap_zoom * factor;
+                // Duplicated code from voxygen/src/hud/minimap.rs:522 in the update fn
+                // TODO: Consolidate minimap zooming, because having duplicate handlers for
+                // hotkey and interface is error prone. Find the other occurrence by searching
+                // for this comment. Don't forget to update the code in
+                // minimap.rs when updating this!
+                let min_zoom = 1.0;
+                let max_zoom = world_size
+                    .reduce_partial_max() as f64/*.min(f64::MAX)*/;
+
+                let new_zoom_lvl = (global_state.settings.interface.minimap_zoom * factor)
+                    .clamped(min_zoom, max_zoom);
                 global_state.settings.interface.minimap_zoom = new_zoom_lvl;
             }
 

@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed rotation of Bloodmoon Relic.
 - Captains turning towards sounds or targets.
 - Soldier Crabs no longer spawn under the floor at Sahagin Island dungeons.
+- Minimap zooming can no longer exceed limits when zooming with hotkeys, making the behavious consistent for using the interface buttons or the hotkeys.
 
 ## [0.17.0] - 2024-12-28
 
