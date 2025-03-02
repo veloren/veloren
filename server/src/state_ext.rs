@@ -1247,17 +1247,13 @@ pub(crate) fn delete_entity_common(
     sync_me: bool,
 ) -> Result<(), specs::error::WrongGeneration> {
     let maybe_pos = state.read_component_copied::<comp::Pos>(entity);
+
+    // Delete entity
     let result = state.ecs_mut().delete_entity(entity);
+
     if result.is_ok() {
-        if maybe_uid.is_none() {
-            // For now we expect all entities have a Uid component.
-            error!("Deleting entity without Uid component");
-        }
         let region_map = state.mut_resource::<common::region::RegionMap>();
-        let uid_pos_region_key = maybe_uid
-            .zip(maybe_pos)
-            .map(|(uid, pos)| (uid, pos, region_map.find_region(entity, pos.0)));
-        region_map.entity_deleted(entity);
+        let region_key = region_map.entity_deleted(entity);
         // Note: Adding the `Uid` to the deleted list when exiting "in-game" relies on
         // the client not being able to immediately re-enter the game in the
         // same tick (since we could then mix up the ordering of things and
@@ -1265,14 +1261,14 @@ pub(crate) fn delete_entity_common(
         //
         // The client will ignore requests to delete its own entity that are triggered
         // by this.
-        if let Some((uid, pos, region_key)) = uid_pos_region_key {
+        if let Some(uid) = maybe_uid {
             if let Some(region_key) = region_key {
                 state
                     .mut_resource::<DeletedEntities>()
                     .record_deleted_entity(uid, region_key);
             // If there is a position and sync_me is true, but the entity is not
             // in a region, something might be wrong.
-            } else if sync_me {
+            } else if sync_me && let Some(pos) = maybe_pos {
                 // Don't panic if the entity wasn't found in a region, maybe it was just created
                 // and then deleted before the region manager had a chance to assign it a region
                 warn!(
@@ -1283,6 +1279,11 @@ pub(crate) fn delete_entity_common(
                      sync purposes"
                 );
             }
+        } else {
+            // For now we expect all entities have a Uid component. If this is changed, the
+            // RegionMap needs to account for presence of Uid when deciding what should be
+            // tracked.
+            error!("Deleting entity without Uid component");
         }
     }
     result

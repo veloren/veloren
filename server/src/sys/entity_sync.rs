@@ -7,7 +7,7 @@ use common::{
     link::Is,
     mounting::Rider,
     outcome::Outcome,
-    region::{Event as RegionEvent, RegionMap},
+    region::{RegionEvent, RegionMap},
     resources::{PlayerPhysicsSettings, Time, TimeOfDay, TimeScale},
     terrain::TerrainChunkSize,
     uid::Uid,
