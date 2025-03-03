@@ -90,15 +90,13 @@ void main() {
 
     f_inst_light = vec2(inst_light, inst_glow);
 
-    uint vert_page_index;
+    uint vert_page_index = uint(gl_VertexIndex) & VERT_PAGE_SIZE_BITS;
 
     if ((inst_pos_meta & (1 << 29)) != 0) {
         // Change winding order by mirroring the vertices on the quad.
-        vert_page_index = (gl_VertexIndex & (VERT_PAGE_SIZE_BITS - 1)) | (1 - (gl_VertexIndex & 1));
-    } else {
-        vert_page_index = gl_VertexIndex & VERT_PAGE_SIZE_BITS;
+        // By flipping bottom bit to map 0,1,2,3 to 1,0,3,2
+        vert_page_index = vert_page_index ^ 1;
     }
-
 
     // Index of the vertex data in the 1D vertex texture
     int vertex_index = int(vert_page_index | (inst_vert_page * VERT_PAGE_SIZE));
