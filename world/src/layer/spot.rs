@@ -31,7 +31,7 @@ use vek::*;
 ///
 /// Only add spots with randomly spawned NPCs here. Spots that only use
 /// EntitySpawner blocks can be added in assets/world/manifests/spots.ron
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, strum::EnumIter)]
 pub enum Spot {
     DwarvenGrave,
     SaurokAltar,

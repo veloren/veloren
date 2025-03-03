@@ -132,9 +132,11 @@ macro_rules! sprites {
             }
         );
 
+        #[doc(hidden)]
         mod categories {
             use super::*;
             $(
+                /// Struct used to deserialize attributes for a specific category of sprites.
                 #[doc(hidden)]
                 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
                 pub struct $category_name $(($($attr),*))?;

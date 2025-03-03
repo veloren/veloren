@@ -189,9 +189,12 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
             .wrapping_add((wpos.y as u64).wrapping_mul(7))
             .wrapping_add((wpos.x as u64).wrapping_mul(wpos.y as u64)); // Awful PRNG
 
-        // % 4 is non uniform, take 7 and combine two lesser probable outcomes
         let rot = block
             .sprite_z_rot()
+            // % 4 is non uniform, So we take % 17 and divide by four, giving the chances:
+            // 0..=2: 4/17
+            // 3: 5/17
+            // Then multiply by π/2 rad to get axis aligned rotations.
             .unwrap_or((seed % 17 / 4).min(3) as f32 / 2.0 * std::f32::consts::PI);
         let mirror = block.sprite_mirror_vec();
         // try to make the variation more uniform as the PRNG is highly unfair

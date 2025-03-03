@@ -55,6 +55,30 @@ use std::{
 use strum::EnumIter;
 use vek::*;
 
+/// A sprite that can be deserialized with all its attributes.
+///
+/// Say we have created the sprites:
+/// ```ignore
+/// sprites! {
+///    Furniture = 0 has Ori, MirrorX {
+///       Chair,
+///       Table,
+///    }
+/// }
+/// ```
+/// And given we're deserializing from ron we could deserialize an array
+/// of `StructureSprite` that look like this:
+/// ```ignore
+/// [
+///    // This will be a `SpriteKind::Chair` with default attributes
+///    Chair(),
+///    // This will be a `SpriteKind::Chair` with the given attributes `Ori(2)` and `MirrorX(true)`.
+///    Chair(Ori(2), MirrorX(true)),
+///    // This will be a `SpriteKind::Table` with the given attribute `Ori(2)` and the rest of its
+///    // attributes set to default.
+///    Table(Ori(4)),
+/// ]
+/// ```
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize)]
 #[serde(transparent)]
 pub struct StructureSprite(StructureSpriteKind);
@@ -80,7 +104,7 @@ sprites! {
     },
     // Furniture. In the future, we might add an attribute to customise material
     // TODO: Remove sizes and variants, represent with attributes
-    Furniture = 2 has Ori,MirrorX {
+    Furniture = 2 has Ori, MirrorX {
         // Indoor
         BookshelfArabic    = 0x0D,
         WallTableArabic    = 0x0E,
@@ -954,7 +978,6 @@ impl SpriteKind {
             | SpriteKind::BenchWoodWoodlandGreen2
             | SpriteKind::BenchWoodWoodlandGreen3
             | SpriteKind::BenchWoodWoodland
-            | SpriteKind::Bench
             | SpriteKind::BenchWoodEnd
             | SpriteKind::BenchWoodMiddle
             | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y())),

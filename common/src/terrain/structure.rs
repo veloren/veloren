@@ -40,8 +40,8 @@ make_case_elim!(
         Baobab = 20,
         BirchWood = 21,
         FrostpineLeaves = 22,
-        // NOTE: Replace this
-        // RotatedSprite(kind: SpriteKind, ori: u8) = 23,
+        // NOTE: When adding set it equal to `23`.
+        // = 23,
         EntitySpawner(entitykind: String, spawn_chance: f32) = 24,
         Keyhole(consumes: String) = 25,
         BoneKeyhole(consumes: String) = 26,
