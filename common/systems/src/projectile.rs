@@ -41,7 +41,7 @@ event_emitters! {
         energy_change: EnergyChangeEvent,
         poise_change: PoiseChangeEvent,
         parry_hook: ParryHookEvent,
-        kockback: KnockbackEvent,
+        knockback: KnockbackEvent,
         entity_attack_hoow: EntityAttackedHookEvent,
         combo_change: ComboChangeEvent,
         buff: BuffEvent,

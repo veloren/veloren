@@ -30,7 +30,7 @@ event_emitters! {
         poise_change: event::PoiseChangeEvent,
         sound: event::SoundEvent,
         parry_hook: event::ParryHookEvent,
-        kockback: event::KnockbackEvent,
+        knockback: event::KnockbackEvent,
         entity_attack_hoow: event::EntityAttackedHookEvent,
         combo_change: event::ComboChangeEvent,
         buff: event::BuffEvent,
