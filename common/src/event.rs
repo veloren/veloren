@@ -156,26 +156,17 @@ impl NpcBuilder {
     }
 }
 
-pub struct ClientConnectedEvent {
-    pub entity: EcsEntity,
-}
+// These events are generated only by server systems
+
 pub struct ClientDisconnectEvent(pub EcsEntity, pub DisconnectReason);
+
 pub struct ClientDisconnectWithoutPersistenceEvent(pub EcsEntity);
 
-pub struct ChatEvent(pub UnresolvedChatMsg);
 pub struct CommandEvent(pub EcsEntity, pub String, pub Vec<String>);
 
-// Entity Creation
 pub struct CreateSpecialEntityEvent {
     pub pos: Vec3<f32>,
     pub entity: SpecialEntity,
-}
-
-pub struct CreateNpcEvent {
-    pub pos: Pos,
-    pub ori: Ori,
-    pub npc: NpcBuilder,
-    pub rider: Option<NpcBuilder>,
 }
 
 pub struct CreateShipEvent {
@@ -201,6 +192,92 @@ pub struct CreateObjectEvent {
     pub item: Option<comp::PickupItem>,
     pub light_emitter: Option<comp::LightEmitter>,
     pub stats: Option<comp::Stats>,
+}
+
+/// Inserts default components for a character when loading into the game.
+pub struct InitializeCharacterEvent {
+    pub entity: EcsEntity,
+    pub character_id: CharacterId,
+    pub requested_view_distances: crate::ViewDistances,
+}
+
+pub struct InitializeSpectatorEvent(pub EcsEntity, pub crate::ViewDistances);
+
+pub struct UpdateCharacterDataEvent {
+    pub entity: EcsEntity,
+    pub components: (
+        comp::Body,
+        Option<comp::Hardcore>,
+        comp::Stats,
+        comp::SkillSet,
+        comp::Inventory,
+        Option<comp::Waypoint>,
+        Vec<(comp::Pet, comp::Body, comp::Stats)>,
+        comp::ActiveAbilities,
+        Option<comp::MapMarker>,
+    ),
+    pub metadata: UpdateCharacterMetadata,
+}
+
+pub struct ExitIngameEvent {
+    pub entity: EcsEntity,
+}
+
+pub struct RequestSiteInfoEvent {
+    pub entity: EcsEntity,
+    pub id: SiteId,
+}
+
+pub struct TamePetEvent {
+    pub pet_entity: EcsEntity,
+    pub owner_entity: EcsEntity,
+}
+
+pub struct UpdateMapMarkerEvent {
+    pub entity: EcsEntity,
+    pub update: comp::MapMarkerChange,
+}
+
+pub struct MakeAdminEvent {
+    pub entity: EcsEntity,
+    pub admin: comp::Admin,
+    pub uuid: Uuid,
+}
+
+pub struct DeleteCharacterEvent {
+    pub entity: EcsEntity,
+    pub requesting_player_uuid: String,
+    pub character_id: CharacterId,
+}
+
+pub struct TeleportToPositionEvent {
+    pub entity: EcsEntity,
+    pub position: Vec3<f32>,
+}
+
+pub struct RequestPluginsEvent {
+    pub entity: EcsEntity,
+    pub plugins: Vec<PluginHash>,
+}
+
+// These events are generated in common systems in addition to server systems
+// (but note on the client the event buses aren't registered and these events
+// aren't actually emitted).
+
+pub struct ChatEvent(pub UnresolvedChatMsg);
+
+pub struct CreateNpcEvent {
+    pub pos: Pos,
+    pub ori: Ori,
+    pub npc: NpcBuilder,
+    pub rider: Option<NpcBuilder>,
+}
+
+pub struct CreateAuraEntityEvent {
+    pub auras: comp::Auras,
+    pub pos: Pos,
+    pub creator_uid: Uid,
+    pub duration: Option<Secs>,
 }
 
 pub struct ExplosionEvent {
@@ -314,35 +391,6 @@ pub struct TransformEvent {
 
 pub struct StartInteractionEvent(pub Interaction);
 
-pub struct InitializeCharacterEvent {
-    pub entity: EcsEntity,
-    pub character_id: CharacterId,
-    pub requested_view_distances: crate::ViewDistances,
-}
-
-pub struct InitializeSpectatorEvent(pub EcsEntity, pub crate::ViewDistances);
-
-pub struct UpdateCharacterDataEvent {
-    pub entity: EcsEntity,
-    pub components: (
-        comp::Body,
-        Option<comp::Hardcore>,
-        comp::Stats,
-        comp::SkillSet,
-        comp::Inventory,
-        Option<comp::Waypoint>,
-        Vec<(comp::Pet, comp::Body, comp::Stats)>,
-        comp::ActiveAbilities,
-        Option<comp::MapMarker>,
-    ),
-    pub metadata: UpdateCharacterMetadata,
-}
-
-pub struct ExitIngameEvent {
-    pub entity: EcsEntity,
-}
-
-#[derive(Debug)]
 pub struct AuraEvent {
     pub entity: EcsEntity,
     pub aura_change: comp::AuraChange,
@@ -371,12 +419,7 @@ pub struct ParryHookEvent {
     pub poise_multiplier: f32,
 }
 
-pub struct RequestSiteInfoEvent {
-    pub entity: EcsEntity,
-    pub id: SiteId,
-}
-
-// Attempt to mine a block, turning it into an item
+/// Attempt to mine a block, turning it into an item.
 pub struct MineBlockEvent {
     pub entity: EcsEntity,
     pub pos: Vec3<i32>,
@@ -389,11 +432,6 @@ pub struct TeleportToEvent {
     pub max_range: Option<f32>,
 }
 
-pub struct CreateSafezoneEvent {
-    pub range: Option<f32>,
-    pub pos: Pos,
-}
-
 pub struct SoundEvent {
     pub sound: Sound,
 }
@@ -402,11 +440,6 @@ pub struct CreateSpriteEvent {
     pub pos: Vec3<i32>,
     pub sprite: SpriteKind,
     pub del_timeout: Option<(f32, f32)>,
-}
-
-pub struct TamePetEvent {
-    pub pet_entity: EcsEntity,
-    pub owner_entity: EcsEntity,
 }
 
 pub struct EntityAttackedHookEvent {
@@ -419,23 +452,6 @@ pub struct ChangeAbilityEvent {
     pub slot: usize,
     pub auxiliary_key: comp::ability::AuxiliaryKey,
     pub new_ability: comp::ability::AuxiliaryAbility,
-}
-
-pub struct UpdateMapMarkerEvent {
-    pub entity: EcsEntity,
-    pub update: comp::MapMarkerChange,
-}
-
-pub struct MakeAdminEvent {
-    pub entity: EcsEntity,
-    pub admin: comp::Admin,
-    pub uuid: Uuid,
-}
-
-pub struct DeleteCharacterEvent {
-    pub entity: EcsEntity,
-    pub requesting_player_uuid: String,
-    pub character_id: CharacterId,
 }
 
 pub struct ChangeStanceEvent {
@@ -452,30 +468,15 @@ pub struct RemoveLightEmitterEvent {
     pub entity: EcsEntity,
 }
 
-pub struct TeleportToPositionEvent {
-    pub entity: EcsEntity,
-    pub position: Vec3<f32>,
-}
-
 pub struct StartTeleportingEvent {
     pub entity: EcsEntity,
     pub portal: EcsEntity,
 }
+
 pub struct ToggleSpriteLightEvent {
     pub entity: EcsEntity,
     pub pos: Vec3<i32>,
     pub enable: bool,
-}
-pub struct RequestPluginsEvent {
-    pub entity: EcsEntity,
-    pub plugins: Vec<PluginHash>,
-}
-
-pub struct CreateAuraEntityEvent {
-    pub auras: comp::Auras,
-    pub pos: Pos,
-    pub creator_uid: Uid,
-    pub duration: Option<Secs>,
 }
 
 pub struct RegrowHeadEvent {
@@ -525,8 +526,13 @@ impl<E> Emitter<'_, E> {
 
     pub fn append(&mut self, other: &mut VecDeque<E>) { self.events.append(other) }
 
-    // TODO: allow just emitting the whole vec of events at once? without copying
-    pub fn append_vec(&mut self, vec: Vec<E>) { self.events.extend(vec) }
+    pub fn append_vec(&mut self, vec: Vec<E>) {
+        if self.events.is_empty() {
+            self.events = vec.into();
+        } else {
+            self.events.extend(vec);
+        }
+    }
 }
 
 impl<E> Drop for Emitter<'_, E> {
@@ -542,8 +548,8 @@ pub trait EmitExt<E> {
     fn emit_many(&mut self, events: impl IntoIterator<Item = E>);
 }
 
+// only called on server
 pub fn register_event_busses(ecs: &mut World) {
-    ecs.insert(EventBus::<ClientConnectedEvent>::default());
     ecs.insert(EventBus::<ClientDisconnectEvent>::default());
     ecs.insert(EventBus::<ClientDisconnectWithoutPersistenceEvent>::default());
     ecs.insert(EventBus::<ChatEvent>::default());
@@ -592,7 +598,6 @@ pub fn register_event_busses(ecs: &mut World) {
     ecs.insert(EventBus::<RequestSiteInfoEvent>::default());
     ecs.insert(EventBus::<MineBlockEvent>::default());
     ecs.insert(EventBus::<TeleportToEvent>::default());
-    ecs.insert(EventBus::<CreateSafezoneEvent>::default());
     ecs.insert(EventBus::<SoundEvent>::default());
     ecs.insert(EventBus::<CreateSpriteEvent>::default());
     ecs.insert(EventBus::<TamePetEvent>::default());
