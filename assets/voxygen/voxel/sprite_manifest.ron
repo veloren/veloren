@@ -1674,6 +1674,173 @@ BedWoodWoodlandTail: [(
     ],
     wind_sway: 0,
 )],
+BedCliffHead: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_cliff_head",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedCliffMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_cliff_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedCliffTail: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_cliff_tail",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedCoastalHead: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_coastal_head",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedCoastalMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_coastal_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedCoastalTail: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_coastal_tail",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedDesertHead: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_desert_head",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedDesertMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_desert_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedDesertTail: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_desert_tail",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedSavannahHead: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_savannah_head",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedSavannahMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_savannah_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BedSavannahTail: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bed_savannah_tail",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+// Ladder
+Ladder: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.ladder",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+// Bookshelf
+BookshelfEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bookshelf_end-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.bookshelf_end-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BookshelfMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bookshelf_middle-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.furniture.bookshelf_middle-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+            (
+            model: "voxygen.voxel.sprite.furniture.bookshelf_middle-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
 
 //HandCartWood
 
