@@ -43,7 +43,6 @@
     (0.025, Item("common.items.mineral.ore.ancient_gold")),
     (0.05, Item("common.items.crafting_ing.alkahest")),
     (0.05, Item("common.items.crafting_ing.dwarven_battery")),
-    (0.25, Item("common.items.crafting_ing.animal_misc.large_horn")),
     (0.3, Item("common.items.crafting_ing.animal_misc.lively_vine")),
     (0.5, Item("common.items.crafting_ing.sticky_thread")),
     (1.0, Item("common.items.crafting_ing.earthern_shard")),
