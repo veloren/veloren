@@ -6,6 +6,7 @@ use common::event::{
     EventBus, ExitIngameEvent,
 };
 use common_base::span;
+use hashbrown::HashSet;
 use specs::{
     DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt, WriteExpect,
     shred::SendDispatcher,
@@ -108,6 +109,9 @@ pub fn register_event_systems(builder: &mut DispatcherBuilder) {
     information::register_event_systems(builder);
 }
 
+/// Server frontend events.
+///
+/// This events are returned to the frontend that ticks the server.
 pub enum Event {
     ClientConnected {
         entity: EcsEntity,
@@ -161,16 +165,24 @@ impl Server {
         self.handle_serial_events(|this, ev: ExitIngameEvent| {
             handle_exit_ingame(this, ev.entity, false)
         });
+        let mut already_disconnected_clients = HashSet::new();
         self.handle_serial_events(|this, ev: ClientDisconnectEvent| {
-            frontend_events.push(handle_client_disconnect(this, ev.0, ev.1, false));
+            if let Some(event) =
+                handle_client_disconnect(this, ev.0, ev.1, false, &mut already_disconnected_clients)
+            {
+                frontend_events.push(event);
+            }
         });
         self.handle_serial_events(|this, ev: ClientDisconnectWithoutPersistenceEvent| {
-            frontend_events.push(handle_client_disconnect(
+            if let Some(event) = handle_client_disconnect(
                 this,
                 ev.0,
                 common::comp::DisconnectReason::Kicked,
                 true,
-            ));
+                &mut already_disconnected_clients,
+            ) {
+                frontend_events.push(event);
+            }
         });
         self.handle_serial_events(handle_possess);
         self.handle_serial_events(handle_transform);
