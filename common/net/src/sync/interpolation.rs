@@ -27,10 +27,7 @@ impl<T: Clone> InterpBuffer<T> {
     }
 
     fn push(&mut self, time: f64, x: T) {
-        let InterpBuffer {
-            ref mut buf,
-            ref mut i,
-        } = self;
+        let InterpBuffer { buf, i } = self;
         *i += 1;
         *i %= buf.len();
         buf[*i] = (time, x);
@@ -73,7 +70,7 @@ impl InterpolatableComponent for Pos {
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, vel: &InterpBuffer<Vel>) -> Self {
         // lerp to test interface, do hermite spline later
-        let InterpBuffer { ref buf, ref i } = interp_data;
+        let InterpBuffer { buf, i } = interp_data;
         let (t0, p0) = buf[(i + buf.len() - 1) % buf.len()];
         let (t1, p1) = buf[i % buf.len()];
         if (t1 - t0).abs() < f64::EPSILON {
@@ -126,7 +123,7 @@ impl InterpolatableComponent for Vel {
     }
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, _: &()) -> Self {
-        let InterpBuffer { ref buf, ref i } = interp_data;
+        let InterpBuffer { buf, i } = interp_data;
         let (t0, p0) = buf[(i + buf.len() - 1) % buf.len()];
         let (t1, p1) = buf[i % buf.len()];
         if (t1 - t0).abs() < f64::EPSILON {
@@ -162,7 +159,7 @@ impl InterpolatableComponent for Ori {
     }
 
     fn interpolate(self, interp_data: &Self::InterpData, t2: f64, _: &()) -> Self {
-        let InterpBuffer { ref buf, ref i } = interp_data;
+        let InterpBuffer { buf, i } = interp_data;
         let (t0, p0) = buf[(i + buf.len() - 1) % buf.len()];
         let (t1, p1) = buf[i % buf.len()];
         if (t1 - t0).abs() < f64::EPSILON {

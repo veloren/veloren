@@ -1160,7 +1160,7 @@ fn captain<S: State>() -> impl Action<S> {
     .map(|_, _| ())
 }
 
-fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
+fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
     let mut action = None;
     ctx.inbox.retain(|input| {
         match input {
@@ -1277,7 +1277,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
     action
 }
 
-fn check_for_enemies<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
+fn check_for_enemies<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
     // TODO: Instead of checking all nearby actors every tick, it would be more
     // effective to have the actor grid generate a per-tick diff so that we only
     // need to check new actors in the local area. Be careful though:
@@ -1292,7 +1292,7 @@ fn check_for_enemies<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S>> {
         .map(|enemy| just(move |ctx, _| ctx.controller.attack(enemy)))
 }
 
-fn react_to_events<S: State>(ctx: &mut NpcCtx, _: &mut S) -> Option<impl Action<S>> {
+fn react_to_events<S: State>(ctx: &mut NpcCtx, _: &mut S) -> Option<impl Action<S> + use<S>> {
     check_inbox::<S>(ctx)
         .map(|action| action.boxed())
         .or_else(|| check_for_enemies(ctx).map(|action| action.boxed()))

@@ -608,7 +608,7 @@ impl<'frame> Drawer<'frame> {
             return;
         }
 
-        if let Some(ShadowMap::Enabled(ref shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
+        if let Some(ShadowMap::Enabled(shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
             let device = self.borrow.device;
             let mut encoder = self
                 .encoder
@@ -684,7 +684,7 @@ impl<'frame> Drawer<'frame> {
     /// Does nothing if the shadow pipelines are not available (although they
     /// aren't used here they are needed for the ShadowMap to exist)
     pub fn clear_shadows(&mut self) {
-        if let Some(ShadowMap::Enabled(ref shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
+        if let Some(ShadowMap::Enabled(shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
             let device = self.borrow.device;
             let encoder = self.encoder.as_mut().unwrap();
             let _ = encoder.scoped_render_pass(

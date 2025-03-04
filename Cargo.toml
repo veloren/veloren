@@ -33,6 +33,11 @@ members = [
 # [workspace.lints] entry to those crates, so they can be found by searching
 # for this.
 [workspace.lints]
+rust.rust_2024_compatibility = { level = "warn", priority = 0 }
+rust.if_let_rescope = { level = "allow", priority = 1 }
+rust.tail_expr_drop_order = { level = "allow", priority = 1 }
+rust.edition_2024_expr_fragment_specifier = { level = "allow", priority = 1 }
+rust.keyword_idents_2024 = { level = "allow", priority = 1 }
 
 ### PROFILES ###
 

@@ -394,9 +394,9 @@ impl Body {
 
 /// set footwear in idle data and potential state change to Skate
 pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
-    if let Idle(idle::Data {
-        is_sneaking,
-        time_entered,
+    if let &Idle(idle::Data {
+        ref is_sneaking,
+        ref time_entered,
         mut footwear,
     }) = data.character
     {

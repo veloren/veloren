@@ -211,7 +211,7 @@ impl ProximityRequirements {
 }
 
 impl<R: Rng> GenCtx<'_, R> {
-    pub fn reseed(&mut self) -> GenCtx<'_, impl Rng> {
+    pub fn reseed(&mut self) -> GenCtx<'_, impl Rng + use<R>> {
         let mut entropy = self.rng.gen::<[u8; 32]>();
         entropy[0] = entropy[0].wrapping_add(SEED_SKIP); // Skip bad seeds
         GenCtx {

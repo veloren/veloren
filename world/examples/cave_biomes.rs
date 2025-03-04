@@ -33,7 +33,7 @@ fn main() {
                 let tunnels = layer::cave::tunnel_bounds_at(wpos, &info, land);
                 for (level, z_range, _, _, _, tunnel) in tunnels {
                     let biome = tunnel.biome_at(wpos.with_z(z_range.start), &info);
-                    let (ref mut current, ref mut total) = &mut biomes[level as usize - 1];
+                    let (current, total) = &mut biomes[level as usize - 1];
                     current.barren += biome.barren;
                     current.mushroom += biome.mushroom;
                     current.fire += biome.fire;

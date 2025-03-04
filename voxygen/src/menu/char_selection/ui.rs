@@ -479,16 +479,16 @@ impl Controls {
 
         let content = match &mut self.mode {
             Mode::Select {
-                ref mut info_content,
-                ref mut characters_scroll,
-                ref mut character_buttons,
-                ref mut new_character_button,
-                ref mut logout_button,
-                ref mut rule_button,
-                ref mut enter_world_button,
-                ref mut spectate_button,
-                ref mut yes_button,
-                ref mut no_button,
+                info_content,
+                characters_scroll,
+                character_buttons,
+                new_character_button,
+                logout_button,
+                rule_button,
+                enter_world_button,
+                spectate_button,
+                yes_button,
+                no_button,
             } => {
                 match self.selected {
                     Some(character_id) => {
@@ -967,20 +967,20 @@ impl Controls {
                 inventory: _,
                 mainhand,
                 offhand: _,
-                ref mut left_scroll,
-                ref mut right_scroll,
-                ref mut body_type_buttons,
-                ref mut species_buttons,
-                ref mut tool_buttons,
-                ref mut sliders,
-                ref mut hardcore_enabled,
-                ref mut name_input,
-                ref mut back_button,
-                ref mut create_button,
-                ref mut rand_character_button,
-                ref mut rand_name_button,
-                ref mut prev_starting_site_button,
-                ref mut next_starting_site_button,
+                left_scroll,
+                right_scroll,
+                body_type_buttons,
+                species_buttons,
+                tool_buttons,
+                sliders,
+                hardcore_enabled,
+                name_input,
+                back_button,
+                create_button,
+                rand_character_button,
+                rand_name_button,
+                prev_starting_site_button,
+                next_starting_site_button,
                 character_id,
                 start_site_idx,
             } => {
@@ -1029,7 +1029,7 @@ impl Controls {
                         humanoid::Species::Draugr => (imgs.draugr_m, imgs.draugr_f),
                         humanoid::Species::Danari => (imgs.danari_m, imgs.danari_f),
                     };
-                    let [ref mut body_m_button, ref mut body_f_button] = body_type_buttons;
+                    let [body_m_button, body_f_button] = body_type_buttons;
                     let body_type = Row::with_children(vec![
                         icon_button(
                             body_m_button,
@@ -1067,12 +1067,12 @@ impl Controls {
                             ),
                         };
                     let [
-                        ref mut human_button,
-                        ref mut orc_button,
-                        ref mut dwarf_button,
-                        ref mut elf_button,
-                        ref mut draugr_button,
-                        ref mut danari_button,
+                        human_button,
+                        orc_button,
+                        dwarf_button,
+                        elf_button,
+                        draugr_button,
+                        danari_button,
                     ] = species_buttons;
                     let species = Column::with_children(vec![
                         Row::with_children(vec![
@@ -1134,12 +1134,12 @@ impl Controls {
                     ])
                     .spacing(1);
                     let [
-                        ref mut sword_button,
-                        ref mut swords_button,
-                        ref mut axe_button,
-                        ref mut hammer_button,
-                        ref mut bow_button,
-                        ref mut staff_button,
+                        sword_button,
+                        swords_button,
+                        axe_button,
+                        hammer_button,
+                        bow_button,
+                        staff_button,
                     ] = tool_buttons;
                     let tool = Column::with_children(vec![
                         Row::with_children(vec![

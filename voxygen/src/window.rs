@@ -1414,7 +1414,7 @@ impl Window {
         key_mouse: KeyMouse,
         controls: &'a mut ControlSettings,
         remapping: &mut Option<GameInput>,
-    ) -> Option<impl Iterator<Item = &'a GameInput>> {
+    ) -> Option<impl Iterator<Item = &'a GameInput> + use<'a>> {
         match *remapping {
             // TODO: save settings
             Some(game_input) => {

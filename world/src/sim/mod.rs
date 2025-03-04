@@ -254,7 +254,7 @@ impl FileOpts {
     // whether to log error
     fn try_load_map(&self) -> Option<ModernMap> {
         let map = match self {
-            Self::LoadLegacy(ref path) => {
+            Self::LoadLegacy(path) => {
                 let file = match File::open(path) {
                     Ok(file) => file,
                     Err(e) => {
@@ -277,7 +277,7 @@ impl FileOpts {
 
                 map.into_modern()
             },
-            Self::Load(ref path) => {
+            Self::Load(path) => {
                 let file = match File::open(path) {
                     Ok(file) => file,
                     Err(e) => {
@@ -300,7 +300,7 @@ impl FileOpts {
 
                 map.into_modern()
             },
-            Self::LoadAsset(ref specifier) => match WorldFile::load_owned(specifier) {
+            Self::LoadAsset(specifier) => match WorldFile::load_owned(specifier) {
                 Ok(map) => map.into_modern(),
                 Err(err) => {
                     match err.reason().downcast_ref::<std::io::Error>() {
@@ -2266,6 +2266,7 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
+    #[expect(impl_trait_overcaptures)]
     pub fn get_nearest_ways<'a, M: Clone + Lerp<Output = M>>(
         &'a self,
         wpos: Vec2<i32>,

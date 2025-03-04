@@ -33,14 +33,17 @@ pub const SUNLIGHT: u8 = 24;
 pub const SUNLIGHT_INV: f32 = 1.0 / SUNLIGHT as f32;
 pub const MAX_LIGHT_DIST: i32 = SUNLIGHT as i32;
 
-fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
+fn calc_light<
+    V: RectRasterableVol<Vox = Block> + ReadVol + Debug,
+    L: Iterator<Item = (Vec3<i32>, u8)>,
+>(
     is_sunlight: bool,
     // When above bounds
     default_light: u8,
     bounds: Aabb<i32>,
     vol: &VolGrid2d<V>,
-    lit_blocks: impl Iterator<Item = (Vec3<i32>, u8)>,
-) -> impl Fn(Vec3<i32>) -> f32 + 'static + Send + Sync {
+    lit_blocks: L,
+) -> impl Fn(Vec3<i32>) -> f32 + 'static + Send + Sync + use<V, L> {
     span!(_guard, "calc_light");
     const UNKNOWN: u8 = 255;
     const OPAQUE: u8 = 254;

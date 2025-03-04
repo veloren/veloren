@@ -317,7 +317,7 @@ impl PhysicsData<'_> {
 
     fn construct_spatial_grid(&mut self) -> SpatialGrid {
         span!(_guard, "Construct spatial grid");
-        let PhysicsData {
+        let &mut PhysicsData {
             ref read,
             ref write,
         } = self;
@@ -357,7 +357,7 @@ impl PhysicsData<'_> {
     fn apply_pushback(&mut self, job: &mut Job<Sys>, spatial_grid: &SpatialGrid) {
         span!(_guard, "Apply pushback");
         job.cpu_stats.measure(ParMode::Rayon);
-        let PhysicsData {
+        let &mut PhysicsData {
             ref read,
             ref mut write,
         } = self;
@@ -559,7 +559,7 @@ impl PhysicsData<'_> {
 
     fn construct_voxel_collider_spatial_grid(&mut self) -> SpatialGrid {
         span!(_guard, "Construct voxel collider spatial grid");
-        let PhysicsData {
+        let &mut PhysicsData {
             ref read,
             ref write,
         } = self;
@@ -605,7 +605,7 @@ impl PhysicsData<'_> {
         job: &mut Job<Sys>,
         voxel_collider_spatial_grid: &SpatialGrid,
     ) {
-        let PhysicsData {
+        let &mut PhysicsData {
             ref read,
             ref mut write,
         } = self;
@@ -1363,7 +1363,7 @@ impl PhysicsData<'_> {
 
     fn update_cached_spatial_grid(&mut self) {
         span!(_guard, "Update cached spatial grid");
-        let PhysicsData {
+        let &mut PhysicsData {
             ref read,
             ref mut write,
         } = self;

@@ -89,7 +89,9 @@ impl EcsAccessManager {
     ///  - All that ensure that the reference doesn't exceed the execute_with
     ///    function scope
     pub unsafe fn get(&self) -> Option<&EcsWorld> {
-        // ptr::as_ref will automatically check for null
-        self.ecs_pointer.load(Ordering::Relaxed).as_ref()
+        unsafe {
+            // ptr::as_ref will automatically check for null
+            self.ecs_pointer.load(Ordering::Relaxed).as_ref()
+        }
     }
 }

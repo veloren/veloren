@@ -1483,8 +1483,7 @@ impl Hud {
             self.voxel_minimap.maintain(client, &mut self.ui);
         }
         let scale = self.ui.scale();
-        let (ref mut ui_widgets, ref mut item_tooltip_manager, ref mut tooltip_manager) =
-            &mut self.ui.set_widgets();
+        let (ui_widgets, item_tooltip_manager, tooltip_manager) = &mut self.ui.set_widgets();
         // self.ui.set_item_widgets(); pulse time for pulsating elements
         self.pulse += dt.as_secs_f32();
         // FPS

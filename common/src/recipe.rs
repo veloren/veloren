@@ -106,10 +106,8 @@ impl Recipe {
         // up to quantity needed for the crafting input. If the item either
         // cannot be used, or there is insufficient quantity, adds input and
         // number of materials needed to unsatisfied requirements.
-        self.inputs
-            .iter()
-            .enumerate()
-            .for_each(|(i, (input, amount, mut is_component))| {
+        self.inputs.iter().enumerate().for_each(
+            |(i, &(ref input, ref amount, mut is_component))| {
                 let mut required = *amount;
                 // Check used for recipes that have an input that is not consumed, e.g.
                 // craftsman hammer
@@ -147,7 +145,8 @@ impl Recipe {
                 if required > 0 || !contains_any {
                     unsatisfied_requirements.push((input, required));
                 }
-            });
+            },
+        );
 
         // If there are no unsatisfied requirements, create the items produced by the
         // recipe in the necessary quantity and remove the items that the recipe
@@ -990,7 +989,7 @@ impl RepairRecipe {
         inventory_contains_ingredients(self.inputs(item), inv, 1)
     }
 
-    pub fn inputs(&self, item: &Item) -> impl Iterator<Item = (&RecipeInput, u32)> {
+    pub fn inputs(&self, item: &Item) -> impl Iterator<Item = (&RecipeInput, u32)> + use<'_> {
         let item_durability = item.durability_lost().unwrap_or(0);
         self.inputs
             .iter()

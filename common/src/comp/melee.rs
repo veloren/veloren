@@ -544,7 +544,7 @@ impl MeleeConstructor {
     pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
         self.range *= stats.range;
         self.kind = self.kind.adjusted_by_stats(stats);
-        if let Some(ref mut scaled) = &mut self.scaled {
+        if let Some(scaled) = &mut self.scaled {
             scaled.kind = scaled.kind.adjusted_by_stats(stats);
             scaled.range *= stats.range;
         }

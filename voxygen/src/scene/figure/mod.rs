@@ -6886,7 +6886,7 @@ impl FigureMgr {
         let character_state = if is_viewpoint { character_state } else { None };
 
         let FigureMgr {
-            atlas: ref atlas_,
+            atlas: atlas_,
             model_cache,
             theropod_model_cache,
             quadruped_small_model_cache,

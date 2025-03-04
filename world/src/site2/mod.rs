@@ -43,7 +43,7 @@ use vek::*;
 /// likely to produce entirely different outcomes if some detail of a generation
 /// algorithm changes slightly. This is generally good and makes worldgen code
 /// easier to maintain and less liable to breaking changes.
-fn reseed(rng: &mut impl Rng) -> impl Rng { ChaChaRng::from_seed(rng.gen::<[u8; 32]>()) }
+fn reseed<R: Rng>(rng: &mut R) -> impl Rng + use<R> { ChaChaRng::from_seed(rng.gen::<[u8; 32]>()) }
 
 #[derive(Default)]
 pub struct Site {
