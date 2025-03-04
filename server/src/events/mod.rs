@@ -162,9 +162,6 @@ impl Server {
             handle_exit_ingame(this, ev.entity, false)
         });
         self.handle_serial_events(|this, ev: ClientDisconnectEvent| {
-            handle_client_disconnect(this, ev.0, ev.1, false);
-        });
-        self.handle_serial_events(|this, ev: ClientDisconnectEvent| {
             frontend_events.push(handle_client_disconnect(this, ev.0, ev.1, false));
         });
         self.handle_serial_events(|this, ev: ClientDisconnectWithoutPersistenceEvent| {
