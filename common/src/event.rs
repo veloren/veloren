@@ -21,8 +21,8 @@ use crate::{
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Entity as EcsEntity, World};
-use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
+use specs::Entity as EcsEntity;
+use std::{collections::VecDeque, sync::Mutex};
 use uuid::Uuid;
 use vek::*;
 
@@ -157,6 +157,11 @@ impl NpcBuilder {
 }
 
 // These events are generated only by server systems
+//
+// TODO: we may want to move these into the server crate, this may allow moving
+// other types out of `common` and would also narrow down where we know specific
+// events will be emitted (if done it should probably be setup so they can
+// easily be moved back here if needed).
 
 pub struct ClientDisconnectEvent(pub EcsEntity, pub DisconnectReason);
 
@@ -483,14 +488,28 @@ pub struct RegrowHeadEvent {
     pub entity: EcsEntity,
 }
 
+struct EventBusInner<E> {
+    queue: VecDeque<E>,
+    /// Saturates to u8::MAX and is never reset.
+    ///
+    /// Used in the first tick to check for if certain event types are handled
+    /// and only handled once.
+    #[cfg(debug_assertions)]
+    recv_count: u8,
+}
+
 pub struct EventBus<E> {
-    queue: Mutex<VecDeque<E>>,
+    inner: Mutex<EventBusInner<E>>,
 }
 
 impl<E> Default for EventBus<E> {
     fn default() -> Self {
         Self {
-            queue: Mutex::new(VecDeque::new()),
+            inner: Mutex::new(EventBusInner {
+                queue: VecDeque::new(),
+                #[cfg(debug_assertions)]
+                recv_count: 0,
+            }),
         }
     }
 }
@@ -503,15 +522,33 @@ impl<E> EventBus<E> {
         }
     }
 
-    pub fn emit_now(&self, event: E) { self.queue.lock().unwrap().push_back(event); }
+    pub fn emit_now(&self, event: E) {
+        self.inner.lock().expect("Poisoned").queue.push_back(event);
+    }
 
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = E> + use<E> {
-        std::mem::take(self.queue.lock().unwrap().deref_mut()).into_iter()
+        {
+            let mut guard = self.inner.lock().expect("Poisoned");
+            #[cfg(debug_assertions)]
+            {
+                guard.recv_count = guard.recv_count.saturating_add(1);
+            }
+            core::mem::take(&mut guard.queue)
+        }
+        .into_iter()
     }
 
     pub fn recv_all_mut(&mut self) -> impl ExactSizeIterator<Item = E> + use<E> {
-        std::mem::take(self.queue.get_mut().unwrap()).into_iter()
+        let inner = self.inner.get_mut().expect("Poisoned");
+        #[cfg(debug_assertions)]
+        {
+            inner.recv_count = inner.recv_count.saturating_add(1);
+        }
+        core::mem::take(&mut inner.queue).into_iter()
     }
+
+    #[cfg(debug_assertions)]
+    pub fn recv_count(&mut self) -> u8 { self.inner.get_mut().expect("Poisoned").recv_count }
 }
 
 pub struct Emitter<'a, E> {
@@ -538,7 +575,8 @@ impl<E> Emitter<'_, E> {
 impl<E> Drop for Emitter<'_, E> {
     fn drop(&mut self) {
         if !self.events.is_empty() {
-            self.bus.queue.lock().unwrap().append(&mut self.events);
+            let mut guard = self.bus.inner.lock().expect("Poision");
+            guard.queue.append(&mut self.events);
         }
     }
 }
@@ -546,77 +584,6 @@ impl<E> Drop for Emitter<'_, E> {
 pub trait EmitExt<E> {
     fn emit(&mut self, event: E);
     fn emit_many(&mut self, events: impl IntoIterator<Item = E>);
-}
-
-// only called on server
-pub fn register_event_busses(ecs: &mut World) {
-    ecs.insert(EventBus::<ClientDisconnectEvent>::default());
-    ecs.insert(EventBus::<ClientDisconnectWithoutPersistenceEvent>::default());
-    ecs.insert(EventBus::<ChatEvent>::default());
-    ecs.insert(EventBus::<CommandEvent>::default());
-    ecs.insert(EventBus::<CreateSpecialEntityEvent>::default());
-    ecs.insert(EventBus::<CreateNpcEvent>::default());
-    ecs.insert(EventBus::<CreateShipEvent>::default());
-    ecs.insert(EventBus::<CreateItemDropEvent>::default());
-    ecs.insert(EventBus::<CreateObjectEvent>::default());
-    ecs.insert(EventBus::<ExplosionEvent>::default());
-    ecs.insert(EventBus::<BonkEvent>::default());
-    ecs.insert(EventBus::<HealthChangeEvent>::default());
-    ecs.insert(EventBus::<KillEvent>::default());
-    ecs.insert(EventBus::<HelpDownedEvent>::default());
-    ecs.insert(EventBus::<DownedEvent>::default());
-    ecs.insert(EventBus::<PoiseChangeEvent>::default());
-    ecs.insert(EventBus::<DeleteEvent>::default());
-    ecs.insert(EventBus::<DestroyEvent>::default());
-    ecs.insert(EventBus::<InventoryManipEvent>::default());
-    ecs.insert(EventBus::<GroupManipEvent>::default());
-    ecs.insert(EventBus::<RespawnEvent>::default());
-    ecs.insert(EventBus::<ShootEvent>::default());
-    ecs.insert(EventBus::<ShockwaveEvent>::default());
-    ecs.insert(EventBus::<KnockbackEvent>::default());
-    ecs.insert(EventBus::<LandOnGroundEvent>::default());
-    ecs.insert(EventBus::<SetLanternEvent>::default());
-    ecs.insert(EventBus::<NpcInteractEvent>::default());
-    ecs.insert(EventBus::<DialogueEvent>::default());
-    ecs.insert(EventBus::<InviteResponseEvent>::default());
-    ecs.insert(EventBus::<InitiateInviteEvent>::default());
-    ecs.insert(EventBus::<ProcessTradeActionEvent>::default());
-    ecs.insert(EventBus::<MountEvent>::default());
-    ecs.insert(EventBus::<MountVolumeEvent>::default());
-    ecs.insert(EventBus::<UnmountEvent>::default());
-    ecs.insert(EventBus::<SetPetStayEvent>::default());
-    ecs.insert(EventBus::<PossessEvent>::default());
-    ecs.insert(EventBus::<InitializeCharacterEvent>::default());
-    ecs.insert(EventBus::<InitializeSpectatorEvent>::default());
-    ecs.insert(EventBus::<UpdateCharacterDataEvent>::default());
-    ecs.insert(EventBus::<ExitIngameEvent>::default());
-    ecs.insert(EventBus::<AuraEvent>::default());
-    ecs.insert(EventBus::<BuffEvent>::default());
-    ecs.insert(EventBus::<EnergyChangeEvent>::default());
-    ecs.insert(EventBus::<ComboChangeEvent>::default());
-    ecs.insert(EventBus::<ParryHookEvent>::default());
-    ecs.insert(EventBus::<RequestSiteInfoEvent>::default());
-    ecs.insert(EventBus::<MineBlockEvent>::default());
-    ecs.insert(EventBus::<TeleportToEvent>::default());
-    ecs.insert(EventBus::<SoundEvent>::default());
-    ecs.insert(EventBus::<CreateSpriteEvent>::default());
-    ecs.insert(EventBus::<TamePetEvent>::default());
-    ecs.insert(EventBus::<EntityAttackedHookEvent>::default());
-    ecs.insert(EventBus::<ChangeAbilityEvent>::default());
-    ecs.insert(EventBus::<UpdateMapMarkerEvent>::default());
-    ecs.insert(EventBus::<MakeAdminEvent>::default());
-    ecs.insert(EventBus::<DeleteCharacterEvent>::default());
-    ecs.insert(EventBus::<ChangeStanceEvent>::default());
-    ecs.insert(EventBus::<ChangeBodyEvent>::default());
-    ecs.insert(EventBus::<RemoveLightEmitterEvent>::default());
-    ecs.insert(EventBus::<TeleportToPositionEvent>::default());
-    ecs.insert(EventBus::<StartTeleportingEvent>::default());
-    ecs.insert(EventBus::<ToggleSpriteLightEvent>::default());
-    ecs.insert(EventBus::<TransformEvent>::default());
-    ecs.insert(EventBus::<StartInteractionEvent>::default());
-    ecs.insert(EventBus::<RequestPluginsEvent>::default());
-    ecs.insert(EventBus::<CreateAuraEntityEvent>::default());
-    ecs.insert(EventBus::<RegrowHeadEvent>::default());
 }
 
 /// Define ecs read data for event busses. And a way to convert them all to

@@ -29,6 +29,7 @@ use self::{
 
 mod entity_creation;
 mod entity_manipulation;
+mod event_types;
 mod group_manip;
 mod information;
 mod interaction;
@@ -38,6 +39,7 @@ mod mounting;
 mod player;
 mod trade;
 
+pub(crate) use event_types::register_event_busses;
 /// Shared utilities used by other code **in this crate**
 pub(crate) mod shared {
     pub(crate) use super::{
@@ -202,6 +204,11 @@ impl Server {
         drop(guard);
 
         self.state.maintain_ecs();
+
+        #[cfg(debug_assertions)]
+        {
+            event_types::check_event_handlers(self.state.ecs_mut())
+        }
 
         frontend_events
     }

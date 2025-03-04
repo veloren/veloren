@@ -75,7 +75,7 @@ use common::{
     comp,
     event::{
         ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent, EventBus, ExitIngameEvent,
-        UpdateCharacterDataEvent, register_event_busses,
+        UpdateCharacterDataEvent,
     },
     link::Is,
     mounting::{Volume, VolumeRider},
@@ -340,7 +340,7 @@ impl Server {
             #[cfg(feature = "plugins")]
             plugin_mgr,
         );
-        register_event_busses(state.ecs_mut());
+        events::register_event_busses(state.ecs_mut());
         state.ecs_mut().insert(battlemode_buffer);
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(editable_settings);
@@ -348,7 +348,6 @@ impl Server {
             path: data_dir.to_owned(),
         });
 
-        register_event_busses(state.ecs_mut());
         state.ecs_mut().insert(Vec::<ChunkRequest>::new());
         state
             .ecs_mut()
