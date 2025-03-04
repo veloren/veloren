@@ -39,7 +39,7 @@ pub enum ValidationError {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum ItemSpec {
+pub enum ItemSpec {
     Item(String),
     /// Parameters in this variant are used to randomly create a modular weapon
     /// that meets the provided parameters
@@ -131,7 +131,7 @@ impl ItemSpec {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum Hands {
+pub enum Hands {
     /// Allows to specify one pair
     InHands((Option<ItemSpec>, Option<ItemSpec>)),
     /// Allows specify range of choices
@@ -187,7 +187,7 @@ impl Hands {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum Base {
+pub enum Base {
     Asset(String),
     /// NOTE: If you have the same item in multiple configs,
     /// *first* one will have the priority
@@ -237,29 +237,29 @@ impl Base {
 #[serde(deny_unknown_fields)]
 pub struct LoadoutSpec {
     // Meta fields
-    inherit: Option<Base>,
+    pub inherit: Option<Base>,
     // Armor
-    head: Option<ItemSpec>,
-    neck: Option<ItemSpec>,
-    shoulders: Option<ItemSpec>,
-    chest: Option<ItemSpec>,
-    gloves: Option<ItemSpec>,
-    ring1: Option<ItemSpec>,
-    ring2: Option<ItemSpec>,
-    back: Option<ItemSpec>,
-    belt: Option<ItemSpec>,
-    legs: Option<ItemSpec>,
-    feet: Option<ItemSpec>,
-    tabard: Option<ItemSpec>,
-    bag1: Option<ItemSpec>,
-    bag2: Option<ItemSpec>,
-    bag3: Option<ItemSpec>,
-    bag4: Option<ItemSpec>,
-    lantern: Option<ItemSpec>,
-    glider: Option<ItemSpec>,
+    pub head: Option<ItemSpec>,
+    pub neck: Option<ItemSpec>,
+    pub shoulders: Option<ItemSpec>,
+    pub chest: Option<ItemSpec>,
+    pub gloves: Option<ItemSpec>,
+    pub ring1: Option<ItemSpec>,
+    pub ring2: Option<ItemSpec>,
+    pub back: Option<ItemSpec>,
+    pub belt: Option<ItemSpec>,
+    pub legs: Option<ItemSpec>,
+    pub feet: Option<ItemSpec>,
+    pub tabard: Option<ItemSpec>,
+    pub bag1: Option<ItemSpec>,
+    pub bag2: Option<ItemSpec>,
+    pub bag3: Option<ItemSpec>,
+    pub bag4: Option<ItemSpec>,
+    pub lantern: Option<ItemSpec>,
+    pub glider: Option<ItemSpec>,
     // Weapons
-    active_hands: Option<Hands>,
-    inactive_hands: Option<Hands>,
+    pub active_hands: Option<Hands>,
+    pub inactive_hands: Option<Hands>,
 }
 
 impl LoadoutSpec {
@@ -534,510 +534,543 @@ pub fn make_food_bag(quantity: u32) -> Item {
 }
 
 #[must_use]
+pub fn default_chest(body: &Body) -> Option<&'static str> {
+    match body {
+        Body::BipedLarge(body) => match body.species {
+            biped_large::Species::Mindflayer => {
+                Some("common.items.npc_armor.biped_large.mindflayer")
+            },
+            biped_large::Species::Minotaur => Some("common.items.npc_armor.biped_large.minotaur"),
+            biped_large::Species::Tidalwarrior => {
+                Some("common.items.npc_armor.biped_large.tidal_warrior")
+            },
+            biped_large::Species::Yeti => Some("common.items.npc_armor.biped_large.yeti"),
+            biped_large::Species::Harvester => Some("common.items.npc_armor.biped_large.harvester"),
+            biped_large::Species::Ogre
+            | biped_large::Species::Blueoni
+            | biped_large::Species::Redoni
+            | biped_large::Species::Cavetroll
+            | biped_large::Species::Mountaintroll
+            | biped_large::Species::Swamptroll
+            | biped_large::Species::Wendigo => Some("common.items.npc_armor.biped_large.generic"),
+            biped_large::Species::Cyclops => Some("common.items.npc_armor.biped_large.cyclops"),
+            biped_large::Species::Dullahan => Some("common.items.npc_armor.biped_large.dullahan"),
+            biped_large::Species::Tursus => Some("common.items.npc_armor.biped_large.tursus"),
+            biped_large::Species::Cultistwarlord => {
+                Some("common.items.npc_armor.biped_large.warlord")
+            },
+            biped_large::Species::Cultistwarlock => {
+                Some("common.items.npc_armor.biped_large.warlock")
+            },
+            biped_large::Species::Gigasfrost => {
+                Some("common.items.npc_armor.biped_large.gigas_frost")
+            },
+            biped_large::Species::HaniwaGeneral => {
+                Some("common.items.npc_armor.biped_large.haniwageneral")
+            },
+            biped_large::Species::TerracottaBesieger
+            | biped_large::Species::TerracottaDemolisher
+            | biped_large::Species::TerracottaPunisher
+            | biped_large::Species::TerracottaPursuer
+            | biped_large::Species::Cursekeeper => {
+                Some("common.items.npc_armor.biped_large.terracotta")
+            },
+            biped_large::Species::Forgemaster => {
+                Some("common.items.npc_armor.biped_large.forgemaster")
+            },
+            _ => None,
+        },
+        Body::BirdLarge(body) => match body.species {
+            bird_large::Species::FlameWyvern
+            | bird_large::Species::FrostWyvern
+            | bird_large::Species::CloudWyvern
+            | bird_large::Species::SeaWyvern
+            | bird_large::Species::WealdWyvern => Some("common.items.npc_armor.bird_large.wyvern"),
+            bird_large::Species::Phoenix => Some("common.items.npc_armor.bird_large.phoenix"),
+            _ => None,
+        },
+        Body::BirdMedium(body) => match body.species {
+            bird_medium::Species::BloodmoonBat => {
+                Some("common.items.npc_armor.bird_medium.bloodmoon_bat")
+            },
+            _ => None,
+        },
+        Body::Golem(body) => match body.species {
+            golem::Species::ClayGolem => Some("common.items.npc_armor.golem.claygolem"),
+            golem::Species::Gravewarden => Some("common.items.npc_armor.golem.gravewarden"),
+            golem::Species::WoodGolem => Some("common.items.npc_armor.golem.woodgolem"),
+            golem::Species::AncientEffigy => Some("common.items.npc_armor.golem.ancienteffigy"),
+            golem::Species::Mogwai => Some("common.items.npc_armor.golem.mogwai"),
+            golem::Species::IronGolem => Some("common.items.npc_armor.golem.irongolem"),
+            _ => None,
+        },
+        Body::QuadrupedLow(body) => match body.species {
+            quadruped_low::Species::Sandshark
+            | quadruped_low::Species::Alligator
+            | quadruped_low::Species::Crocodile
+            | quadruped_low::Species::SeaCrocodile
+            | quadruped_low::Species::Icedrake
+            | quadruped_low::Species::Lavadrake
+            | quadruped_low::Species::Mossdrake => Some("common.items.npc_armor.generic"),
+            quadruped_low::Species::Reefsnapper
+            | quadruped_low::Species::Rocksnapper
+            | quadruped_low::Species::Rootsnapper
+            | quadruped_low::Species::Tortoise
+            | quadruped_low::Species::Basilisk
+            | quadruped_low::Species::Hydra => Some("common.items.npc_armor.generic_high"),
+            quadruped_low::Species::Dagon => Some("common.items.npc_armor.quadruped_low.dagon"),
+            _ => None,
+        },
+        Body::QuadrupedMedium(body) => match body.species {
+            quadruped_medium::Species::Bonerattler => Some("common.items.npc_armor.generic"),
+            quadruped_medium::Species::Tarasque => Some("common.items.npc_armor.generic_high"),
+            quadruped_medium::Species::ClaySteed => {
+                Some("common.items.npc_armor.quadruped_medium.claysteed")
+            },
+            _ => None,
+        },
+        Body::Theropod(body) => match body.species {
+            theropod::Species::Archaeos | theropod::Species::Ntouka => {
+                Some("common.items.npc_armor.generic")
+            },
+            theropod::Species::Dodarock => Some("common.items.npc_armor.generic_high"),
+            _ => None,
+        },
+        // TODO: Check over
+        Body::Arthropod(body) => match body.species {
+            arthropod::Species::Blackwidow
+            | arthropod::Species::Cavespider
+            | arthropod::Species::Emberfly
+            | arthropod::Species::Moltencrawler
+            | arthropod::Species::Mosscrawler
+            | arthropod::Species::Sandcrawler
+            | arthropod::Species::Tarantula => None,
+            _ => Some("common.items.npc_armor.generic"),
+        },
+        Body::QuadrupedSmall(body) => match body.species {
+            quadruped_small::Species::Turtle
+            | quadruped_small::Species::Holladon
+            | quadruped_small::Species::TreantSapling
+            | quadruped_small::Species::MossySnail => Some("common.items.npc_armor.generic"),
+            _ => None,
+        },
+        Body::Crustacean(body) => match body.species {
+            crustacean::Species::Karkatha => Some("common.items.npc_armor.crustacean.karkatha"),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+#[must_use]
 // We have many species so this function is long
 // Also we are using default tools for un-specified species so
 // it's fine to have wildcards
 #[expect(clippy::too_many_lines, clippy::match_wildcard_for_single_variants)]
-fn default_main_tool(body: &Body) -> Item {
-    let maybe_tool = match body {
+pub fn default_main_tool(body: &Body) -> Option<&'static str> {
+    match body {
         Body::Golem(golem) => match golem.species {
-            golem::Species::StoneGolem => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.stone_golems_fist",
-            )),
-            golem::Species::ClayGolem => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.clay_golem_fist",
-            )),
-            golem::Species::Gravewarden => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.gravewarden_fist",
-            )),
-            golem::Species::WoodGolem => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.wood_golem_fist",
-            )),
-            golem::Species::CoralGolem => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.coral_golem_fist",
-            )),
-            golem::Species::AncientEffigy => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.ancient_effigy_eyes",
-            )),
-            golem::Species::Mogwai => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.mogwai",
-            )),
-            golem::Species::IronGolem => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.iron_golem_fist",
-            )),
+            golem::Species::StoneGolem => Some("common.items.npc_weapons.unique.stone_golems_fist"),
+            golem::Species::ClayGolem => Some("common.items.npc_weapons.unique.clay_golem_fist"),
+            golem::Species::Gravewarden => Some("common.items.npc_weapons.unique.gravewarden_fist"),
+            golem::Species::WoodGolem => Some("common.items.npc_weapons.unique.wood_golem_fist"),
+            golem::Species::CoralGolem => Some("common.items.npc_weapons.unique.coral_golem_fist"),
+            golem::Species::AncientEffigy => {
+                Some("common.items.npc_weapons.unique.ancient_effigy_eyes")
+            },
+            golem::Species::Mogwai => Some("common.items.npc_weapons.unique.mogwai"),
+            golem::Species::IronGolem => Some("common.items.npc_weapons.unique.iron_golem_fist"),
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-            quadruped_medium::Species::Wolf => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_medium.wolf",
-            )),
+            quadruped_medium::Species::Wolf => {
+                Some("common.items.npc_weapons.unique.quadruped_medium.wolf")
+            },
             // Below uniques still follow quadmedhoof just with stat alterations
             quadruped_medium::Species::Alpaca | quadruped_medium::Species::Llama => {
-                Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.unique.quadruped_medium.alpaca",
-                ))
+                Some("common.items.npc_weapons.unique.quadruped_medium.alpaca")
             },
             quadruped_medium::Species::Antelope | quadruped_medium::Species::Deer => {
-                Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.unique.quadruped_medium.antelope",
-                ))
+                Some("common.items.npc_weapons.unique.quadruped_medium.antelope")
             },
             quadruped_medium::Species::Donkey | quadruped_medium::Species::Zebra => {
-                Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.unique.quadruped_medium.donkey",
-                ))
+                Some("common.items.npc_weapons.unique.quadruped_medium.donkey")
             },
             // Provide Kelpie with unique water-centered abilities
             quadruped_medium::Species::Horse | quadruped_medium::Species::Kelpie => {
-                Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.unique.quadruped_medium.horse",
-                ))
+                Some("common.items.npc_weapons.unique.quadruped_medium.horse")
             },
-            quadruped_medium::Species::ClaySteed => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.claysteed",
-            )),
+            quadruped_medium::Species::ClaySteed => {
+                Some("common.items.npc_weapons.unique.claysteed")
+            },
             quadruped_medium::Species::Saber
             | quadruped_medium::Species::Bonerattler
             | quadruped_medium::Species::Lion
-            | quadruped_medium::Species::Snowleopard => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadmedjump",
-            )),
-            quadruped_medium::Species::Darkhound => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.darkhound",
-            )),
+            | quadruped_medium::Species::Snowleopard => {
+                Some("common.items.npc_weapons.unique.quadmedjump")
+            },
+            quadruped_medium::Species::Darkhound => {
+                Some("common.items.npc_weapons.unique.darkhound")
+            },
             // Below uniques still follow quadmedcharge just with stat alterations
             quadruped_medium::Species::Moose | quadruped_medium::Species::Tuskram => {
-                Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.unique.quadruped_medium.moose",
-                ))
+                Some("common.items.npc_weapons.unique.quadruped_medium.moose")
             },
-            quadruped_medium::Species::Mouflon => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_medium.mouflon",
-            )),
+            quadruped_medium::Species::Mouflon => {
+                Some("common.items.npc_weapons.unique.quadruped_medium.mouflon")
+            },
             quadruped_medium::Species::Akhlut
             | quadruped_medium::Species::Dreadhorn
             | quadruped_medium::Species::Mammoth
-            | quadruped_medium::Species::Ngoubou => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadmedcharge",
-            )),
-            quadruped_medium::Species::Grolgar => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_medium.grolgar",
-            )),
-            quadruped_medium::Species::Roshwalr => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.roshwalr",
-            )),
-            quadruped_medium::Species::Cattle => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadmedbasicgentle",
-            )),
-            quadruped_medium::Species::Highland | quadruped_medium::Species::Yak => {
-                Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.unique.quadruped_medium.highland",
-                ))
+            | quadruped_medium::Species::Ngoubou => {
+                Some("common.items.npc_weapons.unique.quadmedcharge")
             },
-            quadruped_medium::Species::Frostfang => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.frostfang",
-            )),
-            _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadmedbasic",
-            )),
+            quadruped_medium::Species::Grolgar => {
+                Some("common.items.npc_weapons.unique.quadruped_medium.grolgar")
+            },
+            quadruped_medium::Species::Roshwalr => Some("common.items.npc_weapons.unique.roshwalr"),
+            quadruped_medium::Species::Cattle => {
+                Some("common.items.npc_weapons.unique.quadmedbasicgentle")
+            },
+            quadruped_medium::Species::Highland | quadruped_medium::Species::Yak => {
+                Some("common.items.npc_weapons.unique.quadruped_medium.highland")
+            },
+            quadruped_medium::Species::Frostfang => {
+                Some("common.items.npc_weapons.unique.frostfang")
+            },
+            _ => Some("common.items.npc_weapons.unique.quadmedbasic"),
         },
         Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
-            quadruped_low::Species::Maneater => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.maneater",
-            )),
-            quadruped_low::Species::Asp => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.asp",
-            )),
-            quadruped_low::Species::Dagon => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.dagon",
-            )),
-            quadruped_low::Species::Snaretongue => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.snaretongue",
-            )),
+            quadruped_low::Species::Maneater => {
+                Some("common.items.npc_weapons.unique.quadruped_low.maneater")
+            },
+            quadruped_low::Species::Asp => {
+                Some("common.items.npc_weapons.unique.quadruped_low.asp")
+            },
+            quadruped_low::Species::Dagon => Some("common.items.npc_weapons.unique.dagon"),
+            quadruped_low::Species::Snaretongue => {
+                Some("common.items.npc_weapons.unique.snaretongue")
+            },
             quadruped_low::Species::Crocodile
             | quadruped_low::Species::SeaCrocodile
             | quadruped_low::Species::Alligator
             | quadruped_low::Species::Salamander
-            | quadruped_low::Species::Elbst => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadlowtail",
-            )),
-            quadruped_low::Species::Monitor | quadruped_low::Species::Pangolin => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadlowquick"),
-            ),
-            quadruped_low::Species::Lavadrake => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.lavadrake",
-            )),
-            quadruped_low::Species::Deadwood => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.deadwood",
-            )),
-            quadruped_low::Species::Basilisk => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.basilisk",
-            )),
-            quadruped_low::Species::Icedrake => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.icedrake",
-            )),
-            quadruped_low::Species::Hakulaq => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.hakulaq",
-            )),
-            quadruped_low::Species::Tortoise => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.tortoise",
-            )),
-            quadruped_low::Species::Driggle => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.driggle",
-            )),
-            quadruped_low::Species::Rocksnapper => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.rocksnapper",
-            )),
-            quadruped_low::Species::Hydra => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_low.hydra",
-            )),
-            _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadlowbasic",
-            )),
+            | quadruped_low::Species::Elbst => Some("common.items.npc_weapons.unique.quadlowtail"),
+            quadruped_low::Species::Monitor | quadruped_low::Species::Pangolin => {
+                Some("common.items.npc_weapons.unique.quadlowquick")
+            },
+            quadruped_low::Species::Lavadrake => {
+                Some("common.items.npc_weapons.unique.quadruped_low.lavadrake")
+            },
+            quadruped_low::Species::Deadwood => {
+                Some("common.items.npc_weapons.unique.quadruped_low.deadwood")
+            },
+            quadruped_low::Species::Basilisk => {
+                Some("common.items.npc_weapons.unique.quadruped_low.basilisk")
+            },
+            quadruped_low::Species::Icedrake => {
+                Some("common.items.npc_weapons.unique.quadruped_low.icedrake")
+            },
+            quadruped_low::Species::Hakulaq => {
+                Some("common.items.npc_weapons.unique.quadruped_low.hakulaq")
+            },
+            quadruped_low::Species::Tortoise => {
+                Some("common.items.npc_weapons.unique.quadruped_low.tortoise")
+            },
+            quadruped_low::Species::Driggle => Some("common.items.npc_weapons.unique.driggle"),
+            quadruped_low::Species::Rocksnapper => {
+                Some("common.items.npc_weapons.unique.rocksnapper")
+            },
+            quadruped_low::Species::Hydra => {
+                Some("common.items.npc_weapons.unique.quadruped_low.hydra")
+            },
+            _ => Some("common.items.npc_weapons.unique.quadlowbasic"),
         },
         Body::QuadrupedSmall(quadruped_small) => match quadruped_small.species {
-            quadruped_small::Species::TreantSapling => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.treantsapling",
-            )),
-            quadruped_small::Species::MossySnail => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.mossysnail",
-            )),
-            quadruped_small::Species::Boar | quadruped_small::Species::Truffler => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.quadruped_small.boar"),
-            ),
-            quadruped_small::Species::Hyena => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_small.hyena",
-            )),
+            quadruped_small::Species::TreantSapling => {
+                Some("common.items.npc_weapons.unique.treantsapling")
+            },
+            quadruped_small::Species::MossySnail => {
+                Some("common.items.npc_weapons.unique.mossysnail")
+            },
+            quadruped_small::Species::Boar | quadruped_small::Species::Truffler => {
+                Some("common.items.npc_weapons.unique.quadruped_small.boar")
+            },
+            quadruped_small::Species::Hyena => {
+                Some("common.items.npc_weapons.unique.quadruped_small.hyena")
+            },
             quadruped_small::Species::Beaver
             | quadruped_small::Species::Dog
             | quadruped_small::Species::Cat
             | quadruped_small::Species::Goat
             | quadruped_small::Species::Holladon
             | quadruped_small::Species::Sheep
-            | quadruped_small::Species::Seal => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadsmallbasic",
-            )),
-            _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadruped_small.rodent",
-            )),
+            | quadruped_small::Species::Seal => {
+                Some("common.items.npc_weapons.unique.quadsmallbasic")
+            },
+            _ => Some("common.items.npc_weapons.unique.quadruped_small.rodent"),
         },
         Body::Theropod(theropod) => match theropod.species {
             theropod::Species::Sandraptor
             | theropod::Species::Snowraptor
             | theropod::Species::Woodraptor
             | theropod::Species::Axebeak
-            | theropod::Species::Sunlizard => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.theropodbird",
-            )),
-            theropod::Species::Yale => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.theropod.yale",
-            )),
-            theropod::Species::Dodarock => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.theropodsmall",
-            )),
-            _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.theropodbasic",
-            )),
+            | theropod::Species::Sunlizard => Some("common.items.npc_weapons.unique.theropodbird"),
+            theropod::Species::Yale => Some("common.items.npc_weapons.unique.theropod.yale"),
+            theropod::Species::Dodarock => Some("common.items.npc_weapons.unique.theropodsmall"),
+            _ => Some("common.items.npc_weapons.unique.theropodbasic"),
         },
         Body::Arthropod(arthropod) => match arthropod.species {
             arthropod::Species::Hornbeetle | arthropod::Species::Stagbeetle => {
-                Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.unique.arthropods.hornbeetle",
-                ))
+                Some("common.items.npc_weapons.unique.arthropods.hornbeetle")
             },
-            arthropod::Species::Emberfly => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.emberfly",
-            )),
-            arthropod::Species::Cavespider => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropods.cavespider",
-            )),
+            arthropod::Species::Emberfly => Some("common.items.npc_weapons.unique.emberfly"),
+            arthropod::Species::Cavespider => {
+                Some("common.items.npc_weapons.unique.arthropods.cavespider")
+            },
             arthropod::Species::Sandcrawler | arthropod::Species::Mosscrawler => {
-                Some(Item::new_from_asset_expect(
-                    "common.items.npc_weapons.unique.arthropods.mosscrawler",
-                ))
+                Some("common.items.npc_weapons.unique.arthropods.mosscrawler")
             },
-            arthropod::Species::Moltencrawler => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropods.moltencrawler",
-            )),
-            arthropod::Species::Weevil => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropods.weevil",
-            )),
-            arthropod::Species::Blackwidow => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropods.blackwidow",
-            )),
-            arthropod::Species::Tarantula => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropods.tarantula",
-            )),
-            arthropod::Species::Antlion => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropods.antlion",
-            )),
-            arthropod::Species::Dagonite => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropods.dagonite",
-            )),
-            arthropod::Species::Leafbeetle => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropods.leafbeetle",
-            )),
+            arthropod::Species::Moltencrawler => {
+                Some("common.items.npc_weapons.unique.arthropods.moltencrawler")
+            },
+            arthropod::Species::Weevil => Some("common.items.npc_weapons.unique.arthropods.weevil"),
+            arthropod::Species::Blackwidow => {
+                Some("common.items.npc_weapons.unique.arthropods.blackwidow")
+            },
+            arthropod::Species::Tarantula => {
+                Some("common.items.npc_weapons.unique.arthropods.tarantula")
+            },
+            arthropod::Species::Antlion => {
+                Some("common.items.npc_weapons.unique.arthropods.antlion")
+            },
+            arthropod::Species::Dagonite => {
+                Some("common.items.npc_weapons.unique.arthropods.dagonite")
+            },
+            arthropod::Species::Leafbeetle => {
+                Some("common.items.npc_weapons.unique.arthropods.leafbeetle")
+            },
         },
         Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
-            (biped_large::Species::Occultsaurok, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.staff.saurok_staff",
-            )),
-            (biped_large::Species::Mightysaurok, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.sword.saurok_sword",
-            )),
-            (biped_large::Species::Slysaurok, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.bow.saurok_bow",
-            )),
-            (biped_large::Species::Ogre, biped_large::BodyType::Male) => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.hammer.ogre_hammer"),
-            ),
-            (biped_large::Species::Ogre, biped_large::BodyType::Female) => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.staff.ogre_staff"),
-            ),
+            (biped_large::Species::Occultsaurok, _) => {
+                Some("common.items.npc_weapons.staff.saurok_staff")
+            },
+            (biped_large::Species::Mightysaurok, _) => {
+                Some("common.items.npc_weapons.sword.saurok_sword")
+            },
+            (biped_large::Species::Slysaurok, _) => Some("common.items.npc_weapons.bow.saurok_bow"),
+            (biped_large::Species::Ogre, biped_large::BodyType::Male) => {
+                Some("common.items.npc_weapons.hammer.ogre_hammer")
+            },
+            (biped_large::Species::Ogre, biped_large::BodyType::Female) => {
+                Some("common.items.npc_weapons.staff.ogre_staff")
+            },
             (
                 biped_large::Species::Mountaintroll
                 | biped_large::Species::Swamptroll
                 | biped_large::Species::Cavetroll,
                 _,
-            ) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.hammer.troll_hammer",
-            )),
-            (biped_large::Species::Wendigo, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.wendigo_magic",
-            )),
-            (biped_large::Species::Werewolf, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.beast_claws",
-            )),
-            (biped_large::Species::Tursus, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.tursus_claws",
-            )),
-            (biped_large::Species::Cyclops, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.hammer.cyclops_hammer",
-            )),
-            (biped_large::Species::Dullahan, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.sword.dullahan_sword",
-            )),
-            (biped_large::Species::Mindflayer, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.staff.mindflayer_staff",
-            )),
-            (biped_large::Species::Minotaur, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.axe.minotaur_axe",
-            )),
-            (biped_large::Species::Tidalwarrior, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.tidal_claws",
-            )),
-            (biped_large::Species::Yeti, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.hammer.yeti_hammer",
-            )),
-            (biped_large::Species::Harvester, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.hammer.harvester_scythe",
-            )),
-            (biped_large::Species::Blueoni, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.axe.oni_blue_axe",
-            )),
-            (biped_large::Species::Redoni, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.hammer.oni_red_hammer",
-            )),
-            (biped_large::Species::Cultistwarlord, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.sword.bipedlarge-cultist",
-            )),
-            (biped_large::Species::Cultistwarlock, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.staff.bipedlarge-cultist",
-            )),
-            (biped_large::Species::Huskbrute, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.husk_brute",
-            )),
-            (biped_large::Species::Strigoi, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.strigoi_claws",
-            )),
-            (biped_large::Species::Executioner, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.axe.executioner_axe",
-            )),
-            (biped_large::Species::Gigasfrost, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.axe.gigas_frost_axe",
-            )),
-            (biped_large::Species::AdletElder, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.sword.adlet_elder_sword",
-            )),
-            (biped_large::Species::SeaBishop, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.sea_bishop_sceptre",
-            )),
-            (biped_large::Species::HaniwaGeneral, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.sword.haniwa_general_sword",
-            )),
-            (biped_large::Species::TerracottaBesieger, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.bow.terracotta_besieger_bow",
-            )),
-            (biped_large::Species::TerracottaDemolisher, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.terracotta_demolisher_fist",
-            )),
-            (biped_large::Species::TerracottaPunisher, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.hammer.terracotta_punisher_club",
-            )),
-            (biped_large::Species::TerracottaPursuer, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.sword.terracotta_pursuer_sword",
-            )),
-            (biped_large::Species::Cursekeeper, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.cursekeeper_sceptre",
-            )),
-            (biped_large::Species::Forgemaster, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.hammer.forgemaster_hammer",
-            )),
+            ) => Some("common.items.npc_weapons.hammer.troll_hammer"),
+            (biped_large::Species::Wendigo, _) => {
+                Some("common.items.npc_weapons.unique.wendigo_magic")
+            },
+            (biped_large::Species::Werewolf, _) => {
+                Some("common.items.npc_weapons.unique.beast_claws")
+            },
+            (biped_large::Species::Tursus, _) => {
+                Some("common.items.npc_weapons.unique.tursus_claws")
+            },
+            (biped_large::Species::Cyclops, _) => {
+                Some("common.items.npc_weapons.hammer.cyclops_hammer")
+            },
+            (biped_large::Species::Dullahan, _) => {
+                Some("common.items.npc_weapons.sword.dullahan_sword")
+            },
+            (biped_large::Species::Mindflayer, _) => {
+                Some("common.items.npc_weapons.staff.mindflayer_staff")
+            },
+            (biped_large::Species::Minotaur, _) => {
+                Some("common.items.npc_weapons.axe.minotaur_axe")
+            },
+            (biped_large::Species::Tidalwarrior, _) => {
+                Some("common.items.npc_weapons.unique.tidal_claws")
+            },
+            (biped_large::Species::Yeti, _) => Some("common.items.npc_weapons.hammer.yeti_hammer"),
+            (biped_large::Species::Harvester, _) => {
+                Some("common.items.npc_weapons.hammer.harvester_scythe")
+            },
+            (biped_large::Species::Blueoni, _) => Some("common.items.npc_weapons.axe.oni_blue_axe"),
+            (biped_large::Species::Redoni, _) => {
+                Some("common.items.npc_weapons.hammer.oni_red_hammer")
+            },
+            (biped_large::Species::Cultistwarlord, _) => {
+                Some("common.items.npc_weapons.sword.bipedlarge-cultist")
+            },
+            (biped_large::Species::Cultistwarlock, _) => {
+                Some("common.items.npc_weapons.staff.bipedlarge-cultist")
+            },
+            (biped_large::Species::Huskbrute, _) => {
+                Some("common.items.npc_weapons.unique.husk_brute")
+            },
+            (biped_large::Species::Strigoi, _) => {
+                Some("common.items.npc_weapons.unique.strigoi_claws")
+            },
+            (biped_large::Species::Executioner, _) => {
+                Some("common.items.npc_weapons.axe.executioner_axe")
+            },
+            (biped_large::Species::Gigasfrost, _) => {
+                Some("common.items.npc_weapons.axe.gigas_frost_axe")
+            },
+            (biped_large::Species::AdletElder, _) => {
+                Some("common.items.npc_weapons.sword.adlet_elder_sword")
+            },
+            (biped_large::Species::SeaBishop, _) => {
+                Some("common.items.npc_weapons.unique.sea_bishop_sceptre")
+            },
+            (biped_large::Species::HaniwaGeneral, _) => {
+                Some("common.items.npc_weapons.sword.haniwa_general_sword")
+            },
+            (biped_large::Species::TerracottaBesieger, _) => {
+                Some("common.items.npc_weapons.bow.terracotta_besieger_bow")
+            },
+            (biped_large::Species::TerracottaDemolisher, _) => {
+                Some("common.items.npc_weapons.unique.terracotta_demolisher_fist")
+            },
+            (biped_large::Species::TerracottaPunisher, _) => {
+                Some("common.items.npc_weapons.hammer.terracotta_punisher_club")
+            },
+            (biped_large::Species::TerracottaPursuer, _) => {
+                Some("common.items.npc_weapons.sword.terracotta_pursuer_sword")
+            },
+            (biped_large::Species::Cursekeeper, _) => {
+                Some("common.items.npc_weapons.unique.cursekeeper_sceptre")
+            },
+            (biped_large::Species::Forgemaster, _) => {
+                Some("common.items.npc_weapons.hammer.forgemaster_hammer")
+            },
         },
         Body::Object(body) => match body {
-            object::Body::Crossbow => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.turret",
-            )),
-            object::Body::Flamethrower | object::Body::Lavathrower => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.flamethrower"),
-            ),
-            object::Body::BarrelOrgan => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.organ",
-            )),
-            object::Body::TerracottaStatue => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.terracotta_statue",
-            )),
-            object::Body::HaniwaSentry => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.haniwa_sentry",
-            )),
-            object::Body::SeaLantern => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.tidal_totem",
-            )),
-            object::Body::Tornado => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.tornado",
-            )),
-            object::Body::FieryTornado => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.fiery_tornado",
-            )),
-            object::Body::GnarlingTotemRed => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.gnarling.redtotem",
-            )),
-            object::Body::GnarlingTotemGreen => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.gnarling.greentotem",
-            )),
-            object::Body::GnarlingTotemWhite => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.gnarling.whitetotem",
-            )),
+            object::Body::Crossbow => Some("common.items.npc_weapons.unique.turret"),
+            object::Body::Flamethrower | object::Body::Lavathrower => {
+                Some("common.items.npc_weapons.unique.flamethrower")
+            },
+            object::Body::BarrelOrgan => Some("common.items.npc_weapons.unique.organ"),
+            object::Body::TerracottaStatue => {
+                Some("common.items.npc_weapons.unique.terracotta_statue")
+            },
+            object::Body::HaniwaSentry => Some("common.items.npc_weapons.unique.haniwa_sentry"),
+            object::Body::SeaLantern => Some("common.items.npc_weapons.unique.tidal_totem"),
+            object::Body::Tornado => Some("common.items.npc_weapons.unique.tornado"),
+            object::Body::FieryTornado => Some("common.items.npc_weapons.unique.fiery_tornado"),
+            object::Body::GnarlingTotemRed => {
+                Some("common.items.npc_weapons.biped_small.gnarling.redtotem")
+            },
+            object::Body::GnarlingTotemGreen => {
+                Some("common.items.npc_weapons.biped_small.gnarling.greentotem")
+            },
+            object::Body::GnarlingTotemWhite => {
+                Some("common.items.npc_weapons.biped_small.gnarling.whitetotem")
+            },
             _ => None,
         },
         Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type) {
-            (biped_small::Species::Gnome, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.adlet.tracker",
-            )),
-            (biped_small::Species::Bushly, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.bushly",
-            )),
-            (biped_small::Species::Cactid, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.cactid",
-            )),
-            (biped_small::Species::Irrwurz, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.irrwurz",
-            )),
-            (biped_small::Species::Husk, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.husk",
-            )),
-            (biped_small::Species::Flamekeeper, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.flamekeeper_staff",
-            )),
-            (biped_small::Species::IronDwarf, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.iron_dwarf",
-            )),
-            (biped_small::Species::ShamanicSpirit, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.shamanic_spirit",
-            )),
-            (biped_small::Species::Jiangshi, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.jiangshi",
-            )),
-            (biped_small::Species::BloodmoonHeiress, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.vampire.bloodmoon_heiress_sword",
-            )),
-            (biped_small::Species::Bloodservant, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.vampire.bloodservant_axe",
-            )),
-            (biped_small::Species::Harlequin, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.vampire.harlequin_dagger",
-            )),
-            (biped_small::Species::GoblinThug, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.goblin_thug_club",
-            )),
-            (biped_small::Species::GoblinChucker, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.goblin_chucker",
-            )),
-            (biped_small::Species::GoblinRuffian, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.goblin_ruffian_knife",
-            )),
-            (biped_small::Species::GreenLegoom, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.green_legoom_rake",
-            )),
-            (biped_small::Species::OchreLegoom, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.ochre_legoom_spade",
-            )),
-            (biped_small::Species::PurpleLegoom, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.purple_legoom_pitchfork",
-            )),
-            (biped_small::Species::RedLegoom, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.red_legoom_hoe",
-            )),
-            _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.adlet.hunter",
-            )),
+            (biped_small::Species::Gnome, _) => {
+                Some("common.items.npc_weapons.biped_small.adlet.tracker")
+            },
+            (biped_small::Species::Bushly, _) => Some("common.items.npc_weapons.unique.bushly"),
+            (biped_small::Species::Cactid, _) => Some("common.items.npc_weapons.unique.cactid"),
+            (biped_small::Species::Irrwurz, _) => Some("common.items.npc_weapons.unique.irrwurz"),
+            (biped_small::Species::Husk, _) => Some("common.items.npc_weapons.unique.husk"),
+            (biped_small::Species::Flamekeeper, _) => {
+                Some("common.items.npc_weapons.unique.flamekeeper_staff")
+            },
+            (biped_small::Species::IronDwarf, _) => {
+                Some("common.items.npc_weapons.unique.iron_dwarf")
+            },
+            (biped_small::Species::ShamanicSpirit, _) => {
+                Some("common.items.npc_weapons.unique.shamanic_spirit")
+            },
+            (biped_small::Species::Jiangshi, _) => Some("common.items.npc_weapons.unique.jiangshi"),
+            (biped_small::Species::BloodmoonHeiress, _) => {
+                Some("common.items.npc_weapons.biped_small.vampire.bloodmoon_heiress_sword")
+            },
+            (biped_small::Species::Bloodservant, _) => {
+                Some("common.items.npc_weapons.biped_small.vampire.bloodservant_axe")
+            },
+            (biped_small::Species::Harlequin, _) => {
+                Some("common.items.npc_weapons.biped_small.vampire.harlequin_dagger")
+            },
+            (biped_small::Species::GoblinThug, _) => {
+                Some("common.items.npc_weapons.unique.goblin_thug_club")
+            },
+            (biped_small::Species::GoblinChucker, _) => {
+                Some("common.items.npc_weapons.unique.goblin_chucker")
+            },
+            (biped_small::Species::GoblinRuffian, _) => {
+                Some("common.items.npc_weapons.unique.goblin_ruffian_knife")
+            },
+            (biped_small::Species::GreenLegoom, _) => {
+                Some("common.items.npc_weapons.unique.green_legoom_rake")
+            },
+            (biped_small::Species::OchreLegoom, _) => {
+                Some("common.items.npc_weapons.unique.ochre_legoom_spade")
+            },
+            (biped_small::Species::PurpleLegoom, _) => {
+                Some("common.items.npc_weapons.unique.purple_legoom_pitchfork")
+            },
+            (biped_small::Species::RedLegoom, _) => {
+                Some("common.items.npc_weapons.unique.red_legoom_hoe")
+            },
+            _ => Some("common.items.npc_weapons.biped_small.adlet.hunter"),
         },
         Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {
-            (bird_large::Species::Cockatrice, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.birdlargebreathe",
-            )),
-            (bird_large::Species::Phoenix, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.birdlargefire",
-            )),
-            (bird_large::Species::Roc, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.birdlargebasic",
-            )),
-            (bird_large::Species::FlameWyvern, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.flamewyvern",
-            )),
-            (bird_large::Species::FrostWyvern, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.frostwyvern",
-            )),
-            (bird_large::Species::CloudWyvern, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.cloudwyvern",
-            )),
-            (bird_large::Species::SeaWyvern, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.seawyvern",
-            )),
-            (bird_large::Species::WealdWyvern, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.wealdwyvern",
-            )),
+            (bird_large::Species::Cockatrice, _) => {
+                Some("common.items.npc_weapons.unique.birdlargebreathe")
+            },
+            (bird_large::Species::Phoenix, _) => {
+                Some("common.items.npc_weapons.unique.birdlargefire")
+            },
+            (bird_large::Species::Roc, _) => Some("common.items.npc_weapons.unique.birdlargebasic"),
+            (bird_large::Species::FlameWyvern, _) => {
+                Some("common.items.npc_weapons.unique.flamewyvern")
+            },
+            (bird_large::Species::FrostWyvern, _) => {
+                Some("common.items.npc_weapons.unique.frostwyvern")
+            },
+            (bird_large::Species::CloudWyvern, _) => {
+                Some("common.items.npc_weapons.unique.cloudwyvern")
+            },
+            (bird_large::Species::SeaWyvern, _) => {
+                Some("common.items.npc_weapons.unique.seawyvern")
+            },
+            (bird_large::Species::WealdWyvern, _) => {
+                Some("common.items.npc_weapons.unique.wealdwyvern")
+            },
         },
         Body::BirdMedium(bird_medium) => match bird_medium.species {
             bird_medium::Species::Cockatiel
             | bird_medium::Species::Bat
             | bird_medium::Species::Parrot
             | bird_medium::Species::Crow
-            | bird_medium::Species::Parakeet => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.simpleflyingbasic",
-            )),
-            bird_medium::Species::VampireBat => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.vampire_bat",
-            )),
-            bird_medium::Species::BloodmoonBat => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.bloodmoon_bat",
-            )),
-            _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.birdmediumbasic",
-            )),
+            | bird_medium::Species::Parakeet => {
+                Some("common.items.npc_weapons.unique.simpleflyingbasic")
+            },
+            bird_medium::Species::VampireBat => Some("common.items.npc_weapons.unique.vampire_bat"),
+            bird_medium::Species::BloodmoonBat => {
+                Some("common.items.npc_weapons.unique.bloodmoon_bat")
+            },
+            _ => Some("common.items.npc_weapons.unique.birdmediumbasic"),
         },
         Body::Crustacean(crustacean) => match crustacean.species {
-            crustacean::Species::Crab | crustacean::Species::SoldierCrab => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.crab_pincer"),
-            ),
-            crustacean::Species::Karkatha => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.karkatha_pincer",
-            )),
+            crustacean::Species::Crab | crustacean::Species::SoldierCrab => {
+                Some("common.items.npc_weapons.unique.crab_pincer")
+            },
+            crustacean::Species::Karkatha => {
+                Some("common.items.npc_weapons.unique.karkatha_pincer")
+            },
         },
         _ => None,
-    };
-
-    maybe_tool.unwrap_or_else(Item::empty)
+    }
 }
 
 /// Builder for character Loadouts, containing weapon and armour items belonging
@@ -1130,147 +1163,13 @@ impl LoadoutBuilder {
     #[must_use = "Method consumes builder and returns updated builder."]
     /// Set default active mainhand weapon based on `body`
     pub fn with_default_maintool(self, body: &Body) -> Self {
-        self.active_mainhand(Some(default_main_tool(body)))
+        self.active_mainhand(default_main_tool(body).map(Item::new_from_asset_expect))
     }
 
     #[must_use = "Method consumes builder and returns updated builder."]
     /// Set default equipement based on `body`
     pub fn with_default_equipment(self, body: &Body) -> Self {
-        let chest = match body {
-            Body::BipedLarge(body) => match body.species {
-                biped_large::Species::Mindflayer => {
-                    Some("common.items.npc_armor.biped_large.mindflayer")
-                },
-                biped_large::Species::Minotaur => {
-                    Some("common.items.npc_armor.biped_large.minotaur")
-                },
-                biped_large::Species::Tidalwarrior => {
-                    Some("common.items.npc_armor.biped_large.tidal_warrior")
-                },
-                biped_large::Species::Yeti => Some("common.items.npc_armor.biped_large.yeti"),
-                biped_large::Species::Harvester => {
-                    Some("common.items.npc_armor.biped_large.harvester")
-                },
-                biped_large::Species::Ogre
-                | biped_large::Species::Blueoni
-                | biped_large::Species::Redoni
-                | biped_large::Species::Cavetroll
-                | biped_large::Species::Mountaintroll
-                | biped_large::Species::Swamptroll
-                | biped_large::Species::Wendigo => {
-                    Some("common.items.npc_armor.biped_large.generic")
-                },
-                biped_large::Species::Cyclops => Some("common.items.npc_armor.biped_large.cyclops"),
-                biped_large::Species::Dullahan => {
-                    Some("common.items.npc_armor.biped_large.dullahan")
-                },
-                biped_large::Species::Tursus => Some("common.items.npc_armor.biped_large.tursus"),
-                biped_large::Species::Cultistwarlord => {
-                    Some("common.items.npc_armor.biped_large.warlord")
-                },
-                biped_large::Species::Cultistwarlock => {
-                    Some("common.items.npc_armor.biped_large.warlock")
-                },
-                biped_large::Species::Gigasfrost => {
-                    Some("common.items.npc_armor.biped_large.gigas_frost")
-                },
-                biped_large::Species::HaniwaGeneral => {
-                    Some("common.items.npc_armor.biped_large.haniwageneral")
-                },
-                biped_large::Species::TerracottaBesieger
-                | biped_large::Species::TerracottaDemolisher
-                | biped_large::Species::TerracottaPunisher
-                | biped_large::Species::TerracottaPursuer
-                | biped_large::Species::Cursekeeper => {
-                    Some("common.items.npc_armor.biped_large.terracotta")
-                },
-                biped_large::Species::Forgemaster => {
-                    Some("common.items.npc_armor.biped_large.forgemaster")
-                },
-                _ => None,
-            },
-            Body::BirdLarge(body) => match body.species {
-                bird_large::Species::FlameWyvern
-                | bird_large::Species::FrostWyvern
-                | bird_large::Species::CloudWyvern
-                | bird_large::Species::SeaWyvern
-                | bird_large::Species::WealdWyvern => {
-                    Some("common.items.npc_armor.bird_large.wyvern")
-                },
-                bird_large::Species::Phoenix => Some("common.items.npc_armor.bird_large.phoenix"),
-                _ => None,
-            },
-            Body::BirdMedium(body) => match body.species {
-                bird_medium::Species::BloodmoonBat => {
-                    Some("common.items.npc_armor.bird_medium.bloodmoon_bat")
-                },
-                _ => None,
-            },
-            Body::Golem(body) => match body.species {
-                golem::Species::ClayGolem => Some("common.items.npc_armor.golem.claygolem"),
-                golem::Species::Gravewarden => Some("common.items.npc_armor.golem.gravewarden"),
-                golem::Species::WoodGolem => Some("common.items.npc_armor.golem.woodgolem"),
-                golem::Species::AncientEffigy => Some("common.items.npc_armor.golem.ancienteffigy"),
-                golem::Species::Mogwai => Some("common.items.npc_armor.golem.mogwai"),
-                golem::Species::IronGolem => Some("common.items.npc_armor.golem.irongolem"),
-                _ => None,
-            },
-            Body::QuadrupedLow(body) => match body.species {
-                quadruped_low::Species::Sandshark
-                | quadruped_low::Species::Alligator
-                | quadruped_low::Species::Crocodile
-                | quadruped_low::Species::SeaCrocodile
-                | quadruped_low::Species::Icedrake
-                | quadruped_low::Species::Lavadrake
-                | quadruped_low::Species::Mossdrake => Some("common.items.npc_armor.generic"),
-                quadruped_low::Species::Reefsnapper
-                | quadruped_low::Species::Rocksnapper
-                | quadruped_low::Species::Rootsnapper
-                | quadruped_low::Species::Tortoise
-                | quadruped_low::Species::Basilisk
-                | quadruped_low::Species::Hydra => Some("common.items.npc_armor.generic_high"),
-                quadruped_low::Species::Dagon => Some("common.items.npc_armor.quadruped_low.dagon"),
-                _ => None,
-            },
-            Body::QuadrupedMedium(body) => match body.species {
-                quadruped_medium::Species::Bonerattler => Some("common.items.npc_armor.generic"),
-                quadruped_medium::Species::Tarasque => Some("common.items.npc_armor.generic_high"),
-                quadruped_medium::Species::ClaySteed => {
-                    Some("common.items.npc_armor.quadruped_medium.claysteed")
-                },
-                _ => None,
-            },
-            Body::Theropod(body) => match body.species {
-                theropod::Species::Archaeos | theropod::Species::Ntouka => {
-                    Some("common.items.npc_armor.generic")
-                },
-                theropod::Species::Dodarock => Some("common.items.npc_armor.generic_high"),
-                _ => None,
-            },
-            // TODO: Check over
-            Body::Arthropod(body) => match body.species {
-                arthropod::Species::Blackwidow
-                | arthropod::Species::Cavespider
-                | arthropod::Species::Emberfly
-                | arthropod::Species::Moltencrawler
-                | arthropod::Species::Mosscrawler
-                | arthropod::Species::Sandcrawler
-                | arthropod::Species::Tarantula => None,
-                _ => Some("common.items.npc_armor.generic"),
-            },
-            Body::QuadrupedSmall(body) => match body.species {
-                quadruped_small::Species::Turtle
-                | quadruped_small::Species::Holladon
-                | quadruped_small::Species::TreantSapling
-                | quadruped_small::Species::MossySnail => Some("common.items.npc_armor.generic"),
-                _ => None,
-            },
-            Body::Crustacean(body) => match body.species {
-                crustacean::Species::Karkatha => Some("common.items.npc_armor.crustacean.karkatha"),
-                _ => None,
-            },
-            _ => None,
-        };
+        let chest = default_chest(body);
 
         if let Some(chest) = chest {
             self.chest(Some(Item::new_from_asset_expect(chest)))

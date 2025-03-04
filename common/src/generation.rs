@@ -62,9 +62,9 @@ pub enum LoadoutKind {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct InventorySpec {
-    loadout: LoadoutKind,
+    pub loadout: LoadoutKind,
     #[serde(default)]
-    items: Vec<(u32, String)>,
+    pub items: Vec<(u32, String)>,
 }
 
 #[derive(Debug, Deserialize, Clone)]

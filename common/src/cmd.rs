@@ -93,7 +93,7 @@ lazy_static! {
         .map(|s| s.to_string())
         .collect();
     /// TODO: Make this use hot-reloading
-    static ref ENTITIES: Vec<String> = {
+    pub static ref ENTITIES: Vec<String> = {
         let npc_names = &*npc::NPC_NAMES.read();
         let mut souls = Vec::new();
         macro_rules! push_souls {
