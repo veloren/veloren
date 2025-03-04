@@ -292,6 +292,14 @@ pub fn handle_create_ship(server: &mut Server, ev: CreateShipEvent) {
     }
     let entity = entity.build();
 
+    if let Some(rtsim_entity) = ev.rtsim_entity {
+        server
+            .state()
+            .ecs()
+            .write_resource::<IdMaps>()
+            .add_rtsim(rtsim_entity, entity);
+    }
+
     if let Some(driver) = ev.driver {
         let npc_entity = handle_create_npc(server, CreateNpcEvent {
             pos: ev.pos,

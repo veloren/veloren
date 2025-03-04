@@ -92,6 +92,7 @@ impl IdMaps {
     /// although the client only ever provides a Some value for the
     /// `Uid` parameter since the other mappings are not used on the
     /// client.
+    #[track_caller]
     pub fn remove_entity(
         &mut self,
         expected_entity: Option<Entity>,
@@ -99,6 +100,7 @@ impl IdMaps {
         cid: Option<CharacterId>,
         rid: Option<RtSimEntity>,
     ) -> Option<Entity> {
+        use std::fmt::Debug;
         #[cold]
         #[inline(never)]
         fn unexpected_entity<ID>() {
@@ -107,12 +109,17 @@ impl IdMaps {
         }
         #[cold]
         #[inline(never)]
-        fn not_present<ID>() {
+        #[track_caller]
+        fn not_present<ID: Debug>(id: ID) {
             let kind = core::any::type_name::<ID>();
-            error!("Provided {kind} was not mapped to any entity!");
+            error!(
+                "Provided {kind} {id:?} was not mapped to any entity! Caller: {}",
+                std::panic::Location::caller()
+            );
         }
 
-        fn remove<ID: Hash + Eq>(
+        #[track_caller]
+        fn remove<ID: Hash + Eq + Debug>(
             mapping: &mut HashMap<ID, Entity>,
             id: Option<ID>,
             expected: Option<Entity>,
@@ -124,7 +131,7 @@ impl IdMaps {
                     }
                     Some(e)
                 } else {
-                    not_present::<ID>();
+                    not_present::<ID>(id);
                     None
                 }
             } else {

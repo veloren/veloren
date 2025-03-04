@@ -82,7 +82,7 @@ clap = { workspace = true, optional = true }
 hashbrown = { workspace = true }
 slab = { workspace = true }
 slotmap = { version = "1.0", features = ["serde"] }
-indexmap = { version = "2.2.2", features = ["rayon"] }
+indexmap = { version = "2.7.1", features = ["rayon"] }
 
 # ECS
 specs = { workspace = true, features = [

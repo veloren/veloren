@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{Ori, Pos, Presence, Vel},
-    region::{Event as RegionEvent, RegionMap, region_in_vd, regions_in_vd},
+    region::{RegionEvent, RegionMap, region_in_vd, regions_in_vd},
     terrain::{CoordinateConversions, TerrainChunkSize},
     uid::Uid,
     vol::RectVolSize,
