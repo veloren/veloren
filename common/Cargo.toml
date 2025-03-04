@@ -140,3 +140,7 @@ required-features = ["bin_graphviz"]
 [[bin]]
 name = "skill_graphviz"
 required-features = ["bin_graphviz"]
+
+[[bin]]
+name = "find_unused"
+required-features = []
