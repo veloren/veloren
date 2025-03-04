@@ -192,7 +192,7 @@ impl ServerEvent for DialogueEvent {
                                 }
                             } else {
                                 // TODO: Respond with error message on failure?
-                                break;
+                                continue;
                             }
                         }
                     },
