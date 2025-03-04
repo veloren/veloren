@@ -17,13 +17,13 @@ pub enum RegionEvent {
     Entered(u32, Option<Vec2<i32>>),
 }
 
-/// Region consisting of a bitset of entities within it
+/// Region consisting of a bitset of entities within it.
 #[derive(Default)]
 pub struct Region {
     // Use specs bitset for simplicity (and joinability)
     bitset: BitSet,
     // TODO consider SmallVec for these
-    // Entities that left or entered this region
+    /// Entities that left or entered this region.
     events: Vec<RegionEvent>,
 }
 impl Region {
