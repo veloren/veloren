@@ -7,13 +7,13 @@ pub use common::event::{
     EntityAttackedHookEvent, EventBus, ExitIngameEvent, ExplosionEvent, GroupManipEvent,
     HealthChangeEvent, HelpDownedEvent, InitializeCharacterEvent, InitializeSpectatorEvent,
     InitiateInviteEvent, InventoryManipEvent, InviteResponseEvent, KillEvent, KnockbackEvent,
-    LandOnGroundEvent, MakeAdminEvent, MineBlockEvent, MountEvent, MountVolumeEvent,
-    NpcInteractEvent, ParryHookEvent, PoiseChangeEvent, PossessEvent, ProcessTradeActionEvent,
-    RegrowHeadEvent, RemoveLightEmitterEvent, RequestPluginsEvent, RequestSiteInfoEvent,
-    RespawnEvent, SetLanternEvent, SetPetStayEvent, ShockwaveEvent, ShootEvent, SoundEvent,
+    LandOnGroundEvent, MakeAdminEvent, MineBlockEvent, MountEvent, NpcInteractEvent,
+    ParryHookEvent, PoiseChangeEvent, PossessEvent, ProcessTradeActionEvent, RegrowHeadEvent,
+    RemoveLightEmitterEvent, RequestPluginsEvent, RequestSiteInfoEvent, RespawnEvent,
+    SetLanternEvent, SetPetStayEvent, ShockwaveEvent, ShootEvent, SoundEvent,
     StartInteractionEvent, StartTeleportingEvent, TamePetEvent, TeleportToEvent,
-    TeleportToPositionEvent, ToggleSpriteLightEvent, TransformEvent, UnmountEvent,
-    UpdateCharacterDataEvent, UpdateMapMarkerEvent,
+    TeleportToPositionEvent, ToggleSpriteLightEvent, TransformEvent, UpdateCharacterDataEvent,
+    UpdateMapMarkerEvent,
 };
 
 /// X-macro that provides list of server events to the macro this is called
@@ -53,8 +53,6 @@ macro_rules! server_events {
             InitiateInviteEvent
             ProcessTradeActionEvent
             MountEvent
-            MountVolumeEvent
-            UnmountEvent
             SetPetStayEvent
             PossessEvent
             InitializeCharacterEvent

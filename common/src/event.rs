@@ -373,11 +373,11 @@ pub struct InitiateInviteEvent(pub EcsEntity, pub Uid, pub InviteKind);
 
 pub struct ProcessTradeActionEvent(pub EcsEntity, pub TradeId, pub TradeAction);
 
-pub struct MountEvent(pub EcsEntity, pub EcsEntity);
-
-pub struct MountVolumeEvent(pub EcsEntity, pub VolumePos);
-
-pub struct UnmountEvent(pub EcsEntity);
+pub enum MountEvent {
+    MountEntity(EcsEntity, EcsEntity),
+    MountVolume(EcsEntity, VolumePos),
+    Unmount(EcsEntity),
+}
 
 pub struct SetPetStayEvent(pub EcsEntity, pub EcsEntity, pub bool);
 

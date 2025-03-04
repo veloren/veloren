@@ -21,7 +21,7 @@ use self::{
     },
     entity_manipulation::{handle_delete, handle_start_interaction, handle_transform},
     interaction::handle_tame_pet,
-    mounting::{handle_mount, handle_mount_volume, handle_unmount},
+    mounting::handle_mount,
     player::{
         handle_character_delete, handle_client_disconnect, handle_exit_ingame, handle_possess,
     },
@@ -194,8 +194,6 @@ impl Server {
             this.state.send_chat(ev.0);
         });
         self.handle_serial_events(handle_mount);
-        self.handle_serial_events(handle_mount_volume);
-        self.handle_serial_events(handle_unmount);
         self.handle_serial_events(handle_tame_pet);
         self.handle_serial_events(handle_process_trade_action);
     }
