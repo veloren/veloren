@@ -206,7 +206,8 @@ impl<'a> DockConnection<'a> {
 }
 
 impl Airships {
-    /// The Z offset between the docking alignment point and the AirshipDock plot docking position.
+    /// The Z offset between the docking alignment point and the AirshipDock
+    /// plot docking position.
     const AIRSHIP_TO_DOCK_Z_OFFSET: f32 = -1.0;
     /// The absolute offset from the captain's position to the docking alignment
     /// point on the X axis. The airship is assumed to be facing positive Y.
@@ -691,9 +692,9 @@ impl Airships {
         // the airship direction.
         let ship_dock_rotation =
             Airships::angle_between_vectors_ccw(Vec2::unit_y(), airship_dir.vec().xy());
-        let captain_offset = dock_align_to_captain.rotated_z(ship_dock_rotation).with_z(
-            Airships::AIRSHIP_TO_DOCK_Z_OFFSET
-        );
+        let captain_offset = dock_align_to_captain
+            .rotated_z(ship_dock_rotation)
+            .with_z(Airships::AIRSHIP_TO_DOCK_Z_OFFSET);
 
         // To get the location of the pilot when the ship is docked, add the
         // captain_offset to the docking position.
