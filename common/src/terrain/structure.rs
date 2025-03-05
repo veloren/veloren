@@ -1,4 +1,4 @@
-use super::{BlockKind, SpriteKind};
+use super::{BlockKind, StructureSprite};
 use crate::{
     assets::{self, AssetExt, AssetHandle, BoxedError, DotVoxAsset},
     make_case_elim,
@@ -35,12 +35,13 @@ make_case_elim!(
         Normal(color: Rgb<u8>) = 15,
         Log = 16,
         Filled(kind: BlockKind, color: Rgb<u8>) = 17,
-        Sprite(kind: SpriteKind) = 18,
+        Sprite(sprite: StructureSprite) = 18,
         Chestnut = 19,
         Baobab = 20,
         BirchWood = 21,
         FrostpineLeaves = 22,
-        RotatedSprite(kind: SpriteKind, ori: u8) = 23,
+        // NOTE: When adding set it equal to `23`.
+        // = 23,
         EntitySpawner(entitykind: String, spawn_chance: f32) = 24,
         Keyhole(consumes: String) = 25,
         BoneKeyhole(consumes: String) = 26,

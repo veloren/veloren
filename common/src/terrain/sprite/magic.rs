@@ -132,6 +132,163 @@ macro_rules! sprites {
             }
         );
 
+        #[doc(hidden)]
+        mod categories {
+            use super::*;
+            $(
+                /// Struct used to deserialize attributes for a specific category of sprites.
+                #[doc(hidden)]
+                #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
+                pub struct $category_name $(($($attr),*))?;
+
+                const _: () = {
+
+                    #[doc(hidden)]
+                    pub struct Visitor<'a, 'de, O, F> {
+                        f: F,
+                        expecting: &'a str,
+                        _marker: std::marker::PhantomData<O>,
+                        _lifetime: std::marker::PhantomData<&'de ()>,
+                    }
+
+                    #[automatically_derived]
+                    impl<'a, 'de, O, F: FnOnce($category_name) -> O> serde::de::Visitor<'de> for Visitor<'a, 'de, O, F> {
+                        type Value = O;
+
+                        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                            formatter.write_str(&format!("Variant SpriteKind::{}", self.expecting))
+                        }
+
+                        #[inline]
+                        fn visit_seq<A>(self, mut _seq: A) -> Result<Self::Value, <A as serde::de::SeqAccess<'de>>::Error>
+                        where
+                            A: serde::de::SeqAccess<'de>,
+                        {
+                            let res = $category_name $(($(
+                                serde::de::SeqAccess::next_element::<$attr>(&mut _seq)?.unwrap_or_default()
+                            ),*))?;
+
+                            Ok((self.f)(res))
+                        }
+                    }
+
+                    impl $category_name {
+                        pub const LEN: usize = ${count($attr)};
+
+                        pub fn apply_to_block(self, _block: &mut Block) -> Result<(), AttributeError<core::convert::Infallible>> {
+                            $($(
+                                _block.set_attr(self.${index()} ${ignore($attr)})?;
+                            )*)?
+
+                            Ok(())
+                        }
+
+                        pub fn visitor<'de, O, F: FnOnce($category_name) -> O>(f: F, expecting: &str) -> Visitor<'_, 'de, O, F> {
+                            Visitor {
+                                f,
+                                expecting,
+                                _marker: std::marker::PhantomData,
+                                _lifetime: std::marker::PhantomData,
+                            }
+                        }
+                    }
+                };
+
+            )*
+        }
+        #[doc(hidden)]
+        #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+        #[repr(u32)]
+        enum StructureSpriteKind {
+            $($($sprite_name(categories::$category_name) = SpriteKind::$sprite_name as u32,)*)*
+        }
+
+        impl StructureSpriteKind {
+            /// Assigns this structure sprite to a block.
+            ///
+            /// For this to work `with_sprite` has to return a block that has the passed `SpriteKind`. If it
+            /// returns a block that doesn't have a sprite, that block will be returned. If it returns a block
+            /// with another sprite than what was passed it might apply sprite attributes to that block.
+            fn get_block(self, with_sprite: impl FnOnce(SpriteKind) -> Block) -> Block {
+                match self {
+                    $($(Self::$sprite_name(c) => {
+                        let mut block = with_sprite(SpriteKind::$sprite_name);
+                        // NOTE: We ignore this error because:
+                        // * If we returned the error it would be inconsistent behaviour between sprites that
+                        //   have attributes and ones that don't.
+                        // * We don't want to panic, because some uses of some usages of this function passes
+                        //   `Block::with_sprite` as `with_sprite`, which also doesn't do anything if the block
+                        //   can't have a sprite.
+                        _ = c.apply_to_block(&mut block);
+                        block
+                    },)*)*
+                }
+            }
+        }
+
+        const _: () = {
+            mod __priv {
+                use super::{SpriteKind, StructureSpriteKind, categories};
+                use std::{
+                    fmt::{self, Formatter},
+                    marker::PhantomData,
+                };
+                use serde::{de, Deserialize, Deserializer};
+
+                impl<'de> Deserialize<'de> for StructureSpriteKind {
+                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                    where
+                        D: Deserializer<'de>
+                    {
+                        #[doc(hidden)]
+                        struct Visitor<'de> {
+                            lifetime: PhantomData<&'de ()>,
+                        }
+
+                        impl<'de> de::Visitor<'de> for Visitor<'de> {
+                            type Value = StructureSpriteKind;
+
+                            fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+                                formatter.write_str("enum SpriteKind")
+                            }
+
+                            fn visit_enum<A>(self, data: A) -> Result<Self::Value, A::Error>
+                            where
+                                A: de::EnumAccess<'de>
+                            {
+                                match de::EnumAccess::variant(data)? {
+                                    $($(
+                                        (SpriteKind::$sprite_name, variant) => {
+                                            let visitor = categories::$category_name::visitor(StructureSpriteKind::$sprite_name, stringify!($sprite_name));
+                                            de::VariantAccess::tuple_variant(
+                                                variant,
+                                                categories::$category_name::LEN,
+                                                visitor,
+                                            )
+                                        },
+                                    )*)*
+                                }
+                            }
+                        }
+
+                        #[doc(hidden)]
+                        const VARIANTS: &[&str] = &[
+                            $($(stringify!($sprite_name),)*)*
+                        ];
+
+                        Deserializer::deserialize_enum(
+                            deserializer,
+                            "SpriteKind",
+                            VARIANTS,
+                            Visitor {
+                                lifetime: PhantomData,
+                            },
+                        )
+                    }
+                }
+            }
+        };
+
         impl SpriteKind {
             #[inline] pub const fn all() -> &'static [Self] {
                 &[$($(Self::$sprite_name,)*)*]

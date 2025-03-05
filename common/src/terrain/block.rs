@@ -256,6 +256,24 @@ impl Block {
         }
     }
 
+    pub fn sprite_z_rot(&self) -> Option<f32> {
+        self.get_attr::<sprite::Ori>()
+            .ok()
+            .map(|ori| std::f32::consts::PI * 0.25 * ori.0 as f32)
+    }
+
+    pub fn sprite_mirror_vec(&self) -> Vec3<f32> {
+        Vec3::new(
+            self.get_attr::<sprite::MirrorX>().map(|m| m.0),
+            self.get_attr::<sprite::MirrorY>().map(|m| m.0),
+            self.get_attr::<sprite::MirrorZ>().map(|m| m.0),
+        )
+        .map(|b| match b.unwrap_or(false) {
+            true => -1.0,
+            false => 1.0,
+        })
+    }
+
     #[inline(always)]
     pub(super) const fn data(&self) -> [u8; 3] { self.data }
 
@@ -278,10 +296,6 @@ impl Block {
             None
         }
     }
-
-    // TODO: phase out use of this method in favour of `block.get_attr::<Ori>()`
-    #[inline]
-    pub fn get_ori(&self) -> Option<u8> { self.get_attr::<sprite::Ori>().ok().map(|ori| ori.0) }
 
     /// Returns the rtsim resource, if any, that this block corresponds to. If
     /// you want the scarcity of a block to change with rtsim's resource

@@ -2079,7 +2079,7 @@ impl Hud {
                                 },
                                 &ecs.read_storage(),
                             )
-                            .map(|(mat, _, _)| (mat, *position, interactions, *block))
+                            .map(|(mat, _)| (mat, *position, interactions, *block))
                     })
             {
                 let overitem_id = overitem_walker.next(
@@ -2230,8 +2230,8 @@ impl Hud {
                             })
                         });
 
-                if let Some(sprite) = block.get_sprite()
-                    && let (Some(desc), quality) = interactable_item.map_or_else(
+                if let Some(sprite) = block.get_sprite() {
+                    let (desc, quality) = interactable_item.map_or_else(
                         || (get_sprite_desc(sprite, i18n), overitem::TEXT_COLOR),
                         |item| {
                             (
@@ -2239,8 +2239,8 @@ impl Hud {
                                 get_quality_col(item.quality()),
                             )
                         },
-                    )
-                {
+                    );
+                    let desc = desc.unwrap_or(Cow::Borrowed(""));
                     overitem::Overitem::new(
                         desc,
                         quality,
@@ -5011,7 +5011,7 @@ impl Hud {
                                 },
                                 &client.state().read_storage(),
                             )
-                            .is_some_and(|(mat, _, block)| {
+                            .is_some_and(|(mat, block)| {
                                 block.get_sprite() == Some(*sprite)
                                     && mat.mul_point(Vec3::broadcast(0.5)).distance(player_pos)
                                         < MAX_PICKUP_RANGE
@@ -5391,20 +5391,8 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         | SpriteKind::TerracottaChest => "common-sprite-chest",
         SpriteKind::Mud => "common-sprite-mud",
         SpriteKind::Grave => "common-sprite-grave",
-        SpriteKind::ChairWoodWoodland
-        | SpriteKind::ChairWoodWoodland2
-        | SpriteKind::BenchWoodWoodland
-        | SpriteKind::BenchWoodWoodlandGreen1
-        | SpriteKind::BenchWoodWoodlandGreen2
-        | SpriteKind::BenchWoodWoodlandGreen3
-        | SpriteKind::BenchCoastal => "common-sprite-chair",
         SpriteKind::Crate => "common-sprite-crate",
-        SpriteKind::HangingSign => "common-sprite-signboard",
-        SpriteKind::StreetLamp => "common-sprite-street_lamp",
-        SpriteKind::Lantern => "common-sprite-lantern",
-        SpriteKind::SeashellLantern => "common-sprite-seashell_lantern",
-        SpriteKind::FireBowlGround => "common-sprite-firebowl_ground",
-        sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
+        _ => return None,
     };
     Some(localized_strings.get_msg(i18n_key))
 }

@@ -11,6 +11,7 @@ use common::{
 #[cfg(feature = "worldgen")]
 use common::{rtsim::RtSimEntity, uid::IdMaps};
 use specs::WorldExt;
+use vek::Vec3;
 
 #[cfg(feature = "worldgen")]
 use crate::rtsim::RtSim;
@@ -88,7 +89,7 @@ pub fn handle_mount_volume(
 ) {
     let state = server.state_mut();
 
-    let block_transform = volume_pos.get_block_and_transform(
+    let mount_mat = volume_pos.get_mount_mat(
         &state.terrain(),
         &state.ecs().read_resource(),
         |e| {
@@ -101,10 +102,8 @@ pub fn handle_mount_volume(
         &state.read_storage(),
     );
 
-    if let Some((mat, _, block)) = block_transform
-        && let Some(mount_offset) = block.mount_offset()
-    {
-        let mount_pos = (mat * mount_offset.0.with_w(1.0)).xyz();
+    if let Some((mat, block)) = mount_mat {
+        let mount_pos = mat.mul_point(Vec3::zero());
         let within_range = {
             let positions = state.ecs().read_storage::<comp::Pos>();
             positions.get(rider).is_some_and(|pos| {

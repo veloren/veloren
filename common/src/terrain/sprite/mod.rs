@@ -55,6 +55,40 @@ use std::{
 use strum::EnumIter;
 use vek::*;
 
+/// A sprite that can be deserialized with all its attributes.
+///
+/// Say we have created the sprites:
+/// ```ignore
+/// sprites! {
+///    Furniture = 0 has Ori, MirrorX {
+///       Chair,
+///       Table,
+///    }
+/// }
+/// ```
+/// And given we're deserializing from ron we could deserialize an array
+/// of `StructureSprite` that look like this:
+/// ```ignore
+/// [
+///    // This will be a `SpriteKind::Chair` with default attributes
+///    Chair(),
+///    // This will be a `SpriteKind::Chair` with the given attributes `Ori(2)` and `MirrorX(true)`.
+///    Chair(Ori(2), MirrorX(true)),
+///    // This will be a `SpriteKind::Table` with the given attribute `Ori(2)` and the rest of its
+///    // attributes set to default.
+///    Table(Ori(4)),
+/// ]
+/// ```
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(transparent)]
+pub struct StructureSprite(StructureSpriteKind);
+
+impl StructureSprite {
+    pub fn get_block(self, with_sprite: impl FnMut(SpriteKind) -> Block) -> Block {
+        self.0.get_block(with_sprite)
+    }
+}
+
 sprites! {
     Void = 0 {
         Empty = 0,
@@ -70,7 +104,7 @@ sprites! {
     },
     // Furniture. In the future, we might add an attribute to customise material
     // TODO: Remove sizes and variants, represent with attributes
-    Furniture = 2 has Ori {
+    Furniture = 2 has Ori, MirrorX {
         // Indoor
         BookshelfArabic    = 0x0D,
         WallTableArabic    = 0x0E,
@@ -474,7 +508,10 @@ sprites! {
 }
 
 attributes! {
-    Ori { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },
+    Ori { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Ori(x)| x as u16 },
+    MirrorX { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |MirrorX(x)| x as u16 },
+    MirrorY { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |MirrorY(x)| x as u16 },
+    MirrorZ { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |MirrorZ(x)| x as u16 },
     Growth { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Growth(x)| x as u16 },
     LightEnabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightEnabled(x)| x as u16 },
     Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
@@ -484,11 +521,20 @@ attributes! {
 }
 
 // The orientation of the sprite, 0..16
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
 pub struct Ori(pub u8);
 
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
+pub struct MirrorX(pub bool);
+
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
+pub struct MirrorY(pub bool);
+
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
+pub struct MirrorZ(pub bool);
+
 // The growth of the plant, 0..16
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
 pub struct Growth(pub u8);
 
 impl Default for Growth {
@@ -496,15 +542,15 @@ impl Default for Growth {
 }
 
 // Whether a light has been toggled on or off.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
 pub struct LightEnabled(pub bool);
-
-#[derive(Default, Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Owned(pub bool);
 
 impl Default for LightEnabled {
     fn default() -> Self { Self(true) }
 }
+
+#[derive(Default, Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
+pub struct Owned(pub bool);
 
 /** Relative Neighbor Position:
     an enum to determine the exact sprite for AdjacentType sprites
@@ -526,19 +572,24 @@ pub enum RelativeNeighborPosition {
     End,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
+#[serde(from = "RelativeNeighborPosition")]
 pub struct AdjacentType(pub u8);
 
+impl From<RelativeNeighborPosition> for AdjacentType {
+    fn from(value: RelativeNeighborPosition) -> Self { Self(value as u8) }
+}
+
 impl Default for AdjacentType {
-    fn default() -> Self { Self(RelativeNeighborPosition::I as u8) }
+    fn default() -> Self { Self::from(RelativeNeighborPosition::I) }
 }
 
 // Damage of an ore
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Deserialize)]
 pub struct Damage(pub u8);
 
 // Whether a sprite has snow on it
-#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
 pub struct SnowCovered(pub bool);
 
 impl SpriteKind {
@@ -820,12 +871,18 @@ impl SpriteKind {
                 let is_moving_into = move_dir.dot(resolve_dir) <= 0.0;
 
                 is_moving_into
-                    && parent.get_ori().is_some_and(|ori| {
-                        Vec2::unit_y()
-                            .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
-                            .with_z(0.0)
-                            .map2(resolve_dir, |e, r| (e - r).abs() < 0.1)
-                            .reduce_and()
+                    && parent.get_attr().is_ok_and(|Ori(ori)| {
+                        Vec2::new(
+                            0.0,
+                            parent.get_attr::<MirrorY>().map_or(1.0, |m| match m.0 {
+                                true => -1.0,
+                                false => 1.0,
+                            }),
+                        )
+                        .rotated_z(std::f32::consts::PI * 0.25 * ori as f32)
+                        .with_z(0.0)
+                        .map2(resolve_dir, |e, r| (e - r).abs() < 0.1)
+                        .reduce_and()
                     })
             },
             _ => true,
@@ -950,6 +1007,8 @@ impl SpriteKind {
             | SpriteKind::BenchWoodWoodlandGreen2
             | SpriteKind::BenchWoodWoodlandGreen3
             | SpriteKind::BenchWoodWoodland
+            | SpriteKind::BenchWoodEnd
+            | SpriteKind::BenchWoodMiddle
             | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y())),
             SpriteKind::Helm => Some((Vec3::new(0.0, -1.1, 0.0), Vec3::unit_y())),
             SpriteKind::BedWoodWoodlandHead => Some((Vec3::new(1.4, 0.0, 0.5), Vec3::unit_y())),

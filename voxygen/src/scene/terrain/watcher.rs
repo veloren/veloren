@@ -255,7 +255,11 @@ impl BlocksOfInterest {
                                     .rotated_z(
                                         std::f32::consts::PI
                                             * 0.25
-                                            * block.get_ori().unwrap_or(0) as f32,
+                                            * block
+                                                .get_attr::<sprite::Ori>()
+                                                .unwrap_or(sprite::Ori(0))
+                                                .0
+                                                as f32,
                                     )
                                     .with_z(0.0),
                             )),

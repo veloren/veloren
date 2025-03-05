@@ -22,8 +22,7 @@ layout(location = 1) in vec4 inst_mat1;
 layout(location = 2) in vec4 inst_mat2;
 layout(location = 3) in vec4 inst_mat3;
 // TODO: is there a better way to pack the various vertex attributes?
-// TODO: ori is unused
-layout(location = 4) in uint inst_pos_ori_door;
+layout(location = 4) in uint inst_pos_meta;
 layout(location = 5) in uint inst_vert_page; // NOTE: this could fit in less bits
 // TODO: do we need this many bits for light and glow?
 layout(location = 6) in float inst_light;
@@ -91,8 +90,17 @@ void main() {
 
     f_inst_light = vec2(inst_light, inst_glow);
 
+    uint vert_page_index = uint(gl_VertexIndex) & VERT_PAGE_SIZE_BITS;
+
+    if ((inst_pos_meta & (1 << 29)) != 0) {
+        // Change winding order by mirroring the vertices on the quad.
+        // By flipping bottom bit to map 0,1,2,3 to 1,0,3,2
+        vert_page_index = vert_page_index ^ 1;
+    }
+
     // Index of the vertex data in the 1D vertex texture
-    int vertex_index = int((uint(gl_VertexIndex) & VERT_PAGE_SIZE_BITS) + inst_vert_page * VERT_PAGE_SIZE);
+    int vertex_index = int(vert_page_index | (inst_vert_page * VERT_PAGE_SIZE));
+
     uvec2 pos_atlas_pos_norm_ao = verts[vertex_index];
     uint v_pos_norm = pos_atlas_pos_norm_ao.x;
     uint v_atlas_pos = pos_atlas_pos_norm_ao.y;
@@ -111,14 +119,14 @@ void main() {
     vec3 sprite_pos = inst_mat[3].xyz + chunk_offs;
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
-        if((inst_pos_ori_door & (1 << 28)) != 0) {
+        if ((inst_pos_meta & (1 << 28)) != 0) {
             const float MIN_OPEN_DIST = 0.2;
             const float MAX_OPEN_DIST = 1.5;
             float min_entity_dist = nearest_entity(sprite_pos, 1.0).w;
 
             if (min_entity_dist < MAX_OPEN_DIST) {
-                float sprite_ori = (inst_pos_ori_door >> 29) & 0x7u;
-                float flip = sprite_ori <= 3 ? 1.0 : -1.0;
+                // Make sure doors on the same axis rotate the same way.
+                float flip = sign(dot((inst_mat * vec4(0.0, 1.0, 0.0, 0.0)).xy, vec2(1.0)));
                 float theta = mix(PI/2.0, 0, pow(max(0.0, min_entity_dist - MIN_OPEN_DIST) / (MAX_OPEN_DIST - MIN_OPEN_DIST), 1.0));
                 float costheta = cos(flip * theta);
                 float sintheta = sin(flip * theta);

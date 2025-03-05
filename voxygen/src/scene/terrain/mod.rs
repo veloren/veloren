@@ -189,8 +189,14 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
             .wrapping_add((wpos.y as u64).wrapping_mul(7))
             .wrapping_add((wpos.x as u64).wrapping_mul(wpos.y as u64)); // Awful PRNG
 
-        // % 4 is non uniform, take 7 and combine two lesser probable outcomes
-        let ori = (block.get_ori().unwrap_or((seed % 7).div_ceil(2) as u8 * 2)) & 0b111;
+        let rot = block
+            .sprite_z_rot()
+            // % 4 is non uniform, So we take % 17 and divide by four, giving the chances:
+            // 0..=2: 4/17
+            // 3: 5/17
+            // Then multiply by π/2 rad to get axis aligned rotations.
+            .unwrap_or((seed % 17 / 4).min(3) as f32 / 2.0 * std::f32::consts::PI);
+        let mirror = block.sprite_mirror_vec();
         // try to make the variation more uniform as the PRNG is highly unfair
         let variation = match data.variations.len() {
             1 => 0,
@@ -212,8 +218,8 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
                 .scaled_3d(model_data.scale)
                 // Offset
                 .translated_3d(model_data.offset)
-                .scaled_3d(SPRITE_SCALE)
-                .rotated_z(f32::consts::PI * 0.25 * ori as f32)
+                .scaled_3d(SPRITE_SCALE * mirror)
+                .rotated_z(rot)
                 .translated_3d(
                     rel_pos + Vec3::new(0.5, 0.5, 0.0)
                 );
@@ -226,11 +232,11 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
                     data.wind_sway,
                     model_data.scale.z,
                     rel_pos.as_(),
-                    ori,
                     light,
                     glow,
                     page,
                     sprite.is_door(),
+                    mirror.map(|e| (e < 0.0) as u32).sum() % 2 == 1,
                 );
                 set_instance(lod_level, instance, wpos);
             }

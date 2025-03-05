@@ -59,7 +59,7 @@ command-location-desc = Teleport to a location
 command-make_block-desc = Make a block at your location with a color
 command-make_npc-desc = Spawn entity from config near you.
   For an example or to auto complete use Tab.
-command-make_sprite-desc = Make a sprite at your location
+command-make_sprite-desc = Make a sprite at your location, to define sprite attributes use ron syntax for a StructureSprite.
 command-make_volume-desc = Create a volume (experimental)
 command-motd-desc = View the server description
 command-mount-desc = Mount an entity
