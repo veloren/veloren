@@ -563,19 +563,12 @@ impl Widget for Chat<'_> {
             })
             .map(|m| {
                 let is_moderator = m
-                    .chat_type
                     .uid()
-                    .and_then(|uid| {
-                        self.client
-                            .lookup_msg_context(m)
-                            .player_info
-                            .get(&uid)
-                            .map(|i| i.is_moderator)
-                    })
+                    .and_then(|uid| self.client.player_list().get(&uid).map(|i| i.is_moderator))
                     .unwrap_or(false);
                 let (chat_type, text) = localize_chat_message(
-                    m.clone(),
-                    |msg| self.client.lookup_msg_context(msg),
+                    m,
+                    &self.client.lookup_msg_context(m),
                     self.localized_strings,
                     show_char_name,
                 );

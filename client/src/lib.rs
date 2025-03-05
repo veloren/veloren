@@ -3467,8 +3467,8 @@ mod tests {
                         Event::Chat(msg) => {
                             let msg: comp::ChatMsg = msg;
                             let _s: String = localize_chat_message(
-                                msg,
-                                |msg| client.lookup_msg_context(msg),
+                                &msg,
+                                &client.lookup_msg_context(&msg),
                                 &localisation.read(),
                                 true,
                             )
