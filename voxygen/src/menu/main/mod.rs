@@ -5,7 +5,7 @@ use super::{char_selection::CharSelectionState, dummy_scene::Scene, server_info:
 #[cfg(feature = "singleplayer")]
 use crate::singleplayer::SingleplayerState;
 use crate::{
-    Direction, GlobalState, PlayState, PlayStateResult,
+    Direction, GlobalState, PlayState, PlayStateResult, hud,
     render::{Drawer, GlobalsBindGroup},
     session::SessionState,
     settings::Settings,
@@ -51,7 +51,7 @@ enum InitState {
     // Waiting on the client initialization
     Client(ClientInit),
     // Client initialized but still waiting on Renderer pipeline creation
-    Pipeline(Box<Client>),
+    Pipeline(Box<Client>, hud::MessageBacklog),
 }
 
 impl InitState {
@@ -238,7 +238,7 @@ impl PlayState for MainMenuState {
                 }
                 // Register voxygen components / resources
                 crate::ecs::init(client.state_mut().ecs_mut());
-                self.init = InitState::Pipeline(Box::new(client));
+                self.init = InitState::Pipeline(Box::new(client), hud::MessageBacklog::default());
             },
             Some(InitMsg::Done(Err(e))) => {
                 self.init = InitState::None;
@@ -273,7 +273,7 @@ impl PlayState for MainMenuState {
         }
 
         // Tick the client to keep the connection alive if we are waiting on pipelines
-        if let InitState::Pipeline(client) = &mut self.init {
+        if let InitState::Pipeline(client, _) = &mut self.init {
             match client.tick(comp::ControllerInputs::default(), global_state.clock.dt()) {
                 Ok(events) => {
                     for event in events {
@@ -288,12 +288,9 @@ impl PlayState for MainMenuState {
                                 self.init = InitState::None;
                             },
                             client::Event::Chat(m) => {
-                                let message_backlog = &mut global_state.message_backlog;
-                                if crate::hud::show_in_chatbox(&m) {
-                                    message_backlog.push_back(m);
-                                    if message_backlog.len() > crate::hud::MAX_MESSAGES {
-                                        message_backlog.pop_front();
-                                    }
+                                if let InitState::Pipeline(client, message_backlog) = &mut self.init
+                                {
+                                    message_backlog.new_message(client, &global_state.profile, m)
                                 }
                             },
                             #[cfg_attr(not(feature = "plugins"), expect(unused_variables))]
@@ -301,7 +298,7 @@ impl PlayState for MainMenuState {
                                 #[cfg(feature = "plugins")]
                                 {
                                     tracing::info!("plugin data {}", data.len());
-                                    if let InitState::Pipeline(client) = &mut self.init {
+                                    if let InitState::Pipeline(client, _) = &mut self.init {
                                         let hash = client
                                             .state()
                                             .ecs()
@@ -343,7 +340,7 @@ impl PlayState for MainMenuState {
             // If complete go to char select screen
             } else {
                 // Always succeeds since we check above
-                if let InitState::Pipeline(mut client) =
+                if let InitState::Pipeline(mut client, message_backlog) =
                     core::mem::replace(&mut self.init, InitState::None)
                 {
                     self.main_menu_ui.connected();
@@ -359,14 +356,18 @@ impl PlayState for MainMenuState {
                             global_state,
                             UpdateCharacterMetadata::default(),
                             Rc::new(RefCell::new(*client)),
+                            Rc::new(RefCell::new(message_backlog)),
                         )));
                     }
 
                     let server_info = client.server_info().clone();
                     let server_description = client.server_description().clone();
 
-                    let char_select =
-                        CharSelectionState::new(global_state, Rc::new(RefCell::new(*client)));
+                    let char_select = CharSelectionState::new(
+                        global_state,
+                        Rc::new(RefCell::new(*client)),
+                        Rc::new(RefCell::new(message_backlog)),
+                    );
 
                     let new_state = ServerInfoState::try_from_server_info(
                         global_state,

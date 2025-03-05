@@ -53,7 +53,7 @@ use common_base::span;
 use i18n::LocalizationHandle;
 use std::path::PathBuf;
 
-use std::{collections::VecDeque, sync::Arc};
+use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 /// A type used to store state that is shared between all play states.
@@ -69,14 +69,6 @@ pub struct GlobalState {
     pub lazy_init: scene::terrain::SpriteRenderContextLazy,
     pub audio: AudioFrontend,
     pub info_message: Option<String>,
-    /// Chat messages received from the client before entering the
-    /// `SessionState`.
-    ///
-    /// We transfer these to HUD when it is displayed in `SessionState`.
-    ///
-    /// Messages that aren't show in the chat box aren't retained (e.g. ones
-    /// that would just show as in-world chat bubbles).
-    pub message_backlog: VecDeque<common::comp::ChatMsg>,
     pub clock: Clock,
     #[cfg(feature = "singleplayer")]
     pub singleplayer: SingleplayerState,

@@ -29,6 +29,20 @@ use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
 use vek::{Vec2, approx::AbsDiffEq};
 
+/// Determines whether a message is from a muted player.
+///
+/// These messages will not be shown anywhere and do not need to be retained in
+/// chat queues.
+pub fn is_muted(client: &Client, profile: &crate::profile::Profile, msg: &ChatMsg) -> bool {
+    if let Some(uid) = msg.uid()
+        && let Some(player_info) = client.player_list().get(&uid)
+    {
+        profile.mutelist.contains_key(&player_info.uuid)
+    } else {
+        false
+    }
+}
+
 /// Determines whether a message will be sent to the chat box.
 ///
 /// Some messages like NPC messages are only displayed as in-world chat bubbles.
@@ -38,6 +52,32 @@ pub fn show_in_chatbox(msg: &ChatMsg) -> bool {
 }
 
 pub const MAX_MESSAGES: usize = 100;
+
+/// Chat messages received from the client before entering the
+/// `SessionState`.
+///
+/// We transfer these to HUD when it is displayed in `SessionState`.
+///
+/// Messages that aren't show in the chat box aren't retained (e.g. ones
+/// that would just show as in-world chat bubbles).
+#[derive(Default)]
+pub struct MessageBacklog(pub(super) VecDeque<ChatMsg>);
+
+impl MessageBacklog {
+    pub fn new_message(
+        &mut self,
+        client: &Client,
+        profile: &crate::profile::Profile,
+        msg: ChatMsg,
+    ) {
+        if !is_muted(client, profile, &msg) && show_in_chatbox(&msg) {
+            self.0.push_back(msg);
+            if self.0.len() > MAX_MESSAGES {
+                self.0.pop_front();
+            }
+        }
+    }
+}
 
 const CHAT_ICON_WIDTH: f64 = 16.0;
 const CHAT_MARGIN_THICKNESS: f64 = 2.0;

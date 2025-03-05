@@ -29,7 +29,7 @@ pub mod img_ids;
 pub mod item_imgs;
 pub mod util;
 
-pub use chat::{MAX_MESSAGES, show_in_chatbox};
+pub use chat::MessageBacklog;
 pub use crafting::CraftingTab;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
@@ -65,7 +65,6 @@ use trade::Trade;
 use crate::{
     GlobalState,
     audio::ActiveChannels,
-    cmd::get_player_uuid,
     ecs::comp::{self as vcomp, HpFloater, HpFloaterList},
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
@@ -1984,19 +1983,8 @@ impl Hud {
                 .retain(|(_pos, bubble)| bubble.timeout > now);
 
             // Don't show messages from muted players
-            self.new_messages.retain(|msg| match msg.uid() {
-                Some(uid) => match client.player_list().get(&uid) {
-                    Some(player_info) => {
-                        if let Some(uuid) = get_player_uuid(client, &player_info.player_alias) {
-                            !global_state.profile.mutelist.contains_key(&uuid)
-                        } else {
-                            true
-                        }
-                    },
-                    None => true,
-                },
-                None => true,
-            });
+            self.new_messages
+                .retain(|msg| !chat::is_muted(client, &global_state.profile, msg));
 
             // Push speech bubbles
             for msg in self.new_messages.iter() {
@@ -4629,9 +4617,10 @@ impl Hud {
     /// These messages are from the past so they won't be displayed as chat
     /// bubbles and will be ordered before any messages added via
     /// [`new_message`][Self::new_message] this tick.
-    pub fn add_backlog_messages(&mut self, messages: VecDeque<comp::ChatMsg>) {
+    pub fn add_backlog_messages(&mut self, messages: &mut chat::MessageBacklog) {
         // Messages in `message_backlog` won't be displayed as chat bubbles.
-        self.message_backlog.extend(messages);
+        self.message_backlog
+            .extend(core::mem::take(&mut messages.0));
         while self.message_backlog.len() > chat::MAX_MESSAGES {
             self.message_backlog.pop_front();
         }
