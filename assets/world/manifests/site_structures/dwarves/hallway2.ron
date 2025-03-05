@@ -7,9 +7,9 @@
         custom_indices: {
             8: Filled(Air, (r: 255, g: 255, b: 255)),
             212: Filled(Air, (r: 255, g: 255, b: 255)), // half open Gate
-            216: Sprite(KeyDoor),
+            216: Sprite(KeyDoor()),
             213: Keyhole("common.items.keys.quarry_keys.miner_key"),
-            136: Sprite(Lantern),
+            136: Sprite(Lantern()),
          },
     ),
 ]

@@ -10,7 +10,7 @@
 //            216: Sprite(KeyDoor),
             216: Filled(Air, (r: 255, g: 255, b: 255)),
             213: Filled(Air, (r: 255, g: 255, b: 255)),
-            136: Sprite(Lantern),
+            136: Sprite(Lantern()),
          },
     ),
 ]

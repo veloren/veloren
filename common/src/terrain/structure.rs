@@ -254,3 +254,49 @@ impl assets::Asset for StructuresGroupSpec {
 
     const EXTENSION: &'static str = "ron";
 }
+
+#[test]
+fn test_load_structures() {
+    let errors =
+        common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.site_structures")
+            .expect("This should be able to load")
+            .read()
+            .ids()
+            .chain(
+                common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.spots")
+                    .expect("This should be able to load")
+                    .read()
+                    .ids(),
+            )
+            .chain(
+                common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.spots_general")
+                    .expect("This should be able to load")
+                    .read()
+                    .ids(),
+            )
+            .chain(
+                common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.trees")
+                    .expect("This should be able to load")
+                    .read()
+                    .ids(),
+            )
+            .chain(
+                common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.shrubs")
+                    .expect("This should be able to load")
+                    .read()
+                    .ids(),
+            )
+            .filter_map(|id| StructuresGroupSpec::load(id).err().map(|err| (id, err)))
+            .fold(None::<String>, |mut acc, (id, err)| {
+                use std::fmt::Write;
+
+                let s = acc.get_or_insert_default();
+                _ = writeln!(s, "{id}: {err}");
+
+                acc
+            });
+
+    if let Some(errors) = errors {
+        panic!("Failed to load the following structures:\n{errors}")
+    }
+}
