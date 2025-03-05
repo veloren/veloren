@@ -1081,8 +1081,10 @@ mod tests {
         {
             let dock_pos = Vec3::new(10.0f32, 10.0, 0.0);
             let airship_dock_center = Vec2::new(0.0, 0.0);
+            let mut left_tested = false;
+            let mut right_tested = false;
             {
-                for _ in 0..100 {
+                for _ in 0..1000 {
                     let (airship_pos, airship_dir) =
                         Airships::airship_vec_for_docking_pos(dock_pos, airship_dock_center, None);
                     if airship_pos.x > 21.0 {
@@ -1091,7 +1093,7 @@ mod tests {
                             Vec3 {
                                 x: 29.091883,
                                 y: 17.778175,
-                                z: -4.0
+                                z: -1.0
                             },
                             epsilon = 0.00001
                         );
@@ -1104,13 +1106,14 @@ mod tests {
                             },
                             epsilon = 0.00001
                         );
+                        left_tested = true;
                     } else {
                         assert_relative_eq!(
                             airship_pos,
                             Vec3 {
                                 x: 17.778172,
                                 y: 29.091885,
-                                z: -4.0
+                                z: -1.0
                             },
                             epsilon = 0.00001
                         );
@@ -1123,6 +1126,10 @@ mod tests {
                             },
                             epsilon = 0.00001
                         );
+                        right_tested = true;
+                    }
+                    if left_tested && right_tested {
+                        break;
                     }
                 }
             }
@@ -1137,7 +1144,7 @@ mod tests {
                     Vec3 {
                         x: 29.091883,
                         y: 17.778175,
-                        z: -4.0
+                        z: -1.0
                     },
                     epsilon = 0.00001
                 );
@@ -1162,7 +1169,7 @@ mod tests {
                     Vec3 {
                         x: 17.778172,
                         y: 29.091885,
-                        z: -4.0
+                        z: -1.0
                     },
                     epsilon = 0.00001
                 );
@@ -1191,7 +1198,7 @@ mod tests {
                     Vec3 {
                         x: 28855.0,
                         y: 18569.0,
-                        z: -4.0
+                        z: -1.0
                     },
                     epsilon = 0.00001
                 );
@@ -1216,7 +1223,7 @@ mod tests {
                     Vec3 {
                         x: 28855.0,
                         y: 18553.0,
-                        z: -4.0
+                        z: -1.0
                     },
                     epsilon = 0.00001
                 );
