@@ -4361,7 +4361,7 @@ impl AgentData<'_> {
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());
         let home = agent.patrol_origin.unwrap_or(self.pos.0);
         let cheesed_from_above = tgt_data.pos.0.z > self.pos.0.z + 4.0;
-        let pillar_cheesed = tgt_data.pos.0.z > home.z
+        let pillar_cheesed = (tgt_data.pos.0.z > home.z || self.pos.0.z > home.z)
             && agent.combat_state.timers[Timers::CheeseTimer as usize] > 4.0;
         agent.combat_state.timers[Timers::CheeseTimer as usize] += read_data.dt.0;
         agent.combat_state.timers[Timers::CanSeeTarget as usize] += read_data.dt.0;
