@@ -97,7 +97,7 @@ const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
 /// Client frontend events.
 ///
-/// This events are returned to the frontend that ticks the client.
+/// These events are returned to the frontend that ticks the client.
 #[derive(Debug)]
 pub enum Event {
     Chat(comp::ChatMsg),

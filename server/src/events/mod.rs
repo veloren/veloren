@@ -111,7 +111,7 @@ pub fn register_event_systems(builder: &mut DispatcherBuilder) {
 
 /// Server frontend events.
 ///
-/// This events are returned to the frontend that ticks the server.
+/// These events are returned to the frontend that ticks the server.
 pub enum Event {
     ClientConnected {
         entity: EcsEntity,
