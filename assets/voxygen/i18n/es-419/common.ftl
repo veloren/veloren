@@ -72,7 +72,6 @@ common-kind-consumable = Consumible
 common-kind-throwable = Puede ser lanzado
 common-kind-utility = Utilidad
 common-kind-ingredient = Ingrediente
-common-kind-lantern = Linterna
 common-hands-one = De una mano
 common-hands-two = De dos manos
 common-rand_appearance = Apariencia Aleatoria

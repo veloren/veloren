@@ -56,7 +56,7 @@ npc-speech-villager_neurotic =
     .a3 = 我希望有人能把狼趕走，遠離村莊
 npc-speech-villager_sad_loner =
     .a0 = 我好孤單
-    .a1 = ... 對不起這尷尬的沉默，我不太擅長與人交往
+    .a1 = { "." }.. 對不起這尷尬的沉默，我不太擅長與人交往
 npc-speech-villager_seeker =
     .a0 = 我有一天想看看這個世界，這村子肯定不是人生的全部
 npc-speech-villager_stable =
@@ -194,12 +194,10 @@ npc-speech-villager_under_attack =
     .a77 = 警衛，把這個怪物扔進湖裡！
     .a78 = 我要叫我的塔拉斯克來收拾你！
     .a79 = 為什麼是我～～～？
-
 npc-speech-villager_enemy_killed =
     .a0 = 我已經消滅了我的敵人！
     .a1 = 終於能夠安息了！
-    .a2 = ...現在我在做什麼來著？
-
+    .a2 = { "." }..現在我在做什麼來著？
 npc-speech-menacing =
     .a0 = 我警告你了！
     .a1 = 再靠近我就攻擊！
@@ -207,7 +205,6 @@ npc-speech-menacing =
     .a3 = 離開這裡！
     .a4 = 如果想活命，就回頭吧！
     .a5 = 這裡不歡迎你！
-
 npc-speech-cultist_low_health_fleeing =
     .a0 = 為了這個使命，我必須撤退！
     .a1 = 撤退！
@@ -217,54 +214,43 @@ npc-speech-cultist_low_health_fleeing =
     .a5 = 他們太強了！
 npc-speech-moving_on =
     .a0 = 我在這裡待夠了，該前往 { $site } 了！
-
 npc-speech-migrating =
     .a0 = 我在這裡住得不再開心了，是時候搬到 { $site } 去了
     .a1 = 我已經受夠這裡了，該搬到 { $site } 去了
-
 npc-speech-night_time =
     .a0 = 天黑了，是時候回家了
     .a1 = 我累了
     .a2 = 我的床在呼喚我！
-
 npc-speech-day_time =
     .a0 = 新的一天開始了！
     .a1 = 我從來不喜歡起床...
-
 npc-speech-start_hunting =
     .a0 = 是時候去狩獵了！
-
 npc-speech-guard_thought =
     .a0 = 我哥哥正在外面與巨魔作戰，而我只能在這裡守衛...
     .a1 = 再巡邏一次，我就可以回家了
     .a2 = 任何土匪都別想從我這裡通過
-
 npc-speech-merchant_sell_undirected =
     .a0 = 我所有的商品都是最高品質的！
     .a1 = 有人想買我的貨嗎？
     .a2 = 我這裡有城裡最好的優惠
     .a3 = 需要補給品嗎？我這裡應有盡有
-
 npc-speech-merchant_sell_directed =
     .a0 = 嘿，你那邊！需要一個新的玩意兒嗎？
     .a1 = 餓了嗎？我這裡有一些起司賣給你
     .a2 = 你看起來好像需要新的盔甲！
-
 npc-speech-tell_site =
     .a0 = { $site } 在 { $dir }，你去過那裡嗎？
     .a1 = 你應該找時間去 { $site } 走走
     .a2 = 如果你往 { $dist } { $dir } 走，你會到達 { $site }
     .a3 = { $site } 在 { $dir }，大約 { $dist } 的距離
-
 npc-speech-site =
     .a0 = 你不覺得我們的村子是最棒的嗎？
     .a1 = 歡迎來到 { $site }！
     .a2 = { $site } 是個很適合居住的村子
-
 npc-speech-tell_monster =
     .a0 = 他們說在 { $dir } 有 { $body }，大約 { $dist } 的距離...
     .a1 = 你以為你很強嗎？在 { $dir } 有 { $body }
-
 npc-speech-dir_north = 在北方
 npc-speech-dir_north_east = 在東北方
 npc-speech-dir_east = 在東方
@@ -273,35 +259,28 @@ npc-speech-dir_south = 在南方
 npc-speech-dir_south_west = 在西南方
 npc-speech-dir_west = 在西方
 npc-speech-dir_north_west = 在西北方
-
 npc-speech-dist_very_far = 非常遠
 npc-speech-dist_far = 很遠
 npc-speech-dist_ahead = 有一段距離
 npc-speech-dist_near = 附近
 npc-speech-dist_near_to = 非常近
-
 npc-speech-arena = 我們坐到那邊去吧！
-
 npc-speech-witness_murder =
     .a0 = 殺人犯！
     .a1 = 你怎麼能這樣做？
     .a2 = 啊啊啊！
-
 npc-speech-witness_enemy_murder =
     .a0 = 我的英雄！
     .a1 = 終於有人做到了！
     .a2 = 耶！
-
 npc-speech-witness_death =
     .a0 = 不！
     .a1 = 太可怕了！
     .a2 = 天啊！
-
 npc-speech-welcome-aboard =
     .a0 = 歡迎登船！
     .a1 = 我可以看你的票嗎...開玩笑的，這是免費的！
     .a2 = 祝你旅途愉快！
-
 npc-speech-night =
     .a0 = 提燈在夜晚很有用！
     .a1 = 我希望我們在黑暗中是獨自的...

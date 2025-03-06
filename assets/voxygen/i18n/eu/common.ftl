@@ -72,7 +72,6 @@ common-kind-consumable = Kontsumigarria
 common-kind-throwable = Jaurtigarria
 common-kind-utility = Tresna
 common-kind-ingredient = Osagaia
-common-kind-lantern = Argiontzia
 common-hands-one = Esku bakarra
 common-hands-two = Bi esku
 common-rand_appearance = Ausazko itxura

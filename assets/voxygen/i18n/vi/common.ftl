@@ -63,7 +63,6 @@ common-kind-glider = Dù Lượn
 common-kind-consumable = Có thể hấp thụ
 common-kind-throwable = Có thể ném
 common-kind-ingredient = Nguyên Liệu
-common-kind-lantern = Đèn
 common-hands-one = Một Tay
 common-hands-two = Hai Tay
 common-rand_appearance = Ngoại hình ngẫu nhiên

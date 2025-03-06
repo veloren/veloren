@@ -28,3 +28,7 @@ weapon-tool-steeltonguedrum = Глюкофон
     .desc = Глюкофон.
 weapon-tool-shamisen = Сямисэн
     .desc = Сямисэн.
+weapon-tool-banjo = Банджо
+    .desc = Банджо.
+weapon-tool-kora = Ко́ра
+    .desc = Основной инструмент Африканской Музыки.

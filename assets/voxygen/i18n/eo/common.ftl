@@ -51,7 +51,6 @@ common-weapons-shield = Ŝildo
 common-weapons-spear = Lanco
 common-tool-pick = Pioĉo
 common-tool-mining = Minado
-common-kind-lantern = Lanterno
 common-hands-one = Unu Mano
 common-hands-two = Du Manoj
 common-material-metal = Metalo

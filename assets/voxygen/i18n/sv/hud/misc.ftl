@@ -83,3 +83,7 @@ hud-pet = Klappa
 hud-press_key_to_return_to_char_menu = Tryck { $key } för att återvända till karaktärsmenyn.
 hud-hardcore_char_deleted = Denna hardcore-karaktär har raderats.
 hud-steal = Stjäl
+hud-press_key_to_give_up = Tryck på { $key } för att ge upp och dö.
+hud-hardcore_will_char_deleted = Denna hardcore-karaktär kommer att raderas.
+hud-downed_recieving_help = Tar emot hjälp.
+hud-help = Hjälp

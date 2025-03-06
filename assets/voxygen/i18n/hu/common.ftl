@@ -63,7 +63,6 @@ common-kind-consumable = Fogyasztási cikk
 common-kind-throwable = Eldobható
 common-kind-utility = Kellék
 common-kind-ingredient = Összetevő
-common-kind-lantern = Lámpás
 common-hands-one = Egykezes
 common-hands-two = Kétkezes
 common-rand_appearance = Véletlenszerű kinézet

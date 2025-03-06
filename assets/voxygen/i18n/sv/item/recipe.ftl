@@ -78,3 +78,5 @@ pseudo-recipe-modular_weapon-staff = Stavskaft
     .desc = { "" }
 pseudo-recipe-modular_weapon-sceptre = Spirskaft
     .desc = { "" }
+pseudo-recipe-repair = Reparera Utrustning
+    .desc = { "" }

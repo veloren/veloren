@@ -30,3 +30,5 @@ weapon-tool-wooden_lyre = Lyra
     .desc = Trälyra.
 weapon-tool-kora = Kora
     .desc = Kora.
+weapon-tool-banjo = Banjo
+    .desc = Banjo.

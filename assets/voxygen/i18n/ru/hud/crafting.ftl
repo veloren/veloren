@@ -30,7 +30,7 @@ hud-crafting-dismantle_explanation =
     что вы можете получить.
 
     Двойное нажатие для начала разборки.
-hud-crafting-modular_desc = Перетащите сюда часть предметов, чтобы создать оружие.
+hud-crafting-modular_desc = Переместите в окна необходимые компоненты, чтобы создать оружие
 hud-crafting-mod_weap_prim_slot_title = Основной компонент оружия
 hud-crafting-mod_weap_prim_slot_desc = Поместите сюда основной компонент оружия (например клинок меча, топорище, или плечо лука).
 hud-crafting-mod_weap_sec_slot_title = Вторичный компонент оружия
@@ -43,3 +43,14 @@ hud-crafting-mod_comp_sec_slot_title = Животный материал
 hud-crafting-mod_comp_sec_slot_desc = При желании поместите сюда животный материал, только определённые ингредиенты можно использовать для улучшения оружия.
 hud-crafting-repair_slot_desc = Поместите сюда предмет, чтобы узнать стоимость его ремонта при текущем уровне прочности.
 hud-crafting-repair_bench = Ремонтный стол
+hud-crafting-repair_slot_title = Повреждённый предмет
+hud-crafting-repair-selection = Выбранное
+hud-crafting-tool_cata = Инструменты:
+hud-crafting-repair_desc = Перетащите сюда повреждённые предметы, чтобы отремонтировать их
+hud-crafting-show_unknown_recipes = Показать Неизвестные Рецепты
+hud-crafting-hide_unknown_recipes = Скрыть Неизвестные Рецепты
+hud-crafting-repair_all = Починить Всё
+hud-crafting-repair_equipped = Экипировано
+hud-crafting-req_crafting_station = Место Крафта:
+hud-crafting-recipe-uncraftable = Рецепт Нельзя Создать
+hud-crafting-recipe-unlearned = Изучи необходимый рецепт, чтобы создать это.

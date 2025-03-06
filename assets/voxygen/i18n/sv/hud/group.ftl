@@ -13,3 +13,4 @@ hud-group-in_menu = I Meny
 hud-group-members = Gruppmedlemmar
 hud-group-invite-declined = { $target } avböjde din gruppinbjudan.
 hud-group-invite-timed_out = Gruppinbjudan till { $target } utgick.
+hud-group-invite-accepted = { $target } accepterade din gruppinbjudan.
