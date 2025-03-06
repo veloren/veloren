@@ -6,6 +6,7 @@ use common::event::{
     EventBus, ExitIngameEvent,
 };
 use common_base::span;
+use hashbrown::HashSet;
 use specs::{
     DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt, WriteExpect,
     shred::SendDispatcher,
@@ -20,7 +21,7 @@ use self::{
     },
     entity_manipulation::{handle_delete, handle_start_interaction, handle_transform},
     interaction::handle_tame_pet,
-    mounting::{handle_mount, handle_mount_volume, handle_unmount},
+    mounting::handle_mount,
     player::{
         handle_character_delete, handle_client_disconnect, handle_exit_ingame, handle_possess,
     },
@@ -29,6 +30,7 @@ use self::{
 
 mod entity_creation;
 mod entity_manipulation;
+mod event_types;
 mod group_manip;
 mod information;
 mod interaction;
@@ -38,6 +40,7 @@ mod mounting;
 mod player;
 mod trade;
 
+pub(crate) use event_types::register_event_busses;
 /// Shared utilities used by other code **in this crate**
 pub(crate) mod shared {
     pub(crate) use super::{
@@ -106,6 +109,9 @@ pub fn register_event_systems(builder: &mut DispatcherBuilder) {
     information::register_event_systems(builder);
 }
 
+/// Server frontend events.
+///
+/// These events are returned to the frontend that ticks the server.
 pub enum Event {
     ClientConnected {
         entity: EcsEntity,
@@ -159,19 +165,24 @@ impl Server {
         self.handle_serial_events(|this, ev: ExitIngameEvent| {
             handle_exit_ingame(this, ev.entity, false)
         });
+        let mut already_disconnected_clients = HashSet::new();
         self.handle_serial_events(|this, ev: ClientDisconnectEvent| {
-            handle_client_disconnect(this, ev.0, ev.1, false);
-        });
-        self.handle_serial_events(|this, ev: ClientDisconnectEvent| {
-            frontend_events.push(handle_client_disconnect(this, ev.0, ev.1, false));
+            if let Some(event) =
+                handle_client_disconnect(this, ev.0, ev.1, false, &mut already_disconnected_clients)
+            {
+                frontend_events.push(event);
+            }
         });
         self.handle_serial_events(|this, ev: ClientDisconnectWithoutPersistenceEvent| {
-            frontend_events.push(handle_client_disconnect(
+            if let Some(event) = handle_client_disconnect(
                 this,
                 ev.0,
                 common::comp::DisconnectReason::Kicked,
                 true,
-            ));
+                &mut already_disconnected_clients,
+            ) {
+                frontend_events.push(event);
+            }
         });
         self.handle_serial_events(handle_possess);
         self.handle_serial_events(handle_transform);
@@ -183,8 +194,6 @@ impl Server {
             this.state.send_chat(ev.0);
         });
         self.handle_serial_events(handle_mount);
-        self.handle_serial_events(handle_mount_volume);
-        self.handle_serial_events(handle_unmount);
         self.handle_serial_events(handle_tame_pet);
         self.handle_serial_events(handle_process_trade_action);
     }
@@ -202,6 +211,11 @@ impl Server {
         drop(guard);
 
         self.state.maintain_ecs();
+
+        #[cfg(debug_assertions)]
+        {
+            event_types::check_event_handlers(self.state.ecs_mut())
+        }
 
         frontend_events
     }

@@ -3,14 +3,14 @@
 use common::{
     comp::{self, pet::is_mountable},
     consts::{MAX_MOUNT_RANGE, MAX_SPRITE_MOUNT_RANGE},
-    event::{MountEvent, MountVolumeEvent, UnmountEvent},
+    event::MountEvent,
     link::Is,
-    mounting::{Mounting, Rider, VolumeMounting, VolumeRider},
+    mounting::{Mounting, Rider, VolumeMounting, VolumePos, VolumeRider},
     uid::Uid,
 };
 #[cfg(feature = "worldgen")]
 use common::{rtsim::RtSimEntity, uid::IdMaps};
-use specs::WorldExt;
+use specs::{Entity as EcsEntity, WorldExt};
 use vek::Vec3;
 
 #[cfg(feature = "worldgen")]
@@ -27,7 +27,15 @@ pub fn within_mounting_range(
     }
 }
 
-pub fn handle_mount(server: &mut Server, MountEvent(rider, mount): MountEvent) {
+pub fn handle_mount(server: &mut Server, event: MountEvent) {
+    match event {
+        MountEvent::MountEntity(rider, mount) => handle_mount_entity(server, rider, mount),
+        MountEvent::MountVolume(rider, mount) => handle_mount_volume(server, rider, mount),
+        MountEvent::Unmount(rider) => handle_unmount(server, rider),
+    }
+}
+
+fn handle_mount_entity(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
     let state = server.state_mut();
 
     let within_range = {
@@ -83,10 +91,7 @@ pub fn handle_mount(server: &mut Server, MountEvent(rider, mount): MountEvent) {
     }
 }
 
-pub fn handle_mount_volume(
-    server: &mut Server,
-    MountVolumeEvent(rider, volume_pos): MountVolumeEvent,
-) {
+fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: VolumePos) {
     let state = server.state_mut();
 
     let mount_mat = volume_pos.get_mount_mat(
@@ -151,7 +156,7 @@ pub fn handle_mount_volume(
     }
 }
 
-pub fn handle_unmount(server: &mut Server, UnmountEvent(rider): UnmountEvent) {
+fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
     state.ecs().write_storage::<Is<Rider>>().remove(rider);
     state.ecs().write_storage::<Is<VolumeRider>>().remove(rider);

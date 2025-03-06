@@ -19,9 +19,7 @@ use vek::*;
 event_emitters! {
     struct Events[EventEmitters] {
         mount: event::MountEvent,
-        mount_volume: event::MountVolumeEvent,
         set_pet_stay: event::SetPetStayEvent,
-        unmount: event::UnmountEvent,
         lantern: event::SetLanternEvent,
         npc_interact: event::NpcInteractEvent,
         dialogue: event::DialogueEvent,
@@ -81,7 +79,8 @@ impl<'a> System<'a> for Sys {
                         ControlEvent::Mount(mountee_uid) => {
                             if let Some(mountee_entity) = read_data.id_maps.uid_entity(mountee_uid)
                             {
-                                emitters.emit(event::MountEvent(entity, mountee_entity));
+                                emitters
+                                    .emit(event::MountEvent::MountEntity(entity, mountee_entity));
                             }
                         },
                         ControlEvent::MountVolume(volume) => {
@@ -91,7 +90,7 @@ impl<'a> System<'a> for Sys {
                                 &read_data.colliders,
                             ) {
                                 if block.is_mountable() {
-                                    emitters.emit(event::MountVolumeEvent(entity, volume));
+                                    emitters.emit(event::MountEvent::MountVolume(entity, volume));
                                 }
                             }
                         },
@@ -106,7 +105,7 @@ impl<'a> System<'a> for Sys {
                                 buff_change: BuffChange::RemoveFromController(buff_id),
                             });
                         },
-                        ControlEvent::Unmount => emitters.emit(event::UnmountEvent(entity)),
+                        ControlEvent::Unmount => emitters.emit(event::MountEvent::Unmount(entity)),
                         ControlEvent::EnableLantern => {
                             emitters.emit(event::SetLanternEvent(entity, true))
                         },

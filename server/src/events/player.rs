@@ -12,6 +12,7 @@ use common::{
 use common_base::span;
 use common_net::msg::{PlayerListUpdate, ServerGeneral};
 use common_state::State;
+use hashbrown::HashSet;
 use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
 use tracing::{Instrument, debug, error, trace, warn};
 
@@ -186,14 +187,25 @@ fn get_reason_str(reason: &comp::DisconnectReason) -> &str {
     }
 }
 
+#[must_use]
 pub fn handle_client_disconnect(
     server: &mut Server,
     mut entity: EcsEntity,
     reason: comp::DisconnectReason,
     skip_persistence: bool,
-) -> Event {
+    already_disconnected_clients: &mut HashSet<EcsEntity>,
+) -> Option<Event> {
     span!(_guard, "handle_client_disconnect");
+
+    // NOTE: There are not and likely will not be a way to safeguard against
+    // receiving multiple `ServerEvent::ClientDisconnect` messages in a tick
+    // intended for the same client, so we track if a disconnect has already
+    // been received and skip logging certain errors if there was
+    // already a disconnect event for this entity.
+    let already_disconnected = !already_disconnected_clients.insert(entity);
+
     let mut emit_logoff_event = true;
+    let mut disconnected_event = None;
 
     // Entity deleted below and persist_entity doesn't require a `Client` component,
     // so we can just remove the Client component to get ownership of the
@@ -204,10 +216,6 @@ pub fn handle_client_disconnect(
         .write_storage::<Client>()
         .remove(entity)
     {
-        // NOTE: There are not and likely will not be a way to safeguard against
-        // receiving multiple `ServerEvent::ClientDisconnect` messages in a tick
-        // intended for the same player, so the `None` case here is *not* a bug
-        // and we should not log it as a potential issue.
         server
             .state()
             .ecs()
@@ -243,9 +251,12 @@ pub fn handle_client_disconnect(
                     ?reason,
                 )),
             );
+        } else if !already_disconnected {
+            error!("handle_client_disconnect called for entity without client component");
         }
 
         emit_logoff_event = client.client_type.emit_login_events();
+        disconnected_event = Some(Event::ClientDisconnected { entity });
     }
 
     let state = server.state_mut();
@@ -273,11 +284,13 @@ pub fn handle_client_disconnect(
     }
 
     // Delete client entity
-    if let Err(e) = server.state.delete_entity_recorded(entity) {
+    if let Err(e) = server.state.delete_entity_recorded(entity)
+        && !already_disconnected
+    {
         error!(?e, ?entity, "Failed to delete disconnected client");
     }
 
-    Event::ClientDisconnected { entity }
+    disconnected_event
 }
 
 /// When a player logs out, their data is queued for persistence in the next

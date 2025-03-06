@@ -33,7 +33,7 @@ event_emitters! {
         sound: event::SoundEvent,
         mine_block: event::MineBlockEvent,
         parry_hook: event::ParryHookEvent,
-        kockback: event::KnockbackEvent,
+        knockback: event::KnockbackEvent,
         entity_attack_hook: event::EntityAttackedHookEvent,
         combo_change: event::ComboChangeEvent,
         buff: event::BuffEvent,

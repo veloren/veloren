@@ -2,7 +2,7 @@ pub mod userdata_dir;
 
 pub use userdata_dir::userdata_dir;
 
-// Panic in debug or tests, warn in release
+/// Panic in debug or tests, log error/warn in release
 #[macro_export]
 macro_rules! dev_panic {
     ($msg:expr) => {

@@ -117,7 +117,7 @@ event_emitters! {
         poise_change: PoiseChangeEvent,
         sound: SoundEvent,
         parry_hook: ParryHookEvent,
-        kockback: KnockbackEvent,
+        knockback: KnockbackEvent,
         entity_attack_hoow: EntityAttackedHookEvent,
         combo_change: ComboChangeEvent,
         buff: BuffEvent,
