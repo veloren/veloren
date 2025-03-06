@@ -341,6 +341,9 @@ image_ids! {
         bow_ignite_arrow: "voxygen.element.skills.bow.ignite_arrow",
         bow_burning_arrow: "voxygen.element.skills.bow.burning_arrow",
         bow_burning_broadhead: "voxygen.element.skills.bow.burning_broadhead",
+        bow_drench_arrow: "voxygen.element.skills.bow.drench_arrow",
+        bow_poison_arrow: "voxygen.element.skills.bow.poison_arrow",
+        bow_poison_broadhead: "voxygen.element.skills.bow.poison_broadhead",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

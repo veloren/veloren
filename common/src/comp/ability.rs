@@ -3607,6 +3607,7 @@ pub enum StatField {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ItemEnum {
     Firedrop,
+    PoisonClot,
 }
 
 impl ItemEnum {
@@ -3614,6 +3615,9 @@ impl ItemEnum {
         match self {
             Self::Firedrop => {
                 ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.firedrop"))
+            },
+            Self::PoisonClot => {
+                ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.poison_clot"))
             },
         }
     }

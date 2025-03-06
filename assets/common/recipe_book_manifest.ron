@@ -2894,4 +2894,12 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
+    "poison_clot": (
+        output: ("common.items.consumable.poison_clot", 20),
+        inputs: [
+            (Item("common.items.crafting_ing.animal_misc.venom_sac"), 1, false),
+            (Item("common.items.crafting_ing.bloodbag"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
 }

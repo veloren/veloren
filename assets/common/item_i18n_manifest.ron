@@ -3688,6 +3688,12 @@
             "common.items.consumable.potion_freezing",
         ): "object-potion_freezing",
         Simple(
+            "common.items.consumable.firedrop"
+        ): "object-consumable-firedrop",
+        Simple(
+            "common.items.consumable.poison_clot"
+        ): "object-consumable-poison_clot",
+        Simple(
             "common.items.lantern.black_0",
         ): "lantern-black",
         Simple(
@@ -3768,6 +3774,9 @@
         Simple(
             "common.items.flowers.yellow",
         ): "sprite-flowers-yellow",
+        Simple(
+            "common.items.crafting_ing.bloodbag",
+        ): "sprite-crafting_ing-bloodbag",
         ModularWeaponComponent(
             (
                 "common.items.modular.weapon.primary.axe.labrys",
@@ -7626,6 +7635,5 @@
         Simple("common.items.recipes.weapons.frostwood"): "recipe-weapons-frostwood",
         Simple("common.items.recipes.weapons.eldwood"): "recipe-weapons-eldwood",
         Simple("common.items.recipes.default"): "recipe-default",
-        Simple("common.items.consumable.firedrop"): "object-ingredient-firedrop",
     },
 )

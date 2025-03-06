@@ -558,7 +558,7 @@ void main() {
             break;
         case CULTIST_FLAME:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
-            float purp_color = 0.9 + 0.3 * rand3;
+            float purp_color = 0.1 + 0.2 * rand3;
             attr = Attr(
                 (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
                 vec3((3.5 * (1 - slow_start(0.2)))),

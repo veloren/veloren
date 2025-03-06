@@ -3809,7 +3809,6 @@ impl ParticleMgr {
             let pos = interp.map_or(pos.0, |i| i.pos);
 
             use comp::ability::{BowStance, Stance};
-            #[allow(clippy::single_match)]
             match stance {
                 Stance::Bow(BowStance::IgniteArrow) => {
                     self.particles.resize_with(
@@ -3836,6 +3835,33 @@ impl ParticleMgr {
                                 start_pos,
                                 end_pos,
                                 scene_data,
+                            )
+                        },
+                    );
+                },
+                Stance::Bow(BowStance::DrenchArrow) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(500))),
+                        || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.45
+                                + ori.look_dir().xy().rotated_z(0.6) * body.front_radius() * 2.5
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.gen_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            let end_pos = start_pos - Vec3::unit_z() * 0.7
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.gen_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            Particle::new_directed(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::CultistFlame,
+                                start_pos,
+                                end_pos,
                             )
                         },
                     );

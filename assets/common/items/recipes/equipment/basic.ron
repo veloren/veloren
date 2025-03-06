@@ -8,6 +8,7 @@ ItemDef(
             "steel_pickaxe",
             "fang_necklace",
             "firedrop",
+            "poison_clot",
         ],
     ),
     quality: Moderate,

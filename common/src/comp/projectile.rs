@@ -80,6 +80,7 @@ pub struct Scaled {
     poise: Option<f32>,
     knockback: Option<f32>,
     energy: Option<f32>,
+    damage_effect: Option<f32>,
 }
 
 fn default_true() -> bool { true }
@@ -428,6 +429,18 @@ impl ProjectileConstructor {
                 }
                 if let Some(s_energy) = scaled.energy {
                     attack.energy = Some(scale_values(attack.energy.unwrap_or(0.0), s_energy));
+                }
+                if let Some(s_dmg_eff) = scaled.damage_effect {
+                    if attack.damage_effect.is_some() {
+                        attack.damage_effect = attack
+                            .damage_effect
+                            .map(|dmg_eff| dmg_eff.apply_multiplier(scale_values(1.0, s_dmg_eff)));
+                    } else {
+                        dev_panic!(
+                            "Attempted to scale damage effect on a projectile that doesn't have a \
+                             damage effect."
+                        )
+                    }
                 }
             } else {
                 dev_panic!("Attempted to scale on a projectile that has no attack to scale.")

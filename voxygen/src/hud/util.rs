@@ -653,6 +653,9 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.ignite_arrow" => imgs.bow_ignite_arrow,
         "common.abilities.bow.burning_arrow" => imgs.bow_burning_arrow,
         "common.abilities.bow.burning_broadhead" => imgs.bow_burning_broadhead,
+        "common.abilities.bow.drench_arrow" => imgs.bow_drench_arrow,
+        "common.abilities.bow.poison_arrow" => imgs.bow_poison_arrow,
+        "common.abilities.bow.poison_broadhead" => imgs.bow_poison_broadhead,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

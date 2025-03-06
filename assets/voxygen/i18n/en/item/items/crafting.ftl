@@ -196,6 +196,9 @@ sprite-flowers-moonbell = Moonbell
 sprite-crafting_ing-plant_fiber = Plant Fiber
     .desc = A length of raw plant material.
 
+sprite-crafting_ing-bloodbag = Bloodbag
+    .desc = A sac filled with blood.
+
 sprite-flowers-pyrebloom = Pyrebloom
     .desc = Warm to the touch, long after picking.
 
@@ -365,5 +368,8 @@ sprite-mineral-gem-sapphiregem = Sapphire
 sprite-mineral-gem-topazgem = Topaz
     .desc = An outstanding orange gem.
 
-object-ingredient-firedrop = Firedrop
+object-consumable-firedrop = Firedrop
     .desc = A small viscous piece of flammable fuel.
+
+object-consumable-poison_clot = Poison Clot
+    .desc = A small pellet of concentrated poison.

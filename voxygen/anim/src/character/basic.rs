@@ -1599,7 +1599,8 @@ impl Animation for BasicAction {
             Some(
                 "common.abilities.bow.arrow_shot"
                 | "common.abilities.bow.lesser_scatterburst"
-                | "common.abilities.bow.burning_arrow",
+                | "common.abilities.bow.burning_arrow"
+                | "common.abilities.bow.poison_arrow",
             ) => {
                 bow_start(&mut next, s_a);
 
@@ -1614,7 +1615,8 @@ impl Animation for BasicAction {
             Some(
                 "common.abilities.bow.broadhead"
                 | "common.abilities.bow.greater_scatterburst"
-                | "common.abilities.bow.burning_broadhead",
+                | "common.abilities.bow.burning_broadhead"
+                | "common.abilities.bow.poison_broadhead",
             ) => {
                 bow_start(&mut next, s_a);
 
@@ -1696,7 +1698,7 @@ impl Animation for BasicAction {
                 next.control.orientation.rotate_x(move1 * 0.8);
                 next.control.position += Vec3::new(5.0, 0.0, 7.0) * move1;
             },
-            Some("common.abilities.bow.ignite_arrow") => {
+            Some("common.abilities.bow.ignite_arrow" | "common.abilities.bow.drench_arrow") => {
                 bow_start(&mut next, s_a);
             },
             // ==================================

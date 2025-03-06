@@ -3924,6 +3924,10 @@
         "voxel.object.firedrop",
         (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
     ),
+    Simple("common.items.consumable.poison_clot"): VoxTrans(
+        "voxel.object.poison_clot",
+        (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
+    ),
     // Admin consumables
     Simple("common.items.debug.golden_cheese"): VoxTrans(
         "voxel.item.food.item_cheese",
@@ -4366,6 +4370,10 @@
     Simple("common.items.crafting_ing.molten_core"): VoxTrans(
         "voxel.item.crafting.molten_core",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.bloodbag"): VoxTrans(
+        "voxel.sprite.crafting_ing.bloodbag",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
     // Gliders
     Simple("common.items.glider.cloverleaf"): VoxTrans(

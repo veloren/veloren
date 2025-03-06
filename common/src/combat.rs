@@ -694,6 +694,13 @@ impl Attack {
                                 });
                             }
                         },
+                        CombatEffect::Energy(e) => {
+                            emitters.emit(EnergyChangeEvent {
+                                entity: target.entity,
+                                change: e * strength_modifier,
+                                reset_rate: true,
+                            });
+                        },
                     }
                 }
             }
@@ -921,6 +928,13 @@ impl Attack {
                             });
                         }
                     },
+                    CombatEffect::Energy(e) => {
+                        emitters.emit(EnergyChangeEvent {
+                            entity: target.entity,
+                            change: e * strength_modifier,
+                            reset_rate: true,
+                        });
+                    },
                 }
             }
         }
@@ -1120,9 +1134,55 @@ pub enum CombatEffect {
     StunnedVulnerable(f32),
     /// Applies buff to yourself after attack is applied
     SelfBuff(CombatBuff),
+    /// Changes energy of target
+    Energy(f32),
 }
 
 impl CombatEffect {
+    pub fn apply_multiplier(self, mult: f32) -> Self {
+        match self {
+            CombatEffect::Heal(h) => CombatEffect::Heal(h * mult),
+            CombatEffect::Buff(CombatBuff {
+                kind,
+                dur_secs,
+                strength,
+                chance,
+            }) => CombatEffect::Buff(CombatBuff {
+                kind,
+                dur_secs,
+                strength: strength * mult,
+                chance,
+            }),
+            CombatEffect::Knockback(Knockback {
+                direction,
+                strength,
+            }) => CombatEffect::Knockback(Knockback {
+                direction,
+                strength: strength * mult,
+            }),
+            CombatEffect::EnergyReward(e) => CombatEffect::EnergyReward(e * mult),
+            CombatEffect::Lifesteal(l) => CombatEffect::Lifesteal(l * mult),
+            CombatEffect::Poise(p) => CombatEffect::Poise(p * mult),
+            CombatEffect::Combo(c) => CombatEffect::Combo((c as f32 * mult).ceil() as i32),
+            CombatEffect::StageVulnerable(v, s) => CombatEffect::StageVulnerable(v * mult, s),
+            CombatEffect::RefreshBuff(c, b) => CombatEffect::RefreshBuff(c, b),
+            CombatEffect::BuffsVulnerable(v, b) => CombatEffect::BuffsVulnerable(v * mult, b),
+            CombatEffect::StunnedVulnerable(v) => CombatEffect::StunnedVulnerable(v * mult),
+            CombatEffect::SelfBuff(CombatBuff {
+                kind,
+                dur_secs,
+                strength,
+                chance,
+            }) => CombatEffect::SelfBuff(CombatBuff {
+                kind,
+                dur_secs,
+                strength: strength * mult,
+                chance,
+            }),
+            CombatEffect::Energy(e) => CombatEffect::Energy(e * mult),
+        }
+    }
+
     pub fn adjusted_by_stats(self, stats: tool::Stats) -> Self {
         match self {
             CombatEffect::Heal(h) => CombatEffect::Heal(h * stats.effect_power),
@@ -1169,6 +1229,7 @@ impl CombatEffect {
                 strength: strength * stats.buff_strength,
                 chance,
             }),
+            CombatEffect::Energy(e) => CombatEffect::Energy(e * stats.effect_power),
         }
     }
 }
