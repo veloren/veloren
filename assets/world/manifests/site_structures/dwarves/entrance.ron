@@ -7,9 +7,9 @@
         custom_indices: {
             8: Filled(Air, (r: 255, g: 255, b: 255)),
             220: Sign(Localized(key: "common-signs-keep_out"), 0),
-            136: Sprite(Lantern),
+            136: Sprite(Lantern()),
             222: KeyholeBars("common.items.utility.lockpick_0"),
-            221: Sprite(DoorBars),
+            221: Sprite(DoorBars()),
          },
     ),
 ]

@@ -5,9 +5,9 @@
         specifier: "world.structure.terracotta.decor.terracotta_decor-0",
         center: (6, 6, 0),
         custom_indices: {
-            130: Sprite(JungleRedGrass),
-            131: Sprite(JungleLeafyPlant),
-            132: Sprite(JungleFern),
+            130: Sprite(JungleRedGrass()),
+            131: Sprite(JungleLeafyPlant()),
+            132: Sprite(JungleFern()),
         },
     ),
     (
@@ -28,9 +28,9 @@
         specifier: "world.structure.terracotta.decor.terracotta_decor-3",
         center: (6, 6, 0),
         custom_indices: {
-            130: Sprite(JungleRedGrass),
-            131: Sprite(JungleLeafyPlant),
-            132: Sprite(JungleFern),
+            130: Sprite(JungleRedGrass()),
+            131: Sprite(JungleLeafyPlant()),
+            132: Sprite(JungleFern()),
         },
     ),
 ]
