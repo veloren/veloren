@@ -42,3 +42,5 @@ recipe-unique-abyssal_ring = Rezept für Abyssalen Ring
     .desc = { "" }
 recipe-armor-druid = Rezepte für Druidenrüstung
     .desc = { "" }
+recipe-unique-bloodmoon_relic = Rezept für Blutmond Relikt
+    .desc = { "" }

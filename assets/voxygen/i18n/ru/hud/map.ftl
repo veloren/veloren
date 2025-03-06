@@ -10,12 +10,8 @@ hud-map-cave = Пещера
 hud-map-peaks = Горы
 hud-map-biomes = Биомы
 hud-map-voxel_map = Воксельная карта
-hud-map-trees =
-    Гигантские
-    деревья
-hud-map-tree =
-    Гигантское
-    дерево
+hud-map-trees = Гигантские Деревья
+hud-map-tree = Гигантское Дерево
 hud-map-town = Город
 hud-map-castle = Замок
 hud-map-bridge = Мост
@@ -26,15 +22,15 @@ hud-map-difficulty_dungeon =
     Сложность: { $difficulty }
 hud-map-drag = Переместить
 hud-map-zoom = Увеличить
-hud-map-mid_click =
-    Установить
-    отметку
+hud-map-mid_click = Установить Метку
 hud-map-recenter = По центру
 hud-map-marked_location = Отмеченное место
 hud-map-marked_location_remove = Нажмите, чтобы удалить
 hud-map-change_map_mode = Изменить режим карты
 hud-map-toggle_minimap_voxel = Подробная миникарта
-hud-map-zoom_minimap_explanation = Увеличьте миникарту, чтобы более детально рассмотреть область вокруг вас.
+hud-map-zoom_minimap_explanation =
+    Приблизьте мини-карту
+    для детального отображения местности
 hud-map-gnarling = Форт Гнарлингов
 hud-map-chapel_site = Морская часовня
 hud-map-placed_by = Метка установлена { $name }
@@ -42,3 +38,10 @@ hud-map-df_mine = Шахта
 hud-map-terracotta = Терракотовые Руины
 hud-map-haniwa = Катакомбы Ханива
 hud-map-adlet = Крепость Адлетов
+hud-map-glider_courses = Точки Полёта
+hud-map-glider_course = Точка Полёта на Дельтаплане
+hud-map-myrmidon = Подземелье Мирмидонов
+hud-map-vampire_castle = Замок Вампира
+hud-map-cultist = Подземелье Культистов
+hud-map-bridges = Мосты
+hud-map-sahagin = Остров Сахагин

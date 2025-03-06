@@ -68,7 +68,6 @@ common-kind-consumable = Consumible
 common-kind-throwable = Llençable
 common-kind-utility = Utilitat
 common-kind-ingredient = Ingredient
-common-kind-lantern = Llanterna
 common-hands-one = Una Mà
 common-hands-two = Dues Mans
 common-rand_appearance = Aparença Aleatòria

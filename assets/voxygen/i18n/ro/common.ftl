@@ -69,7 +69,6 @@ common-kind-consumable = Consumabilă
 common-kind-throwable = Se poate arunca
 common-kind-utility = Utilitară
 common-kind-ingredient = Ingredient
-common-kind-lantern = Lanternă
 common-hands-one = O mână
 common-hands-two = Două mâini
 common-rand_appearance = Înfățișare aleatorie

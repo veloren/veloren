@@ -65,7 +65,6 @@ common-kind-consumable = Јестиво
 common-kind-throwable = Може се Бацити
 common-kind-utility = Корисна Справа
 common-kind-ingredient = Састојак
-common-kind-lantern = Лампа
 common-hands-one = Једноручни
 common-hands-two = Дворучни
 common-rand_appearance = Насумичан изглед

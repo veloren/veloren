@@ -304,3 +304,6 @@ npc-speech-witness_theft =
     .a4 = Ge tillbaka det där.
     .a5 = Vad tror du att du håller på med?
     .a6 = Sluta eller så kallar jag på vakterna.
+npc-speech-thank_you =
+    .a0 = Tack!
+    .a1 = Tack

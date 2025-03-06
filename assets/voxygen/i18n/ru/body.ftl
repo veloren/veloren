@@ -62,3 +62,5 @@ body-npc-speech-biped_large-cultist_warlock = чернокнижник куль�
 body-npc-speech-biped_large-adlet_elder = старейшина адлетов
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-terracotta_besieger = терракотовый завоеватель
+body-npc-speech-biped_large-strigoi = стригой
+body-npc-speech-biped_large-executioner = палач

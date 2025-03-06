@@ -44,3 +44,4 @@ hud-map-bridges = Broar
 hud-map-glider_course = Glidbana
 hud-map-glider_courses = Glidbanor
 hud-map-vampire_castle = Vampyrslott
+hud-map-myrmidon = Myrmidon-dungeon

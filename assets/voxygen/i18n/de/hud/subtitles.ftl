@@ -151,3 +151,4 @@ subtitle-attack-strigoi_head = Strigoi brüllt
 subtitle-attack-bloodmoon_heiress_summon = Gruseliges Vorgelgeräusch
 subtitle-instrument_banjo = Banjo spielt
 subtitle-utterance-vampire-bat-angry = Fledermaus kreischt
+subtitle-roll_cancel = Rollen abbrechen

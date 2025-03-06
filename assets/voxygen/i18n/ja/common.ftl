@@ -60,7 +60,6 @@ common-kind-consumable = 消耗品
 common-kind-throwable = 投げられます
 common-kind-utility = ユーティリティ
 common-kind-ingredient = 材料
-common-kind-lantern = ランタン
 common-hands-one = 片手持ち
 common-hands-two = 両手持ち
 common-rand_appearance = ランダムに見た目を選択

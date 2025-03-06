@@ -9,7 +9,7 @@ hud-trade-phase3_description = Сделка обрабатывается.
 hud-trade-persons_offer = Предложение от { $playername }
 hud-trade-has_accepted =
     { $playername }
-    принял
+    принял(а)
 hud-trade-accept = Принять
 hud-trade-decline = Отклонить
 hud-trade-invite_sent = Запрос на обмен отправлен { $playername }.
@@ -30,11 +30,12 @@ hud-trade-sell =
         [many] { $coin_formatted } монет
        *[other] { $coin_formatted } монет
     }
-hud-trade-tooltip_hint_1 = <Shift-Click чтобы Добавить/Удалить из сделки.>
-hud-trade-tooltip_hint_2 = <Ctrl-Click для автоматической балансировки.>
+hud-trade-tooltip_hint_1 = <Shift-ЛКМ чтобы Добавить/Удалить из сделки.>
+hud-trade-tooltip_hint_2 = <Ctrl-ЛКМ чтобы сбалансировать цену.>
 hud-trade-your_offer = Ваше предложение
-hud-trade-their_offer =
-    Предложение
-         скупщика
+hud-trade-their_offer = Вам предлагают
 hud-trade-amount_input = Выберите предмет
 hud-confirm-trade-for-nothing = Вы действительно хотите отдать эти предметы даром?
+hud-trade-invite-accepted = { $target } принял(а) ваш запрос на обмен.
+hud-trade-invite-declined = { $target } отклонил(а) ваш запрос на обмен.
+hud-trade-invite-timed_out = Время ожидания запроса обмена с { $target } истекло.

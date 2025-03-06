@@ -13,3 +13,4 @@ hud-group-in_menu = Im Menü
 hud-group-members = Gruppenmitglieder
 hud-group-invite-declined = { $target } hat deine Gruppeneinladung abgelehnt.
 hud-group-invite-timed_out = Zeitüberschreitung bei Gruppeneinladung an { $target }.
+hud-group-invite-accepted = { $target } akzeptierte deine Gruppeneinladung.

@@ -65,7 +65,6 @@ common-kind-consumable = Tüketilen
 common-kind-throwable = Fırlatılabilir
 common-kind-utility = Yararlı
 common-kind-ingredient = Malzeme
-common-kind-lantern = Fener
 common-hands-one = Tek Elli
 common-hands-two = Çift Elli
 common-rand_name = Rastgele isim

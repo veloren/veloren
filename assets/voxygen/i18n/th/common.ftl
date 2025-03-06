@@ -72,7 +72,6 @@ common-kind-consumable = ของใช้
 common-kind-throwable = ของใช้ชนิดปา
 common-kind-utility = อุปกรณ์ของใช้
 common-kind-ingredient = วัตถุดิบ
-common-kind-lantern = ตะเกียง
 common-hands-one = จับมือเดียว
 common-hands-two = จับสองมือ
 common-rand_appearance = สุ่มภาพลักษณ์
