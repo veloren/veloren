@@ -52,7 +52,7 @@ impl Structure for MyrmidonHouse {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_myrmidon_house\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_myrmidon_house")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_myrmidon_house"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 3;
         let center = self.bounds.center();

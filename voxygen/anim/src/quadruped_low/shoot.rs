@@ -13,7 +13,7 @@ impl Animation for ShootAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_low_shoot\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_shoot")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "quadruped_low_shoot"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, velocity, _global_time, stage_section): Self::Dependency<'_>,

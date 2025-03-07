@@ -13,7 +13,7 @@ impl Animation for SwimAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_medium_swim\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_medium_swim")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "bird_medium_swim"))]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency<'_>,

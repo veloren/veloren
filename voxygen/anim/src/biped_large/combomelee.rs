@@ -23,7 +23,7 @@ impl Animation for ComboAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_large_combo\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_combo")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_large_combo"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, stage_section, _ability_info, current_strike, _move_dir, velocity, acc_vel): Self::Dependency<'_>,

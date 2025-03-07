@@ -87,7 +87,10 @@ impl Structure for CoastalAirshipDock {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_coastal_airship_dock\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_coastal_airship_dock")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "render_coastal_airship_dock")
+    )]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.base;
         let center = self.center;

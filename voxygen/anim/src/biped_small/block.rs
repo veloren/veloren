@@ -15,7 +15,7 @@ impl Animation for BlockAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_small_block\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_block")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_small_block"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, stage_section): Self::Dependency<'_>,

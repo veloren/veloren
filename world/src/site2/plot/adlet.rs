@@ -422,7 +422,7 @@ impl Structure for AdletStronghold {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_adletstronghold\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_adletstronghold")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_adletstronghold"))]
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         let snow_ice_fill = Fill::Sampling(Arc::new(|wpos| {
             Some(match (RandomField::new(0).get(wpos)) % 250 {

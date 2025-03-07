@@ -90,7 +90,10 @@ impl Structure for DesertCityAirshipDock {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_desertcityairshipdock\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_desertcityairshipdock")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "render_desertcityairshipdock")
+    )]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let sandstone = Fill::Sampling(Arc::new(|center| {
             Some(match (RandomField::new(0).get(center)) % 37 {

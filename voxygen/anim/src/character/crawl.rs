@@ -13,7 +13,7 @@ impl Animation for CrawlAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_crawl\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_crawl")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_crawl"))]
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,

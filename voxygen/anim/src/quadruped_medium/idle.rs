@@ -13,7 +13,7 @@ impl Animation for IdleAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_medium_idle\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_idle")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "quadruped_medium_idle"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency<'_>,

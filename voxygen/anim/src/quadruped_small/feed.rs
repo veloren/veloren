@@ -13,7 +13,7 @@ impl Animation for FeedAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_small_feed\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_small_feed")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "quadruped_small_feed"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency<'_>,

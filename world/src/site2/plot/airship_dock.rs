@@ -94,7 +94,7 @@ impl Structure for AirshipDock {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_airshipdock\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_airshipdock")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_airshipdock"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let brick = Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 24);
         let wood = Fill::Brick(BlockKind::Rock, Rgb::new(45, 28, 21), 24);

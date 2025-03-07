@@ -48,7 +48,7 @@ impl Skeleton for CrustaceanSkeleton {
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"crustacean_compute_s\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "crustacean_compute_s")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "crustacean_compute_s"))]
 
     fn compute_matrices_inner(
         &self,

@@ -15,7 +15,7 @@ impl Animation for SummonAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_large_summon\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_summon")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "bird_large_summon"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (global_time, stage_section, timer, look_dir, on_ground): Self::Dependency<'_>,

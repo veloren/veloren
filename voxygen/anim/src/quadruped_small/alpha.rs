@@ -14,7 +14,7 @@ impl Animation for AlphaAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_small_alpha\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_small_alpha")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "quadruped_small_alpha"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (global_time, stage_section, timer): Self::Dependency<'_>,

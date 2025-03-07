@@ -26,7 +26,7 @@ impl Animation for ShockwaveAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_small_shockwave\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_shockwave")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_small_shockwave"))]
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,

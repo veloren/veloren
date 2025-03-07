@@ -85,7 +85,7 @@ impl Structure for Road {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_road\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_road")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_road"))]
     fn render_inner(&self, site: &Site, land: &Land, painter: &Painter) {
         let field = RandomField::new(76237);
 

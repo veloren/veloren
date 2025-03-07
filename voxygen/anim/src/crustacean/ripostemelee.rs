@@ -12,7 +12,10 @@ impl Animation for RiposteMeleeAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"crustacean_riposte_melee\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "crustacean_riposte_melee")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "crustacean_riposte_melee")
+    )]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_ability_id, stage_section): Self::Dependency<'_>,

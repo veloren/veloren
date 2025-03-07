@@ -23,7 +23,7 @@ impl Animation for MusicAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_music\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_music")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_music"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_hands, (ability_info, global_time), rel_vel, ability_id): Self::Dependency<'_>,

@@ -50,7 +50,7 @@ impl Structure for GliderRing {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_glider_ring\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_glider_ring")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_glider_ring"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let rotate_turns = match self.direction {
             Dir::X => 0,

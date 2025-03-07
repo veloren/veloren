@@ -31,7 +31,7 @@ impl Structure for GliderFinish {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_glider_finish\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_glider_finish")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_glider_finish"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let red = Fill::Brick(BlockKind::Wood, Rgb::new(200, 0, 0), 24);
         let green = Fill::Brick(BlockKind::Wood, Rgb::new(0, 200, 0), 24);

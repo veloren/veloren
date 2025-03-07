@@ -14,7 +14,7 @@ impl Animation for EquipAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_large_equip\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_equip")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_large_equip"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, _velocity, _global_time): Self::Dependency<'_>,

@@ -104,7 +104,7 @@ impl Structure for Haniwa {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_haniwa\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_haniwa")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_haniwa"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let center = self.center;
         let base = self.base;

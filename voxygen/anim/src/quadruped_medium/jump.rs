@@ -12,7 +12,7 @@ impl Animation for JumpAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_medium_jump\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_jump")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "quadruped_medium_jump"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_global_time, velocity, avg_vel): Self::Dependency<'_>,

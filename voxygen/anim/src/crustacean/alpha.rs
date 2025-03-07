@@ -13,7 +13,7 @@ impl Animation for AlphaAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"crustacean_alpha\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "crustacean_alpha")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "crustacean_alpha"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, global_time, stage_section, timer): Self::Dependency<'_>,

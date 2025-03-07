@@ -13,7 +13,7 @@ impl Animation for AuraAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_large_aura\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_aura")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "bird_large_aura"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (stage_section, on_ground): Self::Dependency<'_>,

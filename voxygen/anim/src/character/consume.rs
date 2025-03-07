@@ -16,7 +16,7 @@ impl Animation for ConsumeAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_consume\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_consume")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_consume"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_global_time, stage_section, item_kind): Self::Dependency<'_>,

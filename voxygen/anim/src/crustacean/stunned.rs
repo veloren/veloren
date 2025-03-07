@@ -13,7 +13,7 @@ impl Animation for StunnedAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"crustacean_stunned\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "crustacean_stunned")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "crustacean_stunned"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_velocity, global_time, stage_section, timer): Self::Dependency<'_>,

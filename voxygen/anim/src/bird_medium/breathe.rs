@@ -24,7 +24,7 @@ impl Animation for BreatheAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_medium_breathe\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_medium_breathe")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "bird_medium_breathe"))]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (velocity,global_time, _orientation, _last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency<'_>,

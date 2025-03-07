@@ -21,7 +21,7 @@ impl Animation for BeamAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"object_beam\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "object_beam")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "object_beam"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _stage_section, _body): Self::Dependency<'_>,

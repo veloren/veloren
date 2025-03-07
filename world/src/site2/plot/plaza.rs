@@ -81,7 +81,7 @@ impl Structure for Plaza {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_plaza\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_plaza")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_plaza"))]
     fn render_inner(&self, site: &Site, land: &Land, painter: &Painter) {
         if let Some(alt) = self.hard_alt {
             let wood_corner = Fill::Brick(BlockKind::Wood, Rgb::new(86, 50, 50), 10);

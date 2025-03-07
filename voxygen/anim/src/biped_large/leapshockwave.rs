@@ -20,7 +20,10 @@ impl Animation for LeapShockAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_large_leapshockwave\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_leapshockwave")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "biped_large_leapshockwave")
+    )]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, _velocity, _global_time, stage_section): Self::Dependency<'_>,
