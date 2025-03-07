@@ -70,7 +70,7 @@ impl Structure for DwarvenMine {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_mine\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_mine")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_mine"))]
 
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let center = self.bounds.center();

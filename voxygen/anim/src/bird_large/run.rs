@@ -13,7 +13,7 @@ impl Animation for RunAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"bird_large_run\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_run")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "bird_large_run"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, avg_vel, acc_vel): Self::Dependency<'_>,

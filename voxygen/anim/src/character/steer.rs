@@ -14,7 +14,7 @@ impl Animation for SteerAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_steer\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_steer")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_steer"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, steer_dir, global_time): Self::Dependency<'_>,

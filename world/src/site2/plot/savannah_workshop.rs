@@ -50,7 +50,10 @@ impl Structure for SavannahWorkshop {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_savannahworkshop\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_savannahworkshop")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "render_savannahworkshop")
+    )]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 1;
         let center = self.bounds.center();

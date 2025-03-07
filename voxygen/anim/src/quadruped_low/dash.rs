@@ -26,7 +26,7 @@ impl Animation for DashAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_low_dash\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_low_dash")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "quadruped_low_dash"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, _velocity, global_time, stage_section, timer, heads): Self::Dependency<'_>,

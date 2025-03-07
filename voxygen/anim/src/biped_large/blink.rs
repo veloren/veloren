@@ -21,7 +21,7 @@ impl Animation for BlinkAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_large_blink\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_large_blink")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_large_blink"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'_>,

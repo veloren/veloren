@@ -163,7 +163,7 @@ impl Structure for FarmField {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_farmfield\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_farmfield")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_farmfield"))]
     fn render_inner(&self, _site: &Site, _land: &Land, _painter: &Painter) {}
 
     fn terrain_surface_at<R: Rng>(

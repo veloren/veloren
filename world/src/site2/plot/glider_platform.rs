@@ -37,7 +37,7 @@ impl Structure for GliderPlatform {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_glider_platform\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_glider_platform")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_glider_platform"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let rotate_turns = match self.direction {
             Dir::X => 0,

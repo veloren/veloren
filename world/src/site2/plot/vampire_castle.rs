@@ -104,7 +104,7 @@ impl Structure for VampireCastle {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_vampire_castle\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_vampire_castle")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_vampire_castle"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let mut thread_rng = thread_rng();
         let brick = Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 24);

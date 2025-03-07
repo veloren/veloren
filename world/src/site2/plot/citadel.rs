@@ -105,7 +105,7 @@ impl Structure for Citadel {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_citadel\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_citadel")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_citadel"))]
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         for (pos, cell) in self.grid.iter_area(
             self.wpos_cell(painter.render_aabr().min) - 1,

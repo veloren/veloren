@@ -14,7 +14,7 @@ impl Animation for SitAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_sit\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_sit")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_sit"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, _second_tool_kind, global_time): Self::Dependency<'_>,

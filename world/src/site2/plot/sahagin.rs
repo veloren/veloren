@@ -71,7 +71,7 @@ impl Structure for Sahagin {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_sahagin\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_sahagin")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_sahagin"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let room_size = self.room_size;
         let center = self.center;

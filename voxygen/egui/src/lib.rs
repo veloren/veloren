@@ -214,7 +214,7 @@ pub fn maintain(
     }
 }
 
-#[cfg_attr(feature = "be-dyn-lib", export_name = "maintain_egui_inner")]
+#[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "maintain_egui_inner"))]
 pub fn maintain_egui_inner(
     platform: &mut Platform,
     egui_state: &mut EguiInnerState,

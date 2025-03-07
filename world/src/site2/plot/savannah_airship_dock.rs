@@ -83,7 +83,10 @@ impl Structure for SavannahAirshipDock {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_savannah_airship_dock\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_savannah_airship_dock")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "render_savannah_airship_dock")
+    )]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 1;
         let center = self.center;

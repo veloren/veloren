@@ -24,7 +24,7 @@ impl Skeleton for ShipSkeleton {
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"ship_compute_mats\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "ship_compute_mats")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "ship_compute_mats"))]
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,

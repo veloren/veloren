@@ -12,7 +12,10 @@ impl Animation for RapidMeleeAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_small_rapid_melee\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_rapid_melee")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "biped_small_rapid_melee")
+    )]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, stage_section, (_current_strike, _max_strikes)): Self::Dependency<'_>,

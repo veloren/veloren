@@ -49,7 +49,10 @@ impl Structure for TerracottaPalace {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_terracotta_palace\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_terracotta_palace")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "render_terracotta_palace")
+    )]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 1;
         let center = self.bounds.center();

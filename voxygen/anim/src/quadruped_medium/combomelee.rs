@@ -12,7 +12,7 @@ impl Animation for ComboAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"quadruped_medium_combo\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "quadruped_medium_combo")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "quadruped_medium_combo"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, stage_section, current_strike, speed, global_time, timer): Self::Dependency<

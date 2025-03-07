@@ -48,7 +48,10 @@ impl Structure for DesertCityTemple {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_desertcitytemple\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_desertcitytemple")]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "render_desertcitytemple")
+    )]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let sandstone = Fill::Sampling(Arc::new(|center| {
             Some(match (RandomField::new(0).get(center)) % 37 {

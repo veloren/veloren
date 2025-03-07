@@ -1206,7 +1206,7 @@ impl AgentData<'_> {
         }
     }
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "attack_inner")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "attack_inner"))]
     pub fn attack_inner(
         &self,
         agent: &mut Agent,

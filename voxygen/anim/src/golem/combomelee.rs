@@ -18,7 +18,7 @@ impl Animation for ComboAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"golem_combo\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "golem_combo")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "golem_combo"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (ability_id, stage_section, _ability_info, current_strike, _move_dir): Self::Dependency<'_>,

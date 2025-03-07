@@ -12,7 +12,7 @@ impl Animation for IdleAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"item_drop_idle\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "item_drop_idle")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "item_drop_idle"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         _: Self::Dependency<'_>,

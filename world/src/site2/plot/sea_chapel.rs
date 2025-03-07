@@ -47,7 +47,7 @@ impl Structure for SeaChapel {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_seachapel\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_seachapel")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_seachapel"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 1;
         let center = self.center;

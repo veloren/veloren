@@ -27,7 +27,7 @@ impl Animation for StaggeredAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_staggered\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_staggered")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_staggered"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (

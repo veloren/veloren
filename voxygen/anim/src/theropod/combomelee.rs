@@ -13,7 +13,7 @@ impl Animation for ComboAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"theropod_combo\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "theropod_combo")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "theropod_combo"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_ability_id, stage_section, current_strike, global_time, timer): Self::Dependency<'_>,

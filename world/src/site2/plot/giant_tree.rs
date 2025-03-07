@@ -98,7 +98,7 @@ impl Structure for GiantTree {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"render_gianttree\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "render_gianttree")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_gianttree"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let leaf_col = self.leaf_color();
         let mut rng = rand::thread_rng();

@@ -25,7 +25,7 @@ impl Animation for WieldAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"biped_small_wield\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "biped_small_wield")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_small_wield"))]
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,

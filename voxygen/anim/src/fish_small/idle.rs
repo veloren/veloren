@@ -15,7 +15,7 @@ impl Animation for IdleAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"fish_small_idle\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "fish_small_idle")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "fish_small_idle"))]
 
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
