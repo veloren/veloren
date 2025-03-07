@@ -1304,100 +1304,100 @@
             color: None
         ),
             // Golemite Helmet
-        (Human, Male, "common.items.armor.golemite.helmet"): (
+        (Human, Male, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-4.0, -6.0, -2.0), 0),
             color: None
         ),
-        (Human, Female, "common.items.armor.golemite.helmet"): (
+        (Human, Female, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-4.0, -6.0, -2.0), 0),
             color: None
         ),
-        (Elf, Male, "common.items.armor.golemite.helmet"): (
+        (Elf, Male, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-3.0, -6.0, -2.0), 0),
             color: None
         ),
-        (Elf, Female, "common.items.armor.golemite.helmet"): (
+        (Elf, Female, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-3.0, -6.0, -2.0), 0),
             color: None
         ),
-        (Dwarf, Male, "common.items.armor.golemite.helmet"): (
+        (Dwarf, Male, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-5.0, -5.0, -2.0), 0),
             color: None
         ),
-        (Dwarf, Female, "common.items.armor.golemite.helmet"): (
+        (Dwarf, Female, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-5.0, -5.0, -2.0), 0),
             color: None
         ),
-        (Danari, Male, "common.items.armor.golemite.helmet"): (
+        (Danari, Male, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-2.0, -6.0, 0.0), 0),
             color: None
         ),
-        (Danari, Female, "common.items.armor.golemite.helmet"): (
+        (Danari, Female, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-2.0, -6.0, 0.0), 0),
             color: None
         ),
-        (Draugr, Male, "common.items.armor.golemite.helmet"): (
+        (Draugr, Male, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-6.0, -6.0, -0.5), 0),
             color: None
         ),
-        (Draugr, Female, "common.items.armor.golemite.helmet"): (
+        (Draugr, Female, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-6.0, -6.0, -1.0), 0),
             color: None
         ),
-        (Orc, Male, "common.items.armor.golemite.helmet"): (
+        (Orc, Male, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-3.0, -4.0, 0.0), 0),
             color: None
         ),
-        (Orc, Female, "common.items.armor.golemite.helmet"): (
+        (Orc, Female, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-3.0, -7.0, -2.0), 0),
             color: None
         ),
             // Ashen Helmet
-        (Human, Male, "common.items.armor.ashen.helmet"): (
+        (Human, Male, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-4.0, -6.0, -3.0), 0),
             color: None
         ),
-        (Human, Female, "common.items.armor.ashen.helmet"): (
+        (Human, Female, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-4.0, -5.0, -3.0), 0),
             color: None
         ),
-        (Elf, Male, "common.items.armor.ashen.helmet"): (
+        (Elf, Male, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-3.0, -6.0, -3.0), 0),
             color: None
         ),
-        (Elf, Female, "common.items.armor.ashen.helmet"): (
+        (Elf, Female, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-3.0, -6.0, -3.0), 0),
             color: None
         ),
-        (Dwarf, Male, "common.items.armor.ashen.helmet"): (
+        (Dwarf, Male, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-5.0, -5.0, -3.0), 0),
             color: None
         ),
-        (Dwarf, Female, "common.items.armor.ashen.helmet"): (
+        (Dwarf, Female, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-5.0, -5.0, -3.0), 0),
             color: None
         ),
-        (Danari, Male, "common.items.armor.ashen.helmet"): (
+        (Danari, Male, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-2.0, -6.0, -1.0), 0),
             color: None
         ),
-        (Danari, Female, "common.items.armor.ashen.helmet"): (
+        (Danari, Female, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-2.0, -6.0, 0.0), 0),
             color: None
         ),
-        (Draugr, Male, "common.items.armor.ashen.helmet"): (
+        (Draugr, Male, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-6.0, -6.0, -0.5), 0),
             color: None
         ),
-        (Draugr, Female, "common.items.armor.ashen.helmet"): (
+        (Draugr, Female, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-6.0, -6.0, -2.0), 0),
             color: None
         ),
-        (Orc, Male, "common.items.armor.ashen.helmet"): (
+        (Orc, Male, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-3.0, -4.5, -2.5), 0),
             color: None
         ),
-        (Orc, Female, "common.items.armor.ashen.helmet"): (
+        (Orc, Female, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-3.0, -7.0, -3.0), 0),
             color: None
         ),
@@ -1844,51 +1844,51 @@
         ),
         // Cobalt Helmet
         (Human, Male, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-4.0, -5.0, -2.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-4.0, -5.0, -2.0), 0),
             color: None
         ),
         (Human, Female, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-4.0, -4.0, -2.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-4.0, -4.0, -2.0), 0),
             color: None
         ),
         (Elf, Male, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-3.0, -5.5, -2.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-3.0, -5.5, -2.0), 0),
             color: None
         ),
         (Elf, Female, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-3.0, -5.0, -2.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-3.0, -5.0, -2.0), 0),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-5.0, -4.5, -2.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-5.0, -4.5, -2.0), 0),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-5.0, -4.5, -2.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-5.0, -4.5, -2.0), 0),
             color: None
         ),
         (Danari, Male, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-2.0, -5.5, -0.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-2.0, -5.5, -0.0), 0),
             color: None
         ),
         (Danari, Female, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-2.0, -5.5, -0.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-2.0, -5.5, -0.0), 0),
             color: None
         ),
         (Draugr, Male, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-6.0, -5.0, -1.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-6.0, -5.0, -1.0), 0),
             color: None
         ),
         (Draugr, Female, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-6.0, -5.0, -1.5), 3),
+            vox_spec: ("armor.mail.cobalt", (-6.0, -5.0, -1.5), 0),
             color: None
         ),
         (Orc, Male, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-3.0, -3.5, 1.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-3.0, -3.5, 1.0), 0),
             color: None
         ),
         (Orc, Female, "common.items.armor.mail.cobalt.head"): (
-            vox_spec: ("armor.mail.cobalt", (-3.0, -6.5, -2.0), 3),
+            vox_spec: ("armor.mail.cobalt", (-3.0, -6.5, -2.0), 0),
             color: None
         ),
         // Bloodsteel Helmet

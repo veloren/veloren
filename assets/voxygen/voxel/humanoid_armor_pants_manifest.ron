@@ -41,11 +41,11 @@
             color: None
         ),
          "common.items.armor.golemite.pants": (
-            vox_spec: ("armor.golemite.golemite", (-6.0, -3.5, 0.0), 7),
+            vox_spec: ("armor.golemite.golemite", (-6.0, -3.5, 0.0), 6),
             color: None
         ),
          "common.items.armor.ashen.pants": (
-            vox_spec: ("armor.ashen.ashen", (-6.0, -3.5, -1.0), 7),
+            vox_spec: ("armor.ashen.ashen", (-6.0, -3.5, -1.0), 6),
             color: None
         ),
          "common.items.armor.brinestone.pants": (
@@ -205,7 +205,7 @@
             color: None
         ),
         "common.items.armor.mail.steel.pants": (
-            vox_spec: ("armor.mail.steel", (-6.0, -5.5, 1.0), 5),
+            vox_spec: ("armor.mail.steel", (-6.0, -5.5, 1.0), 6),
             color: None
         ),
         "common.items.armor.mail.cobalt.pants": (
@@ -213,11 +213,11 @@
             color: None
         ),
         "common.items.armor.mail.bloodsteel.pants": (
-            vox_spec: ("armor.mail.bloodsteel", (-7.0, -4.5, 0.0), 5),
+            vox_spec: ("armor.mail.bloodsteel", (-7.0, -4.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.mail.orichalcum.pants": (
-            vox_spec: ("armor.mail.orichalcum", (-6.0, -3.5, 0.0), 7),
+            vox_spec: ("armor.mail.orichalcum", (-6.0, -3.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.cardinal.pants": (

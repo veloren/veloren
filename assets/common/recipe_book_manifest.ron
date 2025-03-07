@@ -1877,7 +1877,7 @@
         craft_sprite: Some(Anvil),
     ),
     "golemite_head": (
-        output: ("common.items.armor.golemite.helmet", 1),
+        output: ("common.items.armor.golemite.head", 1),
         inputs: [
             (Item("common.items.crafting_ing.golemite_slab"), 3, false),
             (Item("common.items.crafting_ing.cursed_bead"), 1, false),

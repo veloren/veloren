@@ -202,11 +202,11 @@
         ),
         "common.items.armor.miner.hand": (
             left: (
-                vox_spec: ("armor.mail.bronze", (-1.5, -1.5, -2.5), 3),
+                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.5, -2.5)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bronze", (-1.5, -1.5, -2.5), 3),
+                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.5, -2.5)),
                 color: None
             )
         ),
@@ -372,61 +372,61 @@
         ),
         "common.items.armor.mail.steel.hand": (
             left: (
-                vox_spec: ("armor.mail.steel", (-1.5, -1.5, -2.5), 2),
+                vox_spec: ("armor.mail.steel", (-1.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.steel", (-1.5, -1.5, -2.5), 2),
+                vox_spec: ("armor.mail.steel", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.mail.cobalt.hand": (
             left: (
-                vox_spec: ("armor.mail.cobalt", (-3.5, -2.5, -2.5), 1),
+                vox_spec: ("armor.mail.cobalt", (-3.5, -2.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.cobalt", (-1.5, -2.5, -2.5), 1),
+                vox_spec: ("armor.mail.cobalt", (-1.5, -2.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.mail.bloodsteel.hand": (
             left: (
-                vox_spec: ("armor.mail.bloodsteel", (-4.5, -2.0, -2.5), 2),
+                vox_spec: ("armor.mail.bloodsteel", (-4.5, -2.0, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bloodsteel", (-1.5, -2.0, -2.5), 2),
+                vox_spec: ("armor.mail.bloodsteel", (-1.5, -2.0, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.mail.orichalcum.hand": (
             left: (
-                vox_spec: ("armor.mail.orichalcum", (-3.5, -2.5, -3.5), 4),
+                vox_spec: ("armor.mail.orichalcum", (-3.5, -2.5, -3.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.orichalcum", (-1.5, -2.5, -3.5), 4),
+                vox_spec: ("armor.mail.orichalcum", (-1.5, -2.5, -3.5), 3),
                 color: None
             )
         ),
         "common.items.armor.golemite.hand": (
             left: (
-                vox_spec: ("armor.golemite.golemite", (-3.5, -2.5, -3.5), 4),
+                vox_spec: ("armor.golemite.golemite", (-3.5, -2.5, -3.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.golemite.golemite", (-1.5, -2.5, -3.5), 4),
+                vox_spec: ("armor.golemite.golemite", (-1.5, -2.5, -3.5), 3),
                 color: None
             )
         ),
         "common.items.armor.ashen.hand": (
             left: (
-                vox_spec: ("armor.ashen.ashen", (-2.5, -2.5, -2.5), 4),
+                vox_spec: ("armor.ashen.ashen", (-2.5, -2.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.ashen.ashen", (-1.5, -2.5, -2.5), 4),
+                vox_spec: ("armor.ashen.ashen", (-1.5, -2.5, -2.5), 3),
                 color: None
             )
         ),

@@ -169,7 +169,7 @@
             color: None
         ),
         "common.items.armor.mail.steel.belt":(
-            vox_spec: ("armor.mail.steel", (-5.0, -4.5, 2.0), 4),
+            vox_spec: ("armor.mail.steel", (-5.0, -4.5, 2.0), 5),
             color: None
         ),
         "common.items.armor.mail.cobalt.belt":(
@@ -177,19 +177,19 @@
             color: None
         ),
         "common.items.armor.mail.bloodsteel.belt":(
-            vox_spec: ("armor.mail.bloodsteel", (-5.0, -3.5, 2.0), 4),
+            vox_spec: ("armor.mail.bloodsteel", (-5.0, -3.5, 2.0), 5),
             color: None
         ),
         "common.items.armor.mail.orichalcum.belt":(
-            vox_spec: ("armor.mail.orichalcum", (-4.0, -3.5, 1.0), 6),
+            vox_spec: ("armor.mail.orichalcum", (-4.0, -3.5, 1.0), 5),
             color: None
         ),
         "common.items.armor.golemite.belt":(
-            vox_spec: ("armor.golemite.golemite", (-4.0, -3.5, 1.0), 6),
+            vox_spec: ("armor.golemite.golemite", (-4.0, -3.5, 1.0), 5),
             color: None
         ),
         "common.items.armor.ashen.belt":(
-            vox_spec: ("armor.ashen.ashen", (-4.0, -3.5, -1.0), 6),
+            vox_spec: ("armor.ashen.ashen", (-4.0, -3.5, -1.0), 5),
             color: None
         ),
         "common.items.armor.cardinal.belt": (
