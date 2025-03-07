@@ -2885,6 +2885,17 @@ fn push_item(
             comp::item::modular::generate_weapons(tool, material, None)
                 .map_err(|err| Content::Plain(format!("{:#?}", err)))?
         },
+        KitEntry::Spec(KitSpec::ModularWeaponHanded {
+            tool,
+            material,
+            hands,
+        }) => {
+            let mut rng = rand::thread_rng();
+            vec![
+                comp::item::modular::random_weapon(tool, material, Some(hands), &mut rng)
+                    .map_err(|err| Content::Plain(format!("{:#?}", err)))?,
+            ]
+        },
         KitEntry::Item(item) => vec![item],
     };
 

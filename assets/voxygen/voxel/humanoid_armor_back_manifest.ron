@@ -141,7 +141,7 @@
             color: None
         ),
         "common.items.armor.mail.cobalt.back": (
-            vox_spec: ("armor.mail.cobalt", (-5.0, -3.5, -13.0), 4),
+            vox_spec: ("armor.mail.cobalt", (-5.0, -3.5, -13.0), 1),
             color: None
         ),
         "common.items.armor.mail.bloodsteel.back": (
@@ -149,15 +149,15 @@
             color: None
         ),
         "common.items.armor.mail.orichalcum.back": (
-            vox_spec: ("armor.mail.orichalcum", (-5.0, -1.5, -14.0), 2),
+            vox_spec: ("armor.mail.orichalcum", (-5.0, -1.5, -14.0), 1),
             color: None
         ),
         "common.items.armor.golemite.back": (
-            vox_spec: ("armor.golemite.golemite", (-4.0, -1.5, -12.0), 2),
+            vox_spec: ("armor.golemite.golemite", (-4.0, -1.5, -12.0), 1),
             color: None
         ),
         "common.items.armor.ashen.back": (
-            vox_spec: ("armor.ashen.ashen", (-5.0, -2.5, -13.0), 2),
+            vox_spec: ("armor.ashen.ashen", (-5.0, -2.5, -13.0), 1),
             color: None
         ),
         "common.items.armor.merchant.back": (

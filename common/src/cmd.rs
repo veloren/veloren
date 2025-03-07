@@ -49,6 +49,11 @@ pub enum KitSpec {
         tool: comp::tool::ToolKind,
         material: comp::item::Material,
     },
+    ModularWeaponHanded {
+        tool: comp::tool::ToolKind,
+        material: comp::item::Material,
+        hands: comp::item::tool::Hands,
+    },
 }
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct KitManifest(pub HashMap<String, Vec<(KitSpec, u32)>>);
@@ -1567,6 +1572,24 @@ mod tests {
                                     "Failed to synthesize a modular {tool:?} made of {material:?}."
                                 )
                             });
+                    },
+                    KitSpec::ModularWeaponHanded {
+                        tool,
+                        material,
+                        hands,
+                    } => {
+                        comp::item::modular::random_weapon(
+                            *tool,
+                            *material,
+                            Some(*hands),
+                            &mut rng,
+                        )
+                        .unwrap_or_else(|_| {
+                            panic!(
+                                "Failed to synthesize a {hands:?}-handed modular {tool:?} made of \
+                                 {material:?}."
+                            )
+                        });
                     },
                 }
             }
