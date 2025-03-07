@@ -478,7 +478,7 @@ fn fly_airship_inner(
             // Holding position
             ctx.controller.do_goto_with_height_and_dir(
                 hold_pos,
-                0.15,
+                0.25,
                 None,
                 Some(hold_dir),
                 FlightMode::Braking(BrakingMode::Normal),
@@ -682,7 +682,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     AirshipFlightPhase::Transition,
                     approach1.airship_pos + Vec3::unit_z() * (approach1.height),
                     50.0,
-                    0.2,
+                    0.4,
                     approach1.height,
                     true,
                     Some(approach1.airship_direction),
@@ -705,39 +705,39 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     ctx.controller
                         .do_goto_with_height_and_dir(
                             approach1.airship_pos + Vec3::unit_z() * 125.0,
-                            0.7, None,
+                            0.8, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Normal),
                         );
                 })
                 .repeat()
-                .stop_if(timeout(ctx.rng.gen_range(8.0..12.0))))
+                .stop_if(timeout(ctx.rng.gen_range(10.0..14.0))))
             .then(
                 // descend to 35 blocks above the dock
                 just(move |ctx, _| {
                     ctx.controller
                         .do_goto_with_height_and_dir(
                             approach1.airship_pos + Vec3::unit_z() * 35.0,
-                            0.6, None,
+                            0.7, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Normal),
                         );
                 })
                 .repeat()
-                .stop_if(timeout(ctx.rng.gen_range(6.0..8.5))))
+                .stop_if(timeout(ctx.rng.gen_range(7.0..9.5))))
             .then(
                 // descend to docking position
                 just(move |ctx: &mut NpcCtx, _| {
                     ctx.controller
                         .do_goto_with_height_and_dir(
                             approach1.airship_pos + ship_body.mount_offset(),
-                            0.5, None,
+                            0.7, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Precise),
                         );
                 })
                 .repeat()
-                .stop_if(timeout(ctx.rng.gen_range(5.0..7.0))))
+                .stop_if(timeout(ctx.rng.gen_range(6.0..8.0))))
             // Announce arrival
             .then(just(|ctx: &mut NpcCtx, _| {
                 ctx.controller
@@ -785,7 +785,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                         ctx.controller
                         .do_goto_with_height_and_dir(
                             approach1.airship_pos + ship_body.mount_offset(),
-                            0.4, None,
+                            0.75, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Precise),
                         );
@@ -840,7 +840,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     AirshipFlightPhase::Ascent,
                     approach1.airship_pos + Vec3::unit_z() * Airships::takeoff_ascent_hat(),
                     50.0,
-                    0.08,
+                    0.2,
                     0.0,
                     false,
                     Some(Dir::from_unnormalized((approach2.approach_initial_pos - ctx.npc.wpos.xy()).with_z(0.0)).unwrap_or_default()),
@@ -868,7 +868,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     AirshipFlightPhase::ApproachFinal,
                     approach_target_pos(ctx, approach2.approach_final_pos, approach2.airship_pos.z + approach2.height, approach2.height),
                     250.0,
-                    0.3,
+                    0.5,
                     approach2.height,
                     true,
                     Some(approach2.airship_direction),

@@ -1246,7 +1246,7 @@ pub fn pid_coefficients_for_mode(mode: FlightMode, z_axis: bool) -> (f32, f32, f
         },
         FlightMode::Braking(braking_mode) => match braking_mode {
             BrakingMode::Normal => (1.0, 0.3, 0.4),
-            BrakingMode::Precise => (1.0, 0.8, 0.8),
+            BrakingMode::Precise => (0.9, 0.3, 1.0),
         },
     }
 }
