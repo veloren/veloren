@@ -999,6 +999,7 @@
     Simple("common.items.food.blue_cheese"): "voxel.item.food.blue_cheese_quarter",
     Simple("common.items.consumable.firedrop"): "voxel.object.firedrop",
     Simple("common.items.consumable.poison_clot"): "voxel.object.poison_clot",
+    Simple("common.items.consumable.gelid_gel"): "voxel.object.gelid_gel",
     // Throwables
     Simple("common.items.utility.bomb"): "voxel.sprite.bomb.bomb",
     Simple("common.items.utility.surprise_egg"): "voxel.object.surprise_egg",

@@ -9,6 +9,7 @@ ItemDef(
             "fang_necklace",
             "firedrop",
             "poison_clot",
+            "gelid_gel",
         ],
     ),
     quality: Moderate,

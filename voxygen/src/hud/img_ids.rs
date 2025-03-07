@@ -344,6 +344,9 @@ image_ids! {
         bow_drench_arrow: "voxygen.element.skills.bow.drench_arrow",
         bow_poison_arrow: "voxygen.element.skills.bow.poison_arrow",
         bow_poison_broadhead: "voxygen.element.skills.bow.poison_broadhead",
+        bow_freeze_arrow: "voxygen.element.skills.bow.freeze_arrow",
+        bow_freezing_arrow: "voxygen.element.skills.bow.freezing_arrow",
+        bow_freezing_broadhead: "voxygen.element.skills.bow.freezing_broadhead",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
@@ -874,6 +877,7 @@ image_ids! {
         debuff_winded_0: "voxygen.element.de_buffs.debuff_winded_0",
         debuff_amnesia_0: "voxygen.element.de_buffs.debuff_amnesia_0",
         debuff_offbalance_0: "voxygen.element.de_buffs.debuff_offbalance_0",
+        debuff_chilled: "voxygen.element.de_buffs.debuff_chilled",
 
         // Animation Frames
         // Buff Frame

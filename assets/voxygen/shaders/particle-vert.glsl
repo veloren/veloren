@@ -532,7 +532,7 @@ void main() {
                 inst_dir * ((rand0+1.0)/2 + 0.4) * slow_end(2.0) + 0.3 * grav_vel(earth_gravity),
                 vec3((5 * (1 - slow_start(.1)))),
                 vec4(0.8 * ice_color, 0.9 * ice_color, ice_color, 1),
-                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
             );
             break;
         case FIRE_SHOCKWAVE:

@@ -184,11 +184,12 @@ pub enum BuffKind {
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
     /// speed, 1.0 is 33% speed. Bleeding is at 4x the value of the strength.
     Crippled,
-    /// Slows movement and attack speed.
+    /// Slows movement and attack speed and increases poise damage received.
     /// Strength scales the attack speed debuff non-linearly. 0.5 is ~50%
     /// speed, 1.0 is 33% speed. Movement speed debuff is scaled to be slightly
-    /// smaller than attack speed debuff.
-    /// Provides immunity against Heatstroke.
+    /// smaller than attack speed debuff. Received poise damage scales linearly,
+    /// 1.0 is a 100% increase.
+    /// Provides immunity against Heatstroke and Chilled.
     Frozen,
     /// Makes you wet and causes you to have reduced friction on the ground.
     /// Strength scales the friction you ignore non-linearly. 0.5 is 50% ground
@@ -235,6 +236,12 @@ pub enum BuffKind {
     /// Scales linearly with strength, 1.0 leads to 100% more poise damage
     /// received
     OffBalance,
+    /// Decreases movement speed and increases amount of poise damage received.
+    /// Movement speed decreases non-linearly with strength, 0.5 leads to a 25%
+    /// reduction, 1.0 leads to a 33% reduction. Poise damage received scales
+    /// linearly with strength, 1.0 leads to 100% more poise damage.
+    /// Provides immunity to Heatstroke.
+    Chilled,
     // =================
     //      COMPLEX
     // =================
@@ -312,7 +319,8 @@ impl BuffKind {
             | BuffKind::Rooted
             | BuffKind::Winded
             | BuffKind::Amnesia
-            | BuffKind::OffBalance => BuffDescriptor::SimpleNegative,
+            | BuffKind::OffBalance
+            | BuffKind::Chilled => BuffDescriptor::SimpleNegative,
             BuffKind::Polymorphed => BuffDescriptor::Complex,
         }
     }
@@ -474,6 +482,13 @@ impl BuffKind {
             BuffKind::Frozen => vec![
                 BuffEffect::MovementSpeed(f32::powf(1.0 - nn_scaling(data.strength), 1.1)),
                 BuffEffect::AttackSpeed(1.0 - nn_scaling(data.strength)),
+                BuffEffect::PoiseReduction(-data.strength),
+                BuffEffect::BuffImmunity(BuffKind::Heatstroke),
+                BuffEffect::BuffImmunity(BuffKind::Chilled),
+            ],
+            BuffKind::Chilled => vec![
+                BuffEffect::MovementSpeed(1.0 - 0.5 * nn_scaling(data.strength)),
+                BuffEffect::PoiseReduction(-data.strength),
                 BuffEffect::BuffImmunity(BuffKind::Heatstroke),
             ],
             BuffKind::Wet => vec![

@@ -373,3 +373,6 @@ object-consumable-firedrop = Firedrop
 
 object-consumable-poison_clot = Poison Clot
     .desc = A small pellet of concentrated poison.
+
+object-consumable-gelid_gel = Gelid Gel
+    .desc = Adhesive bits of gel packed with frigid air.

@@ -5907,7 +5907,8 @@ fn build_buff(
             | BuffKind::OwlTalon
             | BuffKind::HeavyNock
             | BuffKind::Heartseeker
-            | BuffKind::EagleEye => {
+            | BuffKind::EagleEye
+            | BuffKind::Chilled => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

@@ -3608,6 +3608,7 @@ pub enum StatField {
 pub enum ItemEnum {
     Firedrop,
     PoisonClot,
+    GelidGel,
 }
 
 impl ItemEnum {
@@ -3618,6 +3619,9 @@ impl ItemEnum {
             },
             Self::PoisonClot => {
                 ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.poison_clot"))
+            },
+            Self::GelidGel => {
+                ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.gelid_gel"))
             },
         }
     }

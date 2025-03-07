@@ -5555,6 +5555,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Winded => imgs.debuff_winded_0,
         BuffKind::Amnesia => imgs.debuff_amnesia_0,
         BuffKind::OffBalance => imgs.debuff_offbalance_0,
+        BuffKind::Chilled => imgs.debuff_chilled,
     }
 }
 

@@ -194,6 +194,9 @@ buff-heartseeker = Heartseeker
 ## Eagle Eye
 buff-eagleeye = Eagle Eye
     .desc = As your arrows sink into your target, you feel your adrenaline rise.
+## Chilled
+buff-chilled = Chilled
+    .desc = The intense cold makes you a little slower and leaves you more vulnerable to forceful attacks.
 ## Util
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove

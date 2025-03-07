@@ -3866,6 +3866,34 @@ impl ParticleMgr {
                         },
                     );
                 },
+                Stance::Bow(BowStance::FreezeArrow) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(400))),
+                        || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.45
+                                + ori.look_dir().xy().rotated_z(0.6) * body.front_radius() * 2.5
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.gen_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            let end_pos = start_pos
+                                + Vec3::unit_z() * 1.0
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.gen_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            Particle::new_directed(
+                                Duration::from_millis(500),
+                                time,
+                                ParticleMode::Ice,
+                                start_pos,
+                                end_pos,
+                            )
+                        },
+                    );
+                },
                 _ => {},
             }
         }
