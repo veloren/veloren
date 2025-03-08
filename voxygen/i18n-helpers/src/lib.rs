@@ -13,13 +13,11 @@ use common_net::msg::{ChatTypeContext, PlayerInfo};
 use i18n::Localization;
 
 pub fn localize_chat_message(
-    msg: ChatMsg,
-    lookup_fn: impl Fn(&ChatMsg) -> ChatTypeContext,
+    msg: &ChatMsg,
+    info: &ChatTypeContext,
     localization: &Localization,
     show_char_name: bool,
 ) -> (ChatType<String>, String) {
-    let info = lookup_fn(&msg);
-
     let name_format_or_complex = |complex, uid: &Uid| match info.player_info.get(uid).cloned() {
         Some(pi) => {
             if complex {
@@ -253,7 +251,7 @@ pub fn localize_chat_message(
         },
     };
 
-    (msg.chat_type, new_msg)
+    (msg.chat_type.clone(), new_msg)
 }
 
 fn localize_kill_message(

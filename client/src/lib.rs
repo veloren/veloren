@@ -3230,14 +3230,13 @@ impl Client {
         };
 
         let name_of_uid = |uid| {
-            let ecs = self.state.ecs();
-            (
-                &ecs.read_storage::<comp::Stats>(),
-                &ecs.read_storage::<Uid>(),
-            )
-                .join()
-                .find(|(_, u)| u == &uid)
-                .map(|(c, _)| c.name.clone())
+            let ecs = self.state().ecs();
+            let id_maps = ecs.read_resource::<common::uid::IdMaps>();
+            id_maps.uid_entity(uid).and_then(|e| {
+                ecs.read_storage::<comp::Stats>()
+                    .get(e)
+                    .map(|s| s.name.clone())
+            })
         };
 
         let mut add_data_of = |uid| {
@@ -3248,7 +3247,7 @@ impl Client {
                 None => {
                     result
                         .entity_name
-                        .insert(*uid, name_of_uid(uid).unwrap_or_else(|| "<?>".to_string()));
+                        .insert(*uid, name_of_uid(*uid).unwrap_or_else(|| "<?>".to_string()));
                 },
             };
         };
@@ -3468,8 +3467,8 @@ mod tests {
                         Event::Chat(msg) => {
                             let msg: comp::ChatMsg = msg;
                             let _s: String = localize_chat_message(
-                                msg,
-                                |msg| client.lookup_msg_context(msg),
+                                &msg,
+                                &client.lookup_msg_context(&msg),
                                 &localisation.read(),
                                 true,
                             )

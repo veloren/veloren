@@ -269,7 +269,14 @@ pub struct RequestPluginsEvent {
 // (but note on the client the event buses aren't registered and these events
 // aren't actually emitted).
 
-pub struct ChatEvent(pub UnresolvedChatMsg);
+pub struct ChatEvent {
+    pub msg: UnresolvedChatMsg,
+    // We warn when the server tries to generate non plain `Content` messags
+    // that appear from a player since we currently filter those out.
+    //
+    // But we don't want to spam warnings if this is from a client, so track that here.
+    pub from_client: bool,
+}
 
 pub struct CreateNpcEvent {
     pub pos: Pos,

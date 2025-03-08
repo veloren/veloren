@@ -46,7 +46,10 @@ impl Sys {
                         // Try sending the chat message
                         match mode.to_msg(*from, message, groups.get(entity).copied()) {
                             Ok(message) => {
-                                emitters.emit(event::ChatEvent(message));
+                                emitters.emit(event::ChatEvent {
+                                    msg: message,
+                                    from_client: true,
+                                });
                             },
                             Err(error) => {
                                 client.send_fallible(ServerGeneral::ChatMsg(

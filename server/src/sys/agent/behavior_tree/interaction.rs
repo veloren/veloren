@@ -447,16 +447,15 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                     .as_ref()
                     .and_then(|tgt_data| read_data.uids.get(tgt_data.target))
                 {
-                    emitters.emit(ChatEvent(UnresolvedChatMsg::npc_tell(
-                        *agent_data.uid,
-                        *with,
-                        content,
-                    )));
+                    emitters.emit(ChatEvent {
+                        msg: UnresolvedChatMsg::npc_tell(*agent_data.uid, *with, content),
+                        from_client: false,
+                    });
                 } else {
-                    emitters.emit(ChatEvent(UnresolvedChatMsg::npc_say(
-                        *agent_data.uid,
-                        content,
-                    )));
+                    emitters.emit(ChatEvent {
+                        msg: UnresolvedChatMsg::npc_say(*agent_data.uid, content),
+                        from_client: false,
+                    });
                 }
             };
             match agent.behavior.trading_behavior {

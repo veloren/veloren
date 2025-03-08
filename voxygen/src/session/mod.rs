@@ -42,8 +42,8 @@ use crate::{
     error::Error,
     game_input::GameInput,
     hud::{
-        AutoPressBehavior, DebugInfo, Event as HudEvent, Hud, HudCollectFailedReason, HudInfo,
-        LootMessage, PromptDialogSettings,
+        self, AutoPressBehavior, DebugInfo, Event as HudEvent, Hud, HudCollectFailedReason,
+        HudInfo, LootMessage, PromptDialogSettings,
     },
     key_state::KeyState,
     menu::{char_selection::CharSelectionState, main::get_client_msg_error},
@@ -98,6 +98,7 @@ pub struct PlayerDebugLines {
 pub struct SessionState {
     scene: Scene,
     pub(crate) client: Rc<RefCell<Client>>,
+    message_backlog: Rc<RefCell<hud::MessageBacklog>>,
     metadata: UpdateCharacterMetadata,
     pub(crate) hud: Hud,
     key_state: KeyState,
@@ -130,6 +131,7 @@ impl SessionState {
         global_state: &mut GlobalState,
         metadata: UpdateCharacterMetadata,
         client: Rc<RefCell<Client>>,
+        message_backlog: Rc<RefCell<hud::MessageBacklog>>,
     ) -> Self {
         // Create a scene for this session. The scene handles visible elements of the
         // game world.
@@ -171,6 +173,7 @@ impl SessionState {
         Self {
             scene,
             client,
+            message_backlog,
             key_state: KeyState::default(),
             inputs: comp::ControllerInputs::default(),
             inputs_state: HashSet::new(),
@@ -275,6 +278,10 @@ impl SessionState {
             };
             self.mumble_link.update(player_pos, player_pos);
         }
+
+        // Send hud any messages that queued while not in the session state.
+        self.hud
+            .add_backlog_messages(&mut self.message_backlog.borrow_mut());
 
         for event in client.tick(self.inputs.clone(), dt)? {
             match event {
@@ -2202,6 +2209,7 @@ impl PlayState for SessionState {
                 PlayStateResult::Switch(Box::new(CharSelectionState::new(
                     global_state,
                     Rc::clone(&self.client),
+                    Rc::clone(&self.message_backlog),
                 )))
             }
         } else {

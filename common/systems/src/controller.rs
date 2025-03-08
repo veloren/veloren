@@ -197,7 +197,10 @@ impl<'a> System<'a> for Sys {
                         },
                         ControlEvent::Dialogue(target, dialogue) => {
                             if let Some(msg) = dialogue.message().cloned() {
-                                emitters.emit(ChatEvent(UnresolvedChatMsg::npc(*uid, msg)));
+                                emitters.emit(ChatEvent {
+                                    msg: UnresolvedChatMsg::npc(*uid, msg),
+                                    from_client: false,
+                                });
                             }
                             if let Some(target) = read_data.id_maps.uid_entity(target) {
                                 emitters.emit(event::DialogueEvent(

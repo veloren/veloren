@@ -191,7 +191,7 @@ impl Server {
             this.process_command(ev.0, ev.1, ev.2);
         });
         self.handle_serial_events(|this, ev: ChatEvent| {
-            this.state.send_chat(ev.0);
+            this.state.send_chat(ev.msg, ev.from_client);
         });
         self.handle_serial_events(handle_mount);
         self.handle_serial_events(handle_tame_pet);

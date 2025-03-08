@@ -211,7 +211,6 @@ command-scale-set = Set scale to { $scale }
 command-repaired-items = Repaired all equipped items
 command-message-group-missing = You are using group chat but do not belong to a group. Use /world or
   /region to change chat.
-command-tell-request = { $sender } wants to talk to you.
 command-tell-to-yourself = You can't /tell yourself.
 command-transform-invalid-presence = Cannot transform in the current presence
 command-aura-invalid-buff-parameters = Invalid buff parameters for aura

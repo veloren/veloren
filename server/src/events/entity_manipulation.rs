@@ -762,7 +762,10 @@ impl ServerEvent for DestroyEvent {
                     _ => KillSource::Other,
                 };
 
-                chat_emitter.emit(ChatEvent(comp::UnresolvedChatMsg::death(kill_source, *uid)));
+                chat_emitter.emit(ChatEvent {
+                    msg: comp::UnresolvedChatMsg::death(kill_source, *uid),
+                    from_client: false,
+                });
             }
 
             let mut exp_awards = Vec::<(Entity, f32, Option<Group>)>::new();

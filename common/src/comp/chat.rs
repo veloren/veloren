@@ -144,6 +144,7 @@ impl<G> ChatType<G> {
         }
     }
 
+    /// If this is from an entity, returns the `Uid` of that entity.
     pub fn uid(&self) -> Option<Uid> {
         match self {
             ChatType::Online(_) => None,
@@ -287,6 +288,7 @@ impl<G> GenericChatMsg<G> {
         }
     }
 
+    /// If this is from an entity, returns the `Uid` of that entity.
     pub fn uid(&self) -> Option<Uid> { self.chat_type.uid() }
 
     pub fn content(&self) -> &Content { &self.content }

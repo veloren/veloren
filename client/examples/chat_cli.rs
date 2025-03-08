@@ -103,8 +103,8 @@ fn main() {
                 Event::Chat(m) => println!(
                     "{}",
                     localize_chat_message(
-                        m,
-                        |msg| client.lookup_msg_context(msg),
+                        &m,
+                        &client.lookup_msg_context(&m),
                         &localisation.read(),
                         SHOW_NAME,
                     )

@@ -75,7 +75,8 @@ pub struct GlobalState {
     // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
     pub i18n: LocalizationHandle,
     pub clipboard: iced_winit::Clipboard,
-    // Used to clear the shadow textures when entering a PlayState that doesn't utilise shadows
+    /// Used to clear the shadow textures when entering a PlayState that doesn't
+    /// utilise shadows.
     pub clear_shadows_next_frame: bool,
     /// CLI arguments passed to voxygen
     pub args: crate::cli::Args,

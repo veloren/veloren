@@ -14,7 +14,6 @@ use common::{
     parse_cmd_args,
     resources::PlayerEntity,
     uid::Uid,
-    uuid::Uuid,
 };
 use common_i18n::Content;
 use common_net::sync::WorldSyncExt;
@@ -545,15 +544,6 @@ fn handle_experimental_shader(
                 .to_string(),
         )
     }
-}
-
-/// A helper function to get the Uuid of a player with a given alias
-pub fn get_player_uuid(client: &Client, alias: &String) -> Option<Uuid> {
-    client
-        .player_list()
-        .values()
-        .find(|p| p.player_alias == *alias)
-        .map(|p| p.uuid)
 }
 
 trait TabComplete {

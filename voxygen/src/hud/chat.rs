@@ -29,6 +29,68 @@ use i18n_helpers::localize_chat_message;
 use std::collections::{HashSet, VecDeque};
 use vek::{Vec2, approx::AbsDiffEq};
 
+/// Determines whether a message is from a muted player.
+///
+/// These messages will not be shown anywhere and do not need to be retained in
+/// chat queues.
+pub fn is_muted(client: &Client, profile: &crate::profile::Profile, msg: &ChatMsg) -> bool {
+    if let Some(uid) = msg.uid()
+        && let Some(player_info) = client.player_list().get(&uid)
+    {
+        profile.mutelist.contains_key(&player_info.uuid)
+    } else {
+        false
+    }
+}
+
+/// Determines whether a message will be sent to the chat box.
+///
+/// Some messages like NPC messages are only displayed as in-world chat bubbles.
+pub fn show_in_chatbox(msg: &ChatMsg) -> bool {
+    // Don't put NPC messages in chat box.
+    !matches!(msg.chat_type, ChatType::Npc(_))
+}
+
+pub const MAX_MESSAGES: usize = 100;
+
+/// Chat messages received from the client before entering the
+/// `SessionState`.
+///
+/// We transfer these to HUD when it is displayed in `SessionState`.
+///
+/// Messages that aren't show in the chat box aren't retained (e.g. ones
+/// that would just show as in-world chat bubbles).
+#[derive(Default)]
+pub struct MessageBacklog(pub(super) VecDeque<ChatMsg>);
+
+impl MessageBacklog {
+    pub fn new_message(
+        &mut self,
+        client: &Client,
+        profile: &crate::profile::Profile,
+        msg: ChatMsg,
+    ) {
+        if !is_muted(client, profile, &msg) && show_in_chatbox(&msg) {
+            self.0.push_back(msg);
+            if self.0.len() > MAX_MESSAGES {
+                self.0.pop_front();
+            }
+        }
+    }
+}
+
+const CHAT_ICON_WIDTH: f64 = 16.0;
+const CHAT_MARGIN_THICKNESS: f64 = 2.0;
+const CHAT_ICON_HEIGHT: f64 = 16.0;
+const MIN_DIMENSION: Vec2<f64> = Vec2::new(400.0, 150.0);
+const MAX_DIMENSION: Vec2<f64> = Vec2::new(650.0, 500.0);
+
+const CHAT_TAB_HEIGHT: f64 = 20.0;
+const CHAT_TAB_ALL_WIDTH: f64 = 40.0;
+
+/*#[const_tweaker::tweak(min = 0.0, max = 60.0, step = 1.0)]
+const X: f64 = 18.0;*/
+
 widget_ids! {
     struct Ids {
         draggable_area,
@@ -54,19 +116,6 @@ widget_ids! {
         chat_tab_tooltip_text,
     }
 }
-/*#[const_tweaker::tweak(min = 0.0, max = 60.0, step = 1.0)]
-const X: f64 = 18.0;*/
-
-pub const MAX_MESSAGES: usize = 100;
-
-const CHAT_ICON_WIDTH: f64 = 16.0;
-const CHAT_MARGIN_THICKNESS: f64 = 2.0;
-const CHAT_ICON_HEIGHT: f64 = 16.0;
-const MIN_DIMENSION: Vec2<f64> = Vec2::new(400.0, 150.0);
-const MAX_DIMENSION: Vec2<f64> = Vec2::new(650.0, 500.0);
-
-const CHAT_TAB_HEIGHT: f64 = 20.0;
-const CHAT_TAB_ALL_WIDTH: f64 = 40.0;
 
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
@@ -554,19 +603,12 @@ impl Widget for Chat<'_> {
             })
             .map(|m| {
                 let is_moderator = m
-                    .chat_type
                     .uid()
-                    .and_then(|uid| {
-                        self.client
-                            .lookup_msg_context(m)
-                            .player_info
-                            .get(&uid)
-                            .map(|i| i.is_moderator)
-                    })
+                    .and_then(|uid| self.client.player_list().get(&uid).map(|i| i.is_moderator))
                     .unwrap_or(false);
                 let (chat_type, text) = localize_chat_message(
-                    m.clone(),
-                    |msg| self.client.lookup_msg_context(msg),
+                    m,
+                    &self.client.lookup_msg_context(m),
                     self.localized_strings,
                     show_char_name,
                 );

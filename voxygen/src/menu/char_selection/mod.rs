@@ -1,7 +1,7 @@
 mod ui;
 
 use crate::{
-    Direction, GlobalState, PlayState, PlayStateResult,
+    Direction, GlobalState, PlayState, PlayStateResult, hud,
     menu::{
         main::{get_client_msg_error, rand_bg_image_spec},
         server_info::ServerInfoState,
@@ -25,12 +25,17 @@ use ui::CharSelectionUi;
 pub struct CharSelectionState {
     char_selection_ui: CharSelectionUi,
     client: Rc<RefCell<Client>>,
+    message_backlog: Rc<RefCell<hud::MessageBacklog>>,
     scene: Scene,
 }
 
 impl CharSelectionState {
     /// Create a new `CharSelectionState`.
-    pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
+    pub fn new(
+        global_state: &mut GlobalState,
+        client: Rc<RefCell<Client>>,
+        message_backlog: Rc<RefCell<hud::MessageBacklog>>,
+    ) -> Self {
         let sprite_render_context = (global_state.lazy_init)(global_state.window.renderer_mut());
         let scene = Scene::new(
             global_state.window.renderer_mut(),
@@ -43,6 +48,7 @@ impl CharSelectionState {
         Self {
             char_selection_ui,
             client,
+            message_backlog,
             scene,
         }
     }
@@ -165,6 +171,7 @@ impl PlayState for CharSelectionState {
                             global_state,
                             UpdateCharacterMetadata::default(),
                             Rc::clone(&self.client),
+                            Rc::clone(&self.message_backlog),
                         )));
                     },
                     ui::Event::ShowRules => {
@@ -175,8 +182,11 @@ impl PlayState for CharSelectionState {
 
                         drop(client);
 
-                        let char_select =
-                            CharSelectionState::new(global_state, Rc::clone(&self.client));
+                        let char_select = CharSelectionState::new(
+                            global_state,
+                            Rc::clone(&self.client),
+                            Rc::clone(&self.message_backlog),
+                        );
 
                         let new_state = ServerInfoState::try_from_server_info(
                             global_state,
@@ -260,6 +270,10 @@ impl PlayState for CharSelectionState {
                                 );
                                 return PlayStateResult::Pop;
                             },
+                            client::Event::Chat(m) => self
+                                .message_backlog
+                                .borrow_mut()
+                                .new_message(&self.client.borrow(), &global_state.profile, m),
                             client::Event::CharacterCreated(character_id) => {
                                 self.char_selection_ui.select_character(character_id);
                             },
@@ -276,6 +290,7 @@ impl PlayState for CharSelectionState {
                                     global_state,
                                     metadata,
                                     Rc::clone(&self.client),
+                                    Rc::clone(&self.message_backlog),
                                 )));
                             },
                             #[cfg_attr(not(feature = "plugins"), expect(unused_variables))]
