@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Animation fix for flamekeeper and forgemaster: the ring of fire attack spreads outwards AFTER their weapon strikes the ground.
 - Wolves are deadlier.
 - New messages of the day for singleplayer worlds.
+- Nerf npc aimbot.
 
 ### Removed
 
