@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dealing damage to an npc reduces sentiment, helping a downed npc increases sentiment.
 - Metal lineage armor model updates.
 - No longer show names of most sprite interactions.
+- Wolves are deadlier.
 
 ### Removed
 
