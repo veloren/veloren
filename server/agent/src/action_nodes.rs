@@ -1249,7 +1249,7 @@ impl AgentData<'_> {
                             "Iron Golem" => Tactic::IronGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
                                 radius: 5,
-                                circle_time: 1,
+                                circle_time: 2,
                             },
                             "Quad Med Jump" | "Darkhound" => Tactic::QuadMedJump,
                             "Quad Med Charge" => Tactic::CircleCharge {
