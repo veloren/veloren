@@ -48,7 +48,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
         // - deduplicating them
         // - generating resize events for the ui
         // - ensuring consistent sizes are passed to the ui and to the renderer
-        if !matches!(&event, winit::event::Event::WindowEvent {
+        if matches!(&event, winit::event::Event::WindowEvent {
             event: winit::event::WindowEvent::Resized(_),
             ..
         }) {
@@ -58,6 +58,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
             global_state.settings.graphics.window.size = [size.width, size.height];
             global_state.settings.graphics.window.maximised =
                 global_state.window.window().is_maximized();
+        } else {
             // Get events for the ui.
             if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
                 global_state.window.send_event(Event::Ui(event));
