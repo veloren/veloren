@@ -327,7 +327,7 @@ impl Body {
             },
             Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 0.5),
             Body::Dragon(_) => Some(200_000.0),
-            Body::Ship(ship) if ship.can_fly() => Some(1_000_000.0),
+            Body::Ship(ship) if ship.can_fly() => Some(390_000.0),
             _ => None,
         }
     }
