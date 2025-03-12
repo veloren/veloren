@@ -1009,6 +1009,8 @@ impl SpriteKind {
             | SpriteKind::BenchWoodWoodland
             | SpriteKind::BenchWoodEnd
             | SpriteKind::BenchWoodMiddle
+            | SpriteKind::SeatWoodBlueMiddle
+            | SpriteKind::SeatWoodBlueSide
             | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y())),
             SpriteKind::Helm => Some((Vec3::new(0.0, -1.1, 0.0), Vec3::unit_y())),
             SpriteKind::BedWoodWoodlandHead => Some((Vec3::new(1.4, 0.0, 0.5), Vec3::unit_y())),
