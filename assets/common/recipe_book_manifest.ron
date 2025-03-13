@@ -2526,7 +2526,7 @@
             (Item("common.items.log.hardwood"), 2, false),
             (Item("common.items.crafting_ing.resin"), 2, false),
             (Item("common.items.mineral.ingot.iron"), 1, false),
-            (Item("common.items.crafting_ing.dwarven_battery"), 2, false),
+            (Item("common.items.crafting_ing.dwarven_battery"), 1, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
