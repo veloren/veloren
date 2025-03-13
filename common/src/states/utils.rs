@@ -72,7 +72,7 @@ impl Body {
                 quadruped_medium::Species::Tuskram => 85.0,
                 quadruped_medium::Species::Lion => 105.0,
                 quadruped_medium::Species::Tarasque => 100.0,
-                quadruped_medium::Species::Wolf => 115.0,
+                quadruped_medium::Species::Wolf => 130.0,
                 quadruped_medium::Species::Frostfang => 115.0,
                 quadruped_medium::Species::Mouflon => 75.0,
                 quadruped_medium::Species::Catoblepas => 60.0,

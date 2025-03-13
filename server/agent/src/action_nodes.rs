@@ -1248,7 +1248,7 @@ impl AgentData<'_> {
                             "Stone Golem" | "Coral Golem" => Tactic::StoneGolem,
                             "Iron Golem" => Tactic::IronGolem,
                             "Quad Med Quick" => Tactic::CircleCharge {
-                                radius: 3,
+                                radius: 5,
                                 circle_time: 2,
                             },
                             "Quad Med Jump" | "Darkhound" => Tactic::QuadMedJump,
