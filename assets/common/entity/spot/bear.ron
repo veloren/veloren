@@ -1,4 +1,3 @@
-// FIXME: move this boi to spot directory
 #![enable(implicit_some)]
 (
     name: Name("Well-fed Bear"),
