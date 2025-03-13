@@ -207,6 +207,21 @@
         (Item("common.items.armor.misc.ring.gold"), 2),
         (Item("common.items.armor.cultist.ring"), 2),
     ],
+    "starter": [
+        (Item("common.items.consumable.potion_minor"), 1),
+        (Item("common.items.food.cheese"), 1),
+        (Item("common.items.armor.misc.chest.worker_purple_brown"), 1),
+        (Item("common.items.armor.misc.pants.worker_brown"), 1),
+        (Item("common.items.armor.misc.foot.sandals"), 1),
+        (Item("common.items.lantern.black_0"), 1),
+        (Item("common.items.glider.basic_white"), 1),
+        (Item("common.items.weapons.sword.starter"), 1),
+        (Item("common.items.weapons.hammer.starter_hammer"), 1),
+        (Item("common.items.weapons.axe.starter_axe"), 1),
+        (Item("common.items.weapons.sword_1h.starter"), 2),
+        (Item("common.items.weapons.bow.starter"), 1),
+        (Item("common.items.weapons.staff.starter_staff"), 1),
+    ],
     "tier-0": [
         // Hide
         (Item("common.items.armor.hide.rawhide.back"), 1),
@@ -1010,6 +1025,18 @@
         (Item("common.items.glider.moonrise"),1),
         (Item("common.items.glider.skullgrin"),1),
         (Item("common.items.debug.glider"),1),
+    ],
+    "lanterns": [
+        (Item("common.items.lantern.black_0"),1),
+        (Item("common.items.lantern.bloodmoon_relic"),1),
+        (Item("common.items.lantern.delvers_lamp"),1),
+        (Item("common.items.lantern.polaris"),1),
+        (Item("common.items.lantern.blue_0"),1),
+        (Item("common.items.lantern.geode_purp"),1),
+        (Item("common.items.lantern.pumpkin"),1),
+        (Item("common.items.lantern.crux"),1),
+        (Item("common.items.lantern.green_0"),1),
+        (Item("common.items.lantern.red_0"),1),
     ],
     "recipes": [
         // Armor
