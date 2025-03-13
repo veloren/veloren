@@ -444,6 +444,10 @@
         (Item("common.items.tool.instruments.shamisen"),1),
         (Item("common.items.tool.instruments.kora"),1),
         (Item("common.items.tool.instruments.banjo"),1),
+        (Item("common.items.tool.instruments.viola_pizzicato"),1),
+        (Item("common.items.tool.instruments.starlight_conch"),1),
+        (Item("common.items.tool.instruments.timbrel_of_chaos"),1),
+        (Item("common.items.tool.instruments.rhythmo"),1),
     ],
     "recipes": [
         // Armor

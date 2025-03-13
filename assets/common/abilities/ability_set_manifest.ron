@@ -281,7 +281,7 @@
         primary: Simple(None, "common.abilities.custom.cactid.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.cactid.dash"),
         abilities: [],
-    ),    
+    ),
     Custom("Irrwurz"): (
         primary: Simple(None, "common.abilities.custom.irrwurz.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.irrwurz.magicball"),
@@ -668,10 +668,10 @@
         secondary: Simple(None, "common.abilities.custom.karkatha.leap"),
         abilities: [
             Simple(None, "common.abilities.custom.karkatha.spinleap"),
-            Simple(None, "common.abilities.custom.karkatha.summoncrabs"),            
-            Simple(None, "common.abilities.custom.karkatha.riposte"),                        
+            Simple(None, "common.abilities.custom.karkatha.summoncrabs"),
+            Simple(None, "common.abilities.custom.karkatha.riposte"),
         ],
-    ),    
+    ),
     /// TODO: Organize the rest into further catagories and give purple tier droppers+ custom skillsets
     Custom("Turret"): (
         primary: Simple(None, "common.abilities.custom.turret.arrows"),
@@ -701,7 +701,7 @@
             Simple(None, "common.abilities.custom.mindflayer.necroticsphere"),
             Simple(None, "common.abilities.custom.mindflayer.summonminions"),
             Simple(None, "common.abilities.custom.mindflayer.necroticsphere_blast"),
-            Simple(None, "common.abilities.custom.mindflayer.necroticsphere_multiblast"),            
+            Simple(None, "common.abilities.custom.mindflayer.necroticsphere_multiblast"),
         ],
     ),
     Custom("Flamekeeper"): (
@@ -1035,6 +1035,26 @@
     Custom("Banjo"): (
         primary: Simple(None, "common.abilities.music.banjo"),
         secondary: Simple(None, "common.abilities.music.banjo"),
+        abilities: [],
+    ),
+    Custom("ViolaPizzicato"): (
+        primary: Simple(None, "common.abilities.music.viola_pizzicato"),
+        secondary: Simple(None, "common.abilities.music.viola_pizzicato"),
+        abilities: [],
+    ),
+    Custom("StarlightConch"): (
+        primary: Simple(None, "common.abilities.music.starlight_conch"),
+        secondary: Simple(None, "common.abilities.music.starlight_conch"),
+        abilities: [],
+    ),
+    Custom("TimbrelOfChaos"): (
+        primary: Simple(None, "common.abilities.music.timbrel_of_chaos"),
+        secondary: Simple(None, "common.abilities.music.timbrel_of_chaos"),
+        abilities: [],
+    ),
+    Custom("Rhythmo"): (
+        primary: Simple(None, "common.abilities.music.rhythmo"),
+        secondary: Simple(None, "common.abilities.music.rhythmo"),
         abilities: [],
     ),
     Tool(Debug): (

@@ -419,6 +419,11 @@
     Simple("common.items.tool.instruments.guitar_dark"): "voxel.weapon.tool.black_velvet_guitar",
     Simple("common.items.tool.instruments.kora"): "voxel.weapon.tool.kora",
     Simple("common.items.tool.instruments.banjo"): "voxel.weapon.tool.banjo",
+    Simple("common.items.tool.instruments.kora"): "voxel.weapon.tool.kora",
+    Simple("common.items.tool.instruments.viola_pizzicato"): "voxel.weapon.tool.viola_pizzicato",
+    Simple("common.items.tool.instruments.starlight_conch"): "voxel.weapon.tool.starlight_conch",
+    Simple("common.items.tool.instruments.timbrel_of_chaos"): "voxel.weapon.tool.timbrel_of_chaos",
+    Simple("common.items.tool.instruments.rhythmo"): "voxel.weapon.tool.rhythmo",
     // Other
     Simple("common.items.utility.coins"): "voxel.object.v-coin",
     Simple("common.items.utility.collar"): "voxel.object.collar",

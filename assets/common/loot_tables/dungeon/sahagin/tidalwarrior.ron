@@ -3,4 +3,5 @@
     (4.5, LootTable("common.loot_tables.armor.tier-3")),
     // Special
     (1.0, Item("common.items.armor.misc.neck.gem_of_resilience")),
+    (0.5, Item("common.items.glider.moonrise")),
 ]

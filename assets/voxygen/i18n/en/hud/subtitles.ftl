@@ -90,6 +90,10 @@ subtitle-instrument_washboard = Washboard playing
 subtitle-instrument_wildskin_drum = Wildskin Drum playing
 subtitle-instrument_kora = Kora playing
 subtitle-instrument_banjo = Banjo playing
+subtitle-instrument_viola_pizzicato = Viola Pizzicato playing
+subtitle-instrument_starlight_conch = Starlight Conch playing
+subtitle-instrument_timbrel_of_chaos = Timbrel Of Chaos playing
+subtitle-instrument_rhythmo = Rhythmo playing
 subtitle-pickup_instrument = Pickup instrument
 
 subtitle-explosion = Explosion

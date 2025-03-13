@@ -326,7 +326,7 @@
         ): "common-items-npc_armor-biped_small-bushly-hand-bushly",
         Simple(
             "common.items.npc_armor.biped_small.cactid.head.cactid",
-        ): "common-items-npc_armor-biped_small-cactid-head-cactid",         
+        ): "common-items-npc_armor-biped_small-cactid-head-cactid",
         Simple(
             "common.items.npc_armor.biped_small.cactid.foot.cactid",
         ): "common-items-npc_armor-biped_small-cactid-foot-cactid",
@@ -338,7 +338,7 @@
         ): "common-items-npc_armor-biped_small-cactid-chest-cactid",
         Simple(
             "common.items.npc_armor.biped_small.cactid.hand.cactid",
-        ): "common-items-npc_armor-biped_small-cactid-hand-cactid",        
+        ): "common-items-npc_armor-biped_small-cactid-hand-cactid",
         Simple(
             "common.items.npc_armor.biped_small.treasure_egg.chest.treasure_egg",
         ): "common-items-npc_armor-biped_small-treasure_egg-chest-treasure_egg",
@@ -713,7 +713,7 @@
         ): "common-items-npc_armor-biped_small-red_legoom-pants-red_legoom",
         Simple(
             "common.items.npc_armor.crustacean.karkatha",
-        ): "common-items-npc_armor-crustacean-karkatha",        
+        ): "common-items-npc_armor-crustacean-karkatha",
         Simple(
             "common.items.npc_armor.chest.leather_blue",
         ): "armor-leather_blue-pants",
@@ -812,7 +812,7 @@
         ): "object-key-vampire",
         Simple(
             "common.items.keys.myrmidon_key",
-        ): "object-key-myrmidon",        
+        ): "object-key-myrmidon",
         Simple(
             "common.items.keys.minotaur_key",
         ): "object-key-minotaur",
@@ -2574,6 +2574,18 @@
             "common.items.tool.instruments.banjo",
         ): "weapon-tool-banjo",
         Simple(
+            "common.items.tool.instruments.viola_pizzicato",
+        ): "weapon-tool-viola_pizzicato",
+        Simple(
+            "common.items.tool.instruments.starlight_conch",
+        ): "weapon-tool-starlight_conch",
+        Simple(
+            "common.items.tool.instruments.timbrel_of_chaos",
+        ): "weapon-tool-timbrel_of_chaos",
+        Simple(
+            "common.items.tool.instruments.rhythmo",
+        ): "weapon-tool-rhythmo",
+        Simple(
             "common.items.log.bamboo",
         ): "sprite-wood-item-bamboo",
         Simple(
@@ -2768,7 +2780,7 @@
         ): "common-items-npc_weapons-unique-bushly",
         Simple(
             "common.items.npc_weapons.unique.cactid",
-        ): "common-items-npc_weapons-unique-cactid",        
+        ): "common-items-npc_weapons-unique-cactid",
         Simple(
             "common.items.npc_weapons.unique.cardinal",
         ): "common-items-npc_weapons-unique-cardinal",
@@ -2798,7 +2810,7 @@
         ): "common-items-npc_weapons-unique-crab_pincer",
         Simple(
             "common.items.npc_weapons.unique.karkatha_pincer",
-        ): "common-items-npc_weapons-unique-karkatha_pincer",        
+        ): "common-items-npc_weapons-unique-karkatha_pincer",
         Simple(
             "common.items.npc_weapons.unique.dagon",
         ): "common-items-npc_weapons-unique-dagon",

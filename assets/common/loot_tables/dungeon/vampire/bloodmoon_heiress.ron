@@ -7,7 +7,8 @@
                 // Armor
                 (4.0, LootTable("common.loot_tables.armor.tier-4")),
                 // Misc
-    		(0.75, Item("common.items.crafting_ing.bloody_tear")),	                
+    		    (0.75, Item("common.items.crafting_ing.bloody_tear")),
+    		    (0.2, Item("common.items.tool.instruments.viola_pizzicato")),
             ]),
         ],
     )),
