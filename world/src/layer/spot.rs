@@ -542,7 +542,7 @@ fn spot_config(spot: &Spot) -> SpotConfig {
         Spot::FruitTree => SpotConfig {
             base_structures: Some("trees.fruit_trees"),
             entity_radius: 2.0,
-            entities: &[(0..2, "common.entity.wild.peaceful.bear")],
+            entities: &[(0..2, "common.entity.spot.bear")],
         },
         Spot::GnomeSpring => SpotConfig {
             base_structures: Some("spots.gnome_spring"),
