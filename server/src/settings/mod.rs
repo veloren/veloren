@@ -24,6 +24,7 @@ use common::{
 };
 use core::time::Duration;
 use portpicker::pick_unused_port;
+use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,
@@ -405,11 +406,18 @@ impl EditableSettings {
     pub fn singleplayer(data_dir: &Path) -> Self {
         let load = Self::load(data_dir);
 
+        let motd = [
+            "A whole world to yourself! Time to stretch...",
+            "How's the serenity?",
+        ]
+        .choose(&mut rand::thread_rng())
+        .expect("Message of the day don't wanna play.");
+
         let mut server_description = ServerDescriptions::default();
         server_description
             .descriptions
             .insert("en".to_string(), ServerDescription {
-                motd: "Who needs friends anyway?".to_string(),
+                motd: motd.to_string(),
                 rules: None,
             });
 

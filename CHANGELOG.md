@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Metal lineage armor model updates.
 - No longer show names of most sprite interactions.
 - Wolves are deadlier.
+- New messages of the day for singleplayer worlds.
 
 ### Removed
 
