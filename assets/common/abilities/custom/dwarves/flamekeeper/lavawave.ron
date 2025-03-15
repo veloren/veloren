@@ -15,6 +15,6 @@ Shockwave(
     damage_kind: Crushing,
     specifier: Fire,
     ori_rate: 1.0,
-    timing: PostBuildup,
+    timing: PostAction,
     emit_outcome: true,
 )
