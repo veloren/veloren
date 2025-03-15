@@ -48,17 +48,10 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
         // - deduplicating them
         // - generating resize events for the ui
         // - ensuring consistent sizes are passed to the ui and to the renderer
-        if matches!(&event, winit::event::Event::WindowEvent {
+        if !matches!(&event, winit::event::Event::WindowEvent {
             event: winit::event::WindowEvent::Resized(_),
             ..
         }) {
-            // Save new window state in settings
-            let scale = global_state.window.window().scale_factor();
-            let size = global_state.window.window().inner_size().to_logical(scale);
-            global_state.settings.graphics.window.size = [size.width, size.height];
-            global_state.settings.graphics.window.maximised =
-                global_state.window.window().is_maximized();
-        } else {
             // Get events for the ui.
             if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
                 global_state.window.send_event(Event::Ui(event));
@@ -152,7 +145,7 @@ fn handle_main_events_cleared(
     // to the game.
     let mut exit = true;
     while let Some(state_result) = states.last_mut().map(|last| {
-        let events = global_state.window.fetch_events();
+        let events = global_state.window.fetch_events(&mut global_state.settings);
         last.tick(global_state, events)
     }) {
         // Implement state transfer logic.
@@ -213,7 +206,7 @@ fn handle_main_events_cleared(
     drop(guard);
 
     #[cfg(feature = "egui-ui")]
-    let scale_factor = global_state.window.window().scale_factor() as f32;
+    let scale_factor = global_state.window.scale_factor() as f32;
 
     if let Some(last) = states.last_mut() {
         capped_fps = last.capped_fps();
