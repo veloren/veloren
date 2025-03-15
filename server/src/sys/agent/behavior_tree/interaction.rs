@@ -220,7 +220,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                                 );
                             } else {
                                 agent_data.chat_npc_if_allowed_to_speak(
-                                    Content::localized("npc-speech-merchant_busy"),
+                                    Content::localized("npc-speech-merchant_busy_trading"),
                                     agent,
                                     emitters,
                                 );
@@ -336,7 +336,7 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
             } else {
                 controller.push_invite_response(InviteResponse::Decline);
                 agent_data.chat_npc_if_allowed_to_speak(
-                    Content::localized("npc-speech-merchant_busy"),
+                    Content::localized("npc-speech-merchant_busy_trading"),
                     agent,
                     emitters,
                 );
@@ -605,7 +605,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
                     if !target.hostile || target.target != speaker {
                         if agent.behavior.can_trade(agent_data.alignment.copied(), *by) {
                             agent_data.chat_npc_if_allowed_to_speak(
-                                Content::localized("npc-speech-merchant_busy"),
+                                Content::localized("npc-speech-merchant_busy_combat"),
                                 agent,
                                 emitters,
                             );
