@@ -2115,10 +2115,9 @@ impl AgentData<'_> {
 
     pub fn cry_out(&self, agent: &Agent, emitters: &mut AgentEmitters, read_data: &ReadData) {
         let has_enemy_alignment = matches!(self.alignment, Some(Alignment::Enemy));
+        let is_below_flee_health = self.below_flee_health(agent);
 
-        if has_enemy_alignment {
-            // FIXME: If going to use "cultist + low health + fleeing" string, make sure
-            // they are each true.
+        if has_enemy_alignment && is_below_flee_health {
             self.chat_npc_if_allowed_to_speak(
                 Content::localized("npc-speech-cultist_low_health_fleeing"),
                 agent,
