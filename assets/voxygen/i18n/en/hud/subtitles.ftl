@@ -81,6 +81,7 @@ subtitle-instrument_icy_talharpa = Icy Talharpa playing
 subtitle-instrument_kalimba = Kalimba playing
 subtitle-instrument_melodica = Melodica playing
 subtitle-instrument_lute = Lute playing
+subtitle-instrument_oud = Oud playing
 subtitle-instrument_steeldrum = Steeldrum playing
 subtitle-instrument_shamisen = Shamisen playing
 subtitle-instrument_sitar = Sitar playing
