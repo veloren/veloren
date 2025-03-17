@@ -18,6 +18,14 @@ ComboMelee2(
             movement: (
                 swing: Some(Forward(0.5)),
             ),
+            movement_modifier: (
+                recover: Some(0.35),
+            ),
+            ori_modifier: (
+                buildup: Some(0.75),
+                swing: Some(0.25),
+                recover: Some(0.15),
+            ),
         ),
         (
             melee_constructor: (
@@ -36,6 +44,14 @@ ComboMelee2(
             recover_duration: 1.2,
             movement: (
                 swing: Some(Forward(0.5)),
+            ),
+            movement_modifier: (
+                recover: Some(0.35),
+            ),
+            ori_modifier: (
+                buildup: Some(0.75),
+                swing: Some(0.25),
+                recover: Some(0.15),
             ),
         ),
     ],

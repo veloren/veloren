@@ -24,6 +24,14 @@ ComboMelee2(
             movement: (
                 swing: Some(Forward(0.3)),
             ),
+            movement_modifier: (
+                recover: Some(0.35),
+            ),
+            ori_modifier: (
+                buildup: Some(0.75),
+                swing: Some(0.25),
+                recover: Some(0.15),
+            ),
         ),
     ],
     energy_cost_per_strike: 0,
