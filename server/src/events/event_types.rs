@@ -10,7 +10,7 @@ pub use common::event::{
     LandOnGroundEvent, MakeAdminEvent, MineBlockEvent, MountEvent, NpcInteractEvent,
     ParryHookEvent, PoiseChangeEvent, PossessEvent, ProcessTradeActionEvent, RegrowHeadEvent,
     RemoveLightEmitterEvent, RequestPluginsEvent, RequestSiteInfoEvent, RespawnEvent,
-    SetLanternEvent, SetPetStayEvent, ShockwaveEvent, ShootEvent, SoundEvent,
+    SetBattleModeEvent, SetLanternEvent, SetPetStayEvent, ShockwaveEvent, ShootEvent, SoundEvent,
     StartInteractionEvent, StartTeleportingEvent, TamePetEvent, TeleportToEvent,
     TeleportToPositionEvent, ToggleSpriteLightEvent, TransformEvent, UpdateCharacterDataEvent,
     UpdateMapMarkerEvent,
@@ -86,6 +86,7 @@ macro_rules! server_events {
             RequestPluginsEvent
             CreateAuraEntityEvent
             RegrowHeadEvent
+            SetBattleModeEvent
         }
     };
 }

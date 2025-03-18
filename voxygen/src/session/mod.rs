@@ -2134,6 +2134,9 @@ impl PlayState for SessionState {
                     HudEvent::Dialogue(target, dialogue) => {
                         self.client.borrow_mut().perform_dialogue(target, dialogue);
                     },
+                    HudEvent::SetBattleMode(mode) => {
+                        self.client.borrow_mut().set_battle_mode(mode);
+                    },
                 }
             }
 

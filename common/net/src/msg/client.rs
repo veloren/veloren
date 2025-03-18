@@ -4,6 +4,7 @@ use common::{
     character::CharacterId,
     comp::{self, AdminRole, Skill},
     event::PluginHash,
+    resources::BattleMode,
     terrain::block::Block,
 };
 use serde::{Deserialize, Serialize};
@@ -107,6 +108,7 @@ pub enum ClientGeneral {
     UnlockSkill(Skill),
     RequestSiteInfo(SiteId),
     UpdateMapMarker(comp::MapMarkerChange),
+    SetBattleMode(BattleMode),
 
     SpectatePosition(Vec3<f32>),
     //Only in Game, via terrain stream
@@ -168,7 +170,8 @@ impl ClientMsg {
                         | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::RequestPlayerPhysics { .. }
                         | ClientGeneral::RequestLossyTerrainCompression { .. }
-                        | ClientGeneral::UpdateMapMarker(_) => {
+                        | ClientGeneral::UpdateMapMarker(_)
+                        | ClientGeneral::SetBattleMode(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         ClientGeneral::SpectatePosition(_) => {

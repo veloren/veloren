@@ -110,7 +110,7 @@ use common::{
     mounting::{Mount, Rider, VolumePos},
     outcome::Outcome,
     recipe::RecipeBookManifest,
-    resources::{Secs, Time},
+    resources::{BattleMode, Secs, Time},
     rtsim,
     slowjob::SlowJobPool,
     terrain::{Block, SpriteKind, TerrainChunk, UnlockKind},
@@ -758,6 +758,7 @@ pub enum Event {
     AcknowledgePersistenceLoadError,
     MapMarkerEvent(MapMarkerChange),
     Dialogue(EcsEntity, rtsim::Dialogue),
+    SetBattleMode(BattleMode),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -3713,6 +3714,9 @@ impl Hud {
                     social::Event::Invite(uid) => events.push(Event::InviteMember(uid)),
                     social::Event::SearchPlayers(search_key) => {
                         self.show.search_social_players(search_key)
+                    },
+                    social::Event::SetBattleMode(mode) => {
+                        events.push(Event::SetBattleMode(mode));
                     },
                 }
             }

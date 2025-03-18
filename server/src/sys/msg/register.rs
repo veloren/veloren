@@ -102,6 +102,7 @@ impl<'a> System<'a> for Sys {
                             gender: stats.original_body.humanoid_gender(),
                         }),
                         uuid: player.uuid(),
+                        battle_mode: player.battle_mode,
                     }),
                     (player.uuid(), entity),
                 )
@@ -182,6 +183,7 @@ impl<'a> System<'a> for Sys {
                                     is_moderator: admin.is_some(),
                                     character: None, // new players will be on character select.
                                     uuid: player.uuid(),
+                                    battle_mode: player.battle_mode,
                                 })
                                 .map(|player_info| {
                                     // Prepare the player list update to be sent to all clients.

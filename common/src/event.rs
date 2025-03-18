@@ -13,7 +13,7 @@ use crate::{
     lottery::LootSpec,
     mounting::VolumePos,
     outcome::Outcome,
-    resources::Secs,
+    resources::{BattleMode, Secs},
     rtsim::{self, RtSimEntity},
     terrain::SpriteKind,
     trade::{TradeAction, TradeId},
@@ -263,6 +263,11 @@ pub struct TeleportToPositionEvent {
 pub struct RequestPluginsEvent {
     pub entity: EcsEntity,
     pub plugins: Vec<PluginHash>,
+}
+
+pub struct SetBattleModeEvent {
+    pub entity: EcsEntity,
+    pub battle_mode: BattleMode,
 }
 
 // These events are generated in common systems in addition to server systems

@@ -183,6 +183,9 @@ image_ids! {
         social: "voxygen.element.ui.generic.buttons.social",
         social_hover: "voxygen.element.ui.generic.buttons.social_hover",
         social_press: "voxygen.element.ui.generic.buttons.social_press",
+        player_pvp: "voxygen.element.ui.social.player_pvp",
+        pvp_on: "voxygen.element.ui.social.pvp_on",
+        pvp_off: "voxygen.element.ui.social.pvp_off",
 
         map_button: "voxygen.element.ui.generic.buttons.map",
         map_hover: "voxygen.element.ui.generic.buttons.map_hover",
