@@ -4360,9 +4360,22 @@ impl AgentData<'_> {
             self.body.map_or(0.0, |b| b.max_radius()) + MINOTAUR_ATTACK_RANGE;
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());
         let home = agent.patrol_origin.unwrap_or(self.pos.0);
+        let position = Vec2::new(
+            (home.x - tgt_data.pos.0.x) / 2.0,
+            (home.y - tgt_data.pos.0.y) / 2.0,
+        );
         let cheesed_from_above = tgt_data.pos.0.z > self.pos.0.z + 4.0;
         let pillar_cheesed = (tgt_data.pos.0.z > home.z || self.pos.0.z > home.z)
             && agent.combat_state.timers[Timers::CheeseTimer as usize] > 4.0;
+        let goto = if pillar_cheesed {
+            Vec3::new(
+                self.pos.0.x + position.x,
+                self.pos.0.y + position.y,
+                tgt_data.pos.0.z,
+            )
+        } else {
+            tgt_data.pos.0
+        };
         agent.combat_state.timers[Timers::CheeseTimer as usize] += read_data.dt.0;
         agent.combat_state.timers[Timers::CanSeeTarget as usize] += read_data.dt.0;
         let line_of_sight_with_target = || {
@@ -4460,7 +4473,7 @@ impl AgentData<'_> {
             self.path_toward_target(
                 agent,
                 controller,
-                tgt_data.pos.0,
+                goto,
                 read_data,
                 Path::Partial,
                 (attack_data.dist_sqrd
