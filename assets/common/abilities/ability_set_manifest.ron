@@ -1002,6 +1002,11 @@
         secondary: Simple(None, "common.abilities.music.lute"),
         abilities: [],
     ),
+    Custom("Oud"): (
+        primary: Simple(None, "common.abilities.music.oud"),
+        secondary: Simple(None, "common.abilities.music.oud"),
+        abilities: [],
+    ),    
     Custom("Guitar"): (
         primary: Simple(None, "common.abilities.music.guitar"),
         secondary: Simple(None, "common.abilities.music.guitar"),

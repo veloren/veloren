@@ -419,7 +419,7 @@ impl Animation for WieldAnimation {
                                     * Quaternion::rotation_y(2.0 + u_slow * 0.1)
                                     * Quaternion::rotation_z(u_slowalt * 0.1);
                             },
-                            "Lute" | "Shamisen" | "Banjo" => {
+                            "Lute" | "Shamisen" | "Banjo" | "Oud" => {
                                 if speed < 0.5 {
                                     next.head.orientation = Quaternion::rotation_z(head_look.x)
                                         * Quaternion::rotation_x(

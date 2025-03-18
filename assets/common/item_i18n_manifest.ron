@@ -2547,6 +2547,9 @@
             "common.items.tool.instruments.lute",
         ): "weapon-tool-wooden_lute",
         Simple(
+            "common.items.tool.instruments.oud",
+        ): "weapon-tool-wooden_oud",        
+        Simple(
             "common.items.tool.instruments.lyre",
         ): "weapon-tool-wooden_lyre",
         Simple(

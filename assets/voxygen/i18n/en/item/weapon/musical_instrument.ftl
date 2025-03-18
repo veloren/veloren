@@ -21,6 +21,9 @@ weapon-tool-wooden_kalimba = Kalimba
 
 weapon-tool-wooden_lute = Lute
     .desc = Wooden Lute.
+    
+weapon-tool-wooden_oud = Oud
+    .desc = Wooden Oud.    
 
 weapon-tool-wooden_lyre = Lyre
     .desc = Wooden Lyre.

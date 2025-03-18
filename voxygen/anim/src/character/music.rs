@@ -125,6 +125,7 @@ impl Animation for MusicAnimation {
                         "common.abilities.music.guitar"
                         | "common.abilities.music.dark_guitar"
                         | "common.abilities.music.lute"
+                        | "common.abilities.music.oud"
                         | "common.abilities.music.kora"
                         | "common.abilities.music.banjo"
                         | "common.abilities.music.sitar",
@@ -361,6 +362,29 @@ impl Animation for MusicAnimation {
 
                         next.hand_r.position = Vec3::new(
                             -1.0 + s_a.hand.0 - shortealt * 1.25,
+                            6.0 + s_a.hand.1 + shortealt * 2.0,
+                            2.0 + s_a.hand.2 + shortealt * 0.25,
+                        );
+                        next.hand_r.orientation = Quaternion::rotation_x(1.0 + foot * -0.15)
+                            * Quaternion::rotation_y(0.6);
+
+                        next.main.position = Vec3::new(-14.0, 6.0, 4.0);
+                        next.main.orientation = Quaternion::rotation_x(0.1)
+                            * Quaternion::rotation_y(2.0)
+                            * Quaternion::rotation_z(PI / -3.0);
+                    },
+                    Some("common.abilities.music.oud") => {
+                        next.hand_l.position = Vec3::new(
+                            2.0 - s_a.hand.0,
+                            5.0 + s_a.hand.1 + shortealt * -1.0,
+                            2.0 + s_a.hand.2 + shortealt * -1.5,
+                        );
+                        next.hand_l.orientation = Quaternion::rotation_x(1.8 + foot * 0.15)
+                            * Quaternion::rotation_y(-0.6)
+                            * Quaternion::rotation_z(0.8);
+
+                        next.hand_r.position = Vec3::new(
+                            -1.0 + s_a.hand.0 - shortealt * 2.25,
                             6.0 + s_a.hand.1 + shortealt * 2.0,
                             2.0 + s_a.hand.2 + shortealt * 0.25,
                         );

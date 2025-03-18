@@ -782,6 +782,20 @@
             threshold: 0.5,
             subtitle: "subtitle-instrument_lute",
         ),
+        Music(Instrument, Custom("Oud")): (
+            files: [
+            "voxygen.audio.sfx.instrument.oud.oud_cgc1",
+            "voxygen.audio.sfx.instrument.oud.oud_cgc1",
+            "voxygen.audio.sfx.instrument.oud.oud_cgc1",
+            "voxygen.audio.sfx.instrument.oud.oud_cgc1",
+            "voxygen.audio.sfx.instrument.oud.oud_dad1",
+            "voxygen.audio.sfx.instrument.oud.oud_ege1",
+            "voxygen.audio.sfx.instrument.oud.oud_gd1g1",
+            "voxygen.audio.sfx.instrument.oud.oud_ac1a1",
+            ],
+            threshold: 0.5,
+            subtitle: "subtitle-instrument_oud",
+        ),        
         Music(Instrument, Custom("Steeltonguedrum")): (
             files: [
             "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_eg",
