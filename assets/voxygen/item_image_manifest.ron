@@ -1681,11 +1681,11 @@
     ),
     Simple("common.items.tool.instruments.lute"): VoxTrans(
         "voxel.weapon.tool.wooden_lute",
-        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
     Simple("common.items.tool.instruments.oud"): VoxTrans(
         "voxel.weapon.tool.wooden_oud",
-        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),    
     Simple("common.items.tool.instruments.steeltonguedrum"): VoxTrans(
         "voxel.weapon.tool.steeltonguedrum",
