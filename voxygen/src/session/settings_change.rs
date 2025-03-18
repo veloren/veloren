@@ -104,7 +104,6 @@ pub enum Graphics {
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
     ToggleWeaponTrailsEnabled(bool),
-    AdjustWindowSize([u16; 2]),
 
     ResetGraphicsSettings,
     ChangeGraphicsSettings(Rc<dyn Fn(GraphicsSettings) -> GraphicsSettings>),
@@ -515,10 +514,6 @@ impl SettingsChange {
                     },
                     Graphics::ToggleWeaponTrailsEnabled(weapon_trails_enabled) => {
                         settings.graphics.weapon_trails_enabled = weapon_trails_enabled;
-                    },
-                    Graphics::AdjustWindowSize(new_size) => {
-                        global_state.window.set_size(new_size.into());
-                        settings.graphics.window.size = new_size;
                     },
                     Graphics::ResetGraphicsSettings => {
                         settings.graphics = GraphicsSettings::default();

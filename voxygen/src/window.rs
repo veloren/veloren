@@ -565,11 +565,15 @@ impl Window {
     }
 
     #[expect(clippy::get_first)]
-    pub fn fetch_events(&mut self) -> Vec<Event> {
+    pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         span!(_guard, "fetch_events", "Window::fetch_events");
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
-            let logical_size = self.logical_size();
+            let scale_factor = self.window.scale_factor();
+            let physical = self.window.inner_size();
+
+            let logical_size =
+                Vec2::from(<(f64, f64)>::from(physical.to_logical::<f64>(scale_factor)));
             self.events
                 .push(Event::Ui(ui::Event::new_resize(logical_size)));
             self.events.push(Event::IcedUi(iced::Event::Window(
@@ -578,8 +582,7 @@ impl Window {
                     height: logical_size.y as u32,
                 },
             )));
-            self.events
-                .push(Event::ScaleFactorChanged(self.scale_factor));
+            self.events.push(Event::ScaleFactorChanged(scale_factor));
             self.needs_refresh_resize = false;
         }
 
@@ -590,18 +593,18 @@ impl Window {
             // have happened since, making the value outdated, so we must query directly
             // from the window to prevent errors
             let physical = self.window.inner_size();
+            let scale_factor = self.window.scale_factor();
+            let is_maximized = self.window.is_maximized();
 
             self.renderer
                 .on_resize(Vec2::new(physical.width, physical.height));
-            // TODO: update users of this event with the fact that it is now the physical
-            // size
-            let winit::dpi::PhysicalSize { width, height } = physical;
-            self.events.push(Event::Resize(Vec2::new(width, height)));
+            self.events
+                .push(Event::Resize(Vec2::new(physical.width, physical.height)));
+
+            let logical_size =
+                Vec2::from(<(f64, f64)>::from(physical.to_logical::<f64>(scale_factor)));
 
             // Emit event for the UI
-            let logical_size = Vec2::from(Into::<(f64, f64)>::into(
-                physical.to_logical::<f64>(self.window.scale_factor()),
-            ));
             self.events
                 .push(Event::Ui(ui::Event::new_resize(logical_size)));
             self.events.push(Event::IcedUi(iced::Event::Window(
@@ -610,6 +613,10 @@ impl Window {
                     height: logical_size.y as u32,
                 },
             )));
+
+            // Save new window state in settings
+            settings.graphics.window.size = [logical_size.x as u32, logical_size.y as u32];
+            settings.graphics.window.maximised = is_maximized;
         }
 
         // Receive any messages sent through the message channel
@@ -1328,16 +1335,7 @@ impl Window {
 
     pub fn needs_refresh_resize(&mut self) { self.needs_refresh_resize = true; }
 
-    pub fn logical_size(&self) -> Vec2<f64> {
-        let (w, h) = self
-            .window
-            .inner_size()
-            .to_logical::<f64>(self.window.scale_factor())
-            .into();
-        Vec2::new(w, h)
-    }
-
-    pub fn set_size(&mut self, new_size: Vec2<u16>) {
+    pub fn set_size(&mut self, new_size: Vec2<u32>) {
         self.window.set_inner_size(winit::dpi::LogicalSize::new(
             new_size.x as f64,
             new_size.y as f64,
@@ -1450,7 +1448,7 @@ pub enum FullscreenMode {
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct WindowSettings {
-    pub size: [u16; 2],
+    pub size: [u32; 2],
     pub maximised: bool,
 }
 

@@ -17,9 +17,10 @@ pub struct EguiState {
 
 impl EguiState {
     pub fn new(window: &Window) -> Self {
+        let inner_size = window.window().inner_size();
         let platform = Platform::new(PlatformDescriptor {
-            physical_width: window.window().inner_size().width,
-            physical_height: window.window().inner_size().height,
+            physical_width: inner_size.width,
+            physical_height: inner_size.height,
             scale_factor: window.scale_factor(),
             font_definitions: FontDefinitions::default(),
             style: Default::default(),

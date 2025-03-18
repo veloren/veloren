@@ -305,7 +305,7 @@ impl Widget for Chat<'_> {
             }
         });
 
-        let chat_in_screen_upper = chat_pos.y > self.global_state.window.logical_size().y / 2.0;
+        let chat_in_screen_upper = chat_pos.y > ui.win_h / 2.0;
 
         let pos_delta: Vec2<f64> = ui
             .widget_input(state.ids.draggable_area)
@@ -314,8 +314,7 @@ impl Widget for Chat<'_> {
             .map(|drag| Vec2::<f64>::from(drag.delta_xy))
             .sum();
         let new_pos = (chat_pos + pos_delta).map(|e| e.max(0.)).map2(
-            self.scale
-                .scale_point(self.global_state.window.logical_size())
+            self.scale.scale_point(Vec2::new(ui.win_w, ui.win_h))
                 - Vec2::unit_y() * CHAT_TAB_HEIGHT
                 - chat_size,
             |e, bounds| e.min(bounds),
@@ -336,8 +335,7 @@ impl Widget for Chat<'_> {
                 |sz, min, max| sz.clamp(min, max),
             )
             .map2(
-                self.scale
-                    .scale_point(self.global_state.window.logical_size())
+                self.scale.scale_point(Vec2::new(ui.win_w, ui.win_h))
                     - Vec2::unit_y() * CHAT_TAB_HEIGHT
                     - new_pos,
                 |e, bounds| e.min(bounds),
