@@ -7,6 +7,7 @@ use common::event::{
 };
 use common_base::span;
 use hashbrown::HashSet;
+use player::handle_set_battle_mode;
 use specs::{
     DispatcherBuilder, Entity as EcsEntity, ReadExpect, WorldExt, WriteExpect,
     shred::SendDispatcher,
@@ -196,6 +197,7 @@ impl Server {
         self.handle_serial_events(handle_mount);
         self.handle_serial_events(handle_tame_pet);
         self.handle_serial_events(handle_process_trade_action);
+        self.handle_serial_events(handle_set_battle_mode);
     }
 
     pub fn handle_events(&mut self) -> Vec<Event> {

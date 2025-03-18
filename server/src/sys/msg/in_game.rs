@@ -49,6 +49,7 @@ event_emitters! {
         request_site_info: event::RequestSiteInfoEvent,
         update_map_marker: event::UpdateMapMarkerEvent,
         client_disconnect: event::ClientDisconnectEvent,
+        set_battle_mode: event::SetBattleModeEvent,
     }
 }
 
@@ -250,6 +251,12 @@ impl Sys {
                         position.0 = pos;
                     }
                 }
+            },
+            ClientGeneral::SetBattleMode(battle_mode) => {
+                emitters.emit(event::SetBattleModeEvent {
+                    entity,
+                    battle_mode,
+                });
             },
             ClientGeneral::RequestCharacterList
             | ClientGeneral::CreateCharacter { .. }

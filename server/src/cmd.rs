@@ -4938,110 +4938,23 @@ fn handle_ban_ip(
 fn handle_battlemode(
     server: &mut Server,
     client: EcsEntity,
-    target: EcsEntity,
+    _target: EcsEntity,
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    // TODO: discuss time
-    const COOLDOWN: f64 = 60.0 * 5.0;
-
-    let ecs = server.state.ecs();
-    let time = ecs.read_resource::<Time>();
-    let settings = ecs.read_resource::<Settings>();
-    if let Some(mode) = parse_cmd_args!(args, String) {
-        if !settings.gameplay.battle_mode.allow_choosing() {
-            return Err(Content::localized("command-disabled-by-settings"));
-        }
-
-        #[cfg(feature = "worldgen")]
-        let in_town = {
-            // get chunk position
-            let pos = position(server, target, "target")?;
-            let wpos = pos.0.xy().map(|x| x as i32);
-            let chunk_pos = wpos.wpos_to_cpos();
-            server.world.civs().sites().any(|site| {
-                // empirical
-                const RADIUS: f32 = 9.0;
-                let delta = site
-                    .center
-                    .map(|x| x as f32)
-                    .distance(chunk_pos.map(|x| x as f32));
-                delta < RADIUS
-            })
-        };
-        // just skip this check, if worldgen is disabled
-        #[cfg(not(feature = "worldgen"))]
-        let in_town = true;
-
-        if !in_town {
-            return Err(Content::localized("command-battlemode-intown"));
-        }
-
-        let mut players = ecs.write_storage::<comp::Player>();
-        let mut player_info = players.get_mut(target).ok_or_else(|| {
-            error!("Can't get player component for player");
-            Content::Plain("Error!".to_string())
-        })?;
-        if let Some(Time(last_change)) = player_info.last_battlemode_change {
-            let Time(time) = *time;
-            let elapsed = time - last_change;
-            if elapsed < COOLDOWN {
-                return Err(Content::localized_with_args(
-                    "command-battlemode-cooldown",
-                    [("cooldown", format!("{:.0}", COOLDOWN - elapsed))],
-                ));
-            }
-        }
-        let mode = match mode.as_str() {
+    if let Some(argument) = parse_cmd_args!(args, String) {
+        let battle_mode = match argument.as_str() {
             "pvp" => BattleMode::PvP,
             "pve" => BattleMode::PvE,
             _ => return Err(Content::localized("command-battlemode-available-modes")),
         };
-        if player_info.battle_mode == mode {
-            return Err(Content::localized("command-battlemode-same"));
-        }
-        player_info.battle_mode = mode;
-        player_info.last_battlemode_change = Some(*time);
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(
-                ChatType::CommandInfo,
-                Content::localized_with_args("command-battlemode-updated", [(
-                    "battlemode",
-                    format!("{mode:?}"),
-                )]),
-            ),
-        );
-        Ok(())
-    } else {
-        let players = ecs.read_storage::<comp::Player>();
-        let player = players.get(target).ok_or_else(|| {
-            error!("Can't get player component for player");
-            Content::Plain("Error!".to_string())
-        })?;
-        let mut msg = format!("Current battle mode: {:?}.", player.battle_mode);
-        if settings.gameplay.battle_mode.allow_choosing() {
-            msg.push_str(" Possible to change.");
-        } else {
-            msg.push_str(" Global.");
-        }
-        if let Some(change) = player.last_battlemode_change {
-            let Time(time) = *time;
-            let Time(change) = change;
-            let elapsed = time - change;
-            let next = COOLDOWN - elapsed;
 
-            if next > 0.0 {
-                let notice = format!(" Next change will be available in: {:.0} seconds", next);
-                msg.push_str(&notice);
-            }
-        }
-        server.notify_client(
-            client,
-            ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(msg)),
-        );
-        Ok(())
+        server.set_battle_mode_for(client, battle_mode);
+    } else {
+        server.get_battle_mode_for(client);
     }
+
+    Ok(())
 }
 
 fn handle_battlemode_force(
@@ -5053,20 +4966,24 @@ fn handle_battlemode_force(
 ) -> CmdResult<()> {
     let ecs = server.state.ecs();
     let settings = ecs.read_resource::<Settings>();
+
     if !settings.gameplay.battle_mode.allow_choosing() {
         return Err(Content::localized("command-disabled-by-settings"));
     }
+
     let mode = parse_cmd_args!(args, String).ok_or_else(|| action.help_content())?;
     let mode = match mode.as_str() {
         "pvp" => BattleMode::PvP,
         "pve" => BattleMode::PvE,
         _ => return Err(Content::localized("command-battlemode-available-modes")),
     };
+
     let mut players = ecs.write_storage::<comp::Player>();
     let mut player_info = players.get_mut(target).ok_or(Content::Plain(
         "Cannot get player component for target".to_string(),
     ))?;
     player_info.battle_mode = mode;
+
     server.notify_client(
         client,
         ServerGeneral::server_msg(

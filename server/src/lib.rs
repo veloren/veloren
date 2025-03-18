@@ -66,13 +66,15 @@ use censor::Censor;
 #[cfg(not(feature = "worldgen"))]
 use common::grid::Grid;
 #[cfg(feature = "worldgen")]
+use common::terrain::CoordinateConversions;
+#[cfg(feature = "worldgen")]
 use common::terrain::TerrainChunkSize;
 use common::{
     assets::AssetExt,
     calendar::Calendar,
     character::{CharacterId, CharacterItem},
     cmd::ServerChatCommand,
-    comp,
+    comp::{self, ChatType, Content},
     event::{
         ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent, EventBus, ExitIngameEvent,
         UpdateCharacterDataEvent,
@@ -85,13 +87,14 @@ use common::{
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
     terrain::TerrainChunk,
+    uid::Uid,
     util::GIT_DATE_TIMESTAMP,
     vol::RectRasterableVol,
 };
 use common_base::prof_span;
 use common_ecs::run_now;
 use common_net::{
-    msg::{ClientType, DisconnectReason, ServerGeneral, ServerInfo, ServerMsg},
+    msg::{ClientType, DisconnectReason, PlayerListUpdate, ServerGeneral, ServerInfo, ServerMsg},
     sync::WorldSyncExt,
 };
 use common_state::{AreasContainer, BlockDiff, BuildArea, State};
@@ -142,6 +145,12 @@ pub use world::{
     IndexOwned, World,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, GenOpts, WorldOpts},
 };
+
+/// Number of seconds a player must wait before they can change their battle
+/// mode after each change.
+///
+/// TODO: Discuss time
+const BATTLE_MODE_COOLDOWN: f64 = 60.0 * 5.0;
 
 /// SpawnPoint corresponds to the default location that players are positioned
 /// at if they have no waypoint. Players *should* always have a waypoint, so
@@ -1550,6 +1559,196 @@ impl Server {
     pub fn disconnect_all_clients(&mut self) {
         info!("Disconnecting all clients due to local console command");
         self.disconnect_all_clients_requested = true;
+    }
+
+    /// Sends the given client a message with their current battle mode and
+    /// whether they can change it.
+    ///
+    /// This function expects the `EcsEntity` to represent a player, otherwise
+    /// it will log an error.
+    pub fn get_battle_mode_for(&mut self, client: EcsEntity) {
+        let ecs = self.state.ecs();
+        let time = ecs.read_resource::<Time>();
+        let settings = ecs.read_resource::<Settings>();
+        let players = ecs.read_storage::<comp::Player>();
+        let get_player_result = players.get(client).ok_or_else(|| {
+            error!("Can't get player component for client.");
+
+            Content::Plain("Can't get player component for client.".to_string())
+        });
+        let player = match get_player_result {
+            Ok(player) => player,
+            Err(content) => {
+                self.notify_client(
+                    client,
+                    ServerGeneral::server_msg(ChatType::CommandError, content),
+                );
+                return;
+            },
+        };
+
+        let mut msg = format!("Current battle mode: {:?}.", player.battle_mode);
+
+        if settings.gameplay.battle_mode.allow_choosing() {
+            msg.push_str(" Possible to change.");
+        } else {
+            msg.push_str(" Global.");
+        }
+
+        if let Some(change) = player.last_battlemode_change {
+            let Time(time) = *time;
+            let Time(change) = change;
+            let elapsed = time - change;
+            let next = BATTLE_MODE_COOLDOWN - elapsed;
+
+            if next > 0.0 {
+                let notice = format!(" Next change will be available in: {:.0} seconds", next);
+                msg.push_str(&notice);
+            }
+        }
+
+        self.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, Content::Plain(msg)),
+        );
+    }
+
+    /// Sets the battle mode for the given client or informs them if they are
+    /// not allowed to change it.
+    ///
+    /// This function expects the `EcsEntity` to represent a player, otherwise
+    /// it will log an error.
+    pub fn set_battle_mode_for(&mut self, client: EcsEntity, battle_mode: BattleMode) {
+        let ecs = self.state.ecs();
+        let time = ecs.read_resource::<Time>();
+        let settings = ecs.read_resource::<Settings>();
+
+        if !settings.gameplay.battle_mode.allow_choosing() {
+            self.notify_client(
+                client,
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    Content::localized("command-disabled-by-settings"),
+                ),
+            );
+
+            return;
+        }
+
+        #[cfg(feature = "worldgen")]
+        let in_town = {
+            let pos = if let Some(pos) = self
+                .state
+                .ecs()
+                .read_storage::<comp::Pos>()
+                .get(client)
+                .copied()
+            {
+                pos
+            } else {
+                self.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        Content::localized_with_args("command-position-unavailable", [(
+                            "target", "target",
+                        )]),
+                    ),
+                );
+
+                return;
+            };
+
+            let wpos = pos.0.xy().map(|x| x as i32);
+            let chunk_pos = wpos.wpos_to_cpos();
+            self.world.civs().sites().any(|site| {
+                // empirical
+                const RADIUS: f32 = 9.0;
+                let delta = site
+                    .center
+                    .map(|x| x as f32)
+                    .distance(chunk_pos.map(|x| x as f32));
+                delta < RADIUS
+            })
+        };
+
+        #[cfg(not(feature = "worldgen"))]
+        let in_town = true;
+
+        if !in_town {
+            self.notify_client(
+                client,
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    Content::localized("command-battlemode-intown"),
+                ),
+            );
+
+            return;
+        }
+
+        let mut players = ecs.write_storage::<comp::Player>();
+        let mut player = if let Some(info) = players.get_mut(client) {
+            info
+        } else {
+            error!("Failed to get info for player.");
+
+            return;
+        };
+
+        if let Some(Time(last_change)) = player.last_battlemode_change {
+            let Time(time) = *time;
+            let elapsed = time - last_change;
+            if elapsed < BATTLE_MODE_COOLDOWN {
+                let next = BATTLE_MODE_COOLDOWN - elapsed;
+
+                self.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        Content::Plain(format!(
+                            "Next change will be available in {next:.0} seconds."
+                        )),
+                    ),
+                );
+
+                return;
+            }
+        }
+
+        if player.battle_mode == battle_mode {
+            self.notify_client(
+                client,
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    Content::localized("command-battlemode-same"),
+                ),
+            );
+
+            return;
+        }
+
+        player.battle_mode = battle_mode;
+        player.last_battlemode_change = Some(*time);
+
+        self.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::localized_with_args("command-battlemode-updated", [(
+                    "battlemode",
+                    format!("{battle_mode:?}"),
+                )]),
+            ),
+        );
+
+        drop(players);
+
+        let uid = ecs.read_storage::<Uid>().get(client).copied().unwrap();
+
+        self.state().notify_players(ServerGeneral::PlayerListUpdate(
+            PlayerListUpdate::UpdateBattleMode(uid, battle_mode),
+        ));
     }
 }
 

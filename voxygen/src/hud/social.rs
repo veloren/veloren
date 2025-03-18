@@ -3,8 +3,9 @@ use super::{
     img_ids::{Imgs, ImgsRot},
 };
 use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts};
+use chumsky::chain::Chain;
 use client::{self, Client};
-use common::{comp::group, uid::Uid};
+use common::{comp::group, resources::BattleMode, uid::Uid};
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
@@ -25,6 +26,9 @@ widget_ids! {
         scrollbar,
         online_align,
         player_names[],
+        player_pvp_icons[],
+        player_rows[],
+        player_mod_badges[],
         online_txt,
         online_no,
         invite_button,
@@ -32,6 +36,8 @@ widget_ids! {
         player_search_input,
         player_search_input_bg,
         player_search_input_overlay,
+        pvp_button_on,
+        pvp_button_off,
     }
 }
 
@@ -87,6 +93,7 @@ pub enum Event {
     Invite(Uid),
     Focus(widget::Id),
     SearchPlayers(Option<String>),
+    SetBattleMode(BattleMode),
 }
 
 impl Widget for Social<'_> {
@@ -105,6 +112,7 @@ impl Widget for Social<'_> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Social::update");
+        let battle_mode = self.client.get_battle_mode();
         let widget::UpdateArgs { state, ui, .. } = args;
         let mut events = Vec::new();
         let button_tooltip = Tooltip::new({
@@ -129,13 +137,13 @@ impl Widget for Social<'_> {
         Image::new(self.imgs.social_bg_on)
             .bottom_left_with_margins_on(ui.window, 308.0, 25.0)
             .color(Some(UI_MAIN))
-            .w_h(280.0, 460.0)
+            .w_h(310.0, 460.0)
             .set(state.ids.bg, ui);
         // Window frame
         Image::new(self.imgs.social_frame_on)
             .middle_of(state.ids.bg)
             .color(Some(UI_HIGHLIGHT_0))
-            .w_h(280.0, 460.0)
+            .w_h(310.0, 460.0)
             .set(state.ids.frame, ui);
 
         // Icon
@@ -174,7 +182,7 @@ impl Widget for Social<'_> {
         let player_count = players.clone().count();
 
         // Content Alignment
-        Rectangle::fill_with([270.0, 346.0], color::TRANSPARENT)
+        Rectangle::fill_with([310.0, 346.0], color::TRANSPARENT)
             .mid_top_with_margin_on(state.ids.frame, 74.0)
             .scroll_kids_vertically()
             .set(state.ids.online_align, ui);
@@ -200,8 +208,17 @@ impl Widget for Social<'_> {
         if state.ids.player_names.len() < player_count {
             state.update(|s| {
                 s.ids
+                    .player_rows
+                    .resize(player_count, &mut ui.widget_id_generator());
+                s.ids
                     .player_names
-                    .resize(player_count, &mut ui.widget_id_generator())
+                    .resize(player_count, &mut ui.widget_id_generator());
+                s.ids
+                    .player_pvp_icons
+                    .resize(player_count, &mut ui.widget_id_generator());
+                s.ids
+                    .player_mod_badges
+                    .resize(player_count, &mut ui.widget_id_generator());
             })
         };
 
@@ -254,9 +271,14 @@ impl Widget for Social<'_> {
                 },
                 None => format!(
                     "{} [{}]",
-                    alias.clone(),
+                    alias,
                     self.localized_strings.get_msg("hud-group-in_menu")
                 ), // character select or spectating
+            };
+            let name_text_length_limited = if name_text.len() > 29 {
+                format!("{}...", name_text.chars().take(26).collect::<String>())
+            } else {
+                name_text
             };
             let acc_name_txt = format!(
                 "{}: {}",
@@ -279,7 +301,7 @@ impl Widget for Social<'_> {
             } else {
                 self.imgs.selection_press
             })
-            .w_h(260.0, 20.0)
+            .w_h(256.0, 20.0)
             .image_color(color::rgba(1.0, 0.82, 0.27, 1.0));
             let button = if i == 0 {
                 button.mid_top_with_margin_on(state.ids.online_align, 1.0)
@@ -287,11 +309,12 @@ impl Widget for Social<'_> {
                 button.down_from(state.ids.player_names[i - 1], 1.0)
             };
             if button
-                .label(&name_text)
+                .label(&name_text_length_limited)
                 .label_font_size(self.fonts.cyri.scale(14))
                 .label_y(conrod_core::position::Relative::Scalar(1.0))
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_color(TEXT_COLOR)
+                .depth(1.0)
                 .with_tooltip(
                     self.tooltip_manager,
                     &acc_name_txt,
@@ -303,6 +326,44 @@ impl Widget for Social<'_> {
                 .was_clicked()
             {
                 state.update(|s| s.selected_uid = Some((uid, Instant::now())));
+            }
+
+            // Player name row background
+            if i % 2 != 0 {
+                Rectangle::fill_with([300.0, 20.0], color::rgba(1.0, 1.0, 1.0, 0.025))
+                    .middle_of(state.ids.player_names[i])
+                    .depth(2.0)
+                    .set(state.ids.player_rows[i], ui);
+            }
+
+            // Moderator Badge
+            if player_info.is_moderator {
+                Image::new(self.imgs.chat_moderator_badge)
+                    .w_h(20.0, 20.0)
+                    .right_from(state.ids.player_names[i], 0.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "",
+                        "This player is a moderator.",
+                        &button_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.ids.player_mod_badges[i], ui);
+            }
+
+            // PvP Icon
+            if let BattleMode::PvP = player_info.battle_mode {
+                Image::new(self.imgs.player_pvp)
+                    .w_h(20.0, 20.0)
+                    .left_from(state.ids.player_names[i], 0.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "",
+                        "This player has PvP enabled.",
+                        &button_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.ids.player_pvp_icons[i], ui);
             }
         }
 
@@ -350,7 +411,13 @@ impl Widget for Social<'_> {
         let invite_text = self.localized_strings.get_msg("hud-group-invite");
         let invite_button = Button::image(self.imgs.button)
             .w_h(106.0, 26.0)
-            .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
+            .left_from(
+                match battle_mode {
+                    BattleMode::PvE => state.ids.pvp_button_off,
+                    BattleMode::PvP => state.ids.pvp_button_on,
+                },
+                5.0,
+            )
             .hover_image(if selected_to_invite.is_some() {
                 self.imgs.button_hover
             } else {
@@ -437,6 +504,60 @@ impl Widget for Social<'_> {
             .top_left_with_margins_on(state.ids.player_search_icon, -1.0, 0.0)
             .graphics_for(state.ids.player_search_icon)
             .set(state.ids.player_search_input_overlay, ui);
+
+        let pvp_tooltip = Tooltip::new({
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(self.fonts.cyri.scale(15))
+        .parent(ui.window)
+        .desc_font_size(self.fonts.cyri.scale(12))
+        .font_id(self.fonts.cyri.conrod_id)
+        .desc_text_color(TEXT_COLOR);
+
+        // PvP Toggle Button
+        match battle_mode {
+            BattleMode::PvE => {
+                if Button::image(self.imgs.pvp_off)
+                    .w_h(26.0, 26.0)
+                    .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "",
+                        "PvP is off. Click to enable PvP.",
+                        &pvp_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.ids.pvp_button_off, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::SetBattleMode(BattleMode::PvP))
+                };
+            },
+            BattleMode::PvP => {
+                if Button::image(self.imgs.pvp_on)
+                    .w_h(26.0, 26.0)
+                    .bottom_right_with_margins_on(state.ids.frame, 9.0, 7.0)
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        "",
+                        "PvP is on. Click to disable PvP.",
+                        &pvp_tooltip,
+                        TEXT_COLOR,
+                    )
+                    .set(state.ids.pvp_button_on, ui)
+                    .was_clicked()
+                {
+                    events.push(Event::SetBattleMode(BattleMode::PvE))
+                }
+            },
+        }
 
         events
     }

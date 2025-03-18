@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     comp::{self, Content, Presence, PresenceKind, group, pet::is_tameable},
-    event::{DeleteCharacterEvent, PossessEvent},
+    event::{DeleteCharacterEvent, PossessEvent, SetBattleModeEvent},
     resources::Time,
     uid::{IdMaps, Uid},
 };
@@ -597,6 +597,7 @@ pub fn handle_possess(
                         }
                     }),
                     uuid: player.uuid(),
+                    battle_mode: player.battle_mode,
                 },
             ));
             let remove_player_msg =
@@ -670,4 +671,14 @@ pub fn handle_possess(
             );
         }
     }
+}
+
+pub fn handle_set_battle_mode(
+    server: &mut Server,
+    SetBattleModeEvent {
+        entity,
+        battle_mode,
+    }: SetBattleModeEvent,
+) {
+    server.set_battle_mode_for(entity, battle_mode);
 }

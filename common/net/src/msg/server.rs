@@ -13,7 +13,7 @@ use common::{
     lod,
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
-    resources::{Time, TimeOfDay, TimeScale},
+    resources::{BattleMode, Time, TimeOfDay, TimeScale},
     rtsim,
     shared_server_config::ServerConstants,
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
@@ -257,6 +257,7 @@ pub enum PlayerListUpdate {
     Moderator(Uid, bool),
     Remove(Uid),
     Alias(Uid, String),
+    UpdateBattleMode(Uid, BattleMode),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -266,6 +267,7 @@ pub struct PlayerInfo {
     pub player_alias: String,
     pub character: Option<CharacterInfo>,
     pub uuid: Uuid,
+    pub battle_mode: BattleMode,
 }
 
 /// used for localisation, filled by client and used by i18n code

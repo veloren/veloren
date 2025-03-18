@@ -36,7 +36,7 @@ use common::{
     mounting::{Rider, VolumePos, VolumeRider},
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
-    resources::{GameMode, PlayerEntity, Time, TimeOfDay},
+    resources::{BattleMode, GameMode, PlayerEntity, Time, TimeOfDay},
     rtsim,
     shared_server_config::ServerConstants,
     spiral::Spiral2d,
@@ -1198,7 +1198,8 @@ impl Client {
                     | ClientGeneral::RequestPlayerPhysics { .. }
                     | ClientGeneral::RequestLossyTerrainCompression { .. }
                     | ClientGeneral::UpdateMapMarker(_)
-                    | ClientGeneral::SpectatePosition(_) => {
+                    | ClientGeneral::SpectatePosition(_)
+                    | ClientGeneral::SetBattleMode(_) => {
                         #[cfg(feature = "tracy")]
                         {
                             ingame = 1.0;
@@ -2199,6 +2200,29 @@ impl Client {
         }))
     }
 
+    pub fn set_battle_mode(&mut self, battle_mode: BattleMode) {
+        self.send_msg(ClientGeneral::SetBattleMode(battle_mode));
+    }
+
+    pub fn get_battle_mode(&self) -> BattleMode {
+        let uid = if let Some(uid) = self.uid() {
+            uid
+        } else {
+            error!("Client entity does not have a Uid component");
+
+            return BattleMode::PvP;
+        };
+        let player_info = if let Some(player_info) = self.player_list.get(&uid) {
+            player_info
+        } else {
+            error!("Client does not have PlayerInfo for its Uid");
+
+            return BattleMode::PvP;
+        };
+
+        player_info.battle_mode
+    }
+
     /// Execute a single client tick, handle input and update the game state by
     /// the given duration.
     pub fn tick(&mut self, inputs: ControllerInputs, dt: Duration) -> Result<Vec<Event>, Error> {
@@ -2620,6 +2644,20 @@ impl Client {
                         "Received msg to alias player with uid {} to {} but this uid is not in \
                          the player list",
                         uid, new_name
+                    );
+                }
+            },
+            ServerGeneral::PlayerListUpdate(PlayerListUpdate::UpdateBattleMode(
+                uid,
+                battle_mode,
+            )) => {
+                if let Some(player_info) = self.player_list.get_mut(&uid) {
+                    player_info.battle_mode = battle_mode;
+                } else {
+                    warn!(
+                        "Received msg to update battle mode of uid {} to {:?} but this uid is not \
+                         in the player list",
+                        uid, battle_mode
                     );
                 }
             },
