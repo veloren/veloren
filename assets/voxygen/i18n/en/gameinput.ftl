@@ -60,6 +60,7 @@ gameinput-cyclecamera = Cycle camera
 gameinput-crafting = Crafting
 gameinput-fly = Fly
 gameinput-sneak = Sneak
+gameinput-cancelclimb = Cancel climbing
 gameinput-swimdown = Swim downwards
 gameinput-swimup = Swim upwards
 gameinput-mapzoomin = Increase map zoom

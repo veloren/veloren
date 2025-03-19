@@ -62,16 +62,24 @@ pub trait CharacterBehavior {
     fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
-    // start_input has custom implementation in the following character states that
-    // may also need to be modified when changes are made here: ComboMelee2
+    fn on_input(
+        &self,
+        data: &JoinData,
+        _input: InputKind,
+        _output_events: &mut OutputEvents,
+    ) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+
     fn start_input(
         &self,
         data: &JoinData,
         input: InputKind,
         target_entity: Option<Uid>,
         select_pos: Option<Vec3<f32>>,
+        output_events: &mut OutputEvents,
     ) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
+        let mut update = self.on_input(data, input, output_events);
         update.queued_inputs.insert(input, InputAttr {
             select_pos,
             target_entity,
@@ -113,7 +121,7 @@ pub trait CharacterBehavior {
                 input,
                 target_entity,
                 select_pos,
-            } => self.start_input(data, input, target_entity, select_pos),
+            } => self.start_input(data, input, target_entity, select_pos, output_events),
             ControlAction::CancelInput(input) => self.cancel_input(data, input),
         }
     }

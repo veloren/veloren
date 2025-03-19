@@ -888,6 +888,11 @@ impl PlayState for SessionState {
                                     self.client.borrow_mut().toggle_sneak();
                                 }
                             },
+                            GameInput::CancelClimb => {
+                                if state && controlling_char {
+                                    self.client.borrow_mut().cancel_climb();
+                                }
+                            },
                             GameInput::MoveForward => {
                                 if state && global_state.settings.gameplay.stop_auto_walk_on_input {
                                     self.stop_auto_walk();
