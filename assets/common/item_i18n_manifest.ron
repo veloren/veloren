@@ -1814,7 +1814,7 @@
         ): "armor-golemite-shoulder",
         Simple(
             "common.items.armor.golemite.head",
-        ): "armor-golemite-head",
+        ): "armor-golemite-helmet",
         Simple(
             "common.items.armor.ashen.back",
         ): "armor-ashen-back",
@@ -1838,7 +1838,7 @@
         ): "armor-ashen-shoulder",
         Simple(
             "common.items.armor.ashen.head",
-        ): "armor-ashen-head",
+        ): "armor-ashen-helmet",
         Simple(
             "common.items.armor.mail.steel.back",
         ): "armor-mail-steel-back",
