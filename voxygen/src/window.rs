@@ -615,7 +615,12 @@ impl Window {
             )));
 
             // Save new window state in settings
-            settings.graphics.window.size = [logical_size.x as u32, logical_size.y as u32];
+            //
+            // We don't save the size if it's less than 1 because wgpu fails to create a
+            // surface with zero size.
+            if logical_size.x >= 1.0 && logical_size.y >= 1.0 {
+                settings.graphics.window.size = [logical_size.x as u32, logical_size.y as u32];
+            }
             settings.graphics.window.maximised = is_maximized;
         }
 
