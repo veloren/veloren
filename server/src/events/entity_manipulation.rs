@@ -1610,8 +1610,8 @@ impl ServerEvent for ExplosionEvent {
                                 let target_dodging = char_state_b_maybe
                                     .and_then(|cs| cs.roll_attack_immunities())
                                     .is_some_and(|i| i.explosions);
-                                let allow_friendly_fire = ev.explosion.friendly_fire
-                                    || owner_entity.is_some_and(|owner_entity| {
+                                let allow_friendly_fire =
+                                    owner_entity.is_some_and(|owner_entity| {
                                         combat::allow_friendly_fire(
                                             &data.entered_auras,
                                             owner_entity,
@@ -1847,7 +1847,6 @@ impl ServerEvent for BonkEvent {
                                                 min_falloff: 0.75,
                                                 reagent: None,
                                                 terrain: Some((4.0, ColorPreset::Black)),
-                                                friendly_fire: Some(true),
                                             },
                                             attack: Some(ProjectileAttack {
                                                 damage: 40.0,
@@ -1855,6 +1854,7 @@ impl ServerEvent for BonkEvent {
                                                 knockback: None,
                                                 energy: None,
                                                 buff: None,
+                                                friendly_fire: true,
                                             }),
                                             scaled: None,
                                         }

@@ -11,11 +11,11 @@ Throw(
             min_falloff: 0.75,
             reagent: None,
             terrain: Some((4.0, Black)),
-            friendly_fire: Some(true),
         ),
         attack: Some((
             damage: 40,
             poise: Some(100),
+            friendly_fire: true,
         )),
     ),
     projectile_light: None,

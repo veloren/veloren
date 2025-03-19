@@ -211,7 +211,6 @@ impl CharacterBehavior for Data {
                                 radius: data.body.max_radius() * 3.0,
                                 reagent: Some(Reagent::White),
                                 min_falloff: 0.5,
-                                friendly_fire: false,
                             };
                             output_events.emit_server(ExplosionEvent {
                                 pos: data.pos.0,

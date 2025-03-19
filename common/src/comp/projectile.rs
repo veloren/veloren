@@ -70,6 +70,8 @@ pub struct ProjectileAttack {
     pub knockback: Option<f32>,
     pub energy: Option<f32>,
     pub buff: Option<CombatBuff>,
+    #[serde(default)]
+    pub friendly_fire: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -82,7 +84,6 @@ pub enum ProjectileConstructorKind {
         min_falloff: f32,
         reagent: Option<Reagent>,
         terrain: Option<(f32, ColorPreset)>,
-        friendly_fire: Option<bool>,
     },
     Possess,
     Hazard {
@@ -118,14 +119,20 @@ impl ProjectileConstructor {
 
         let instance = rand::random();
         let attack = self.attack.map(|a| {
+            let target = if a.friendly_fire {
+                Some(GroupTarget::All)
+            } else {
+                Some(GroupTarget::OutOfGroup)
+            };
+
             let poise = a.poise.map(|poise| {
-                AttackEffect::new(Some(GroupTarget::OutOfGroup), CombatEffect::Poise(poise))
+                AttackEffect::new(target, CombatEffect::Poise(poise))
                     .with_requirement(CombatRequirement::AnyDamage)
             });
 
             let knockback = a.knockback.map(|kb| {
                 AttackEffect::new(
-                    Some(GroupTarget::OutOfGroup),
+                    target,
                     CombatEffect::Knockback(Knockback {
                         strength: kb,
                         direction: KnockbackDir::Away,
@@ -167,7 +174,7 @@ impl ProjectileConstructor {
                     kind: damage_kind,
                     value: a.damage,
                 },
-                Some(GroupTarget::OutOfGroup),
+                target,
                 instance,
             );
 
@@ -244,7 +251,6 @@ impl ProjectileConstructor {
                 min_falloff,
                 reagent,
                 terrain,
-                friendly_fire,
             } => {
                 let terrain =
                     terrain.map(|(pow, col)| RadiusEffect::TerrainDestruction(pow, col.to_rgb()));
@@ -264,7 +270,6 @@ impl ProjectileConstructor {
                     radius,
                     reagent,
                     min_falloff,
-                    friendly_fire: friendly_fire.unwrap_or(false),
                 };
 
                 Projectile {
@@ -304,7 +309,6 @@ impl ProjectileConstructor {
                     radius,
                     reagent,
                     min_falloff,
-                    friendly_fire: false,
                 };
 
                 Projectile {

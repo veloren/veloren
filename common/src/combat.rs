@@ -35,6 +35,7 @@ use vek::*;
 pub enum GroupTarget {
     InGroup,
     OutOfGroup,
+    All,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -328,7 +329,11 @@ impl Attack {
         for damage in self
             .damages
             .iter()
-            .filter(|d| allow_friendly_fire || d.target.is_none_or(|t| t == target_group))
+            .filter(|d| {
+                allow_friendly_fire
+                    || d.target
+                        .is_none_or(|t| t == GroupTarget::All || t == target_group)
+            })
             .filter(|d| !avoid_damage(d))
         {
             let damage_instance = damage.instance + damage_instance_offset;
@@ -639,7 +644,11 @@ impl Attack {
                     .iter()
                     .flat_map(|stats| stats.effects_on_attack.iter()),
             )
-            .filter(|e| allow_friendly_fire || e.target.is_none_or(|t| t == target_group))
+            .filter(|e| {
+                allow_friendly_fire
+                    || e.target
+                        .is_none_or(|t| t == GroupTarget::All || t == target_group)
+            })
             .filter(|e| !avoid_effect(e))
         {
             let requirements_met = effect.requirements.iter().all(|req| match req {

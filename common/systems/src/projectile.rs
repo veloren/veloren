@@ -3,7 +3,7 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
-        PhysicsState, PickupItem, Player, Poise, Pos, Projectile, Stats, ThrownItem, Vel,
+        PhysicsState, Player, Poise, Pos, Projectile, Stats, Vel,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         object, projectile,
@@ -377,7 +377,6 @@ impl<'a> System<'a> for Sys {
                                 radius: 12.0,
                                 reagent: Some(reagent),
                                 min_falloff: 0.0,
-                                friendly_fire: false,
                             },
                             owner: projectile.owner,
                         });

@@ -3390,7 +3390,6 @@ fn handle_explosion(
             radius: 3.0 * power,
             reagent: None,
             min_falloff: 0.0,
-            friendly_fire: false,
         },
         owner,
     });
@@ -4794,7 +4793,7 @@ fn handle_aura(
         .map(|uid| match aura_target {
             Some(GroupTarget::InGroup) => AuraTarget::GroupOf(uid),
             Some(GroupTarget::OutOfGroup) => AuraTarget::NotGroupOf(uid),
-            None => AuraTarget::All,
+            Some(GroupTarget::All) | None => AuraTarget::All,
         })
         .unwrap_or(AuraTarget::All);
 

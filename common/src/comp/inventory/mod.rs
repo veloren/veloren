@@ -827,6 +827,9 @@ impl Inventory {
     /// Equip an item from a slot in inventory. The currently equipped item will
     /// go into inventory. If the item is going to mainhand, put mainhand in
     /// offhand and place offhand into inventory.
+    /// Since loadout slots cannot currently hold items with an amount larger
+    /// than one, only one item will be taken from the inventory and
+    /// equipped
     #[must_use = "Returned items will be lost if not used"]
     pub fn equip(
         &mut self,
@@ -849,9 +852,12 @@ impl Inventory {
                     let previously_equipped = self.replace_loadout_item(equip_slot, item, time);
 
                     if let Some(previously_equipped) = previously_equipped {
-                        // Cannot fail since we know there is at least one slot the item can be put
-                        // into
-                        let _ = self.push(previously_equipped);
+                        let item_failed_to_push = self.push(previously_equipped);
+                        debug_assert!(
+                            item_failed_to_push.is_ok(),
+                            "Pushing to inventory cannot fail since we know there is at least one \
+                             slot the item can be put into",
+                        );
                     }
                 } else {
                     return self.swap_inventory_loadout(inv_slot, equip_slot, time);

@@ -123,7 +123,6 @@ impl CharacterBehavior for Data {
                             radius: data.body.max_radius() * 4.0,
                             reagent: Some(Reagent::Purple),
                             min_falloff: 0.5,
-                            friendly_fire: false,
                         };
                         let pos =
                             data.pos.0 + (*data.ori.look_dir() * (data.body.max_radius() * 3.0));

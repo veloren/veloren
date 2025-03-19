@@ -1467,7 +1467,8 @@ impl_from_to_str_cmd!(AuraKindVariant, (
 
 impl_from_to_str_cmd!(GroupTarget, (
     InGroup => "in_group",
-    OutOfGroup => "out_of_group"
+    OutOfGroup => "out_of_group",
+    All => "all"
 ));
 
 /// Parse a series of command arguments into values, including collecting all

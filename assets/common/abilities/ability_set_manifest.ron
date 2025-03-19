@@ -1060,6 +1060,7 @@
     Custom("Rhythmo"): (
         primary: Simple(None, "common.abilities.music.rhythmo"),
         secondary: Simple(None, "common.abilities.music.rhythmo"),
+        abilities: [],
     ),
     Custom("Bomb"): (
         primary: Simple(None, "common.abilities.throw.bomb"),
