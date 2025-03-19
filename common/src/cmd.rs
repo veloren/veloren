@@ -45,11 +45,11 @@ impl ChatCommandData {
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub enum KitSpec {
     Item(String),
-    ModularWeapon {
+    ModularWeaponSet {
         tool: comp::tool::ToolKind,
         material: comp::item::Material,
     },
-    ModularWeaponHanded {
+    ModularWeaponHandedRandom {
         tool: comp::tool::ToolKind,
         material: comp::item::Material,
         hands: comp::item::tool::Hands,
@@ -1565,15 +1565,16 @@ mod tests {
                     KitSpec::Item(item_id) => {
                         Item::new_from_asset_expect(item_id);
                     },
-                    KitSpec::ModularWeapon { tool, material } => {
-                        comp::item::modular::random_weapon(*tool, *material, None, &mut rng)
+                    KitSpec::ModularWeaponSet { tool, material } => {
+                        comp::item::modular::generate_weapons(*tool, *material, None)
                             .unwrap_or_else(|_| {
                                 panic!(
-                                    "Failed to synthesize a modular {tool:?} made of {material:?}."
+                                    "Failed to synthesize a modular {tool:?} set made of \
+                                     {material:?}."
                                 )
                             });
                     },
-                    KitSpec::ModularWeaponHanded {
+                    KitSpec::ModularWeaponHandedRandom {
                         tool,
                         material,
                         hands,
@@ -1586,8 +1587,8 @@ mod tests {
                         )
                         .unwrap_or_else(|_| {
                             panic!(
-                                "Failed to synthesize a {hands:?}-handed modular {tool:?} made of \
-                                 {material:?}."
+                                "Failed to synthesize a random {hands:?}-handed modular {tool:?} \
+                                 made of {material:?}."
                             )
                         });
                     },

@@ -2881,11 +2881,11 @@ fn push_item(
             Item::new_from_asset(&item_id)
                 .map_err(|_| Content::Plain(format!("Unknown item: {:#?}", item_id)))?,
         ],
-        KitEntry::Spec(KitSpec::ModularWeapon { tool, material }) => {
+        KitEntry::Spec(KitSpec::ModularWeaponSet { tool, material }) => {
             comp::item::modular::generate_weapons(tool, material, None)
                 .map_err(|err| Content::Plain(format!("{:#?}", err)))?
         },
-        KitEntry::Spec(KitSpec::ModularWeaponHanded {
+        KitEntry::Spec(KitSpec::ModularWeaponHandedRandom {
             tool,
             material,
             hands,
