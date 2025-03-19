@@ -398,6 +398,7 @@ pub enum ModularWeaponCreationError {
     MaterialNotFound,
     PrimaryComponentNotFound,
     SecondaryComponentNotFound,
+    WeaponHandednessNotFound,
 }
 
 /// Check if hand restrictions are compatible.
@@ -511,13 +512,16 @@ pub fn generate_weapons(
                 ability_map,
                 msm,
             );
-            let it = Item::new_from_item_base(
-                ItemBase::Modular(ModularBase::Tool),
-                vec![comp.duplicate(ability_map, msm), secondary],
-                ability_map,
-                msm,
-            );
-            weapons.push(it);
+            let hands = ModularBase::resolve_hands(&[comp.clone(), secondary.clone()]);
+            if compatible_handedness(Some(hands), hand_restriction) {
+                let it = Item::new_from_item_base(
+                    ItemBase::Modular(ModularBase::Tool),
+                    vec![comp.duplicate(ability_map, msm), secondary],
+                    ability_map,
+                    msm,
+                );
+                weapons.push(it);
+            }
         }
     }
 
@@ -544,30 +548,33 @@ pub fn random_weapon(
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand))
-            .collect::<Vec<_>>();
+            .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand));
 
-        let secondary_component = {
-            let def = &secondary_components
-                .choose(&mut rng)
-                .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
-                .0;
-
-            Item::new_from_item_base(
+        let mut weapon_items = Vec::new();
+        for (def, _hand) in secondary_components {
+            let secondary = Item::new_from_item_base(
                 ItemBase::Simple(Arc::clone(def)),
                 Vec::new(),
                 ability_map,
                 msm,
-            )
-        };
+            );
+            let hands = ModularBase::resolve_hands(&[primary_component.clone(), secondary.clone()]);
+            if compatible_handedness(Some(hands), hand_restriction) {
+                let it = Item::new_from_item_base(
+                    ItemBase::Modular(ModularBase::Tool),
+                    vec![primary_component.clone(), secondary],
+                    ability_map,
+                    msm,
+                );
+                weapon_items.push(it);
+            }
+        }
 
-        // Create modular weapon
-        Ok(Item::new_from_item_base(
-            ItemBase::Modular(ModularBase::Tool),
-            vec![primary_component, secondary_component],
-            ability_map,
-            msm,
-        ))
+        // Select modular weapon
+        Ok(weapon_items
+            .choose(&mut rng)
+            .ok_or(ModularWeaponCreationError::WeaponHandednessNotFound)?
+            .clone())
     };
     if let Err(err) = &result {
         let error_str = format!(

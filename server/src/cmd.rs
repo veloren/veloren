@@ -2881,18 +2881,20 @@ fn push_item(
             Item::new_from_asset(&item_id)
                 .map_err(|_| Content::Plain(format!("Unknown item: {:#?}", item_id)))?,
         ],
-        KitEntry::Spec(KitSpec::ModularWeaponSet { tool, material }) => {
-            comp::item::modular::generate_weapons(tool, material, None)
-                .map_err(|err| Content::Plain(format!("{:#?}", err)))?
-        },
-        KitEntry::Spec(KitSpec::ModularWeaponHandedRandom {
+        KitEntry::Spec(KitSpec::ModularWeaponSet {
+            tool,
+            material,
+            hands,
+        }) => comp::item::modular::generate_weapons(tool, material, hands)
+            .map_err(|err| Content::Plain(format!("{:#?}", err)))?,
+        KitEntry::Spec(KitSpec::ModularWeaponRandom {
             tool,
             material,
             hands,
         }) => {
             let mut rng = rand::thread_rng();
             vec![
-                comp::item::modular::random_weapon(tool, material, Some(hands), &mut rng)
+                comp::item::modular::random_weapon(tool, material, hands, &mut rng)
                     .map_err(|err| Content::Plain(format!("{:#?}", err)))?,
             ]
         },
