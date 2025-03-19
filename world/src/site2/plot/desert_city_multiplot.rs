@@ -2,7 +2,10 @@ use super::*;
 use crate::{
     Land,
     assets::AssetHandle,
-    site2::gen::{PrimitiveTransform, spiral_staircase},
+    site2::{
+        gen::{PrimitiveTransform, spiral_staircase},
+        util::sprites::PainterSpriteExt,
+    },
     util::{DIAGONALS, NEIGHBORS, RandomField, Sampler},
 };
 use common::{
@@ -1278,17 +1281,11 @@ impl Structure for DesertCityMultiPlot {
 
                                             // bed
                                             let bed_pos = Vec2::new(
-                                                subplot_center.x - 4,
-                                                subplot_center.y - room_length + 5,
+                                                subplot_center.x - 5,
+                                                subplot_center.y - room_length + 4,
                                             );
 
-                                            painter.rotated_sprite(
-                                                bed_pos.with_z(floor_level),
-                                                // TODO: create bed sprite specific for desert
-                                                // houses
-                                                SpriteKind::BedWoodWoodlandHead,
-                                                4_u8,
-                                            );
+                                            painter.bed_desert(bed_pos.with_z(floor_level), Dir::X);
 
                                             for d in 0..2 {
                                                 // other sprites
@@ -1572,17 +1569,40 @@ impl Structure for DesertCityMultiPlot {
                                     let sprite_pos = (bldg_b_center
                                         + (dir * ((2 * tower_length) - 4)))
                                         .with_z(base + ((tower_height / 2) * h));
-                                    painter.sprite(
-                                        sprite_pos,
-                                        match (RandomField::new(0).get(sprite_pos)) % 6 {
-                                            0 => SpriteKind::DrawerWoodWoodlandS,
-                                            1 => SpriteKind::ChairWoodWoodland,
-                                            2 => SpriteKind::CoatrackWoodWoodland,
-                                            3 => SpriteKind::BenchWoodWoodland,
-                                            4 => SpriteKind::BenchWoodWoodlandGreen1,
-                                            _ => SpriteKind::DiningtableWoodWoodlandRound,
-                                        },
-                                    );
+                                    match (RandomField::new(0).get(sprite_pos)) % 9 {
+                                        0 => painter
+                                            .sprite(sprite_pos, SpriteKind::DrawerWoodWoodlandS),
+                                        1 => painter
+                                            .sprite(sprite_pos, SpriteKind::ChairWoodWoodland),
+                                        2 => painter
+                                            .sprite(sprite_pos, SpriteKind::ChairWoodWoodland),
+                                        3 => painter
+                                            .sprite(sprite_pos, SpriteKind::CoatrackWoodWoodland),
+                                        4 => painter.mirrored2(
+                                            sprite_pos,
+                                            Dir::X,
+                                            SpriteKind::BenchWoodWoodland,
+                                        ),
+                                        5 => painter.mirrored2(
+                                            sprite_pos,
+                                            Dir::X,
+                                            SpriteKind::BenchWoodWoodlandGreen1,
+                                        ),
+                                        6 => painter.mirrored2(
+                                            sprite_pos,
+                                            Dir::X,
+                                            SpriteKind::BenchWoodWoodlandGreen2,
+                                        ),
+                                        7 => painter.mirrored2(
+                                            sprite_pos,
+                                            Dir::X,
+                                            SpriteKind::BenchWoodWoodlandGreen3,
+                                        ),
+                                        _ => painter.sprite(
+                                            sprite_pos,
+                                            SpriteKind::DiningtableWoodWoodlandRound,
+                                        ),
+                                    }
                                 }
 
                                 for d in 0..2 {

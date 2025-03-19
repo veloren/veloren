@@ -246,12 +246,16 @@ impl Structure for CoastalWorkshop {
             painter.rotated_sprite(
                 door_lamp_pos,
                 SpriteKind::WallLampSmall,
-                6 + ((d * 4) as u8),
+                (6 + ((d * 4) as u8)) % 8,
             );
 
             let lamp_pos = Vec2::new(center.x, center.y - width - 1 + (d * ((2 * (width)) + 1)))
                 .with_z(base + 6);
-            painter.rotated_sprite(lamp_pos, SpriteKind::WallLampSmall, 8 - ((d * 4) as u8));
+            painter.rotated_sprite(
+                lamp_pos,
+                SpriteKind::WallLampSmall,
+                (8 - ((d * 4) as u8)) % 8,
+            );
         }
 
         // chimney

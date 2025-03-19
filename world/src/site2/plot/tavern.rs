@@ -1590,12 +1590,12 @@ impl Structure for Tavern {
                     painter.rotated_sprite(
                         wall_aabb.min.with_z(z) + wall_dir.to_vec2(),
                         SpriteKind::WallSconce,
-                        wall_dir.sprite_ori(),
+                        wall_dir.sprite_ori_legacy(),
                     );
                     painter.rotated_sprite(
                         wall_aabb.max.with_z(z) - wall_dir.to_vec2(),
                         SpriteKind::WallSconce,
-                        wall_dir.opposite().sprite_ori(),
+                        wall_dir.opposite().sprite_ori_legacy(),
                     );
                     painter
                         .aabb(aabb(Aabb {
@@ -1671,7 +1671,7 @@ impl Structure for Tavern {
                             painter.rotated_sprite(
                                 pos,
                                 SpriteKind::WallLampSmall,
-                                dir.opposite().sprite_ori(),
+                                dir.opposite().sprite_ori_legacy(),
                             );
 
                             for x in dir.orthogonal().select(aabr.min)
@@ -1728,7 +1728,7 @@ impl Structure for Tavern {
                             painter.rotated_sprite(
                                 pos,
                                 SpriteKind::WallLampSmall,
-                                dir.opposite().sprite_ori(),
+                                dir.opposite().sprite_ori_legacy(),
                             );
                         }
                     }
@@ -1756,7 +1756,7 @@ impl Structure for Tavern {
                                 painter.rotated_sprite(
                                     pos,
                                     SpriteKind::WallLampSmall,
-                                    dir.opposite().sprite_ori(),
+                                    dir.opposite().sprite_ori_legacy(),
                                 );
                             }
                         }
@@ -1843,7 +1843,7 @@ impl Structure for Tavern {
                                 painter.rotated_sprite(
                                     pos.with_z(room.bounds.center().z + 1) + dir.to_vec2(),
                                     SpriteKind::WallSconce,
-                                    dir.sprite_ori(),
+                                    dir.sprite_ori_legacy(),
                                 );
                             }
                         }
@@ -1892,7 +1892,7 @@ impl Structure for Tavern {
                             painter.rotated_sprite(
                                 wall_center.with_z(wall.base_alt + 1),
                                 SpriteKind::Planter,
-                                in_dir.sprite_ori(),
+                                in_dir.sprite_ori_legacy(),
                             );
                         }
                     },
@@ -1908,7 +1908,10 @@ impl Structure for Tavern {
                                     max: (wall_center + in_dir.rotated_cw().to_vec2())
                                         .with_z(wall.base_alt + 2),
                                 }))
-                                .fill(Fill::sprite_ori(SpriteKind::Window1, in_dir.sprite_ori()));
+                                .fill(Fill::sprite_ori(
+                                    SpriteKind::Window1,
+                                    in_dir.sprite_ori_legacy(),
+                                ));
                         }
                     },
                 }
@@ -1969,7 +1972,7 @@ impl Structure for Tavern {
                             .select_aabr_with(door, door.min)
                             .with_z(wall.base_alt),
                         sprite,
-                        in_dir.sprite_ori(),
+                        in_dir.sprite_ori_legacy(),
                     );
                     painter.rotated_sprite(
                         in_dir
@@ -1977,7 +1980,7 @@ impl Structure for Tavern {
                             .select_aabr_with(door, door.min)
                             .with_z(wall.base_alt),
                         sprite,
-                        in_dir.opposite().sprite_ori(),
+                        in_dir.opposite().sprite_ori_legacy(),
                     );
 
                     let dir = match field.chance(door.min.with_z(wall.base_alt), 0.5) {
@@ -1991,7 +1994,7 @@ impl Structure for Tavern {
                     painter.rotated_sprite_with_cfg(
                         pos.with_z(wall.base_alt + 2),
                         SpriteKind::HangingSign,
-                        in_dir.opposite().sprite_ori(),
+                        in_dir.opposite().sprite_ori_legacy(),
                         SpriteCfg {
                             unlock: None,
                             content: Some(Content::Plain(self.name.clone())),

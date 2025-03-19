@@ -1111,7 +1111,7 @@ impl Painter {
             min: pos,
             max: pos + 1,
         })
-        .fill(Fill::sprite_ori(sprite, ori))
+        .fill(Fill::sprite_ori(sprite, ori % 8))
     }
 
     /// Places a sprite at the provided location with the provided orientation
@@ -1127,7 +1127,7 @@ impl Painter {
             min: pos,
             max: pos + 1,
         })
-        .fill(Fill::sprite_ori_cfg(sprite, ori, cfg))
+        .fill(Fill::sprite_ori_cfg(sprite, ori % 8, cfg))
     }
 
     /// Places a sprite at the provided location with the provided orientation
@@ -1138,7 +1138,7 @@ impl Painter {
             min: pos,
             max: pos + 1,
         })
-        .fill(Fill::resource_sprite_ori(sprite, ori))
+        .fill(Fill::resource_sprite_ori(sprite, ori % 8))
     }
 
     /// Places a sprite at the provided location with the provided orientation
