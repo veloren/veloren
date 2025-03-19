@@ -79,9 +79,10 @@ impl AirshipDock {
             trees: {
                 // dock is 3 tiles = 18 blocks in radius
                 // airships are 20 blocks wide.
-                // Leave extra space for tree width (at lease 15 extra).
-                // Don't allow trees within 18 + 20 + 15 = 53 blocks of the dock center
-                const AIRSHIP_MIN_TREE_DIST2: i32 = 53i32.pow(2);
+                // Some trees are 20 to 30 blocks in radius.
+                // Leave extra space for tree width.
+                // Don't allow trees within 18 + 20 + 30 = 68 blocks of the dock center
+                const AIRSHIP_MIN_TREE_DIST2: i32 = 68i32.pow(2);
                 wpos.distance_squared(self.center) > AIRSHIP_MIN_TREE_DIST2
             },
             waypoints: false,
