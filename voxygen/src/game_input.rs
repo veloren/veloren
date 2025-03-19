@@ -75,6 +75,8 @@ pub enum GameInput {
     Fly,
     #[strum(serialize = "gameinput-sneak")]
     Sneak,
+    #[strum(serialize = "gameinput-cancelclimb")]
+    CancelClimb,
     #[strum(serialize = "gameinput-togglelantern")]
     ToggleLantern,
     #[strum(serialize = "gameinput-mount")]

@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        CharacterState, Ori, StateUpdate,
+        CharacterState, InputKind, Ori, StateUpdate,
         character_state::OutputEvents,
         skills::{ClimbSkill::*, SKILL_MODIFIERS, Skill},
     },
@@ -15,6 +15,8 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use vek::*;
 
+use super::wielding;
+
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
@@ -27,6 +29,7 @@ pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
     pub static_data: StaticData,
+    pub was_wielded: bool,
 }
 
 impl Data {
@@ -41,6 +44,21 @@ impl Data {
         }
         data
     }
+
+    pub fn with_wielded(self, was_wielded: bool) -> Self {
+        Self {
+            was_wielded,
+            ..self
+        }
+    }
+
+    fn update_state_on_leaving(&self, update: &mut StateUpdate) {
+        if self.was_wielded {
+            update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
+        } else {
+            update.character = CharacterState::Idle(idle::Data::default());
+        }
+    }
 }
 
 impl Default for Data {
@@ -50,45 +68,24 @@ impl Default for Data {
                 energy_cost: 15.0,
                 movement_speed: 5.0,
             },
+            was_wielded: false,
         }
     }
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         let Some(wall_dir) = data.physics.on_wall else {
-            update.character = CharacterState::Idle(idle::Data::default());
+            self.update_state_on_leaving(&mut update);
             return update;
         };
 
         // Exit climb if ground below
         if data.physics.on_ground.is_some() {
-            update.character = CharacterState::Idle(idle::Data::default());
+            self.update_state_on_leaving(&mut update);
             return update;
-        }
-
-        // Positive if walking into wall, negative if away
-        let wall_relative_movement =
-            data.inputs.move_dir * data.inputs.look_dir.map(|e| e.signum()) * wall_dir;
-
-        // If we move relative to the wall use up energy else default of 1.0
-        // (maybe something lower like 0.5)
-        let energy_use = if wall_relative_movement.reduce_partial_max() > 0.5 {
-            self.static_data.energy_cost
-        } else {
-            1.0
-        };
-        handle_walljump(data, output_events, &mut update);
-
-        // Update energy and exit climbing state if not enough
-        if update
-            .energy
-            .try_change_by(-energy_use * data.dt.0)
-            .is_err()
-        {
-            update.character = CharacterState::Idle(idle::Data::default());
         }
 
         // Set orientation based on wall direction
@@ -103,20 +100,52 @@ impl CharacterBehavior for Data {
                 } * data.dt.0,
             );
         };
-
-        // By default idle on wall
-        update.vel.0.z += data.dt.0 * GRAVITY;
-
         // Map movement direction onto wall
         let upwards_vel = data.inputs.move_dir.dot(wall_dir.xy());
         let crossed = wall_dir.cross(Vec3::unit_z());
         let lateral_vel = crossed * data.inputs.move_dir.dot(crossed.xy());
+
+        let energy_use = lateral_vel
+            .with_z(upwards_vel.max(0.0) * self.static_data.energy_cost)
+            .magnitude()
+            .max(1.0);
+
+        // Update energy and exit climbing state if not enough
+        if update
+            .energy
+            .try_change_by(-energy_use * data.dt.0)
+            .is_err()
+        {
+            self.update_state_on_leaving(&mut update);
+        }
+
+        // By default idle on wall
+        update.vel.0.z += data.dt.0 * GRAVITY;
 
         update.vel.0 += data.dt.0
             * (lateral_vel.with_z(upwards_vel) + wall_dir)
             * self.static_data.movement_speed.powi(2)
             * data.scale.map_or(1.0, |s| s.0);
 
+        update
+    }
+
+    fn stand(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        self.update_state_on_leaving(&mut update);
+        update
+    }
+
+    fn on_input(
+        &self,
+        data: &JoinData,
+        input: InputKind,
+        output_events: &mut OutputEvents,
+    ) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if matches!(input, InputKind::Jump) {
+            handle_walljump(data, output_events, &mut update, self.was_wielded);
+        }
         update
     }
 }

@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, StateUpdate, character_state::OutputEvents},
+    comp::{CharacterState, InputKind, StateUpdate, character_state::OutputEvents},
     states::{
         behavior::{CharacterBehavior, JoinData},
         idle, wielding,
@@ -27,7 +27,6 @@ impl CharacterBehavior for Data {
             handle_wield(data, &mut update);
         }
 
-        handle_walljump(data, output_events, &mut update);
         handle_climb(data, &mut update);
 
         {
@@ -51,6 +50,19 @@ impl CharacterBehavior for Data {
             };
         }
 
+        update
+    }
+
+    fn on_input(
+        &self,
+        data: &JoinData,
+        input: InputKind,
+        output_events: &mut OutputEvents,
+    ) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        if matches!(input, InputKind::Jump) {
+            handle_walljump(data, output_events, &mut update, self.was_wielded);
+        }
         update
     }
 }

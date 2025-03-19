@@ -2010,6 +2010,21 @@ impl Client {
         }
     }
 
+    pub fn cancel_climb(&mut self) {
+        let is_climbing = self
+            .state
+            .ecs()
+            .read_storage::<CharacterState>()
+            .get(self.entity())
+            .map(|cs| matches!(cs, CharacterState::Climb(_)));
+
+        match is_climbing {
+            Some(true) => self.control_action(ControlAction::Stand),
+            Some(false) => {},
+            None => warn!("Can't stop climbing, client entity doesn't have a `CharacterState`"),
+        }
+    }
+
     pub fn handle_input(
         &mut self,
         input: InputKind,

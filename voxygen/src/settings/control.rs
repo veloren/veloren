@@ -145,6 +145,7 @@ impl ControlSettings {
             GameInput::SwimDown => Some(KeyMouse::Key(VirtualKeyCode::LShift)),
             GameInput::Fly => Some(KeyMouse::Key(VirtualKeyCode::H)),
             GameInput::Sneak => Some(KeyMouse::Key(VirtualKeyCode::LShift)),
+            GameInput::CancelClimb => Some(KeyMouse::Key(VirtualKeyCode::LShift)),
             GameInput::ToggleLantern => Some(KeyMouse::Key(VirtualKeyCode::G)),
             GameInput::Mount => Some(KeyMouse::Key(VirtualKeyCode::F)),
             GameInput::StayFollow => Some(KeyMouse::Key(VirtualKeyCode::V)),

@@ -185,42 +185,50 @@ pub enum CharacterState {
 
 impl CharacterState {
     pub fn is_wield(&self) -> bool {
-        matches!(
-            self,
+        match self {
+            CharacterState::Wallrun(wallrun::Data { was_wielded })
+            | CharacterState::Climb(climb::Data { was_wielded, .. })
+            | CharacterState::Roll(roll::Data { was_wielded, .. })
+            | CharacterState::Stunned(stunned::Data { was_wielded, .. }) => *was_wielded,
             CharacterState::Wielding(_)
-                | CharacterState::BasicMelee(_)
-                | CharacterState::BasicRanged(_)
-                | CharacterState::DashMelee(_)
-                | CharacterState::ComboMelee2(_)
-                | CharacterState::BasicBlock(_)
-                | CharacterState::LeapMelee(_)
-                | CharacterState::LeapShockwave(_)
-                | CharacterState::ChargedMelee(_)
-                | CharacterState::ChargedRanged(_)
-                | CharacterState::RepeaterRanged(_)
-                | CharacterState::Shockwave(_)
-                | CharacterState::BasicBeam(_)
-                | CharacterState::BasicAura(_)
-                | CharacterState::SelfBuff(_)
-                | CharacterState::Blink(_)
-                | CharacterState::Music(_)
-                | CharacterState::BasicSummon(_)
-                | CharacterState::SpriteSummon(_)
-                | CharacterState::Roll(roll::Data {
-                    was_wielded: true,
-                    ..
-                })
-                | CharacterState::Wallrun(wallrun::Data { was_wielded: true })
-                | CharacterState::Stunned(stunned::Data {
-                    was_wielded: true,
-                    ..
-                })
-                | CharacterState::FinisherMelee(_)
-                | CharacterState::DiveMelee(_)
-                | CharacterState::RiposteMelee(_)
-                | CharacterState::RapidMelee(_)
-                | CharacterState::StaticAura(_)
-        )
+            | CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
+            | CharacterState::DashMelee(_)
+            | CharacterState::ComboMelee2(_)
+            | CharacterState::BasicBlock(_)
+            | CharacterState::LeapMelee(_)
+            | CharacterState::LeapShockwave(_)
+            | CharacterState::ChargedMelee(_)
+            | CharacterState::ChargedRanged(_)
+            | CharacterState::RepeaterRanged(_)
+            | CharacterState::Shockwave(_)
+            | CharacterState::BasicBeam(_)
+            | CharacterState::BasicAura(_)
+            | CharacterState::SelfBuff(_)
+            | CharacterState::Blink(_)
+            | CharacterState::Music(_)
+            | CharacterState::BasicSummon(_)
+            | CharacterState::SpriteSummon(_)
+            | CharacterState::FinisherMelee(_)
+            | CharacterState::DiveMelee(_)
+            | CharacterState::RiposteMelee(_)
+            | CharacterState::RapidMelee(_)
+            | CharacterState::StaticAura(_) => true,
+            CharacterState::Idle(_)
+            | CharacterState::Crawl
+            | CharacterState::Sit
+            | CharacterState::Dance
+            | CharacterState::Talk(_)
+            | CharacterState::Glide(_)
+            | CharacterState::GlideWield(_)
+            | CharacterState::Equipping(_)
+            | CharacterState::Boost(_)
+            | CharacterState::UseItem(_)
+            | CharacterState::Interact(_)
+            | CharacterState::Skate(_)
+            | CharacterState::Transform(_)
+            | CharacterState::RegrowHead(_) => false,
+        }
     }
 
     /// If this state can manipulate loadout, interact with sprites etc.
@@ -278,7 +286,43 @@ impl CharacterState {
             CharacterState::Interact(data) => data.static_data.was_wielded,
             CharacterState::UseItem(data) => data.static_data.was_wielded,
             CharacterState::Wallrun(data) => data.was_wielded,
-            _ => false,
+            CharacterState::Climb(data) => data.was_wielded,
+            CharacterState::Idle(_)
+            | CharacterState::Crawl
+            | CharacterState::Sit
+            | CharacterState::Dance
+            | CharacterState::Talk(_)
+            | CharacterState::Glide(_)
+            | CharacterState::GlideWield(_)
+            | CharacterState::BasicBlock(_)
+            | CharacterState::Equipping(_)
+            | CharacterState::Wielding(_)
+            | CharacterState::BasicMelee(_)
+            | CharacterState::BasicRanged(_)
+            | CharacterState::Boost(_)
+            | CharacterState::DashMelee(_)
+            | CharacterState::ComboMelee2(_)
+            | CharacterState::LeapMelee(_)
+            | CharacterState::LeapShockwave(_)
+            | CharacterState::ChargedRanged(_)
+            | CharacterState::ChargedMelee(_)
+            | CharacterState::RepeaterRanged(_)
+            | CharacterState::Shockwave(_)
+            | CharacterState::BasicBeam(_)
+            | CharacterState::BasicAura(_)
+            | CharacterState::StaticAura(_)
+            | CharacterState::Blink(_)
+            | CharacterState::BasicSummon(_)
+            | CharacterState::SelfBuff(_)
+            | CharacterState::SpriteSummon(_)
+            | CharacterState::Skate(_)
+            | CharacterState::Music(_)
+            | CharacterState::FinisherMelee(_)
+            | CharacterState::DiveMelee(_)
+            | CharacterState::RiposteMelee(_)
+            | CharacterState::RapidMelee(_)
+            | CharacterState::Transform(_)
+            | CharacterState::RegrowHead(_) => false,
         }
     }
 
