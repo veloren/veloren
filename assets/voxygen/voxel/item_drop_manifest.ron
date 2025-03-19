@@ -412,6 +412,7 @@
     Simple("common.items.tool.instruments.kalimba"): "voxel.weapon.tool.wooden_kalimba",
     Simple("common.items.tool.instruments.melodica"): "voxel.weapon.tool.melodica",
     Simple("common.items.tool.instruments.lute"): "voxel.weapon.tool.wooden_lute",
+    Simple("common.items.tool.instruments.oud"): "voxel.weapon.tool.wooden_oud",    
     Simple("common.items.tool.instruments.steeltonguedrum"): "voxel.weapon.tool.steeltonguedrum",
     Simple("common.items.tool.instruments.shamisen"): "voxel.weapon.tool.shamisen",
     Simple("common.items.tool.instruments.sitar"): "voxel.weapon.tool.wooden_sitar",

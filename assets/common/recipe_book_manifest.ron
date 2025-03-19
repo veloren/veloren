@@ -2452,6 +2452,17 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
+    "oud": (
+        output: ("common.items.tool.instruments.oud", 1),
+        inputs: [
+            (Item("common.items.log.hardwood"), 2, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.flowers.plant_fiber"), 3, false),
+            (Item("common.items.mineral.ingot.silver"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),    
     "melodica": (
         output: ("common.items.tool.instruments.melodica", 1),
         inputs: [
@@ -2502,7 +2513,7 @@
             (Item("common.items.log.hardwood"), 4, false),
             (Item("common.items.crafting_ing.resin"), 2, false),
             (Item("common.items.crafting_ing.cloth.silk"), 3, false),
-            (Item("common.items.crafting_ing.hide.animal_hide"), 2, false),
+            (Item("common.items.crafting_ing.leather.thick_leather"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2511,7 +2522,7 @@
         output: ("common.items.tool.instruments.banjo", 1),
         inputs: [
             (Item("common.items.log.hardwood"), 3, false),
-            (Item("common.items.log.wood"), 3, false),
+            (Item("common.items.crafting_ing.leather.simple_leather"), 5, false),
             (Item("common.items.crafting_ing.resin"), 2, false),
             (Item("common.items.flowers.plant_fiber"), 5, false),
             (Item("common.items.mineral.ingot.iron"), 2, false),

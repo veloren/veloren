@@ -1653,7 +1653,7 @@
     ),
     Simple("common.items.tool.instruments.icy_talharpa"): VoxTrans(
         "voxel.weapon.tool.icy_talharpa",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-45.0, -90.0, 0.0), 0.95,
     ),
     Simple("common.items.tool.instruments.flute"): VoxTrans(
         "voxel.weapon.tool.wooden_flute",
@@ -1665,7 +1665,7 @@
     ),
     Simple("common.items.tool.instruments.double_bass"): VoxTrans(
         "voxel.weapon.tool.wooden_bass",
-        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
     ),
     Simple("common.items.tool.instruments.washboard"): VoxTrans(
         "voxel.weapon.tool.washboard",
@@ -1673,23 +1673,27 @@
     ),
     Simple("common.items.tool.instruments.kalimba"): VoxTrans(
         "voxel.weapon.tool.wooden_kalimba",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 0.8,
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 0.9,
     ),
     Simple("common.items.tool.instruments.melodica"): VoxTrans(
         "voxel.weapon.tool.melodica",
-        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 0.9,
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
     Simple("common.items.tool.instruments.lute"): VoxTrans(
         "voxel.weapon.tool.wooden_lute",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
+    Simple("common.items.tool.instruments.oud"): VoxTrans(
+        "voxel.weapon.tool.wooden_oud",
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+    ),    
     Simple("common.items.tool.instruments.steeltonguedrum"): VoxTrans(
         "voxel.weapon.tool.steeltonguedrum",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
     ),
     Simple("common.items.tool.instruments.shamisen"): VoxTrans(
         "voxel.weapon.tool.shamisen",
-        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
     ),
     Simple("common.items.tool.instruments.guitar"): VoxTrans(
         "voxel.weapon.tool.wooden_guitar",
@@ -1701,15 +1705,15 @@
     ),
     Simple("common.items.tool.instruments.sitar"): VoxTrans(
         "voxel.weapon.tool.wooden_sitar",
-        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.2,
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
     ),
     Simple("common.items.tool.instruments.kora"): VoxTrans(
         "voxel.weapon.tool.kora",
-        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
     ),
     Simple("common.items.tool.instruments.banjo"): VoxTrans(
         "voxel.weapon.tool.banjo",
-        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.4,
+        (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.1,
     ),
     Simple("common.items.tool.instruments.viola_pizzicato"): VoxTrans(
         "voxel.weapon.tool.viola_pizzicato",
