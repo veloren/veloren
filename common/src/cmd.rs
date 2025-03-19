@@ -48,11 +48,12 @@ pub enum KitSpec {
     ModularWeaponSet {
         tool: comp::tool::ToolKind,
         material: comp::item::Material,
+        hands: Option<comp::item::tool::Hands>,
     },
-    ModularWeaponHandedRandom {
+    ModularWeaponRandom {
         tool: comp::tool::ToolKind,
         material: comp::item::Material,
-        hands: comp::item::tool::Hands,
+        hands: Option<comp::item::tool::Hands>,
     },
 }
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
@@ -1565,8 +1566,12 @@ mod tests {
                     KitSpec::Item(item_id) => {
                         Item::new_from_asset_expect(item_id);
                     },
-                    KitSpec::ModularWeaponSet { tool, material } => {
-                        comp::item::modular::generate_weapons(*tool, *material, None)
+                    KitSpec::ModularWeaponSet {
+                        tool,
+                        material,
+                        hands,
+                    } => {
+                        comp::item::modular::generate_weapons(*tool, *material, *hands)
                             .unwrap_or_else(|_| {
                                 panic!(
                                     "Failed to synthesize a modular {tool:?} set made of \
@@ -1574,23 +1579,18 @@ mod tests {
                                 )
                             });
                     },
-                    KitSpec::ModularWeaponHandedRandom {
+                    KitSpec::ModularWeaponRandom {
                         tool,
                         material,
                         hands,
                     } => {
-                        comp::item::modular::random_weapon(
-                            *tool,
-                            *material,
-                            Some(*hands),
-                            &mut rng,
-                        )
-                        .unwrap_or_else(|_| {
-                            panic!(
-                                "Failed to synthesize a random {hands:?}-handed modular {tool:?} \
-                                 made of {material:?}."
-                            )
-                        });
+                        comp::item::modular::random_weapon(*tool, *material, *hands, &mut rng)
+                            .unwrap_or_else(|_| {
+                                panic!(
+                                    "Failed to synthesize a random {hands:?}-handed modular \
+                                     {tool:?} made of {material:?}."
+                                )
+                            });
                     },
                 }
             }
