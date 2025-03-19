@@ -6,7 +6,7 @@ use std::ops::{Add, Sub};
 use rand::Rng;
 use vek::*;
 
-/// A 2d direction.
+/// A 2d cardinal direction.
 #[derive(Debug, enum_map::Enum, strum::EnumIter, enumset::EnumSetType)]
 pub enum Dir {
     X,
@@ -96,6 +96,10 @@ impl Dir {
             Dir::NegY => Vec2::new(0, -1),
         }
     }
+
+    /// The diagonal to the left of `self`, this is equal to this dir plus this
+    /// dir rotated counter clockwise.
+    pub fn diagonal(self) -> Vec2<i32> { self.to_vec2() + self.rotated_ccw().to_vec2() }
 
     pub fn to_vec3(self) -> Vec3<i32> {
         match self {
@@ -237,6 +241,32 @@ impl Dir {
 
     /// The equivelant sprite direction of the direction
     pub fn sprite_ori(self) -> u8 {
+        match self {
+            Dir::X => 0,
+            Dir::Y => 2,
+            Dir::NegX => 4,
+            Dir::NegY => 6,
+        }
+    }
+
+    /// Returns (Dir, rest)
+    ///
+    /// Returns None if `ori` isn't a valid sprite Ori.
+    pub fn from_sprite_ori(ori: u8) -> Option<(Dir, u8)> {
+        let dir = match ori / 2 {
+            0 => Dir::X,
+            1 => Dir::Y,
+            2 => Dir::NegX,
+            3 => Dir::NegY,
+            _ => return None,
+        };
+        let rest = ori % 2;
+
+        Some((dir, rest))
+    }
+
+    /// Legacy version of `sprite_ori`, so prefer using that over this.
+    pub fn sprite_ori_legacy(self) -> u8 {
         match self {
             Dir::X => 2,
             Dir::NegX => 6,

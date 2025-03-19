@@ -628,7 +628,11 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
         let c = tower_aabr.center().with_z(bridge.start.z + i * p);
 
         for dir in Dir::ALL {
-            painter.rotated_sprite(c + dir.to_vec2(), SpriteKind::WallSconce, dir.sprite_ori());
+            painter.rotated_sprite(
+                c + dir.to_vec2(),
+                SpriteKind::WallSconce,
+                dir.sprite_ori_legacy(),
+            );
         }
     }
 
@@ -636,7 +640,7 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
         (tower_aabr.center() + bridge.dir.to_vec2() * (tower_size - 1))
             .with_z(bridge.end.z + tower_height_extend / 2),
         SpriteKind::WallLamp,
-        (-bridge.dir).sprite_ori(),
+        (-bridge.dir).sprite_ori_legacy(),
     );
 
     match roof_kind {

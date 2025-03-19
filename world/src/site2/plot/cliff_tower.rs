@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site2::util::gradient::WrapMode,
+    site2::util::{gradient::WrapMode, sprites::PainterSpriteExt},
     util::{DIAGONALS, LOCALITY, RandomField, Sampler},
 };
 use common::{
@@ -544,17 +544,21 @@ impl Structure for CliffTower {
                                                 .with_z(floor_level + 5),
                                             })
                                             .clear();
-                                        painter.rotated_sprite(
-                                            pos.with_z(floor_level + 1),
-                                            match (RandomField::new(0)
-                                                .get(pos.with_z(floor_level - d)))
-                                                % 3
-                                            {
-                                                0 => SpriteKind::WardrobeDoubleMesa,
-                                                _ => SpriteKind::BedMesa,
+                                        let dir = Dir::from_vec2(plot_center - pos);
+                                        match (RandomField::new(0).get(pos.with_z(floor_level - d)))
+                                            % 3
+                                        {
+                                            0 => {
+                                                painter.rotated_sprite(
+                                                    pos.with_z(floor_level + 1),
+                                                    SpriteKind::WardrobeDoubleMesa,
+                                                    (4 * d) as u8,
+                                                );
                                             },
-                                            (4 * d) as u8,
-                                        );
+                                            _ => {
+                                                painter.bed_cliff(pos.with_z(floor_level + 1), dir);
+                                            },
+                                        }
                                     }
                                     // bookshelfs
                                     for d in 0..2 {

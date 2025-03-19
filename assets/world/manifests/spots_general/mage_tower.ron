@@ -20,7 +20,7 @@
             243: EntitySpawner("common.entity.spot.wizard.adept", 1.0),
             245: EntitySpawner("common.entity.wild.peaceful.bat", 0.4),
             246: Sprite(WallLampWizard()),
-            249: Sprite(DoorDark(8)),
+            249: Sprite(DoorDark()),
             250: Sprite(DoorDark(4)),
             252: Keyhole("common.items.keys.rusty_tower_key"),
             253: Sprite(KeyDoor()),

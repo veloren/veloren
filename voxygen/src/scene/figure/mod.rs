@@ -1557,7 +1557,7 @@ impl FigureMgr {
                             && let Some(sprite) = is_volume_rider.block.get_sprite()
                         {
                             match sprite {
-                                SpriteKind::Helm => {
+                                _ if sprite.is_controller() => {
                                     anim::character::SteerAnimation::update_skeleton(
                                         &base,
                                         (
@@ -1571,10 +1571,7 @@ impl FigureMgr {
                                         skeleton_attr,
                                     )
                                 },
-                                SpriteKind::BedWoodWoodlandHead
-                                | SpriteKind::Bedroll
-                                | SpriteKind::BedrollSnow
-                                | SpriteKind::BedrollPirate => {
+                                _ if sprite.is_bed() => {
                                     anim::character::SleepAnimation::update_skeleton(
                                         &base,
                                         (active_tool_kind, second_tool_kind, time),

@@ -2128,7 +2128,7 @@ WardrobedoubleWoodWoodland: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wardrobedouble_wood_woodland_half",
-            offset: (-6.5, -5.5, 0.0),
+            offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -2138,7 +2138,7 @@ WardrobedoubleWoodWoodland2: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wardrobedouble_wood_woodland2_half",
-            offset: (-6.5, -5.5, 0.0),
+            offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],

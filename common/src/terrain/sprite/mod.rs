@@ -1009,11 +1009,16 @@ impl SpriteKind {
             | SpriteKind::BenchWoodWoodland
             | SpriteKind::BenchWoodEnd
             | SpriteKind::BenchWoodMiddle
-            | SpriteKind::SeatWoodBlueMiddle
-            | SpriteKind::SeatWoodBlueSide
-            | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), -Vec3::unit_y())),
+            | SpriteKind::BenchCoastal => Some((Vec3::new(0.0, 0.0, 0.5), Vec3::unit_x())),
+            SpriteKind::SeatWoodBlueMiddle | SpriteKind::SeatWoodBlueSide => {
+                Some((Vec3::new(0.4, 0.0, 0.5), Vec3::unit_x()))
+            },
             SpriteKind::Helm => Some((Vec3::new(0.0, -1.1, 0.0), Vec3::unit_y())),
-            SpriteKind::BedWoodWoodlandHead => Some((Vec3::new(1.4, 0.0, 0.5), Vec3::unit_y())),
+            SpriteKind::BedWoodWoodlandHead
+            | SpriteKind::BedCliffHead
+            | SpriteKind::BedDesertHead
+            | SpriteKind::BedCoastalHead
+            | SpriteKind::BedSavannahHead => Some((Vec3::new(1.4, 0.0, 0.5), Vec3::unit_x())),
             SpriteKind::BedMesa => Some((Vec3::new(0.0, 0.0, 0.6), -Vec3::unit_y())),
             SpriteKind::BedrollSnow | SpriteKind::BedrollPirate => {
                 Some((Vec3::new(0.0, 0.0, 0.1), -Vec3::unit_x()))
@@ -1021,6 +1026,21 @@ impl SpriteKind {
             SpriteKind::Bedroll => Some((Vec3::new(0.0, 0.0, 0.1), Vec3::unit_y())),
             _ => None,
         }
+    }
+
+    pub fn is_bed(&self) -> bool {
+        matches!(
+            self,
+            SpriteKind::BedWoodWoodlandHead
+                | SpriteKind::BedMesa
+                | SpriteKind::BedCliffHead
+                | SpriteKind::BedCoastalHead
+                | SpriteKind::BedDesertHead
+                | SpriteKind::BedSavannahHead
+                | SpriteKind::Bedroll
+                | SpriteKind::BedrollSnow
+                | SpriteKind::BedrollPirate
+        )
     }
 
     #[inline]

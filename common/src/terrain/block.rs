@@ -228,10 +228,7 @@ impl Block {
         mut self,
         attr: A,
     ) -> Result<Self, sprite::AttributeError<core::convert::Infallible>> {
-        match self.sprite_category() {
-            Some(category) => category.write_attr(&mut self, attr)?,
-            None => return Err(sprite::AttributeError::NotPresent),
-        }
+        self.set_attr(attr)?;
         Ok(self)
     }
 

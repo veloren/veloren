@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site2::util::Dir,
+    site2::util::{Dir, sprites::PainterSpriteExt},
     util::{DIRS, RandomField, Sampler},
 };
 use common::{
@@ -1561,8 +1561,13 @@ impl Structure for House {
                     Dir::NegY => Vec2::new(three_quarter_x, half_y),
                     _ => Vec2::new(half_x, half_y),
                 };
-                let nightstand_pos = Vec2::new(bed_pos.x + 2, bed_pos.y + 1);
-                painter.sprite(bed_pos.with_z(base), SpriteKind::BedWoodWoodlandHead);
+                let bed_dir = self.front;
+                let bed_aabr = painter.bed_wood_woodland(bed_pos.with_z(base), bed_dir);
+                let nightstand_pos = bed_dir
+                    .opposite()
+                    .select_aabr_with(bed_aabr, bed_dir.rotated_ccw().select_aabr(bed_aabr))
+                    .with_z(base)
+                    + bed_dir.rotated_ccw().to_vec2();
                 // drawer next to bed
                 painter.sprite(nightstand_pos.with_z(base), SpriteKind::DrawerWoodWoodlandS);
                 // collectible on top of drawer
@@ -1580,17 +1585,26 @@ impl Structure for House {
                     (rng1 % 4) as u8 * 2,
                 );
                 // wardrobe along wall in corner of the room
-                let (wardrobe_pos, drawer_ori) = match self.front {
-                    Dir::Y => (Vec2::new(self.bounds.max.x - 2, self.bounds.min.y + 1), 4),
-                    Dir::X => (Vec2::new(self.bounds.min.x + 6, self.bounds.max.y - 1), 0),
-                    Dir::NegY => (Vec2::new(self.bounds.min.x + 2, self.bounds.max.y - 1), 0),
-                    _ => (Vec2::new(self.bounds.max.x - 6, self.bounds.max.y - 1), 0),
+                let wardrobe_dir = self.front.rotated_cw();
+                let bounds = Aabr {
+                    min: Vec2::new(self.bounds.min.x + 1, self.bounds.min.y + 1),
+                    max: Vec2::new(self.bounds.max.x - 2, self.bounds.max.y - 1),
                 };
-                painter.rotated_sprite(
-                    wardrobe_pos.with_z(base),
-                    SpriteKind::WardrobedoubleWoodWoodland,
-                    drawer_ori,
-                );
+                let wardrobe_pos = wardrobe_dir
+                    .opposite()
+                    .select_aabr_with(
+                        bounds,
+                        bounds.center()
+                            + wardrobe_dir.vec2(bounds.half_size().w, bounds.half_size().h) / 2,
+                    )
+                    .with_z(base);
+
+                let sprite = if RandomField::new(0).chance(wardrobe_pos, 0.5) {
+                    SpriteKind::WardrobedoubleWoodWoodland
+                } else {
+                    SpriteKind::WardrobedoubleWoodWoodland2
+                };
+                painter.mirrored2(wardrobe_pos, wardrobe_dir, sprite);
             } else {
                 // living room with table + chairs + random
                 for dir in DIRS {
@@ -1634,19 +1648,15 @@ impl Structure for House {
                         Dir::Y => Vec2::new(half_x, three_quarter_y),
                         Dir::X => Vec2::new(half_x, half_y),
                         _ => Vec2::new(quarter_x, half_y),
-                    };
-                    painter.sprite(
-                        table_pos.with_z(base),
-                        SpriteKind::TableWoodFancyWoodlandCorner,
-                    );
-                    for dir in Dir::iter() {
-                        let chair_pos = table_pos + dir.select((2, 1)) * dir.to_vec2();
-                        painter.rotated_sprite(
-                            chair_pos.with_z(base),
-                            SpriteKind::ChairWoodWoodland,
-                            dir.opposite().sprite_ori(),
-                        );
                     }
+                    .with_z(base);
+                    let table_axis = if RandomField::new(0).chance(table_pos, 0.5) {
+                        Dir::X
+                    } else {
+                        Dir::Y
+                    };
+                    let table_bounds = painter.table_wood_fancy_woodland(table_pos, table_axis);
+                    painter.chairs_around(SpriteKind::ChairWoodWoodland, 1, table_bounds, base);
                 }
                 // drawer along a wall
                 let (drawer_pos, drawer_ori) = match self.front {
@@ -2073,33 +2083,27 @@ impl Structure for House {
 
         // bedroom on first level corners in case there is no 2nd level
         if self.levels == 1 {
-            let bed_pos;
-            let bed_ori;
-
             // different positions for smaller houses
-            if self.bounds.max.x - self.bounds.min.x < 16
+            let bed_pos = if self.bounds.max.x - self.bounds.min.x < 16
                 || self.bounds.max.y - self.bounds.min.y < 16
             {
-                (bed_pos, bed_ori) = match self.front {
-                    Dir::Y => (Vec2::new(self.bounds.min.x + 4, self.bounds.min.y + 2), 6),
-                    Dir::X => (Vec2::new(self.bounds.min.x + 2, self.bounds.min.y + 4), 0),
-                    Dir::NegY => (Vec2::new(self.bounds.max.x - 4, self.bounds.max.y - 2), 6),
-                    _ => (Vec2::new(self.bounds.max.x - 8, self.bounds.max.y - 2), 0),
-                };
+                match self.front {
+                    Dir::Y => Vec2::new(self.bounds.min.x + 4, self.bounds.min.y + 2),
+                    Dir::X => Vec2::new(self.bounds.min.x + 2, self.bounds.min.y + 4),
+                    Dir::NegY => Vec2::new(self.bounds.max.x - 4, self.bounds.max.y - 2),
+                    _ => Vec2::new(self.bounds.max.x - 8, self.bounds.max.y - 2),
+                }
             } else {
-                (bed_pos, bed_ori) = match self.front {
-                    Dir::Y => (Vec2::new(self.bounds.max.x - 4, self.bounds.min.y + 2), 6),
-                    Dir::X => (Vec2::new(self.bounds.min.x + 8, self.bounds.max.y - 2), 0),
-                    Dir::NegY => (Vec2::new(self.bounds.max.x - 4, self.bounds.max.y - 2), 6),
-                    _ => (Vec2::new(self.bounds.max.x - 8, self.bounds.max.y - 2), 0),
-                };
-            }
+                match self.front {
+                    Dir::Y => Vec2::new(self.bounds.max.x - 4, self.bounds.min.y + 2),
+                    Dir::X => Vec2::new(self.bounds.min.x + 8, self.bounds.max.y - 2),
+                    Dir::NegY => Vec2::new(self.bounds.max.x - 4, self.bounds.max.y - 2),
+                    _ => Vec2::new(self.bounds.max.x - 8, self.bounds.max.y - 2),
+                }
+            };
+            let bed_dir = self.front.abs();
 
-            painter.rotated_sprite(
-                bed_pos.with_z(alt),
-                SpriteKind::BedWoodWoodlandHead,
-                bed_ori,
-            );
+            painter.bed_wood_woodland(bed_pos.with_z(alt), bed_dir);
         }
 
         if self.christmas_decorations {

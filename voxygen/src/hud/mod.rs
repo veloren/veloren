@@ -2167,13 +2167,8 @@ impl Hud {
                     },
                     BlockInteraction::Mount => {
                         let key = match block.get_sprite() {
-                            Some(SpriteKind::Helm) => "hud-steer",
-                            Some(
-                                SpriteKind::BedWoodWoodlandHead
-                                | SpriteKind::Bedroll
-                                | SpriteKind::BedrollSnow
-                                | SpriteKind::BedrollPirate,
-                            ) => "hud-lay",
+                            Some(sprite) if sprite.is_controller() => "hud-steer",
+                            Some(sprite) if sprite.is_bed() => "hud-lay",
                             _ => "hud-sit",
                         };
                         (
