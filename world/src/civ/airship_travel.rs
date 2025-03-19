@@ -238,17 +238,14 @@ impl Airships {
         -Airships::CAPT_TO_DOCK_ALIGN_Y,
     );
     const ROUTES_NORTH: Vec2<f32> = Vec2::new(0.0, 15000.0);
-    const STD_CRUISE_HAT: f32 = 300.0;
+    const STD_CRUISE_HEIGHT: f32 = 400.0;
     const TAKEOFF_ASCENT_ALT: f32 = 150.0;
 
     #[inline(always)]
     pub fn docking_duration() -> f32 { Airships::DEFAULT_DOCK_DURATION }
 
     #[inline(always)]
-    pub fn takeoff_ascent_hat() -> f32 { Airships::TAKEOFF_ASCENT_ALT }
-
-    #[inline(always)]
-    pub fn std_cruise_hat() -> f32 { Airships::STD_CRUISE_HAT }
+    pub fn takeoff_ascent_height() -> f32 { Airships::TAKEOFF_ASCENT_ALT }
 
     /// Get all the airship docking positions from the world sites.
     fn all_airshipdock_positions(sites: &mut Store<Site>) -> Vec<AirshipDockPositions> {
@@ -774,9 +771,9 @@ impl Airships {
         };
 
         let height = if depart_to_dest_angle < std::f32::consts::PI {
-            Airships::STD_CRUISE_HAT
+            Airships::STD_CRUISE_HEIGHT
         } else {
-            Airships::STD_CRUISE_HAT + 100.0
+            Airships::STD_CRUISE_HEIGHT + 100.0
         };
 
         let check_pos_fn = |pos: Vec2<f32>, what: &str| {
