@@ -3461,7 +3461,7 @@ fn handle_spawn_wiring(
     // element.
     let builder1 = server
         .state
-        .create_wiring(pos, comp::object::Body::Coins, WiringElement {
+        .create_wiring(pos, comp::object::Body::Pebble, WiringElement {
             inputs: HashMap::new(),
             outputs: outputs1,
             actions: Vec::new(),
@@ -3476,7 +3476,7 @@ fn handle_spawn_wiring(
     // input value.
     let builder2 = server
         .state
-        .create_wiring(pos, comp::object::Body::Coins, WiringElement {
+        .create_wiring(pos, comp::object::Body::Pebble, WiringElement {
             inputs: HashMap::new(),
             outputs: HashMap::new(),
             actions: vec![WiringAction {

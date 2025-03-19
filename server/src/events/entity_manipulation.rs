@@ -1825,6 +1825,7 @@ impl ServerEvent for BonkEvent {
                             for item in flatten_counted_items(&items, ability_map, msm) {
                                 let pos = Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0));
                                 let vel = comp::Vel::default();
+                                // TODO: Use the `ItemDrop` body for this.
                                 let body = match block.get_sprite() {
                                     // Create different containers depending on the original
                                     // sprite
@@ -1832,7 +1833,7 @@ impl ServerEvent for BonkEvent {
                                     Some(SpriteKind::Beehive) => comp::object::Body::Hive,
                                     Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
                                     Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
-                                    _ => comp::object::Body::Pouch,
+                                    _ => comp::object::Body::Pebble,
                                 };
 
                                 if matches!(block.get_sprite(), Some(SpriteKind::Bomb)) {
