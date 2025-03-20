@@ -1,4 +1,4 @@
-use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelPixArtGraphic};
+use crate::ui::img_ids::{BlankGraphic, ImageGraphic};
 
 // TODO: Combine with image_ids, see macro definition
 rotation_image_ids! {
@@ -12,7 +12,6 @@ rotation_image_ids! {
          tt_corner: "voxygen.element.ui.generic.frames.tt_test_corner_tr",
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        <VoxelPixArtGraphic>
     }
 }
 
@@ -20,19 +19,6 @@ image_ids! {
     pub struct Imgs {
         <VoxelGraphic>
         // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
-////////////////////////////////////////////////////////////////////////
-        <VoxelPixArtGraphic>
-        // Icons
-        flower: "voxygen.element.items.item_flower",
-        grass: "voxygen.element.items.item_grass",
-
-        // Items
-        potion_red: "voxygen.voxel.object.potion_red",
-        potion_green: "voxygen.voxel.object.potion_green",
-        potion_blue: "voxygen.voxel.object.potion_blue",
-        key: "voxygen.voxel.object.key",
-        key_gold: "voxygen.voxel.object.key_gold",
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -669,8 +655,6 @@ image_ids! {
         swap_equipped_weapons_btn: "voxygen.element.ui.bag.buttons.swap_equipped_weapons",
         swap_equipped_weapons_btn_hover: "voxygen.element.ui.bag.buttons.swap_equipped_weapons_hover",
         swap_equipped_weapons_btn_press: "voxygen.element.ui.bag.buttons.swap_equipped_weapons_press",
-        coin_ico: "voxygen.element.items.coin",
-        cheese_ico: "voxygen.element.items.item_cheese",
         inv_bg_armor: "voxygen.element.ui.bag.inv_bg_0",
         inv_bg_stats: "voxygen.element.ui.bag.inv_bg_1",
         inv_frame: "voxygen.element.ui.bag.inv_frame",
@@ -739,7 +723,6 @@ image_ids! {
         skill_bow_jump_burst: "voxygen.element.skills.skill_bow_jump_burst",
         skill_sceptre_aura: "voxygen.element.skills.sceptre_protection",
         instrument: "voxygen.element.skills.music",
-        missing_icon: "voxygen.element.missing_icon_grey",
 
         // Buttons
         button: "voxygen.element.ui.generic.buttons.button",
