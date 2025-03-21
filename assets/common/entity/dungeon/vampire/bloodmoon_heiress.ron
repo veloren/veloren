@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Bloodmoon Heiress"),
+    name: Automatic,
     body: RandomWith("bloodmoon_heiress"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.vampire.bloodmoon_heiress"),

@@ -10,7 +10,8 @@ use crate::persistence::{
 use common::{
     character::CharacterId,
     comp::{
-        ActiveAbilities, Body as CompBody, Hardcore, Inventory, MapMarker, Stats, Waypoint, body,
+        ActiveAbilities, Body as CompBody, Content, Hardcore, Inventory, MapMarker, Stats,
+        Waypoint, body,
         inventory::{
             item::{Item as VelorenItem, MaterialStatManifest, tool::AbilityMap},
             loadout::{Loadout, LoadoutError},
@@ -760,7 +761,7 @@ pub fn convert_character_from_database(character: &Character) -> common::charact
 
 pub fn convert_stats_from_database(alias: String, body: CompBody) -> Stats {
     let mut new_stats = Stats::empty(body);
-    new_stats.name = alias;
+    new_stats.name = Content::Plain(alias);
     new_stats
 }
 

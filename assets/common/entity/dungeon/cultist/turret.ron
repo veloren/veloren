@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Possessed Turret"),
+    name: Translate("name-custom-dungeon-cultist-turret"),
     body: Exact(Object(Crossbow)),
     alignment: Alignment(Enemy),
     loot: Item("common.items.crafting_ing.twigs"),

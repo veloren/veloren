@@ -2,7 +2,7 @@ use crate::persistence::{PersistedComponents, character_updater::CharacterUpdate
 use common::{
     character::CharacterId,
     comp::{
-        BASE_ABILITY_LIMIT, Body, Inventory, Item, SkillSet, Stats, Waypoint,
+        BASE_ABILITY_LIMIT, Body, Content, Inventory, Item, SkillSet, Stats, Waypoint,
         inventory::loadout_builder::LoadoutBuilder,
     },
 };
@@ -57,7 +57,7 @@ pub fn create_character(
         .build();
     let mut inventory = Inventory::with_loadout_humanoid(loadout);
 
-    let stats = Stats::new(character_alias.to_string(), body);
+    let stats = Stats::new(Content::Plain(character_alias.to_string()), body);
     let skill_set = SkillSet::default();
     // Default items for new characters
     inventory

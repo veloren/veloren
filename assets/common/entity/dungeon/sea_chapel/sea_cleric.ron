@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Sea Cleric"),
+    name: Translate("name-custom-dungeon-sea_chapel-sea_cleric"),
     body: RandomWith("danari"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.sea_chapel.sea_cleric"),

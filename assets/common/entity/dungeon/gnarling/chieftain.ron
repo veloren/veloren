@@ -1,7 +1,7 @@
 // Done for health reasons
 #![enable(implicit_some)]
 (
-    name: Name("Gnarling Chieftain"),
+    name: Automatic,
     body: RandomWith("gnarling_chieftain"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.gnarling.chieftain"),

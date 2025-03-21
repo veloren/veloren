@@ -274,7 +274,7 @@ pub struct PlayerInfo {
 pub struct ChatTypeContext {
     pub you: Uid,
     pub player_info: HashMap<Uid, PlayerInfo>,
-    pub entity_name: HashMap<Uid, String>,
+    pub entity_name: HashMap<Uid, Content>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

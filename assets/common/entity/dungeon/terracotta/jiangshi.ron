@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Jiangshi"),
+    name: Automatic,
     body: RandomWith("jiangshi"),
     alignment: Alignment(Enemy),
     loot: Nothing,

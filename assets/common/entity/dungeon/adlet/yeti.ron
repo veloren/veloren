@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Yeti"),
+    name: Automatic,
     body: RandomWith("yeti"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.adlet.yeti"),

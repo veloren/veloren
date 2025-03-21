@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Prisoner"),
+    name: Translate("name-custom-dungeon-sea_chapel-prisoner"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
     loot: LootTable("common.loot_tables.nothing"),

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Cultist Warlock"),
+    name: Automatic,
     body: RandomWith("cultist_warlock"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.cultist.enemy_large"),

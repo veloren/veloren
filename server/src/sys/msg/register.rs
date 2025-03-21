@@ -97,7 +97,12 @@ impl<'a> System<'a> for Sys {
                         is_moderator: admin.is_some(),
                         player_alias: player.alias.clone(),
                         character: stats.map(|stats| CharacterInfo {
-                            name: stats.name.clone(),
+                            // FIXME:
+                            // I think we want to maintain the invariant that
+                            // player names are always plain, but whether
+                            // we want to panic if that's not the case, I don't
+                            // know.
+                            name: stats.name.clone().as_plain().unwrap().to_owned(),
                             // NOTE: hack, read docs for body::Gender for more
                             gender: stats.original_body.humanoid_gender(),
                         }),

@@ -381,7 +381,11 @@ impl Widget for LootScroller<'_> {
                                 .state()
                                 .ecs()
                                 .entity_from_uid(*taken_by)
-                                .and_then(|entity| stats.get(entity).map(|e| e.name.clone()))
+                                .and_then(|entity| {
+                                    stats
+                                        .get(entity)
+                                        .map(|e| self.localized_strings.get_content(&e.name))
+                                })
                         },
                         |info| Some(info.player_alias.clone()),
                     )
@@ -393,7 +397,8 @@ impl Widget for LootScroller<'_> {
                             match character_info.gender {
                                 Some(common::comp::Gender::Feminine) => "she".to_string(),
                                 Some(common::comp::Gender::Masculine) => "he".to_string(),
-                                None => "??".to_string(),
+                                // TODO: players can't be neuter, for now
+                                Some(common::comp::Gender::Neuter) | None => "??".to_string(),
                             },
                             self.client.uid().expect("Client doesn't have a Uid!!!") == *taken_by,
                         ),
@@ -420,7 +425,7 @@ impl Widget for LootScroller<'_> {
                             "hud-loot-pickup-msg",
                             &i18n::fluent_args! {
                                   "gender" => user_gender,
-                                  "actor" => target_name,
+                                  "actor" => &target_name,
                                   "amount" => amount.get(),
                                   "item" => {
                                       let (name, _) =

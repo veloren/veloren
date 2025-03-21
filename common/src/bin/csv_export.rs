@@ -19,11 +19,9 @@ use veloren_common::{
             tool::{Hands, Tool, ToolKind},
         },
     },
-    generation::{EntityConfig, EntityInfo},
+    generation::EntityConfig,
     lottery::{LootSpec, Lottery},
 };
-
-use vek::Vec3;
 
 #[derive(Parser)]
 struct Cli {
@@ -320,25 +318,13 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
 
 fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("drop_table.csv")?;
-    wtr.write_record([
-        "Entity Name",
-        "Entity Path",
-        "Percent Chance",
-        "Item Path",
-        "Quantity",
-    ])?;
+    wtr.write_record(["Entity Path", "Percent Chance", "Item Path", "Quantity"])?;
 
     fn write_entity_loot<W: Write>(
         wtr: &mut csv::Writer<W>,
         asset_path: &str,
     ) -> Result<(), Box<dyn Error>> {
         let entity_config = EntityConfig::load_expect(asset_path).read();
-        let entity_info = EntityInfo::at(Vec3::new(0.0, 0.0, 0.0)).with_asset_expect(
-            asset_path,
-            &mut rand::thread_rng(),
-            None,
-        );
-        let name = entity_info.name.unwrap_or_default();
 
         // Create initial entry in drop table
         let entry: (f32, LootSpec<String>) = (1.0, entity_config.loot.clone());
@@ -418,7 +404,6 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
             match item {
                 LootSpec::Item(item) => {
                     wtr.write_record(&[
-                        name.clone(),
                         asset_path.to_owned(),
                         percent_chance,
                         item_name(item),
@@ -427,7 +412,6 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                 },
                 LootSpec::Nothing => {
                     wtr.write_record(&[
-                        name.clone(),
                         asset_path.to_owned(),
                         percent_chance,
                         "Nothing".to_owned(),
@@ -452,7 +436,6 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
 
                     for weapon in weapons {
                         wtr.write_record(&[
-                            name.clone(),
                             asset_path.to_owned(),
                             percent_chance.clone(),
                             weapon.name().into_owned(),
@@ -477,7 +460,6 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
 
                     for (comp, _hands) in comps {
                         wtr.write_record(&[
-                            name.clone(),
                             asset_path.to_owned(),
                             percent_chance.clone(),
                             comp.name().into_owned(),

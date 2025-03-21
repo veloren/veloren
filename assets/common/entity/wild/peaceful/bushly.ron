@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Bushly"),
+    name: Automatic,
     body: RandomWith("bushly"),
     alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.creature.biped_small.bushly"),

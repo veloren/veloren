@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Strigoi"),
+    name: Automatic,
     body: RandomWith("strigoi"),
     alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.calendar.halloween.halloween_strigoi"),

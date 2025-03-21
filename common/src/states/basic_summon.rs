@@ -19,6 +19,7 @@ use crate::{
     util::Dir,
     vol::ReadVol,
 };
+use common_i18n::Content;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::{f32::consts::PI, ops::Sub, time::Duration};
@@ -120,12 +121,15 @@ impl CharacterBehavior for Data {
                                 .use_npc_name
                                 .then(|| {
                                     let all_names = NPC_NAMES.read();
-                                    all_names
-                                        .get_species_meta(&self.static_data.summon_info.body)
-                                        .map(|meta| meta.generic.clone())
+                                    all_names.get_default_name(&self.static_data.summon_info.body)
                                 })
                                 .flatten()
-                                .unwrap_or_else(|| "Summon".to_string()),
+                                .unwrap_or_else(|| {
+                                    Content::with_attr(
+                                        "npc-custom-fallback-summon",
+                                        body.gender_attr(),
+                                    )
+                                }),
                             body,
                         );
 

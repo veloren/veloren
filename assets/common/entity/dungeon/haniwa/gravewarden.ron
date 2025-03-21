@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Gravewarden"),
+    name: Automatic,
     body: RandomWith("gravewarden"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.haniwa.gravewarden"),

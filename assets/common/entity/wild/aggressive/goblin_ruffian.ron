@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Goblin Ruffian"),
+    name: Automatic,
     body: RandomWith("goblin_ruffian"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.creature.biped_small.goblin"),

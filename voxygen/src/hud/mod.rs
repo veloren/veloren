@@ -1213,7 +1213,7 @@ pub struct Floaters {
 
 #[derive(Clone)]
 pub enum HudLootOwner {
-    Name(String),
+    Name(Content),
     Group,
     Unknown,
 }
@@ -2404,7 +2404,8 @@ impl Hud {
                                 .powi(2);
 
                         let info = display_overhead_info.then(|| overhead::Info {
-                            name: Some(&stats.name),
+                            // FIXME: idk how else I'm supposed to conjure &str
+                            name: Some(i18n.get_content(&stats.name).leak()),
                             health,
                             buffs: Some(buffs),
                             energy,

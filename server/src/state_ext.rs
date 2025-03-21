@@ -338,10 +338,16 @@ impl StateExt for State {
             .with(Inventory::with_empty())
             .with(comp::CharacterState::default())
             .with(comp::CharacterActivity::default())
-            // TODO: some of these are required in order for the character_behavior system to
-            // recognize a possesed airship; that system should be refactored to use `.maybe()`
+            // TODO: some of these are required in order for the
+            // character_behavior system to recognize a possesed airship;
+            // that system should be refactored to use `.maybe()`
             .with(comp::Energy::new(ship.into()))
-            .with(comp::Stats::new("Airship".to_string(), body))
+            .with(comp::Stats::new({
+                // TODO: I hope it is possible to localize it safely, but
+                // at the same time it's not visible anyway, so let's postpone
+                // this.
+                Content::Plain("Airship".to_string())
+            }, body))
             .with(comp::SkillSet::default())
             .with(comp::ActiveAbilities::default())
             .with(comp::Combo::default());
@@ -630,7 +636,12 @@ impl StateExt for State {
                 // Notify clients of a player list update
                 self.notify_players(ServerGeneral::PlayerListUpdate(
                     PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
-                        name: String::from(&stats.name),
+                        // FIXME:
+                        // Same as in register system, players name are expected
+                        // to be Content::Plain, but it would be unfortunate
+                        // to discover our assumption by crashing the production
+                        // server.
+                        name: String::from(stats.name.as_plain().unwrap()),
                         // NOTE: hack, read docs on body::Gender for more
                         gender: stats.original_body.humanoid_gender(),
                     }),

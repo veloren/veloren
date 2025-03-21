@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Greedy Miner"),
+    name: Translate("name-custom-dungeon-dwarven_quarry-miner"),
     body: RandomWith("dwarf"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.miner"),

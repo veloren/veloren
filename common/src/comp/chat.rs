@@ -79,7 +79,7 @@ pub enum KillType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum KillSource {
     Player(Uid, KillType),
-    NonPlayer(String, KillType),
+    NonPlayer(Content, KillType),
     NonExistent(KillType),
     FallDamage,
     Suicide,

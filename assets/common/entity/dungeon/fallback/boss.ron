@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Crazy Sheep"),
+    name: Translate("name-custom-dungeon-fallback-boss"),
     body: RandomWith("sheep"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.fallback"),

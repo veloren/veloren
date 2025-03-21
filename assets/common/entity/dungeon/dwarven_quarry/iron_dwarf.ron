@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Iron Dwarf"),
+    name: Automatic,
     body: RandomWith("iron_dwarf"),
     alignment: Alignment(Enemy),
     loot: Nothing,

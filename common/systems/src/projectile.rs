@@ -2,8 +2,8 @@ use common::{
     Damage, DamageKind, DamageSource, Explosion, GroupTarget, RadiusEffect,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
-        PhysicsState, Player, Poise, Pos, Projectile, Stats, Vel,
+        Alignment, Body, Buffs, CharacterState, Combo, Content, Energy, Group, Health, Inventory,
+        Mass, Ori, PhysicsState, Player, Poise, Pos, Projectile, Stats, Vel,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         object, projectile,
@@ -268,7 +268,10 @@ impl<'a> System<'a> for Sys {
                                 pos: *pos,
                                 ori: Ori::default(),
                                 npc: NpcBuilder::new(
-                                    Stats::new(String::from("Training Dummy"), body),
+                                    Stats::new(
+                                        Content::with_attr("name-custom-village-dummy", "neut"),
+                                        body,
+                                    ),
                                     body,
                                     Alignment::Npc,
                                 )
@@ -647,7 +650,7 @@ fn dispatch_hit(
             ori: Ori::default(),
             npc: NpcBuilder::new(
                 Stats::new(
-                    String::from("Training Dummy"),
+                    Content::with_attr("name-custom-village-dummy", "neut"),
                     Body::Object(object::Body::TrainingDummy),
                 ),
                 Body::Object(object::Body::TrainingDummy),

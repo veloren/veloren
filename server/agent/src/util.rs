@@ -133,11 +133,18 @@ pub fn is_villager(alignment: Option<&Alignment>) -> bool {
     alignment.is_some_and(|alignment| matches!(alignment, Alignment::Npc))
 }
 
-pub fn is_village_guard(entity: EcsEntity, read_data: &ReadData) -> bool {
+pub fn is_village_guard(_entity: EcsEntity, _read_data: &ReadData) -> bool {
+    // FIXME: We need to be able to change the name of a guard without
+    // breaking this logic.
+    // The `Mark` enum from common::agent could be used to match with
+    // `agent::Mark::Guard`
+    false
+    /*
     read_data
         .stats
         .get(entity)
         .is_some_and(|stats| stats.name == "Guard")
+    */
 }
 
 pub fn are_our_owners_hostile(

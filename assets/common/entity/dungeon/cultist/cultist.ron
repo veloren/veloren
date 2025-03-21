@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Cultist"),
+    name: Translate("name-custom-dungeon-cultist-cultist"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.cultist.enemy"),

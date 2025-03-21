@@ -428,7 +428,7 @@ pub fn maintain_egui_inner(
                                     ui.label("-");
                                 }
                                 if let Some(stats) = stats {
-                                    ui.label(&stats.name);
+                                    ui.label(format!("{:?}", &stats.name));
                                 } else {
                                     ui.label("-");
                                 }
@@ -619,7 +619,7 @@ fn selected_entity_window(
                             .spacing([40.0, 4.0])
                             .striped(true)
                             .show(ui, |ui| {
-                                two_col_row(ui, "Name", stats.name.to_string());
+                                two_col_row(ui, "Name", format!("{:?}", stats.name));
                                 two_col_row(ui, "Damage Reduction", format!("{:.1}", stats.damage_reduction.modifier()));
                                 two_col_row(ui, "Multiplicative Max Health Modifier", format!("{:.1}", stats.max_health_modifiers.mult_mod));
                                 two_col_row(ui, "Move Speed Modifier", format!("{:.1}", stats.move_speed_modifier));

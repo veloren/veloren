@@ -28,7 +28,9 @@ use crate::{
 };
 use common::{
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
+    comp::Content,
     event::UpdateCharacterMetadata,
+    npc::NPC_NAMES,
 };
 use core::ops::Range;
 use rusqlite::{Connection, ToSql, Transaction, types::Value};
@@ -250,7 +252,14 @@ pub fn load_character_data(
                 let pet = comp::Pet::new_from_database(
                     NonZeroU64::new(db_pet.database_id as u64).unwrap(),
                 );
-                let pet_stats = comp::Stats::new(db_pet.name.to_owned(), pet_body);
+                let npc_names = NPC_NAMES.read();
+                // TODO: use proper name here when pet names will be added
+                let pet_stats = comp::Stats::new(
+                    npc_names
+                        .get_default_name(&pet_body)
+                        .unwrap_or(Content::Plain("".to_owned())),
+                    pet_body,
+                );
                 Some((pet, pet_body, pet_stats))
             } else {
                 warn!(
@@ -947,7 +956,7 @@ fn update_pets(
         }
     }
 
-    for (pet, body, stats) in pets
+    for (pet, body, _stats) in pets
         .iter()
         .filter(|(pet, _, _)| pet.get_database_id().load().is_none())
     {
@@ -981,7 +990,9 @@ fn update_pets(
             VALUES  (?1, ?2, ?3)",
         )?;
 
-        stmt.execute([&pet_entity_id as &dyn ToSql, &char_id.0, &stats.name])?;
+        // TODO: use pet names here, when such feature will be implemented
+        let pet_name = "";
+        stmt.execute([&pet_entity_id as &dyn ToSql, &char_id.0, &pet_name])?;
         drop(stmt);
 
         pet.get_database_id()

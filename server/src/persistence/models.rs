@@ -36,6 +36,8 @@ pub struct SkillGroup {
 
 pub struct Pet {
     pub database_id: i64,
+    // TODO: add ability to store and change pet names
+    #[expect(unused)]
     pub name: String,
     pub body_variant: String,
     pub body_data: String,

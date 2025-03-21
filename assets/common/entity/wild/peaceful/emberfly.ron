@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Emberfly"),
+    name: Automatic,
     body: RandomWith("emberfly"),
     alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.creature.arthropod.emberfly"),

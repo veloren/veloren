@@ -26,11 +26,13 @@ pub fn localize_chat_message(
                 pi.player_alias
             }
         },
-        None => info
-            .entity_name
-            .get(uid)
-            .cloned()
-            .expect("client didn't provided enough info"),
+        None => localization.get_content(
+            &info
+                .entity_name
+                .get(uid)
+                .cloned()
+                .expect("client didn't provided enough info"),
+        ),
     };
 
     // Some messages do suffer from complicated logic of insert_alias.
@@ -78,7 +80,9 @@ pub fn localize_chat_message(
             match pi.character.as_ref().and_then(|c| c.gender) {
                 Some(Gender::Feminine) => "she".to_owned(),
                 Some(Gender::Masculine) => "he".to_owned(),
-                None => "??".to_owned(),
+                // TODO: humanoids and hence players can't be neuter, until
+                // we address the comment above at least.
+                Some(Gender::Neuter) | None => "??".to_owned(),
             }
         } else {
             "??".to_owned()
@@ -312,7 +316,7 @@ fn localize_kill_message(
                             &i18n::fluent_args! {
                                 "victim" => name_format(victim),
                                 "victim_gender" => gender_str(victim),
-                                "attacker" => attacker_name,
+                                "attacker" => localization.get_content(attacker_name),
                             },
                         )
                         .into_owned();
@@ -321,7 +325,7 @@ fn localize_kill_message(
             localization.get_msg_ctx(key, &i18n::fluent_args! {
                 "victim" => name_format(victim),
                 "victim_gender" => gender_str(victim),
-                "attacker" => attacker_name,
+                "attacker" => localization.get_content(attacker_name),
             })
         },
         // Other deaths

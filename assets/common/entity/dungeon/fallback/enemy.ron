@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Yan Hus"),
+    name: Translate("name-custom-dungeon-fallback-enemy"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.fallback"),

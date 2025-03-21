@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Terracotta Statue"),
+    name: Translate("name-custom-dungeon-terracotta-terracotta_statue_key_chance"),
     body: Exact(Object(TerracottaStatue)),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.terracotta.terracotta_statue_key_chance"),

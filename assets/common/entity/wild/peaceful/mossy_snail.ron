@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Mossy Snail"),
+    name: Automatic,
     body: RandomWith("mossy_snail"),
     alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.creature.quad_small.mossy_snail"),

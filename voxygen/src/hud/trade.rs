@@ -259,9 +259,12 @@ impl<'a> Trade<'a> {
                     .state()
                     .read_storage::<Stats>()
                     .get(entity)
-                    .map(|e| e.name.to_owned())
+                    .map(|e| self.localized_strings.get_content(&e.name))
             })
-            .unwrap_or_else(|| format!("Player {}", who));
+            .unwrap_or_else(|| {
+                // TODO: localize
+                format!("Player {}", who)
+            });
 
         let offer_header = if ours {
             self.localized_strings.get_msg("hud-trade-your_offer")

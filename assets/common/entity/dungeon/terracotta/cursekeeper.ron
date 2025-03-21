@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Cursekeeper"),
+    name: Automatic,
     body: RandomWith("cursekeeper"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.terracotta.cursekeeper"),

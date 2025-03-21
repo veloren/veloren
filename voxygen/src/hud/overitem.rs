@@ -251,7 +251,9 @@ impl Widget for Overitem<'_> {
                 },
                 HudCollectFailedReason::LootOwned { owner, expiry_secs } => {
                     let owner_name = match owner {
-                        HudLootOwner::Name(name) => Cow::Owned(name),
+                        HudLootOwner::Name(name) => {
+                            Cow::Owned(self.localized_strings.get_content(&name))
+                        },
                         HudLootOwner::Group => self.localized_strings.get_msg("hud-another_group"),
                         HudLootOwner::Unknown => self.localized_strings.get_msg("hud-someone_else"),
                     };

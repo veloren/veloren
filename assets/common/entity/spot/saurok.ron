@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Saurok Bandit"),
+    name: Translate("name-custom-spot-saurok"),
     body: RandomWith("saurok_mighty"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.creature.biped_large.saurok"),

@@ -144,3 +144,6 @@ required-features = ["bin_graphviz"]
 [[bin]]
 name = "find_unused"
 required-features = []
+
+[[bin]]
+name = "names_to_json"

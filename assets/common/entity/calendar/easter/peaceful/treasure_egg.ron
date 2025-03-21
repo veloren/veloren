@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Treasure Egg"),
+    name: Automatic,
     body: RandomWith("treasure_egg"),
     alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.calendar.easter.treasure_egg"),

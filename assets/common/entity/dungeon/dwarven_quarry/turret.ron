@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Mechanical Turret"),
+    name: Translate("name-custom-dungeon-dwarven_quarry-turret"),
     body: Exact(Object(Crossbow)),
     alignment: Alignment(Enemy),
     loot: Item("common.items.crafting_ing.twigs"),

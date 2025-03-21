@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Wooden Golem"),
+    name: Automatic,
     body: RandomWith("woodgolem"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.gnarling.woodgolem"),

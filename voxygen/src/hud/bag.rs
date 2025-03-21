@@ -863,7 +863,7 @@ impl Widget for Bag<'_> {
             self.show.bag_inv,
             true,
             &item_tooltip,
-            self.stats.name.to_string(),
+            self.localized_strings.get_content(&self.stats.name),
             self.info.viewpoint_entity,
             true,
             inventory,

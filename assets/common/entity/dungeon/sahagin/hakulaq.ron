@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Hakulaq"),
+    name: Automatic,
     body: RandomWith("hakulaq"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.creature.quad_low.fanged"),

@@ -2,9 +2,10 @@ use crate::{
     assets::{AssetExt, AssetHandle},
     comp::{self, AllBodies, Body, body},
 };
+use common_i18n::Content;
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -49,7 +50,7 @@ pub const ALL_NPCS: [NpcKind; 16] = [
 /// Body-specific NPC name metadata.
 ///
 /// NOTE: Deliberately don't (yet?) implement serialize.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BodyNames {
     /// The keyword used to refer to this body type (e.g. via the command
     /// console).  Should be unique per body type.
@@ -64,11 +65,12 @@ pub struct BodyNames {
 /// Species-specific NPC name metadata.
 ///
 /// NOTE: Deliberately don't (yet?) implement serialize.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SpeciesNames {
     /// The keyword used to refer to this species (e.g. via the command
-    /// console).  Should be unique per species and distinct from all body
-    /// types (maybe in the future, it will just be unique per body type).
+    /// console).
+    /// Should be unique per species and distinct from all body types (maybe
+    /// in the future, it will just be unique per body type).
     pub keyword: String,
     /// The generic name for NPCs of this species.
     pub generic: String,
@@ -76,6 +78,12 @@ pub struct SpeciesNames {
 
 /// Type holding configuration data for NPC names.
 pub type NpcNames = AllBodies<BodyNames, SpeciesNames>;
+impl NpcNames {
+    pub fn get_default_name(&self, body: &Body) -> Option<Content> {
+        self.get_species_meta(body)
+            .map(|meta| Content::with_attr(meta.generic.clone(), body.gender_attr()))
+    }
+}
 
 lazy_static! {
     pub static ref NPC_NAMES: AssetHandle<NpcNames> = NpcNames::load_expect("common.npc_names");

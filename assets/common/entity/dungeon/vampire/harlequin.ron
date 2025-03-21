@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Harlequin"),
+    name: Automatic,
     body: RandomWith("harlequin"),
     alignment: Alignment(Enemy),
     loot: Item("common.items.keys.vampire_key"),

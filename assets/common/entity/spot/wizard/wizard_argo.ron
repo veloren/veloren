@@ -1,7 +1,7 @@
 #![enable(implicit_some)]
 
 (
-    name: Name("Argo"),
+    name: Translate("name-custom-spot-wizard-wizard_argo"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
     loot: LootTable("common.loot_tables.dungeon.cultist.beastmaster"),

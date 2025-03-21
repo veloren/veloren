@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Mandragora"),
+    name: Automatic,
     body: RandomWith("mandragora"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.gnarling.mandragora"),

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Lava Thrower"),
+    name: Translate("name-custom-dungeon-dwarven_quarry-lavathrower"),
     body: Exact(Object(Lavathrower)),
     alignment: Alignment(Enemy),
     loot: Item("common.items.crafting_ing.twigs"),

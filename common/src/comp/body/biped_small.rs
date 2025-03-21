@@ -68,9 +68,7 @@ enum_iter! {
 }
 
 /// Data representing per-species generic data.
-///
-/// NOTE: Deliberately don't (yet?) implement serialize.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AllSpecies<SpeciesMeta> {
     pub gnome: SpeciesMeta,
     pub sahagin: SpeciesMeta,

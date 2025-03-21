@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Haniwa Soldier"),
+    name: Translate("name-custom-dungeon-haniwa-soldier"),
     body: RandomWith("haniwa"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.haniwa.enemy"),

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Flamekeeper"),
+    name: Automatic,
     body: RandomWith("flamekeeper"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.flamekeeper"),

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Haniwa Sentry"),
+    name: Translate("name-custom-dungeon-haniwa-sentry"),
     body: Exact(Object(HaniwaSentry)),
     alignment: Alignment(Enemy),
     loot: Item("common.items.crafting_ing.stones"),

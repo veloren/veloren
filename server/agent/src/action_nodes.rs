@@ -1977,14 +1977,8 @@ impl AgentData<'_> {
                 || matches!(sound.kind, SoundKind::Utterance(UtteranceKind::Scream, _));
 
             let has_enemy_alignment = matches!(self.alignment, Some(Alignment::Enemy));
-            // FIXME: We need to be able to change the name of a guard without breaking this
-            // logic. The `Mark` enum from common::agent could be used to match with
-            // `agent::Mark::Guard`
-            let is_village_guard = read_data
-                .stats
-                .get(*self.entity)
-                .is_some_and(|stats| stats.name == *"Guard".to_string());
-            let follows_threatening_sounds = has_enemy_alignment || is_village_guard;
+            let follows_threatening_sounds =
+                has_enemy_alignment || is_village_guard(*self.entity, read_data);
 
             if sound_was_threatening && is_close {
                 if !self.below_flee_health(agent) && follows_threatening_sounds {
@@ -2294,7 +2288,8 @@ impl AgentData<'_> {
             let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 
             // TODO: Localise
-            if let Some(tgt_name) = tgt_name {
+            // Is this thing even used??
+            if let Some(tgt_name) = tgt_name.as_ref().and_then(|name| name.as_plain()) {
                 chat(Content::Plain(format!(
                     "{}! How dare you cross me again!",
                     &tgt_name

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Cactid"),
+    name: Automatic,
     body: RandomWith("cactid"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.creature.biped_small.cactid"),

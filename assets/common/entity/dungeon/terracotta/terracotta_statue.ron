@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Terracotta Statue"),
+    name: Translate("name-custom-dungeon-terracotta-terracotta_statue"),
     body: Exact(Object(TerracottaStatue)),
     alignment: Alignment(Enemy),
     loot: Nothing,

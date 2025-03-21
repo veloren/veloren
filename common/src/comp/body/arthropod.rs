@@ -52,7 +52,7 @@ enum_iter! {
 }
 
 /// Data representing per-species generic data.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AllSpecies<SpeciesMeta> {
     pub tarantula: SpeciesMeta,
     pub black_widow: SpeciesMeta,
