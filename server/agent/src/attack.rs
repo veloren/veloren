@@ -4363,7 +4363,7 @@ impl AgentData<'_> {
         let home = agent.patrol_origin.unwrap_or(self.pos.0);
         let center = Vec2::new(home.x + 50.0, home.y + 75.0);
         let cheesed_from_above = tgt_data.pos.0.z > self.pos.0.z + 4.0;
-        let center_cheesed = self.pos.0.z > home.z;
+        let center_cheesed = (center - self.pos.0.xy()).magnitude_squared() < 16.0_f32.powi(2);
         let pillar_cheesed = (tgt_data.pos.0.z > home.z || center_cheesed)
             && agent.combat_state.timers[Timers::CheeseTimer as usize] > 4.0;
         agent.combat_state.timers[Timers::CheeseTimer as usize] += read_data.dt.0;
@@ -4422,9 +4422,9 @@ impl AgentData<'_> {
                 // when cheesed around the center pillar, try to reposition
                 let dir_index = match agent.combat_state.timers[Timers::Reposition as usize] as i32
                 {
-                    0_i32..=5_i32 => 0,
-                    6_i32..=10_i32 => 1,
-                    11_i32..=16_i32 => 2,
+                    0_i32..5_i32 => 0,
+                    5_i32..10_i32 => 1,
+                    10_i32..15_i32 => 2,
                     _ => 3,
                 };
                 let goto = Vec3::new(
