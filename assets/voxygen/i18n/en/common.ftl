@@ -1,3 +1,6 @@
+### This component hosts keys that are used in multiple places in UI
+
+## Buttons
 common-singleplayer = Singleplayer
 common-multiplayer = Multiplayer
 common-servers = Servers
@@ -40,16 +43,22 @@ common-language_settings = Language Settings
 common-chat_settings = Chat Settings
 common-networking_settings = Networking Settings
 common-accessibility_settings = Accessibility Settings
+
+## Messages
 common-connection_lost =
     Connection lost!
     Did the server restart?
     Is the client up to date?
+
+## Species
 common-species-orc = Orc
 common-species-human = Human
 common-species-dwarf = Dwarf
 common-species-elf = Elf
 common-species-draugr = Draugr
 common-species-danari = Danari
+
+## Tools
 common-weapons-axe = Axe
 common-weapons-dagger = Dagger
 common-weapons-greatsword = Greatsword
@@ -69,6 +78,8 @@ common-tool-shovel = Shovel
 common-tool-mining = Mining
 common-tool-instrument = Instrument
 common-tool-throwable = Throwable
+
+## Item Kinds
 common-kind-modular_component = Modular Component
 common-kind-modular_component_partial = Component
 common-kind-glider = Glider
@@ -76,10 +87,15 @@ common-kind-consumable = Consumable
 common-kind-utility = Utility
 common-kind-ingredient = Ingredient
 common-kind-recipegroup = Recipes
+common-kind-lantern = Lantern
 common-hands-one = One-Handed
 common-hands-two = Two-Handed
+
+## Character Generation
 common-rand_appearance = Random appearance
 common-rand_name = Random name
+
+## Stats
 common-stats-power = Power
 common-stats-speed = Speed
 common-stats-effect-power = Effect Power
@@ -94,11 +110,15 @@ common-stats-precision_power = Crit Power
 common-stats-stealth = Stealth
 common-stats-slots = Slots
 common-stats-durability = Durability
+
+## Material names
 common-material-metal = Metal
 common-material-wood = Wood
 common-material-stone = Stone
 common-material-cloth = Cloth
 common-material-hide = Hide
+
+## Sprites
 common-sprite-chest = Chest
 common-sprite-mud = Mud
 common-sprite-grave = Grave
