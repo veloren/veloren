@@ -206,23 +206,15 @@ impl Screen {
                     Image::new(imgs.input_bg)
                         .width(Length::Units(230))
                         .fix_aspect_ratio(),
-                    if can_edit {
-                        Element::from(
-                            TextInput::new(
-                                &mut self.world_name,
-                                &i18n.get_msg("main-singleplayer-world_name"),
-                                &world.name,
-                                move |s| message(WorldChange::Name(s)),
-                            )
-                            .size(input_text_size),
+                    Element::from(
+                        TextInput::new(
+                            &mut self.world_name,
+                            &i18n.get_msg("main-singleplayer-world_name"),
+                            &world.name,
+                            move |s| message(WorldChange::Name(s)),
                         )
-                    } else {
-                        Text::new(&world.name)
-                            .size(input_text_size)
-                            .width(Length::Fill)
-                            .height(Length::Shrink)
-                            .into()
-                    },
+                        .size(input_text_size),
+                    ),
                 )
                 .padding(Padding::new().horizontal(7).top(5))
                 .into(),
