@@ -486,11 +486,7 @@ impl PlayState for MainMenuState {
                             ui::WorldsChange::Regenerate(world) => init.delete_map_file(world),
                             ui::WorldsChange::AddNew => init.new_world(),
                             ui::WorldsChange::CurrentWorldChange(change) => {
-                                if let Some(world) = init
-                                    .current
-                                    .map(|i| &mut init.worlds[i])
-                                    .filter(|map| !map.is_generated)
-                                {
+                                if let Some(world) = init.current.map(|i| &mut init.worlds[i]) {
                                     change.apply(world);
                                     init.save_current_meta();
                                 }
