@@ -497,7 +497,8 @@ pub fn generate_weapons(
     let primaries = generate_weapon_primary_components(tool, material, hand_restriction)?;
     let mut weapons = Vec::new();
 
-    // Generates all relevant modular weapons that resolve to the specified handedness
+    // Generates all relevant modular weapons that resolve to the specified
+    // handedness
     for (comp, comp_hand) in primaries {
         let secondaries = SECONDARY_COMPONENT_POOL
             .get(&tool)
@@ -549,8 +550,9 @@ pub fn random_weapon(
             .into_iter()
             .flatten()
             .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand));
-        
-        // Generates all weapons from secondary components that resolve to the specified handedness
+
+        // Generates all weapons from secondary components that resolve to the specified
+        // handedness
         let mut weapon_items = Vec::new();
         for (def, _hand) in secondary_components {
             let secondary = Item::new_from_item_base(
