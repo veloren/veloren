@@ -500,7 +500,8 @@ impl TreeConfig {
             proportionality: 0.8,
             inhabited: false,
             hanging_sprites: &[(0.00007, SpriteKind::Beehive), (0.015, SpriteKind::Liana)],
-            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(118, 67, 42)),
+
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(69, 62, 43)),
         }
     }
 
