@@ -497,6 +497,7 @@ pub fn generate_weapons(
     let primaries = generate_weapon_primary_components(tool, material, hand_restriction)?;
     let mut weapons = Vec::new();
 
+    // Generates all relevant modular weapons that resolve to the specified handedness
     for (comp, comp_hand) in primaries {
         let secondaries = SECONDARY_COMPONENT_POOL
             .get(&tool)
@@ -514,13 +515,12 @@ pub fn generate_weapons(
             );
             let hands = ModularBase::resolve_hands(&[comp.clone(), secondary.clone()]);
             if compatible_handedness(Some(hands), hand_restriction) {
-                let it = Item::new_from_item_base(
+                weapons.push(Item::new_from_item_base(
                     ItemBase::Modular(ModularBase::Tool),
                     vec![comp.duplicate(ability_map, msm), secondary],
                     ability_map,
                     msm,
-                );
-                weapons.push(it);
+                ));
             }
         }
     }
@@ -549,7 +549,8 @@ pub fn random_weapon(
             .into_iter()
             .flatten()
             .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand));
-
+        
+        // Generates all weapons from secondary components that resolve to the specified handedness
         let mut weapon_items = Vec::new();
         for (def, _hand) in secondary_components {
             let secondary = Item::new_from_item_base(
@@ -560,17 +561,16 @@ pub fn random_weapon(
             );
             let hands = ModularBase::resolve_hands(&[primary_component.clone(), secondary.clone()]);
             if compatible_handedness(Some(hands), hand_restriction) {
-                let it = Item::new_from_item_base(
+                weapon_items.push(Item::new_from_item_base(
                     ItemBase::Modular(ModularBase::Tool),
                     vec![primary_component.clone(), secondary],
                     ability_map,
                     msm,
-                );
-                weapon_items.push(it);
+                ));
             }
         }
 
-        // Select modular weapon
+        // Randomly selects one modular weapon
         Ok(weapon_items
             .choose(&mut rng)
             .ok_or(ModularWeaponCreationError::WeaponHandednessNotFound)?
