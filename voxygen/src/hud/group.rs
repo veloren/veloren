@@ -194,10 +194,10 @@ impl Widget for Group<'_> {
 
         // Helper
         let uid_to_name_text = |uid: Uid, client: &Client| match client.player_list().get(&uid) {
-            Some(player_info) => player_info
-                .character
-                .as_ref()
-                .map_or_else(|| format!("Player<{}>", uid), |c| c.name.clone()),
+            Some(player_info) => player_info.character.as_ref().map_or_else(
+                || format!("Player<{}>", uid),
+                |c| self.localized_strings.get_content(&c.name),
+            ),
             None => client
                 .state()
                 .ecs()

@@ -139,7 +139,7 @@ pub fn localize_chat_message(
         let name = if let Some(pi) = info.player_info.get(from).cloned()
             && show_char_name
         {
-            pi.character.map(|c| c.name)
+            pi.character.map(|c| localization.get_content(&c.name))
         } else {
             None
         };

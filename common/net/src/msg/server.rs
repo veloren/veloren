@@ -279,7 +279,11 @@ pub struct ChatTypeContext {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterInfo {
-    pub name: String,
+    /// The name of specific character, not to be mistaken for player's alias.
+    ///
+    /// We use Content here as for all names, but any character name provided
+    /// directly from a client will be `Content::Plain`
+    pub name: Content,
     pub gender: Option<Gender>,
 }
 

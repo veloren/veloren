@@ -636,12 +636,7 @@ impl StateExt for State {
                 // Notify clients of a player list update
                 self.notify_players(ServerGeneral::PlayerListUpdate(
                     PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
-                        // FIXME:
-                        // Same as in register system, players name are expected
-                        // to be Content::Plain, but it would be unfortunate
-                        // to discover our assumption by crashing the production
-                        // server.
-                        name: String::from(stats.name.as_plain().unwrap()),
+                        name: stats.name.clone(),
                         // NOTE: hack, read docs on body::Gender for more
                         gender: stats.original_body.humanoid_gender(),
                     }),

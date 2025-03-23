@@ -591,9 +591,7 @@ pub fn handle_possess(
                     is_moderator: admins.contains(possessee),
                     character: ecs.read_storage::<comp::Stats>().get(possessee).map(|s| {
                         msg::CharacterInfo {
-                            // FIXME: Do we want unwrap here?
-                            // We expect players to always have plain str names
-                            name: String::from(s.name.as_plain().unwrap()),
+                            name: s.name.clone(),
                             // NOTE: hack, read docs on body::Gender for more
                             gender: s.original_body.humanoid_gender(),
                         }
