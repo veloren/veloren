@@ -8138,7 +8138,9 @@ dependencies = [
 name = "veloren-voxygen-i18n-helpers"
 version = "0.10.0"
 dependencies = [
+ "rand",
  "tracing",
+ "vek 0.17.1",
  "veloren-client-i18n",
  "veloren-common",
  "veloren-common-net",

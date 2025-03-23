@@ -14,3 +14,5 @@ common = {package = "veloren-common", path = "../../common"}
 i18n = {package = "veloren-client-i18n", path = "../../client/i18n"}
 # Utility
 tracing = { workspace = true }
+rand = { workspace = true }
+vek = { workspace = true }

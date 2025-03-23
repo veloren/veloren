@@ -438,11 +438,16 @@ fn insert_alias(_replace_you: bool, info: PlayerInfo, _localization: &Localizati
 #[cfg(test)]
 mod tests {
     #[expect(unused)] use super::*;
-    use common::comp::{
-        Content,
-        inventory::item::{ItemDesc, ItemI18n, all_items_expect},
+    use common::{
+        comp::{
+            Content,
+            inventory::item::{ItemDesc, ItemI18n, all_items_expect},
+        },
+        generation::{EntityInfo, try_all_entity_configs},
     };
     use i18n::LocalizationHandle;
+    use std::collections::HashSet;
+    use vek::Vec3;
 
     // item::tests::ensure_item_localization tests that we have Content for
     // each item. This tests that we actually have at least English translation
@@ -471,6 +476,52 @@ mod tests {
             localization.try_attr(&key, &attr).unwrap_or_else(|| {
                 panic!("'{key}' description doesn't have i18n");
             });
+        }
+    }
+
+    #[test]
+    fn test_npc_names() {
+        let mut no_names = HashSet::new();
+        let mut no_i18n = HashSet::new();
+
+        let mut rng = rand::thread_rng();
+        let localization = LocalizationHandle::load_expect("en").read();
+
+        let entity_configs =
+            try_all_entity_configs().expect("Failed to access entity configs directory");
+
+        for config_asset in entity_configs {
+            // TODO: figure out way to test events?
+            let event = None;
+
+            // We have no way to request all possibilities, so cycle a few times
+            // to hopefully cover all genders and such
+            for _ in 0..10 {
+                let entity =
+                    EntityInfo::at(Vec3::zero()).with_asset_expect(&config_asset, &mut rng, event);
+                let name = entity.name;
+                let Some(name) = name else {
+                    no_names.insert(config_asset.to_owned());
+                    continue;
+                };
+                let Content::Attr(key, attr) = name else {
+                    panic!("name is expected to be Attr, please fix the test");
+                };
+                if localization.try_attr(&key, &attr).is_none() {
+                    no_i18n.insert((key, attr));
+                };
+            }
+        }
+
+        if !no_names.is_empty() {
+            panic!(
+                "Following configs have neither custom name nor default: {:#?}",
+                no_names
+            );
+        }
+
+        if !no_i18n.is_empty() {
+            panic!("Following entities don't have proper i18n: {:#?}", no_i18n);
         }
     }
 }
