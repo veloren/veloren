@@ -2404,8 +2404,7 @@ impl Hud {
                                 .powi(2);
 
                         let info = display_overhead_info.then(|| overhead::Info {
-                            // FIXME: idk how else I'm supposed to conjure &str
-                            name: Some(i18n.get_content(&stats.name).leak()),
+                            name: Some(i18n.get_content(&stats.name)),
                             health,
                             buffs: Some(buffs),
                             energy,

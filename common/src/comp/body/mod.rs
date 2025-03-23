@@ -1800,12 +1800,11 @@ impl Body {
     /// we need more advanced scheme here, but that's all we have atm.
     ///
     /// At the moment used for two things:
-    /// - Grammatical gender indicator regarding players for proper
-    /// grammatical agreement in sentences for languages that require it.
-    /// At the moment can be used only for chat messages, but should be
-    /// extended further.
-    /// - Semantic indicator to pick proper name variant for NPC.
-    /// For example Hunter vs Huntress or Lion vs Lioness.
+    /// - Grammatical gender indicator regarding players for proper grammatical
+    ///   agreement in sentences for languages that require it. At the moment
+    ///   can be used only for chat messages, but should be extended further.
+    /// - Semantic indicator to pick proper name variant for NPC. For example,
+    ///   Hunter vs Huntress or Lion vs Lioness.
     pub fn default_gender(&self) -> Gender {
         match self {
             Body::Humanoid(b) => match b.body_type {
