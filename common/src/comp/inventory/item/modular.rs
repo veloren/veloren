@@ -411,6 +411,28 @@ pub fn compatible_handedness(a: Option<Hands>, b: Option<Hands>) -> bool {
     }
 }
 
+/// Check if hand combination is matching.
+///
+/// Uses primary and secondary hands, as well as optional restriction
+pub fn matching_handedness(
+    primary: Option<Hands>,
+    secondary: Option<Hands>,
+    restriction: Option<Hands>,
+) -> bool {
+    match (primary, secondary, restriction) {
+        (Some(a), Some(b), Some(c)) => (a == b) && (b == c),
+
+        (None, None, Some(Hands::Two)) => false,
+        (None, None, Some(Hands::One)) => true,
+
+        (Some(a), None, Some(c)) => a == c,
+        (None, Some(b), Some(c)) => b == c,
+        (Some(a), Some(b), None) => a == b,
+
+        (_, _, None) => true,
+    }
+}
+
 /// Generate all primary components for specific tool and material.
 ///
 /// Read [random_weapon_primary_component] for more.
@@ -429,7 +451,7 @@ pub fn generate_weapon_primary_components(
             .into_iter()
             .flatten()
             .filter(|(_comp, hand)| compatible_handedness(hand_restriction, *hand))
-            .map(|(c, h)| (c.duplicate(ability_map, msm), hand_restriction.or(*h)))
+            .map(|(c, h)| (c.duplicate(ability_map, msm), *h))
             .collect())
     } else {
         Err(ModularWeaponCreationError::MaterialNotFound)
@@ -469,7 +491,7 @@ pub fn random_weapon_primary_component(
                 .choose(&mut rng)
                 .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?;
             let comp = comp.duplicate(ability_map, msm);
-            Ok((comp, hand_restriction.or(*hand)))
+            Ok((comp, (*hand)))
         } else {
             Err(ModularWeaponCreationError::MaterialNotFound)
         }
@@ -497,15 +519,12 @@ pub fn generate_weapons(
     let primaries = generate_weapon_primary_components(tool, material, hand_restriction)?;
     let mut weapons = Vec::new();
 
-    // Generates all relevant modular weapons that resolve to the specified
-    // handedness
     for (comp, comp_hand) in primaries {
         let secondaries = SECONDARY_COMPONENT_POOL
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand))
-            .filter(|(_def, hand)| compatible_handedness(comp_hand, *hand));
+            .filter(|(_def, hand)| matching_handedness(comp_hand, *hand, hand_restriction));
 
         for (def, _hand) in secondaries {
             let secondary = Item::new_from_item_base(
@@ -514,15 +533,12 @@ pub fn generate_weapons(
                 ability_map,
                 msm,
             );
-            let hands = ModularBase::resolve_hands(&[comp.clone(), secondary.clone()]);
-            if compatible_handedness(Some(hands), hand_restriction) {
-                weapons.push(Item::new_from_item_base(
-                    ItemBase::Modular(ModularBase::Tool),
-                    vec![comp.duplicate(ability_map, msm), secondary],
-                    ability_map,
-                    msm,
-                ));
-            }
+            weapons.push(Item::new_from_item_base(
+                ItemBase::Modular(ModularBase::Tool),
+                vec![comp.duplicate(ability_map, msm), secondary],
+                ability_map,
+                msm,
+            ));
         }
     }
 
@@ -542,41 +558,37 @@ pub fn random_weapon(
         let ability_map = &AbilityMap::load().read();
         let msm = &MaterialStatManifest::load().read();
 
-        let (primary_component, hand_restriction) =
+        let (primary_component, primary_hands) =
             random_weapon_primary_component(tool, material, hand_restriction, rng)?;
 
         let secondary_components = SECONDARY_COMPONENT_POOL
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand));
+            .filter(|(_def, hand)| matching_handedness(primary_hands, *hand, hand_restriction))
+            .collect::<Vec<_>>();
 
-        // Generates all weapons from secondary components that resolve to the specified
-        // handedness
-        let mut weapon_items = Vec::new();
-        for (def, _hand) in secondary_components {
-            let secondary = Item::new_from_item_base(
+        let secondary_component = {
+            let def = &secondary_components
+                .choose(&mut rng)
+                .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
+                .0;
+
+            Item::new_from_item_base(
                 ItemBase::Simple(Arc::clone(def)),
                 Vec::new(),
                 ability_map,
                 msm,
-            );
-            let hands = ModularBase::resolve_hands(&[primary_component.clone(), secondary.clone()]);
-            if compatible_handedness(Some(hands), hand_restriction) {
-                weapon_items.push(Item::new_from_item_base(
-                    ItemBase::Modular(ModularBase::Tool),
-                    vec![primary_component.clone(), secondary],
-                    ability_map,
-                    msm,
-                ));
-            }
-        }
+            )
+        };
 
-        // Randomly selects one modular weapon
-        Ok(weapon_items
-            .choose(&mut rng)
-            .ok_or(ModularWeaponCreationError::WeaponHandednessNotFound)?
-            .clone())
+        // Create modular weapon
+        Ok(Item::new_from_item_base(
+            ItemBase::Modular(ModularBase::Tool),
+            vec![primary_component, secondary_component],
+            ability_map,
+            msm,
+        ))
     };
     if let Err(err) = &result {
         let error_str = format!(
