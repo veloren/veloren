@@ -180,7 +180,10 @@ impl<'a> System<'a> for Sys {
                         })
                     }) {
                         let duration = burning.data.duration.map(|d| d * 0.9);
-                        if duration.is_none_or(|d| d.0 >= 1.0) && rng.gen_bool(dt.into()) {
+                        if duration.is_none_or(|d| d.0 >= 1.0)
+                            && rng
+                                .gen_bool((dt * burning.data.strength / 5.0).clamp(0.0, 1.0).into())
+                        {
                             // NOTE: setting source as the burned character is
                             // problematic for whole array of reasons.
                             // 1) It would show non-sensical death message.
