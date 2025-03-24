@@ -26,6 +26,7 @@ use common::{
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
+use rand::Rng;
 use rayon::iter::ParallelIterator;
 use specs::{
     Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
@@ -67,7 +68,6 @@ pub struct ReadData<'a> {
     light_emitters: ReadStorage<'a, LightEmitter>,
     alignments: ReadStorage<'a, Alignment>,
     players: ReadStorage<'a, Player>,
-    uids: ReadStorage<'a, Uid>,
     masses: ReadStorage<'a, Mass>,
 }
 
@@ -145,6 +145,7 @@ impl<'a> System<'a> for Sys {
             }
         }
 
+        let mut rng = rand::thread_rng();
         let buff_join = (
             &read_data.entities,
             &read_data.buffs,
@@ -152,14 +153,12 @@ impl<'a> System<'a> for Sys {
             &read_data.bodies,
             &read_data.healths,
             &read_data.energies,
-            read_data.uids.maybe(),
             read_data.physics_states.maybe(),
             read_data.masses.maybe(),
         )
             .lend_join();
         buff_join.for_each(|comps| {
-            let (entity, buff_comp, mut stat, body, health, energy, uid, physics_state, mass) =
-                comps;
+            let (entity, buff_comp, mut stat, body, health, energy, physics_state, mass) = comps;
             let dest_info = DestInfo {
                 stats: Some(&stat),
                 mass,
@@ -181,16 +180,27 @@ impl<'a> System<'a> for Sys {
                         })
                     }) {
                         let duration = burning.data.duration.map(|d| d * 0.9);
-                        if duration.is_none_or(|d| d.0 >= 1.0) {
-                            let source =
-                                uid.map_or(BuffSource::World, |u| BuffSource::Character { by: *u });
+                        if duration.is_none_or(|d| d.0 >= 1.0) && rng.gen_bool(dt.into()) {
+                            // NOTE: setting source as the burned character is
+                            // problematic for whole array of reasons.
+                            // 1) It would show non-sensical death message.
+                            // 2) It makes NPCs hate the victim of fire, which is rather annoying.
+                            // 3) It makes NPCs hate other NPCs and attempting to attack them, even
+                            //    when they are in the same group.
+                            //
+                            // We could reference original source, but it might
+                            // have some cheesing & griefing potential.
+                            //
+                            // Yes, with this implementation you could put
+                            // yourself on fire, and then harras NPCs but good
+                            // luck with that.
                             emitters.emit(BuffEvent {
                                 entity: t_entity,
                                 buff_change: BuffChange::Add(Buff::new(
                                     BuffKind::Burning,
                                     BuffData::new(burning.data.strength, duration),
                                     vec![BuffCategory::Natural],
-                                    source,
+                                    BuffSource::World,
                                     *read_data.time,
                                     DestInfo {
                                         // Can't mutably access stats, and for burning debuff stats
