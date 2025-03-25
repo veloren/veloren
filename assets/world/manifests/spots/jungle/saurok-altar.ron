@@ -1,3 +1,4 @@
+#![enable(implicit_some)]
 #![enable(unwrap_newtypes)]
 
 [
@@ -5,6 +6,9 @@
         specifier: "world.structure.spots.saurok-altar",
         center: (10, 13, 3),
         custom_indices: {
+            11: SpriteWithCfg(DungeonChest0, (
+                loot_table: "common.loot_tables.spot.saurok_altar",
+            )),
             105: Filled(GlowingRock, (r: 161, g: 255, b: 133)),
             113: Filled(GlowingRock, (r: 139, g: 245, b: 104)),
         },

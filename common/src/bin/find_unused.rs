@@ -277,7 +277,7 @@ fn main() {
 
     // Assumes all sprites can spawn.
     for sprite in SpriteKind::iter() {
-        if let Some(Some(item)) = sprite.collectible_id() {
+        if let Some(Some(item)) = sprite.default_loot_spec() {
             used.use_loot_spec(&item);
         }
     }

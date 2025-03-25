@@ -1,0 +1,16 @@
+[
+    (1, All([
+        // Consumables
+        Item("common.items.consumable.potion_minor"),
+        LootTable("common.loot_tables.food.wild_ingredients"),
+        LootTable("common.loot_tables.food.prepared"),
+        // Treasure
+        Lottery([
+            (2.0, LootTable("common.loot_tables.materials.common")),
+            // Ring
+            (0.5, Item("common.items.armor.misc.ring.gold")),
+            // Necklace
+            (0.5, Item("common.items.armor.misc.neck.gold")),
+        ]),
+    ])),
+]

@@ -1996,8 +1996,8 @@ impl Structure for Tavern {
                         SpriteKind::HangingSign,
                         in_dir.opposite().sprite_ori_legacy(),
                         SpriteCfg {
-                            unlock: None,
                             content: Some(Content::Plain(self.name.clone())),
+                            ..Default::default()
                         },
                     );
                 }

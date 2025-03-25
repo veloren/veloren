@@ -12,6 +12,8 @@ use serde::Deserialize;
 use std::{num::NonZeroU8, sync::Arc};
 use vek::*;
 
+use crate::terrain::{SpriteCfg, SpriteKind};
+
 make_case_elim!(
     structure_block,
     #[derive(Clone, PartialEq, Debug, Deserialize)]
@@ -29,7 +31,7 @@ make_case_elim!(
         GreenSludge = 9,
         Fruit = 10,
         Coconut = 11,
-        Chest = 12,
+        MaybeChest = 12,
         Hollow = 13,
         Liana = 14,
         Normal(color: Rgb<u8>) = 15,
@@ -58,6 +60,7 @@ make_case_elim!(
         CherryLeaves = 37,
         AutumnLeaves = 38,
         RedwoodWood = 39,
+        SpriteWithCfg(kind: SpriteKind, sprite_cfg: SpriteCfg) = 40,
     }
 );
 
@@ -125,9 +128,10 @@ impl assets::Compound for StructuresGroup {
     }
 }
 
+const STRUCTURE_MANIFESTS_DIR: &str = "world.manifests";
 impl Structure {
     pub fn load_group(specifier: &str) -> AssetHandle<StructuresGroup> {
-        StructuresGroup::load_expect(&["world.manifests.", specifier].concat())
+        StructuresGroup::load_expect(&format!("{STRUCTURE_MANIFESTS_DIR}.{specifier}"))
     }
 
     #[must_use]
@@ -211,7 +215,7 @@ impl assets::Compound for BaseStructure<StructureBlock> {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct StructureSpec {
     specifier: String,
     center: [i32; 3],
@@ -231,7 +235,7 @@ fn default_custom_indices() -> HashMap<u8, StructureBlock> {
         /* 8 */ Some(StructureBlock::Fruit),
         /* 9 */ Some(StructureBlock::Grass),
         /* 10 */ Some(StructureBlock::Liana),
-        /* 11 */ Some(StructureBlock::Chest),
+        /* 11 */ Some(StructureBlock::MaybeChest),
         /* 12 */ Some(StructureBlock::Coconut),
         /* 13 */ None,
         /* 14 */ Some(StructureBlock::PalmLeavesOuter),
@@ -246,7 +250,7 @@ fn default_custom_indices() -> HashMap<u8, StructureBlock> {
         .collect()
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct StructuresGroupSpec(Vec<StructureSpec>);
 
 impl assets::Asset for StructuresGroupSpec {
@@ -298,5 +302,127 @@ fn test_load_structures() {
 
     if let Some(errors) = errors {
         panic!("Failed to load the following structures:\n{errors}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        generation::tests::validate_entity_config,
+        lottery::{LootSpec, tests::validate_loot_spec},
+    };
+    use std::ops::Deref;
+
+    pub fn validate_sprite_and_cfg(sprite: SpriteKind, sprite_cfg: &SpriteCfg) {
+        let SpriteCfg {
+            // TODO: write validation for UnlockKind?
+            unlock: _,
+            // TODO: requires access to i18n for validation
+            content: _,
+            loot_table,
+        } = sprite_cfg;
+
+        if let Some(loot_table) = loot_table.clone() {
+            if !sprite.is_defined_as_container() {
+                panic!(
+                    r"
+Manifest contains a structure block with custom loot table for a sprite
+that isn't defined as container, you probably don't want that.
+
+If you want, add this sprite to `is_defined_as_container` list.
+Sprite in question: {sprite:?}
+"
+                );
+            }
+
+            validate_loot_spec(&LootSpec::LootTable(loot_table))
+        }
+    }
+
+    fn validate_structure_block(sb: &StructureBlock, id: &str) {
+        match sb {
+            StructureBlock::SpriteWithCfg(sprite, sprite_cfg) => {
+                std::panic::catch_unwind(|| validate_sprite_and_cfg(*sprite, sprite_cfg))
+                    .unwrap_or_else(|_| {
+                        panic!("failed to load structure_block in: {id}\n{sb:?}");
+                    })
+            },
+            StructureBlock::EntitySpawner(entity_kind, _spawn_chance) => {
+                let config = &entity_kind;
+                std::panic::catch_unwind(|| validate_entity_config(config)).unwrap_or_else(|_| {
+                    panic!("failed to load structure_block in: {id}\n{sb:?}");
+                })
+            },
+            // These probably can't fail
+            StructureBlock::None
+            | StructureBlock::Grass
+            | StructureBlock::TemperateLeaves
+            | StructureBlock::PineLeaves
+            | StructureBlock::Acacia
+            | StructureBlock::Mangrove
+            | StructureBlock::PalmLeavesInner
+            | StructureBlock::PalmLeavesOuter
+            | StructureBlock::Water
+            | StructureBlock::GreenSludge
+            | StructureBlock::Fruit
+            | StructureBlock::Coconut
+            | StructureBlock::MaybeChest
+            | StructureBlock::Hollow
+            | StructureBlock::Liana
+            | StructureBlock::Normal { .. }
+            | StructureBlock::Log
+            | StructureBlock::Filled { .. }
+            | StructureBlock::Sprite { .. }
+            | StructureBlock::Chestnut
+            | StructureBlock::Baobab
+            | StructureBlock::BirchWood
+            | StructureBlock::FrostpineLeaves
+            | StructureBlock::MapleLeaves
+            | StructureBlock::CherryLeaves
+            | StructureBlock::RedwoodWood
+            | StructureBlock::AutumnLeaves => {},
+            // TODO: ideally this should be tested as well
+            StructureBlock::Keyhole { .. }
+            | StructureBlock::MyrmidonKeyhole { .. }
+            | StructureBlock::MinotaurKeyhole { .. }
+            | StructureBlock::SahaginKeyhole { .. }
+            | StructureBlock::VampireKeyhole { .. }
+            | StructureBlock::BoneKeyhole { .. }
+            | StructureBlock::GlassKeyhole { .. }
+            | StructureBlock::KeyholeBars { .. }
+            | StructureBlock::HaniwaKeyhole { .. }
+            | StructureBlock::TerracottaKeyhole { .. } => {},
+            // TODO: requires access to i18n for validation
+            StructureBlock::Sign { .. } => {},
+        }
+    }
+
+    #[test]
+    fn test_structure_manifests() {
+        let specs = assets::load_rec_dir::<StructuresGroupSpec>(STRUCTURE_MANIFESTS_DIR).unwrap();
+        for id in specs.read().ids() {
+            // Ignore manifest file
+            if id != "world.manifests.spots" {
+                let group = StructuresGroupSpec::load(id).unwrap_or_else(|e| {
+                    panic!("failed to load: {id}\n{e:?}");
+                });
+                let StructuresGroupSpec(group) = group.read().deref().clone();
+                for StructureSpec {
+                    specifier,
+                    center: _center,
+                    custom_indices,
+                } in group
+                {
+                    BaseStructure::<StructureBlock>::load(&specifier).unwrap_or_else(|e| {
+                        panic!("failed to load specifier for: {id}\n{e:?}");
+                    });
+
+                    for sb in custom_indices.values() {
+                        validate_structure_block(sb, id);
+                    }
+                }
+            }
+        }
     }
 }

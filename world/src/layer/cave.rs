@@ -10,7 +10,7 @@ use common::{
     generation::EntityInfo,
     terrain::{
         Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize,
-        quadratic_nearest_point, river_spline_coeffs,
+        quadratic_nearest_point, river_spline_coeffs, sprite::SpriteCfg,
     },
     vol::RectVolSize,
 };
@@ -1178,6 +1178,7 @@ fn write_column<R: Rng>(
     for z in bedrock..z_range.end {
         let wpos = wpos2d.with_z(z);
         let mut try_spawn_entity = false;
+        let mut sprite_cfg_to_set = None;
         canvas.set(wpos, {
             if z < z_range.start - 4 && !void_below {
                 Block::new(BlockKind::Lava, Rgb::new(255, 65, 0))
@@ -1505,7 +1506,7 @@ fn write_column<R: Rng>(
                         .ok()
                         .and_then(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(6), 0.0002) {
-                        [
+                        let chest = [
                             (Some(SpriteKind::DungeonChest0), 1.0),
                             (Some(SpriteKind::DungeonChest1), 0.3),
                             (Some(SpriteKind::DungeonChest2), 0.1),
@@ -1516,7 +1517,17 @@ fn write_column<R: Rng>(
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
-                        .and_then(|s| s.0)
+                        .and_then(|s| s.0);
+
+                        // Here as an example of using sprite_cfg to override
+                        // default loot table
+                        if chest == Some(SpriteKind::DungeonChest3) {
+                            sprite_cfg_to_set = Some(SpriteCfg {
+                                loot_table: Some("common.loot_tables.cave_large".to_owned()),
+                                ..Default::default()
+                            });
+                        }
+                        chest
                     } else if rand.chance(wpos2d.with_z(7), 0.007) {
                         let shallow = close(biome.depth, 0.0, 0.4, 3);
                         let middle = close(biome.depth, 0.5, 0.4, 3);
@@ -1584,6 +1595,9 @@ fn write_column<R: Rng>(
                 Block::empty()
             }
         });
+        if let Some(sprite_cfg) = sprite_cfg_to_set {
+            canvas.set_sprite_cfg(wpos, sprite_cfg);
+        }
 
         if try_spawn_entity {
             apply_entity_spawns(canvas, wpos, &biome, rng);

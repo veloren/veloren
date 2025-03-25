@@ -7,7 +7,7 @@ use crate::{
 };
 use common::{
     generation::EntityInfo,
-    terrain::{SpriteKind, Structure as PrefabStructure, StructuresGroup},
+    terrain::{SpriteKind, Structure as PrefabStructure, StructuresGroup, sprite::SpriteCfg},
 };
 use lazy_static::lazy_static;
 use rand::prelude::*;
@@ -201,7 +201,12 @@ impl Structure for JungleRuin {
                 .fill(stone_broken);
             let chest_pos = Vec2::new(center.x + room_size - 2, center.y - 3)
                 .with_z(plot_base - height_handle - room_size + 1);
-            painter.sprite(chest_pos, SpriteKind::DungeonChest0);
+            let chest = SpriteKind::DungeonChest0;
+            let cfg = SpriteCfg {
+                loot_table: Some("common.loot_tables.spot.jungle_ruin".to_owned()),
+                ..Default::default()
+            };
+            painter.rotated_sprite_with_cfg(chest_pos, chest, 0, cfg);
         } else {
             let chest_radius = radius / 2;
             for n in 1..=(ruins / 4.0) as i32 {

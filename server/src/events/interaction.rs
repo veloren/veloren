@@ -343,8 +343,9 @@ impl ServerEvent for MineBlockEvent {
                         .and_then(|damage| Some((sprite?.mine_drop_interval(), damage)))
                         .is_some_and(|(interval, damage)| damage % interval == 0);
 
+                    let sprite_cfg = terrain.sprite_cfg_at(ev.pos);
                     if (stage_changed || is_broken)
-                        && let Some(items) = comp::Item::try_reclaim_from_block(block)
+                        && let Some(items) = comp::Item::try_reclaim_from_block(block, sprite_cfg)
                     {
                         let mut items: Vec<_> =
                             flatten_counted_items(&items, &ability_map, &msm).collect();

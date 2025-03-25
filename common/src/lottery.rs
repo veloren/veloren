@@ -208,6 +208,7 @@ pub fn distribute_many<T: Copy + Eq + Hash, I>(
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[rustfmt::skip] // breaks doc comments
 pub enum LootSpec<T: AsRef<str>> {
     /// Asset specifier
     Item(T),
@@ -215,24 +216,78 @@ pub enum LootSpec<T: AsRef<str>> {
     LootTable(T),
     /// No loot given
     Nothing,
-    /// Modular weapon
+    /// Random modular weapon that matches requested restrictions
     ModularWeapon {
         tool: item::tool::ToolKind,
         material: item::Material,
         hands: Option<item::tool::Hands>,
     },
+    /// Random primary modular weapon component that matches requested
+    /// restrictions
     ModularWeaponPrimaryComponent {
         tool: item::tool::ToolKind,
         material: item::Material,
         hands: Option<item::tool::Hands>,
     },
-    /// Dropping lower-upper range items at random from the respective Category
-    /// (often a Loottable or Item(Coin)) LootSpec, lower range, upper range
+    /// Dropping variable number of items at random from respective Category
+    ///
+    /// # Examples:
+    /// ```text
+    /// MultiDrop(Item("common.items.utility.coins"), 100, 250)
+    /// ```
+    /// Will drop 100-250 coins (250 coins is also possible).
+    /// ```text
+    /// MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 4)
+    /// ```
+    /// Will drop random item from food.prepared loot table one to four times.
+    /// Each time the dice is thrown again, so items might get duplicated or
+    /// not.
     MultiDrop(Box<LootSpec<T>>, u32, u32),
-    /// Each category is evaluated, often used to have guaranteed quest Item +
-    /// random reward
+    /// Each category is evaluated, often used to have guaranteed quest item
+    /// and random reward.
+    ///
+    /// # Examples:
+    /// ```text
+    /// All([
+    ///     Item("common.items.keys.bone_key"),
+    ///     MultiDrop(
+    ///         Item("common.items.crafting_ing.mineral.gem.sapphire"),
+    ///         0, 1,
+    ///     ),
+    /// ])
+    /// ```
+    /// Will always drop bone key, 1-2 furs, and may drop or not drop one
+    /// sapphire.
+    ///
+    /// ```text
+    /// All([
+    ///     Item("common.items.armor.cultist.necklace"),
+    ///     MultiDrop(Item("common.items.armor.cultist.ring"), 2, 2),
+    /// ])
+    /// ```
+    /// Will always drop cultist necklace and two cultist rings.
     All(Vec<LootSpec<T>>),
-    /// Like a `LootTable` but inline
+    /// Like a `LootTable` but inline, most useful with `All([])`.
+    ///
+    /// # Examples:
+    /// ```text
+    /// All([
+    ///     Item("common.items.keys.terracotta_key_door"),
+    ///
+    ///     Lottery([
+    ///         // Weapons
+    ///         (3.0, LootTable("common.loot_tables.weapons.tier-5")),
+    ///         // Armor
+    ///         (3.0, LootTable("common.loot_tables.armor.tier-5")),
+    ///         // Misc
+    ///         (0.25, Item("common.items.tool.instruments.steeltonguedrum")),
+    ///     ]),
+    /// ])
+    /// ```
+    /// Will always drop a terracotta key, and ONE of items defined in a lottery:
+    /// * one random tier-5 weapon
+    /// * one random tier-5 armour piece
+    /// * Steeldrum
     Lottery(Vec<(f32, LootSpec<T>)>),
 }
 

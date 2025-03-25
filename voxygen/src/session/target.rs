@@ -105,7 +105,12 @@ pub(super) fn targets_under_cursor(
         }
     };
 
-    let (collect_pos, _, collect_cam_ray) = find_pos(|b: Block| b.is_collectible());
+    // TODO: is it possible to somehow use `is_collectible` here which requires
+    // sprite_cfg?
+    let (collect_pos, _, collect_cam_ray) = find_pos(|b: Block| {
+        b.get_sprite()
+            .is_some_and(|s| s.default_tool() == Some(None))
+    });
     let (mine_pos, _, mine_cam_ray) = if active_mine_tool.is_some() {
         find_pos(|b: Block| b.mine_tool().is_some())
     } else {

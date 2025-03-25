@@ -316,10 +316,12 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::MinotaurKeyhole => Some(SpriteInteractKind::Unlock),
             // Collectible checked in addition to container for case that sprite requires a tool to
             // collect and cannot be collected by hand, yet still meets the container check
-            _ if sprite_kind.is_container() && sprite_kind.is_collectible() => {
+            _ if sprite_kind.is_defined_as_container()
+                && sprite_kind.default_tool() == Some(None) =>
+            {
                 Some(SpriteInteractKind::Chest)
             },
-            _ if sprite_kind.is_collectible() => Some(SpriteInteractKind::Fallback),
+            _ if sprite_kind.default_tool() == Some(None) => Some(SpriteInteractKind::Fallback),
             _ => None,
         }
     }
