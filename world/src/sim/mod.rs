@@ -1343,13 +1343,14 @@ impl WorldSim {
                     None
                 } else {
                     if last_progress < progress {
-                        let sample =
-                            (now - last_instant) / ((progress - last_progress) * 100.0) as u32;
+                        let sample = now
+                            .duration_since(last_instant)
+                            .div_f64(progress - last_progress);
                         all_samples += sample;
                         sample_count += 1;
                     }
 
-                    Some((all_samples / sample_count) * ((100.0 - progress) * 100.0) as u32)
+                    Some((all_samples / sample_count).mul_f64(100.0 - progress))
                 }
             } else {
                 None

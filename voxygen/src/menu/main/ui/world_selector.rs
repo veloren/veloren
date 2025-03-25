@@ -362,13 +362,20 @@ impl Screen {
                         ])
                         .into(),
                     );
-                    let height = Length::Units(56);
+                    let height = Length::Units(86);
                     if gen_opts.x_lg + gen_opts.y_lg >= 19 {
                         let mut msg = i18n
                             .get_msg("main-singleplayer-map_large_warning")
                             .into_owned();
-                        if let Some(s) = (gen_opts.x_lg + gen_opts.y_lg).checked_sub(20) {
-                            let count = ((1 << s) as f32 * gen_opts.erosion_quality).round() as u32;
+                        let default_ops = server::GenOpts::default();
+                        if let Some(s) = (gen_opts.x_lg + gen_opts.y_lg)
+                            .checked_sub(default_ops.x_lg + default_ops.y_lg)
+                        {
+                            // Memory usages would still be more even if `erosion_quality`
+                            // is less than 1.0 so only multiply by that if it's greater
+                            // than 1.
+                            let count = ((1 << s) as f32 * gen_opts.erosion_quality.max(1.0))
+                                .round() as u32;
                             if count > 1 {
                                 msg.push(' ');
                                 msg.push_str(&i18n.get_msg_ctx(
