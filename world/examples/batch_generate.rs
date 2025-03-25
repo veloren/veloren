@@ -147,7 +147,10 @@ fn generate_one(
         },
         threadpool,
         &|stage| {
-            if let WorldGenerateStage::WorldSimGenerate(WorldSimStage::Erosion(percentage)) = stage
+            if let WorldGenerateStage::WorldSimGenerate(WorldSimStage::Erosion {
+                progress: percentage,
+                ..
+            }) = stage
             {
                 if let Some(progress) = &progress {
                     progress.set_position(percentage as u64);

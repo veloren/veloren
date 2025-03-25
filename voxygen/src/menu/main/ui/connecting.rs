@@ -156,11 +156,41 @@ impl Screen {
                                 ServerInitStage::WorldGen(worldgen_stage) => match worldgen_stage {
                                     WorldGenerateStage::WorldSimGenerate(worldsim_stage) => {
                                         match worldsim_stage {
-                                            WorldSimStage::Erosion(done) => i18n
+                                            WorldSimStage::Erosion { progress, estimate } => {
+                                                let mut msg = i18n
                                                 .get_msg_ctx(
                                                     "hud-init-stage-server-worldsim-erosion",
-                                                    &i18n::fluent_args! { "percentage" => format!("{done:.0}") }
-                                                ),
+                                                    &i18n::fluent_args! { "percentage" => format!("{progress:.0}") }
+                                                ).into_owned();
+                                                if let Some(estimate) = estimate {
+                                                    let duration =
+                                                        chrono::Duration::from_std(*estimate)
+                                                            .map(|dur| {
+                                                                let days = dur.num_days();
+                                                                if days > 0 {
+                                                                    return format!("{days}d");
+                                                                }
+                                                                let hours = dur.num_hours();
+                                                                if hours > 0 {
+                                                                    return format!("{hours}h");
+                                                                }
+                                                                let minutes = dur.num_minutes();
+                                                                if minutes > 0 {
+                                                                    return format!("{minutes}m");
+                                                                }
+
+                                                                format!("{}s", dur.num_seconds())
+                                                            })
+                                                            .unwrap_or("∞h".to_string());
+                                                    msg.push(' ');
+                                                    msg.push_str(&i18n.get_msg_ctx(
+                                                        "hud-init-stage-server-worldsim-erosion_time_left",
+                                                        &i18n::fluent_args! { "time" => duration }
+                                                    ));
+                                                }
+
+                                                std::borrow::Cow::Owned(msg)
+                                            },
                                         }
                                     },
                                     WorldGenerateStage::WorldCivGenerate(worldciv_stage) => {
@@ -171,15 +201,23 @@ impl Screen {
                                                     &i18n::fluent_args! {
                                                         "generated" => generated.to_string(),
                                                         "total" => total.to_string(),
-                                                    }
+                                                    },
                                                 ),
-                                            WorldCivStage::SiteGeneration => i18n.get_msg("hud-init-stage-server-worldciv-site"),
+                                            WorldCivStage::SiteGeneration => {
+                                                i18n.get_msg("hud-init-stage-server-worldciv-site")
+                                            },
                                         }
                                     },
-                                    WorldGenerateStage::EconomySimulation => i18n.get_msg("hud-init-stage-server-economysim"),
-                                    WorldGenerateStage::SpotGeneration => i18n.get_msg("hud-init-stage-server-spotgen"),
+                                    WorldGenerateStage::EconomySimulation => {
+                                        i18n.get_msg("hud-init-stage-server-economysim")
+                                    },
+                                    WorldGenerateStage::SpotGeneration => {
+                                        i18n.get_msg("hud-init-stage-server-spotgen")
+                                    },
                                 },
-                                ServerInitStage::StartingSystems => i18n.get_msg("hud-init-stage-server-starting"),
+                                ServerInitStage::StartingSystems => {
+                                    i18n.get_msg("hud-init-stage-server-starting")
+                                },
                             }
                         },
                         DetailedInitializationStage::StartingMultiplayer => {

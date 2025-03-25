@@ -364,8 +364,23 @@ impl Screen {
                     );
                     let height = Length::Units(56);
                     if gen_opts.x_lg + gen_opts.y_lg >= 19 {
+                        let mut msg = i18n
+                            .get_msg("main-singleplayer-map_large_warning")
+                            .into_owned();
+                        if let Some(s) = (gen_opts.x_lg + gen_opts.y_lg).checked_sub(20) {
+                            let count = ((1 << s) as f32 * gen_opts.erosion_quality).round() as u32;
+                            if count > 1 {
+                                msg.push(' ');
+                                msg.push_str(&i18n.get_msg_ctx(
+                                    "main-singleplayer-map_large_extra_warning",
+                                    &i18n::fluent_args! {
+                                        "count" => count,
+                                    },
+                                ));
+                            }
+                        }
                         gen_content.push(
-                            Text::new(i18n.get_msg("main-singleplayer-map_large_warning"))
+                            Text::new(msg)
                                 .size(SLIDER_TEXT_SIZE)
                                 .height(height)
                                 .color([0.914, 0.835, 0.008])
