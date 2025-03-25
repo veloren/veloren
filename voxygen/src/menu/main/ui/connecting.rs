@@ -163,29 +163,30 @@ impl Screen {
                                                     &i18n::fluent_args! { "percentage" => format!("{progress:.0}") }
                                                 ).into_owned();
                                                 if let Some(estimate) = estimate {
-                                                    let duration =
+                                                    let (attr, duration) =
                                                         chrono::Duration::from_std(*estimate)
                                                             .map(|dur| {
                                                                 let days = dur.num_days();
                                                                 if days > 0 {
-                                                                    return format!("{days}d");
+                                                                    return ("days", days);
                                                                 }
                                                                 let hours = dur.num_hours();
                                                                 if hours > 0 {
-                                                                    return format!("{hours}h");
+                                                                    return ("hours", hours);
                                                                 }
                                                                 let minutes = dur.num_minutes();
                                                                 if minutes > 0 {
-                                                                    return format!("{minutes}m");
+                                                                    return ("minutes", minutes);
                                                                 }
 
-                                                                format!("{}s", dur.num_seconds())
+                                                                ("seconds", dur.num_seconds())
                                                             })
-                                                            .unwrap_or("∞h".to_string());
+                                                            .unwrap_or(("days", i64::MAX));
                                                     msg.push(' ');
-                                                    msg.push_str(&i18n.get_msg_ctx(
+                                                    msg.push_str(&i18n.get_attr_ctx(
                                                         "hud-init-stage-server-worldsim-erosion_time_left",
-                                                        &i18n::fluent_args! { "time" => duration }
+                                                        attr,
+                                                        &i18n::fluent_args! { "n" => duration }
                                                     ));
                                                 }
 

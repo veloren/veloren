@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Town road variations.
 - Gamepad bindings can now be viewed in the 'Controls Settings' menu.
 - New instruments: Rhythmo, Starlight Conch, Timbrel of Chaos, Viola Pizzicato.
-- Time estimage to erosion.
+- Time estimate to erosion.
 
 ### Changed
 
