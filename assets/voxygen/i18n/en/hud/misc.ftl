@@ -78,6 +78,23 @@ hud-init-stage-singleplayer = Starting singleplayer server...
 hud-init-stage-server-db-migrations = [{ -server }]: Applying database migrations...
 hud-init-stage-server-db-vacuum = [{ -server }]: Cleaning up database...
 hud-init-stage-server-worldsim-erosion = [{ -server }]: Erosion { $percentage } %
+hud-init-stage-server-worldsim-erosion_time_left =
+    .days = { $n ->
+      [one] ~{ $n } day remaining
+      *[other] ~{ $n } days remaining
+    }
+    .hours = { $n ->
+      [one] ~{ $n } hour remaining
+      *[other] ~{ $n } hours remaining
+    }
+    .minutes = { $n ->
+      [one] ~{ $n } minute remaining
+      *[other] ~{ $n } minutes remaining
+    }
+    .seconds = { $n ->
+      [one] ~{ $n } second remaining
+      *[other] ~{ $n } seconds remaining
+    }
 hud-init-stage-server-worldciv-civcreate = [{ -server }]: Generated { $generated } out of { $total } civilizations
 hud-init-stage-server-worldciv-site = [{ -server }]: Generating sites...
 hud-init-stage-server-economysim = [{ -server }]: Simulating economy...

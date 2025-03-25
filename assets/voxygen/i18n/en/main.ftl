@@ -38,6 +38,7 @@ main-singleplayer-day_length = Day duration
 main-singleplayer-random_seed = Random
 main-singleplayer-size_lg = Logarithmic size
 main-singleplayer-map_large_warning = Warning: Large worlds will take a long time to start for the first time.
+main-singleplayer-map_large_extra_warning = This would take about the same amount of resources as generating { $count } worlds with default options.
 main-singleplayer-world_name = World name
 main-singleplayer-map_scale = Vertical scaling
 main-singleplayer-map_erosion_quality = Erosion quality

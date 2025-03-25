@@ -665,7 +665,10 @@ impl WorldFile {
 #[derive(Debug)]
 pub enum WorldSimStage {
     // TODO: Add more stages
-    Erosion(f64),
+    Erosion {
+        progress: f64,
+        estimate: Option<std::time::Duration>,
+    },
 }
 
 pub struct WorldSim {
@@ -1330,8 +1333,31 @@ impl WorldSim {
 
         // Perform some erosion.
 
-        let report_erosion: &dyn Fn(f64) =
-            &move |progress: f64| stage_report(WorldSimStage::Erosion(progress));
+        let mut last = None;
+        let mut all_samples = std::time::Duration::default();
+        let mut sample_count = 0;
+        let report_erosion: &mut dyn FnMut(f64) = &mut move |progress: f64| {
+            let now = std::time::Instant::now();
+            let estimate = if let Some((last_instant, last_progress)) = last {
+                if last_progress > progress {
+                    None
+                } else {
+                    if last_progress < progress {
+                        let sample = now
+                            .duration_since(last_instant)
+                            .div_f64(progress - last_progress);
+                        all_samples += sample;
+                        sample_count += 1;
+                    }
+
+                    Some((all_samples / sample_count).mul_f64(100.0 - progress))
+                }
+            } else {
+                None
+            };
+            last = Some((now, progress));
+            stage_report(WorldSimStage::Erosion { progress, estimate })
+        };
 
         let (alt, basement) = if let Some(map) = parsed_world_file {
             (map.alt, map.basement)
@@ -1386,7 +1412,7 @@ impl WorldSim {
                 k_d_scale(n_approx),
                 k_da_scale,
                 threadpool,
-                &report_erosion,
+                report_erosion,
             )
         };
 
@@ -1436,7 +1462,7 @@ impl WorldSim {
                 k_d_scale(n_approx),
                 k_da_scale,
                 threadpool,
-                &report_erosion,
+                report_erosion,
             )
         };
 

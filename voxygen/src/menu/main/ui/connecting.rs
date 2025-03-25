@@ -128,12 +128,16 @@ impl Screen {
                     let tip = &i18n.get_variation_ctx("loading-tips", self.tip_number, &keys);
                     let tip = format!("{} {}", i18n.get_msg("main-tip"), tip);
 
-                    Container::new(Text::new(tip).size(fonts.cyri.scale(25)))
-                        .width(Length::Fill)
-                        .height(Length::Fill)
-                        .center_x()
-                        .align_y(Align::End)
-                        .into()
+                    Container::new(
+                        Text::new(tip)
+                            .horizontal_alignment(iced::HorizontalAlignment::Center)
+                            .size(fonts.cyri.scale(25)),
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x()
+                    .align_y(Align::End)
+                    .into()
                 } else {
                     Space::new(Length::Fill, Length::Fill).into()
                 };
@@ -156,11 +160,44 @@ impl Screen {
                                 ServerInitStage::WorldGen(worldgen_stage) => match worldgen_stage {
                                     WorldGenerateStage::WorldSimGenerate(worldsim_stage) => {
                                         match worldsim_stage {
-                                            WorldSimStage::Erosion(done) => i18n
+                                            WorldSimStage::Erosion { progress, estimate } => {
+                                                let mut msg = i18n
                                                 .get_msg_ctx(
                                                     "hud-init-stage-server-worldsim-erosion",
-                                                    &i18n::fluent_args! { "percentage" => format!("{done:.0}") }
-                                                ),
+                                                    &i18n::fluent_args! { "percentage" => format!("{progress:.0}") }
+                                                ).into_owned();
+                                                if let Some(estimate) = estimate {
+                                                    let (attr, duration) =
+                                                        chrono::Duration::from_std(*estimate)
+                                                            .map(|dur| {
+                                                                let days = dur.num_days();
+                                                                if days > 0 {
+                                                                    return ("days", days);
+                                                                }
+                                                                let hours = dur.num_hours();
+                                                                if hours > 0 {
+                                                                    return ("hours", hours);
+                                                                }
+                                                                let minutes = dur.num_minutes();
+                                                                if minutes > 0 {
+                                                                    return ("minutes", minutes);
+                                                                }
+
+                                                                ("seconds", dur.num_seconds())
+                                                            })
+                                                            .unwrap_or(("days", i64::MAX));
+                                                    msg.push(' ');
+                                                    msg.push('(');
+                                                    msg.push_str(&i18n.get_attr_ctx(
+                                                        "hud-init-stage-server-worldsim-erosion_time_left",
+                                                        attr,
+                                                        &i18n::fluent_args! { "n" => duration }
+                                                    ));
+                                                    msg.push(')');
+                                                }
+
+                                                std::borrow::Cow::Owned(msg)
+                                            },
                                         }
                                     },
                                     WorldGenerateStage::WorldCivGenerate(worldciv_stage) => {
@@ -171,15 +208,23 @@ impl Screen {
                                                     &i18n::fluent_args! {
                                                         "generated" => generated.to_string(),
                                                         "total" => total.to_string(),
-                                                    }
+                                                    },
                                                 ),
-                                            WorldCivStage::SiteGeneration => i18n.get_msg("hud-init-stage-server-worldciv-site"),
+                                            WorldCivStage::SiteGeneration => {
+                                                i18n.get_msg("hud-init-stage-server-worldciv-site")
+                                            },
                                         }
                                     },
-                                    WorldGenerateStage::EconomySimulation => i18n.get_msg("hud-init-stage-server-economysim"),
-                                    WorldGenerateStage::SpotGeneration => i18n.get_msg("hud-init-stage-server-spotgen"),
+                                    WorldGenerateStage::EconomySimulation => {
+                                        i18n.get_msg("hud-init-stage-server-economysim")
+                                    },
+                                    WorldGenerateStage::SpotGeneration => {
+                                        i18n.get_msg("hud-init-stage-server-spotgen")
+                                    },
                                 },
-                                ServerInitStage::StartingSystems => i18n.get_msg("hud-init-stage-server-starting"),
+                                ServerInitStage::StartingSystems => {
+                                    i18n.get_msg("hud-init-stage-server-starting")
+                                },
                             }
                         },
                         DetailedInitializationStage::StartingMultiplayer => {
@@ -230,7 +275,7 @@ impl Screen {
                 .padding(3);
 
                 let tip_cancel = Column::with_children(vec![tip, cancel.into()])
-                    .width(Length::FillPortion(3))
+                    .width(Length::FillPortion(2))
                     .align_items(Align::Center)
                     .spacing(5)
                     .padding(5);
