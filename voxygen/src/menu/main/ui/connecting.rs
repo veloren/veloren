@@ -183,11 +183,13 @@ impl Screen {
                                                             })
                                                             .unwrap_or(("days", i64::MAX));
                                                     msg.push(' ');
+                                                    msg.push('(');
                                                     msg.push_str(&i18n.get_attr_ctx(
                                                         "hud-init-stage-server-worldsim-erosion_time_left",
                                                         attr,
                                                         &i18n::fluent_args! { "n" => duration }
                                                     ));
+                                                    msg.push(')');
                                                 }
 
                                                 std::borrow::Cow::Owned(msg)
@@ -269,7 +271,7 @@ impl Screen {
                 .padding(3);
 
                 let tip_cancel = Column::with_children(vec![tip, cancel.into()])
-                    .width(Length::FillPortion(3))
+                    .width(Length::FillPortion(2))
                     .align_items(Align::Center)
                     .spacing(5)
                     .padding(5);
