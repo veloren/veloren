@@ -12,7 +12,6 @@ BasicRanged(
         attack: Some((
             damage: 75,
             knockback: Some(35),
-            energy: 0,
         )),
     ),
     projectile_body: Object(FireRainDrop),

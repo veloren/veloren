@@ -279,8 +279,8 @@ impl StateExt for State {
 
         let spawned_at = *self.ecs().read_resource::<Time>();
 
-        let item_drop = comp::item_drop::Body::from(world_item.item());
-        let body = comp::Body::ItemDrop(item_drop);
+        let item_body = comp::body::item::Body::from(world_item.item());
+        let body = comp::Body::Item(item_body);
         let light_emitter = match &*world_item.item().kind() {
             ItemKind::Lantern(lantern) => Some(comp::LightEmitter {
                 col: lantern.color(),
@@ -297,9 +297,9 @@ impl StateExt for State {
                 .with(pos)
                 .with(ori)
                 .with(vel)
-                .with(item_drop.orientation(&mut thread_rng()))
-                .with(item_drop.mass())
-                .with(item_drop.density())
+                .with(item_body.orientation(&mut thread_rng()))
+                .with(item_body.mass())
+                .with(item_body.density())
                 .with(body.collider())
                 .with(body)
                 .with(Object::DeleteAfter {

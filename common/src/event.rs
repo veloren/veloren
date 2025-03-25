@@ -7,6 +7,7 @@ use crate::{
         agent::Sound,
         dialogue::Subject,
         invite::{InviteKind, InviteResponse},
+        slot::EquipSlot,
     },
     generation::{EntityInfo, SpecialEntity},
     interaction::Interaction,
@@ -346,7 +347,7 @@ pub struct GroupManipEvent(pub EcsEntity, pub comp::GroupManip);
 pub struct RespawnEvent(pub EcsEntity);
 
 pub struct ShootEvent {
-    pub entity: EcsEntity,
+    pub entity: Option<EcsEntity>,
     pub pos: Pos,
     pub dir: Dir,
     pub body: comp::Body,
@@ -354,6 +355,17 @@ pub struct ShootEvent {
     pub projectile: comp::Projectile,
     pub speed: f32,
     pub object: Option<comp::Object>,
+}
+
+pub struct ThrowEvent {
+    pub entity: EcsEntity,
+    pub pos: Pos,
+    pub dir: Dir,
+    pub light: Option<comp::LightEmitter>,
+    pub projectile: comp::Projectile,
+    pub speed: f32,
+    pub object: Option<comp::Object>,
+    pub equip_slot: EquipSlot,
 }
 
 pub struct ShockwaveEvent {

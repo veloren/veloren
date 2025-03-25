@@ -32,6 +32,7 @@ macro_rules! synced_components {
             light_emitter: LightEmitter,
             loot_owner: LootOwner,
             item: PickupItem,
+            thrown_item: ThrownItem,
             scale: Scale,
             group: Group,
             is_mount: IsMount,
@@ -184,6 +185,10 @@ impl NetSync for LootOwner {
 }
 
 impl NetSync for PickupItem {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for ThrownItem {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

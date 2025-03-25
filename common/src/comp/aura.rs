@@ -103,6 +103,7 @@ impl From<(Option<GroupTarget>, Option<&Uid>)> for AuraTarget {
         match (target, uid) {
             (Some(GroupTarget::InGroup), Some(uid)) => Self::GroupOf(*uid),
             (Some(GroupTarget::OutOfGroup), Some(uid)) => Self::NotGroupOf(*uid),
+            (Some(GroupTarget::All), _) => Self::All,
             _ => Self::All,
         }
     }

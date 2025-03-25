@@ -1,17 +1,19 @@
 use common::{
-    GroupTarget,
+    Damage, DamageKind, DamageSource, Explosion, GroupTarget, RadiusEffect,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
-        PhysicsState, Player, Pos, Projectile, Stats, Vel,
+        PhysicsState, Player, Poise, Pos, Projectile, Stats, Vel,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
-        projectile,
+        object, projectile,
     },
+    effect,
     event::{
-        BonkEvent, BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, Emitter, EnergyChangeEvent,
-        EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, KnockbackEvent,
-        ParryHookEvent, PoiseChangeEvent, PossessEvent, SoundEvent,
+        BonkEvent, BuffEvent, ComboChangeEvent, CreateNpcEvent, DeleteEvent, EmitExt, Emitter,
+        EnergyChangeEvent, EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent,
+        KnockbackEvent, NpcBuilder, ParryHookEvent, PoiseChangeEvent, PossessEvent, ShootEvent,
+        SoundEvent,
     },
     event_emitters,
     outcome::Outcome,
@@ -42,7 +44,9 @@ event_emitters! {
         poise_change: PoiseChangeEvent,
         parry_hook: ParryHookEvent,
         knockback: KnockbackEvent,
-        entity_attack_hoow: EntityAttackedHookEvent,
+        entity_attack_hook: EntityAttackedHookEvent,
+        shoot: ShootEvent,
+        create_npc: CreateNpcEvent,
         combo_change: ComboChangeEvent,
         buff: BuffEvent,
         bonk: BonkEvent,
@@ -255,6 +259,24 @@ impl<'a> System<'a> for Sys {
                                 target: None,
                             });
                         },
+                        projectile::Effect::SurpriseEgg => {
+                            outcomes_emitter.emit(Outcome::SurpriseEgg { pos: pos.0 });
+                        },
+                        projectile::Effect::TrainingDummy => {
+                            let body = Body::Object(object::Body::TrainingDummy);
+                            emitters.emit(CreateNpcEvent {
+                                pos: *pos,
+                                ori: Ori::default(),
+                                npc: NpcBuilder::new(
+                                    Stats::new(String::from("Training Dummy"), body),
+                                    body,
+                                    Alignment::Npc,
+                                )
+                                .with_health(Health::new(body))
+                                .with_poise(Poise::new(body)),
+                                rider: None,
+                            });
+                        },
                         _ => {},
                     }
                 }
@@ -268,8 +290,98 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            if projectile.time_left == Duration::default() {
+            if projectile.time_left == Duration::ZERO {
                 emitters.emit(DeleteEvent(entity));
+
+                for effect in projectile.timeout.drain(..) {
+                    if let projectile::Effect::Firework(reagent) = effect {
+                        const ENABLE_RECURSIVE_FIREWORKS: bool = true;
+                        if ENABLE_RECURSIVE_FIREWORKS {
+                            use common::{
+                                comp::{LightEmitter, object},
+                                event::ShootEvent,
+                            };
+                            use std::f32::consts::PI;
+                            // Note that if the expected fireworks per firework is > 1, this
+                            // will eventually cause
+                            // enough server lag that more players can't log in.
+                            let thresholds: &[(f32, usize)] = &[(0.25, 2), (0.7, 1)];
+                            let expected = {
+                                let mut total = 0.0;
+                                let mut cumulative_probability = 0.0;
+                                for (p, n) in thresholds {
+                                    total += (p - cumulative_probability) * *n as f32;
+                                    cumulative_probability += p;
+                                }
+                                total
+                            };
+                            assert!(expected < 1.0);
+                            let num_fireworks = (|| {
+                                let x = rng.gen_range(0.0..1.0);
+                                for (p, n) in thresholds {
+                                    if x < *p {
+                                        return *n;
+                                    }
+                                }
+                                0
+                            })();
+                            for _ in 0..num_fireworks {
+                                let speed: f32 = rng.gen_range(40.0..80.0);
+                                let theta: f32 = rng.gen_range(0.0..2.0 * PI);
+                                let phi: f32 = rng.gen_range(0.25 * PI..0.5 * PI);
+                                let dir = Dir::from_unnormalized(Vec3::new(
+                                    theta.cos(),
+                                    theta.sin(),
+                                    phi.sin(),
+                                ))
+                                .expect("nonzero vector should normalize");
+                                emitters.emit(ShootEvent {
+                                    entity: Some(entity),
+                                    pos: *pos,
+                                    dir,
+                                    body: Body::Object(object::Body::for_firework(reagent)),
+                                    light: Some(LightEmitter {
+                                        animated: true,
+                                        flicker: 2.0,
+                                        strength: 2.0,
+                                        col: Rgb::new(1.0, 1.0, 0.0),
+                                    }),
+                                    projectile: Projectile {
+                                        hit_solid: Vec::new(),
+                                        hit_entity: Vec::new(),
+                                        timeout: vec![projectile::Effect::Firework(reagent)],
+                                        time_left: Duration::from_secs(1),
+                                        ignore_group: true,
+                                        is_sticky: true,
+                                        is_point: true,
+                                        owner: projectile.owner,
+                                    },
+                                    speed,
+                                    object: None,
+                                });
+                            }
+                        }
+                        emitters.emit(DeleteEvent(entity));
+                        emitters.emit(ExplosionEvent {
+                            pos: pos.0,
+                            explosion: Explosion {
+                                effects: vec![
+                                    RadiusEffect::Entity(effect::Effect::Damage(Damage {
+                                        source: DamageSource::Explosion,
+                                        kind: DamageKind::Energy,
+                                        value: 5.0,
+                                    })),
+                                    RadiusEffect::Entity(effect::Effect::Poise(-40.0)),
+                                    RadiusEffect::TerrainDestruction(4.0, Rgb::black()),
+                                ],
+                                radius: 12.0,
+                                reagent: Some(reagent),
+                                min_falloff: 0.0,
+                            },
+                            owner: projectile.owner,
+                        });
+                    }
+                }
             }
             projectile.time_left = projectile
                 .time_left
@@ -526,5 +638,23 @@ fn dispatch_hit(
             }
         },
         projectile::Effect::Stick => {},
+        projectile::Effect::Firework(_) => {},
+        projectile::Effect::SurpriseEgg => {
+            let Pos(pos) = *projectile_info.pos;
+            outcomes_emitter.emit(Outcome::SurpriseEgg { pos });
+        },
+        projectile::Effect::TrainingDummy => emitters.emit(CreateNpcEvent {
+            pos: *projectile_info.pos,
+            ori: Ori::default(),
+            npc: NpcBuilder::new(
+                Stats::new(
+                    String::from("Training Dummy"),
+                    Body::Object(object::Body::TrainingDummy),
+                ),
+                Body::Object(object::Body::TrainingDummy),
+                Alignment::Npc,
+            ),
+            rider: None,
+        }),
     }
 }

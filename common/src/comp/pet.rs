@@ -74,7 +74,7 @@ pub fn is_mountable(
         Body::Humanoid(_) => matches!(rider, Some(Body::BirdMedium(_))) && is_light_enough,
         Body::Ship(_) => true,
         Body::Object(_) => false,
-        Body::ItemDrop(_) => false,
+        Body::Item(_) => false,
         _ => is_light_enough,
     }
 }

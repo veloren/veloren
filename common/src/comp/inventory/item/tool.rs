@@ -39,6 +39,8 @@ pub enum ToolKind {
     Shovel,
     /// Music Instruments
     Instrument,
+    /// Throwable item
+    Throwable,
     // npcs
     /// Intended for invisible weapons (e.g. a creature using its claws or
     /// biting)
@@ -66,6 +68,7 @@ impl ToolKind {
             ToolKind::Pick => "pickaxe",
             ToolKind::Shovel => "shovel",
             ToolKind::Instrument => "instrument",
+            ToolKind::Throwable => "throwable",
             ToolKind::Empty => "empty",
         }
     }
@@ -106,16 +109,17 @@ impl ToolKind {
             ToolKind::Sceptre => 4,
             ToolKind::Empty => 5,
             ToolKind::Natural => 6,
-            ToolKind::Instrument => 7,
-            ToolKind::Farming => 8,
-            ToolKind::Shovel => 9,
-            ToolKind::Pick => 10,
-            ToolKind::Dagger => 11,
-            ToolKind::Spear => 12,
-            ToolKind::Hammer => 13,
-            ToolKind::Axe => 14,
-            ToolKind::Sword => 15,
-            ToolKind::Shield => 16,
+            ToolKind::Throwable => 7,
+            ToolKind::Instrument => 8,
+            ToolKind::Farming => 9,
+            ToolKind::Shovel => 10,
+            ToolKind::Pick => 11,
+            ToolKind::Dagger => 12,
+            ToolKind::Spear => 13,
+            ToolKind::Hammer => 14,
+            ToolKind::Axe => 15,
+            ToolKind::Sword => 16,
+            ToolKind::Shield => 17,
         }
     }
 }

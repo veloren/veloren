@@ -14,7 +14,7 @@ RepeaterRanged(
         ),
         attack: Some((
             damage: 27,
-            energy: 20,
+            energy: Some(20),
             buff: Some((
                 kind: Burning,
                 dur_secs: 4,

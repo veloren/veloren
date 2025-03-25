@@ -301,7 +301,7 @@ fn equip_replace_already_equipped_item() {
         Time(0.0),
     );
 
-    let _ = inv.equip(InvSlotId::new(0, 0), Time(0.0));
+    let _ = inv.equip(InvSlotId::new(0, 0), Time(0.0), ability_map, msm);
 
     // We should now have the testing boots equipped
     assert_eq!(
@@ -398,7 +398,7 @@ fn equip_one_bag_equipped_equip_second_bag() {
 
     inv.push(bag).unwrap();
 
-    let _ = inv.equip(InvSlotId::new(0, 0), Time(0.0));
+    let _ = inv.equip(InvSlotId::new(0, 0), Time(0.0), ability_map, msm);
 
     assert!(inv.equipped(EquipSlot::Armor(ArmorSlot::Bag2)).is_some());
 }

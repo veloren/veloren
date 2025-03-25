@@ -28,6 +28,7 @@ pub mod stunned;
 pub mod swim;
 pub mod swimwield;
 pub mod talk;
+pub mod throw;
 pub mod wallrun;
 pub mod wield;
 
@@ -63,6 +64,7 @@ pub use self::{
     swim::SwimAnimation,
     swimwield::SwimWieldAnimation,
     talk::TalkAnimation,
+    throw::ThrowAnimation,
     wallrun::WallrunAnimation,
     wield::WieldAnimation,
 };
@@ -398,6 +400,10 @@ impl CharacterSkeleton {
                     self.main.orientation =
                         Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
                 },
+                Some(ToolKind::Throwable) => {
+                    self.main.position = Vec3::new(-6.0, 0.0, -4.0);
+                    self.main.scale = Vec3::zero();
+                },
                 _ => {},
             },
             (_, _) => {},
@@ -418,6 +424,10 @@ impl CharacterSkeleton {
                     self.second.position = Vec3::new(1.5, -4.0 - self.back_carry_offset, 3.0);
                     self.second.orientation =
                         Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+                },
+                Some(ToolKind::Throwable) => {
+                    self.second.position = Vec3::new(6.0, 0.0, -4.0);
+                    self.second.scale = Vec3::zero();
                 },
                 _ => {},
             },

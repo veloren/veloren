@@ -18,12 +18,12 @@ use common::{
         UnresolvedChatMsg, UtteranceKind,
         ability::BASE_ABILITY_LIMIT,
         agent::{FlightMode, PidControllers, Sound, SoundKind, Target},
+        body,
         inventory::slot::EquipSlot,
         item::{
             ConsumableKind, Effects, Item, ItemDesc, ItemKind,
             tool::{AbilitySpec, ToolKind},
         },
-        item_drop,
         projectile::ProjectileConstructorKind,
     },
     consts::MAX_MOUNT_RANGE,
@@ -1061,15 +1061,16 @@ impl AgentData<'_> {
             }
         };
         let is_valid_target = |entity: EcsEntity| match read_data.bodies.get(entity) {
-            Some(Body::ItemDrop(item)) => {
-                let is_humanoid = matches!(self.body, Some(Body::Humanoid(_)));
-                // If the agent is humanoid, it will pick up all kinds of item drops. If the
-                // agent isn't humanoid, it will pick up only consumable item drops.
-                let wants_pickup = is_humanoid || matches!(item, item_drop::Body::Consumable);
+            Some(Body::Item(item)) => {
+                if !matches!(item, body::item::Body::Thrown(_)) {
+                    let is_humanoid = matches!(self.body, Some(Body::Humanoid(_)));
+                    // If the agent is humanoid, it will pick up all kinds of item drops. If the
+                    // agent isn't humanoid, it will pick up only consumable item drops.
+                    let wants_pickup = is_humanoid || matches!(item, body::item::Body::Consumable);
 
-                // The agent will attempt to pickup the item if it wants to pick it up and
-                // is allowed to
-                let attempt_pickup = wants_pickup
+                    // The agent will attempt to pickup the item if it wants to pick it up and
+                    // is allowed to
+                    let attempt_pickup = wants_pickup
                     && read_data
                         .loot_owners
                         .get(entity).is_none_or(|loot_owner| {
@@ -1088,8 +1089,11 @@ impl AgentData<'_> {
                                 )
                         });
 
-                if attempt_pickup {
-                    Some((entity, false))
+                    if attempt_pickup {
+                        Some((entity, false))
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }

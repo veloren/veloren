@@ -142,6 +142,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::ChargedMelee(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
+                | CharacterState::Throw(_)
                 | CharacterState::Shockwave(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)

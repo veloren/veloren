@@ -9,6 +9,7 @@ use common::{
         biped_small,
         bird_large::{self, BodyType as BLABodyType, Species as BLASpecies},
         bird_medium::{self, BodyType as BMBodyType, Species as BMSpecies},
+        body,
         crustacean::{self, BodyType as CBodyType, Species as CSpecies},
         dragon::{self, BodyType as DBodyType, Species as DSpecies},
         fish_medium::{self, BodyType as FMBodyType, Species as FMSpecies},
@@ -16,7 +17,7 @@ use common::{
         golem::{self, BodyType as GBodyType, Species as GSpecies},
         humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
         item::item_key::ItemKey,
-        item_drop, object,
+        object,
         quadruped_low::{self, BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{self, BodyType as QMBodyType, Species as QMSpecies},
         quadruped_small::{self, BodyType as QSBodyType, Species as QSSpecies},
@@ -6041,13 +6042,13 @@ impl<'de> Deserialize<'de> for ModelWithOptionalIndex {
 }
 
 #[derive(Deserialize)]
-struct ItemDropCentralSpec(HashMap<ItemKey, ModelWithOptionalIndex>);
-impl_concatenate_for_wrapper!(ItemDropCentralSpec);
+struct ItemCentralSpec(HashMap<ItemKey, ModelWithOptionalIndex>);
+impl_concatenate_for_wrapper!(ItemCentralSpec);
 
 make_vox_spec!(
-    item_drop::Body,
-    struct ItemDropSpec {
-        central: ItemDropCentralSpec = "voxygen.voxel.item_drop_manifest",
+    body::item::Body,
+    struct ItemSpec {
+        central: ItemCentralSpec = "voxygen.voxel.item_drop_manifest",
     },
     |FigureKey { body, item_key, .. }, spec| {
         [
@@ -6076,17 +6077,17 @@ make_vox_spec!(
     },
 );
 
-impl ItemDropCentralSpec {
-    fn mesh_bone0(&self, item_drop: &item_drop::Body, item_key: &ItemKey) -> BoneMeshes {
+impl ItemCentralSpec {
+    fn mesh_bone0(&self, item: &body::item::Body, item_key: &ItemKey) -> BoneMeshes {
         let coin_pouch = ModelWithOptionalIndex("voxel.object.pouch".to_string(), DEFAULT_INDEX);
 
-        if let Some(spec) = match item_drop {
-            item_drop::Body::CoinPouch => Some(&coin_pouch),
+        if let Some(spec) = match item {
+            body::item::Body::CoinPouch => Some(&coin_pouch),
             _ => self.0.get(item_key),
         } {
             let full_spec: String = ["voxygen.", spec.0.as_str()].concat();
-            let segment = match item_drop {
-                item_drop::Body::Armor(_) => MatSegment::from_vox_model_index(
+            let segment = match item {
+                body::item::Body::Armor(_) => MatSegment::from_vox_model_index(
                     &graceful_load_vox_fullspec(&full_spec).read().0,
                     spec.1 as usize,
                 )
@@ -6099,21 +6100,20 @@ impl ItemDropCentralSpec {
                 _ => graceful_load_segment_fullspec(&full_spec, spec.1),
             };
             let offset = segment_center(&segment).unwrap_or_default();
-            (segment, match item_drop {
+            (segment, match item {
                 // TODO: apply non-random rotations to items here
-                item_drop::Body::Tool(_) => Vec3::new(offset.x - 2.0, offset.y, offset.z),
-                item_drop::Body::Armor(
-                    item_drop::ItemDropArmorKind::Neck
-                    | item_drop::ItemDropArmorKind::Back
-                    | item_drop::ItemDropArmorKind::Tabard,
+                body::item::Body::Tool(_) | body::item::Body::Thrown(_) => {
+                    Vec3::new(offset.x - 2.0, offset.y, offset.z)
+                },
+                body::item::Body::Armor(
+                    body::item::ItemArmorKind::Neck
+                    | body::item::ItemArmorKind::Back
+                    | body::item::ItemArmorKind::Tabard,
                 ) => Vec3::new(offset.x, offset.y - 2.0, offset.z),
                 _ => offset * Vec3::new(1.0, 1.0, 0.0),
             })
         } else {
-            error!(
-                "No specification exists for {:?}, {:?}",
-                item_drop, item_key
-            );
+            error!("No specification exists for {:?}, {:?}", item, item_key);
             load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5))
         }
     }

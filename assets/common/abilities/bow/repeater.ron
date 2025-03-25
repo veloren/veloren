@@ -9,7 +9,6 @@ RepeaterRanged(
         kind: Pointed,
         attack: Some((
             damage: 5,
-            energy: 0,
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,

@@ -10,7 +10,6 @@ BasicRanged(
         ),
         attack: Some((
             damage: 32,
-            energy: 0,
         )),
     ),
     projectile_body: Object(SpearIcicle),

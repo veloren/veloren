@@ -9,7 +9,6 @@ BasicRanged(
         ),
         attack: Some((
             damage: 15,
-            energy: 0,
         )),
     ),
     projectile_body: Object(AdletTrap),

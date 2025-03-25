@@ -1,0 +1,26 @@
+Throw(
+    energy_cost: 0,
+    energy_drain: 0,
+    buildup_duration: 0.25,
+    charge_duration: 1.0,
+    throw_duration: 0.2,
+    recover_duration: 0.1,
+    projectile: (
+        kind: Explosive(
+            radius: 12.0,
+            min_falloff: 0.75,
+            reagent: None,
+            terrain: Some((4.0, Black)),
+        ),
+        attack: Some((
+            damage: 40,
+            poise: Some(100),
+            friendly_fire: true,
+        )),
+    ),
+    projectile_light: None,
+    projectile_dir: LookDir,
+    initial_projectile_speed: 20.0,
+    scaled_projectile_speed: 20.0,
+    move_speed: 0.6,
+)

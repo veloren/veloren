@@ -10,7 +10,6 @@ BasicRanged(
         ),
         attack: Some((
             damage: 24,
-            energy: 0,
         )),
     ),
     projectile_body: Object(BoltIcicle),

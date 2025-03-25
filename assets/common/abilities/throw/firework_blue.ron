@@ -1,0 +1,25 @@
+Throw(
+    energy_cost: 0,
+    energy_drain: 0,
+    buildup_duration: 0.25,
+    charge_duration: 1.0,
+    throw_duration: 0.2,
+    recover_duration: 0.1,
+    projectile: (
+        kind: Firework(Blue),
+    ),
+    projectile_light: Some((
+        animated: true,
+        flicker: 2.0,
+        strength: 2.0,
+        col: (
+            r: 1.0,
+            g: 1.0,
+            b: 0.0,
+        ),
+    )),
+    projectile_dir: Upwards(0.2),
+    initial_projectile_speed: 95.0,
+    scaled_projectile_speed: 15.0,
+    move_speed: 0.6,
+)

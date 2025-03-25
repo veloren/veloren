@@ -143,7 +143,7 @@ impl CharacterBehavior for Data {
                         self.static_data.damage_effect,
                     );
                     output_events.emit_server(ShootEvent {
-                        entity: data.entity,
+                        entity: Some(data.entity),
                         pos,
                         dir: direction,
                         body: self.static_data.projectile_body,

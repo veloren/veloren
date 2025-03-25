@@ -86,6 +86,7 @@ pub fn skill_group_to_db_string(skill_group: comp::skillset::SkillGroupKind) -> 
         | Weapon(ToolKind::Debug)
         | Weapon(ToolKind::Farming)
         | Weapon(ToolKind::Instrument)
+        | Weapon(ToolKind::Throwable)
         | Weapon(ToolKind::Empty)
         | Weapon(ToolKind::Natural)
         | Weapon(ToolKind::Shovel) => panic!(
@@ -231,6 +232,7 @@ fn tool_kind_to_string(tool: Option<comp::item::tool::ToolKind>) -> String {
         Some(Debug) => "Debug",
         Some(Natural) => "Natural",
         Some(Instrument) => "Instrument",
+        Some(Throwable) => "Throwable",
         Some(Empty) => "Empty",
         None => "None",
     })

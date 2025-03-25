@@ -1,8 +1,4 @@
-use super::item::Reagent;
-use crate::{
-    resources::{Secs, Time},
-    uid::Uid,
-};
+use crate::resources::{Secs, Time};
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::time::Duration;
@@ -10,13 +6,6 @@ use vek::Vec3;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Object {
-    Bomb {
-        owner: Option<Uid>,
-    },
-    Firework {
-        owner: Option<Uid>,
-        reagent: Reagent,
-    },
     DeleteAfter {
         spawned_at: Time,
         timeout: Duration,
@@ -25,9 +14,6 @@ pub enum Object {
         target: Vec3<f32>,
         requires_no_aggro: bool,
         buildup_time: Secs,
-    },
-    SurpriseEgg {
-        owner: Option<Uid>,
     },
 }
 

@@ -140,7 +140,7 @@ impl CharacterBehavior for Data {
                         .unwrap_or(data.inputs.look_dir);
                         // Tells server to create and shoot the projectile
                         output_events.emit_server(ShootEvent {
-                            entity: data.entity,
+                            entity: Some(data.entity),
                             pos,
                             dir,
                             body: self.static_data.projectile_body,

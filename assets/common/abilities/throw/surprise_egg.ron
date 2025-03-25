@@ -1,0 +1,16 @@
+Throw(
+    energy_cost: 0,
+    energy_drain: 0,
+    buildup_duration: 0.25,
+    charge_duration: 1.0,
+    throw_duration: 0.2,
+    recover_duration: 0.1,
+    projectile: (
+        kind: SurpriseEgg,
+    ),
+    projectile_light: None,
+    projectile_dir: LookDir,
+    initial_projectile_speed: 20.0,
+    scaled_projectile_speed: 20.0,
+    move_speed: 0.6,
+)

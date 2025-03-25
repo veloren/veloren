@@ -9,7 +9,6 @@ BasicRanged(
         ),
         attack: Some((
             damage: 20,
-            energy: 0,
         )),
     ),
     projectile_body: Object(StrigoiHead),

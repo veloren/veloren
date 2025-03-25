@@ -7,7 +7,6 @@ BasicRanged(
         attack: Some((
             damage: 6,
             knockback: Some(2),
-            energy: 0,
         )),
     ),
     projectile_body: Object(Pebble),

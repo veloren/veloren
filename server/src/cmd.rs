@@ -4793,7 +4793,7 @@ fn handle_aura(
         .map(|uid| match aura_target {
             Some(GroupTarget::InGroup) => AuraTarget::GroupOf(uid),
             Some(GroupTarget::OutOfGroup) => AuraTarget::NotGroupOf(uid),
-            None => AuraTarget::All,
+            Some(GroupTarget::All) | None => AuraTarget::All,
         })
         .unwrap_or(AuraTarget::All);
 

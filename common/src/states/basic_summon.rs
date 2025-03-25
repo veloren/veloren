@@ -184,6 +184,7 @@ impl CharacterBehavior for Data {
                         let projectile = self.static_data.duration.map(|duration| Projectile {
                             hit_solid: Vec::new(),
                             hit_entity: Vec::new(),
+                            timeout: Vec::new(),
                             time_left: duration,
                             owner: Some(*data.uid),
                             ignore_group: true,

@@ -18,7 +18,7 @@ use self::{
         handle_create_aura_entity, handle_create_item_drop, handle_create_npc,
         handle_create_object, handle_create_ship, handle_create_special_entity,
         handle_initialize_character, handle_initialize_spectator, handle_loaded_character_data,
-        handle_shockwave, handle_shoot,
+        handle_shockwave, handle_shoot, handle_throw,
     },
     entity_manipulation::{handle_delete, handle_start_interaction, handle_transform},
     interaction::handle_tame_pet,
@@ -155,6 +155,7 @@ impl Server {
         });
         self.handle_serial_events(handle_create_ship);
         self.handle_serial_events(handle_shoot);
+        self.handle_serial_events(handle_throw);
         self.handle_serial_events(handle_shockwave);
         self.handle_serial_events(handle_create_special_entity);
         self.handle_serial_events(handle_create_item_drop);

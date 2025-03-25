@@ -7,7 +7,6 @@ BasicRanged(
         attack: Some((
             damage: 20,
             knockback: Some(8),
-            energy: 0,
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,

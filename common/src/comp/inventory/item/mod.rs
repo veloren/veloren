@@ -31,14 +31,6 @@ use strum::{EnumIter, EnumString, IntoEnumIterator, IntoStaticStr};
 use tracing::error;
 use vek::Rgb;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Throwable {
-    Bomb,
-    SurpriseEgg,
-    TrainingDummy,
-    Firework(Reagent),
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, strum::EnumString)]
 pub enum Reagent {
     Blue,
@@ -352,9 +344,6 @@ pub enum ItemKind {
         kind: ConsumableKind,
         effects: Effects,
     },
-    Throwable {
-        kind: Throwable,
-    },
     Utility {
         kind: Utility,
     },
@@ -406,7 +395,6 @@ impl ItemKind {
             ItemKind::Consumable { kind, .. } => {
                 format!("Consumable: {:?}", kind)
             },
-            ItemKind::Throwable { kind } => format!("Throwable: {:?}", kind),
             ItemKind::Utility { kind } => format!("Utility: {:?}", kind),
             #[expect(deprecated)]
             ItemKind::Ingredient { descriptor } => format!("Ingredient: {}", descriptor),
@@ -417,13 +405,12 @@ impl ItemKind {
 
     pub fn has_durability(&self) -> bool {
         match self {
-            ItemKind::Tool(_) => true,
+            ItemKind::Tool(Tool { kind, .. }) => !matches!(kind, ToolKind::Throwable),
             ItemKind::Armor(armor) => armor.kind.has_durability(),
             ItemKind::ModularComponent(_)
             | ItemKind::Lantern(_)
             | ItemKind::Glider
             | ItemKind::Consumable { .. }
-            | ItemKind::Throwable { .. }
             | ItemKind::Utility { .. }
             | ItemKind::Ingredient { .. }
             | ItemKind::TagExamples { .. }
@@ -508,6 +495,11 @@ pub struct PickupItem {
     /// This [`ProgramTime`] only makes sense on the server
     next_merge_check: ProgramTime,
 }
+
+/// Newtype around [`Item`] so that thrown projectiles can track which item
+/// they represent
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThrownItem(pub Item);
 
 use std::hash::{Hash, Hasher};
 
@@ -828,8 +820,11 @@ impl ItemDef {
             self.kind,
             ItemKind::Consumable { .. }
                 | ItemKind::Ingredient { .. }
-                | ItemKind::Throwable { .. }
                 | ItemKind::Utility { .. }
+                | ItemKind::Tool(Tool {
+                    kind: ToolKind::Throwable,
+                    ..
+                })
         )
     }
 
@@ -1925,6 +1920,10 @@ impl Component for ItemDrops {
 }
 
 impl Component for PickupItem {
+    type Storage = DerefFlaggedStorage<Self, DenseVecStorage<Self>>;
+}
+
+impl Component for ThrownItem {
     type Storage = DerefFlaggedStorage<Self, DenseVecStorage<Self>>;
 }
 

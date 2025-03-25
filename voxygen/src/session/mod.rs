@@ -15,8 +15,8 @@ use client::{self, Client};
 use common::{
     CachedSpatialGrid,
     comp::{
-        self, CharacterActivity, ChatType, Content, Fluid, InputKind, InventoryUpdateEvent, Pos,
-        PresenceKind, Stats, UtteranceKind, Vel,
+        self, CharacterActivity, CharacterState, ChatType, Content, Fluid, InputKind,
+        InventoryUpdateEvent, Pos, PresenceKind, Stats, UtteranceKind, Vel,
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{ItemDesc, tool::ToolKind},
@@ -1379,9 +1379,17 @@ impl PlayState for SessionState {
                             .is_some_and(|tool_kind| {
                                 matches!(
                                     tool_kind,
-                                    ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre
+                                    ToolKind::Bow
+                                        | ToolKind::Staff
+                                        | ToolKind::Sceptre
+                                        | ToolKind::Throwable
                                 )
-                            });
+                            })
+                            || client
+                                .current::<CharacterState>()
+                                .is_some_and(|char_state| {
+                                    matches!(char_state, CharacterState::Throw(_))
+                                });
 
                         let dir = if is_aiming
                             && holding_ranged

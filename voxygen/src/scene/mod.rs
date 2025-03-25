@@ -42,8 +42,8 @@ use client::Client;
 use common::{
     calendar::Calendar,
     comp::{
-        self, item::ItemDesc, ship::figuredata::VOXEL_COLLIDER_MANIFEST, slot::EquipSlot,
-        tool::ToolKind,
+        self, CharacterState, item::ItemDesc, ship::figuredata::VOXEL_COLLIDER_MANIFEST,
+        slot::EquipSlot, tool::ToolKind,
     },
     outcome::Outcome,
     resources::{DeltaTime, TimeOfDay, TimeScale},
@@ -641,9 +641,15 @@ impl Scene {
                     .is_some_and(|tool_kind| {
                         matches!(
                             tool_kind,
-                            ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre
+                            ToolKind::Bow
+                                | ToolKind::Staff
+                                | ToolKind::Sceptre
+                                | ToolKind::Throwable
                         )
-                    });
+                    })
+                    || client
+                        .current::<CharacterState>()
+                        .is_some_and(|char_state| matches!(char_state, CharacterState::Throw(_)));
 
                 let up = match self.camera.get_mode() {
                     CameraMode::FirstPerson => {

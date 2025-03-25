@@ -24,6 +24,7 @@ impl Animation for EquipAnimation {
     ) -> Self::Skeleton {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
+        let equip_alt = (4.0 * anim_time).min(1.0);
         let equip_slow = 1.0 + (anim_time * 12.0 + PI).cos();
         let equip_slowa = 1.0 + (anim_time * 12.0 + PI / 4.0).cos();
         next.hand_l.orientation = Quaternion::rotation_y(-2.3) * Quaternion::rotation_z(PI / 2.0);
@@ -53,6 +54,14 @@ impl Animation for EquipAnimation {
             },
             Some(ToolKind::Instrument) => {
                 next.hand_l.position = Vec3::new(-5.0, -5.0, 8.0);
+            },
+            Some(ToolKind::Throwable) => {
+                next.main.position += Vec3::new(0.0, 0.0, 4.0) * equip_alt;
+                next.main.orientation.rotate_x(-PI / 3.0 * equip_alt);
+                next.main.scale = Vec3::one() * equip_alt;
+                next.second.position += Vec3::new(0.0, 0.0, 4.0) * equip_alt;
+                next.second.orientation.rotate_x(-PI / 3.0 * equip_alt);
+                next.second.scale = Vec3::one() * equip_alt;
             },
             _ => {},
         }

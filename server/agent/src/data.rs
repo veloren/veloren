@@ -131,6 +131,7 @@ impl<'a> TargetData<'a> {
                 | ToolKind::Pick
                 | ToolKind::Shovel
                 | ToolKind::Natural
+                | ToolKind::Throwable
                 | ToolKind::Empty,
             )
             | None => false,

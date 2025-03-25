@@ -321,7 +321,7 @@ impl Body {
                 },
             },
 
-            Body::ItemDrop(_) => {
+            Body::Item(_) => {
                 let dim = self.dimensions().map(|a| a * scale);
                 const CD: f32 = 2.0;
                 CD * (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)

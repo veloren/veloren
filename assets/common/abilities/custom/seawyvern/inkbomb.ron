@@ -11,7 +11,6 @@ BasicRanged(
         ),
         attack: Some((
             damage: 32,
-            energy: 0,
             buff: Some((
                 kind: Wet,
                 dur_secs: 8,

@@ -12,7 +12,6 @@ BasicRanged(
         ),
         attack: Some((
             damage: 25,
-            energy: 0,
         )),
     ),
     projectile_body: Object(IronPikeBomb),

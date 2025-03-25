@@ -184,7 +184,7 @@ impl WiringAction {
                 WiringActionEffect::SpawnProjectile { constr } => {
                     if let Some(&pos) = pos {
                         emitters.emit(ShootEvent {
-                            entity,
+                            entity: Some(entity),
                             pos,
                             dir: Dir::forward(),
                             body: Body::Object(object::Body::Arrow),

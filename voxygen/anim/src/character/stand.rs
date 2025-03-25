@@ -113,11 +113,6 @@ impl Animation for StandAnimation {
         next.do_hold_lantern(s_a, anim_time, 0.0, 0.0, impact, tilt);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
-        next.second.scale = Vec3::one();
-        next.second.scale = match hands {
-            (Some(Hands::One) | None, Some(Hands::One)) => Vec3::one(),
-            (_, _) => Vec3::zero(),
-        };
 
         if let (None, Some(Hands::Two)) = hands {
             next.second = next.main;
