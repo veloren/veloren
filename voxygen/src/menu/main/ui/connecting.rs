@@ -128,12 +128,16 @@ impl Screen {
                     let tip = &i18n.get_variation_ctx("loading-tips", self.tip_number, &keys);
                     let tip = format!("{} {}", i18n.get_msg("main-tip"), tip);
 
-                    Container::new(Text::new(tip).size(fonts.cyri.scale(25)))
-                        .width(Length::Fill)
-                        .height(Length::Fill)
-                        .center_x()
-                        .align_y(Align::End)
-                        .into()
+                    Container::new(
+                        Text::new(tip)
+                            .horizontal_alignment(iced::HorizontalAlignment::Center)
+                            .size(fonts.cyri.scale(25)),
+                    )
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x()
+                    .align_y(Align::End)
+                    .into()
                 } else {
                     Space::new(Length::Fill, Length::Fill).into()
                 };
