@@ -131,11 +131,11 @@ impl Language {
     ) -> Option<Cow<'a, str>> {
         let bundle = &self.bundle;
         let msg = bundle.get_message(key)?;
-        let mut attrs = msg.attributes();
 
         let mut errs = Vec::new();
 
-        let msg = if attrs.len() != 0 {
+        let attrs: Vec<_> = msg.attributes().collect();
+        let msg = if !attrs.is_empty() {
             let idx = usize::from(seed) % attrs.len();
             // unwrap is ok here, because idx is bound to attrs.len()
             // by using modulo operator.
@@ -152,7 +152,7 @@ impl Language {
             // * attributes = []
             // * len = 0
             // * no matter what seed is, we return None in code above
-            let variation = attrs.nth(idx).unwrap();
+            let variation = &attrs[idx];
             bundle.format_pattern(variation.value(), args, &mut errs)
         } else {
             // Fall back to single message if there are no attributes

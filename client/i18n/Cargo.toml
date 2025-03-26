@@ -15,16 +15,16 @@ common-i18n = { package = "veloren-common-i18n", path = "../../common/i18n" }
 serde = { workspace = true }
 # Localization
 unic-langid = { version = "0.9"}
-intl-memoizer = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
-fluent = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
-fluent-bundle = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
+intl-memoizer = "0.5"
+fluent = "0.16"
+fluent-bundle = "0.15"
 # Utility
 hashbrown = { workspace = true }
 deunicode = "1.0"
 tracing = { workspace = true }
 # Bin
 clap = { workspace = true, optional = true }
-fluent-syntax = { git = "https://github.com/juliancoffee/fluent-rs.git", branch = "patched"}
+fluent-syntax = "0.11"
 
 [[bin]]
 name = "i18n_check"
