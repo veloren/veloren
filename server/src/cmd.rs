@@ -5844,7 +5844,6 @@ fn handle_spot(
     };
 
     let maybe_spot_kind = SPOT_PARSER.get(&target_spot);
-    println!("{:?}", maybe_spot_kind);
 
     let target_pos = server
         .state
