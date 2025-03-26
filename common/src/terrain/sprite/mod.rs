@@ -1024,7 +1024,7 @@ impl SpriteKind {
             || matches!(
                 self.default_loot_spec(),
                 Some(Some(LootSpec::LootTable { .. } | LootSpec::Lottery { .. }))
-            ) && self.mine_tool().is_none()
+            )
     }
 
     /// Get the position and direction to mount this sprite if any.
