@@ -43,7 +43,7 @@ use sim::WorldSimStage;
 use crate::{
     column::ColumnGen,
     index::Index,
-    layer::spot::Spot,
+    layer::spot::SpotGenerate,
     site::{SiteKind, SpawnRules},
     util::{Grid, Sampler},
 };
@@ -54,6 +54,7 @@ use common::{
     lod,
     resources::TimeOfDay,
     rtsim::ChunkResource,
+    spot::Spot,
     terrain::{
         Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
     },

@@ -8,6 +8,7 @@ use crate::{
     generation::try_all_entity_configs,
     npc, outcome,
     recipe::RecipeBookManifest,
+    spot::Spot,
     terrain,
 };
 use common_i18n::Content;
@@ -288,6 +289,53 @@ lazy_static! {
         preset_list.push("clear".to_owned());
 
         preset_list
+    };
+
+    /// Map from string to a Spot's kind (except RonFile)
+    pub static ref SPOT_PARSER: HashMap<String, Spot> = {
+        let spot_to_string = |kind| match kind {
+            Spot::DwarvenGrave => "dwarven_grave",
+            Spot::SaurokAltar => "saurok_altar",
+            Spot::MyrmidonTemple => "myrmidon_temple",
+            Spot::GnarlingTotem => "gnarling_totem",
+            Spot::WitchHouse => "witch_house",
+            Spot::GnomeSpring => "gnome_spring",
+            Spot::WolfBurrow => "wolf_burrow",
+            Spot::Igloo => "igloo",
+            Spot::LionRock => "lion_rock",
+            Spot::TreeStumpForest => "tree_stump_forest",
+            Spot::DesertBones => "desert_bones",
+            Spot::Arch => "arch",
+            Spot::AirshipCrash => "airship_crash",
+            Spot::FruitTree => "fruit_tree",
+            Spot::Shipwreck => "shipwreck",
+            Spot::Shipwreck2 => "shipwreck2",
+            Spot::FallenTree => "fallen_tree",
+            Spot::GraveSmall => "grave_small",
+            Spot::JungleTemple => "jungle_temple",
+            Spot::SaurokTotem => "saurok_totem",
+            Spot::JungleOutpost => "jungle_outpost",
+            // unused here, but left for completeness
+            Spot::RonFile(props) => &props.base_structures,
+        };
+
+        let mut map = HashMap::new();
+        for spot_kind in Spot::iter() {
+            map.insert(spot_to_string(spot_kind).to_owned(), spot_kind);
+        }
+
+        map
+    };
+
+    pub static ref SPOTS: Vec<String> = {
+        let mut config_spots = crate::spot::RON_SPOT_PROPERTIES
+            .0
+            .iter()
+            .map(|s| s.base_structures.clone())
+            .collect::<Vec<_>>();
+
+        config_spots.extend(SPOT_PARSER.keys().cloned());
+        config_spots
     };
 }
 
@@ -902,15 +950,7 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::Spot => cmd(
-                vec![Enum(
-                    "Spot kind to find",
-                    crate::spot::RON_SPOT_PROPERTIES
-                        .0
-                        .iter()
-                        .map(|s| s.base_structures.clone())
-                        .collect(),
-                    Required,
-                )],
+                vec![Enum("Spot kind to find", SPOTS.clone(), Required)],
                 Content::localized("command-spot-desc"),
                 Some(Admin),
             ),

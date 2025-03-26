@@ -5,7 +5,7 @@ use crate::{
 };
 use common::{
     generation::EntityInfo,
-    spot::{RON_SPOT_PROPERTIES, SpotCondition, SpotProperties},
+    spot::{RON_SPOT_PROPERTIES, Spot, SpotCondition},
     terrain::{BiomeKind, Structure, TerrainChunkSize},
     vol::RectVolSize,
 };
@@ -14,58 +14,20 @@ use rand_chacha::ChaChaRng;
 use std::ops::Range;
 use vek::*;
 
-/// Spots are localised structures that spawn in the world. Conceptually, they
-/// fit somewhere between the tree generator and the site generator: an attempt
-/// to marry the simplicity of the former with the capability of the latter.
-/// They are not globally visible to the game: this means that they do not
-/// appear on the map, and cannot interact with rtsim (much).
-///
-/// To add a new spot, one must:
-///
-/// 1. Add a new variant to the [`Spot`] enum.
-/// 2. Add a new entry to [`Spot::generate`] that tells the system where to
-///    generate your new spot.
-/// 3. Add a new arm to the `match` expression in [`Spot::apply_spots_to`] that
-///    tells the generator how to generate a spot, including the base structure
-///    that composes the spot and the entities that should be spawned there.
-///
-/// Only add spots with randomly spawned NPCs here. Spots that only use
-/// EntitySpawner blocks can be added in assets/world/manifests/spots.ron
-#[derive(Copy, Clone, Debug)]
-pub enum Spot {
-    DwarvenGrave,
-    SaurokAltar,
-    MyrmidonTemple,
-    GnarlingTotem,
-    WitchHouse,
-    GnomeSpring,
-    WolfBurrow,
-    Igloo,
-    //BanditCamp,
-    //EnchantedRock,
-    //TowerRuin,
-    //WellOfLight,
-    //MerchantOutpost,
-    //RuinedHuntingCabin, <-- Bears!
-    // *Random world objects*
-    LionRock,
-    TreeStumpForest,
-    DesertBones,
-    Arch,
-    AirshipCrash,
-    FruitTree,
-    Shipwreck,
-    Shipwreck2,
-    FallenTree,
-    GraveSmall,
-    JungleTemple,
-    SaurokTotem,
-    JungleOutpost,
-    RonFile(&'static SpotProperties),
+pub trait SpotGenerate {
+    fn generate(world: &mut WorldSim);
+
+    fn generate_spots(
+        spot: Spot,
+        world: &mut WorldSim,
+        freq: f32,
+        valid: impl FnMut(f32, &SimChunk) -> bool,
+        spawn: bool,
+    );
 }
 
-impl Spot {
-    pub fn generate(world: &mut WorldSim) {
+impl SpotGenerate for Spot {
+    fn generate(world: &mut WorldSim) {
         use BiomeKind::*;
         // Trees/spawn: false => *No* trees around the spot
         // Themed Spots -> Act as an introduction to themes of sites

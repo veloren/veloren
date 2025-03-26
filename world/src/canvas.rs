@@ -3,13 +3,13 @@ use crate::{
     column::{ColumnGen, ColumnSample},
     index::IndexRef,
     land::Land,
-    layer::spot::Spot,
     sim::{SimChunk, WorldSim},
     util::{Grid, Sampler, seed_expan},
 };
 use common::{
     calendar::Calendar,
     generation::EntityInfo,
+    spot::Spot,
     terrain::{
         Block, BlockKind, SpriteCfg, Structure, TerrainChunk, TerrainChunkSize,
         structure::StructureBlock,
