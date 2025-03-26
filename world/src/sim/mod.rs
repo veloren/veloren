@@ -31,7 +31,6 @@ use crate::{
     block::BlockGen,
     civ::{Place, PointOfInterest},
     column::ColumnGen,
-    layer::spot::Spot,
     site::Site,
     util::{
         CARDINALS, DHashSet, FastNoise, FastNoise2d, LOCALITY, NEIGHBORS, RandomField, Sampler,
@@ -45,6 +44,7 @@ use common::{
     lottery::Lottery,
     resources::MapKind,
     spiral::Spiral2d,
+    spot::Spot,
     store::{Id, Store},
     terrain::{
         BiomeKind, CoordinateConversions, MapSizeLg, TerrainChunk, TerrainChunkSize,

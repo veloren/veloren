@@ -16,6 +16,8 @@ use crate::{
     sys::terrain::SpawnEntityData,
     wiring::{self, OutputFormula},
 };
+#[cfg(feature = "worldgen")]
+use common::{cmd::SPOT_PARSER, spot::Spot};
 
 use assets::AssetExt;
 use authc::Uuid;
@@ -5837,44 +5839,54 @@ fn handle_spot(
     args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    if let Some(target_spot) = parse_cmd_args!(args, String) {
-        let target_pos = server
-            .state
-            .read_component_copied::<comp::Pos>(target)
-            .ok_or(Content::localized_with_args(
-                "command-position-unavailable",
-                [("target", "target")],
-            ))?;
-        let target_chunk = target_pos.0.xy().wpos_to_cpos().as_();
+    let Some(target_spot) = parse_cmd_args!(args, String) else {
+        return Err(action.help_content());
+    };
 
-        let world = server.state.ecs().read_resource::<Arc<world::World>>();
-        let spot_chunk = Spiral2d::new()
-            .map(|o| target_chunk + o)
-            .filter(|chunk| world.sim().get(*chunk).is_some())
-            .take(world.sim().map_size_lg().chunks_len())
-            .find(|chunk| {
-                world.sim().get(*chunk).is_some_and(|chunk| {
-                    if let Some(world::layer::spot::Spot::RonFile(spot)) = &chunk.spot {
-                        spot.base_structures == target_spot
-                    } else {
-                        false
+    let maybe_spot_kind = SPOT_PARSER.get(&target_spot);
+    println!("{:?}", maybe_spot_kind);
+
+    let target_pos = server
+        .state
+        .read_component_copied::<comp::Pos>(target)
+        .ok_or(Content::localized_with_args(
+            "command-position-unavailable",
+            [("target", "target")],
+        ))?;
+    let target_chunk = target_pos.0.xy().wpos_to_cpos().as_();
+
+    let world = server.state.ecs().read_resource::<Arc<world::World>>();
+    let spot_chunk = Spiral2d::new()
+        .map(|o| target_chunk + o)
+        .filter(|chunk| world.sim().get(*chunk).is_some())
+        .take(world.sim().map_size_lg().chunks_len())
+        .find(|chunk| {
+            world.sim().get(*chunk).is_some_and(|chunk| {
+                if let Some(spot) = &chunk.spot {
+                    match spot {
+                        Spot::RonFile(spot) => spot.base_structures == target_spot,
+                        spot_kind => Some(spot_kind) == maybe_spot_kind,
                     }
-                })
-            });
+                } else {
+                    false
+                }
+            })
+        });
 
-        if let Some(spot_chunk) = spot_chunk {
-            let pos = spot_chunk.cpos_to_wpos_center();
-            let pos = (pos.as_() + 0.5).with_z(world.sim().get_surface_alt_approx(pos));
-            drop(world);
-            server.state.position_mut(target, true, |target_pos| {
-                *target_pos = comp::Pos(pos);
-            })?;
-            Ok(())
-        } else {
-            Err(Content::localized("command-spot-spot_not_found"))
-        }
+    if let Some(spot_chunk) = spot_chunk {
+        let pos = spot_chunk.cpos_to_wpos_center();
+        // NOTE: teleport somewhere higher to avoid spawning inside the spot
+        //
+        // Get your glider ready!
+        let uplift = 100.0;
+        let pos = (pos.as_() + 0.5).with_z(world.sim().get_surface_alt_approx(pos) + uplift);
+        drop(world);
+        server.state.position_mut(target, true, |target_pos| {
+            *target_pos = comp::Pos(pos);
+        })?;
+        Ok(())
     } else {
-        Err(action.help_content())
+        Err(Content::localized("command-spot-spot_not_found"))
     }
 }
 
