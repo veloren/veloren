@@ -1,15 +1,15 @@
-use crate::{make_case_elim, make_proj_elim};
+use common_base::struct_iter;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use strum::{EnumIter, IntoEnumIterator};
 
-make_proj_elim!(
-    body,
+struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     pub struct Body {
         pub species: Species,
         pub body_type: BodyType,
     }
-);
+}
 
 impl Body {
     pub fn random() -> Self {
@@ -29,22 +29,21 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::Golem(body) }
 }
 
-make_case_elim!(
-    species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Species {
-        StoneGolem = 0,
-        Treant = 1,
-        ClayGolem = 2,
-        WoodGolem = 3,
-        CoralGolem = 4,
-        Gravewarden = 5,
-        AncientEffigy = 6,
-        Mogwai = 7,
-        IronGolem = 8,
-    }
-);
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
+#[repr(u32)]
+pub enum Species {
+    StoneGolem = 0,
+    Treant = 1,
+    ClayGolem = 2,
+    WoodGolem = 3,
+    CoralGolem = 4,
+    Gravewarden = 5,
+    AncientEffigy = 6,
+    Mogwai = 7,
+    IronGolem = 8,
+}
 
 /// Data representing per-species generic data.
 ///
@@ -100,14 +99,13 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-make_case_elim!(
-    body_type,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum BodyType {
-        Female = 0,
-        Male = 1,
-    }
-);
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
+#[repr(u32)]
+pub enum BodyType {
+    Female = 0,
+    Male = 1,
+}
 
 pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];

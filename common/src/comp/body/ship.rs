@@ -1,12 +1,12 @@
 use crate::{
     comp::{Collider, Density, Mass},
     consts::{AIR_DENSITY, WATER_DENSITY},
-    make_case_elim,
     terrain::{Block, BlockKind, SpriteKind},
 };
 use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use strum::EnumIter;
 use vek::*;
 
 pub const ALL_BODIES: [Body; 6] = [
@@ -28,22 +28,21 @@ pub const ALL_SHIPS: [Body; 6] = [
     Body::Cart,
 ];
 
-make_case_elim!(
-    body,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Body {
-        DefaultAirship = 0,
-        AirBalloon = 1,
-        SailBoat = 2,
-        Galleon = 3,
-        Volume = 4,
-        Skiff = 5,
-        Submarine = 6,
-        Carriage = 7,
-        Cart = 8,
-    }
-);
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
+#[repr(u32)]
+pub enum Body {
+    DefaultAirship = 0,
+    AirBalloon = 1,
+    SailBoat = 2,
+    Galleon = 3,
+    Volume = 4,
+    Skiff = 5,
+    Submarine = 6,
+    Carriage = 7,
+    Cart = 8,
+}
 
 impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::Ship(body) }

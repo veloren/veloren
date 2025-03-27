@@ -22,43 +22,44 @@ pub mod theropod;
 use crate::{
     assets::{self, Asset},
     consts::{HUMAN_DENSITY, WATER_DENSITY},
-    make_case_elim,
     npc::NpcKind,
 };
+use common_base::enum_iter;
 use common_i18n::Content;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
-use strum::Display;
+use strum::{Display, IntoEnumIterator};
 use vek::*;
 
 use super::{BuffKind, Collider, Density, Mass, Scale};
 
-make_case_elim!(
-    body,
-    #[derive(Copy, Clone, Debug, Display, PartialEq, PartialOrd, Ord, Eq, Hash, Serialize, Deserialize)]
+enum_iter! {
+    #[derive(
+        Copy, Clone, Debug, Display, PartialEq, PartialOrd, Ord, Eq, Hash, Serialize, Deserialize,
+    )]
     #[repr(u32)]
     pub enum Body {
-        Humanoid(body: humanoid::Body) = 0,
-        QuadrupedSmall(body: quadruped_small::Body) = 1,
-        QuadrupedMedium(body: quadruped_medium::Body) = 2,
-        BirdMedium(body: bird_medium::Body) = 3,
-        FishMedium(body: fish_medium::Body) = 4,
-        Dragon(body: dragon::Body) = 5,
-        BirdLarge(body: bird_large::Body) = 6,
-        FishSmall(body: fish_small::Body) = 7,
-        BipedLarge(body: biped_large::Body)= 8,
-        BipedSmall(body: biped_small::Body)= 9,
-        Object(body: object::Body) = 10,
-        Golem(body: golem::Body) = 11,
-        Theropod(body: theropod::Body) = 12,
-        QuadrupedLow(body: quadruped_low::Body) = 13,
-        Ship(body: ship::Body) = 14,
-        Arthropod(body: arthropod::Body) = 15,
-        Item(body: item::Body) = 16,
-        Crustacean(body: crustacean::Body) = 17,
-        Plugin(body: plugin::Body) = 18,
+        Humanoid(humanoid::Body),
+        QuadrupedSmall(quadruped_small::Body),
+        QuadrupedMedium(quadruped_medium::Body),
+        BirdMedium(bird_medium::Body),
+        FishMedium(fish_medium::Body),
+        Dragon(dragon::Body),
+        BirdLarge(bird_large::Body),
+        FishSmall(fish_small::Body),
+        BipedLarge(biped_large::Body),
+        BipedSmall(biped_small::Body),
+        Object(object::Body),
+        Golem(golem::Body),
+        Theropod(theropod::Body),
+        QuadrupedLow(quadruped_low::Body),
+        Ship(ship::Body),
+        Arthropod(arthropod::Body),
+        Item(item::Body),
+        Crustacean(crustacean::Body),
+        Plugin(plugin::Body),
     }
-);
+}
 
 // Implemented for Buff, to be able to implement EnumIter.
 impl Default for Body {

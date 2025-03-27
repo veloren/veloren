@@ -1,10 +1,15 @@
+use common_base::struct_iter;
+
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct Body {
-    pub species: Species,
-    pub body_type: BodyType,
+struct_iter! {
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    pub struct Body {
+        pub species: Species,
+        pub body_type: BodyType,
+    }
 }
 
 impl Body {
@@ -25,7 +30,9 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::Arthropod(body) }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
 #[repr(u32)]
 pub enum Species {
     Tarantula = 0,
@@ -107,7 +114,9 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
 #[repr(u32)]
 pub enum BodyType {
     Female = 0,

@@ -1,16 +1,16 @@
-use crate::{make_case_elim, make_proj_elim};
+use common_base::struct_iter;
 use common_i18n::Content;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use strum::{EnumIter, IntoEnumIterator};
 
-make_proj_elim!(
-    body,
+struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     pub struct Body {
         pub species: Species,
         pub body_type: BodyType,
     }
-);
+}
 
 impl Body {
     pub fn random() -> Self {
@@ -78,47 +78,46 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::BipedLarge(body) }
 }
 
-make_case_elim!(
-    species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Species {
-        Ogre = 0,
-        Cyclops = 1,
-        Wendigo = 2,
-        Cavetroll = 3,
-        Mountaintroll = 4,
-        Swamptroll = 5,
-        Dullahan = 6,
-        Werewolf = 7,
-        Occultsaurok = 8,
-        Mightysaurok = 9,
-        Slysaurok = 10,
-        Mindflayer = 11,
-        Minotaur = 12,
-        Tidalwarrior = 13,
-        Yeti = 14,
-        Harvester = 15,
-        Blueoni = 16,
-        Redoni = 17,
-        Cultistwarlord = 18,
-        Cultistwarlock = 19,
-        Huskbrute = 20,
-        Tursus = 21,
-        Gigasfrost = 22,
-        AdletElder = 23,
-        SeaBishop = 24,
-        HaniwaGeneral = 25,
-        TerracottaBesieger = 26,
-        TerracottaDemolisher = 27,
-        TerracottaPunisher = 28,
-        TerracottaPursuer = 29,
-        Cursekeeper = 30,
-        Forgemaster = 31,
-        Strigoi = 32,
-        Executioner = 33,
-    }
-);
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
+#[repr(u32)]
+pub enum Species {
+    Ogre = 0,
+    Cyclops = 1,
+    Wendigo = 2,
+    Cavetroll = 3,
+    Mountaintroll = 4,
+    Swamptroll = 5,
+    Dullahan = 6,
+    Werewolf = 7,
+    Occultsaurok = 8,
+    Mightysaurok = 9,
+    Slysaurok = 10,
+    Mindflayer = 11,
+    Minotaur = 12,
+    Tidalwarrior = 13,
+    Yeti = 14,
+    Harvester = 15,
+    Blueoni = 16,
+    Redoni = 17,
+    Cultistwarlord = 18,
+    Cultistwarlock = 19,
+    Huskbrute = 20,
+    Tursus = 21,
+    Gigasfrost = 22,
+    AdletElder = 23,
+    SeaBishop = 24,
+    HaniwaGeneral = 25,
+    TerracottaBesieger = 26,
+    TerracottaDemolisher = 27,
+    TerracottaPunisher = 28,
+    TerracottaPursuer = 29,
+    Cursekeeper = 30,
+    Forgemaster = 31,
+    Strigoi = 32,
+    Executioner = 33,
+}
 
 /// Data representing per-species generic data.
 ///
@@ -249,13 +248,12 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-make_case_elim!(
-    body_type,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum BodyType {
-        Female = 0,
-        Male = 1,
-    }
-);
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
+#[repr(u32)]
+pub enum BodyType {
+    Female = 0,
+    Male = 1,
+}
 pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];

@@ -1,15 +1,15 @@
-use crate::{make_case_elim, make_proj_elim};
+use common_base::struct_iter;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use strum::{EnumIter, IntoEnumIterator};
 
-make_proj_elim!(
-    body,
+struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     pub struct Body {
         pub species: Species,
         pub body_type: BodyType,
     }
-);
+}
 
 impl Body {
     pub fn random() -> Self {
@@ -29,43 +29,42 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::BipedSmall(body) }
 }
 
-make_case_elim!(
-    species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum Species {
-        Gnome = 0,
-        Sahagin = 1,
-        Adlet = 2,
-        Gnarling = 3,
-        Mandragora = 4,
-        Kappa = 5,
-        Cactid = 6,
-        Gnoll = 7,
-        Haniwa = 8,
-        Myrmidon = 9,
-        Husk = 10,
-        Boreal = 11,
-        Bushly = 12,
-        Irrwurz = 13,
-        IronDwarf = 14,
-        Flamekeeper = 15,
-        ShamanicSpirit = 16,
-        Jiangshi = 17,
-        TreasureEgg = 18,
-        GnarlingChieftain = 19,
-        BloodmoonHeiress = 20,
-        Bloodservant = 21,
-        Harlequin = 22,
-        GoblinThug = 23,
-        GoblinChucker = 24,
-        GoblinRuffian = 25,
-        GreenLegoom = 26,
-        OchreLegoom = 27,
-        PurpleLegoom = 28,
-        RedLegoom = 29,
-    }
-);
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
+#[repr(u32)]
+pub enum Species {
+    Gnome = 0,
+    Sahagin = 1,
+    Adlet = 2,
+    Gnarling = 3,
+    Mandragora = 4,
+    Kappa = 5,
+    Cactid = 6,
+    Gnoll = 7,
+    Haniwa = 8,
+    Myrmidon = 9,
+    Husk = 10,
+    Boreal = 11,
+    Bushly = 12,
+    Irrwurz = 13,
+    IronDwarf = 14,
+    Flamekeeper = 15,
+    ShamanicSpirit = 16,
+    Jiangshi = 17,
+    TreasureEgg = 18,
+    GnarlingChieftain = 19,
+    BloodmoonHeiress = 20,
+    Bloodservant = 21,
+    Harlequin = 22,
+    GoblinThug = 23,
+    GoblinChucker = 24,
+    GoblinRuffian = 25,
+    GreenLegoom = 26,
+    OchreLegoom = 27,
+    PurpleLegoom = 28,
+    RedLegoom = 29,
+}
 
 /// Data representing per-species generic data.
 ///
@@ -184,13 +183,12 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-make_case_elim!(
-    body_type,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-    #[repr(u32)]
-    pub enum BodyType {
-        Female = 0,
-        Male = 1,
-    }
-);
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+)]
+#[repr(u32)]
+pub enum BodyType {
+    Female = 0,
+    Male = 1,
+}
 pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];

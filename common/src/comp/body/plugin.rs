@@ -73,6 +73,10 @@ pub struct Body {
 struct NotFound;
 
 impl Body {
+    // TODO: use SpeciesIter here?
+    // At the moment, I'm mimicking what Self::random() does
+    pub fn iter() -> impl Iterator<Item = Self> { std::iter::once(Body { species: 0 }) }
+
     pub fn mass(&self) -> Mass { Mass(PLUGIN_SPECIES.read().0[self.species].mass) }
 
     pub fn dimensions(&self) -> Vec3<f32> {
