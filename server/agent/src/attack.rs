@@ -4364,7 +4364,8 @@ impl AgentData<'_> {
         let center = Vec2::new(home.x + 50.0, home.y + 75.0);
         let cheesed_from_above = tgt_data.pos.0.z > self.pos.0.z + 4.0;
         let center_cheesed = (center - self.pos.0.xy()).magnitude_squared() < 16.0_f32.powi(2);
-        let pillar_cheesed = (tgt_data.pos.0.z > home.z || center_cheesed)
+        let pillar_cheesed = (center - tgt_data.pos.0.xy()).magnitude_squared() < 16.0_f32.powi(2);
+        let cheesed = (pillar_cheesed || center_cheesed)
             && agent.combat_state.timers[Timers::CheeseTimer as usize] > 4.0;
         agent.combat_state.timers[Timers::CheeseTimer as usize] += read_data.dt.0;
         agent.combat_state.timers[Timers::CanSeeTarget as usize] += read_data.dt.0;
@@ -4411,7 +4412,7 @@ impl AgentData<'_> {
             }
         }
         // when cheesed, throw axes and summon sprites.
-        if cheesed_from_above || pillar_cheesed {
+        if cheesed_from_above || cheesed {
             if agent.combat_state.conditions[Conditions::AttackToggle as usize] {
                 controller.push_basic_input(InputKind::Ability(2));
             } else {
