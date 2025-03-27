@@ -4352,19 +4352,27 @@ impl AgentData<'_> {
         }
 
         enum Timers {
-            CheeseTimer = 0,
-            CanSeeTarget = 1,
+            CheeseTimer,
+            CanSeeTarget,
+            Reposition,
         }
 
         let minotaur_attack_distance =
             self.body.map_or(0.0, |b| b.max_radius()) + MINOTAUR_ATTACK_RANGE;
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());
         let home = agent.patrol_origin.unwrap_or(self.pos.0);
+        let center = Vec2::new(home.x + 50.0, home.y + 75.0);
         let cheesed_from_above = tgt_data.pos.0.z > self.pos.0.z + 4.0;
-        let pillar_cheesed = tgt_data.pos.0.z > home.z
+        let center_cheesed = (center - self.pos.0.xy()).magnitude_squared() < 16.0_f32.powi(2);
+        let pillar_cheesed = (center - tgt_data.pos.0.xy()).magnitude_squared() < 16.0_f32.powi(2);
+        let cheesed = (pillar_cheesed || center_cheesed)
             && agent.combat_state.timers[Timers::CheeseTimer as usize] > 4.0;
         agent.combat_state.timers[Timers::CheeseTimer as usize] += read_data.dt.0;
         agent.combat_state.timers[Timers::CanSeeTarget as usize] += read_data.dt.0;
+        agent.combat_state.timers[Timers::Reposition as usize] += read_data.dt.0;
+        if agent.combat_state.timers[Timers::Reposition as usize] > 20.0 {
+            agent.combat_state.timers[Timers::Reposition as usize] = 0.0;
+        }
         let line_of_sight_with_target = || {
             entities_have_line_of_sight(
                 self.pos,
@@ -4404,11 +4412,37 @@ impl AgentData<'_> {
             }
         }
         // when cheesed, throw axes and summon sprites.
-        if cheesed_from_above || pillar_cheesed {
+        if cheesed_from_above || cheesed {
             if agent.combat_state.conditions[Conditions::AttackToggle as usize] {
                 controller.push_basic_input(InputKind::Ability(2));
             } else {
                 controller.push_action(remote_spikes_action());
+            }
+            //
+            if center_cheesed {
+                // when cheesed around the center pillar, try to reposition
+                let dir_index = match agent.combat_state.timers[Timers::Reposition as usize] as i32
+                {
+                    0_i32..5_i32 => 0,
+                    5_i32..10_i32 => 1,
+                    10_i32..15_i32 => 2,
+                    _ => 3,
+                };
+                let goto = Vec3::new(
+                    center.x + (CARDINALS[dir_index].x * 25) as f32,
+                    center.y + (CARDINALS[dir_index].y * 25) as f32,
+                    tgt_data.pos.0.z,
+                );
+                self.path_toward_target(
+                    agent,
+                    controller,
+                    goto,
+                    read_data,
+                    Path::Partial,
+                    (attack_data.dist_sqrd
+                        < (attack_data.min_attack_dist + MINOTAUR_ATTACK_RANGE / 3.0).powi(2))
+                    .then_some(0.1),
+                );
             }
         } else if health_fraction
             < agent.combat_state.counters[ActionStateFCounters::FCounterMinotaurAttack as usize]
