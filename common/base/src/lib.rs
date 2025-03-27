@@ -166,3 +166,227 @@ macro_rules! prof_span_alloc {
         $crate::prof_span!(_guard, $name);
     };
 }
+
+/// strum::EnumIter alternative that supports nested enums
+#[macro_export]
+macro_rules! enum_iter {
+    (
+        $( #[ $enum_attr:meta ] )*
+        $vis:vis enum $enum_name:ident {
+            $(
+                $( #[ $variant_attr:meta ] )*
+                $variant:ident $(($nested_enum:ty))?
+            ),* $(,)?
+        }
+    ) => {
+        $( #[ $enum_attr ] )*
+        $vis enum $enum_name {
+            $(
+                $( #[ $variant_attr ] )*
+                $variant $(($nested_enum))?
+            ),*
+        }
+
+        impl $enum_name {
+            $vis fn all_variants() -> Vec<$enum_name> {
+                let mut buff = vec![];
+                $(
+                    #[allow(unused_variables)]
+                    let is_nested = false;
+                    $(
+                        // fake capture on $nested_enum to trigger
+                        // macro expansion and switch `is_nested` to `true`
+                        let _fake_capture: Option<$nested_enum> = None;
+                        let is_nested = true;
+                    )?
+
+                    if is_nested {
+                        $(
+                            buff.extend(
+                                <$nested_enum>::iter().map($enum_name::$variant)
+                            );
+                        )?
+                    } else {
+                        #[allow(unreachable_code)]
+                        buff.push(
+                            // if we have variant with nested enum, we need to
+                            // return smth like Color::Red(Shade::Light)
+                            //
+                            // the problem is that we don't know what to return
+                            // and frankly we don't need to, because we won't
+                            // hit this branch
+                            //
+                            // for that we use $nested_enum to create fake
+                            // capture and return unreachable!() which will
+                            // give us `!` type and pass the typecheck
+                            $enum_name::$variant $(
+                                ({
+                                    let _fake_capture: Option<$nested_enum> = None;
+                                    unreachable!();
+                                })
+                            )?
+                        );
+                    }
+                )*
+
+                buff
+            }
+
+            $vis fn iter() -> impl Iterator<Item=Self> {
+                Self::all_variants().into_iter()
+            }
+        }
+    }
+}
+
+#[test]
+fn test_enum_iter() {
+    enum_iter! {
+        #[derive(Eq, PartialEq, Debug)]
+        enum Shade {
+            Good,
+            Meh,
+            Bad,
+        }
+    }
+
+    enum_iter! {
+        #[derive(Debug, Eq, PartialEq)]
+        enum Color {
+            Green,
+            Red(Shade),
+            Blue,
+        }
+    }
+
+    let results: Vec<_> = Shade::iter().collect();
+    assert_eq!(results, vec![Shade::Good, Shade::Meh, Shade::Bad,]);
+
+    let results: Vec<_> = Color::iter().collect();
+    assert_eq!(results, vec![
+        Color::Green,
+        Color::Red(Shade::Good),
+        Color::Red(Shade::Meh),
+        Color::Red(Shade::Bad),
+        Color::Blue,
+    ]);
+}
+
+#[macro_export]
+macro_rules! struct_iter {
+    (
+        $( #[ $type_attr:meta ] )*
+        $vis:vis struct $struct_name:ident {
+            $(
+                $( #[ $field_attr:meta ] )*
+                $field_vis:vis $field:ident: $field_type:ty
+            ),* $(,)?
+        }
+    ) => {
+        $( #[ $type_attr ] )*
+        $vis struct $struct_name {
+            $(
+                $( #[ $field_attr ] )*
+                $field_vis $field: $field_type
+            ),*
+        }
+
+        impl $struct_name {
+            fn all_variants() -> Vec<$struct_name> {
+                #[derive(Default, Clone)]
+                pub struct Builder {
+                    $(
+                        $( #[ $field_attr ] )*
+                        $field: Option<$field_type>
+                    ),*
+                }
+
+                impl Builder {
+                    $(
+                        pub fn $field(mut self, val: $field_type) -> Self {
+                            self.$field = Some(val);
+                            self
+                        }
+                    )*
+
+                    pub fn build_expect(self) -> $struct_name {
+                        $struct_name {
+                            $(
+                                $field: self.$field.unwrap()
+                            ),*
+                        }
+                    }
+                }
+
+                let mut builder_buff = vec![Builder::default()];
+                // launch build spiral
+                $(
+                    let mut next_buff = vec![];
+                    for step in builder_buff {
+                        for kind in <$field_type>::iter() {
+                            next_buff.push(step.clone().$field(kind));
+                        }
+                    }
+                    builder_buff = next_buff;
+                )*
+
+                let mut result_buff = vec![];
+                for builder in builder_buff {
+                    result_buff.push(builder.build_expect())
+                }
+                return result_buff;
+            }
+
+            $vis fn iter() -> impl Iterator<Item=Self> {
+                Self::all_variants().into_iter()
+            }
+        }
+    }
+}
+
+#[test]
+fn test_struct_iter() {
+    enum_iter! {
+        #[derive(Eq, PartialEq, Debug, Clone)]
+        enum Species {
+            BlueDragon,
+            RedDragon,
+        }
+    }
+
+    enum_iter! {
+        #[derive(Eq, PartialEq, Debug, Clone)]
+        enum BodyType {
+            Male,
+            Female,
+        }
+    }
+
+    struct_iter! {
+        #[derive(Eq, PartialEq, Debug)]
+        struct Body {
+            species: Species,
+            body_type: BodyType,
+        }
+    }
+
+    let results: Vec<_> = Body::iter().collect();
+    assert_eq!(results, vec![
+        Body {
+            species: Species::BlueDragon,
+            body_type: BodyType::Male
+        },
+        Body {
+            species: Species::BlueDragon,
+            body_type: BodyType::Female
+        },
+        Body {
+            species: Species::RedDragon,
+            body_type: BodyType::Male
+        },
+        Body {
+            species: Species::RedDragon,
+            body_type: BodyType::Female
+        },
+    ])
+}
