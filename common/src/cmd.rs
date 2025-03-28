@@ -12,7 +12,7 @@ use crate::{
     terrain,
 };
 use common_i18n::Content;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -96,42 +96,27 @@ lazy_static! {
     /// TODO: Make this use hot-reloading
     pub static ref ENTITIES: Vec<String> = {
         let npc_names = &*npc::NPC_NAMES.read();
-        let mut souls = Vec::new();
-        macro_rules! push_souls {
-            ($species:tt) => {
-                for s in comp::$species::ALL_SPECIES.iter() {
-                    souls.push(npc_names.$species.species[s].keyword.clone())
-                }
-            };
-            ($base:tt, $($species:tt),+ $(,)?) => {
-                push_souls!($base);
-                push_souls!($($species),+);
+
+        // HashSets for deduplication of male, female, etc
+        let mut categories = HashSet::new();
+        let mut species = HashSet::new();
+        for body in comp::Body::iter() {
+            // plugin doesn't seem to be spawnable, yet
+            if matches!(body, comp::Body::Plugin(_)) {
+                continue;
+            }
+
+            if let Some(meta) = npc_names.get_species_meta(&body) {
+                categories.insert(npc_names[&body].keyword.clone());
+                species.insert(meta.keyword.clone());
             }
         }
-        for npc in npc::ALL_NPCS.iter() {
-            souls.push(npc_names[*npc].keyword.clone())
-        }
 
-        // See `[AllBodies](crate::comp::body::AllBodies)`
-        push_souls!(
-            humanoid,
-            quadruped_small,
-            quadruped_medium,
-            quadruped_low,
-            bird_medium,
-            bird_large,
-            fish_small,
-            fish_medium,
-            biped_small,
-            biped_large,
-            theropod,
-            dragon,
-            golem,
-            arthropod,
-            crustacean,
-        );
+        let mut strings = Vec::new();
+        strings.extend(categories);
+        strings.extend(species);
 
-        souls
+        strings
     };
     static ref AREA_KINDS: Vec<String> = AreaKind::iter().map(|kind| kind.as_ref().to_string()).collect();
     static ref OBJECTS: Vec<String> = comp::object::ALL_OBJECTS
