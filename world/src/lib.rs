@@ -54,8 +54,8 @@ use common::{
     lod,
     resources::TimeOfDay,
     rtsim::ChunkResource,
-    spot::Spot,
     spiral::Spiral2d,
+    spot::Spot,
     terrain::{
         Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunk, TerrainChunkMeta,
         TerrainChunkSize, TerrainGrid,

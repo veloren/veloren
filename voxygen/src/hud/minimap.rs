@@ -652,10 +652,9 @@ impl Widget for MiniMap<'_> {
                 } else {
                     self.voxel_minimap.image_id.source_north
                 };
-                let cmod: Vec2<f64> = player_pos
-                    .xy()
-                    .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).rem_euclid(j))
-                    .as_();
+                let cmod: Vec2<f64> = player_pos.xy().map2(TerrainChunkSize::RECT_SIZE, |i, j| {
+                    (i as f64).rem_euclid(j as f64)
+                });
                 let rect_src = position::Rect::from_xy_dim(
                     [
                         cmod.x + VOXEL_MINIMAP_SIDELENGTH as f64 / 2.0,
