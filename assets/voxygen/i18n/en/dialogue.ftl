@@ -11,11 +11,26 @@ dialogue-question-hire =
 dialogue-question-sentiment =
     .a0 = How do you feel about...
     .a1 = What do you think about...
+dialogue-question-directions = Can you give me directions?
 dialogue-cancel_hire = I want to stop hiring you.
 dialogue-me = Me
-dialogue-buy_hire_days = { $days ->
-    [1] A day
-    [7] A week
-    *[other] { $days } days
-}
+dialogue-buy_hire_days =
+   .day = A day
+   .week = A week
+   .unknown = { $days ->
+     [one] { $days } day
+     *[other] { $days } days
+    }
 dialogue-cancel_interaction = I've changed my mind.
+
+dialogue-direction-tavern = The local tavern
+dialogue-direction-plaza = The nearest town square
+dialogue-direction-workshop = A workshop
+dialogue-direction-airship_dock = The airship dock
+
+dialogue-accept =
+    .a0 = Sure!
+    .a1 = Yes.
+dialogue-decline =
+    .a1 = No thanks.
+    .a2 = Sorry, not now.

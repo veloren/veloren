@@ -36,7 +36,6 @@ pub use block::BlockGen;
 use civ::WorldCivStage;
 pub use column::ColumnSample;
 pub use common::terrain::site::{DungeonKindMeta, SettlementKindMeta};
-use common::{spiral::Spiral2d, terrain::CoordinateConversions};
 pub use index::{IndexOwned, IndexRef};
 use sim::WorldSimStage;
 
@@ -50,13 +49,16 @@ use crate::{
 use common::{
     assets,
     calendar::Calendar,
+    comp::Content,
     generation::{ChunkSupplement, EntityInfo, SpecialEntity},
     lod,
     resources::TimeOfDay,
     rtsim::ChunkResource,
+    spiral::Spiral2d,
     spot::Spot,
     terrain::{
-        Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
+        Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunk, TerrainChunkMeta,
+        TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
@@ -201,9 +203,11 @@ impl World {
                         )
                     })
                     .map(|(_, site)| {
-                        world_msg::SiteInfo {
-                            id: site.site_tmp.map(|i| i.id()).unwrap_or_default(),
-                            name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
+                        world_msg::Marker {
+                            id: site.site_tmp.map(|i| i.id()),
+                            name: site
+                                .site_tmp
+                                .map(|id| Content::Plain(index.sites[id].name().to_string())),
                             // TODO: Probably unify these, at some point
                             kind: match &site.kind {
                                 civ::SiteKind::Settlement
@@ -216,38 +220,40 @@ impl World {
                                 | civ::SiteKind::JungleRuin
                                 | civ::SiteKind::RockCircle
                                 | civ::SiteKind::TrollCave
-                                | civ::SiteKind::Camp => world_msg::SiteKind::Town,
-                                civ::SiteKind::Castle => world_msg::SiteKind::Castle,
+                                | civ::SiteKind::Camp => world_msg::MarkerKind::Town,
+                                civ::SiteKind::Castle => world_msg::MarkerKind::Castle,
                                 civ::SiteKind::Tree | civ::SiteKind::GiantTree => {
-                                    world_msg::SiteKind::Tree
+                                    world_msg::MarkerKind::Tree
                                 },
                                 // TODO: Maybe change?
-                                civ::SiteKind::Gnarling => world_msg::SiteKind::Gnarling,
-                                civ::SiteKind::DwarvenMine => world_msg::SiteKind::DwarvenMine,
-                                civ::SiteKind::ChapelSite => world_msg::SiteKind::ChapelSite,
-                                civ::SiteKind::Terracotta => world_msg::SiteKind::Terracotta,
-                                civ::SiteKind::Citadel => world_msg::SiteKind::Castle,
-                                civ::SiteKind::Bridge(_, _) => world_msg::SiteKind::Bridge,
-                                civ::SiteKind::GliderCourse => world_msg::SiteKind::GliderCourse,
-                                civ::SiteKind::Cultist => world_msg::SiteKind::Cultist,
-                                civ::SiteKind::Sahagin => world_msg::SiteKind::Sahagin,
-                                civ::SiteKind::Myrmidon => world_msg::SiteKind::Myrmidon,
-                                civ::SiteKind::Adlet => world_msg::SiteKind::Adlet,
-                                civ::SiteKind::Haniwa => world_msg::SiteKind::Haniwa,
-                                civ::SiteKind::VampireCastle => world_msg::SiteKind::VampireCastle,
+                                civ::SiteKind::Gnarling => world_msg::MarkerKind::Gnarling,
+                                civ::SiteKind::DwarvenMine => world_msg::MarkerKind::DwarvenMine,
+                                civ::SiteKind::ChapelSite => world_msg::MarkerKind::ChapelSite,
+                                civ::SiteKind::Terracotta => world_msg::MarkerKind::Terracotta,
+                                civ::SiteKind::Citadel => world_msg::MarkerKind::Castle,
+                                civ::SiteKind::Bridge(_, _) => world_msg::MarkerKind::Bridge,
+                                civ::SiteKind::GliderCourse => world_msg::MarkerKind::GliderCourse,
+                                civ::SiteKind::Cultist => world_msg::MarkerKind::Cultist,
+                                civ::SiteKind::Sahagin => world_msg::MarkerKind::Sahagin,
+                                civ::SiteKind::Myrmidon => world_msg::MarkerKind::Myrmidon,
+                                civ::SiteKind::Adlet => world_msg::MarkerKind::Adlet,
+                                civ::SiteKind::Haniwa => world_msg::MarkerKind::Haniwa,
+                                civ::SiteKind::VampireCastle => {
+                                    world_msg::MarkerKind::VampireCastle
+                                },
                             },
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }
                     })
                     .chain(
-                        layer::cave::surface_entrances(&Land::from_sim(self.sim()))
-                            .enumerate()
-                            .map(|(i, wpos)| world_msg::SiteInfo {
-                                id: 65536 + i as u64, // Generate a fake ID, TODO: don't do this
+                        layer::cave::surface_entrances(&Land::from_sim(self.sim())).map(|wpos| {
+                            world_msg::Marker {
+                                id: None,
                                 name: None,
-                                kind: world_msg::SiteKind::Cave,
+                                kind: world_msg::MarkerKind::Cave,
                                 wpos,
-                            }),
+                            }
+                        }),
                     )
                     .collect(),
                 possible_starting_sites: {

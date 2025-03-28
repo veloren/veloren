@@ -5,7 +5,7 @@
 
 use crate::{
     character::CharacterId,
-    comp::{agent::FlightMode, dialogue::Subject, inventory::item::ItemDef},
+    comp::{agent::FlightMode, inventory::item::ItemDef},
     util::Dir,
 };
 use common_i18n::Content;
@@ -291,7 +291,7 @@ impl<const IS_VALIDATED: bool> core::cmp::Eq for Dialogue<IS_VALIDATED> {}
 impl<const IS_VALIDATED: bool> Dialogue<IS_VALIDATED> {
     pub fn message(&self) -> Option<&Content> {
         match &self.kind {
-            DialogueKind::Start | DialogueKind::End => None,
+            DialogueKind::Start | DialogueKind::End | DialogueKind::Marker { .. } => None,
             DialogueKind::Statement(msg) | DialogueKind::Question { msg, .. } => Some(msg),
             DialogueKind::Response { response, .. } => Some(&response.msg),
         }
@@ -320,6 +320,10 @@ pub enum DialogueKind {
         response: Response,
         response_id: u16,
     },
+    Marker {
+        wpos: Vec2<i32>,
+        name: Content,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -341,7 +345,7 @@ impl From<Content> for Response {
 #[derive(Clone, Debug)]
 pub enum NpcInput {
     Report(ReportId),
-    Interaction(Actor, Subject),
+    Interaction(Actor),
     Dialogue(Actor, Dialogue<true>),
 }
 

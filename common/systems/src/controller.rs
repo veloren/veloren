@@ -112,9 +112,9 @@ impl<'a> System<'a> for Sys {
                         ControlEvent::DisableLantern => {
                             emitters.emit(event::SetLanternEvent(entity, false))
                         },
-                        ControlEvent::Interact(npc_uid, subject) => {
+                        ControlEvent::Interact(npc_uid) => {
                             if let Some(npc_entity) = read_data.id_maps.uid_entity(npc_uid) {
-                                emitters.emit(event::NpcInteractEvent(entity, npc_entity, subject));
+                                emitters.emit(event::NpcInteractEvent(entity, npc_entity));
                             }
                         },
                         ControlEvent::InitiateInvite(inviter_uid, kind) => {

@@ -121,7 +121,10 @@ use common::{
 };
 use common_base::{prof_span, span};
 use common_net::{
-    msg::{Notification, world_msg::SiteId},
+    msg::{
+        Notification,
+        world_msg::{Marker, MarkerKind, SiteId},
+    },
     sync::WorldSyncExt,
 };
 use conrod_core::{
@@ -1308,6 +1311,7 @@ pub struct Hud {
     force_chat: bool,
     clear_chat: bool,
     current_dialogue: Option<(EcsEntity, rtsim::Dialogue<true>)>,
+    extra_markers: HashMap<Vec2<i32>, Marker>,
 }
 
 impl Hud {
@@ -1446,6 +1450,7 @@ impl Hud {
             force_chat: false,
             clear_chat: false,
             current_dialogue: None,
+            extra_markers: HashMap::default(),
         }
     }
 
@@ -3095,6 +3100,7 @@ impl Hud {
             global_state,
             &self.show.location_markers,
             &self.voxel_minimap,
+            &self.extra_markers,
         )
         .set(self.ids.minimap, ui_widgets)
         {
@@ -3798,6 +3804,7 @@ impl Hud {
                 tooltip_manager,
                 &self.show.location_markers,
                 self.map_drag,
+                &self.extra_markers,
             )
             .set(self.ids.map, ui_widgets)
             {
@@ -4583,6 +4590,14 @@ impl Hud {
 
     pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue<true>) {
         match &dialogue.kind {
+            rtsim::DialogueKind::Marker { wpos, name } => {
+                self.extra_markers.insert(*wpos, Marker {
+                    id: None,
+                    wpos: *wpos,
+                    kind: MarkerKind::Unknown,
+                    name: Some(name.clone()),
+                });
+            },
             rtsim::DialogueKind::End => {
                 if self
                     .current_dialogue

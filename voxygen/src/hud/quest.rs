@@ -205,16 +205,10 @@ impl Widget for Quest<'_> {
             .set(state.ids.topics_align, ui);
 
         // Define type of quest to change introduction text
-        let msg_text = match &self.dialogue.kind {
-            rtsim::DialogueKind::Start | rtsim::DialogueKind::End => None,
-            rtsim::DialogueKind::Statement(msg) => Some(self.localized_strings.get_content(msg)),
-            rtsim::DialogueKind::Question { msg, .. } => {
-                Some(self.localized_strings.get_content(msg))
-            },
-            rtsim::DialogueKind::Response { response, .. } => {
-                Some(self.localized_strings.get_content(&response.msg))
-            },
-        };
+        let msg_text = self
+            .dialogue
+            .message()
+            .map(|msg| self.localized_strings.get_content(msg));
 
         if let Some(msg_text) = msg_text {
             state.update(|s| {
@@ -260,7 +254,7 @@ impl Widget for Quest<'_> {
             };
 
             for (i, (response_id, response)) in responses.iter().enumerate() {
-                let frame = Button::image(self.imgs.nothing).w_h(186.0, 40.0);
+                let frame = Button::image(self.imgs.nothing).w_h(186.0, 30.0);
                 let frame = if i == 0 {
                     frame.top_left_with_margins_on(
                         state.ids.topics_align,
@@ -268,7 +262,7 @@ impl Widget for Quest<'_> {
                         tweak!(2.0),
                     )
                 } else {
-                    frame.down_from(state.ids.quest_responses_frames[i - 1], tweak!(10.0))
+                    frame.down_from(state.ids.quest_responses_frames[i - 1], 0.0)
                 };
                 frame.set(state.ids.quest_responses_frames[i], ui);
 

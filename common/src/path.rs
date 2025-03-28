@@ -140,7 +140,7 @@ impl Route {
 
             // If, in any direction, there is a column of open air of several blocks
             let open_space_nearby = DIAGONALS.iter().any(|pos| {
-                (-1..2).all(|z| {
+                (-2..2).all(|z| {
                     vol.get(next0 + Vec3::new(pos.x, pos.y, z))
                         .map(|b| !b.is_solid())
                         .unwrap_or(false)
@@ -149,41 +149,33 @@ impl Route {
 
             // If, in any direction, there is a solid wall
             let wall_nearby = DIAGONALS.iter().any(|pos| {
-                (0..2).all(|z| {
-                    vol.get(next0 + Vec3::new(pos.x, pos.y, z))
-                        .map(|b| b.is_solid())
-                        .unwrap_or(true)
-                })
+                vol.get(next0 + Vec3::new(pos.x, pos.y, 1))
+                    .map(|b| b.is_solid())
+                    .unwrap_or(true)
             });
 
             // Unwalkable obstacles, such as walls or open space can affect path-finding
-            let be_precise = open_space_nearby | wall_nearby;
+            let be_precise = open_space_nearby || wall_nearby;
 
             // Map position of node to middle of block
             let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            let closest_tgt = next_tgt.map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()));
+            let closest_tgt = next_tgt
+                .map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()))
+                .xy()
+                .with_z(next_tgt.z);
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
             if dist_sqrd
-                < traversal_cfg.node_tolerance.powi(2)
+                < (traversal_cfg.node_tolerance
                     * if be_precise {
-                        0.25
+                        0.5
                     } else if traversal_cfg.in_liquid {
                         2.5
                     } else {
                         1.0
-                    }
-                && (((pos.z - closest_tgt.z > 1.2 || (pos.z - closest_tgt.z > -0.2 && traversal_cfg.on_ground))
-                    && (pos.z - closest_tgt.z < 1.2 || (pos.z - closest_tgt.z < 2.9 && vel.z < -0.05))
-                    && vel.z <= 0.0
-                    // Only consider the node reached if there's nothing solid between us and it
-                    && (vol
-                        .ray(pos + Vec3::unit_z() * 1.5, closest_tgt + Vec3::unit_z() * 1.5)
-                        .until(Block::is_solid)
-                        .cast()
-                        .0
-                        > pos.distance(closest_tgt) * 0.9 || dist_sqrd < 0.5)
-                    && self.next_idx < self.path.len())
+                    })
+                .powi(2)
+                && ((pos.z - 0.75 - closest_tgt.z).abs() < 1.0
                     || (traversal_cfg.in_liquid
                         && pos.z < closest_tgt.z + 0.8
                         && pos.z > closest_tgt.z))
@@ -345,7 +337,7 @@ impl Route {
             // Control the entity's speed to hopefully stop us falling off walls on sharp
             // corners. This code is very imperfect: it does its best but it
             // can still fail for particularly fast entities.
-            straight_factor * traversal_cfg.slow_factor + (1.0 - traversal_cfg.slow_factor),
+            1.0 - (traversal_cfg.slow_factor * (1.0 - straight_factor)).min(0.9),
         ))
         .filter(|(bearing, _)| bearing.z < 2.1)
     }
@@ -362,7 +354,7 @@ pub struct Chaser {
     /// (1) we don't care about DDOS attacks (We can use FxHash);
     /// (2) we want this to be constant across compiles because of hot-reloading
     /// (Ruling out AAHash);
-    astar: Option<Astar<Vec3<i32>, FxBuildHasher>>,
+    astar: Option<Astar<Node, FxBuildHasher>>,
 }
 
 impl Chaser {
@@ -410,8 +402,12 @@ impl Chaser {
             // of unpredictable obstacles that are more than willing to mess up
             // our day. TODO: Come up with a better heuristic for this
             if end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete && traversal_cfg.is_target_loaded {
+                self.astar = None;
                 None
-            } else if thread_rng().gen::<f32>() < 0.01 {
+            } else if vel.magnitude_squared() < 0.2f32.powi(2)
+                && thread_rng().gen::<f32>() < 0.0025
+                && complete
+            {
                 self.route = None;
                 None
             } else {
@@ -533,10 +529,17 @@ where
     (on_ground || in_liquid) && !a.is_solid() && !b.is_solid()
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+pub struct Node {
+    pos: Vec3<i32>,
+    last_dir: Vec2<i32>,
+    last_dir_count: u32,
+}
+
 /// Attempt to search for a path to a target, returning the path (if one was
 /// found) and whether it is complete (reaches the target)
 fn find_path<V>(
-    astar: &mut Option<Astar<Vec3<i32>, FxBuildHasher>>,
+    astar: &mut Option<Astar<Node, FxBuildHasher>>,
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
@@ -572,20 +575,19 @@ where
         _ => return (None, false),
     };
 
-    let heuristic = |pos: &Vec3<i32>| (pos.distance_squared(end) as f32).sqrt();
-    let transition = |a: Vec3<i32>, b: Vec3<i32>| {
-        let crow_line = LineSegment2 {
-            start: startf.xy(),
-            end: endf.xy(),
-        };
-
-        // Modify the heuristic a little in order to prefer paths that take us on a
-        // straight line toward our target. This means we get smoother movement.
-        1.0 + crow_line.distance_to_point(b.xy().map(|e| e as f32)) * 0.025
-            + (b.z - a.z - 1).max(0) as f32 * 10.0
+    let heuristic = |node: &Node| node.pos.as_().distance(end.as_());
+    let transition = |a: Node, b: Node| {
+        1.0
+            // Discourage travelling in the same direction for too long: this encourages
+            // turns to be spread out along a path, more closely approximating a straight
+            // line toward the target.
+            + b.last_dir_count as f32 * 0.01
+            // Penalise jumping
+            + (b.pos.z - a.pos.z).max(0) as f32 * 2.0
     };
-    let neighbors = |pos: &Vec3<i32>| {
-        let pos = *pos;
+    let neighbors = |node: &Node| {
+        let node = *node;
+        let pos = node.pos;
         const DIRS: [Vec3<i32>; 17] = [
             Vec3::new(0, 1, 0),   // Forward
             Vec3::new(0, 1, 1),   // Forward upward
@@ -663,9 +665,18 @@ where
                                 .map(|b| !b.is_solid())
                                 .unwrap_or(traversal_cfg.is_target_loaded)))
             })
-            .map(|(pos, dir)| {
-                let destination = pos + dir;
-                (destination, transition(pos, destination))
+            .map(move |(pos, dir)| {
+                let next_node = Node {
+                    pos: pos + dir,
+                    last_dir: dir.xy(),
+                    last_dir_count: if node.last_dir == dir.xy() {
+                        node.last_dir_count + 1
+                    } else {
+                        0
+                    },
+                };
+
+                (next_node, transition(node, next_node))
             })
         // .chain(
         //     DIAGONALS
@@ -677,27 +688,31 @@ where
         // )
     };
 
-    let satisfied = |pos: &Vec3<i32>| pos == &end;
+    let satisfied = |node: &Node| node.pos == end;
 
     let mut new_astar = match astar.take() {
         None => Astar::new(
             if traversal_cfg.is_target_loaded {
                 // Normal mode
-                25_000
+                50_000
             } else {
                 // Most of the times we would need to plot within current chunk,
                 // so half of intra-site limit should be enough in most cases
                 500
             },
-            start,
+            Node {
+                pos: start,
+                last_dir: Vec2::zero(),
+                last_dir_count: 0,
+            },
             FxBuildHasher::default(),
         ),
         Some(astar) => astar,
     };
 
-    let path_result = new_astar.poll(100, heuristic, neighbors, satisfied);
+    let path_result = new_astar.poll(250, heuristic, neighbors, satisfied);
 
-    match path_result {
+    let (path, finished) = match path_result {
         PathResult::Path(path, _cost) => (Some(path), true),
         PathResult::None(path) => (Some(path), false),
         PathResult::Exhausted(path) => (Some(path), false),
@@ -708,7 +723,11 @@ where
 
             (None, false)
         },
-    }
+    };
+    (
+        path.map(|path| path.nodes.into_iter().map(|n| n.pos).collect()),
+        finished,
+    )
 }
 
 // Enable when airbraking/sensible flight is a thing

@@ -1118,10 +1118,9 @@ impl PlayState for SessionState {
                                                     EntityInteraction::Pet => {
                                                         client.do_pet(*entity)
                                                     },
-                                                    EntityInteraction::Talk => client.npc_interact(
-                                                        *entity,
-                                                        comp::dialogue::Subject::Regular,
-                                                    ),
+                                                    EntityInteraction::Talk => {
+                                                        client.npc_interact(*entity)
+                                                    },
                                                     EntityInteraction::CampfireSit
                                                     | EntityInteraction::Trade
                                                     | EntityInteraction::StayFollow

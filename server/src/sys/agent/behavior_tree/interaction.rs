@@ -3,17 +3,15 @@ use common::{
         BehaviorState, Content, ControlAction, Item, TradingBehavior, UnresolvedChatMsg,
         UtteranceKind,
         agent::{AgentEvent, Target, TimerAction},
-        compass::{Direction, Distance},
-        dialogue::Subject,
         inventory::item::{ItemTag, MaterialStatManifest},
-        invite::{InviteKind, InviteResponse},
+        invite::InviteResponse,
         tool::AbilityMap,
     },
     event::{ChatEvent, EmitExt, ProcessTradeActionEvent},
-    rtsim::{Actor, NpcInput, PersonalityTrait},
+    rtsim::{Actor, NpcInput},
     trade::{TradeAction, TradePhase, TradeResult},
 };
-use rand::{Rng, thread_rng};
+use rand::Rng;
 
 use crate::sys::agent::util::get_entity_by_id;
 
@@ -98,31 +96,25 @@ pub fn handle_inbox_dialogue(bdata: &mut BehaviorData) -> bool {
 /// Handles Talk event if the front of the agent's inbox contains one
 pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
-        agent,
-        agent_data,
-        read_data,
-        emitters,
-        controller,
-        ..
+        agent, read_data, ..
     } = bdata;
 
-    if !matches!(agent.inbox.front(), Some(AgentEvent::Talk(_, _))) {
+    if !matches!(agent.inbox.front(), Some(AgentEvent::Talk(_))) {
         return false;
     }
 
-    if let Some(AgentEvent::Talk(by, subject)) = agent.inbox.pop_front() {
+    if let Some(AgentEvent::Talk(by)) = agent.inbox.pop_front() {
         let by_entity = get_entity_by_id(by, read_data);
 
         if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
-            if let Subject::Regular | Subject::Mood | Subject::Work = subject
-                && let Some(by_entity) = by_entity
+            if let Some(by_entity) = by_entity
                 && let Some(actor) = read_data
                     .presences
                     .get(by_entity)
                     .and_then(|p| p.kind.character_id().map(Actor::Character))
                     .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(by_entity)?.0)))
             {
-                rtsim_outbox.push_back(NpcInput::Interaction(actor, subject));
+                rtsim_outbox.push_back(NpcInput::Interaction(actor));
                 return false;
             }
         }
@@ -140,155 +132,6 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                 ));
                 // We're always aware of someone we're talking to
                 agent.awareness.set_maximally_aware();
-
-                controller.push_action(ControlAction::Stand);
-                controller.push_action(ControlAction::Talk);
-                controller.push_utterance(UtteranceKind::Greeting);
-
-                match subject {
-                    Subject::Regular => {
-                        if let Some(tgt_stats) = read_data.stats.get(target) {
-                            if let Some(destination_name) = &agent.rtsim_controller.heading_to {
-                                let personality = &agent.rtsim_controller.personality;
-                                let standard_response_msg = || -> String {
-                                    if personality.will_ambush() {
-                                        format!(
-                                            "I'm heading to {}! Want to come along? We'll make \
-                                             great travel buddies, hehe.",
-                                            destination_name
-                                        )
-                                    } else if personality.is(PersonalityTrait::Extroverted) {
-                                        format!(
-                                            "I'm heading to {}! Want to come along?",
-                                            destination_name
-                                        )
-                                    } else if personality.is(PersonalityTrait::Disagreeable) {
-                                        "Hrm.".to_string()
-                                    } else {
-                                        "Hello!".to_string()
-                                    }
-                                };
-                                let msg = if false
-                                /* TODO: Remembers character */
-                                {
-                                    if personality.will_ambush() {
-                                        "Just follow me a bit more, hehe.".to_string()
-                                    } else if personality.is(PersonalityTrait::Extroverted) {
-                                        if personality.is(PersonalityTrait::Extroverted) {
-                                            format!(
-                                                "Greetings fair {}! It has been far too long \
-                                                 since last I saw you. I'm going to {} right now.",
-                                                &tgt_stats.name, destination_name
-                                            )
-                                        } else if personality.is(PersonalityTrait::Disagreeable) {
-                                            "Oh. It's you again.".to_string()
-                                        } else {
-                                            format!(
-                                                "Hi again {}! Unfortunately I'm in a hurry right \
-                                                 now. See you!",
-                                                &tgt_stats.name
-                                            )
-                                        }
-                                    } else {
-                                        standard_response_msg()
-                                    }
-                                } else {
-                                    standard_response_msg()
-                                };
-                                // TODO: Localise
-                                agent_data.chat_npc(Content::Plain(msg), emitters);
-                            } else {
-                                let mut rng = thread_rng();
-                                agent_data.chat_npc(
-                                    agent
-                                        .rtsim_controller
-                                        .personality
-                                        .get_generic_comment(&mut rng),
-                                    emitters,
-                                );
-                            }
-                        }
-                    },
-                    Subject::Trade => {
-                        if agent.behavior.can_trade(agent_data.alignment.copied(), by) {
-                            if !agent.behavior.is(BehaviorState::TRADING) {
-                                controller.push_initiate_invite(by, InviteKind::Trade);
-                                agent_data.chat_npc_if_allowed_to_speak(
-                                    Content::localized("npc-speech-merchant_advertisement"),
-                                    agent,
-                                    emitters,
-                                );
-                            } else {
-                                agent_data.chat_npc_if_allowed_to_speak(
-                                    Content::localized("npc-speech-merchant_busy_trading"),
-                                    agent,
-                                    emitters,
-                                );
-                            }
-                        } else {
-                            // TODO: maybe make some travellers willing to trade with
-                            // simpler goods like potions
-                            agent_data.chat_npc_if_allowed_to_speak(
-                                Content::localized("npc-speech-villager_decline_trade"),
-                                agent,
-                                emitters,
-                            );
-                        }
-                    },
-                    Subject::Mood => {
-                        // TODO: Reimplement in rtsim2
-                    },
-                    Subject::Location(location) => {
-                        if let Some(tgt_pos) = read_data.positions.get(target) {
-                            let raw_dir = location.origin.as_::<f32>() - tgt_pos.0.xy();
-                            let dist = Distance::from_dir(raw_dir).name();
-                            let dir = Direction::from_dir(raw_dir).name();
-
-                            // TODO: Localise
-                            let msg = format!(
-                                "{} ? I think it's {} {} from here!",
-                                location.name, dist, dir
-                            );
-                            agent_data.chat_npc(Content::Plain(msg), emitters);
-                        }
-                    },
-                    Subject::Person(person) => {
-                        if let Some(src_pos) = read_data.positions.get(target) {
-                            // TODO: Localise
-                            let msg = if let Some(person_pos) = person.origin {
-                                let distance =
-                                    Distance::from_dir(person_pos.xy().as_() - src_pos.0.xy());
-                                match distance {
-                                    Distance::NextTo | Distance::Near => {
-                                        format!(
-                                            "{} ? I think he's {} {} from here!",
-                                            person.name(),
-                                            distance.name(),
-                                            Direction::from_dir(
-                                                person_pos.xy().as_() - src_pos.0.xy()
-                                            )
-                                            .name()
-                                        )
-                                    },
-                                    _ => {
-                                        format!(
-                                            "{} ? I think he's gone visiting another town. Come \
-                                             back later!",
-                                            person.name()
-                                        )
-                                    },
-                                }
-                            } else {
-                                format!(
-                                    "{} ? Sorry, I don't know where you can find him.",
-                                    person.name()
-                                )
-                            };
-                            agent_data.chat_npc(Content::Plain(msg), emitters);
-                        }
-                    },
-                    Subject::Work => {},
-                }
             }
         }
     }
@@ -580,9 +423,7 @@ pub fn handle_inbox_cancel_interactions(bdata: &mut BehaviorData) -> bool {
 
     if let Some(msg) = agent.inbox.front() {
         match msg {
-            AgentEvent::Talk(by, _)
-            | AgentEvent::TradeAccepted(by)
-            | AgentEvent::Dialogue(by, _) => {
+            AgentEvent::Talk(by) | AgentEvent::TradeAccepted(by) | AgentEvent::Dialogue(by, _) => {
                 if agent
                     .target
                     .zip(get_entity_by_id(*by, bdata.read_data))

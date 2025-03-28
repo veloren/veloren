@@ -20,7 +20,7 @@ use common::{
     },
     vol::{ReadVol, RectVolSize},
 };
-use common_net::msg::world_msg::SiteKind;
+use common_net::msg::world_msg::{Marker, MarkerKind};
 use common_state::TerrainChanges;
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color, position,
@@ -416,6 +416,7 @@ pub struct MiniMap<'a> {
     global_state: &'a GlobalState,
     location_markers: &'a MapMarkers,
     voxel_minimap: &'a VoxelMinimap,
+    extra_markers: &'a HashMap<Vec2<i32>, Marker>,
 }
 
 impl<'a> MiniMap<'a> {
@@ -429,6 +430,7 @@ impl<'a> MiniMap<'a> {
         global_state: &'a GlobalState,
         location_markers: &'a MapMarkers,
         voxel_minimap: &'a VoxelMinimap,
+        extra_markers: &'a HashMap<Vec2<i32>, Marker>,
     ) -> Self {
         Self {
             client,
@@ -441,6 +443,7 @@ impl<'a> MiniMap<'a> {
             global_state,
             location_markers,
             voxel_minimap,
+            extra_markers,
         }
     }
 }
@@ -649,10 +652,9 @@ impl Widget for MiniMap<'_> {
                 } else {
                     self.voxel_minimap.image_id.source_north
                 };
-                let cmod: Vec2<f64> = player_pos
-                    .xy()
-                    .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).rem_euclid(j))
-                    .as_();
+                let cmod: Vec2<f64> = player_pos.xy().map2(TerrainChunkSize::RECT_SIZE, |i, j| {
+                    (i as f64).rem_euclid(j as f64)
+                });
                 let rect_src = position::Rect::from_xy_dim(
                     [
                         cmod.x + VOXEL_MINIMAP_SIDELENGTH as f64 / 2.0,
@@ -672,21 +674,27 @@ impl Widget for MiniMap<'_> {
                     .set(state.ids.voxel_minimap, ui);
             }
 
+            let markers = self
+                .client
+                .markers()
+                .chain(self.extra_markers.values())
+                .collect::<Vec<_>>();
+
             // Map icons
-            if state.ids.mmap_site_icons.len() < self.client.sites().len() {
+            if state.ids.mmap_site_icons.len() < markers.len() {
                 state.update(|state| {
                     state
                         .ids
                         .mmap_site_icons
-                        .resize(self.client.sites().len(), &mut ui.widget_id_generator())
+                        .resize(markers.len(), &mut ui.widget_id_generator())
                 });
             }
-            if state.ids.mmap_site_icons_bgs.len() < self.client.sites().len() {
+            if state.ids.mmap_site_icons_bgs.len() < markers.len() {
                 state.update(|state| {
                     state
                         .ids
                         .mmap_site_icons_bgs
-                        .resize(self.client.sites().len(), &mut ui.widget_id_generator())
+                        .resize(markers.len(), &mut ui.widget_id_generator())
                 });
             }
 
@@ -717,48 +725,48 @@ impl Widget for MiniMap<'_> {
                 }
             };
 
-            for (i, site_rich) in self.client.sites().values().enumerate() {
-                let site = &site_rich.site;
-
-                let rpos = match wpos_to_rpos(site.wpos.map(|e| e as f32), false) {
+            for (i, marker) in markers.iter().enumerate() {
+                let rpos = match wpos_to_rpos(marker.wpos.map(|e| e as f32), false) {
                     Some(rpos) => rpos,
                     None => continue,
                 };
-                let difficulty = match &site.kind {
-                    SiteKind::Town => None,
-                    SiteKind::ChapelSite => Some(4),
-                    SiteKind::Terracotta => Some(5),
-                    SiteKind::Castle => None,
-                    SiteKind::Cave => None,
-                    SiteKind::Tree => None,
-                    SiteKind::Gnarling => Some(0),
-                    SiteKind::Bridge | SiteKind::GliderCourse => None,
-                    SiteKind::Adlet => Some(1),
-                    SiteKind::Sahagin => Some(2),
-                    SiteKind::Haniwa => Some(3),
-                    SiteKind::Cultist => Some(5),
-                    SiteKind::Myrmidon => Some(4),
-                    SiteKind::DwarvenMine => Some(5),
-                    SiteKind::VampireCastle => Some(2),
+                let difficulty = match &marker.kind {
+                    MarkerKind::Unknown => None,
+                    MarkerKind::Town => None,
+                    MarkerKind::ChapelSite => Some(4),
+                    MarkerKind::Terracotta => Some(5),
+                    MarkerKind::Castle => None,
+                    MarkerKind::Cave => None,
+                    MarkerKind::Tree => None,
+                    MarkerKind::Gnarling => Some(0),
+                    MarkerKind::Bridge | MarkerKind::GliderCourse => None,
+                    MarkerKind::Adlet => Some(1),
+                    MarkerKind::Sahagin => Some(2),
+                    MarkerKind::Haniwa => Some(3),
+                    MarkerKind::Cultist => Some(5),
+                    MarkerKind::Myrmidon => Some(4),
+                    MarkerKind::DwarvenMine => Some(5),
+                    MarkerKind::VampireCastle => Some(2),
                 };
 
-                Image::new(match &site.kind {
-                    SiteKind::Town => self.imgs.mmap_site_town_bg,
-                    SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel_bg,
-                    SiteKind::Terracotta => self.imgs.mmap_site_terracotta_bg,
-                    SiteKind::Castle => self.imgs.mmap_site_castle_bg,
-                    SiteKind::Cave => self.imgs.mmap_site_cave_bg,
-                    SiteKind::Tree => self.imgs.mmap_site_tree,
-                    SiteKind::Gnarling => self.imgs.mmap_site_gnarling_bg,
-                    SiteKind::Bridge => self.imgs.mmap_site_bridge_bg,
-                    SiteKind::GliderCourse => self.imgs.mmap_site_glider_course_bg,
-                    SiteKind::Adlet => self.imgs.mmap_site_adlet_bg,
-                    SiteKind::Haniwa => self.imgs.mmap_site_haniwa_bg,
-                    SiteKind::Cultist => self.imgs.mmap_site_cultist_bg,
-                    SiteKind::Sahagin => self.imgs.mmap_site_sahagin_bg,
-                    SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon_bg,
-                    SiteKind::DwarvenMine => self.imgs.mmap_site_mine_bg,
-                    SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle_bg,
+                Image::new(match &marker.kind {
+                    MarkerKind::Unknown => self.imgs.mmap_unknown_bg,
+                    MarkerKind::Town => self.imgs.mmap_site_town_bg,
+                    MarkerKind::ChapelSite => self.imgs.mmap_site_sea_chapel_bg,
+                    MarkerKind::Terracotta => self.imgs.mmap_site_terracotta_bg,
+                    MarkerKind::Castle => self.imgs.mmap_site_castle_bg,
+                    MarkerKind::Cave => self.imgs.mmap_site_cave_bg,
+                    MarkerKind::Tree => self.imgs.mmap_site_tree,
+                    MarkerKind::Gnarling => self.imgs.mmap_site_gnarling_bg,
+                    MarkerKind::Bridge => self.imgs.mmap_site_bridge_bg,
+                    MarkerKind::GliderCourse => self.imgs.mmap_site_glider_course_bg,
+                    MarkerKind::Adlet => self.imgs.mmap_site_adlet_bg,
+                    MarkerKind::Haniwa => self.imgs.mmap_site_haniwa_bg,
+                    MarkerKind::Cultist => self.imgs.mmap_site_cultist_bg,
+                    MarkerKind::Sahagin => self.imgs.mmap_site_sahagin_bg,
+                    MarkerKind::Myrmidon => self.imgs.mmap_site_myrmidon_bg,
+                    MarkerKind::DwarvenMine => self.imgs.mmap_site_mine_bg,
+                    MarkerKind::VampireCastle => self.imgs.mmap_site_vampire_castle_bg,
                 })
                 .x_y_position_relative_to(
                     state.ids.map_layers[0],
@@ -776,23 +784,24 @@ impl Widget for MiniMap<'_> {
                     _ => Color::Rgba(1.0, 1.0, 1.0, 0.0),
                 }))
                 .set(state.ids.mmap_site_icons_bgs[i], ui);
-                Image::new(match &site.kind {
-                    SiteKind::Town => self.imgs.mmap_site_town,
-                    SiteKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
-                    SiteKind::Terracotta => self.imgs.mmap_site_terracotta,
-                    SiteKind::Castle => self.imgs.mmap_site_castle,
-                    SiteKind::Cave => self.imgs.mmap_site_cave,
-                    SiteKind::Tree => self.imgs.mmap_site_tree,
-                    SiteKind::Gnarling => self.imgs.mmap_site_gnarling,
-                    SiteKind::Bridge => self.imgs.mmap_site_bridge,
-                    SiteKind::GliderCourse => self.imgs.mmap_site_glider_course,
-                    SiteKind::Adlet => self.imgs.mmap_site_adlet,
-                    SiteKind::Haniwa => self.imgs.mmap_site_haniwa,
-                    SiteKind::Cultist => self.imgs.mmap_site_cultist,
-                    SiteKind::Sahagin => self.imgs.mmap_site_sahagin,
-                    SiteKind::Myrmidon => self.imgs.mmap_site_myrmidon,
-                    SiteKind::DwarvenMine => self.imgs.mmap_site_mine,
-                    SiteKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
+                Image::new(match &marker.kind {
+                    MarkerKind::Unknown => self.imgs.mmap_unknown,
+                    MarkerKind::Town => self.imgs.mmap_site_town,
+                    MarkerKind::ChapelSite => self.imgs.mmap_site_sea_chapel,
+                    MarkerKind::Terracotta => self.imgs.mmap_site_terracotta,
+                    MarkerKind::Castle => self.imgs.mmap_site_castle,
+                    MarkerKind::Cave => self.imgs.mmap_site_cave,
+                    MarkerKind::Tree => self.imgs.mmap_site_tree,
+                    MarkerKind::Gnarling => self.imgs.mmap_site_gnarling,
+                    MarkerKind::Bridge => self.imgs.mmap_site_bridge,
+                    MarkerKind::GliderCourse => self.imgs.mmap_site_glider_course,
+                    MarkerKind::Adlet => self.imgs.mmap_site_adlet,
+                    MarkerKind::Haniwa => self.imgs.mmap_site_haniwa,
+                    MarkerKind::Cultist => self.imgs.mmap_site_cultist,
+                    MarkerKind::Sahagin => self.imgs.mmap_site_sahagin,
+                    MarkerKind::Myrmidon => self.imgs.mmap_site_myrmidon,
+                    MarkerKind::DwarvenMine => self.imgs.mmap_site_mine,
+                    MarkerKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
                 })
                 .middle_of(state.ids.mmap_site_icons_bgs[i])
                 .w_h(20.0, 20.0)

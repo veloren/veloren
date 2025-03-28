@@ -170,7 +170,8 @@ impl<'a> System<'a> for Sys {
                     // (especially since they would otherwise get stuck on
                     // obstacles that smaller entities would not).
                     let node_tolerance = scale * 1.5;
-                    let slow_factor = moving_body.map_or(0.0, |b| b.base_accel() / 250.0).min(1.0);
+                    let slow_factor =
+                        moving_body.map_or(0.0, |b| 1.0 - 1.0 / (1.0 + b.base_accel() * 0.01));
                     let traversal_config = TraversalConfig {
                         node_tolerance,
                         slow_factor,

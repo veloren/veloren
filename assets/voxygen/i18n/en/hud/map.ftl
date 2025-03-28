@@ -2,6 +2,7 @@ hud-map-map_title = Map
 hud-map-qlog_title = Quests
 hud-map-topo_map = Topographic
 hud-map-difficulty = Difficulty
+hud-map-unknown = Unknown
 hud-map-towns = Towns
 hud-map-castles = Castles
 hud-map-dungeons = Dungeons
@@ -20,9 +21,12 @@ hud-map-glider_course = Glider Course
 hud-map-glider_courses = Glider Courses
 hud-map-dungeon = Dungeon
 hud-map-df_mine = Mine
+hud-map-plaza = Town square
+hud-map-workshop = Workshop
+hud-map-airship_dock = Airship dock
 hud-map-difficulty_dungeon =
     Dungeon
-    
+
     Difficulty: { $difficulty }
 hud-map-drag = Drag
 hud-map-zoom = Zoom

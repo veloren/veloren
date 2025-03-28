@@ -185,6 +185,20 @@ impl Controller {
                 kind: DialogueKind::Statement(msg),
             }));
     }
+
+    /// Provide a location marker as part of a dialogue.
+    pub fn dialogue_marker(
+        &mut self,
+        session: DialogueSession,
+        wpos: Vec2<i32>,
+        name: comp::Content,
+    ) {
+        self.actions
+            .push(NpcAction::Dialogue(session.target, Dialogue {
+                id: session.id,
+                kind: DialogueKind::Marker { wpos, name },
+            }));
+    }
 }
 
 // Represents an ongoing dialogue with another actor.

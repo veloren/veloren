@@ -176,6 +176,7 @@ impl<'a> Chat<'a> {
             Some(complete(
                 &input[..index],
                 self.client,
+                self.localized_strings,
                 &self.global_state.settings.chat.chat_cmd_prefix.to_string(),
             ))
         } else {

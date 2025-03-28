@@ -22,7 +22,6 @@ use common::{
         InventoryUpdateEvent, MapMarkerChange, PresenceKind, UtteranceKind,
         chat::KillSource,
         controller::CraftEvent,
-        dialogue::Subject,
         group,
         inventory::item::{ItemKind, modular, tool},
         invite::{InviteKind, InviteResponse},
@@ -57,7 +56,7 @@ use common_net::{
         Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
         ServerInit, ServerRegisterAnswer,
         server::ServerDescription,
-        world_msg::{EconomyInfo, PoiInfo, SiteId, SiteInfo},
+        world_msg::{EconomyInfo, Marker, PoiInfo, SiteId},
     },
     sync::WorldSyncExt,
 };
@@ -184,8 +183,8 @@ impl WorldData {
     pub fn max_chunk_alt(&self) -> f32 { self.map.2.y }
 }
 
-pub struct SiteInfoRich {
-    pub site: SiteInfo,
+pub struct SiteMarker {
+    pub marker: Marker,
     pub economy: Option<EconomyInfo>,
 }
 
@@ -278,7 +277,7 @@ pub struct Client {
     player_list: HashMap<Uid, PlayerInfo>,
     character_list: CharacterList,
     character_being_deleted: Option<CharacterId>,
-    sites: HashMap<SiteId, SiteInfoRich>,
+    sites: HashMap<SiteId, SiteMarker>,
     possible_starting_sites: Vec<SiteId>,
     pois: Vec<PoiInfo>,
     pub chat_mode: ChatMode,
@@ -1023,11 +1022,11 @@ impl Client {
             character_being_deleted: None,
             sites: sites
                 .iter()
-                .map(|s| {
-                    (s.id, SiteInfoRich {
-                        site: s.clone(),
+                .filter_map(|m| {
+                    Some((m.id?, SiteMarker {
+                        marker: m.clone(),
                         economy: None,
-                    })
+                    }))
                 })
                 .collect(),
             possible_starting_sites,
@@ -1488,16 +1487,14 @@ impl Client {
         }
     }
 
-    pub fn npc_interact(&mut self, npc_entity: EcsEntity, subject: Subject) {
+    pub fn npc_interact(&mut self, npc_entity: EcsEntity) {
         // If we're dead, exit before sending message
         if self.is_dead() {
             return;
         }
 
         if let Some(uid) = self.state.read_component_copied(npc_entity) {
-            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(
-                uid, subject,
-            )));
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Interact(uid)));
         }
     }
 
@@ -1715,14 +1712,16 @@ impl Client {
     }
 
     /// Unstable, likely to be removed in a future release
-    pub fn sites(&self) -> &HashMap<SiteId, SiteInfoRich> { &self.sites }
+    pub fn sites(&self) -> &HashMap<SiteId, SiteMarker> { &self.sites }
+
+    pub fn markers(&self) -> impl ExactSizeIterator<Item = &Marker> {
+        self.sites.values().map(|s| &s.marker)
+    }
 
     pub fn possible_starting_sites(&self) -> &[SiteId] { &self.possible_starting_sites }
 
     /// Unstable, likely to be removed in a future release
     pub fn pois(&self) -> &Vec<PoiInfo> { &self.pois }
-
-    pub fn sites_mut(&mut self) -> &mut HashMap<SiteId, SiteInfoRich> { &mut self.sites }
 
     pub fn enable_lantern(&mut self) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::EnableLantern));
@@ -2959,7 +2958,7 @@ impl Client {
                 }
             },
             ServerGeneral::SiteEconomy(economy) => {
-                if let Some(rich) = self.sites_mut().get_mut(&economy.id) {
+                if let Some(rich) = self.sites.get_mut(&economy.id) {
                     rich.economy = Some(economy);
                 }
             },

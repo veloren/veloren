@@ -11,7 +11,6 @@ pub mod chat;
 pub mod combo;
 pub mod compass;
 pub mod controller;
-pub mod dialogue;
 mod energy;
 pub mod fluid_dynamics;
 pub mod group;
