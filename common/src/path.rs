@@ -159,14 +159,10 @@ impl Route {
 
             // Map position of node to middle of block
             let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
-            let closest_tgt = if be_precise {
-                next_tgt
-            } else {
-                next_tgt
-                    .map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()))
-                    .xy()
-                    .with_z(next_tgt.z)
-            };
+            let closest_tgt = next_tgt
+                .map2(pos, |tgt, pos| pos.clamped(tgt.floor(), tgt.ceil()))
+                .xy()
+                .with_z(next_tgt.z);
             // Determine whether we're close enough to the next to to consider it completed
             let dist_sqrd = pos.xy().distance_squared(closest_tgt.xy());
             if dist_sqrd
