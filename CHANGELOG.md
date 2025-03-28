@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Caves now show up in the map again.
 - Fixed airship dock position.
 - Fixed throwables pickup sound.
+- Re-oriented LoD model for Haniwa Catacombs.
 
 ## [0.17.0] - 2024-12-28
 
