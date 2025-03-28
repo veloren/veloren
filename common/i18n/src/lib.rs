@@ -111,6 +111,10 @@ impl Content {
         }
     }
 
+    pub fn localized_attr(key: impl ToString, attr: impl AsRef<str>) -> Self {
+        Self::Attr(key.to_string(), attr.as_ref().to_string())
+    }
+
     pub fn as_plain(&self) -> Option<&str> {
         match self {
             Self::Plain(text) => Some(text.as_str()),

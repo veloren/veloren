@@ -148,13 +148,22 @@ fn hire<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
                     .say_statement(Content::localized("npc-response-no_problem"))
                     .boxed(),
             ));
-            for (days, base_price) in [(1, 60), (7, 300)] {
+            let options = [
+                (
+                    1.0,
+                    60,
+                    Content::localized_attr("dialogue-buy_hire_days", "day"),
+                ),
+                (
+                    7.0,
+                    300,
+                    Content::localized_attr("dialogue-buy_hire_days", "week"),
+                ),
+            ];
+            for (days, base_price, msg) in options {
                 responses.push((
                     Response {
-                        msg: Content::localized_with_args("dialogue-buy_hire_days", [(
-                            "days",
-                            LocalizationArg::Nat(days),
-                        )]),
+                        msg,
                         given_item: Some((
                             Arc::<ItemDef>::load_cloned("common.items.utility.coins").unwrap(),
                             price_mul.saturating_mul(base_price),
@@ -165,8 +174,7 @@ fn hire<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
                         .then(just(move |ctx, _| {
                             ctx.controller.set_newly_hired(
                                 tgt,
-                                ctx.time
-                                    .add_days(days as f64, &ctx.system_data.server_constants),
+                                ctx.time.add_days(days, &ctx.system_data.server_constants),
                             );
                         }))
                         .boxed(),

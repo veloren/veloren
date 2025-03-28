@@ -14,11 +14,13 @@ dialogue-question-sentiment =
 dialogue-question-directions = Can you give me directions?
 dialogue-cancel_hire = I want to stop hiring you.
 dialogue-me = Me
-dialogue-buy_hire_days = { $days ->
-    [1] A day
-    [7] A week
-    *[other] { $days } days
-}
+dialogue-buy_hire_days =
+   .day = A day
+   .week = A week
+   .unknown = { $days ->
+     [one] { $days } day
+     *[other] { $days } days
+    }
 dialogue-cancel_interaction = I've changed my mind.
 
 dialogue-direction-tavern = The local tavern
