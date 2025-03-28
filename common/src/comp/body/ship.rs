@@ -9,6 +9,8 @@ use std::sync::Arc;
 use strum::EnumIter;
 use vek::*;
 
+// Doesn't include a lot of bodies...
+// Intentionally?
 pub const ALL_BODIES: [Body; 6] = [
     Body::DefaultAirship,
     Body::AirBalloon,

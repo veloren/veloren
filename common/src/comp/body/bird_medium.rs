@@ -1,7 +1,7 @@
-use common_base::struct_iter;
+use common_base::{enum_iter, struct_iter};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
+use strum::{Display, EnumString};
 
 struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -29,41 +29,43 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::BirdMedium(body) }
 }
 
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumIter,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum Species {
-    SnowyOwl = 0,
-    HornedOwl = 1,
-    Duck = 2,
-    Cockatiel = 3,
-    Chicken = 4,
-    Bat = 5,
-    Penguin = 6,
-    Goose = 7,
-    Peacock = 8,
-    Eagle = 9,
-    Parrot = 10,
-    Crow = 11,
-    Dodo = 12,
-    Parakeet = 13,
-    Puffin = 14,
-    Toucan = 15,
-    BloodmoonBat = 16,
-    VampireBat = 17,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum Species {
+        SnowyOwl = 0,
+        HornedOwl = 1,
+        Duck = 2,
+        Cockatiel = 3,
+        Chicken = 4,
+        Bat = 5,
+        Penguin = 6,
+        Goose = 7,
+        Peacock = 8,
+        Eagle = 9,
+        Parrot = 10,
+        Crow = 11,
+        Dodo = 12,
+        Parakeet = 13,
+        Puffin = 14,
+        Toucan = 15,
+        BloodmoonBat = 16,
+        VampireBat = 17,
+    }
 }
 
 /// Data representing per-species generic data.
@@ -119,26 +121,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 18] = [
-    Species::SnowyOwl,
-    Species::HornedOwl,
-    Species::Duck,
-    Species::Cockatiel,
-    Species::Chicken,
-    Species::Bat,
-    Species::Penguin,
-    Species::Goose,
-    Species::Peacock,
-    Species::Eagle,
-    Species::Parrot,
-    Species::Crow,
-    Species::Dodo,
-    Species::Parakeet,
-    Species::Puffin,
-    Species::Toucan,
-    Species::BloodmoonBat,
-    Species::VampireBat,
-];
+pub const ALL_SPECIES: [Species; Species::NUM_KINDS] = Species::ALL;
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
@@ -147,24 +130,26 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumIter,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum BodyType {
-    Female = 0,
-    Male = 1,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum BodyType {
+        Female = 0,
+        Male = 1,
+    }
 }
-pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
+pub const ALL_BODY_TYPES: [BodyType; BodyType::NUM_KINDS] = BodyType::ALL;

@@ -1,7 +1,7 @@
-use common_base::struct_iter;
+use common_base::{enum_iter, struct_iter};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
+use strum::{Display, EnumString};
 
 struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -31,47 +31,49 @@ impl From<Body> for super::Body {
 
 // Renaming any enum entries here (re-ordering is fine) will require a
 // database migration to ensure pets correctly de-serialize on player login.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumIter,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum Species {
-    Crocodile = 0,
-    Alligator = 1,
-    Salamander = 2,
-    Monitor = 3,
-    Asp = 4,
-    Tortoise = 5,
-    Pangolin = 6,
-    Maneater = 7,
-    Sandshark = 8,
-    Hakulaq = 9,
-    Lavadrake = 10,
-    Basilisk = 11,
-    Deadwood = 12,
-    Icedrake = 13,
-    SeaCrocodile = 14,
-    Dagon = 15,
-    Rocksnapper = 16,
-    Rootsnapper = 17,
-    Reefsnapper = 18,
-    Elbst = 19,
-    Mossdrake = 20,
-    Driggle = 21,
-    Snaretongue = 22,
-    Hydra = 23,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum Species {
+        Crocodile = 0,
+        Alligator = 1,
+        Salamander = 2,
+        Monitor = 3,
+        Asp = 4,
+        Tortoise = 5,
+        Pangolin = 6,
+        Maneater = 7,
+        Sandshark = 8,
+        Hakulaq = 9,
+        Lavadrake = 10,
+        Basilisk = 11,
+        Deadwood = 12,
+        Icedrake = 13,
+        SeaCrocodile = 14,
+        Dagon = 15,
+        Rocksnapper = 16,
+        Rootsnapper = 17,
+        Reefsnapper = 18,
+        Elbst = 19,
+        Mossdrake = 20,
+        Driggle = 21,
+        Snaretongue = 22,
+        Hydra = 23,
+    }
 }
 
 /// Data representing per-species generic data.
@@ -139,32 +141,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 24] = [
-    Species::Crocodile,
-    Species::SeaCrocodile,
-    Species::Alligator,
-    Species::Salamander,
-    Species::Elbst,
-    Species::Monitor,
-    Species::Asp,
-    Species::Tortoise,
-    Species::Rocksnapper,
-    Species::Rootsnapper,
-    Species::Reefsnapper,
-    Species::Pangolin,
-    Species::Maneater,
-    Species::Sandshark,
-    Species::Hakulaq,
-    Species::Dagon,
-    Species::Lavadrake,
-    Species::Basilisk,
-    Species::Deadwood,
-    Species::Icedrake,
-    Species::Mossdrake,
-    Species::Driggle,
-    Species::Snaretongue,
-    Species::Hydra,
-];
+pub const ALL_SPECIES: [Species; Species::NUM_KINDS] = Species::ALL;
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
@@ -175,24 +152,26 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
 
 // Renaming any enum entries here (re-ordering is fine) will require a
 // database migration to ensure pets correctly de-serialize on player login.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumIter,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum BodyType {
-    Female = 0,
-    Male = 1,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum BodyType {
+        Female = 0,
+        Male = 1,
+    }
 }
-pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
+pub const ALL_BODY_TYPES: [BodyType; BodyType::NUM_KINDS] = BodyType::ALL;

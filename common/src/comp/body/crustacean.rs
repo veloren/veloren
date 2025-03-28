@@ -1,7 +1,7 @@
-use common_base::struct_iter;
+use common_base::{enum_iter, struct_iter};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
+use strum::{Display, EnumString};
 
 struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -31,26 +31,28 @@ impl From<Body> for super::Body {
 
 // Renaming any enum entries here (re-ordering is fine) will require a
 // database migration to ensure pets correctly de-serialize on player login.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumIter,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum Species {
-    Crab = 0,
-    SoldierCrab = 1,
-    Karkatha = 2,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum Species {
+        Crab = 0,
+        SoldierCrab = 1,
+        Karkatha = 2,
+    }
 }
 
 /// Data representing per-species generic data.
@@ -74,7 +76,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 3] = [Species::Crab, Species::SoldierCrab, Species::Karkatha];
+pub const ALL_SPECIES: [Species; Species::NUM_KINDS] = Species::ALL;
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
@@ -83,25 +85,26 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumIter,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum BodyType {
-    Female = 0,
-    Male = 1,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum BodyType {
+        Female = 0,
+        Male = 1,
+    }
 }
-
-pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
+pub const ALL_BODY_TYPES: [BodyType; BodyType::NUM_KINDS] = BodyType::ALL;

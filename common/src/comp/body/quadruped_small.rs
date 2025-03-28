@@ -1,7 +1,7 @@
-use common_base::struct_iter;
+use common_base::{enum_iter, struct_iter};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
+use strum::{Display, EnumString};
 
 struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -31,52 +31,54 @@ impl From<Body> for super::Body {
 
 // Renaming any enum entries here (re-ordering is fine) will require a
 // database migration to ensure pets correctly de-serialize on player login.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumIter,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum Species {
-    Pig = 0,
-    Fox = 1,
-    Sheep = 2,
-    Boar = 3,
-    Jackalope = 4,
-    Skunk = 5,
-    Cat = 6,
-    Batfox = 7,
-    Raccoon = 8,
-    Quokka = 9,
-    Goat = 10,
-    Holladon = 11,
-    Hyena = 12,
-    Rabbit = 13,
-    Truffler = 14,
-    Frog = 15,
-    Rat = 16,
-    Axolotl = 17,
-    Gecko = 18,
-    Turtle = 19,
-    Squirrel = 20,
-    Fungome = 21,
-    Porcupine = 22,
-    Beaver = 23,
-    Hare = 24,
-    Dog = 25,
-    Seal = 26,
-    TreantSapling = 27,
-    MossySnail = 28,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum Species {
+        Pig = 0,
+        Fox = 1,
+        Sheep = 2,
+        Boar = 3,
+        Jackalope = 4,
+        Skunk = 5,
+        Cat = 6,
+        Batfox = 7,
+        Raccoon = 8,
+        Quokka = 9,
+        Goat = 10,
+        Holladon = 11,
+        Hyena = 12,
+        Rabbit = 13,
+        Truffler = 14,
+        Frog = 15,
+        Rat = 16,
+        Axolotl = 17,
+        Gecko = 18,
+        Turtle = 19,
+        Squirrel = 20,
+        Fungome = 21,
+        Porcupine = 22,
+        Beaver = 23,
+        Hare = 24,
+        Dog = 25,
+        Seal = 26,
+        TreantSapling = 27,
+        MossySnail = 28,
+    }
 }
 
 /// Data representing per-species generic data.
@@ -154,37 +156,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 29] = [
-    Species::Pig,
-    Species::Fox,
-    Species::Sheep,
-    Species::Boar,
-    Species::Jackalope,
-    Species::Skunk,
-    Species::Cat,
-    Species::Batfox,
-    Species::Raccoon,
-    Species::Quokka,
-    Species::Holladon,
-    Species::Hyena,
-    Species::Rabbit,
-    Species::Truffler,
-    Species::Frog,
-    Species::Rat,
-    Species::Axolotl,
-    Species::Gecko,
-    Species::Turtle,
-    Species::Squirrel,
-    Species::Fungome,
-    Species::Porcupine,
-    Species::Beaver,
-    Species::Hare,
-    Species::Dog,
-    Species::Goat,
-    Species::Seal,
-    Species::TreantSapling,
-    Species::MossySnail,
-];
+pub const ALL_SPECIES: [Species; Species::NUM_KINDS] = Species::ALL;
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
@@ -195,25 +167,26 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
 
 // Renaming any enum entries here (re-ordering is fine) will require a
 // database migration to ensure pets correctly de-serialize on player login.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumIter,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum BodyType {
-    Female = 0,
-    Male = 1,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum BodyType {
+        Female = 0,
+        Male = 1,
+    }
 }
-
-pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
+pub const ALL_BODY_TYPES: [BodyType; BodyType::NUM_KINDS] = BodyType::ALL;

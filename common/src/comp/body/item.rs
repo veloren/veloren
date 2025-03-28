@@ -14,43 +14,45 @@ use common_base::enum_iter;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
-use strum::{EnumIter, IntoEnumIterator};
+use strum::IntoEnumIterator;
 use vek::Vec3;
 
-#[derive(
-    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
-)]
-pub enum ItemArmorKind {
-    Shoulder,
-    Chest,
-    Belt,
-    Hand,
-    Pants,
-    Foot,
-    Back,
-    Ring,
-    Neck,
-    Head,
-    Tabard,
-    Bag,
+enum_iter! {
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum ItemArmorKind {
+        Shoulder = 0,
+        Chest = 1,
+        Belt = 2,
+        Hand = 3,
+        Pants = 4,
+        Foot = 5,
+        Back = 6,
+        Ring = 7,
+        Neck = 8,
+        Head = 9,
+        Tabard = 10,
+        Bag = 11,
+    }
 }
 
 enum_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
     pub enum Body {
-        Tool(ToolKind),
-        ModularComponent,
-        Lantern,
-        Glider,
-        Armor(ItemArmorKind),
-        Utility,
-        Consumable,
-        Throwable,
-        Ingredient,
-        Coins,
-        CoinPouch,
-        Empty,
-        Thrown(ToolKind),
+        Tool(ToolKind) = 0,
+        ModularComponent = 1,
+        Lantern = 2,
+        Glider = 3,
+        Armor(ItemArmorKind) = 4,
+        Utility = 5,
+        Consumable = 6,
+        Throwable = 7,
+        Ingredient = 8,
+        Coins = 9,
+        CoinPouch = 10,
+        Empty = 11,
+        Thrown(ToolKind) = 12,
     }
 }
 
