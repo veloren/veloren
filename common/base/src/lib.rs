@@ -171,11 +171,14 @@ macro_rules! prof_span_alloc {
 #[macro_export]
 macro_rules! enum_iter {
     (
+        // const_array uses alien syntax, because #[const_array()] would
+        // cause ambiguity with other attributes :(
+        $(~const_array($all_array:ident))?
         $( #[ $enum_attr:meta ] )*
         $vis:vis enum $enum_name:ident {
             $(
                 $( #[ $variant_attr:meta ] )*
-                $variant:ident $(($nested_enum:ty))?
+                $variant:ident $(($nested_enum:ty))? $(= $idx:literal)?
             ),* $(,)?
         }
     ) => {
@@ -183,11 +186,42 @@ macro_rules! enum_iter {
         $vis enum $enum_name {
             $(
                 $( #[ $variant_attr ] )*
-                $variant $(($nested_enum))?
+                $variant $(($nested_enum))? $(= $idx)?
             ),*
         }
 
         impl $enum_name {
+            // unfortunately we need to construct these anyway whether we want
+            // it or not
+            //
+            // macro-rules don't seem to combine optional-not-repeated
+            // with optional-repeated variables :(
+            #[doc(hidden)]
+            #[allow(unreachable_code)]
+            const __ALL_KINDS: [Self; Self::NUM_KINDS] = [
+                $(
+                    Self::$variant $(
+                        ({
+                            let _fake_capture: Option<$nested_enum> = None;
+                            panic!("\ncan't use ~const_array with nested enums\n");
+                        })
+                    )?
+                ),*
+            ];
+
+            // repeated macro to construct 0 + (1 + 1 + 1) per each field
+            #[allow(dead_code)]
+            $vis const NUM_KINDS: usize = 0 $(+ {
+                // fake capture
+                #[allow(non_snake_case, unused_variables)]
+                let $variant = 0;
+                1
+            })*;
+
+            $(
+                $vis const $all_array: [Self; Self::NUM_KINDS] = Self::__ALL_KINDS;
+            )?
+
             $vis fn all_variants() -> Vec<$enum_name> {
                 let mut buff = vec![];
                 $(
@@ -242,6 +276,7 @@ macro_rules! enum_iter {
 #[test]
 fn test_enum_iter() {
     enum_iter! {
+        ~const_array(ALL)
         #[derive(Eq, PartialEq, Debug)]
         enum Shade {
             Good,
@@ -259,8 +294,11 @@ fn test_enum_iter() {
         }
     }
 
+    const ALL_SHADES: [Shade; Shade::NUM_KINDS] = Shade::ALL;
+    assert_eq!(ALL_SHADES, [Shade::Good, Shade::Meh, Shade::Bad]);
+
     let results: Vec<_> = Shade::iter().collect();
-    assert_eq!(results, vec![Shade::Good, Shade::Meh, Shade::Bad,]);
+    assert_eq!(results, vec![Shade::Good, Shade::Meh, Shade::Bad]);
 
     let results: Vec<_> = Color::iter().collect();
     assert_eq!(results, vec![
