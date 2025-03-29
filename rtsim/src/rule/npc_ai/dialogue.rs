@@ -244,14 +244,14 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
             responses.push((
                 Content::localized("dialogue-direction-workshop"),
                 direction_to_nearest(
-                    |p| matches!(p.kind(), PlotKind::Workshop(_)),
+                    |p| matches!(p.kind().meta(), Some(PlotKindMeta::Workshop { .. })),
                     |_| Content::localized("hud-map-workshop"),
                 ),
             ));
             responses.push((
                 Content::localized("dialogue-direction-airship_dock"),
                 direction_to_nearest(
-                    |p| matches!(p.kind(), PlotKind::AirshipDock(_)),
+                    |p| matches!(p.kind().meta(), Some(PlotKindMeta::AirshipDock { .. })),
                     |_| Content::localized("hud-map-airship_dock"),
                 ),
             ));
