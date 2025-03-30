@@ -3547,6 +3547,9 @@
             "common.items.consumable.potion_curious",
         ): "object-potion_curious",
         Simple(
+            "common.items.consumable.potion_trans",
+        ): "object-potion_trans",
+        Simple(
             "common.items.consumable.potion_agility",
         ): "object-potion_agility",
         Simple(

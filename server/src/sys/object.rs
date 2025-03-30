@@ -94,6 +94,7 @@ impl<'a> System<'a> for Sys {
                             } else {
                                 object::Body::Portal
                             }),
+                            permanent: false,
                         });
                     }
                 },

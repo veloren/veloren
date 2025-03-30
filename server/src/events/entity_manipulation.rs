@@ -11,6 +11,7 @@ use crate::{
     },
     error,
     events::entity_creation::handle_create_npc,
+    persistence::character_updater::CharacterUpdater,
     pet::tame_pet,
     state_ext::StateExt,
     sys::terrain::{NpcData, SAFE_ZONE_RADIUS, SpawnEntityData},
@@ -124,6 +125,8 @@ event_emitters! {
         combo_change: ComboChangeEvent,
         buff: BuffEvent,
         bonk: BonkEvent,
+        change_body: ChangeBodyEvent,
+        outcome: Outcome,
     }
 
     struct ReadEntityAttackedHookEvents[EntityAttackedHookEmitters] {
@@ -1715,6 +1718,8 @@ impl ServerEvent for ExplosionEvent {
                                             data.stats.get(entity_b),
                                             data.masses.get(entity_b),
                                             owner_entity.and_then(|e| data.masses.get(e)),
+                                            data.bodies.get(entity_b),
+                                            data.positions.get(entity_b),
                                         );
                                     }
                                 }
@@ -1728,7 +1733,13 @@ impl ServerEvent for ExplosionEvent {
 }
 
 pub fn emit_effect_events(
-    emitters: &mut (impl EmitExt<HealthChangeEvent> + EmitExt<PoiseChangeEvent> + EmitExt<BuffEvent>),
+    emitters: &mut (
+             impl EmitExt<HealthChangeEvent>
+             + EmitExt<PoiseChangeEvent>
+             + EmitExt<BuffEvent>
+             + EmitExt<ChangeBodyEvent>
+             + EmitExt<Outcome>
+         ),
     time: Time,
     entity: EcsEntity,
     effect: common::effect::Effect,
@@ -1739,6 +1750,8 @@ pub fn emit_effect_events(
     stats: Option<&Stats>,
     tgt_mass: Option<&comp::Mass>,
     source_mass: Option<&comp::Mass>,
+    tgt_body: Option<&Body>,
+    tgt_pos: Option<&Pos>,
 ) {
     let damage_contributor = source.map(|(uid, group)| DamageContributor::new(uid, group));
     match effect {
@@ -1788,6 +1801,31 @@ pub fn emit_effect_events(
                     source_mass,
                 )),
             });
+        },
+        common::effect::Effect::Permanent(permanent_effect) => match permanent_effect {
+            common::effect::PermanentEffect::CycleBodyType => {
+                if let Some(new_body) = tgt_body.and_then(|body| match body {
+                    Body::Humanoid(body) => Some(Body::Humanoid(comp::humanoid::Body {
+                        body_type: match body.body_type {
+                            comp::humanoid::BodyType::Female => comp::humanoid::BodyType::Male,
+                            comp::humanoid::BodyType::Male => comp::humanoid::BodyType::Female,
+                        },
+                        ..*body
+                    })),
+                    // Only allow humanoids for now.
+                    _ => None,
+                }) {
+                    // TODO: Change only the body from the character list?
+                    emitters.emit(ChangeBodyEvent {
+                        entity,
+                        new_body,
+                        permanent: true,
+                    });
+                    if let Some(pos) = tgt_pos {
+                        emitters.emit(Outcome::Transformation { pos: pos.0 });
+                    }
+                }
+            },
         },
     }
 }
@@ -2487,12 +2525,63 @@ impl ServerEvent for ChangeStanceEvent {
 }
 
 impl ServerEvent for ChangeBodyEvent {
-    type SystemData<'a> = WriteStorage<'a, comp::Body>;
+    type SystemData<'a> = (
+        WriteExpect<'a, CharacterUpdater>,
+        WriteStorage<'a, comp::Body>,
+        WriteStorage<'a, comp::Mass>,
+        WriteStorage<'a, comp::Density>,
+        WriteStorage<'a, comp::Collider>,
+        WriteStorage<'a, comp::Stats>,
+        ReadStorage<'a, comp::Player>,
+        ReadStorage<'a, comp::Presence>,
+    );
 
-    fn handle(events: impl ExactSizeIterator<Item = Self>, mut bodies: Self::SystemData<'_>) {
+    fn handle(
+        events: impl ExactSizeIterator<Item = Self>,
+        (
+            mut character_updater,
+            mut bodies,
+            mut masses,
+            mut densities,
+            mut colliders,
+            mut stats,
+            players,
+            presences,
+        ): Self::SystemData<'_>,
+    ) {
         for ev in events {
             if let Some(mut body) = bodies.get_mut(ev.entity) {
                 *body = ev.new_body;
+                masses
+                    .insert(ev.entity, ev.new_body.mass())
+                    .expect("We just got this entities body");
+                densities
+                    .insert(ev.entity, ev.new_body.density())
+                    .expect("We just got this entities body");
+                colliders
+                    .insert(ev.entity, ev.new_body.collider())
+                    .expect("We just got this entities body");
+
+                if ev.permanent {
+                    if let Some(mut stats) = stats.get_mut(ev.entity) {
+                        stats.original_body = ev.new_body;
+                    }
+                    if let Some(player) = players.get(ev.entity)
+                        && let Some(comp::Presence {
+                            kind: comp::PresenceKind::Character(character_id),
+                            ..
+                        }) = presences.get(ev.entity)
+                    {
+                        character_updater.edit_character(
+                            ev.entity,
+                            player.uuid().to_string(),
+                            *character_id,
+                            None,
+                            (ev.new_body,),
+                            true,
+                        );
+                    }
+                }
             }
         }
     }

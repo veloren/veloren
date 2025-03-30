@@ -1,6 +1,11 @@
 use crate::{combat, comp};
 use serde::{Deserialize, Serialize};
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum PermanentEffect {
+    CycleBodyType,
+}
+
 /// An effect that may be applied to an entity
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
@@ -8,6 +13,7 @@ pub enum Effect {
     Poise(f32),
     Damage(combat::Damage),
     Buff(BuffEffect),
+    Permanent(PermanentEffect),
 }
 
 /// A buff that may be applied to an entity
@@ -28,6 +34,7 @@ impl Effect {
             Effect::Poise(p) => format!("{:+} poise", p),
             Effect::Damage(d) => format!("{:+}", d.value),
             Effect::Buff(e) => format!("{:?} buff", e),
+            Effect::Permanent(e) => format!("{:?}", e),
         }
     }
 
@@ -37,6 +44,7 @@ impl Effect {
             Effect::Poise(p) => *p < 0.0,
             Effect::Damage(_) => true,
             Effect::Buff(e) => !e.kind.is_buff(),
+            Effect::Permanent(_) => false,
         }
     }
 
@@ -54,6 +62,7 @@ impl Effect {
             Effect::Buff(effect) => {
                 effect.data.strength *= modifier;
             },
+            Effect::Permanent(_) => {},
         }
     }
 }

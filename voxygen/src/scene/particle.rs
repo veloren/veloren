@@ -550,6 +550,16 @@ impl ParticleMgr {
                         });
                 }
             },
+            Outcome::Transformation { pos } => {
+                self.particles.resize_with(self.particles.len() + 100, || {
+                    Particle::new(
+                        Duration::from_millis(1400),
+                        time,
+                        ParticleMode::Transformation,
+                        *pos,
+                    )
+                });
+            },
             Outcome::ProjectileShot { .. }
             | Outcome::Beam { .. }
             | Outcome::ExpChange { .. }

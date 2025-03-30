@@ -103,6 +103,7 @@ const int FLAME_TORNADO = 62;
 const int POISON = 63;
 const int WATER_FOAM = 64;
 const int ENGINE_JET = 65;
+const int TRANSFORMATION = 66;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1081,6 +1082,27 @@ void main() {
                     pow(percent(), 0.05)
                 ),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 3 + 3 * rand9)
+            );
+            break;
+        case TRANSFORMATION:
+            f_reflect = 0.0;
+            vec3 trans_colors[3] = vec3[3](
+                // light blue
+                vec3(0.3568627450980392, 0.807843137254902, 0.9803921568627451),
+                // pink
+                vec3(0.9607843137254902, 0.6627450980392157, 0.7215686274509804),
+                // white
+                vec3(1)
+            );
+            uint color = uint(abs(rand0 * 1000.0)) % 3;
+            float spiral = float((color + 1) * (uint(abs(rand1 * 1000.0)) % 3 + 1) - 1);
+            float radius = abs(rand2) * percent() * 4.0 + abs(rand0);
+            float frequency = 8.0 + rand3;
+            attr = Attr(
+                spiral_motion(vec3(0, 0, radius), radius, percent(), frequency, spiral / 9.0 * 2.0 * PI * frequency + radius),
+                vec3((2.5 * (1 - slow_start(0.05)))),
+                vec4(trans_colors[color], 2.0),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
         default:

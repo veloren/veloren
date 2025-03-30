@@ -504,6 +504,10 @@ pub struct ChangeStanceEvent {
 pub struct ChangeBodyEvent {
     pub entity: EcsEntity,
     pub new_body: comp::Body,
+    /// If this change should be persisted.
+    ///
+    /// Only applies to player characters.
+    pub permanent: bool,
 }
 
 pub struct RemoveLightEmitterEvent {

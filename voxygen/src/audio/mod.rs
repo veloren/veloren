@@ -620,8 +620,9 @@ impl AudioFrontend {
             }
         } else {
             warn!(
-                "Missing sfx trigger config for sfx event at position: {:?}",
-                position
+                "Missing sfx trigger config for sfx event at position: {:?}\n{:#?}",
+                position,
+                backtrace::Backtrace::new(),
             );
         }
     }

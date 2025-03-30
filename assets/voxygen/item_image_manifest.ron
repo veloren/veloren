@@ -3696,6 +3696,10 @@
         "voxel.item.consumable.potion_curious",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
+    Simple("common.items.consumable.potion_trans"): VoxTrans(
+        "voxel.item.consumable.potion_trans",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
+    ),
     Simple("common.items.consumable.potion_combustion"): VoxTrans(
         "voxel.item.consumable.potion_combustion",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,

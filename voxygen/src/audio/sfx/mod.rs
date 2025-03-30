@@ -193,6 +193,7 @@ pub enum SfxEvent {
     TeleportedByPortal,
     FromTheAshes,
     SurpriseEgg,
+    Transformation,
     Bleep,
     Charge,
     StrigoiHead,
@@ -375,7 +376,7 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct SfxTriggerItem {
     /// A list of SFX filepaths for this event
     pub files: Vec<String>,
@@ -501,6 +502,11 @@ impl SfxMgr {
             },
             Outcome::SurpriseEgg { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SurpriseEgg);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
+            },
+            Outcome::Transformation { pos, .. } => {
+                // TODO: Give this a sound
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Transformation);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::LaserBeam { pos, .. } => {
