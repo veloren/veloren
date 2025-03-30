@@ -100,7 +100,14 @@ pub fn edit_character(
         return Err(CreationError::InvalidBody);
     }
 
-    character_updater.edit_character(entity, player_uuid, id, character_alias, (body,));
+    character_updater.edit_character(
+        entity,
+        player_uuid,
+        id,
+        Some(character_alias),
+        (body,),
+        false,
+    );
     Ok(())
 }
 

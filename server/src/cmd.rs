@@ -1215,7 +1215,41 @@ fn handle_set_body_type(
                 assign_body(server, target, body)?;
 
                 if permananet {
-                    todo!()
+                    if let (
+                        Some(new_body),
+                        Some(player),
+                        Some(comp::Presence {
+                            kind: comp::PresenceKind::Character(id),
+                            ..
+                        }),
+                    ) = (
+                        server.state.ecs().read_storage::<comp::Body>().get(target),
+                        server
+                            .state
+                            .ecs()
+                            .read_storage::<comp::Player>()
+                            .get(target),
+                        server
+                            .state
+                            .ecs()
+                            .read_storage::<comp::Presence>()
+                            .get(target),
+                    ) {
+                        server
+                            .state()
+                            .ecs()
+                            .write_resource::<crate::persistence::character_updater::CharacterUpdater>()
+                            .edit_character(
+                                target,
+                                player.uuid().to_string(),
+                                *id,
+                                None,
+                                (*new_body,),
+                                true,
+                            );
+                    } else {
+                        return Err(Content::localized("cmd-set_body_type-not_character"));
+                    }
                 }
             }
             Ok(())

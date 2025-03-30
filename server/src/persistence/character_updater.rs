@@ -49,8 +49,9 @@ enum CharacterUpdaterAction {
         entity: Entity,
         player_uuid: String,
         character_id: CharacterId,
-        character_alias: String,
+        character_alias: Option<String>,
         editable_components: EditableComponents,
+        trusted: bool,
     },
     DisconnectedSuccess,
 }
@@ -183,6 +184,7 @@ impl CharacterUpdater {
                             character_alias,
                             player_uuid,
                             editable_components,
+                            trusted,
                         } => {
                             match execute_character_edit(
                                 entity,
@@ -190,6 +192,7 @@ impl CharacterUpdater {
                                 character_alias,
                                 &player_uuid,
                                 editable_components,
+                                trusted,
                                 &mut conn,
                             ) {
                                 Ok(response) => {
@@ -312,8 +315,9 @@ impl CharacterUpdater {
         entity: Entity,
         requesting_player_uuid: String,
         character_id: CharacterId,
-        alias: String,
+        alias: Option<String>,
         editable_components: EditableComponents,
+        trusted: bool,
     ) {
         if let Err(e) =
             self.update_tx
@@ -325,6 +329,7 @@ impl CharacterUpdater {
                     character_id,
                     character_alias: alias,
                     editable_components,
+                    trusted,
                 })
         {
             error!(?e, "Could not send character edit request");
@@ -482,9 +487,10 @@ fn execute_character_create(
 fn execute_character_edit(
     entity: Entity,
     character_id: CharacterId,
-    alias: String,
+    alias: Option<String>,
     requesting_player_uuid: &str,
     editable_components: EditableComponents,
+    trusted: bool,
     connection: &mut VelorenConnection,
 ) -> Result<CharacterUpdaterMessage, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
@@ -494,10 +500,11 @@ fn execute_character_edit(
         response_kind: CharacterScreenResponseKind::CharacterEdit(
             super::character::edit_character(
                 editable_components,
+                trusted,
                 &mut transaction,
                 character_id,
                 requesting_player_uuid,
-                &alias,
+                alias.as_deref(),
             ),
         ),
     };
