@@ -124,15 +124,17 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
         projectile,
         heads,
         death_effects,
+        rider_effects,
+        rider,
     } = ev.npc;
     let entity = server
         .state
         .create_npc(
-            ev.pos, ev.ori, stats, skill_set, health, poise, inventory, body,
+            ev.pos, ev.ori, stats, skill_set, health, poise, inventory, body, scale,
         )
-        .with(scale)
         .maybe_with(heads)
-        .maybe_with(death_effects);
+        .maybe_with(death_effects)
+        .maybe_with(rider_effects);
 
     if let Some(agent) = &mut agent {
         if let Alignment::Owned(_) = &alignment {
@@ -222,12 +224,11 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
         let _ = server.state.ecs().write_storage().insert(new_entity, group);
     }
 
-    if let Some(rider) = ev.rider {
+    if let Some(rider) = rider {
         let rider_entity = handle_create_npc(server, CreateNpcEvent {
             pos: ev.pos,
             ori: Ori::default(),
-            npc: rider,
-            rider: None,
+            npc: *rider,
         });
         let uids = server.state().ecs().read_storage::<Uid>();
         let link = Mounting {
@@ -246,7 +247,6 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
             pos: comp::Pos(ev.pos.0 + offset),
             ori: Ori::from_unnormalized_vec(offset).unwrap_or_default(),
             npc: pet,
-            rider: None,
         });
 
         tame_pet(server.state.ecs(), pet_entity, new_entity);
@@ -309,7 +309,6 @@ pub fn handle_create_ship(server: &mut Server, ev: CreateShipEvent) {
             pos: ev.pos,
             ori: ev.ori,
             npc: driver,
-            rider: None,
         });
 
         let uids = server.state.ecs().read_storage::<Uid>();

@@ -854,7 +854,6 @@ fn handle_make_npc(
                         pos: comp::Pos(pos),
                         ori: comp::Ori::default(),
                         npc: npc_builder,
-                        rider: None,
                     });
             },
         };
@@ -1884,10 +1883,9 @@ fn handle_spawn(
                         comp::Poise::new(body),
                         inventory,
                         body,
+                        opt_scale.map(comp::Scale).unwrap_or(body.scale()),
                     )
                     .with(comp::Vel(vel))
-                    .with(opt_scale.map(comp::Scale).unwrap_or(body.scale()))
-                    .maybe_with(opt_scale.map(|s| comp::Mass(body.mass().0 * s.powi(3))))
                     .with(alignment);
 
                 if ai {
@@ -1983,6 +1981,7 @@ fn handle_spawn_training_dummy(
             poise,
             Inventory::with_empty(),
             body,
+            comp::Scale(1.0),
         )
         .with(comp::Vel(vel))
         .build();

@@ -57,6 +57,7 @@ pub trait StateExt {
         poise: Poise,
         inventory: Inventory,
         body: comp::Body,
+        scale: comp::Scale,
     ) -> EcsEntityBuilder;
     /// Create an entity with only a position
     fn create_empty(&mut self, pos: comp::Pos) -> EcsEntityBuilder;
@@ -186,6 +187,7 @@ impl StateExt for State {
         poise: Poise,
         inventory: Inventory,
         body: comp::Body,
+        scale: comp::Scale,
     ) -> EcsEntityBuilder {
         let npc = self
             .ecs_mut()
@@ -193,9 +195,10 @@ impl StateExt for State {
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(ori)
-            .with(body.mass())
+            .with(comp::Mass(body.mass().0 * scale.0.powi(3)))
             .with(body.density())
             .with(body.collider())
+            .with(scale)
             .with(comp::Controller::default())
             .with(body)
             .with(comp::Energy::new(body))
@@ -699,8 +702,8 @@ impl StateExt for State {
                                 body,
                             ),
                             body,
+                            comp::Scale(1.0),
                         )
-                        .with(comp::Scale(1.0))
                         .with(comp::Vel(Vec3::new(0.0, 0.0, 0.0)))
                         .build();
 

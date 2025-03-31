@@ -1,0 +1,15 @@
+#![enable(implicit_some)]
+(
+    name: Name("Smol Rat"),
+    body: RandomWith("rat"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.calendar.april_fools.rat"),
+    inventory: (
+        loadout: Inline((
+            chest: Item("common.items.npc_armor.generic"),
+            active_hands: InHands((Item("common.items.npc_weapons.unique.quadsmall_long_range"), None)),
+        )),
+    ),
+    scale: 0.2,
+    meta: [],
+)

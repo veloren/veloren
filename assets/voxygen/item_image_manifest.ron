@@ -3251,6 +3251,10 @@
         "voxel.armor.misc.head.scarlet_spectacles.scarlet_spectacles",
         (-0.5, 0.0, 0.0), (295.0, 30.0, 0.0), 0.9,
     ),
+    Simple("common.items.armor.misc.back.rat_tail"): VoxTrans(
+        "voxel.armor.misc.back.rat-tail",
+        (-0.5, 0.0, 0.0), (295.0, 30.0, 0.0), 0.9,
+    ),
     Simple("common.items.armor.pirate.hat"): VoxTrans(
         "voxel.armor.pirate.hat",
         (1.0, 2.0, 0.0), (-120.0, 210.0,15.0), 1.0,

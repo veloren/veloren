@@ -99,7 +99,7 @@ impl AgentData<'_> {
         path: Path,
         speed_multiplier: Option<f32>,
     ) -> Option<Vec3<f32>> {
-        self.dismount(controller, read_data);
+        self.dismount_uncontrollable(controller, read_data);
 
         let partial_path_tgt_pos = |pos_difference: Vec3<f32>| {
             self.pos.0
@@ -255,13 +255,7 @@ impl AgentData<'_> {
         'activity: {
             match agent.rtsim_controller.activity {
                 Some(NpcActivity::Goto(travel_to, speed_factor)) => {
-                    if read_data
-                        .is_volume_riders
-                        .get(*self.entity)
-                        .is_some_and(|r| !r.is_steering_entity())
-                    {
-                        controller.push_event(ControlEvent::Unmount);
-                    }
+                    self.dismount_uncontrollable(controller, read_data);
 
                     agent.bearing = Vec2::zero();
 
@@ -393,13 +387,7 @@ impl AgentData<'_> {
                     direction_override,
                     flight_mode,
                 )) => {
-                    if read_data
-                        .is_volume_riders
-                        .get(*self.entity)
-                        .is_some_and(|r| !r.is_steering_entity())
-                    {
-                        controller.push_event(ControlEvent::Unmount);
-                    }
+                    self.dismount_uncontrollable(controller, read_data);
 
                     if self.traversal_config.vectored_propulsion {
                         // This is the action for Airships.
@@ -651,7 +639,7 @@ impl AgentData<'_> {
             // Idle NPCs should try to jump on the shoulders of their owner, sometimes.
             if read_data.is_riders.contains(*self.entity) {
                 if rng.gen_bool(0.0001) {
-                    controller.push_event(ControlEvent::Unmount);
+                    self.dismount_uncontrollable(controller, read_data);
                 } else {
                     break 'activity;
                 }
@@ -804,14 +792,7 @@ impl AgentData<'_> {
         read_data: &ReadData,
         tgt_pos: &Pos,
     ) {
-        if read_data.is_riders.contains(*self.entity)
-            || read_data
-                .is_volume_riders
-                .get(*self.entity)
-                .is_some_and(|r| !r.is_steering_entity())
-        {
-            controller.push_event(ControlEvent::Unmount);
-        }
+        self.dismount_uncontrollable(controller, read_data);
 
         if let Some((bearing, speed)) = agent.chaser.chase(
             &*read_data.terrain,
@@ -867,14 +848,7 @@ impl AgentData<'_> {
         // Proportion of full speed
         const MAX_FLEE_SPEED: f32 = 0.65;
 
-        if read_data.is_riders.contains(*self.entity)
-            || read_data
-                .is_volume_riders
-                .get(*self.entity)
-                .is_some_and(|r| !r.is_steering_entity())
-        {
-            controller.push_event(ControlEvent::Unmount);
-        }
+        self.dismount_uncontrollable(controller, read_data);
 
         if let Some(body) = self.body {
             if body.can_strafe() && !self.is_gliding {
@@ -1222,7 +1196,7 @@ impl AgentData<'_> {
         #[cfg(feature = "be-dyn-lib")]
         let rng = &mut thread_rng();
 
-        self.dismount(controller, read_data);
+        self.dismount_uncontrollable(controller, read_data);
 
         let tool_tactic = |tool_kind| match tool_kind {
             ToolKind::Bow => Tactic::Bow,
@@ -2355,6 +2329,29 @@ impl AgentData<'_> {
         }
     }
 
+    /// Dismount if riding something the agent can't control.
+    pub fn dismount_uncontrollable(&self, controller: &mut Controller, read_data: &ReadData) {
+        if read_data.is_riders.get(*self.entity).is_some_and(|mount| {
+            read_data
+                .id_maps
+                .uid_entity(mount.mount)
+                .and_then(|e| read_data.bodies.get(e))
+                // TODO: Need some better way to know if an entity can be controlled. But this
+                //       is what is used in `systems::mount` right now.
+                .is_none_or(|b| matches!(b, Body::Humanoid(_)))
+        }) || read_data
+            .is_volume_riders
+            .get(*self.entity)
+            .is_some_and(|r| !r.is_steering_entity())
+        {
+            controller.push_event(ControlEvent::Unmount);
+        }
+    }
+
+    /// Dismount if riding something.
+    ///
+    /// Currently there's an exception for if the agent is steering a volume
+    /// entity.
     pub fn dismount(&self, controller: &mut Controller, read_data: &ReadData) {
         if read_data.is_riders.contains(*self.entity)
             || read_data

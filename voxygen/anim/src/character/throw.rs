@@ -22,7 +22,7 @@ impl Animation for ThrowAnimation {
     #[cfg(feature = "use-dyn-lib")]
     const UPDATE_FN: &'static [u8] = b"character_throw";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_throw")]
+    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_throw"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (stage_section, tool_kind, hand_info): Self::Dependency<'_>,

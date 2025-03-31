@@ -15,7 +15,9 @@ pub enum Effect {
 #[serde(deny_unknown_fields)]
 pub struct BuffEffect {
     pub kind: comp::BuffKind,
+    #[serde(default)]
     pub data: comp::BuffData,
+    #[serde(default)]
     pub cat_ids: Vec<comp::BuffCategory>,
 }
 

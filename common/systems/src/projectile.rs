@@ -274,7 +274,6 @@ impl<'a> System<'a> for Sys {
                                 )
                                 .with_health(Health::new(body))
                                 .with_poise(Poise::new(body)),
-                                rider: None,
                             });
                         },
                         _ => {},
@@ -654,7 +653,6 @@ fn dispatch_hit(
                 Body::Object(object::Body::TrainingDummy),
                 Alignment::Npc,
             ),
-            rider: None,
         }),
     }
 }

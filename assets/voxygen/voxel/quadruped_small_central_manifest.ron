@@ -422,29 +422,33 @@
     (Rat, Male):(
         head: (
             offset: (-4.5, 0.0, -3.0),
-            central: ("npc.rat.male.head"),
+            central: ("npc.rat.rat"),
+            model_index: 1,
         ),
         chest: (
             offset: (-3.5, -5.5, -3.5),
-            central: ("npc.rat.male.chest"),
+            central: ("npc.rat.rat"),
         ),
         tail: (
-            offset: (-0.5, -12.0, -3.0),
-            central: ("npc.rat.male.tail"),
+            offset: (-0.5, -14.0, -4.0),
+            central: ("npc.rat.rat"),
+            model_index: 2,
         ),
     ),
     (Rat, Female):(
         head: (
             offset: (-4.5, 0.0, -3.0),
-            central: ("npc.rat.male.head"),
+            central: ("npc.rat.rat"),
+            model_index: 1,
         ),
         chest: (
             offset: (-3.5, -5.5, -3.5),
-            central: ("npc.rat.male.chest"),
+            central: ("npc.rat.rat"),
         ),
         tail: (
-            offset: (-0.5, -12.0, -3.0),
-            central: ("npc.rat.male.tail"),
+            offset: (-0.5, -14.0, -4.0),
+            central: ("npc.rat.rat"),
+            model_index: 2,
         ),
     ),
     (Axolotl, Male):(

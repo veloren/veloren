@@ -15,6 +15,7 @@ use crate::{
         },
         skillset::SkillGroupKind,
     },
+    effect::BuffEffect,
     event::{
         BuffEvent, ComboChangeEvent, EmitExt, EnergyChangeEvent, EntityAttackedHookEvent,
         HealthChangeEvent, KnockbackEvent, ParryHookEvent, PoiseChangeEvent,
@@ -1107,6 +1108,14 @@ pub enum CombatRequirement {
 pub enum DamagedEffect {
     Combo(i32),
     Energy(f32),
+}
+
+/// Effects applied to the rider of this entity while riding.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RiderEffects(pub Vec<BuffEffect>);
+
+impl specs::Component for RiderEffects {
+    type Storage = specs::DenseVecStorage<RiderEffects>;
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

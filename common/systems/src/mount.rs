@@ -1,10 +1,14 @@
 use common::{
+    combat::RiderEffects,
     comp::{
-        Body, CharacterActivity, Collider, ControlAction, Controller, InputKind, Ori, PhysicsState,
-        Pos, Scale, Vel,
+        Body, Buff, BuffCategory, BuffChange, Buffs, CharacterActivity, Collider, ControlAction,
+        Controller, InputKind, Mass, Ori, PhysicsState, Pos, Scale, Stats, Vel, buff::DestInfo,
     },
+    event::{BuffEvent, EmitExt},
+    event_emitters,
     link::Is,
     mounting::{Mount, Rider, VolumeRider},
+    resources::Time,
     terrain::TerrainGrid,
     uid::IdMaps,
 };
@@ -12,13 +16,21 @@ use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, WriteStorage};
 use vek::*;
 
+event_emitters! {
+    struct Events[EventEmitters] {
+        buff: BuffEvent,
+    }
+}
+
 /// This system is responsible for controlling mounts
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, IdMaps>,
+        Read<'a, Time>,
         ReadExpect<'a, TerrainGrid>,
+        Events<'a>,
         Entities<'a>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Is<Rider>>,
@@ -32,6 +44,10 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Body>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Collider>,
+        ReadStorage<'a, Buffs>,
+        ReadStorage<'a, Stats>,
+        ReadStorage<'a, Mass>,
+        ReadStorage<'a, RiderEffects>,
     );
 
     const NAME: &'static str = "mount";
@@ -42,7 +58,9 @@ impl<'a> System<'a> for Sys {
         _job: &mut Job<Self>,
         (
             id_maps,
+            time,
             terrain,
+            events,
             entities,
             mut controllers,
             is_riders,
@@ -56,38 +74,76 @@ impl<'a> System<'a> for Sys {
             bodies,
             scales,
             colliders,
+            buffs,
+            stats,
+            masses,
+            rider_effects,
         ): Self::SystemData,
     ) {
+        let mut emitters = events.get_emitters();
         // For each mount...
-        for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
+        for (entity, is_mount, body, rider_effects) in
+            (&entities, &is_mounts, bodies.maybe(), rider_effects.maybe()).join()
+        {
+            let Some(rider_entity) = id_maps.uid_entity(is_mount.rider) else {
+                continue;
+            };
+
+            if let Some(rider_effects) = rider_effects
+                && let Some(target_buffs) = buffs.get(rider_entity)
+            {
+                for effect in rider_effects.0.iter() {
+                    let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
+                        buff.cat_ids.iter()
+                            .any(|cat_id| matches!(cat_id, BuffCategory::FromLink(link) if link.is_link(is_mount.get_link())))
+                            && buff.kind == effect.kind && buff.data.strength >= effect.data.strength
+                    });
+
+                    if emit_buff {
+                        let dest_info = DestInfo {
+                            stats: stats.get(rider_entity),
+                            mass: masses.get(rider_entity),
+                        };
+                        let mut cat_ids = effect.cat_ids.clone();
+                        cat_ids.push(BuffCategory::FromLink(
+                            is_mount.get_link().downgrade().into_dyn(),
+                        ));
+
+                        emitters.emit(BuffEvent {
+                            entity: rider_entity,
+                            buff_change: BuffChange::Add(Buff::new(
+                                effect.kind,
+                                effect.data,
+                                cat_ids,
+                                common::comp::BuffSource::Character { by: is_mount.mount },
+                                *time,
+                                dest_info,
+                                masses.get(entity),
+                            )),
+                        });
+                    }
+                }
+            }
             // ...find the rider...
-            let Some((inputs_and_actions, rider)) =
-                id_maps.uid_entity(is_mount.rider).and_then(|rider| {
-                    controllers.get_mut(rider).map(|c| {
-                        (
-                            // Only take inputs and actions from the rider if the mount is not
-                            // intelligent (TODO: expand the definition of 'intelligent').
-                            if !matches!(body, Some(Body::Humanoid(_))) {
-                                let actions = c
-                                    .actions
-                                    .extract_if(.., |action| match action {
-                                        ControlAction::StartInput { input: i, .. }
-                                        | ControlAction::CancelInput(i) => matches!(
-                                            i,
-                                            InputKind::Jump | InputKind::Fly | InputKind::Roll
-                                        ),
-                                        _ => false,
-                                    })
-                                    .collect();
-                                Some((c.inputs.clone(), actions))
-                            } else {
-                                None
+            let Some(inputs_and_actions) = controllers.get_mut(rider_entity).map(|c| {
+                // Only take inputs and actions from the rider if the mount is not
+                // intelligent (TODO: expand the definition of 'intelligent').
+                if !matches!(body, Some(Body::Humanoid(_))) {
+                    let actions = c
+                        .actions
+                        .extract_if(.., |action| match action {
+                            ControlAction::StartInput { input: i, .. }
+                            | ControlAction::CancelInput(i) => {
+                                matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll)
                             },
-                            rider,
-                        )
-                    })
-                })
-            else {
+                            _ => false,
+                        })
+                        .collect();
+                    Some((c.inputs.clone(), actions))
+                } else {
+                    None
+                }
+            }) else {
                 continue;
             };
 
@@ -96,14 +152,15 @@ impl<'a> System<'a> for Sys {
             let ori = orientations.get(entity).copied();
             let vel = velocities.get(entity).copied();
             if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
-                let mounter_body = bodies.get(rider);
+                let mounter_body = bodies.get(rider_entity);
                 let mounting_offset = body.map_or(Vec3::unit_z(), Body::mount_offset)
                     * scales.get(entity).map_or(1.0, |s| s.0)
                     + mounter_body.map_or(Vec3::zero(), Body::rider_offset)
-                        * scales.get(rider).map_or(1.0, |s| s.0);
-                let _ = positions.insert(rider, Pos(pos.0 + ori.to_quat() * mounting_offset));
-                let _ = orientations.insert(rider, ori);
-                let _ = velocities.insert(rider, vel);
+                        * scales.get(rider_entity).map_or(1.0, |s| s.0);
+                let _ =
+                    positions.insert(rider_entity, Pos(pos.0 + ori.to_quat() * mounting_offset));
+                let _ = orientations.insert(rider_entity, ori);
+                let _ = velocities.insert(rider_entity, vel);
             }
             // ...and apply the rider's inputs to the mount's controller
             if let Some((inputs, actions)) = inputs_and_actions

@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Name("Mini Rat"),
+    body: RandomWith("rat"),
+    alignment: Alignment(Enemy),
+    loot: Nothing,
+    inventory: (
+        loadout: FromBody,
+    ),
+    scale: 0.328,
+    rider: "common.entity.calendar.april_fools.aggressive.rat_e",
+    rider_effects: [(kind: Invulnerability)],
+    meta: [],
+)

@@ -360,8 +360,7 @@ impl<'a> System<'a> for Sys {
                 create_npc_emitter.emit(CreateNpcEvent {
                     pos,
                     ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
-                    npc: npc_builder.with_rtsim(RtSimEntity(id)),
-                    rider: steering,
+                    npc: npc_builder.with_rtsim(RtSimEntity(id)).with_rider(steering),
                 });
             },
         };

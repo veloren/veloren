@@ -13,7 +13,7 @@ new_key_type! { pub struct AuraKey; }
 
 /// AuraKind is what kind of effect an aura applies
 /// Currently only buffs are implemented
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AuraKind {
     /// The Buff kind is (surprise!) a buff :D
     Buff {
@@ -168,7 +168,7 @@ impl Auras {
     pub fn remove(&mut self, key: AuraKey) { self.auras.remove(key); }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct AuraBuffConstructor {
     pub kind: BuffKind,
@@ -179,7 +179,7 @@ pub struct AuraBuffConstructor {
 
 impl AuraBuffConstructor {
     pub fn to_aura(
-        self,
+        &self,
         uid: &Uid,
         radius: f32,
         duration: Option<Secs>,
@@ -189,7 +189,7 @@ impl AuraBuffConstructor {
         let aura_kind = AuraKind::Buff {
             kind: self.kind,
             data: BuffData::new(self.strength, self.duration),
-            category: self.category,
+            category: self.category.clone(),
             source: BuffSource::Character { by: *uid },
         };
         Aura::new(aura_kind, radius, duration, target, time)

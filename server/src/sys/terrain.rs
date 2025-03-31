@@ -14,7 +14,7 @@ use crate::{
 use common::{
     SkillSetBuilder,
     calendar::Calendar,
-    combat::DeathEffects,
+    combat::{DeathEffects, RiderEffects},
     comp::{
         self, BehaviorCapability, ForceUpdate, Pos, Presence, Waypoint, agent, biped_small,
         bird_medium,
@@ -193,7 +193,6 @@ impl<'a> System<'a> for Sys {
                             pos,
                             ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                             npc: npc_builder.with_anchor(comp::Anchor::Chunk(key)),
-                            rider: None,
                         });
                     },
                 }
@@ -390,6 +389,8 @@ pub struct NpcData {
     pub loot: LootSpec<String>,
     pub pets: Vec<(NpcData, Vec3<f32>)>,
     pub death_effects: Option<DeathEffects>,
+    pub rider_effects: Option<RiderEffects>,
+    pub rider: Option<Box<NpcData>>,
 }
 
 /// Convinient structure to use when you need to create new npc
@@ -426,7 +427,9 @@ impl SpawnEntityData {
             make_loadout,
             trading_information: economy,
             pets,
+            rider,
             death_effects,
+            rider_effects,
         } = entity;
 
         if let Some(special) = special_entity {
@@ -552,7 +555,15 @@ impl SpawnEntityData {
                     })
                     .collect()
             },
+            rider: rider.and_then(|e| {
+                Some(Box::new(
+                    SpawnEntityData::from_entity_info(*e)
+                        .into_npc_data_inner()
+                        .ok()?,
+                ))
+            }),
             death_effects,
+            rider_effects,
         })
     }
 
@@ -580,6 +591,8 @@ impl NpcData {
             loot,
             pets,
             death_effects,
+            rider_effects,
+            rider,
         } = self;
 
         (
@@ -596,7 +609,9 @@ impl NpcData {
                         .map(|(pet, offset)| (pet.to_npc_builder().0, offset))
                         .collect::<Vec<_>>(),
                 )
-                .with_death_effects(death_effects),
+                .with_rider(rider.map(|rider| rider.to_npc_builder().0))
+                .with_death_effects(death_effects)
+                .with_rider_effects(rider_effects),
             pos,
         )
     }

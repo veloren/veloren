@@ -1,7 +1,7 @@
 use crate::{
     Explosion,
     character::CharacterId,
-    combat::{AttackSource, DeathEffects},
+    combat::{AttackSource, DeathEffects, RiderEffects},
     comp::{
         self, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
         agent::Sound,
@@ -66,6 +66,8 @@ pub struct NpcBuilder {
     pub projectile: Option<comp::Projectile>,
     pub heads: Option<comp::body::parts::Heads>,
     pub death_effects: Option<DeathEffects>,
+    pub rider_effects: Option<RiderEffects>,
+    pub rider: Option<Box<Self>>,
 }
 
 impl NpcBuilder {
@@ -87,7 +89,15 @@ impl NpcBuilder {
             pets: Vec::new(),
             heads: None,
             death_effects: None,
+            rider_effects: None,
+            rider: None,
         }
+    }
+
+    pub fn with_rider(mut self, rider: impl Into<Option<NpcBuilder>>) -> Self {
+        let rider: Option<NpcBuilder> = rider.into();
+        self.rider = rider.map(Box::new);
+        self
     }
 
     pub fn with_heads(mut self, heads: impl Into<Option<comp::body::parts::Heads>>) -> Self {
@@ -152,6 +162,11 @@ impl NpcBuilder {
 
     pub fn with_death_effects(mut self, death_effects: Option<DeathEffects>) -> Self {
         self.death_effects = death_effects;
+        self
+    }
+
+    pub fn with_rider_effects(mut self, rider_effects: Option<RiderEffects>) -> Self {
+        self.rider_effects = rider_effects;
         self
     }
 }
@@ -287,7 +302,6 @@ pub struct CreateNpcEvent {
     pub pos: Pos,
     pub ori: Ori,
     pub npc: NpcBuilder,
-    pub rider: Option<NpcBuilder>,
 }
 
 pub struct CreateAuraEntityEvent {

@@ -1,0 +1,13 @@
+#![enable(implicit_some)]
+(
+    name: Name("Pigmaster"),
+    body: RandomWith("pig"),
+    alignment: Alignment(Enemy),
+    loot: Nothing,
+    inventory: (
+        loadout: FromBody,
+    ),
+    rider: "common.entity.calendar.april_fools.aggressive.rat_a",
+    rider_effects: [(kind: Invulnerability)],
+    meta: [],
+)

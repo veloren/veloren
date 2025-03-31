@@ -543,38 +543,46 @@
     ),
     (Rat, Male): (
         left_front: (
-            offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.rat.male.foot_fr"),
+            offset: (-1.0, -2.0, -4.0),
+            lateral: ("npc.rat.rat"),
+            model_index: 4,
         ),
         right_front: (
-            offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.rat.male.foot_fr"),
+            offset: (-1.0, -2.0, -4.0),
+            lateral: ("npc.rat.rat"),
+            model_index: 4,
         ),
         left_back: (
-            offset: (-1.5, -2.5, -6.0),
-            lateral: ("npc.rat.male.foot_br"),
+            offset: (-1.0, -2.5, -6.0),
+            lateral: ("npc.rat.rat"),
+            model_index: 3,
         ),
         right_back: (
-            offset: (-1.5, -2.5, -6.0),
-            lateral: ("npc.rat.male.foot_br"),
+            offset: (-1.0, -2.5, -6.0),
+            lateral: ("npc.rat.rat"),
+            model_index: 3,
         ),
     ),
     (Rat, Female): (
         left_front: (
-            offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.rat.male.foot_fr"),
+            offset: (-1.0, -2.0, -4.0),
+            lateral: ("npc.rat.rat"),
+            model_index: 4,
         ),
         right_front: (
-            offset: (-1.5, -2.0, -4.0),
-            lateral: ("npc.rat.male.foot_fr"),
+            offset: (-1.0, -2.0, -4.0),
+            lateral: ("npc.rat.rat"),
+            model_index: 4,
         ),
         left_back: (
-            offset: (-1.5, -2.5, -6.0),
-            lateral: ("npc.rat.male.foot_br"),
+            offset: (-1.0, -2.5, -6.0),
+            lateral: ("npc.rat.rat"),
+            model_index: 3,
         ),
         right_back: (
-            offset: (-1.5, -2.5, -6.0),
-            lateral: ("npc.rat.male.foot_br"),
+            offset: (-1.0, -2.5, -6.0),
+            lateral: ("npc.rat.rat"),
+            model_index: 3,
         ),
     ),
     (Axolotl, Male): (
