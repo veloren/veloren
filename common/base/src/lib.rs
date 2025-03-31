@@ -287,13 +287,16 @@ fn test_enum_iter() {
 
     enum_iter! {
         #[derive(Debug, Eq, PartialEq)]
+        #[repr(u8)]
         enum Color {
-            Green,
-            Red(Shade),
-            Blue,
+            Green = 1,
+            // RemovedVariant = 2
+            Red(Shade) = 3,
+            Blue = 4,
         }
     }
 
+    assert_eq!(Shade::NUM_KINDS, 3);
     const ALL_SHADES: [Shade; Shade::NUM_KINDS] = Shade::ALL;
     assert_eq!(ALL_SHADES, [Shade::Good, Shade::Meh, Shade::Bad]);
 
@@ -307,6 +310,36 @@ fn test_enum_iter() {
         Color::Red(Shade::Meh),
         Color::Red(Shade::Bad),
         Color::Blue,
+    ]);
+
+    let discriminant = |color: &Color| -> u8 {
+        // SAFETY: copied from docs on std::mem::discriminant
+        //
+        // As Color is marked with repr(u8), its layout is defined as union
+        // of structs and every one of them has as its first field the tag
+        // that is u8
+        //
+        // More on that here:
+        // https://doc.rust-lang.org/reference/type-layout.html#primitive-representation-of-field-less-enums
+        unsafe { *<*const _>::from(color).cast::<u8>() }
+    };
+    let results = [
+        Color::Green,
+        Color::Red(Shade::Good),
+        Color::Red(Shade::Meh),
+        Color::Red(Shade::Bad),
+        Color::Blue,
+    ]
+    .iter()
+    .map(discriminant)
+    .collect::<Vec<_>>();
+
+    assert_eq!(results, vec![
+        1, // Green = 1
+        3, // Red(Shade) = 3
+        3, // Red(Shade) = 3
+        3, // Red(Shade) = 3
+        4, // Blue = 4
     ]);
 }
 
