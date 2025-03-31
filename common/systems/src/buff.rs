@@ -428,66 +428,61 @@ impl<'a> System<'a> for Sys {
             let mut expired_buffs = Vec::<BuffKey>::new();
 
             // Replace buffs from an active aura with a normal buff when out of range of the
-            // aura
-            buff_comp
-                .buffs
-                .iter()
-                .filter_map(|(buff_key, buff)| {
-                    if let Some((uid, aura_key)) = buff.cat_ids.iter().find_map(|cat_id| {
-                        if let BuffCategory::FromActiveAura(uid, aura_key) = cat_id {
-                            Some((uid, aura_key))
-                        } else {
-                            None
-                        }
-                    }) {
-                        Some((buff_key, buff, uid, aura_key))
-                    } else {
-                        None
-                    }
-                })
-                .for_each(|(buff_key, buff, uid, aura_key)| {
-                    let replace = if let Some(aura_entity) = read_data.id_maps.uid_entity(*uid) {
-                        if let Some(aura) = read_data
+            // aura or link no longer active
+            for (buff_key, buff) in &buff_comp.buffs {
+                let keep = buff.cat_ids.iter().all(|cat| match cat {
+                    BuffCategory::FromActiveAura(source, key) => {
+                        let Some(source_entity) = read_data.id_maps.uid_entity(*source) else {
+                            return false;
+                        };
+
+                        let Some(aura) = read_data
                             .auras
-                            .get(aura_entity)
-                            .and_then(|auras| auras.auras.get(*aura_key))
-                        {
-                            if let (Some(pos), Some(aura_pos)) = (
-                                read_data.positions.get(entity),
-                                read_data.positions.get(aura_entity),
-                            ) {
-                                pos.0.distance_squared(aura_pos.0) > aura.radius.powi(2)
-                            } else {
-                                true
-                            }
-                        } else {
-                            true
-                        }
-                    } else {
-                        true
-                    };
-                    if replace {
-                        expired_buffs.push(buff_key);
-                        emitters.emit(BuffEvent {
-                            entity,
-                            buff_change: BuffChange::Add(Buff::new(
-                                buff.kind,
-                                buff.data,
-                                buff.cat_ids
-                                    .iter()
-                                    .copied()
-                                    .filter(|cat_id| {
-                                        !matches!(cat_id, BuffCategory::FromActiveAura(..))
-                                    })
-                                    .collect::<Vec<_>>(),
-                                buff.source,
-                                *read_data.time,
-                                dest_info,
-                                None,
-                            )),
-                        });
-                    }
+                            .get(source_entity)
+                            .and_then(|aura| aura.auras.get(*key))
+                        else {
+                            return false;
+                        };
+
+                        let (Some(pos), Some(aura_pos)) = (
+                            read_data.positions.get(entity),
+                            read_data.positions.get(source_entity),
+                        ) else {
+                            return false;
+                        };
+
+                        pos.0.distance_squared(aura_pos.0) <= aura.radius.powi(2)
+                    },
+                    BuffCategory::FromLink(l) => l.exists(),
+                    _ => true,
                 });
+
+                if !keep {
+                    expired_buffs.push(buff_key);
+                    emitters.emit(BuffEvent {
+                        entity,
+                        buff_change: BuffChange::Add(Buff::new(
+                            buff.kind,
+                            buff.data,
+                            buff.cat_ids
+                                .iter()
+                                .filter(|cat_id| {
+                                    !matches!(
+                                        cat_id,
+                                        BuffCategory::FromActiveAura(..)
+                                            | BuffCategory::FromLink(..)
+                                    )
+                                })
+                                .cloned()
+                                .collect::<Vec<_>>(),
+                            buff.source,
+                            *read_data.time,
+                            dest_info,
+                            None,
+                        )),
+                    });
+                }
+            }
 
             buff_comp.buffs.iter().for_each(|(buff_key, buff)| {
                 if buff.end_time.is_some_and(|end| end.0 < read_data.time.0) {

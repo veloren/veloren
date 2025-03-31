@@ -324,6 +324,7 @@ impl State {
         ecs.register::<comp::invite::PendingInvites>();
         ecs.register::<VolumeRiders>();
         ecs.register::<common::combat::DeathEffects>();
+        ecs.register::<common::combat::RiderEffects>();
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));

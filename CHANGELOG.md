@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New messages of the day for singleplayer worlds.
 - Nerf npc aimbot.
 - Minor improvements to NPC pathfinding to reduce illogal pathing around obstacles.
+- Updated rat model.
 
 ### Removed
 

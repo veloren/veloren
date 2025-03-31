@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Rat Tail",
+    legacy_description: "How did this small rat have such a big tail?",
+    kind: Armor((
+        kind: Back,
+        stats: Direct((
+            energy_max: Some(5.0),
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)

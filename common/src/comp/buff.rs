@@ -4,6 +4,7 @@ use crate::{
         DamagedEffect, DeathEffect,
     },
     comp::{Mass, Stats, aura::AuraKey},
+    link::DynWeakLinkHandle,
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -623,7 +624,7 @@ impl BuffKind {
 
 // Struct used to store data relevant to a buff
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, default)]
 pub struct BuffData {
     pub strength: f32,
     pub duration: Option<Secs>,
@@ -632,6 +633,10 @@ pub struct BuffData {
     pub secondary_duration: Option<Secs>,
     /// Used to add random data to buffs if needed (e.g. polymorphed)
     pub misc_data: Option<MiscBuffData>,
+}
+
+impl Default for BuffData {
+    fn default() -> Self { Self::new(0.0, Some(Secs(0.0))) }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -669,7 +674,7 @@ impl BuffData {
 /// De/buff category ID.
 /// Similar to `BuffKind`, but to mark a category (for more generic usage, like
 /// positive/negative buffs).
-#[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum BuffCategory {
     Natural,
     Physical,
@@ -678,6 +683,7 @@ pub enum BuffCategory {
     PersistOnDowned,
     PersistOnDeath,
     FromActiveAura(Uid, AuraKey),
+    FromLink(DynWeakLinkHandle),
     RemoveOnAttack,
     RemoveOnLoadoutChange,
     SelfBuff,
@@ -827,10 +833,12 @@ impl Buff {
         let effects = kind.effects(&data);
         let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
-        let end_time = if cat_ids
-            .iter()
-            .any(|cat_id| matches!(cat_id, BuffCategory::FromActiveAura(..)))
-        {
+        let end_time = if cat_ids.iter().any(|cat_id| {
+            matches!(
+                cat_id,
+                BuffCategory::FromActiveAura(..) | BuffCategory::FromLink(_)
+            )
+        }) {
             None
         } else {
             data.duration.map(|dur| Time(start_time.0 + dur.0))

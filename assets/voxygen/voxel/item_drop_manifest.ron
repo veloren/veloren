@@ -812,6 +812,7 @@
     Simple("common.items.npc_armor.back.leather_blue"): "voxel.armor.leather_blue.back",
     Simple("common.items.armor.misc.back.backpack"): "voxel.armor.misc.back.backpack",
     Simple("common.items.npc_armor.back.backpack_blue"): "voxel.armor.misc.back.backpack",
+    Simple("common.items.armor.misc.back.rat_tail"): "voxel.armor.misc.back.rat-tail",
     //Hats
     Simple("common.items.armor.witch.hat"): "voxel.armor.witch.hat",
     Simple("common.items.armor.misc.head.hog_hood"): "voxel.armor.misc.head.hog_hood",

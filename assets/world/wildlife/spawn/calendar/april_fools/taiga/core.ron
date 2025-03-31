@@ -5,6 +5,7 @@ SpawnEntry (
         Pack(
             groups: [
                 (3, (3, 6, "common.entity.calendar.april_fools.aggressive.trickster")),
+                (1, (1, 1, "common.entity.calendar.april_fools.aggressive.pig")),
             ],
             spawn_mode: Land,
             calendar_events: Some([AprilFools]),

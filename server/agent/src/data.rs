@@ -45,7 +45,9 @@ event_emitters! {
 pub struct AgentData<'a> {
     pub entity: &'a EcsEntity,
     pub uid: &'a Uid,
+    /// If the agent is riding something this is the root mounts position.
     pub pos: &'a Pos,
+    /// If the agent is riding something this is the root mounts velocity.
     pub vel: &'a Vel,
     pub ori: &'a Ori,
     pub energy: &'a Energy,

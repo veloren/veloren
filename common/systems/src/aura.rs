@@ -270,7 +270,7 @@ fn activate_aura(
         AuraKind::Buff {
             kind,
             data,
-            category,
+            ref category,
             source,
         } => {
             // Checks that target is not already receiving a buff
@@ -295,7 +295,10 @@ fn activate_aura(
                     buff_change: BuffChange::Add(Buff::new(
                         kind,
                         data,
-                        vec![category, BuffCategory::FromActiveAura(applier_uid, key)],
+                        vec![
+                            category.clone(),
+                            BuffCategory::FromActiveAura(applier_uid, key),
+                        ],
                         source,
                         *read_data.time,
                         dest_info,

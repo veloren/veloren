@@ -213,7 +213,6 @@ impl CharacterBehavior for Data {
                                         .unwrap_or(comp::Scale(1.0)),
                                 )
                                 .with_projectile(projectile),
-                            rider: None,
                         });
 
                         // Send local event used for frontend shenanigans

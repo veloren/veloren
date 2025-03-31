@@ -101,7 +101,19 @@ impl<'a> System<'a> for Sys {
 
                     // The entity that is moving, if riding it's the mount, otherwise it's itself
                     let moving_entity = is_rider
-                        .and_then(|is_rider| read_data.id_maps.uid_entity(is_rider.mount))
+                        .and_then(|is_rider| {
+                            let mut mount = is_rider.mount;
+                            // Find the root mount, i.e the one that's doing the moving.
+                            loop {
+                                let e = read_data.id_maps.uid_entity(mount)?;
+
+                                if let Some(is_rider) = read_data.is_riders.get(e) {
+                                    mount = is_rider.mount;
+                                } else {
+                                    return Some(e);
+                                }
+                            }
+                        })
                         .or_else(|| {
                             is_volume_rider.and_then(|is_volume_rider| {
                                 match is_volume_rider.pos.kind {
@@ -112,6 +124,8 @@ impl<'a> System<'a> for Sys {
                         })
                         .unwrap_or(entity);
 
+                    let pos = read_data.positions.get(moving_entity).unwrap_or(pos);
+                    let vel = read_data.velocities.get(moving_entity).unwrap_or(vel);
                     let moving_body = read_data.bodies.get(moving_entity);
                     let physics_state = read_data
                         .physics_states

@@ -225,9 +225,7 @@ fn react_on_dangerous_fall(bdata: &mut BehaviorData) -> bool {
     let is_falling_dangerous = bdata.agent_data.vel.0.z < -20.0;
 
     if is_falling_dangerous {
-        if bdata.read_data.is_riders.contains(*bdata.agent_data.entity) {
-            bdata.controller.push_event(ControlEvent::Unmount);
-        }
+        bdata.agent_data.dismount(bdata.controller, bdata.read_data);
         if bdata.agent_data.traversal_config.can_fly {
             bdata
                 .agent_data

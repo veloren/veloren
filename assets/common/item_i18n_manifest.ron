@@ -1327,6 +1327,9 @@
             "common.items.armor.misc.head.scarlet_spectacles",
         ): "armor-misc-head-scarlet_spectacles",
         Simple(
+            "common.items.armor.misc.back.rat_tail",
+        ): "armor-misc-back-rat_tail",
+        Simple(
             "common.items.armor.misc.pants.hunting",
         ): "armor-misc-pants-grayscale",
         Simple(
@@ -2985,6 +2988,9 @@
         Simple(
             "common.items.npc_weapons.unique.quadsmallbasic",
         ): "common-items-npc_weapons-unique-quadsmallbasic",
+        Simple(
+            "common.items.npc_weapons.unique.quadsmall_long_range",
+        ): "common-items-npc_weapons-unique-quadsmall_long_range",
         Simple(
             "common.items.npc_weapons.unique.darkhound",
         ): "common-items-npc_weapons-unique-darkhound",

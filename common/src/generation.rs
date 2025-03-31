@@ -3,12 +3,13 @@ use std::ops::RangeInclusive;
 use crate::{
     assets::{self, AssetExt, Error},
     calendar::Calendar,
-    combat::{DeathEffect, DeathEffects},
+    combat::{DeathEffect, DeathEffects, RiderEffects},
     comp::{
         self, Alignment, Body, Item, agent, humanoid,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
         misc::PortalData,
     },
+    effect::BuffEffect,
     lottery::LootSpec,
     npc::{self, NPC_NAMES},
     resources::TimeOfDay,
@@ -144,6 +145,17 @@ pub struct EntityConfig {
     #[serde(default)]
     pub pets: Vec<(String, RangeInclusive<usize>)>,
 
+    /// If this entity spawns with a rider.
+    #[serde(default)]
+    pub rider: Option<String>,
+
+    /// Buffs this entity gives to whatever is riding it.
+    #[serde(default)]
+    pub rider_effects: Vec<BuffEffect>,
+
+    #[serde(default = "num_traits::One::one")]
+    pub scale: f32,
+
     #[serde(default)]
     pub death_effects: Vec<DeathEffect>,
 
@@ -219,8 +231,11 @@ pub struct EntityInfo {
     // Skills
     pub skillset_asset: Option<String>,
     pub death_effects: Option<DeathEffects>,
+    pub rider_effects: Option<RiderEffects>,
 
     pub pets: Vec<EntityInfo>,
+
+    pub rider: Option<Box<EntityInfo>>,
 
     // Economy
     // we can't use DHashMap, do we want to move that into common?
@@ -251,8 +266,10 @@ impl EntityInfo {
             loadout: LoadoutBuilder::empty(),
             make_loadout: None,
             death_effects: None,
+            rider_effects: None,
             skillset_asset: None,
             pets: Vec::new(),
+            rider: None,
             trading_information: None,
             special_entity: None,
         }
@@ -295,8 +312,11 @@ impl EntityInfo {
             inventory,
             loot,
             meta,
+            scale,
             pets,
+            rider,
             death_effects,
+            rider_effects,
         } = config;
 
         match body {
@@ -352,7 +372,19 @@ impl EntityInfo {
                 )
             }));
         }
+        self.scale = scale;
+
         self.pets = pet_infos;
+
+        self.rider = rider.map(|rider| {
+            let config = EntityConfig::load_expect(&rider).read();
+            Box::new(EntityInfo::at(self.pos).with_entity_config(
+                config.clone(),
+                config_asset,
+                loadout_rng,
+                time,
+            ))
+        });
 
         // Prefer the new configuration, if possible
         let AgentConfig {
@@ -366,6 +398,7 @@ impl EntityInfo {
         self.idle_wander_factor = idle_wander_factor.unwrap_or(self.idle_wander_factor);
         self.aggro_range_multiplier = aggro_range_multiplier.unwrap_or(self.aggro_range_multiplier);
         self.death_effects = (!death_effects.is_empty()).then_some(DeathEffects(death_effects));
+        self.rider_effects = (!rider_effects.is_empty()).then_some(RiderEffects(rider_effects));
 
         for field in meta {
             match field {
@@ -762,6 +795,14 @@ pub mod tests {
         }
     }
 
+    fn validate_rider(rider: Option<String>, config_asset: &str) {
+        if let Some(rider) = rider {
+            EntityConfig::load_cloned(&rider).unwrap_or_else(|_| {
+                panic!("Rider asset path invalid: \"{rider}\", in {config_asset}")
+            });
+        }
+    }
+
     #[cfg(test)]
     pub fn validate_entity_config(config_asset: &str) {
         let EntityConfig {
@@ -770,11 +811,19 @@ pub mod tests {
             name,
             loot,
             pets,
+            rider,
             meta,
             death_effects,
             alignment: _, // can't fail if serialized, it's a boring enum
+            rider_effects: _,
+            scale,
             agent: _,
         } = EntityConfig::from_asset_expect_owned(config_asset);
+
+        assert!(
+            scale.is_finite() && scale > 0.0,
+            "Scale has to be finite and greater than zero"
+        );
 
         validate_body(&body, config_asset);
         // body dependent stuff
@@ -784,6 +833,7 @@ pub mod tests {
         validate_loot(loot, config_asset);
         validate_meta(meta, config_asset);
         validate_pets(pets, config_asset);
+        validate_rider(rider, config_asset);
         validate_death_effects(death_effects, config_asset);
     }
 

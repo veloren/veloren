@@ -52,7 +52,7 @@ use common::{
     generation::{EntityConfig, EntityInfo},
     link::Is,
     lottery::distribute_many,
-    mounting::{Rider, VolumeRider},
+    mounting::{Mounting, Rider, VolumeRider},
     outcome::{HealthChangeInfo, Outcome},
     resources::{EntitiesDiedLastTick, ProgramTime, Secs, Time},
     spiral::Spiral2d,
@@ -2686,7 +2686,9 @@ pub fn transform_entity(
             alignment: _,
             pos: _,
             pets,
+            rider,
             death_effects,
+            rider_effects,
         }) => {
             fn set_or_remove_component<C: specs::Component>(
                 server: &mut Server,
@@ -2772,6 +2774,7 @@ pub fn transform_entity(
             set_or_remove_component(server, entity, Some(body.collider()), None)?;
             set_or_remove_component(server, entity, Some(scale), None)?;
             set_or_remove_component(server, entity, death_effects, None)?;
+            set_or_remove_component(server, entity, rider_effects, None)?;
             // Reset active abilities
             set_or_remove_component(
                 server,
@@ -2817,10 +2820,30 @@ pub fn transform_entity(
                         pos: comp::Pos(pos.0 + offset),
                         ori: comp::Ori::from_unnormalized_vec(offset).unwrap_or_default(),
                         npc: pet,
-                        rider: None,
                     });
 
                     tame_pet(server.state.ecs(), pet_entity, entity);
+                }
+
+                // Spawn rider
+                if let Some(rider) = rider {
+                    let rider_entity = handle_create_npc(server, CreateNpcEvent {
+                        pos,
+                        ori: comp::Ori::default(),
+                        npc: rider.to_npc_builder().0,
+                    });
+                    let uids = server.state().ecs().read_storage::<Uid>();
+                    let link = Mounting {
+                        mount: *uids
+                            .get(entity)
+                            .expect("We just got the position of this entity"),
+                        rider: *uids.get(rider_entity).expect("We just created this entity"),
+                    };
+                    drop(uids);
+                    server
+                        .state
+                        .link(link)
+                        .expect("We know these entities exist");
                 }
             }
         },
