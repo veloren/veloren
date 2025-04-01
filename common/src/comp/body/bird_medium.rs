@@ -1,16 +1,15 @@
-use crate::{make_case_elim, make_proj_elim};
+use common_base::{enum_iter, struct_iter};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-make_proj_elim!(
-    body,
+struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     pub struct Body {
         pub species: Species,
         pub body_type: BodyType,
     }
-);
+}
 
 impl Body {
     pub fn random() -> Self {
@@ -30,8 +29,8 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::BirdMedium(body) }
 }
 
-make_case_elim!(
-    species,
+enum_iter! {
+    ~const_array(ALL)
     #[derive(
         Copy,
         Clone,
@@ -67,7 +66,7 @@ make_case_elim!(
         BloodmoonBat = 16,
         VampireBat = 17,
     }
-);
+}
 
 /// Data representing per-species generic data.
 ///
@@ -122,26 +121,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 18] = [
-    Species::SnowyOwl,
-    Species::HornedOwl,
-    Species::Duck,
-    Species::Cockatiel,
-    Species::Chicken,
-    Species::Bat,
-    Species::Penguin,
-    Species::Goose,
-    Species::Peacock,
-    Species::Eagle,
-    Species::Parrot,
-    Species::Crow,
-    Species::Dodo,
-    Species::Parakeet,
-    Species::Puffin,
-    Species::Toucan,
-    Species::BloodmoonBat,
-    Species::VampireBat,
-];
+pub const ALL_SPECIES: [Species; Species::NUM_KINDS] = Species::ALL;
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
@@ -150,8 +130,8 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-make_case_elim!(
-    body_type,
+enum_iter! {
+    ~const_array(ALL)
     #[derive(
         Copy,
         Clone,
@@ -171,5 +151,5 @@ make_case_elim!(
         Female = 0,
         Male = 1,
     }
-);
-pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
+}
+pub const ALL_BODY_TYPES: [BodyType; BodyType::NUM_KINDS] = BodyType::ALL;

@@ -1,15 +1,14 @@
-use crate::{make_case_elim, make_proj_elim};
+use common_base::{enum_iter, struct_iter};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
-make_proj_elim!(
-    body,
+struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     pub struct Body {
         pub species: Species,
         pub body_type: BodyType,
     }
-);
+}
 
 impl Body {
     pub fn random() -> Self {
@@ -29,9 +28,10 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::BipedSmall(body) }
 }
 
-make_case_elim!(
-    species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum Species {
         Gnome = 0,
@@ -65,7 +65,7 @@ make_case_elim!(
         PurpleLegoom = 28,
         RedLegoom = 29,
     }
-);
+}
 
 /// Data representing per-species generic data.
 ///
@@ -144,38 +144,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 30] = [
-    Species::Gnome,
-    Species::Sahagin,
-    Species::Adlet,
-    Species::Gnarling,
-    Species::Mandragora,
-    Species::Kappa,
-    Species::Cactid,
-    Species::Gnoll,
-    Species::Haniwa,
-    Species::Myrmidon,
-    Species::Husk,
-    Species::Boreal,
-    Species::Bushly,
-    Species::Irrwurz,
-    Species::IronDwarf,
-    Species::Flamekeeper,
-    Species::ShamanicSpirit,
-    Species::Jiangshi,
-    Species::TreasureEgg,
-    Species::GnarlingChieftain,
-    Species::BloodmoonHeiress,
-    Species::Bloodservant,
-    Species::Harlequin,
-    Species::GoblinThug,
-    Species::GoblinChucker,
-    Species::GoblinRuffian,
-    Species::GreenLegoom,
-    Species::OchreLegoom,
-    Species::PurpleLegoom,
-    Species::RedLegoom,
-];
+pub const ALL_SPECIES: [Species; Species::NUM_KINDS] = Species::ALL;
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
@@ -184,13 +153,13 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-make_case_elim!(
-    body_type,
+enum_iter! {
+    ~const_array(ALL)
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum BodyType {
         Female = 0,
         Male = 1,
     }
-);
-pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
+}
+pub const ALL_BODY_TYPES: [BodyType; BodyType::NUM_KINDS] = BodyType::ALL;

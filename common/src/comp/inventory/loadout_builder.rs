@@ -1472,8 +1472,7 @@ impl LoadoutBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::comp::{self, Body};
-    use rand::thread_rng;
+    use crate::comp::Body;
     use strum::IntoEnumIterator;
 
     // Testing different species
@@ -1482,53 +1481,9 @@ mod tests {
     // creating default main hand tool or equipment without config
     #[test]
     fn test_loadout_species() {
-        macro_rules! test_species {
-            // base case
-            ($species:tt : $body:tt) => {
-                let mut rng = thread_rng();
-                for s in comp::$species::ALL_SPECIES.iter() {
-                    let body = comp::$species::Body::random_with(&mut rng, s);
-                    let female_body = comp::$species::Body {
-                        body_type: comp::$species::BodyType::Female,
-                        ..body
-                    };
-                    let male_body = comp::$species::Body {
-                        body_type: comp::$species::BodyType::Male,
-                        ..body
-                    };
-                    std::mem::drop(LoadoutBuilder::from_default(
-                        &Body::$body(female_body),
-                    ));
-                    std::mem::drop(LoadoutBuilder::from_default(
-                        &Body::$body(male_body),
-                    ));
-                }
-            };
-            // recursive call
-            ($base:tt : $body:tt, $($species:tt : $nextbody:tt),+ $(,)?) => {
-                test_species!($base: $body);
-                test_species!($($species: $nextbody),+);
-            }
+        for body in Body::iter() {
+            std::mem::drop(LoadoutBuilder::from_default(&body))
         }
-
-        // See `[AllBodies](crate::comp::body::AllBodies)`
-        test_species!(
-            humanoid: Humanoid,
-            quadruped_small: QuadrupedSmall,
-            quadruped_medium: QuadrupedMedium,
-            quadruped_low: QuadrupedLow,
-            quadruped_small: QuadrupedSmall,
-            bird_medium: BirdMedium,
-            bird_large: BirdLarge,
-            fish_small: FishSmall,
-            fish_medium: FishMedium,
-            biped_small: BipedSmall,
-            biped_large: BipedLarge,
-            theropod: Theropod,
-            dragon: Dragon,
-            golem: Golem,
-            arthropod: Arthropod,
-        );
     }
 
     // Testing all loadout presets

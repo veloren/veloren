@@ -17,8 +17,11 @@ use crate::{
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
+use strum::EnumIter;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd, EnumIter,
+)]
 pub enum ToolKind {
     // weapons
     Sword,

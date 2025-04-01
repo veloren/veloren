@@ -1,16 +1,15 @@
-use crate::{make_case_elim, make_proj_elim};
+use common_base::{enum_iter, struct_iter};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-make_proj_elim!(
-    body,
+struct_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     pub struct Body {
         pub species: Species,
         pub body_type: BodyType,
     }
-);
+}
 
 impl Body {
     pub fn random() -> Self {
@@ -32,59 +31,62 @@ impl From<Body> for super::Body {
 
 // Renaming any enum entries here (re-ordering is fine) will require a
 // database migration to ensure pets correctly de-serialize on player login.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    EnumString,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
-#[repr(u32)]
-pub enum Species {
-    Grolgar = 0,
-    Saber = 1,
-    Tiger = 2,
-    Tuskram = 3,
-    Lion = 6,
-    Tarasque = 7,
-    Wolf = 8,
-    Frostfang = 9,
-    Mouflon = 10,
-    Catoblepas = 11,
-    Bonerattler = 12,
-    Deer = 13,
-    Hirdrasil = 14,
-    Roshwalr = 15,
-    Donkey = 16,
-    Camel = 17,
-    Zebra = 18,
-    Antelope = 19,
-    Kelpie = 20,
-    Horse = 21,
-    Barghest = 22,
-    Cattle = 23,
-    Darkhound = 24,
-    Highland = 25,
-    Yak = 26,
-    Panda = 27,
-    Bear = 28,
-    Dreadhorn = 29,
-    Moose = 30,
-    Snowleopard = 31,
-    Mammoth = 32,
-    Ngoubou = 33,
-    Llama = 34,
-    Alpaca = 35,
-    Akhlut = 36,
-    Bristleback = 37,
-    ClaySteed = 38,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy,
+        Clone,
+        Debug,
+        Display,
+        EnumString,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+    )]
+    #[repr(u32)]
+    pub enum Species {
+        Grolgar = 0,
+        Saber = 1,
+        Tiger = 2,
+        Tuskram = 3,
+        Lion = 6,
+        Tarasque = 7,
+        Wolf = 8,
+        Frostfang = 9,
+        Mouflon = 10,
+        Catoblepas = 11,
+        Bonerattler = 12,
+        Deer = 13,
+        Hirdrasil = 14,
+        Roshwalr = 15,
+        Donkey = 16,
+        Camel = 17,
+        Zebra = 18,
+        Antelope = 19,
+        Kelpie = 20,
+        Horse = 21,
+        Barghest = 22,
+        Cattle = 23,
+        Darkhound = 24,
+        Highland = 25,
+        Yak = 26,
+        Panda = 27,
+        Bear = 28,
+        Dreadhorn = 29,
+        Moose = 30,
+        Snowleopard = 31,
+        Mammoth = 32,
+        Ngoubou = 33,
+        Llama = 34,
+        Alpaca = 35,
+        Akhlut = 36,
+        Bristleback = 37,
+        ClaySteed = 38,
+    }
 }
 
 /// Data representing per-species generic data.
@@ -178,45 +180,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 37] = [
-    Species::Grolgar,
-    Species::Saber,
-    Species::Tiger,
-    Species::Tuskram,
-    Species::Lion,
-    Species::Tarasque,
-    Species::Wolf,
-    Species::Frostfang,
-    Species::Mouflon,
-    Species::Catoblepas,
-    Species::Bonerattler,
-    Species::Deer,
-    Species::Hirdrasil,
-    Species::Roshwalr,
-    Species::Donkey,
-    Species::Camel,
-    Species::Zebra,
-    Species::Antelope,
-    Species::Kelpie,
-    Species::Horse,
-    Species::Barghest,
-    Species::Cattle,
-    Species::Darkhound,
-    Species::Highland,
-    Species::Yak,
-    Species::Panda,
-    Species::Bear,
-    Species::Dreadhorn,
-    Species::Moose,
-    Species::Snowleopard,
-    Species::Mammoth,
-    Species::Ngoubou,
-    Species::Llama,
-    Species::Alpaca,
-    Species::Akhlut,
-    Species::Bristleback,
-    Species::ClaySteed,
-];
+pub const ALL_SPECIES: [Species; Species::NUM_KINDS] = Species::ALL;
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
@@ -227,8 +191,8 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
 
 // Renaming any enum entries here (re-ordering is fine) will require a
 // database migration to ensure pets correctly de-serialize on player login.
-make_case_elim!(
-    body_type,
+enum_iter! {
+    ~const_array(ALL)
     #[derive(
         Copy,
         Clone,
@@ -248,6 +212,5 @@ make_case_elim!(
         Female = 0,
         Male = 1,
     }
-);
-
-pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
+}
+pub const ALL_BODY_TYPES: [BodyType; BodyType::NUM_KINDS] = BodyType::ALL;

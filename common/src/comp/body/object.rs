@@ -1,15 +1,17 @@
 use crate::{
     comp::{Density, Mass, item::Reagent},
     consts::{IRON_DENSITY, WATER_DENSITY},
-    make_case_elim,
 };
+use common_base::enum_iter;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 use vek::Vec3;
 
-make_case_elim!(
-    body,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+    )]
     #[repr(u32)]
     pub enum Body {
         Arrow = 0,
@@ -133,7 +135,7 @@ make_case_elim!(
         MinotaurAxe = 118,
         BorealTrap = 119,
     }
-);
+}
 
 impl Body {
     pub fn random() -> Self {
@@ -142,128 +144,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 120] = [
-    Body::Arrow,
-    Body::Bomb,
-    Body::Scarecrow,
-    Body::Cauldron,
-    Body::ChestVines,
-    Body::Chest,
-    Body::ChestDark,
-    Body::ChestDemon,
-    Body::ChestGold,
-    Body::ChestLight,
-    Body::ChestOpen,
-    Body::ChestSkull,
-    Body::SpectralSwordSmall,
-    Body::SpectralSwordLarge,
-    Body::Pumpkin,
-    Body::Pumpkin2,
-    Body::Pumpkin3,
-    Body::Pumpkin4,
-    Body::Pumpkin5,
-    Body::Campfire,
-    Body::CampfireLit,
-    Body::LanternGround,
-    Body::LanternGroundOpen,
-    Body::LanternStanding,
-    Body::LanternStanding2,
-    Body::PotionRed,
-    Body::PotionBlue,
-    Body::PotionGreen,
-    Body::Crate,
-    Body::Tent,
-    Body::WindowSpooky,
-    Body::DoorSpooky,
-    Body::Anvil,
-    Body::Gravestone,
-    Body::Gravestone2,
-    Body::Bench,
-    Body::Chair,
-    Body::Chair2,
-    Body::Chair3,
-    Body::Table,
-    Body::Table2,
-    Body::Table3,
-    Body::Drawer,
-    Body::BedBlue,
-    Body::Carpet,
-    Body::Bedroll,
-    Body::CarpetHumanRound,
-    Body::CarpetHumanSquare,
-    Body::CarpetHumanSquare2,
-    Body::CarpetHumanSquircle,
-    Body::Pouch,
-    Body::CraftingBench,
-    Body::BoltFire,
-    Body::BoltFireBig,
-    Body::ArrowSnake,
-    Body::TrainingDummy,
-    Body::FireworkBlue,
-    Body::FireworkGreen,
-    Body::FireworkPurple,
-    Body::FireworkRed,
-    Body::FireworkWhite,
-    Body::FireworkYellow,
-    Body::MultiArrow,
-    Body::BoltNature,
-    Body::ToughMeat,
-    Body::BeastMeat,
-    Body::Crossbow,
-    Body::ArrowTurret,
-    Body::Coins,
-    Body::SilverOre,
-    Body::GoldOre,
-    Body::ClayRocket,
-    Body::HaniwaSentry,
-    Body::SeaLantern,
-    Body::Snowball,
-    Body::BirdMeat,
-    Body::FishMeat,
-    Body::SmallMeat,
-    Body::Tornado,
-    Body::Apple,
-    Body::Hive,
-    Body::Coconut,
-    Body::SpitPoison,
-    Body::BoltIcicle,
-    Body::Dart,
-    Body::GnarlingTotemRed,
-    Body::GnarlingTotemWhite,
-    Body::GnarlingTotemGreen,
-    Body::DagonBomb,
-    Body::TerracottaDemolisherBomb,
-    Body::BarrelOrgan,
-    Body::IceBomb,
-    Body::LaserBeam,
-    Body::LaserBeamSmall,
-    Body::AdletSpear,
-    Body::AdletTrap,
-    Body::Flamethrower,
-    Body::Mine,
-    Body::LightningBolt,
-    Body::SpearIcicle,
-    Body::Portal,
-    Body::PortalActive,
-    Body::FieryTornado,
-    Body::FireRainDrop,
-    Body::ArrowClay,
-    Body::GrenadeClay,
-    Body::Pebble,
-    Body::TerracottaStatue,
-    Body::BoltBesieger,
-    Body::SurpriseEgg,
-    Body::BubbleBomb,
-    Body::IronPikeBomb,
-    Body::Lavathrower,
-    Body::Scroll,
-    Body::PoisonBall,
-    Body::StrigoiHead,
-    Body::HarlequinDagger,
-    Body::BloodBomb,
-    Body::MinotaurAxe,
-    Body::BorealTrap,
-];
+pub const ALL_OBJECTS: [Body; Body::NUM_KINDS] = Body::ALL;
 
 impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::Object(body) }

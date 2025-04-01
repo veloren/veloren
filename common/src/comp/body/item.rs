@@ -8,16 +8,16 @@ use crate::{
         },
     },
     consts::WATER_DENSITY,
-    make_case_elim,
     util::Dir,
 };
+use common_base::enum_iter;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
+use strum::IntoEnumIterator;
 use vek::Vec3;
 
-make_case_elim!(
-    armor,
+enum_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum ItemArmorKind {
@@ -34,18 +34,17 @@ make_case_elim!(
         Tabard = 10,
         Bag = 11,
     }
-);
+}
 
-make_case_elim!(
-    body,
+enum_iter! {
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
     #[repr(u32)]
     pub enum Body {
-        Tool(tool: ToolKind) = 0,
+        Tool(ToolKind) = 0,
         ModularComponent = 1,
         Lantern = 2,
         Glider = 3,
-        Armor(armor: ItemArmorKind) = 4,
+        Armor(ItemArmorKind) = 4,
         Utility = 5,
         Consumable = 6,
         Throwable = 7,
@@ -53,9 +52,9 @@ make_case_elim!(
         Coins = 9,
         CoinPouch = 10,
         Empty = 11,
-        Thrown(tool: ToolKind) = 12,
+        Thrown(ToolKind) = 12,
     }
-);
+}
 
 impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::Item(body) }

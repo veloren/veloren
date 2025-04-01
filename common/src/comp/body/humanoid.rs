@@ -2,6 +2,7 @@ use crate::{make_case_elim, make_proj_elim};
 use rand::{Rng, seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use strum::{EnumIter, IntoEnumIterator};
 
 make_proj_elim!(
     body,
@@ -27,6 +28,23 @@ make_proj_elim!(
 );
 
 impl Body {
+    pub fn iter() -> impl Iterator<Item = Self> {
+        // I'm too lazy to figure out decorations and I don't think we need that
+        Species::iter().flat_map(move |species| {
+            BodyType::iter().map(move |body_type| Self {
+                species,
+                body_type,
+                hair_style: 0,
+                beard: 0,
+                accessory: 0,
+                hair_color: 0,
+                skin: 0,
+                eye_color: 0,
+                eyes: 0,
+            })
+        })
+    }
+
     pub fn random() -> Self {
         let mut rng = thread_rng();
         let species = *ALL_SPECIES.choose(&mut rng).unwrap();
@@ -90,7 +108,9 @@ impl From<Body> for super::Body {
 
 make_case_elim!(
     species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    #[derive(
+        Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+    )]
     #[repr(u32)]
     pub enum Species {
         Danari = 0,
@@ -413,7 +433,9 @@ impl Species {
 
 make_case_elim!(
     body_type,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    #[derive(
+        Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+    )]
     #[repr(u32)]
     pub enum BodyType {
         Female = 0,

@@ -1,10 +1,14 @@
+use common_base::{enum_iter, struct_iter};
+
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct Body {
-    pub species: Species,
-    pub body_type: BodyType,
+struct_iter! {
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    pub struct Body {
+        pub species: Species,
+        pub body_type: BodyType,
+    }
 }
 
 impl Body {
@@ -25,22 +29,26 @@ impl From<Body> for super::Body {
     fn from(body: Body) -> Self { super::Body::Arthropod(body) }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum Species {
-    Tarantula = 0,
-    Blackwidow = 1,
-    Antlion = 2,
-    Hornbeetle = 3,
-    Leafbeetle = 4,
-    Stagbeetle = 5,
-    Weevil = 6,
-    Cavespider = 7,
-    Moltencrawler = 8,
-    Mosscrawler = 9,
-    Sandcrawler = 10,
-    Dagonite = 11,
-    Emberfly = 12,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(
+        Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum Species {
+        Tarantula = 0,
+        Blackwidow = 1,
+        Antlion = 2,
+        Hornbeetle = 3,
+        Leafbeetle = 4,
+        Stagbeetle = 5,
+        Weevil = 6,
+        Cavespider = 7,
+        Moltencrawler = 8,
+        Mosscrawler = 9,
+        Sandcrawler = 10,
+        Dagonite = 11,
+        Emberfly = 12,
+    }
 }
 
 /// Data representing per-species generic data.
@@ -84,21 +92,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 13] = [
-    Species::Tarantula,
-    Species::Blackwidow,
-    Species::Antlion,
-    Species::Hornbeetle,
-    Species::Leafbeetle,
-    Species::Stagbeetle,
-    Species::Weevil,
-    Species::Cavespider,
-    Species::Moltencrawler,
-    Species::Mosscrawler,
-    Species::Sandcrawler,
-    Species::Dagonite,
-    Species::Emberfly,
-];
+pub const ALL_SPECIES: [Species; Species::NUM_KINDS] = Species::ALL;
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;
@@ -107,10 +101,13 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     fn into_iter(self) -> Self::IntoIter { ALL_SPECIES.iter().copied() }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[repr(u32)]
-pub enum BodyType {
-    Female = 0,
-    Male = 1,
+enum_iter! {
+    ~const_array(ALL)
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+    #[repr(u32)]
+    pub enum BodyType {
+        Female = 0,
+        Male = 1,
+    }
 }
-pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
+pub const ALL_BODY_TYPES: [BodyType; BodyType::NUM_KINDS] = BodyType::ALL;
