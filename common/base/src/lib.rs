@@ -168,11 +168,108 @@ macro_rules! prof_span_alloc {
 }
 
 /// strum::EnumIter alternative that supports nested enums
+///
+/// Implements following items:
+/// - `NUM_KINDS` associated constant, number of defined kinds.
+/// - `iter` function, returns the iterator of all possible variants, including
+///   ones from the nested variants.
+///
+/// If you use `~const_array` prefix, you can also generate ALL constant, which
+/// has a constant array of all possible values, but only available for simple
+/// enums.
+///
+/// # Example
+/// ```rust
+/// # use veloren_common_base::enum_iter;
+/// enum_iter! {
+///     ~const_array(ALL)
+///     #[derive(Eq, PartialEq, Debug)]
+///     enum Shade {
+///         Good,
+///         Meh,
+///         Bad,
+///     }
+/// }
+///
+/// enum_iter! {
+///     #[derive(Debug, Eq, PartialEq)]
+///     #[repr(u8)]
+///     enum Color {
+///         Green = 1,
+///         Red(Shade) = 2,
+///         Blue = 3,
+///     }
+/// }
+/// assert_eq!(Shade::NUM_KINDS, 3);
+///
+/// const ALL_SHADES: [Shade; Shade::NUM_KINDS] = Shade::ALL;
+/// assert_eq!(ALL_SHADES, [Shade::Good, Shade::Meh, Shade::Bad]);
+///
+/// let results: Vec<_> = Shade::iter().collect();
+/// assert_eq!(results, vec![Shade::Good, Shade::Meh, Shade::Bad]);
+///
+/// let results: Vec<_> = Color::iter().collect();
+/// assert_eq!(results, vec![
+///     Color::Green,
+///     Color::Red(Shade::Good),
+///     Color::Red(Shade::Meh),
+///     Color::Red(Shade::Bad),
+///     Color::Blue,
+/// ]);
+/// ```
 #[macro_export]
 macro_rules! enum_iter {
+    /*
+     * Internal rule for generating ALL const array
+     */
+    // 1. Default case if you don't have any nested nums
+    (@all_array_impl,
+         $vis:vis,
+         ~const_array($all_array:ident)
+         $($variant:ident)*
+    ) => {
+        #[allow(dead_code)]
+        /// Contains all possible values this enum can have
+        $vis const $all_array: [Self; Self::NUM_KINDS] = [$(
+            Self::$variant,
+        )*];
+    };
+    // 2. Case with nested_enums
+    (@all_array_impl,
+         $vis:vis,
+         ~const_array($all_array:ident)
+         $($variant:ident $((
+             $nested_enum:ty
+         ))?)*
+    ) => {
+        compile_error!(
+            "can't use ~const_array with an enum that contains nested enums"
+        );
+    };
+    // 3. no ~const_array
+    (@all_array_impl,
+         $vis:vis,
+         $($variant:ident $((
+                 $nested_enum:ty
+         ))?)*
+    ) => {};
+    /*
+     * Internal rule to add a variant to the iterable buffer
+     */
+    // 1. If having a nested enum, use `extend` with nested iterator
+    (@add_variant_impl, $buff:ident, $variant:ident $nested_enum:ty) => {
+        $buff.extend(
+            <$nested_enum>::iter().map(Self::$variant)
+        );
+    };
+    // 2. If having a trivial enum, use `push`
+    (@add_variant_impl, $buff:ident, $variant:ident) => {
+        $buff.push(Self::$variant);
+    };
+    /*
+     * Entrypoint, returns a passed `enum` and implements all the things
+     */
     (
-        // const_array uses alien syntax, because #[const_array()] would
-        // cause ambiguity with other attributes :(
         $(~const_array($all_array:ident))?
         $( #[ $enum_attr:meta ] )*
         $vis:vis enum $enum_name:ident {
@@ -191,26 +288,9 @@ macro_rules! enum_iter {
         }
 
         impl $enum_name {
-            // unfortunately we need to construct these anyway whether we want
-            // it or not
-            //
-            // macro-rules don't seem to combine optional-not-repeated
-            // with optional-repeated variables :(
-            #[doc(hidden)]
-            #[allow(unreachable_code)]
-            const __ALL_KINDS: [Self; Self::NUM_KINDS] = [
-                $(
-                    Self::$variant $(
-                        ({
-                            let _fake_capture: Option<$nested_enum> = None;
-                            panic!("\ncan't use ~const_array with nested enums\n");
-                        })
-                    )?
-                ),*
-            ];
-
             // repeated macro to construct 0 + (1 + 1 + 1) per each field
             #[allow(dead_code)]
+            /// Number of "kinds" this enum has
             $vis const NUM_KINDS: usize = 0 $(+ {
                 // fake capture
                 #[allow(non_snake_case, unused_variables)]
@@ -218,54 +298,29 @@ macro_rules! enum_iter {
                 1
             })*;
 
-            $(
-                $vis const $all_array: [Self; Self::NUM_KINDS] = Self::__ALL_KINDS;
-            )?
+            $crate::enum_iter!(@all_array_impl,
+                $vis,
+                $(~const_array($all_array))?
+                $($variant $(($nested_enum))?)*
+            );
 
-            $vis fn all_variants() -> Vec<$enum_name> {
+            // Generates a vector of all possible variants, including nested
+            // ones so we can then use it for `iter`
+            fn all_variants() -> Vec<$enum_name> {
+                #![allow(clippy::vec_init_then_push)]
+
                 let mut buff = vec![];
                 $(
-                    #[allow(unused_variables)]
-                    let is_nested = false;
-                    $(
-                        // fake capture on $nested_enum to trigger
-                        // macro expansion and switch `is_nested` to `true`
-                        let _fake_capture: Option<$nested_enum> = None;
-                        let is_nested = true;
-                    )?
-
-                    if is_nested {
-                        $(
-                            buff.extend(
-                                <$nested_enum>::iter().map($enum_name::$variant)
-                            );
-                        )?
-                    } else {
-                        #[allow(unreachable_code)]
-                        buff.push(
-                            // if we have variant with nested enum, we need to
-                            // return smth like Color::Red(Shade::Light)
-                            //
-                            // the problem is that we don't know what to return
-                            // and frankly we don't need to, because we won't
-                            // hit this branch
-                            //
-                            // for that we use $nested_enum to create fake
-                            // capture and return unreachable!() which will
-                            // give us `!` type and pass the typecheck
-                            $enum_name::$variant $(
-                                ({
-                                    let _fake_capture: Option<$nested_enum> = None;
-                                    unreachable!();
-                                })
-                            )?
-                        );
-                    }
+                    $crate::enum_iter!(@add_variant_impl,
+                        buff,
+                        $variant $($nested_enum)?
+                    );
                 )*
 
                 buff
             }
 
+            /// Iterates over all possible variants, including nested ones.
             $vis fn iter() -> impl Iterator<Item=Self> {
                 Self::all_variants().into_iter()
             }
@@ -343,6 +398,60 @@ fn test_enum_iter() {
     ]);
 }
 
+/// Implements the `iter` function, which returns an iterator over all possible
+/// combinations of the struct's fields, assuming each field's type implements
+/// the `iter` function itself.
+///
+/// # Example
+///
+/// ```rust
+/// # use veloren_common_base::struct_iter;
+/// # use veloren_common_base::enum_iter;
+///
+/// enum_iter! {
+///     #[derive(Eq, PartialEq, Debug, Clone)]
+///     enum Species {
+///         BlueDragon,
+///         RedDragon,
+///     }
+/// }
+///
+/// enum_iter! {
+///     #[derive(Eq, PartialEq, Debug, Clone)]
+///     enum BodyType {
+///         Male,
+///         Female,
+///     }
+/// }
+///
+/// struct_iter! {
+///     #[derive(Eq, PartialEq, Debug)]
+///     struct Body {
+///         species: Species,
+///         body_type: BodyType,
+///     }
+/// }
+///
+/// let results: Vec<_> = Body::iter().collect();
+/// assert_eq!(results, vec![
+///     Body {
+///         species: Species::BlueDragon,
+///         body_type: BodyType::Male
+///     },
+///     Body {
+///         species: Species::BlueDragon,
+///         body_type: BodyType::Female
+///     },
+///     Body {
+///         species: Species::RedDragon,
+///         body_type: BodyType::Male
+///     },
+///     Body {
+///         species: Species::RedDragon,
+///         body_type: BodyType::Female
+///     },
+/// ])
+/// ```
 #[macro_export]
 macro_rules! struct_iter {
     (
@@ -363,6 +472,8 @@ macro_rules! struct_iter {
         }
 
         impl $struct_name {
+            // Generate a vector of all possible combinations so that
+            // we can then use it in `iter`
             fn all_variants() -> Vec<$struct_name> {
                 #[derive(Default, Clone)]
                 pub struct Builder {
@@ -408,6 +519,7 @@ macro_rules! struct_iter {
                 return result_buff;
             }
 
+            /// Iterates over all possible combinations
             $vis fn iter() -> impl Iterator<Item=Self> {
                 Self::all_variants().into_iter()
             }
