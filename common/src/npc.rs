@@ -48,8 +48,6 @@ pub const ALL_NPCS: [NpcKind; 16] = [
 ];
 
 /// Body-specific NPC name metadata.
-///
-/// NOTE: Deliberately don't (yet?) implement serialize.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BodyNames {
     /// The keyword used to refer to this body type (e.g. via the command
@@ -63,8 +61,6 @@ pub struct BodyNames {
 }
 
 /// Species-specific NPC name metadata.
-///
-/// NOTE: Deliberately don't (yet?) implement serialize.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SpeciesNames {
     /// The keyword used to refer to this species (e.g. via the command

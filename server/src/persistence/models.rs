@@ -37,6 +37,14 @@ pub struct SkillGroup {
 pub struct Pet {
     pub database_id: i64,
     // TODO: add ability to store and change pet names
+    //
+    // Originally we just stored hardcoded English names here, but that is a bit
+    // impossible now that we translate names.
+    //
+    // If we do implement such functionality, we probably want to use something
+    // similar to current npcs that have both translated and hardcoded names
+    // using `name-misc-with-alias-template`.
+    // Or even some better system for displaying complex names such as this.
     #[expect(unused)]
     pub name: String,
     pub body_variant: String,

@@ -131,7 +131,7 @@ impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
             Body::Arthropod(b) => &self.arthropod.species[&b.species],
             Body::Crustacean(b) => &self.crustacean.species[&b.species],
             Body::Plugin(b) => &self.plugin.species[&b.species],
-            _ => return None,
+            Body::Item(_) | Body::Ship(_) | Body::Object(_) => return None,
         })
     }
 }
@@ -1873,12 +1873,14 @@ impl Body {
         }
     }
 
-    /// For use with NPC names
-    pub fn gender_attr(&self) -> String {
+    /// For use with NPC name localization.
+    ///
+    /// Not a grammatical gender, keep that in mind.
+    pub fn gender_attr(&self) -> &'static str {
         match self.default_gender() {
-            Gender::Feminine => "fem".to_owned(),
-            Gender::Masculine => "masc".to_owned(),
-            Gender::Neuter => "neut".to_owned(),
+            Gender::Feminine => "fem",
+            Gender::Masculine => "masc",
+            Gender::Neuter => "neut",
         }
     }
 }

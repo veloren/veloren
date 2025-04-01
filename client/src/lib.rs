@@ -2804,7 +2804,7 @@ impl Client {
                         if let Some(player_info) = self.player_list.get(&uid) {
                             frontend_events.push(Event::Chat(
                                 // TODO: localise, uses deprecated personalize_alias
-                                #[expect(deprecated)]
+                                #[expect(deprecated, reason = "i18n alias")]
                                 comp::ChatType::GroupMeta("Group".into()).into_plain_msg(format!(
                                     "[{}] joined group",
                                     self.personalize_alias(uid, player_info.player_alias.clone())
@@ -2823,7 +2823,7 @@ impl Client {
                         if let Some(player_info) = self.player_list.get(&uid) {
                             frontend_events.push(Event::Chat(
                                 // TODO: localise, uses deprecated personalize_alias
-                                #[expect(deprecated)]
+                                #[expect(deprecated, reason = "i18n alias")]
                                 comp::ChatType::GroupMeta("Group".into()).into_plain_msg(format!(
                                     "[{}] left group",
                                     self.personalize_alias(uid, player_info.player_alias.clone())
@@ -3272,7 +3272,7 @@ impl Client {
     // or what's better, just remove completely, it won't properly work with
     // localization anyway.
     #[deprecated = "this function doesn't localize"]
-    pub fn personalize_alias(&self, uid: Uid, alias: String) -> String {
+    fn personalize_alias(&self, uid: Uid, alias: String) -> String {
         let client_uid = self.uid().expect("Client doesn't have a Uid!!!");
         if client_uid == uid {
             "You".to_string()

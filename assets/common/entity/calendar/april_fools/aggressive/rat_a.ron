@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Rat"),
+    name: Translate("name-custom-calendar-april_fools-aggressive-rat"),
     body: RandomWith("rat"),
     alignment: Alignment(Enemy),
     loot: Nothing,

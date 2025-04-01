@@ -114,7 +114,9 @@ impl SkillSetBuilder {
             let err = format!(
                 "Tried to add skill: {skill:?} which does not have an associated skill group."
             );
-            common_base::dev_panic!(err, or return self);
+            common_base::dev_panic!(err);
+
+            return self;
         };
 
         let SkillSetBuilder(ref mut skill_set) = self;
@@ -122,7 +124,9 @@ impl SkillSetBuilder {
             let err = format!(
                 "Tried to add skill: {skill:?} with level {level:?} which is already applied"
             );
-            common_base::dev_panic!(err, or return self);
+            common_base::dev_panic!(err);
+
+            return self;
         }
         for _ in 0..level {
             skill_set.add_skill_points(group, skill_set.skill_cost(skill));

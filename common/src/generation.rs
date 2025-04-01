@@ -27,7 +27,8 @@ use vek::*;
 pub enum NameKind {
     /// i18n key with attributes for feminine and masculine versions
     Translate(String),
-    /// Derive the name from the Body
+    /// Derive the name from the `Body` using [`NPC_NAMES`] manifest.
+    /// Also see `npc_names.ron`.
     Automatic,
     /// Explicitly state no name
     Uninit,
@@ -339,8 +340,8 @@ impl EntityInfo {
             BodyBuilder::Uninit => {},
         }
 
-        // NOTE: set name after body, as it's used with automatic and translated
-        // names
+        // NOTE: set name after body, as body is needed used with for both
+        // automatic and translated names
         match name {
             NameKind::Translate(key) => {
                 let name = Content::with_attr(key, self.body.gender_attr());
@@ -565,10 +566,8 @@ impl EntityInfo {
                 (
                     "old_name",
                     self.name.unwrap_or_else(|| {
-                        dev_panic!(
-                            "no name present to use with with_alias",
-                            or return Content::Plain("??".to_owned())
-                        )
+                        dev_panic!("no name present to use with with_alias");
+                        Content::Plain("??".to_owned())
                     }),
                 ),
             ],

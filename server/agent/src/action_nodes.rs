@@ -2290,14 +2290,12 @@ impl AgentData<'_> {
             // TODO: Localise
             // Is this thing even used??
             if let Some(tgt_name) = tgt_name.as_ref().and_then(|name| name.as_plain()) {
-                chat(Content::Plain(format!(
-                    "{}! How dare you cross me again!",
-                    &tgt_name
-                )));
+                chat(Content::localized_with_args(
+                    "npc-speech-remembers-fight",
+                    [("name", tgt_name)],
+                ))
             } else {
-                chat(Content::Plain(
-                    "You! How dare you cross me again!".to_string(),
-                ));
+                chat(Content::localized("npc-speech-remembers-fight-no-name"));
             }
         };
 

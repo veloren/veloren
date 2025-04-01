@@ -66,7 +66,6 @@ widget_ids! {
     }
 }
 
-#[derive(Clone)]
 pub struct Info<'a> {
     pub name: Option<String>,
     pub health: Option<&'a Health>,
@@ -167,7 +166,7 @@ impl Ingameable for Overhead<'_> {
         // - 2 Text::new for speech bubble
         // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
-        self.info.clone().map_or(0, |info| {
+        self.info.as_ref().map_or(0, |info| {
             2 + 1
                 + if self.bubble.is_none() {
                     2 * info
