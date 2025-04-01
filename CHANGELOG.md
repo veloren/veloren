@@ -77,6 +77,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimap zooming can no longer exceed limits when zooming with hotkeys, making the behavious consistent for using the interface buttons or the hotkeys.
 - Fix "Uid was not mapped to any entity" errors
 - Fixes sprite orientations and placement.
+- Caves now show up in the map again.
+- Fixed airship dock position.
+- Fixed throwables pickup sound.
 
 ## [0.17.0] - 2024-12-28
 

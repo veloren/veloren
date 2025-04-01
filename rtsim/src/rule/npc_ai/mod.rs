@@ -1088,8 +1088,8 @@ fn humanoid() -> impl Action<DefaultState> {
                         comp::Body::Ship(body @ comp::ship::Body::AirBalloon) => {
                             important(pilot(body))
                         },
-                        comp::Body::Ship(body @ comp::ship::Body::DefaultAirship) => {
-                            important(airship_ai::pilot_airship(body))
+                        comp::Body::Ship(comp::ship::Body::DefaultAirship) => {
+                            important(airship_ai::pilot_airship())
                         },
                         comp::Body::Ship(
                             comp::ship::Body::SailBoat | comp::ship::Body::Galleon,

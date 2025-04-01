@@ -330,7 +330,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                                 // where an airship is docked, the
                                 // airship will bounce around while seeking the docking position
                                 // in loaded mode.
-                                let offset = (diff - npc.body.mount_offset())
+                                let offset = diff
                                     * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
                                         / dist2.sqrt());
                                 npc.wpos += offset;

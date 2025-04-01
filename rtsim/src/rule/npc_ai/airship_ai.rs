@@ -4,7 +4,7 @@ use crate::{
 };
 use common::{
     comp::{
-        self, Content,
+        Content,
         agent::{BrakingMode, FlightMode},
         compass::Direction,
     },
@@ -707,7 +707,7 @@ fn resume_route(airships: &Airships, route_id: &u32, ctx: &mut NpcCtx) -> usize 
 /// airship. The captain NPC is autonomous and will fly the airship along the
 /// assigned route. The routes are established and assigned to the captain NPCs
 /// when the world is generated.
-pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
+pub fn pilot_airship<S: State>() -> impl Action<S> {
     /*
         Phases of the airship flight:
         1. Docked at a docking position. Hovering in place. Mode 3d with direction vector.
@@ -768,7 +768,6 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
             // when current_approach_index exists, it means we're repeating the flight loop
             // if approach index is 0, then the airship is fly from site 0 to site 1, and vice versa
 
-            let ship_body = comp::Body::from(ship);
             // the approach flips in the middle of this loop after waiting at the dock.
             // The route_context.current_approach_index is used to determine the current approach at the
             // top of the function but any changes to route_context are not seen until the next iteration.
@@ -854,7 +853,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                 just(move |ctx: &mut NpcCtx, _| {
                     ctx.controller
                         .do_goto_with_height_and_dir(
-                            approach1.airship_pos + ship_body.mount_offset(),
+                            approach1.airship_pos,
                             0.7, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Precise),
@@ -909,7 +908,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     just(move |ctx, _| {
                         ctx.controller
                         .do_goto_with_height_and_dir(
-                            approach1.airship_pos + ship_body.mount_offset(),
+                            approach1.airship_pos,
                             0.75, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Precise),

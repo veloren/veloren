@@ -208,35 +208,25 @@ impl<'a> DockConnection<'a> {
 impl Airships {
     /// The Z offset between the docking alignment point and the AirshipDock
     /// plot docking position.
-    const AIRSHIP_TO_DOCK_Z_OFFSET: f32 = -1.0;
-    /// The absolute offset from the captain's position to the docking alignment
-    /// point on the X axis. The airship is assumed to be facing positive Y.
-    /// This is absolute assuming that the captain is in the center of the
-    /// airship. If the captain is not in the center, the
-    /// DOCK_ALIGN_POS_TO_CAPT_STARBOARD and DOCK_ALIGN_POS_TO_CAPT_PORT
-    /// need to be adjusted.
-    const CAPT_TO_DOCK_ALIGN_X: f32 = 19.0;
-    // const CAPT_TO_DOCK_ALIGN_X: f32 = 15.0;
-    /// The offset from the captain's position to the docking alignment point on
-    /// the Y axis. The airship is assumed to be facing positive Y.
-    /// This is positive if the docking alignment point is above (positive Y)
-    /// the captain's position.
-    // const CAPT_TO_DOCK_ALIGN_Y: f32 = -3.0;
-    const CAPT_TO_DOCK_ALIGN_Y: f32 = 8.0;
+    const AIRSHIP_TO_DOCK_Z_OFFSET: f32 = -3.0;
     // the generated docking positions in world gen are a little low
     const DEFAULT_DOCK_DURATION: f32 = 90.0;
-    /// The vector from the dock alignment point on the airship to the captain's
-    /// position when the airship is docked on the port side.
-    const DOCK_ALIGN_POS_TO_CAPT_PORT: Vec2<f32> = Vec2::new(
-        Airships::CAPT_TO_DOCK_ALIGN_X,
-        -Airships::CAPT_TO_DOCK_ALIGN_Y,
-    );
-    /// The vector from the dock alignment point on the airship to the captain's
-    /// position when the airship is docked on the starboard side.
-    const DOCK_ALIGN_POS_TO_CAPT_STARBOARD: Vec2<f32> = Vec2::new(
-        -Airships::CAPT_TO_DOCK_ALIGN_X,
-        -Airships::CAPT_TO_DOCK_ALIGN_Y,
-    );
+    /// The vector from the dock alignment point when the airship is docked on
+    /// the port side.
+    const DOCK_ALIGN_POS_PORT: Vec2<f32> =
+        Vec2::new(Airships::DOCK_ALIGN_X, -Airships::DOCK_ALIGN_Y);
+    /// The vector from the dock alignment point on the airship when the airship
+    /// is docked on the starboard side.
+    const DOCK_ALIGN_POS_STARBOARD: Vec2<f32> =
+        Vec2::new(-Airships::DOCK_ALIGN_X, -Airships::DOCK_ALIGN_Y);
+    /// The absolute offset from the airship's position to the docking alignment
+    /// point on the X axis. The airship is assumed to be facing positive Y.
+    const DOCK_ALIGN_X: f32 = 18.0;
+    /// The offset from the airship's position to the docking alignment point on
+    /// the Y axis. The airship is assumed to be facing positive Y.
+    /// This is positive if the docking alignment point is in front of the
+    /// airship's center position.
+    const DOCK_ALIGN_Y: f32 = 1.0;
     const ROUTES_NORTH: Vec2<f32> = Vec2::new(0.0, 15000.0);
     const STD_CRUISE_HEIGHT: f32 = 400.0;
     const TAKEOFF_ASCENT_ALT: f32 = 150.0;
@@ -668,14 +658,11 @@ impl Airships {
         // side or 270 degrees CCW to dock on the starboard side.
         let (dock_align_to_captain, side_rotation) = if dock_side == AirshipDockingSide::Starboard {
             (
-                Airships::DOCK_ALIGN_POS_TO_CAPT_STARBOARD,
+                Airships::DOCK_ALIGN_POS_STARBOARD,
                 3.0 * std::f32::consts::FRAC_PI_2,
             )
         } else {
-            (
-                Airships::DOCK_ALIGN_POS_TO_CAPT_PORT,
-                std::f32::consts::FRAC_PI_2,
-            )
+            (Airships::DOCK_ALIGN_POS_PORT, std::f32::consts::FRAC_PI_2)
         };
         // get the vector from the dock center to the docking platform point where the
         // airship should touch or come closest to.
@@ -1084,13 +1071,13 @@ mod tests {
                 for _ in 0..1000 {
                     let (airship_pos, airship_dir) =
                         Airships::airship_vec_for_docking_pos(dock_pos, airship_dock_center, None);
-                    if airship_pos.x > 21.0 {
+                    if airship_pos.x > 23.0 {
                         assert_relative_eq!(
                             airship_pos,
                             Vec3 {
-                                x: 29.091883,
-                                y: 17.778175,
-                                z: -1.0
+                                x: 23.435028,
+                                y: 22.020815,
+                                z: -3.0
                             },
                             epsilon = 0.00001
                         );
@@ -1108,9 +1095,9 @@ mod tests {
                         assert_relative_eq!(
                             airship_pos,
                             Vec3 {
-                                x: 17.778172,
-                                y: 29.091885,
-                                z: -1.0
+                                x: 22.020815,
+                                y: 23.435028,
+                                z: -3.0
                             },
                             epsilon = 0.00001
                         );
@@ -1139,9 +1126,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 29.091883,
-                        y: 17.778175,
-                        z: -1.0
+                        x: 23.435028,
+                        y: 22.020815,
+                        z: -3.0
                     },
                     epsilon = 0.00001
                 );
@@ -1164,9 +1151,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 17.778172,
-                        y: 29.091885,
-                        z: -1.0
+                        x: 22.020815,
+                        y: 23.435028,
+                        z: -3.0
                     },
                     epsilon = 0.00001
                 );
@@ -1193,9 +1180,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 28855.0,
-                        y: 18569.0,
-                        z: -1.0
+                        x: 28856.0,
+                        y: 18562.0,
+                        z: -3.0
                     },
                     epsilon = 0.00001
                 );
@@ -1218,9 +1205,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 28855.0,
-                        y: 18553.0,
-                        z: -1.0
+                        x: 28856.0,
+                        y: 18560.0,
+                        z: -3.0
                     },
                     epsilon = 0.00001
                 );

@@ -278,6 +278,7 @@ pub struct Client {
     character_list: CharacterList,
     character_being_deleted: Option<CharacterId>,
     sites: HashMap<SiteId, SiteMarker>,
+    extra_markers: Vec<Marker>,
     possible_starting_sites: Vec<SiteId>,
     pois: Vec<PoiInfo>,
     pub chat_mode: ChatMode,
@@ -1029,6 +1030,7 @@ impl Client {
                     }))
                 })
                 .collect(),
+            extra_markers: sites.iter().filter(|m| m.id.is_none()).cloned().collect(),
             possible_starting_sites,
             pois,
             component_recipe_book,
@@ -1714,8 +1716,11 @@ impl Client {
     /// Unstable, likely to be removed in a future release
     pub fn sites(&self) -> &HashMap<SiteId, SiteMarker> { &self.sites }
 
-    pub fn markers(&self) -> impl ExactSizeIterator<Item = &Marker> {
-        self.sites.values().map(|s| &s.marker)
+    pub fn markers(&self) -> impl Iterator<Item = &Marker> {
+        self.sites
+            .values()
+            .map(|s| &s.marker)
+            .chain(self.extra_markers.iter())
     }
 
     pub fn possible_starting_sites(&self) -> &[SiteId] { &self.possible_starting_sites }
