@@ -854,7 +854,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                 just(move |ctx: &mut NpcCtx, _| {
                     ctx.controller
                         .do_goto_with_height_and_dir(
-                            approach1.airship_pos + ship_body.mount_offset(),
+                            approach1.airship_pos,
                             0.7, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Precise),
@@ -909,7 +909,7 @@ pub fn pilot_airship<S: State>(ship: common::comp::ship::Body) -> impl Action<S>
                     just(move |ctx, _| {
                         ctx.controller
                         .do_goto_with_height_and_dir(
-                            approach1.airship_pos + ship_body.mount_offset(),
+                            approach1.airship_pos,
                             0.75, None,
                             Some(approach1.airship_direction),
                             FlightMode::Braking(BrakingMode::Precise),
