@@ -1133,6 +1133,14 @@
             threshold: 0.3,
             subtitle: "subtitle-pickup_pick",
         ),
+        // Throwable tool
+        Inventory(CollectedTool(Throwable)): (
+            files: [
+                "voxygen.audio.sfx.inventory.add_item",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-pickup_item",
+        ),
         //
         // Inventory
         //

@@ -219,17 +219,13 @@ impl Airships {
     /// is docked on the starboard side.
     const DOCK_ALIGN_POS_STARBOARD: Vec2<f32> =
         Vec2::new(-Airships::DOCK_ALIGN_X, -Airships::DOCK_ALIGN_Y);
-    /// The absolute offset from the airsgip's position to the docking alignment
+    /// The absolute offset from the airship's position to the docking alignment
     /// point on the X axis. The airship is assumed to be facing positive Y.
-    /// This is absolute assuming that the captain is in the center of the
-    /// airship. If the captain is not in the center, the
-    /// DOCK_ALIGN_POS_TO_CAPT_STARBOARD and DOCK_ALIGN_POS_TO_CAPT_PORT
-    /// need to be adjusted.
     const DOCK_ALIGN_X: f32 = 18.0;
     /// The offset from the airship's position to the docking alignment point on
     /// the Y axis. The airship is assumed to be facing positive Y.
-    /// This is positive if the docking alignment point is above (positive Y)
-    /// the captain's position.
+    /// This is positive if the docking alignment point is in front of the
+    /// airship's center position.
     const DOCK_ALIGN_Y: f32 = 1.0;
     const ROUTES_NORTH: Vec2<f32> = Vec2::new(0.0, 15000.0);
     const STD_CRUISE_HEIGHT: f32 = 400.0;
