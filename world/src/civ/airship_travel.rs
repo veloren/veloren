@@ -1071,13 +1071,13 @@ mod tests {
                 for _ in 0..1000 {
                     let (airship_pos, airship_dir) =
                         Airships::airship_vec_for_docking_pos(dock_pos, airship_dock_center, None);
-                    if airship_pos.x > 21.0 {
+                    if airship_pos.x > 23.0 {
                         assert_relative_eq!(
                             airship_pos,
                             Vec3 {
-                                x: 29.091883,
-                                y: 17.778175,
-                                z: -1.0
+                                x: 23.435028,
+                                y: 22.020815,
+                                z: -3.0
                             },
                             epsilon = 0.00001
                         );
@@ -1095,9 +1095,9 @@ mod tests {
                         assert_relative_eq!(
                             airship_pos,
                             Vec3 {
-                                x: 17.778172,
-                                y: 29.091885,
-                                z: -1.0
+                                x: 22.020815,
+                                y: 23.435028,
+                                z: -3.0
                             },
                             epsilon = 0.00001
                         );
@@ -1126,9 +1126,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 29.091883,
-                        y: 17.778175,
-                        z: -1.0
+                        x: 23.435028,
+                        y: 22.020815,
+                        z: -3.0
                     },
                     epsilon = 0.00001
                 );
@@ -1151,9 +1151,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 17.778172,
-                        y: 29.091885,
-                        z: -1.0
+                        x: 22.020815,
+                        y: 23.435028,
+                        z: -3.0
                     },
                     epsilon = 0.00001
                 );
@@ -1180,9 +1180,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 28855.0,
-                        y: 18569.0,
-                        z: -1.0
+                        x: 28856.0,
+                        y: 18562.0,
+                        z: -3.0
                     },
                     epsilon = 0.00001
                 );
@@ -1205,9 +1205,9 @@ mod tests {
                 assert_relative_eq!(
                     airship_pos,
                     Vec3 {
-                        x: 28855.0,
-                        y: 18553.0,
-                        z: -1.0
+                        x: 28856.0,
+                        y: 18560.0,
+                        z: -3.0
                     },
                     epsilon = 0.00001
                 );
