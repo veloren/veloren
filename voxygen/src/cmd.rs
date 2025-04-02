@@ -31,6 +31,7 @@ pub enum ClientChatCommand {
     Help,
     Mute,
     Unmute,
+    Wiki,
 }
 
 impl ClientChatCommand {
@@ -68,6 +69,11 @@ impl ClientChatCommand {
                 Content::localized("command-unmute-desc"),
                 None,
             ),
+            ClientChatCommand::Wiki => cmd(
+                vec![Any("topic", Optional)],
+                Content::localized("command-wiki-desc"),
+                None,
+            ),
         }
     }
 
@@ -78,6 +84,7 @@ impl ClientChatCommand {
             ClientChatCommand::Help => "help",
             ClientChatCommand::Mute => "mute",
             ClientChatCommand::Unmute => "unmute",
+            ClientChatCommand::Wiki => "wiki",
         }
     }
 
@@ -366,6 +373,7 @@ fn run_client_command(
         ClientChatCommand::Help => handle_help,
         ClientChatCommand::Mute => handle_mute,
         ClientChatCommand::Unmute => handle_unmute,
+        ClientChatCommand::Wiki => handle_wiki,
     };
 
     command(session_state, global_state, args)
@@ -545,6 +553,24 @@ fn handle_experimental_shader(
                 .to_string(),
         )
     }
+}
+
+fn handle_wiki(
+    _session_state: &mut SessionState,
+    _global_state: &mut GlobalState,
+    args: Vec<String>,
+) -> CommandResult {
+    let url = if args.is_empty() {
+        "https://wiki.veloren.net/".to_string()
+    } else {
+        let query_string = args.join("+");
+
+        format!("https://wiki.veloren.net/w/index.php?search={query_string}")
+    };
+
+    open::that_detached(url)
+        .map(|_| None)
+        .map_err(|e| e.to_string())
 }
 
 trait TabComplete {

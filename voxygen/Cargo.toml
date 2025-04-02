@@ -32,8 +32,13 @@ hot-reloading = ["common/hot-reloading"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
 tracy = ["common-frontend/tracy", "client/tracy"]
-tracy-memory = ["tracy"]                                                       # enables heap profiling with tracy
-plugins = ["client/plugins", "common-assets/plugins", "server/plugins", "anim/plugins"]
+tracy-memory = ["tracy"] # enables heap profiling with tracy
+plugins = [
+    "client/plugins",
+    "common-assets/plugins",
+    "server/plugins",
+    "anim/plugins",
+]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
@@ -151,6 +156,7 @@ inline_tweak = { workspace = true }
 itertools = { workspace = true }
 sha2 = { workspace = true }
 bitflags = { workspace = true, features = ["serde"] }
+open = "5.3.2"
 
 # Discord RPC
 discord-sdk = { version = "0.4", optional = true }
