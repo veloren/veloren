@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2025 Javier Pérez
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: Decommission pull requests on GitHub
+
+on:
+  pull_request_target:
+    types:
+      - opened
+
+jobs:
+  close-pull-request:
+    uses: veloren/.github/.github/workflows/no-pr.yml@main
+    permissions:
+      pull-requests: write
