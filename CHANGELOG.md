@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Time estimate to erosion.
 - The ability to ask NPCs for directions to nearby establishments.
 - Type /wiki to open or the Veloren wiki or /wiki [topic] to search for a specific topic.
+- Adding a space after chat mode commands changes chat modes.
 
 ### Changed
 
