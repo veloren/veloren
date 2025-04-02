@@ -36,7 +36,7 @@ use common::{
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color, image,
     position::{Dimension, Place},
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text, TextEdit},
+    widget::{self, Button, Image, Line, Rectangle, Scrollbar, Text, TextEdit},
     widget_ids,
 };
 use hashbrown::{HashMap, HashSet};
@@ -67,6 +67,7 @@ widget_ids! {
         tags_ing[],
         align_ing,
         scrollbar_ing,
+        btn_separator,
         btn_craft,
         btn_craft_all,
         recipe_list_btns[],
@@ -403,13 +404,14 @@ impl Widget for Crafting<'_> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
-        // Frame and window
+        // Window
         Image::new(self.imgs.crafting_window)
             .bottom_right_with_margins_on(ui.window, 308.0, 450.0)
             .color(Some(UI_MAIN))
             .w_h(470.0, 460.0)
             .set(state.ids.window, ui);
-        // Window
+
+        // Frame
         Image::new(self.imgs.crafting_frame)
             .middle_of(state.ids.window)
             .color(Some(UI_HIGHLIGHT_0))
@@ -443,12 +445,12 @@ impl Widget for Crafting<'_> {
             .set(state.ids.title_main, ui);
 
         // Alignment
-        Rectangle::fill_with([184.0, 378.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.window_frame, 74.0, 5.0)
+        Rectangle::fill_with([184.0, 380.0], color::TRANSPARENT)
+            .top_left_with_margins_on(state.ids.window_frame, 72.0, 5.0)
             .scroll_kids_vertically()
             .set(state.ids.align_rec, ui);
         Rectangle::fill_with([274.0, 340.0], color::TRANSPARENT)
-            .top_right_with_margins_on(state.ids.window, 74.0, 5.0)
+            .top_right_with_margins_on(state.ids.window, 72.0, 5.0)
             .scroll_kids_vertically()
             .set(state.ids.align_ing, ui);
 
@@ -1694,6 +1696,13 @@ impl Widget for Crafting<'_> {
                 },
             };
 
+            // Button Separator
+            Line::centred([0.0, 0.0], [274.0, 0.0])
+                .color(color::rgba(1.0, 1.0, 1.0, 0.1))
+                .down_from(state.ids.align_ing, 0.0)
+                .parent(state.ids.window)
+                .set(state.ids.btn_separator, ui);
+
             // Craft button
             let label = &match recipe_kind {
                 RecipeKind::Repair => self
@@ -2388,14 +2397,15 @@ impl Widget for Crafting<'_> {
                 events.push(Event::Focus(state.ids.input_search));
             }
         }
+
         // Scrollbars
         Scrollbar::y_axis(state.ids.align_rec)
             .thickness(5.0)
-            .rgba(0.33, 0.33, 0.33, 1.0)
+            .rgba(0.66, 0.66, 0.66, 1.0)
             .set(state.ids.scrollbar_rec, ui);
         Scrollbar::y_axis(state.ids.align_ing)
             .thickness(5.0)
-            .rgba(0.33, 0.33, 0.33, 1.0)
+            .rgba(0.66, 0.66, 0.66, 1.0)
             .set(state.ids.scrollbar_ing, ui);
 
         events
