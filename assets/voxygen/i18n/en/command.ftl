@@ -106,6 +106,7 @@ command-weather_zone-desc = Create a weather zone
 command-whitelist-desc = Adds/removes username to whitelist
 command-wiring-desc = Create wiring element
 command-world-desc = Send messages to everyone on the server
+command-wiki-desc = Open the wiki or search for a topic
 
 ## Voxygen Client Commands
 
