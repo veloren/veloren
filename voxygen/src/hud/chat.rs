@@ -5,14 +5,17 @@ use super::{
 use crate::{
     GlobalState,
     cmd::complete,
-    settings::chat::MAX_CHAT_TABS,
+    settings::{ChatSettings, chat::MAX_CHAT_TABS},
     ui::{
         Scale,
         fonts::{Font, Fonts},
     },
 };
 use client::Client;
-use common::comp::{ChatMode, ChatMsg, ChatType, group::Role};
+use common::{
+    cmd::ServerChatCommand,
+    comp::{ChatMode, ChatMsg, ChatType, group::Role},
+};
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, Ui, UiCell, Widget, WidgetCommon, color,
     input::Key,
@@ -440,6 +443,16 @@ impl Widget for Chat<'_> {
             // Not tab completing
             false
         };
+
+        // Check if we need to change the chat mode if we have completed a command
+        if state.input.message.ends_with(' ') {
+            change_chat_mode(
+                state.input.message.clone(),
+                state,
+                &mut events,
+                chat_settings,
+            );
+        }
 
         // Move through history
         if history_dir != 0 && state.completion_cursor.is_none() {
@@ -1036,6 +1049,45 @@ fn parse_cmd(msg: &str) -> Result<(String, Vec<String>), String> {
             .collect::<Vec<_>>()
             .join(", ")
     })
+}
+
+/// Change the chat mode if we have a `ServerChatCommand` that corresponds to a
+/// chat region (i.e. World, Region, Say, etc.).
+fn change_chat_mode(
+    message: String,
+    state: &mut conrod_core::widget::State<State>,
+    events: &mut Vec<Event>,
+    chat_settings: &ChatSettings,
+) {
+    if let Some(msg) = message.strip_prefix(chat_settings.chat_cmd_prefix) {
+        match parse_cmd(msg.trim()) {
+            Ok((name, args)) => {
+                #[expect(clippy::collapsible_match)]
+                if let Ok(command) = name.parse::<ServerChatCommand>() {
+                    match command {
+                        ServerChatCommand::Group
+                        | ServerChatCommand::Say
+                        | ServerChatCommand::Faction
+                        | ServerChatCommand::Region
+                        | ServerChatCommand::World => {
+                            // Only remove the command if there is no message
+                            if args.is_empty() {
+                                // We found a match to a command so clear the input
+                                // message
+                                state.update(|s| s.input.message.clear());
+                                events.push(Event::SendCommand(name, args))
+                            }
+                        },
+                        // TODO: Add support for Whispers (might need to adjust widget
+                        // for this.)
+                        _ => (),
+                    }
+                }
+            },
+            // Do nothing because we are just completing the Chat Mode
+            Err(_) => (),
+        }
+    }
 }
 
 #[cfg(test)]
