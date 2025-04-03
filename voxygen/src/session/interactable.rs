@@ -190,11 +190,11 @@ pub(super) fn get_interactables(
     let scene_terrain = scene.terrain();
     let terrain = client.state().terrain();
     let player_entity = client.entity();
-    let positions = ecs.read_storage::<comp::Pos>();
-    let player_pos = positions
+    let interpolated = ecs.read_storage::<crate::ecs::comp::Interpolated>();
+    let player_pos = interpolated
         .get(player_entity)
         .ok_or(GetInteractablesError::ClientMissingPosition)?
-        .0;
+        .pos;
 
     let uids = ecs.read_storage::<Uid>();
     let healths = ecs.read_storage::<comp::Health>();
@@ -224,7 +224,7 @@ pub(super) fn get_interactables(
         &entities,
         !&is_mounts,
         &uids,
-        &positions,
+        &interpolated,
         &bodies,
         &masses,
         char_states.maybe(),
@@ -241,7 +241,7 @@ pub(super) fn get_interactables(
         .filter(|&entity| entity != player_entity)
         .filter_map(|entity| entity_data.get(entity, &entities))
         .flat_map(
-            |(entity, _, uid, pos, body, mass, char_state, health, alignment, has_item)| {
+            |(entity, _, uid, interpolated, body, mass, char_state, health, alignment, has_item)| {
                 // If an entity is downed, the only allowed interaction is HelpDowned
                 let is_downed = comp::is_downed(health, char_state);
 
@@ -251,11 +251,11 @@ pub(super) fn get_interactables(
                 } else if has_item.is_some() {
                     Some(EntityInteraction::PickupItem)
                 } else if body.is_portal()
-                    && pos.0.distance_squared(player_pos) <= TELEPORTER_RADIUS.powi(2)
+                    && interpolated.pos.distance_squared(player_pos) <= TELEPORTER_RADIUS.powi(2)
                 {
                     Some(EntityInteraction::ActivatePortal)
                 } else if alignment.is_some_and(|alignment| {
-                    can_perform_pet(comp::Pos(player_pos), *pos, *alignment)
+                    can_perform_pet(comp::Pos(player_pos), comp::Pos(interpolated.pos), *alignment)
                 }) {
                     Some(EntityInteraction::Pet)
                 } else if alignment.is_some_and(|alignment| matches!(alignment, Alignment::Npc)) {
@@ -296,7 +296,7 @@ pub(super) fn get_interactables(
                     .map(|_| EntityInteraction::StayFollow);
 
                 // Roughly filter out entities farther than interaction distance
-                let distance_squared = player_pos.distance_squared(pos.0);
+                let distance_squared = player_pos.distance_squared(interpolated.pos);
 
                 Some(
                     interaction
