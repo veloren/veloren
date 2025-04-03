@@ -601,12 +601,18 @@ impl Structure for MyrmidonArena {
             &mut thread_rng,
             None,
         ));
-
+        // solid floor
+        painter
+            .cylinder(Aabb {
+                min: (center - 3 * (radius / 4)).with_z(base - 25),
+                max: (center + 3 * (radius / 4)).with_z(base - 21),
+            })
+            .fill(sandstone_unbroken.clone());
         // catacomb
         painter
             .cylinder(Aabb {
                 min: (center - 3 * (radius / 4)).with_z(base - 79),
-                max: (center + 3 * (radius / 4)).with_z(base - 21),
+                max: (center + 3 * (radius / 4)).with_z(base - 25),
             })
             .fill(weak_sandstone.clone());
         // entry
