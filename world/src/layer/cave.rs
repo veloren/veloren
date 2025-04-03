@@ -1,5 +1,5 @@
 use crate::{
-    Canvas, CanvasInfo, ColumnSample, Land,
+    Canvas, CanvasInfo, ColumnSample, IndexRef, Land,
     site::SiteKind,
     util::{
         FastNoise2d, LOCALITY, RandomField, RandomPerm, SQUARE_4, SmallCache, StructureGen2d,
@@ -73,11 +73,25 @@ fn node_at(cell: Vec2<i32>, level: u32, land: &Land) -> Option<Node> {
     }
 }
 
-pub fn surface_entrances<'a>(land: &'a Land) -> impl Iterator<Item = Vec2<i32>> + 'a {
+pub fn surface_entrances<'a>(
+    land: &'a Land,
+    index: IndexRef<'a>,
+) -> impl Iterator<Item = Vec2<i32>> + 'a {
     let sz_cells = to_cell(land.size().as_::<i32>().cpos_to_wpos(), 0);
     (0..sz_cells.x + 1)
         .flat_map(move |x| (0..sz_cells.y + 1).map(move |y| Vec2::new(x, y)))
-        .filter_map(|cell| Some(tunnel_below_from_cell(cell, 0, land)?.a.wpos))
+        .filter_map(move |cell| {
+            let tunnel = tunnel_below_from_cell(cell, 0, land)?;
+            // If there is water here there most likely isn't an accessible entrance.
+            if land
+                .column_sample(tunnel.a.wpos, index)
+                .is_some_and(|c| c.water_dist.is_none_or(|d| d > 5.0))
+            {
+                Some(tunnel.a.wpos)
+            } else {
+                None
+            }
+        })
 }
 
 #[derive(Copy, Clone)]
