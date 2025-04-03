@@ -1119,7 +1119,7 @@ SeaDecorPillar: [(
 SeashellLantern: [(
      variations: [
          (
-            model: "voxygen.voxel.object.seashell_lantern",
+            model: "voxygen.voxel.sprite.lantern.seashell_lantern",
             offset: (-4.5, -4.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
          ),
@@ -2270,7 +2270,7 @@ DropGateBottom: [(
 VialEmpty: [(
     variations: [
         (
-            model: "voxygen.voxel.object.potion_empty",
+            model: "voxygen.voxel.sprite.potion.potion_empty",
             offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2281,7 +2281,7 @@ VialEmpty: [(
 Bowl: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.crafting_ing.bowl",
+            model: "voxygen.voxel.sprite.furniture.bowl",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2292,7 +2292,7 @@ Bowl: [(
 PotionMinor: [(
     variations: [
         (
-            model: "voxygen.voxel.object.potion_red",
+            model: "voxygen.voxel.sprite.potion.potion_red",
             offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2302,7 +2302,7 @@ PotionMinor: [(
 PotionDummy: [(
     variations: [
         (
-            model: "voxygen.voxel.object.potion_green",
+            model: "voxygen.voxel.sprite.misc.potion_green",
             offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2898,7 +2898,7 @@ Cauldron: [(
 Forge: [(
     variations: [
         (
-            model: "voxygen.voxel.object.forge",
+            model: "voxygen.voxel.sprite.forge.forge",
             offset: (-6.5, -6.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2908,7 +2908,7 @@ Forge: [(
 Loom: [(
     variations: [
         (
-            model: "voxygen.voxel.object.loom",
+            model: "voxygen.voxel.sprite.loom.loom",
             offset: (-6.0, -4.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2929,7 +2929,7 @@ DismantlingBench: [(
 SpinningWheel: [(
     variations: [
         (
-            model: "voxygen.voxel.object.spinning_wheel",
+            model: "voxygen.voxel.sprite.spinning_wheel.spinning_wheel",
             offset: (-7.5, -5.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2939,7 +2939,7 @@ SpinningWheel: [(
 TanningRack: [(
     variations: [
         (
-            model: "voxygen.voxel.object.tanning_rack",
+            model: "voxygen.voxel.sprite.tanning_rack.tanning_rack",
             offset: (-7.5, -4.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2994,7 +2994,7 @@ EnsnaringVines: [(
 IronSpike: [(
     variations: [
         (
-            model: "voxygen.voxel.object.iron_spike",
+            model: "voxygen.voxel.sprite.misc.iron_spike",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3045,7 +3045,7 @@ BoneKeyDoor: [(
 Bomb: [(
     variations: [
         (
-            model: "voxygen.voxel.object.bomb",
+            model: "voxygen.voxel.sprite.bomb.bomb",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.5, 0.5, 0.5),
         ),
@@ -3066,7 +3066,7 @@ Bedroll: [(
 Tent: [(
     variations: [
         (
-            model: "voxygen.voxel.object.tent",
+            model: "voxygen.voxel.sprite.misc.tent",
             offset: (-7.5, -15.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3239,7 +3239,7 @@ Gravestone: [(
 Wood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.wood",
+            model: "voxygen.voxel.sprite.wood.wood",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3249,7 +3249,7 @@ Wood: [(
 Bamboo: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.bamboo",
+            model: "voxygen.voxel.sprite.wood.bamboo",
             offset: (-6.5, -6.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3259,7 +3259,7 @@ Bamboo: [(
 Hardwood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.hardwood",
+            model: "voxygen.voxel.sprite.wood.hardwood",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3269,7 +3269,7 @@ Hardwood: [(
 Ironwood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.ironwood",
+            model: "voxygen.voxel.sprite.wood.ironwood",
             offset: (-6.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3279,7 +3279,7 @@ Ironwood: [(
 Frostwood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.frostwood",
+            model: "voxygen.voxel.sprite.wood.frostwood",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3289,7 +3289,7 @@ Frostwood: [(
 Eldwood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.eldwood",
+            model: "voxygen.voxel.sprite.wood.eldwood",
             offset: (-4.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -7376,7 +7376,7 @@ LillyPads: [(
 SeaUrchin: [(
     variations: [
         (
-            model: "voxygen.voxel.object.sea_urchin",
+            model: "voxygen.voxel.sprite.sea_urchin.sea_urchin",
             offset: (-5.0, -6.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),

@@ -12,7 +12,7 @@
     Bomb: (
         bone0: (
             offset: (-5.5, -5.5, 0.0),
-            central: ("object.bomb"),
+            central: ("sprite.bomb.bomb"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
@@ -22,7 +22,7 @@
     Mine: (
         bone0: (
             offset: (-5.5, -5.5, 0.0),
-            central: ("sprite.misc.mine"),
+            central: ("object.mine"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
@@ -162,7 +162,7 @@
     BarrelOrgan: (
         bone0: (
             offset: (-9.0, -10.0, 0.0),
-            central: ("sprite.misc.barrel_organ"),
+            central: ("object.barrel_organ"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
@@ -564,7 +564,7 @@
     TerracottaStatue: (
         bone0: (
             offset: (-21.0, -19.0, -0.0),
-            central: ("sprite.furniture.terracotta_statue_4"),
+            central: ("object.terracotta_statue"),
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
