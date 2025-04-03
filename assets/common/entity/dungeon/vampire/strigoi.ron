@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Strigoi"),
+    name: Automatic,
     body: RandomWith("strigoi"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.vampire.miniboss"),

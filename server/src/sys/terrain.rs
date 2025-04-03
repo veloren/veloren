@@ -16,8 +16,8 @@ use common::{
     calendar::Calendar,
     combat::{DeathEffects, RiderEffects},
     comp::{
-        self, BehaviorCapability, ForceUpdate, Pos, Presence, Waypoint, agent, biped_small,
-        bird_medium,
+        self, BehaviorCapability, Content, ForceUpdate, Pos, Presence, Waypoint, agent,
+        biped_small, bird_medium,
     },
     event::{CreateNpcEvent, CreateSpecialEntityEvent, EmitExt, EventBus, NpcBuilder},
     event_emitters,
@@ -436,7 +436,7 @@ impl SpawnEntityData {
             return Self::Special(pos, special);
         }
 
-        let name = name.unwrap_or_else(|| "Unnamed".to_string());
+        let name = name.unwrap_or_else(Content::dummy);
         let stats = comp::Stats::new(name, body);
 
         let skill_set = {
@@ -459,13 +459,13 @@ impl SpawnEntityData {
             for (num, mut item) in items {
                 if let Err(e) = item.set_amount(num) {
                     tracing::warn!(
-                        "error during creating inventory for {name} at {pos}: {e:?}",
+                        "error during creating inventory for {name:?} at {pos}: {e:?}",
                         name = &stats.name,
                     );
                 }
                 if let Err(e) = inventory.push(item) {
                     tracing::warn!(
-                        "error during creating inventory for {name} at {pos}: {e:?}",
+                        "error during creating inventory for {name:?} at {pos}: {e:?}",
                         name = &stats.name,
                     );
                 }

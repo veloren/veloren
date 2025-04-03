@@ -72,9 +72,7 @@ impl Default for Body {
 }
 
 /// Data representing data generic to the body together with per-species data.
-///
-/// NOTE: Deliberately don't (yet?) implement serialize.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BodyData<BodyMeta, SpeciesData> {
     /// Shared metadata for this whole body type.
     pub body: BodyMeta,
@@ -85,10 +83,9 @@ pub struct BodyData<BodyMeta, SpeciesData> {
 /// Metadata intended to be stored per-body, together with data intended to be
 /// stored for each species for each body.
 ///
-/// NOTE: Deliberately don't (yet?) implement serialize.
 /// NOTE: If you are adding new body kind and it should be spawned via /spawn
 /// please add it to `[ENTITIES](crate::cmd::ENTITIES)`
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub humanoid: BodyData<BodyMeta, humanoid::AllSpecies<SpeciesMeta>>,
     pub quadruped_small: BodyData<BodyMeta, quadruped_small::AllSpecies<SpeciesMeta>>,
@@ -134,7 +131,7 @@ impl<BodyMeta, SpeciesMeta> AllBodies<BodyMeta, SpeciesMeta> {
             Body::Arthropod(b) => &self.arthropod.species[&b.species],
             Body::Crustacean(b) => &self.crustacean.species[&b.species],
             Body::Plugin(b) => &self.plugin.species[&b.species],
-            _ => return None,
+            Body::Item(_) | Body::Ship(_) | Body::Object(_) => return None,
         })
     }
 }
@@ -211,13 +208,16 @@ impl<
 /// Should be used for localization with extreme care.
 /// For basically everything except *maybe* humanoids, it's simply wrong to
 /// assume that this may be used as grammatical gender.
+/// Read more on `Body::default_gender`.
 ///
-/// TODO: remove this and instead add GUI for players to choose preferred
-/// gender. Read a comment for `gender_str` in voxygen/i18n-helpers/src/lib.rs.
+/// TODO: move this to common::i18n (or create new alternative), extend with
+/// more options and add GUI for players to choose preferred gender.
+/// Read a comment for `gender_str` in voxygen/i18n-helpers/src/lib.rs.
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum Gender {
     Masculine,
     Feminine,
+    Neuter,
 }
 
 impl Body {
@@ -1791,6 +1791,96 @@ impl Body {
                 humanoid::BodyType::Female => Some(Gender::Feminine),
             },
             _ => None,
+        }
+    }
+
+    /// Return gender information for this entity.
+    ///
+    /// It's an imprecise approximation, because body type != gender, and
+    /// we need more advanced scheme here, but that's all we have atm.
+    ///
+    /// At the moment used for two things:
+    /// - Grammatical gender indicator regarding players for proper grammatical
+    ///   agreement in sentences for languages that require it. At the moment
+    ///   can be used only for chat messages, but should be extended further.
+    /// - Semantic indicator to pick proper name variant for NPC. For example,
+    ///   Hunter vs Huntress or Lion vs Lioness.
+    pub fn default_gender(&self) -> Gender {
+        match self {
+            Body::Humanoid(b) => match b.body_type {
+                humanoid::BodyType::Male => Gender::Masculine,
+                humanoid::BodyType::Female => Gender::Feminine,
+            },
+            Body::QuadrupedSmall(b) => match b.body_type {
+                quadruped_small::BodyType::Male => Gender::Masculine,
+                quadruped_small::BodyType::Female => Gender::Feminine,
+            },
+            Body::QuadrupedMedium(b) => match b.body_type {
+                quadruped_medium::BodyType::Male => Gender::Masculine,
+                quadruped_medium::BodyType::Female => Gender::Feminine,
+            },
+            Body::QuadrupedLow(b) => match b.body_type {
+                quadruped_low::BodyType::Male => Gender::Masculine,
+                quadruped_low::BodyType::Female => Gender::Feminine,
+            },
+            Body::BirdMedium(b) => match b.body_type {
+                bird_medium::BodyType::Male => Gender::Masculine,
+                bird_medium::BodyType::Female => Gender::Feminine,
+            },
+            Body::BirdLarge(b) => match b.body_type {
+                bird_large::BodyType::Male => Gender::Masculine,
+                bird_large::BodyType::Female => Gender::Feminine,
+            },
+            Body::FishMedium(b) => match b.body_type {
+                fish_medium::BodyType::Male => Gender::Masculine,
+                fish_medium::BodyType::Female => Gender::Feminine,
+            },
+            Body::FishSmall(b) => match b.body_type {
+                fish_small::BodyType::Male => Gender::Masculine,
+                fish_small::BodyType::Female => Gender::Feminine,
+            },
+            Body::Dragon(b) => match b.body_type {
+                dragon::BodyType::Male => Gender::Masculine,
+                dragon::BodyType::Female => Gender::Feminine,
+            },
+            Body::BipedLarge(b) => match b.body_type {
+                biped_large::BodyType::Male => Gender::Masculine,
+                biped_large::BodyType::Female => Gender::Feminine,
+            },
+            Body::BipedSmall(b) => match b.body_type {
+                biped_small::BodyType::Male => Gender::Masculine,
+                biped_small::BodyType::Female => Gender::Feminine,
+            },
+            Body::Golem(b) => match b.body_type {
+                golem::BodyType::Male => Gender::Masculine,
+                golem::BodyType::Female => Gender::Feminine,
+            },
+            Body::Theropod(b) => match b.body_type {
+                theropod::BodyType::Male => Gender::Masculine,
+                theropod::BodyType::Female => Gender::Feminine,
+            },
+            Body::Arthropod(b) => match b.body_type {
+                arthropod::BodyType::Male => Gender::Masculine,
+                arthropod::BodyType::Female => Gender::Feminine,
+            },
+            Body::Crustacean(b) => match b.body_type {
+                crustacean::BodyType::Male => Gender::Masculine,
+                crustacean::BodyType::Female => Gender::Feminine,
+            },
+            // TODO: do smth about it
+            Body::Plugin(_) => Gender::Neuter,
+            Body::Object(_) | Body::Ship(_) | Body::Item(_) => Gender::Neuter,
+        }
+    }
+
+    /// For use with NPC name localization.
+    ///
+    /// Not a grammatical gender, keep that in mind.
+    pub fn gender_attr(&self) -> &'static str {
+        match self.default_gender() {
+            Gender::Feminine => "fem",
+            Gender::Masculine => "masc",
+            Gender::Neuter => "neut",
         }
     }
 }

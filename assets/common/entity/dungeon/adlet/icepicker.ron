@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Adlet Icepicker"),
+    name: Translate("name-custom-dungeon-adlet-icepicker"),
     body: RandomWith("adlet"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.adlet.icepicker"),

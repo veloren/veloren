@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Mogwai"),
+    name: Automatic,
     body: RandomWith("mogwai"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.terracotta.enemy"),

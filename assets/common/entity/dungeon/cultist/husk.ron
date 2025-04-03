@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Cultist Husk"),
+    name: Automatic,
     body: RandomWith("husk"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.cultist.husk"),

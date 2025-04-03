@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Mindflayer"),
+    name: Automatic,
     body: RandomWith("mindflayer"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.cultist.mindflayer"),

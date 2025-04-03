@@ -1,3 +1,4 @@
+use common_i18n::Content;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{error::Error, fmt};
@@ -70,7 +71,7 @@ impl Error for StatChangeError {}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
-    pub name: String,
+    pub name: Content,
     pub original_body: Body,
     pub damage_reduction: StatsSplit,
     pub poise_reduction: StatsSplit,
@@ -102,7 +103,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub fn new(name: String, body: Body) -> Self {
+    pub fn new(name: Content, body: Body) -> Self {
         Self {
             name,
             original_body: body,
@@ -133,11 +134,12 @@ impl Stats {
 
     /// Creates an empty `Stats` instance - used during character loading from
     /// the database
-    pub fn empty(body: Body) -> Self { Self::new("".to_string(), body) }
+    pub fn empty(body: Body) -> Self { Self::new(Content::dummy(), body) }
 
     /// Resets temporary modifiers to default values
     pub fn reset_temp_modifiers(&mut self) {
-        let name = std::mem::take(&mut self.name);
+        // "consume" name and body and re-create from scratch
+        let name = std::mem::replace(&mut self.name, Content::dummy());
         let body = self.original_body;
 
         *self = Self::new(name, body);

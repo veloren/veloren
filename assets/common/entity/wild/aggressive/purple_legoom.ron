@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Purple Legoom"),
+    name: Automatic,
     body: RandomWith("purple_legoom"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.creature.biped_small.legoom"),

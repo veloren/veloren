@@ -26,11 +26,11 @@ pub fn localize_chat_message(
                 pi.player_alias
             }
         },
-        None => info
-            .entity_name
-            .get(uid)
-            .cloned()
-            .expect("client didn't provided enough info"),
+        None => localization.get_content(
+            info.entity_name
+                .get(uid)
+                .expect("client didn't provided enough info"),
+        ),
     };
 
     // Some messages do suffer from complicated logic of insert_alias.
@@ -78,7 +78,9 @@ pub fn localize_chat_message(
             match pi.character.as_ref().and_then(|c| c.gender) {
                 Some(Gender::Feminine) => "she".to_owned(),
                 Some(Gender::Masculine) => "he".to_owned(),
-                None => "??".to_owned(),
+                // TODO: humanoids and hence players can't be neuter, until
+                // we address the comment above at least.
+                Some(Gender::Neuter) | None => "??".to_owned(),
             }
         } else {
             "??".to_owned()
@@ -132,10 +134,12 @@ pub fn localize_chat_message(
     let message_format = |from: &Uid, content: &Content, group: Option<&String>| {
         let alias = name_format_or_complex(true, from);
 
-        let name = if let Some(pi) = info.player_info.get(from).cloned()
+        let name = if let Some(pi) = info.player_info.get(from)
             && show_char_name
         {
-            pi.character.map(|c| c.name)
+            pi.character
+                .as_ref()
+                .map(|c| localization.get_content(&c.name))
         } else {
             None
         };
@@ -312,7 +316,7 @@ fn localize_kill_message(
                             &i18n::fluent_args! {
                                 "victim" => name_format(victim),
                                 "victim_gender" => gender_str(victim),
-                                "attacker" => attacker_name,
+                                "attacker" => localization.get_content(attacker_name),
                             },
                         )
                         .into_owned();
@@ -321,7 +325,7 @@ fn localize_kill_message(
             localization.get_msg_ctx(key, &i18n::fluent_args! {
                 "victim" => name_format(victim),
                 "victim_gender" => gender_str(victim),
-                "attacker" => attacker_name,
+                "attacker" => localization.get_content(attacker_name),
             })
         },
         // Other deaths
@@ -434,11 +438,18 @@ fn insert_alias(_replace_you: bool, info: PlayerInfo, _localization: &Localizati
 #[cfg(test)]
 mod tests {
     #[expect(unused)] use super::*;
-    use common::comp::{
-        Content,
-        inventory::item::{ItemDesc, ItemI18n, all_items_expect},
+    use common::{
+        assets::AssetExt,
+        comp::{
+            Body, Content,
+            inventory::item::{ItemDesc, ItemI18n, all_items_expect},
+        },
+        generation::{BodyBuilder, EntityConfig, EntityInfo, try_all_entity_configs},
+        npc::NPC_NAMES,
     };
     use i18n::LocalizationHandle;
+    use std::collections::HashSet;
+    use vek::Vec3;
 
     // item::tests::ensure_item_localization tests that we have Content for
     // each item. This tests that we actually have at least English translation
@@ -467,6 +478,123 @@ mod tests {
             localization.try_attr(&key, &attr).unwrap_or_else(|| {
                 panic!("'{key}' description doesn't have i18n");
             });
+        }
+    }
+
+    #[test]
+    fn test_body_names() {
+        let mut no_names = HashSet::new();
+        let mut no_i18n = HashSet::new();
+
+        let localization = LocalizationHandle::load_expect("en").read();
+        let npc_names = NPC_NAMES.read();
+        // ignore things that don't have names anyway
+        //
+        // also plugins, sommry, plugins don't have i18n yet
+        for body in Body::iter().filter(|b| {
+            !matches!(
+                b,
+                Body::Item(_) | Body::Object(_) | Body::Ship(_) | Body::Plugin(_)
+            )
+        }) {
+            let Some(name) = npc_names.get_default_name(&body) else {
+                no_names.insert(body);
+                continue;
+            };
+            let Content::Attr(key, attr) = name else {
+                panic!("name is expected to be Attr, please fix the test");
+            };
+            if localization.try_attr(&key, &attr).is_none() {
+                no_i18n.insert((key, attr));
+            };
+        }
+        if !no_names.is_empty() {
+            let mut no_names = no_names.iter().collect::<Vec<_>>();
+            no_names.sort();
+            panic!(
+                "Following configs have neither custom name nor default: {:#?}",
+                no_names
+            );
+        }
+
+        if !no_i18n.is_empty() {
+            let mut no_i18n = no_i18n.iter().collect::<Vec<_>>();
+            no_i18n.sort();
+            panic!("Following entities don't have proper i18n: {:#?}", no_i18n);
+        }
+    }
+
+    #[test]
+    fn test_npc_names() {
+        let mut no_names = HashSet::new();
+        let mut no_i18n = HashSet::new();
+
+        let mut rng = rand::thread_rng();
+        let localization = LocalizationHandle::load_expect("en").read();
+
+        let entity_configs =
+            try_all_entity_configs().expect("Failed to access entity configs directory");
+
+        // collect to then clone over and over
+        let all_bodies = Body::iter().collect::<Vec<_>>();
+        for config_asset in entity_configs {
+            // TODO: figure out way to test events?
+            let event = None;
+
+            // evaluate to get template to modify later
+            let entity_config = EntityConfig::load_expect_cloned(&config_asset);
+            // evaluate to get random body
+            let template_entity = EntityInfo::at(Vec3::zero()).with_entity_config(
+                entity_config.clone(),
+                Some(&config_asset),
+                &mut rng,
+                event,
+            );
+
+            // loop over all possible bodies for the same species
+            let entity_body = template_entity.body;
+            for body in all_bodies
+                .iter()
+                .filter(|b| b.is_same_species_as(&entity_body))
+            {
+                // real entity config we plan to test with
+                let entity_config = entity_config.clone().with_body(BodyBuilder::Exact(*body));
+                // evaluate to get the resulting name
+                let entity = EntityInfo::at(Vec3::zero()).with_entity_config(
+                    entity_config,
+                    Some(&config_asset),
+                    &mut rng,
+                    event,
+                );
+
+                let name = entity.name;
+                let Some(name) = name else {
+                    no_names.insert(config_asset.to_owned());
+                    continue;
+                };
+
+                let Content::Attr(key, attr) = name else {
+                    panic!("name is expected to be Attr, please fix the test");
+                };
+                if localization.try_attr(&key, &attr).is_none() {
+                    no_i18n.insert((key, attr));
+                };
+            }
+        }
+
+        if !no_names.is_empty() {
+            let mut no_names = no_names.iter().collect::<Vec<_>>();
+            no_names.sort();
+            panic!(
+                "Following configs have neither custom name nor default: {:#?}",
+                no_names
+            );
+        }
+
+        if !no_i18n.is_empty() {
+            let mut no_i18n = no_i18n.iter().collect::<Vec<_>>();
+            no_i18n.sort();
+            panic!("Following entities don't have proper i18n: {:#?}", no_i18n);
         }
     }
 }

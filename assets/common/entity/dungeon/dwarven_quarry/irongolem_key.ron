@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Iron Golem"),
+    name: Automatic,
     body: RandomWith("irongolem"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.irongolem_key"),

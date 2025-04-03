@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Dagonite"),
+    name: Automatic,
     body: RandomWith("dagonite"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.sea_chapel.sea_cleric"),

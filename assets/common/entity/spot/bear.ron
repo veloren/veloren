@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Well-fed Bear"),
+    name: Translate("name-custom-spot-bear"),
     body: RandomWith("bear"),
     alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.creature.quad_medium.clawed"),

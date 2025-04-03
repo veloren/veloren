@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Gnarling Stalker"),
+    name: Translate("name-custom-dungeon-gnarling-stalker"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.gnarling.stalker"),

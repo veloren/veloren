@@ -307,7 +307,9 @@ impl SessionState {
                                 let stats = client.state().read_storage::<Stats>();
                                 stats
                                     .get(entity)
-                                    .map_or(format!("<entity {}>", target), |e| e.name.to_owned())
+                                    .map_or(format!("<entity {}>", target), |e| {
+                                        global_state.i18n.read().get_content(&e.name)
+                                    })
                             },
                             None => format!("<uid {}>", target),
                         },
@@ -1149,7 +1151,12 @@ impl PlayState for SessionState {
                                                         client.state().read_storage::<Stats>();
                                                     stats.get(*entity).map_or(
                                                         format!("<entity {:?}>", uid),
-                                                        |e| e.name.to_owned(),
+                                                        |e| {
+                                                            global_state
+                                                                .i18n
+                                                                .read()
+                                                                .get_content(&e.name)
+                                                        },
                                                     )
                                                 });
 

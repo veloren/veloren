@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Gnarling Logger"),
+    name: Translate("name-custom-dungeon-gnarling-logger"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.gnarling.logger"),

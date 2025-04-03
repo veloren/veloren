@@ -1877,7 +1877,10 @@ fn handle_spawn(
                     .create_npc(
                         pos,
                         comp::Ori::default(),
-                        comp::Stats::new(get_npc_name(id, npc::BodyType::from_body(body)), body),
+                        comp::Stats::new(
+                            Content::Plain(get_npc_name(id, npc::BodyType::from_body(body))),
+                            body,
+                        ),
                         comp::SkillSet::default(),
                         Some(comp::Health::new(body)),
                         comp::Poise::new(body),
@@ -1965,7 +1968,7 @@ fn handle_spawn_training_dummy(
 
     let body = comp::Body::Object(comp::object::Body::TrainingDummy);
 
-    let stats = comp::Stats::new("Training Dummy".to_string(), body);
+    let stats = comp::Stats::new(Content::with_attr("npc-custom-village-dummy", "neut"), body);
     let skill_set = comp::SkillSet::default();
     let health = comp::Health::new(body);
     let poise = comp::Poise::new(body);
@@ -2406,13 +2409,21 @@ fn handle_players(
         &ecs.read_storage::<comp::Stats>(),
     );
 
+    // TODO: localize
     server.notify_client(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
             Content::Plain(entity_tuples.join().fold(
                 format!("{} online players:", entity_tuples.join().count()),
-                |s, (_, player, stat)| format!("{}\n[{}]{}", s, player.alias, stat.name,),
+                |s, (_, player, stat)| {
+                    format!(
+                        "{}\n[{}]{}",
+                        s,
+                        player.alias,
+                        stat.name.as_plain().unwrap_or("<?>"),
+                    )
+                },
             )),
         ),
     );

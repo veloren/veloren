@@ -64,6 +64,7 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "ae0e16783a9f904195
 async-channel = { version = "2.1", optional = true }
 voxygen-i18n-helpers = { package = "veloren-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers", optional = true }
 client-i18n = { package = "veloren-client-i18n", path = "i18n", optional = true }
+common-i18n = { package = "veloren-common-i18n", path = "../common/i18n"}
 serde = { workspace = true, features = ["rc"], optional = true }
 ron = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }

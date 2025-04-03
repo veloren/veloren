@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Overseer"),
+    name: Translate("name-custom-spot-wizard-spellbinder"),
     body: RandomWith("cultist_warlock"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.cultist.enemy"),

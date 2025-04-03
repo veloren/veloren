@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Coral Golem"),
+    name: Automatic,
     body: RandomWith("coralgolem"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.sea_chapel.coralgolem"),

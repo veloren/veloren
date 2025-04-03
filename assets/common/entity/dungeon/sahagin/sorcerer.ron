@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Sahagin Sorcerer"),
+    name: Translate("name-custom-dungeon-sahagin-sorcerer"),
     body: RandomWith("sahagin"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.sahagin.enemy"),

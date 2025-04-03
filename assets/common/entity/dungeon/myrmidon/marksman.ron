@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Myrmidon Marksman"),
+    name: Translate("name-custom-dungeon-myrmidon-marksman"),
     body: RandomWith("myrmidon"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.myrmidon.enemy"),

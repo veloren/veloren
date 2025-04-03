@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Ancient Effigy"),
+    name: Automatic,
     body: RandomWith("ancienteffigy"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.haniwa.enemy"),

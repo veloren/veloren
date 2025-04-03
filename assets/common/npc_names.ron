@@ -293,27 +293,27 @@
         species: (
             danari: (
                 keyword: "danari",
-                generic: "Danari"
+                generic: "name-body-humanoid-danari"
             ),
             dwarf: (
                 keyword: "dwarf",
-                generic: "Dwarf"
+                generic: "name-body-humanoid-dwarf"
             ),
             elf: (
                 keyword: "elf",
-                generic: "Elf"
+                generic: "name-body-humanoid-elf"
             ),
             human: (
                 keyword: "human",
-                generic: "Human"
+                generic: "name-body-humanoid-human"
             ),
             orc: (
                 keyword: "orc",
-                generic: "Orc"
+                generic: "name-body-humanoid-orc"
             ),
             draugr: (
                 keyword: "draugr",
-                generic: "Draugr"
+                generic: "name-body-humanoid-draugr"
             )
         )
     ),
@@ -429,151 +429,151 @@
         species: (
             grolgar: (
                 keyword: "grolgar",
-                generic: "Grolgar"
+                generic: "name-body-quadruped_medium-grolgar"
             ),
             saber: (
                 keyword: "sabertooth",
-                generic: "Sabertooth Tiger"
+                generic: "name-body-quadruped_medium-saber"
             ),
             tuskram: (
                 keyword: "tuskram",
-                generic: "Tusk Ram"
+                generic: "name-body-quadruped_medium-tuskram"
             ),
             lion: (
                 keyword: "lion",
-                generic: "Lion"
+                generic: "name-body-quadruped_medium-lion"
             ),
             tarasque: (
                 keyword: "tarasque",
-                generic: "Tarasque"
+                generic: "name-body-quadruped_medium-tarasque"
             ),
             tiger: (
                 keyword: "tiger",
-                generic: "Tiger"
+                generic: "name-body-quadruped_medium-tiger"
             ),
             wolf: (
                 keyword: "wolf",
-                generic: "Wolf"
+                generic: "name-body-quadruped_medium-wolf"
             ),
             frostfang: (
                 keyword: "frostfang",
-                generic: "Frostfang"
+                generic: "name-body-quadruped_medium-frostfang"
             ),
             mouflon: (
                 keyword: "mouflon",
-                generic: "Mouflon"
+                generic: "name-body-quadruped_medium-mouflon"
             ),
             catoblepas: (
                 keyword: "catoblepas",
-                generic: "Catoblepas"
+                generic: "name-body-quadruped_medium-catoblepas"
             ),
             bonerattler: (
                 keyword: "bonerattler",
-                generic: "Bonerattler"
+                generic: "name-body-quadruped_medium-bonerattler"
             ),
             deer: (
                 keyword: "deer",
-                generic: "Deer"
+                generic: "name-body-quadruped_medium-deer"
             ),
             hirdrasil: (
                 keyword: "hirdrasil",
-                generic: "Hirdrasil"
+                generic: "name-body-quadruped_medium-hirdrasil"
             ),
             roshwalr: (
                 keyword: "roshwalr",
-                generic: "Roshwalr"
+                generic: "name-body-quadruped_medium-roshwalr"
             ),
             donkey: (
                 keyword: "donkey",
-                generic: "Donkey"
+                generic: "name-body-quadruped_medium-donkey"
             ),
             camel: (
                 keyword: "camel",
-                generic: "Camel"
+                generic: "name-body-quadruped_medium-camel"
             ),
             zebra: (
                 keyword: "zebra",
-                generic: "Zebra"
+                generic: "name-body-quadruped_medium-zebra"
             ),
             antelope: (
                 keyword: "antelope",
-                generic: "Antelope"
+                generic: "name-body-quadruped_medium-antelope"
             ),
             kelpie: (
                 keyword: "kelpie",
-                generic: "Kelpie"
+                generic: "name-body-quadruped_medium-kelpie"
             ),
             horse: (
                 keyword: "horse",
-                generic: "Horse"
+                generic: "name-body-quadruped_medium-horse"
             ),
             barghest: (
                 keyword: "barghest",
-                generic: "Barghest"
+                generic: "name-body-quadruped_medium-barghest"
             ),
             cattle: (
                 keyword: "cattle",
-                generic: "Cattle"
+                generic: "name-body-quadruped_medium-cattle"
             ),
             darkhound: (
                 keyword: "darkhound",
-                generic: "Darkhound"
+                generic: "name-body-quadruped_medium-darkhound"
             ),
             highland: (
                 keyword: "highland",
-                generic: "Highland"
+                generic: "name-body-quadruped_medium-highland"
             ),
             yak: (
                 keyword: "yak",
-                generic: "Yak"
+                generic: "name-body-quadruped_medium-yak"
             ),
             panda: (
                 keyword: "panda",
-                generic: "Panda"
+                generic: "name-body-quadruped_medium-panda"
             ),
             bear: (
                 keyword: "bear",
-                generic: "Bear"
+                generic: "name-body-quadruped_medium-bear"
             ),
             dreadhorn: (
                 keyword: "dreadhorn",
-                generic: "Dreadhorn"
+                generic: "name-body-quadruped_medium-dreadhorn"
             ),
             moose: (
                 keyword: "moose",
-                generic: "Moose"
+                generic: "name-body-quadruped_medium-moose"
             ),
             snowleopard: (
                 keyword: "snowleopard",
-                generic: "Snow Leopard"
+                generic: "name-body-quadruped_medium-snowleopard"
             ),
             mammoth: (
                 keyword: "mammoth",
-                generic: "Mammoth"
+                generic: "name-body-quadruped_medium-mammoth"
             ),
             ngoubou: (
                 keyword: "ngoubou",
-                generic: "Ngoubou"
+                generic: "name-body-quadruped_medium-ngoubou"
             ),
             llama: (
                 keyword: "llama",
-                generic: "Llama"
+                generic: "name-body-quadruped_medium-llama"
             ),
             alpaca: (
                 keyword: "alpaca",
-                generic: "Alpaca"
+                generic: "name-body-quadruped_medium-alpaca"
             ),
             akhlut: (
                 keyword: "akhlut",
-                generic: "Akhlut"
+                generic: "name-body-quadruped_medium-akhlut"
             ),
             bristleback: (
                 keyword: "bristleback",
-                generic: "Bristleback"
+                generic: "name-body-quadruped_medium-bristleback"
             ),
             claysteed: (
                 keyword: "claysteed",
-                generic: "Clay Steed"
+                generic: "name-body-quadruped_medium-claysteed"
             ),
         )
     ),
@@ -688,119 +688,119 @@
         species: (
             pig: (
                 keyword: "pig",
-                generic: "Pig"
+                generic: "name-body-quadruped_small-pig"
             ),
             fox: (
                 keyword: "fox",
-                generic: "Fox"
+                generic: "name-body-quadruped_small-fox"
             ),
             sheep: (
                 keyword: "sheep",
-                generic: "Sheep"
+                generic: "name-body-quadruped_small-sheep"
             ),
             boar: (
                 keyword: "boar",
-                generic: "Boar"
+                generic: "name-body-quadruped_small-boar"
             ),
             jackalope: (
                 keyword: "jackalope",
-                generic: "Jackalope"
+                generic: "name-body-quadruped_small-jackalope"
             ),
             skunk: (
                 keyword: "skunk",
-                generic: "Skunk"
+                generic: "name-body-quadruped_small-skunk"
             ),
             cat: (
                 keyword: "cat",
-                generic: "Cat"
+                generic: "name-body-quadruped_small-cat"
             ),
             batfox: (
                 keyword: "batfox",
-                generic: "Bat Fox"
+                generic: "name-body-quadruped_small-batfox"
             ),
             raccoon: (
                 keyword: "raccoon",
-                generic: "Raccoon"
+                generic: "name-body-quadruped_small-raccoon"
             ),
             quokka: (
                 keyword: "quokka",
-                generic: "Quokka"
+                generic: "name-body-quadruped_small-quokka"
             ),
             holladon: (
                 keyword: "holladon",
-                generic: "Holladon"
+                generic: "name-body-quadruped_small-holladon"
             ),
             hyena: (
                 keyword: "hyena",
-                generic: "Hyena"
+                generic: "name-body-quadruped_small-hyena"
             ),
             rabbit: (
                 keyword: "rabbit",
-                generic: "Rabbit"
+                generic: "name-body-quadruped_small-rabbit"
             ),
             truffler: (
                 keyword: "truffler",
-                generic: "Truffler"
+                generic: "name-body-quadruped_small-truffler"
             ),
             frog: (
                 keyword: "frog",
-                generic: "Frog"
+                generic: "name-body-quadruped_small-frog"
             ),
             rat: (
                 keyword: "rat",
-                generic: "Rat"
+                generic: "name-body-quadruped_small-rat"
             ),
             axolotl: (
                 keyword: "axolotl",
-                generic: "Axolotl"
+                generic: "name-body-quadruped_small-axolotl"
             ),
             gecko: (
                 keyword: "gecko",
-                generic: "Gecko"
+                generic: "name-body-quadruped_small-gecko"
             ),
             turtle: (
                 keyword: "turtle",
-                generic: "Turtle"
+                generic: "name-body-quadruped_small-turtle"
             ),
             squirrel: (
                 keyword: "squirrel",
-                generic: "Squirrel"
+                generic: "name-body-quadruped_small-squirrel"
             ),
             fungome: (
                 keyword: "fungome",
-                generic: "Fungome"
+                generic: "name-body-quadruped_small-fungome"
             ),
             porcupine: (
                 keyword: "porcupine",
-                generic: "Porcupine"
+                generic: "name-body-quadruped_small-porcupine"
             ),
             beaver: (
                 keyword: "beaver",
-                generic: "Beaver"
+                generic: "name-body-quadruped_small-beaver"
             ),
             hare: (
                 keyword: "hare",
-                generic: "Hare"
+                generic: "name-body-quadruped_small-hare"
             ),
             dog: (
                 keyword: "dog",
-                generic: "Dog"
+                generic: "name-body-quadruped_small-dog"
             ),
             goat: (
                 keyword: "goat",
-                generic: "Goat"
+                generic: "name-body-quadruped_small-goat"
             ),
             seal: (
                 keyword: "seal",
-                generic: "Seal"
+                generic: "name-body-quadruped_small-seal"
             ),
             treant_sapling: (
                 keyword: "treant_sapling",
-                generic: "Treant Sapling"
+                generic: "name-body-quadruped_small-treant_sapling"
             ),
             mossy_snail: (
                 keyword: "mossy_snail",
-                generic: "Mossy Snail"
+                generic: "name-body-quadruped_small-mossy_snail"
             )
         )
     ),
@@ -814,75 +814,75 @@
         species: (
             duck: (
                 keyword: "duck",
-                generic: "Duck"
+                generic: "name-body-bird_medium-duck"
             ),
             snowy_owl: (
                 keyword: "snowy_owl",
-                generic: "SnowyOwl"
+                generic: "name-body-bird_medium-snowy_owl"
             ),
             horned_owl: (
                 keyword: "horned_owl",
-                generic: "HornedOwl"
+                generic: "name-body-bird_medium-horned_owl"
             ),
             cockatiel: (
                 keyword: "cockatiel",
-                generic: "Cockatiel"
+                generic: "name-body-bird_medium-cockatiel"
             ),
             chicken: (
                 keyword: "chicken",
-                generic: "Chicken"
+                generic: "name-body-bird_medium-chicken"
             ),
             bat: (
                 keyword: "bat",
-                generic: "Bat"
+                generic: "name-body-bird_medium-bat"
             ),
             penguin: (
                 keyword: "penguin",
-                generic: "Penguin"
+                generic: "name-body-bird_medium-penguin"
             ),
             goose: (
                 keyword: "goose",
-                generic: "Goose"
+                generic: "name-body-bird_medium-goose"
             ),
             peacock: (
                 keyword: "peacock",
-                generic: "Peacock"
+                generic: "name-body-bird_medium-peacock"
             ),
             eagle: (
                 keyword: "eagle",
-                generic: "Eagle"
+                generic: "name-body-bird_medium-eagle"
             ),
             parrot: (
                 keyword: "parrot",
-                generic: "Parrot"
+                generic: "name-body-bird_medium-parrot"
             ),
             crow: (
                 keyword: "crow",
-                generic: "Crow"
+                generic: "name-body-bird_medium-crow"
             ),
             dodo: (
                 keyword: "dodo",
-                generic: "Dodo"
+                generic: "name-body-bird_medium-dodo"
             ),
             parakeet: (
                 keyword: "parakeet",
-                generic: "Parakeet"
+                generic: "name-body-bird_medium-parakeet"
             ),
             puffin: (
                 keyword: "puffin",
-                generic: "Puffin"
+                generic: "name-body-bird_medium-puffin"
             ),
             toucan: (
                 keyword: "toucan",
-                generic: "Toucan"
+                generic: "name-body-bird_medium-toucan"
             ),
             bloodmoon_bat: (
                 keyword: "bloodmoon_bat",
-                generic: "Bloodmoon Heiress"
+                generic: "name-body-bird_medium-bloodmoon_bat"
             ),
             vampire_bat: (
                 keyword: "vampire_bat",
-                generic: "Vampire Bat"
+                generic: "name-body-bird_medium-vampire_bat"
             ),
         )
     ),
@@ -896,139 +896,139 @@
         species: (
             ogre: (
                 keyword: "ogre",
-                generic: "Ogre"
+                generic: "name-body-biped_large-ogre"
             ),
             cyclops: (
                 keyword: "cyclops",
-                generic: "Cyclops"
+                generic: "name-body-biped_large-cyclops"
             ),
             wendigo: (
                 keyword: "wendigo",
-                generic: "Wendigo"
+                generic: "name-body-biped_large-wendigo"
             ),
             troll_cave: (
                 keyword: "troll_cave",
-                generic: "Cave Troll"
+                generic: "name-body-biped_large-troll_cave"
             ),
             troll_mountain: (
                 keyword: "troll_mountain",
-                generic: "Mountain Troll"
+                generic: "name-body-biped_large-troll_mountain"
             ),
             troll_swamp: (
                 keyword: "troll_swamp",
-                generic: "Swamp Troll"
+                generic: "name-body-biped_large-troll_swamp"
             ),
             dullahan: (
                 keyword: "dullahan",
-                generic: "Dullahan"
+                generic: "name-body-biped_large-dullahan"
             ),
             werewolf: (
                 keyword: "werewolf",
-                generic: "Werewolf"
+                generic: "name-body-biped_large-werewolf"
             ),
             saurok_occult: (
                 keyword: "saurok_occult",
-                generic: "Occult Saurok"
+                generic: "name-body-biped_large-saurok_occult"
             ),
             saurok_mighty: (
                 keyword: "saurok_mighty",
-                generic: "Mighty Saurok"
+                generic: "name-body-biped_large-saurok_mighty"
             ),
             saurok_sly: (
                 keyword: "saurok_sly",
-                generic: "Sly Saurok"
+                generic: "name-body-biped_large-saurok_sly"
             ),
             mindflayer: (
                 keyword: "mindflayer",
-                generic: "Mindflayer"
+                generic: "name-body-biped_large-mindflayer"
             ),
             minotaur: (
                 keyword: "minotaur",
-                generic: "Minotaur"
+                generic: "name-body-biped_large-minotaur"
             ),
             tidalwarrior: (
                 keyword: "tidalwarrior",
-                generic: "Tidal Warrior"
+                generic: "name-body-biped_large-tidalwarrior"
             ),
             yeti: (
                 keyword: "yeti",
-                generic: "Yeti"
+                generic: "name-body-biped_large-yeti"
             ),
             harvester: (
                 keyword: "harvester",
-                generic: "Harvester"
+                generic: "name-body-biped_large-harvester"
             ),
             oni_blue: (
                 keyword: "oni_blue",
-                generic: "Blue Oni"
+                generic: "name-body-biped_large-oni_blue"
             ),
             oni_red: (
                 keyword: "oni_red",
-                generic: "Red Oni"
+                generic: "name-body-biped_large-oni_red"
             ),
             cultist_warlord: (
                 keyword: "cultist_warlord",
-                generic: "Cultist Warlord"
+                generic: "name-body-biped_large-cultist_warlord"
             ),
             cultist_warlock: (
                 keyword: "cultist_warlock",
-                generic: "Cultist Warlock"
+                generic: "name-body-biped_large-cultist_warlock"
             ),
             husk_brute: (
                 keyword: "husk_brute",
-                generic: "Husk Brute"
+                generic: "name-body-biped_large-husk_brute"
             ),
             tursus: (
                 keyword: "tursus",
-                generic: "Tursus"
+                generic: "name-body-biped_large-tursus"
             ),
             gigas_frost: (
                 keyword: "gigas_frost",
-                generic: "Frost Gigas"
+                generic: "name-body-biped_large-gigas_frost"
             ),
             adlet_elder: (
                 keyword: "adlet_elder",
-                generic: "Adlet Elder"
+                generic: "name-body-biped_large-adlet_elder"
             ),
             sea_bishop: (
                 keyword: "sea_bishop",
-                generic: "Sea Bishop"
+                generic: "name-body-biped_large-sea_bishop"
             ),
             haniwa_general: (
                 keyword: "haniwa_general",
-                generic: "Haniwa General"
+                generic: "name-body-biped_large-haniwa_general"
             ),
             terracotta_besieger: (
                 keyword: "terracotta_besieger",
-                generic: "Terracotta Besieger"
+                generic: "name-body-biped_large-terracotta_besieger"
             ),
             terracotta_demolisher: (
                 keyword: "terracotta_demolisher",
-                generic: "Terracotta Demolisher"
+                generic: "name-body-biped_large-terracotta_demolisher"
             ),
             terracotta_punisher: (
                 keyword: "terracotta_punisher",
-                generic: "Terracotta Punisher"
+                generic: "name-body-biped_large-terracotta_punisher"
             ),
             terracotta_pursuer: (
                 keyword: "terracotta_pursuer",
-                generic: "Terracotta Pursuer"
+                generic: "name-body-biped_large-terracotta_pursuer"
             ),
             cursekeeper: (
                 keyword: "cursekeeper",
-                generic: "Cursekeeper"
+                generic: "name-body-biped_large-cursekeeper"
             ),
             forgemaster: (
                 keyword: "forgemaster",
-                generic: "Forgemaster"
+                generic: "name-body-biped_large-forgemaster"
             ),
             executioner: (
                 keyword: "executioner",
-                generic: "Executioner"
+                generic: "name-body-biped_large-executioner"
             ),
             strigoi: (
                 keyword: "strigoi",
-                generic: "Strigoi"
+                generic: "name-body-biped_large-strigoi"
             )
         )
     ),
@@ -1042,39 +1042,39 @@
         species: (
             stonegolem: (
                 keyword: "stonegolem",
-                generic: "Stone Golem"
+                generic: "name-body-golem-stonegolem"
             ),
             treant: (
                 keyword: "treant",
-                generic: "Treant"
+                generic: "name-body-golem-treant"
             ),
             woodgolem: (
                 keyword: "woodgolem",
-                generic: "Wooden Golem"
+                generic: "name-body-golem-woodgolem"
             ),
             gravewarden: (
                 keyword: "gravewarden",
-                generic: "Gravewarden"
+                generic: "name-body-golem-gravewarden"
             ),
             claygolem: (
                 keyword: "claygolem",
-                generic: "Clay Golem"
+                generic: "name-body-golem-claygolem"
             ),
             ancienteffigy: (
                 keyword: "ancienteffigy",
-                generic: "Ancient Effigy"
+                generic: "name-body-golem-ancienteffigy"
             ),
             mogwai: (
                 keyword: "mogwai",
-                generic: "Mogwai"
+                generic: "name-body-golem-mogwai"
             ),
             coralgolem: (
                 keyword: "coralgolem",
-                generic: "Coral Golem"
+                generic: "name-body-golem-coralgolem"
             ),
             irongolem: (
                 keyword: "irongolem",
-                generic: "IronGolem"
+                generic: "name-body-golem-irongolem"
             )
         )
     ),
@@ -1088,43 +1088,43 @@
         species: (
             archaeos: (
                 keyword: "archaeos",
-                generic: "Archaeos"
+                generic: "name-body-theropod-archaeos"
             ),
             odonto: (
                 keyword: "odonto",
-                generic: "Odonto"
+                generic: "name-body-theropod-odonto"
             ),
             raptor_sand: (
                 keyword: "raptor_sand",
-                generic: "Sand Raptor"
+                generic: "name-body-theropod-raptor_sand"
             ),
             raptor_snow: (
                 keyword: "raptor_snow",
-                generic: "Snow Raptor"
+                generic: "name-body-theropod-raptor_snow"
             ),
             raptor_wood: (
                 keyword: "raptor_wood",
-                generic: "Wood Raptor"
+                generic: "name-body-theropod-raptor_wood"
             ),
             sunlizard: (
                 keyword: "sunlizard",
-                generic: "Sun Lizard"
+                generic: "name-body-theropod-sunlizard"
             ),
             yale: (
                 keyword: "yale",
-                generic: "Yale"
+                generic: "name-body-theropod-yale"
             ),
             ntouka: (
                 keyword: "ntouka",
-                generic: "Ntouka"
+                generic: "name-body-theropod-ntouka"
             ),
             dodarock: (
                 keyword: "dodarock",
-                generic: "Dodarock"
+                generic: "name-body-theropod-dodarock"
             ),
             axebeak: (
                 keyword: "axebeak",
-                generic: "Axebeak"
+                generic: "name-body-theropod-axebeak"
             )
         )
     ),
@@ -1138,7 +1138,7 @@
         species: (
             reddragon: (
                 keyword: "reddragon",
-                generic: "Red Dragon"
+                generic: "name-body-dragon-reddragon"
             )
         )
     ),
@@ -1175,123 +1175,123 @@
         species: (
             gnome: (
                 keyword: "gnome",
-                generic: "Gnome"
+                generic: "name-body-biped_small-gnome"
             ),
             iron_dwarf: (
                 keyword: "iron_dwarf",
-                generic: "Iron Dwarf"
+                generic: "name-body-biped_small-iron_dwarf"
             ),
             flamekeeper: (
                 keyword: "flamekeeper",
-                generic: "Flamekeeper"
+                generic: "name-body-biped_small-flamekeeper"
             ),
             sahagin: (
                 keyword: "sahagin",
-                generic: "Sahagin"
+                generic: "name-body-biped_small-sahagin"
             ),
             adlet: (
                 keyword: "adlet",
-                generic: "Adlet"
+                generic: "name-body-biped_small-adlet"
             ),
             gnarling: (
                 keyword: "gnarling",
-                generic: "Gnarling"
+                generic: "name-body-biped_small-gnarling"
             ),
             mandragora: (
                 keyword: "mandragora",
-                generic: "Mandragora"
+                generic: "name-body-biped_small-mandragora"
             ),
             kappa: (
                 keyword: "kappa",
-                generic: "Kappa"
+                generic: "name-body-biped_small-kappa"
             ),
             cactid: (
                 keyword: "cactid",
-                generic: "Cactid"
+                generic: "name-body-biped_small-cactid"
             ),
             gnoll: (
                 keyword: "gnoll",
-                generic: "Gnoll"
+                generic: "name-body-biped_small-gnoll"
             ),
             haniwa: (
                 keyword: "haniwa",
-                generic: "Haniwa"
+                generic: "name-body-biped_small-haniwa"
             ),
             myrmidon: (
                 keyword: "myrmidon",
-                generic: "Myrmidon"
+                generic: "name-body-biped_small-myrmidon"
             ),
             husk: (
                 keyword: "husk",
-                generic: "Cultist Husk"
+                generic: "name-body-biped_small-husk"
             ),
             boreal: (
                 keyword: "boreal",
-                generic: "Boreal Warrior",
+                generic: "name-body-biped_small-boreal",
             ),
             bushly: (
                 keyword: "bushly",
-                generic: "Bushly",
+                generic: "name-body-biped_small-bushly",
             ),
             irrwurz: (
                 keyword: "irrwurz",
-                generic: "Irrwurz",
+                generic: "name-body-biped_small-irrwurz",
             ),
             shamanic_spirit: (
                 keyword: "shamanic_spirit",
-                generic: "Shamanic Spirit",
+                generic: "name-body-biped_small-shamanic_spirit",
             ),
             jiangshi: (
                 keyword: "jiangshi",
-                generic: "Jiangshi",
+                generic: "name-body-biped_small-jiangshi",
             ),
             treasure_egg: (
                 keyword: "treasure_egg",
-                generic: "Treasure Egg",
+                generic: "name-body-biped_small-treasure_egg",
             ),
             gnarling_chieftain: (
                 keyword: "gnarling_chieftain",
-                generic: "Gnarling Chieftain"
+                generic: "name-body-biped_small-gnarling_chieftain"
             ),
             bloodmoon_heiress: (
                 keyword: "bloodmoon_heiress",
-                generic: "Bloodmoon Heiress"
+                generic: "name-body-bird_medium-bloodmoon_bat"
             ),
             bloodservant: (
                 keyword: "bloodservant",
-                generic: "Bloodservant"
+                generic: "name-body-biped_small-bloodservant"
             ),
             harlequin: (
                 keyword: "harlequin",
-                generic: "Harlequin"
+                generic: "name-body-biped_small-harlequin"
             ),
             goblin_thug: (
                 keyword: "goblin_thug",
-                generic: "Goblin Thug",
+                generic: "name-body-biped_small-goblin_thug",
             ),
             goblin_chucker: (
                 keyword: "goblin_chucker",
-                generic: "Goblin Chucker",
+                generic: "name-body-biped_small-goblin_chucker",
             ),
             goblin_ruffian: (
                 keyword: "goblin_ruffian",
-                generic: "Goblin Ruffian",
+                generic: "name-body-biped_small-goblin_ruffian",
             ),
             green_legoom: (
                 keyword: "green_legoom",
-                generic: "Green Legoom",
+                generic: "name-body-biped_small-green_legoom",
             ),
             ochre_legoom: (
                 keyword: "ochre_legoom",
-                generic: "Ochre Legoom",
+                generic: "name-body-biped_small-ochre_legoom",
             ),
             purple_legoom: (
                 keyword: "purple_legoom",
-                generic: "Purple Legoom",
+                generic: "name-body-biped_small-purple_legoom",
             ),
             red_legoom: (
                 keyword: "red_legoom",
-                generic: "Red Legoom",
+                generic: "name-body-biped_small-red_legoom",
             ),                                                             
         )
     ),
@@ -1305,11 +1305,11 @@
         species: (
             clownfish: (
                 keyword: "clownfish",
-                generic: "Clownfish"
+                generic: "name-body-fish_small-clownfish"
             ),
             piranha: (
                 keyword: "piranha",
-                generic: "Piranha"
+                generic: "name-body-fish_small-piranha"
             )
         )
     ),
@@ -1323,11 +1323,11 @@
         species: (
             marlin: (
                 keyword: "marlin",
-                generic: "Marlin"
+                generic: "name-body-fish_medium-marlin"
             ),
             icepike: (
                 keyword: "icepike",
-                generic: "Icepike"
+                generic: "name-body-fish_medium-icepike"
             )
         )
     ),
@@ -1341,35 +1341,35 @@
         species: (
             phoenix: (
                 keyword: "phoenix",
-                generic: "Phoenix"
+                generic: "name-body-bird_large-phoenix"
             ),
             cockatrice: (
                 keyword: "cockatrice",
-                generic: "Cockatrice"
+                generic: "name-body-bird_large-cockatrice"
             ),
             roc: (
                 keyword: "roc",
-                generic: "Roc"
+                generic: "name-body-bird_large-roc"
             ),
             wyvern_flame: (
                 keyword: "wyvern_flame",
-                generic: "Flame Wyvern"
+                generic: "name-body-bird_large-wyvern_flame"
             ),
             wyvern_cloud: (
                 keyword: "wyvern_cloud",
-                generic: "Cloud Wyvern"
+                generic: "name-body-bird_large-wyvern_cloud"
             ),
             wyvern_frost: (
                 keyword: "wyvern_frost",
-                generic: "Frost Wyvern"
+                generic: "name-body-bird_large-wyvern_frost"
             ),
             wyvern_sea: (
                 keyword: "wyvern_sea",
-                generic: "Sea Wyvern"
+                generic: "name-body-bird_large-wyvern_sea"
             ),
             wyvern_weald: (
                 keyword: "wyvern_weald",
-                generic: "Weald Wyvern"
+                generic: "name-body-bird_large-wyvern_weald"
             ),
         )
     ),
@@ -1383,99 +1383,99 @@
         species: (
             crocodile: (
                 keyword: "crocodile",
-                generic: "Crocodile"
+                generic: "name-body-quadruped_low-crocodile"
             ),
             sea_crocodile: (
                 keyword: "sea_crocodile",
-                generic: "Sea Crocodile"
+                generic: "name-body-quadruped_low-sea_crocodile"
             ),
             alligator: (
                 keyword: "alligator",
-                generic: "Alligator"
+                generic: "name-body-quadruped_low-alligator"
             ),
             snaretongue: (
                 keyword: "snaretongue",
-                generic: "Snaretongue"
+                generic: "name-body-quadruped_low-snaretongue"
             ),
             salamander: (
                 keyword: "salamander",
-                generic: "Salamander"
+                generic: "name-body-quadruped_low-salamander"
             ),
             elbst: (
                 keyword: "elbst",
-                generic: "Elbst"
+                generic: "name-body-quadruped_low-elbst"
             ),
             monitor: (
                 keyword: "monitor",
-                generic: "Monitor"
+                generic: "name-body-quadruped_low-monitor"
             ),
             asp: (
                 keyword: "asp",
-                generic: "Asp"
+                generic: "name-body-quadruped_low-asp"
             ),
             tortoise: (
                 keyword: "tortoise",
-                generic: "Tortoise"
+                generic: "name-body-quadruped_low-tortoise"
             ),
             rocksnapper: (
                 keyword: "rocksnapper",
-                generic: "Rock Snapper"
+                generic: "name-body-quadruped_low-rocksnapper"
             ),
             rootsnapper: (
                 keyword: "rootsnapper",
-                generic: "Root Snapper"
+                generic: "name-body-quadruped_low-rootsnapper"
             ),
             reefsnapper: (
                 keyword: "reefsnapper",
-                generic: "Reef Snapper"
+                generic: "name-body-quadruped_low-reefsnapper"
             ),
             pangolin: (
                 keyword: "pangolin",
-                generic: "Pangolin"
+                generic: "name-body-quadruped_low-pangolin"
             ),
             maneater: (
                 keyword: "maneater",
-                generic: "Maneater"
+                generic: "name-body-quadruped_low-maneater"
             ),
             sandshark: (
                 keyword: "sandshark",
-                generic: "Sand Shark"
+                generic: "name-body-quadruped_low-sandshark"
             ),
             hakulaq: (
                 keyword: "hakulaq",
-                generic: "Hakulaq"
+                generic: "name-body-quadruped_low-hakulaq"
             ),
             dagon: (
                 keyword: "dagon",
-                generic: "Dagon"
+                generic: "name-body-quadruped_low-dagon"
             ),
             lavadrake: (
                 keyword: "lavadrake",
-                generic: "Lava Drake"
+                generic: "name-body-quadruped_low-lavadrake"
             ),
             icedrake: (
                 keyword: "icedrake",
-                generic: "Ice Drake"
+                generic: "name-body-quadruped_low-icedrake"
             ),
             basilisk: (
                 keyword: "basilisk",
-                generic: "Basilisk"
+                generic: "name-body-quadruped_low-basilisk"
             ),
             deadwood: (
                 keyword: "deadwood",
-                generic: "Deadwood"
+                generic: "name-body-quadruped_low-deadwood"
             ),
             mossdrake: (
                 keyword: "mossdrake",
-                generic: "Moss Drake"
+                generic: "name-body-quadruped_low-mossdrake"
             ),
             driggle: (
                 keyword: "driggle",
-                generic: "Driggle"
+                generic: "name-body-quadruped_low-driggle"
             ),
             hydra: (
                 keyword: "hydra",
-                generic: "Hydra"
+                generic: "name-body-quadruped_low-hydra"
             ),
         )
     ),
@@ -1489,55 +1489,55 @@
         species: (
             tarantula: (
                 keyword: "tarantula",
-                generic: "Tarantula"
+                generic: "name-body-arthropod-tarantula"
             ),
             black_widow: (
                 keyword: "black_widow",
-                generic: "Black Widow"
+                generic: "name-body-arthropod-black_widow"
             ),
             antlion: (
                 keyword: "antlion",
-                generic: "Antlion"
+                generic: "name-body-arthropod-antlion"
             ),
             horn_beetle: (
                 keyword: "horn_beetle",
-                generic: "Horn Beetle"
+                generic: "name-body-arthropod-horn_beetle"
             ),
             leaf_beetle: (
                 keyword: "leaf_beetle",
-                generic: "Leaf Beetle"
+                generic: "name-body-arthropod-leaf_beetle"
             ),
             stag_beetle: (
                 keyword: "stag_beetle",
-                generic: "Stag Beetle"
+                generic: "name-body-arthropod-stag_beetle"
             ),
             weevil: (
                 keyword: "weevil",
-                generic: "Weevil"
+                generic: "name-body-arthropod-weevil"
             ),
             cave_spider: (
                 keyword: "cave_spider",
-                generic: "Cave Spider"
+                generic: "name-body-arthropod-cave_spider"
             ),
             crawler_molten: (
                 keyword: "crawler_molten",
-                generic: "Molten Crawler"
+                generic: "name-body-arthropod-crawler_molten"
             ),
             crawler_moss: (
                 keyword: "crawler_moss",
-                generic: "Moss Crawler"
+                generic: "name-body-arthropod-crawler_moss"
             ),
             crawler_sand: (
                 keyword: "crawler_sand",
-                generic: "Sand Crawler"
+                generic: "name-body-arthropod-crawler_sand"
             ),
             dagonite: (
                 keyword: "dagonite",
-                generic: "Dagonite"
+                generic: "name-body-arthropod-dagonite"
             ),
             emberfly: (
                 keyword: "emberfly",
-                generic: "Emberfly"
+                generic: "name-body-arthropod-emberfly"
             ),
         )
     ),
@@ -1549,15 +1549,15 @@
         species: (
             crab: (
                 keyword: "crab",
-                generic: "Crab",
+                generic: "name-body-crustacean-crab",
             ),
             soldier_crab: (
                 keyword: "soldier_crab",
-                generic: "Soldier Crab",
+                generic: "name-body-crustacean-soldier_crab",
             ),            
             karkatha: (
                 keyword: "karkatha",
-                generic: "Karkatha",
+                generic: "name-body-crustacean-karkatha",
             ),
         ),
     ),
@@ -1569,7 +1569,7 @@
         species: (
             plugin: (
                 keyword: "unknown",
-                generic: "unknown",
+                generic: "name-body-plugin-plugin",
             ),
         ),
     ),

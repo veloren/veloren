@@ -89,12 +89,21 @@ impl From<u64> for LocalizationArg {
 fn random_seed() -> u16 { rand::random() }
 
 impl Content {
+    pub fn dummy() -> Self { Self::Plain("".to_owned()) }
+
+    #[deprecated]
+    pub fn legacy(hardcoded: String) -> Self { Self::Plain(hardcoded) }
+
     pub fn localized(key: impl ToString) -> Self {
         Self::Localized {
             key: key.to_string(),
             seed: random_seed(),
             args: HashMap::default(),
         }
+    }
+
+    pub fn with_attr(key: impl ToString, attr: impl ToString) -> Self {
+        Self::Attr(key.to_string(), attr.to_string())
     }
 
     pub fn localized_with_args<'a, A: Into<LocalizationArg>>(

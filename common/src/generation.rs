@@ -5,7 +5,7 @@ use crate::{
     calendar::Calendar,
     combat::{DeathEffect, DeathEffects, RiderEffects},
     comp::{
-        self, Alignment, Body, Item, agent, humanoid,
+        Alignment, Body, Item, agent, humanoid,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
         misc::PortalData,
     },
@@ -16,6 +16,8 @@ use crate::{
     rtsim,
     trade::SiteInformation,
 };
+use common_base::dev_panic;
+use common_i18n::Content;
 use enum_map::EnumMap;
 use serde::Deserialize;
 use tracing::error;
@@ -23,8 +25,12 @@ use vek::*;
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub enum NameKind {
-    Name(String),
+    /// i18n key with attributes for feminine and masculine versions
+    Translate(String),
+    /// Derive the name from the `Body` using [`NPC_NAMES`] manifest.
+    /// Also see `npc_names.ron`.
     Automatic,
+    /// Explicitly state no name
     Uninit,
 }
 
@@ -214,7 +220,7 @@ pub struct EntityInfo {
     pub aggro_range_multiplier: f32,
     // Stats
     pub body: Body,
-    pub name: Option<String>,
+    pub name: Option<Content>,
     pub scale: f32,
     // Loot
     pub loot: LootSpec<String>,
@@ -334,13 +340,15 @@ impl EntityInfo {
             BodyBuilder::Uninit => {},
         }
 
-        // NOTE: set name after body, as it's used with automatic name
+        // NOTE: set name after body, as body is needed used with for both
+        // automatic and translated names
         match name {
-            NameKind::Name(name) => {
+            NameKind::Translate(key) => {
+                let name = Content::with_attr(key, self.body.gender_attr());
                 self = self.with_name(name);
             },
             NameKind::Automatic => {
-                self = self.with_automatic_name(None);
+                self = self.with_automatic_name();
             },
             NameKind::Uninit => {},
         }
@@ -494,8 +502,8 @@ impl EntityInfo {
     }
 
     #[must_use]
-    pub fn with_name(mut self, name: impl Into<String>) -> Self {
-        self.name = Some(name.into());
+    pub fn with_name(mut self, name: Content) -> Self {
+        self.name = Some(name);
         self
     }
 
@@ -543,47 +551,27 @@ impl EntityInfo {
     }
 
     #[must_use]
-    pub fn with_automatic_name(mut self, alias: Option<String>) -> Self {
+    pub fn with_automatic_name(mut self) -> Self {
         let npc_names = NPC_NAMES.read();
-        let name = match &self.body {
-            Body::Humanoid(body) => Some(get_npc_name(&npc_names.humanoid, body.species)),
-            Body::QuadrupedMedium(body) => {
-                Some(get_npc_name(&npc_names.quadruped_medium, body.species))
-            },
-            Body::BirdMedium(body) => Some(get_npc_name(&npc_names.bird_medium, body.species)),
-            Body::BirdLarge(body) => Some(get_npc_name(&npc_names.bird_large, body.species)),
-            Body::FishSmall(body) => Some(get_npc_name(&npc_names.fish_small, body.species)),
-            Body::FishMedium(body) => Some(get_npc_name(&npc_names.fish_medium, body.species)),
-            Body::Theropod(body) => Some(get_npc_name(&npc_names.theropod, body.species)),
-            Body::QuadrupedSmall(body) => {
-                Some(get_npc_name(&npc_names.quadruped_small, body.species))
-            },
-            Body::Dragon(body) => Some(get_npc_name(&npc_names.dragon, body.species)),
-            Body::QuadrupedLow(body) => Some(get_npc_name(&npc_names.quadruped_low, body.species)),
-            Body::Golem(body) => Some(get_npc_name(&npc_names.golem, body.species)),
-            Body::BipedLarge(body) => Some(get_npc_name(&npc_names.biped_large, body.species)),
-            Body::Arthropod(body) => Some(get_npc_name(&npc_names.arthropod, body.species)),
-            Body::Crustacean(body) => Some(get_npc_name(&npc_names.crustacean, body.species)),
-            Body::Plugin(body) => Some(get_npc_name(&npc_names.plugin, body.species)),
-            _ => None,
-        };
-        self.name = name.map(|name| {
-            if let Some(alias) = alias {
-                format!("{alias} ({name})")
-            } else {
-                name.to_string()
-            }
-        });
+        self.name = npc_names.get_default_name(&self.body);
         self
     }
 
     #[must_use]
     pub fn with_alias(mut self, alias: String) -> Self {
-        self.name = Some(if let Some(name) = self.name {
-            format!("{alias} ({name})")
-        } else {
-            alias
-        });
+        self.name = Some(Content::localized_with_args(
+            "name-misc-with-alias-template",
+            [
+                ("alias", Content::Plain(alias)),
+                (
+                    "old_name",
+                    self.name.unwrap_or_else(|| {
+                        dev_panic!("no name present to use with with_alias");
+                        Content::Plain("??".to_owned())
+                    }),
+                ),
+            ],
+        ));
         self
     }
 
@@ -615,17 +603,6 @@ pub struct ChunkSupplement {
 
 impl ChunkSupplement {
     pub fn add_entity(&mut self, entity: EntityInfo) { self.entities.push(entity); }
-}
-
-pub fn get_npc_name<
-    'a,
-    Species,
-    SpeciesData: for<'b> core::ops::Index<&'b Species, Output = npc::SpeciesNames>,
->(
-    body_data: &'a comp::BodyData<npc::BodyNames, SpeciesData>,
-    species: Species,
-) -> &'a str {
-    &body_data.species[&species].generic
 }
 
 #[cfg(test)]
@@ -711,12 +688,17 @@ pub mod tests {
 
     #[cfg(test)]
     fn validate_name(name: NameKind, body: BodyBuilder, config_asset: &str) {
-        if name == NameKind::Automatic && body == BodyBuilder::Uninit {
+        if (name == NameKind::Automatic || matches!(name, NameKind::Translate(_)))
+            && body == BodyBuilder::Uninit
+        {
             // there is a big chance to call automatic name
             // when body is yet undefined
             //
             // use .with_automatic_name() in code explicitly
-            panic!("Used Automatic name with Uninit body in {}", config_asset);
+            panic!(
+                "Used Automatic/Translate name with Uninit body in {}",
+                config_asset
+            );
         }
     }
 

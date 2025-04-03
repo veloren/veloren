@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Lioness"),
+    name: Automatic,
     body: Exact(QuadrupedMedium((
         species: Lion,
         body_type: Female,

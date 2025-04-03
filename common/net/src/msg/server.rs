@@ -274,12 +274,16 @@ pub struct PlayerInfo {
 pub struct ChatTypeContext {
     pub you: Uid,
     pub player_info: HashMap<Uid, PlayerInfo>,
-    pub entity_name: HashMap<Uid, String>,
+    pub entity_name: HashMap<Uid, Content>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterInfo {
-    pub name: String,
+    /// The name of specific character, not to be mistaken for player's alias.
+    ///
+    /// We use Content here as for all names, but any character name provided
+    /// directly from a client will be `Content::Plain`
+    pub name: Content,
     pub gender: Option<Gender>,
 }
 

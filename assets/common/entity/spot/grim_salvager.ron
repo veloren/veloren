@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Grim Salvager"),
+    name: Translate("name-custom-spot-grim_salvager"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.humanoids.grim_salvager"),

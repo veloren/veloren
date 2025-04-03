@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Organ"),
+    name: Translate("name-custom-dungeon-sea_chapel-organ"),
     body: Exact(Object(BarrelOrgan)),
     alignment: Alignment(Enemy),
     loot: Item("common.items.keys.glass_key"),

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Training Dummy"),
+    name: Translate("name-custom-village-dummy"),
     body: Exact(Object(TrainingDummy)),
     alignment: Alignment(Passive),
     loot: Nothing,

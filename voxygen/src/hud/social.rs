@@ -236,10 +236,11 @@ impl Widget for Social<'_> {
                             .split_whitespace()
                             .all(|substring| {
                                 let player_alias = &player.player_alias.to_lowercase();
-                                let character_name = player
-                                    .character
-                                    .as_ref()
-                                    .map(|character| character.name.to_lowercase());
+                                let character_name = player.character.as_ref().map(|character| {
+                                    self.localized_strings
+                                        .get_content(&character.name)
+                                        .to_lowercase()
+                                });
                                 player_alias.contains(substring)
                                     || character_name
                                         .map(|cn| cn.contains(substring))
@@ -250,12 +251,15 @@ impl Widget for Social<'_> {
             })
             .collect_vec();
         player_list.sort_by_key(|(_, player)| {
-            player
-                .character
-                .as_ref()
-                .map(|character| &character.name)
-                .unwrap_or(&player.player_alias)
-                .to_lowercase()
+            // hoist `localized` up to manually extend the lifetime
+            let localized;
+            let name = if let Some(character) = player.character.as_ref() {
+                localized = self.localized_strings.get_content(&character.name);
+                &localized
+            } else {
+                &player.player_alias
+            };
+            name.to_lowercase()
         });
         for (i, (&uid, player_info)) in player_list.into_iter().enumerate() {
             let hide_username = true;
@@ -264,9 +268,13 @@ impl Widget for Social<'_> {
             let name_text = match &player_info.character {
                 Some(character) => {
                     if hide_username {
-                        character.name.to_string()
+                        self.localized_strings.get_content(&character.name)
                     } else {
-                        format!("[{}] {}", alias, &character.name)
+                        format!(
+                            "[{}] {}",
+                            alias,
+                            self.localized_strings.get_content(&character.name)
+                        )
                     }
                 },
                 None => format!(

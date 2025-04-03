@@ -23,7 +23,7 @@ pub struct PlayerInfo {
 #[derive(Clone, Serialize, Deserialize)]
 pub enum KillSource {
     Player(PlayerInfo, KillType),
-    NonPlayer(String, KillType),
+    NonPlayer(Content, KillType),
     NonExistent(KillType),
     FallDamage,
     Suicide,
@@ -160,7 +160,7 @@ impl ChatExporter {
                             return None;
                         }
                     },
-                    comp::chat::KillSource::NonPlayer(str, t) => KillSource::NonPlayer(str, t),
+                    comp::chat::KillSource::NonPlayer(name, t) => KillSource::NonPlayer(name, t),
                     comp::chat::KillSource::NonExistent(t) => KillSource::NonExistent(t),
                     comp::chat::KillSource::FallDamage => KillSource::FallDamage,
                     comp::chat::KillSource::Suicide => KillSource::Suicide,

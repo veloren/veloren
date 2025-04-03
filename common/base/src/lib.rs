@@ -12,15 +12,6 @@ macro_rules! dev_panic {
             tracing::error!("{}", $msg);
         }
     };
-
-    ($msg:expr, or return $result:expr) => {
-        if cfg!(any(debug_assertions, test)) {
-            panic!("{}", $msg);
-        } else {
-            tracing::warn!("{}", $msg);
-            return $result;
-        }
-    };
 }
 
 #[cfg(feature = "tracy")]

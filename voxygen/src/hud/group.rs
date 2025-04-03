@@ -194,10 +194,10 @@ impl Widget for Group<'_> {
 
         // Helper
         let uid_to_name_text = |uid: Uid, client: &Client| match client.player_list().get(&uid) {
-            Some(player_info) => player_info
-                .character
-                .as_ref()
-                .map_or_else(|| format!("Player<{}>", uid), |c| c.name.clone()),
+            Some(player_info) => player_info.character.as_ref().map_or_else(
+                || format!("Player<{}>", uid),
+                |c| self.localized_strings.get_content(&c.name),
+            ),
             None => client
                 .state()
                 .ecs()
@@ -208,7 +208,7 @@ impl Widget for Group<'_> {
                         .ecs()
                         .read_storage::<Stats>()
                         .get(entity)
-                        .map(|stats| stats.name.clone())
+                        .map(|stats| self.localized_strings.get_content(&stats.name))
                 })
                 .unwrap_or_else(|| format!("Npc<{}>", uid)),
         };
@@ -415,7 +415,7 @@ impl Widget for Group<'_> {
                     let combat_rating = combat::combat_rating(
                         inventory, health, energy, poise, skill_set, *body, self.msm,
                     );
-                    let char_name = stats.name.to_string();
+                    let char_name = self.localized_strings.get_content(&stats.name);
                     let health_perc = health.current() / health.base_max().max(health.maximum());
                     // change panel positions when debug info is shown
                     let x = if debug_on { i / 8 } else { i / 11 };
@@ -619,7 +619,7 @@ impl Widget for Group<'_> {
                             });
                     } else {
                         // Values N.A.
-                        Text::new(&stats.name.to_string())
+                        Text::new(&self.localized_strings.get_content(&stats.name))
                             .top_left_with_margins_on(state.ids.member_panels_frame[i], -22.0, 0.0)
                             .font_size(20)
                             .font_id(self.fonts.cyri.conrod_id)

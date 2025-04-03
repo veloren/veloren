@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Gnome"),
+    name: Automatic,
     body: RandomWith("gnome"),
     alignment: Alignment(Wild),
     loot: LootTable("common.loot_tables.dungeon.myrmidon.enemy"),

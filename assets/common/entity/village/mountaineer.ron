@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Mountaineer"),
+    name: Translate("name-custom-village-mountaineer"),
     body: RandomWith("orc"),
     alignment: Alignment(Npc),
     loot: LootTable("common.loot_tables.nothing"),

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Arctic Hare"),
+    name: Translate("name-custom-wild-peaceful-arctic_hare"),
     body: Exact(QuadrupedSmall((
         species: Hare,
         body_type: Female,

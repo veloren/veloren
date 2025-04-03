@@ -50,6 +50,7 @@ use common::{
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
+use common_i18n::Content;
 use common_net::{
     msg::{
         ChatTypeContext, ClientGeneral, ClientMsg, ClientRegister, DisconnectReason, InviteAnswer,
@@ -2802,7 +2803,8 @@ impl Client {
                         }
                         if let Some(player_info) = self.player_list.get(&uid) {
                             frontend_events.push(Event::Chat(
-                                // TODO: localise
+                                // TODO: localise, uses deprecated personalize_alias
+                                #[expect(deprecated, reason = "i18n alias")]
                                 comp::ChatType::GroupMeta("Group".into()).into_plain_msg(format!(
                                     "[{}] joined group",
                                     self.personalize_alias(uid, player_info.player_alias.clone())
@@ -2820,7 +2822,8 @@ impl Client {
                     Removed(uid) => {
                         if let Some(player_info) = self.player_list.get(&uid) {
                             frontend_events.push(Event::Chat(
-                                // TODO: localise
+                                // TODO: localise, uses deprecated personalize_alias
+                                #[expect(deprecated, reason = "i18n alias")]
                                 comp::ChatType::GroupMeta("Group".into()).into_plain_msg(format!(
                                     "[{}] left group",
                                     self.personalize_alias(uid, player_info.player_alias.clone())
@@ -3268,7 +3271,8 @@ impl Client {
     // TODO: move this to voxygen or i18n-helpers and properly localize there
     // or what's better, just remove completely, it won't properly work with
     // localization anyway.
-    pub fn personalize_alias(&self, uid: Uid, alias: String) -> String {
+    #[deprecated = "this function doesn't localize"]
+    fn personalize_alias(&self, uid: Uid, alias: String) -> String {
         let client_uid = self.uid().expect("Client doesn't have a Uid!!!");
         if client_uid == uid {
             "You".to_string()
@@ -3302,9 +3306,10 @@ impl Client {
                     result.player_info.insert(*uid, player_info.clone());
                 },
                 None => {
-                    result
-                        .entity_name
-                        .insert(*uid, name_of_uid(*uid).unwrap_or_else(|| "<?>".to_string()));
+                    result.entity_name.insert(
+                        *uid,
+                        name_of_uid(*uid).unwrap_or_else(|| Content::Plain("<?>".to_string())),
+                    );
                 },
             };
         };

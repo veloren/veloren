@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Red Fox"),
+    name: Translate("name-custom-wild-peaceful-forest_fox"),
     body: Exact(QuadrupedSmall((
         species: Fox,
         body_type: Male,

@@ -1213,7 +1213,7 @@ pub struct Floaters {
 
 #[derive(Clone)]
 pub enum HudLootOwner {
-    Name(String),
+    Name(Content),
     Group,
     Unknown,
 }
@@ -2404,7 +2404,7 @@ impl Hud {
                                 .powi(2);
 
                         let info = display_overhead_info.then(|| overhead::Info {
-                            name: Some(&stats.name),
+                            name: Some(i18n.get_content(&stats.name)),
                             health,
                             buffs: Some(buffs),
                             energy,

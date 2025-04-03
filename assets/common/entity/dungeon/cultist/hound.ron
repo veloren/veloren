@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Tamed Darkhound"),
+    name: Translate("name-custom-dungeon-cultist-hound"),
     body: RandomWith("darkhound"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.cultist.hound"),

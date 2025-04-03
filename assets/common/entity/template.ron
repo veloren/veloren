@@ -2,7 +2,7 @@
 /// By the time of writing this comment it lives in common/src/generation.rs
 #![enable(implicit_some)]
 (
-    name: Name("Paddy"),
+    name: Translate("name-custom-template-paddy"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.humanoids.humanoid"),

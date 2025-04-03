@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Trickster"),
+    name: Translate("name-custom-calendar-april_fools-aggressive-trickster"),
     body: RandomWith("danari"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.calendar.april_fools.trickster"),

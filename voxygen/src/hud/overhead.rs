@@ -66,9 +66,8 @@ widget_ids! {
     }
 }
 
-#[derive(Clone, Copy)]
 pub struct Info<'a> {
-    pub name: Option<&'a str>,
+    pub name: Option<String>,
     pub health: Option<&'a Health>,
     pub buffs: Option<&'a Buffs>,
     pub energy: Option<&'a Energy>,
@@ -167,7 +166,7 @@ impl Ingameable for Overhead<'_> {
         // - 2 Text::new for speech bubble
         // - 1 Image::new for icon
         // - 10 Image::new for speech bubble (9-slice + tail)
-        self.info.map_or(0, |info| {
+        self.info.as_ref().map_or(0, |info| {
             2 + 1
                 + if self.bubble.is_none() {
                     2 * info
@@ -208,7 +207,7 @@ impl Widget for Overhead<'_> {
         const MANA_BAR_HEIGHT: f64 = BARSIZE * 1.5;
         const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
         if let Some(Info {
-            name,
+            ref name,
             health,
             buffs,
             energy,
@@ -325,7 +324,7 @@ impl Widget for Overhead<'_> {
                     });
             }
             // Name
-            Text::new(name.unwrap_or(""))
+            Text::new(name.as_deref().unwrap_or(""))
                 //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)
@@ -333,7 +332,7 @@ impl Widget for Overhead<'_> {
                 .x_y(-1.0, name_y)
                 .parent(id)
                 .set(state.ids.name_bg, ui);
-            Text::new(name.unwrap_or(""))
+            Text::new(name.as_deref().unwrap_or(""))
                 //Text::new(&format!("{} [{:?}]", name, combat_rating)) // <- Uncomment to debug combat ratings
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(font_size)

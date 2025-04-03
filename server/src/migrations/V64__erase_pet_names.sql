@@ -1,0 +1,2 @@
+UPDATE pet
+SET name="";

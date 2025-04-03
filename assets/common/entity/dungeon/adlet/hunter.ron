@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Adlet Hunter"),
+    name: Translate("name-custom-dungeon-adlet-hunter"),
     body: RandomWith("adlet"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.adlet.hunter"),

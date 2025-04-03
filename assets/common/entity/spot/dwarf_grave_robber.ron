@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Grave Robber"),
+    name: Translate("name-custom-spot-dwarf_grave_robber"),
     body: RandomWith("dwarf"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.humanoids.dwarf_graverobber"),

@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Forgemaster"),
+    name: Automatic,
     body: RandomWith("forgemaster"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.dwarven_quarry.forgemaster"),

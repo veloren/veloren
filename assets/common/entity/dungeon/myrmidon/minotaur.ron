@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Minotaur"),
+    name: Automatic,
     body: RandomWith("minotaur"),
     alignment: Alignment(Enemy),
     loot: LootTable("common.loot_tables.dungeon.myrmidon.minotaur"),

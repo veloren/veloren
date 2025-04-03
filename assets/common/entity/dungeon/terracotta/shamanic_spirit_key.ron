@@ -1,6 +1,6 @@
 #![enable(implicit_some)]
 (
-    name: Name("Shamanic Spirit"),
+    name: Automatic,
     body: RandomWith("shamanic_spirit"),
     alignment: Alignment(Enemy),
     loot: Item("common.items.keys.terracotta_key_chest"),

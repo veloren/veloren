@@ -1351,7 +1351,7 @@ impl Widget for Map<'_> {
             let member_pos = entity.and_then(|entity| member_pos.get(entity));
             let stats = entity.and_then(|entity| stats.get(entity));
             let name = if let Some(stats) = stats {
-                stats.name.to_string()
+                i18n.get_content(&stats.name)
             } else {
                 "".to_string()
             };
@@ -1417,14 +1417,14 @@ impl Widget for Map<'_> {
                     .client
                     .player_list()
                     .get(&uid)
-                    .map(|info| info.player_alias.as_str())
+                    .map(|info| info.player_alias.clone())
                     .or_else(|| {
                         id_maps
                             .uid_entity(uid)
                             .and_then(|entity| stats.get(entity))
-                            .map(|stats| stats.name.as_str())
+                            .map(|stats| i18n.get_content(&stats.name))
                     })
-                    .unwrap_or("");
+                    .unwrap_or(String::new());
 
                 let image_id = match self.client.group_info().map(|info| info.1) {
                     Some(leader) if leader == uid => self.imgs.location_marker_group_leader,
