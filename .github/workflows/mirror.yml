@@ -7,11 +7,12 @@ on:
 
 jobs:
   mirror-gitlab-repo:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Install git-lfs 2.0
-        run: wget https://github.com/git-lfs/git-lfs/releases/download/v2.13.3/git-lfs-linux-amd64-v2.13.3.tar.gz;
+        run: |
+          wget https://github.com/git-lfs/git-lfs/releases/download/v2.13.3/git-lfs-linux-amd64-v2.13.3.tar.gz;
           tar xzf git-lfs-linux-amd64-v2.13.3.tar.gz;
 
       - name: Install LFS
@@ -21,17 +22,19 @@ jobs:
         run: git clone https://gitlab.com/veloren/veloren.git;
 
       - name: Uninstall LFS
-        run: cd veloren;
+        run: |
+          cd veloren;
           ../git-lfs uninstall;
 
       - name: Migrate LFS
-        run: cd veloren;
+        run: |
+          cd veloren;
           ../git-lfs migrate export --verbose --include="*" --everything --skip-fetch --yes 2>&1;
 
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.MIRROR_TOKEN_GITHUB }}
           branch: master
           force: true
           tags: true
