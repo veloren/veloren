@@ -306,14 +306,12 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                     let balance0 = prices.balance(&pending.offers, &inventories, 1 - who, true);
                     let balance1 = prices.balance(&pending.offers, &inventories, who, false);
                     match (balance0, balance1) {
-                        // TODO: Localise
-                        (_, None) => message(Content::Plain(
-                            "I'm not willing to sell that item".to_string(),
-                        )),
-                        // TODO: Localise
-                        (None, _) => message(Content::Plain(
-                            "I'm not willing to buy that item".to_string(),
-                        )),
+                        (_, None) => {
+                            message(Content::localized("npc-speech-merchant_reject_sell_item"))
+                        },
+                        (None, _) => {
+                            message(Content::localized("npc-speech-merchant_reject_buy_item"))
+                        },
                         (Some(balance0), Some(balance1)) => {
                             if balance0 >= balance1 {
                                 // If the trade is favourable to us, only send an accept message if
@@ -338,11 +336,13 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                                 }
                             } else {
                                 if balance1 > 0.0 {
-                                    // TODO: Localise
-                                    message(Content::Plain(format!(
-                                        "That only covers {:.0}% of my costs!",
-                                        (balance0 / balance1 * 100.0).floor()
-                                    )));
+                                    message(Content::localized_with_args(
+                                        "npc-speech-merchant_trade_balance",
+                                        [(
+                                            "percentage",
+                                            format!("{:.0}", (balance0 / balance1 * 100.0).floor()),
+                                        )],
+                                    ));
                                 }
                                 if pending.phase != TradePhase::Mutate {
                                     // we got into the review phase but without balanced goods,
