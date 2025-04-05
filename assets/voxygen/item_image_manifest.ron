@@ -45,7 +45,7 @@
     ),
     // Recipe Icon
     Simple("Recipe"): VoxTrans(
-        "voxel.item.recipe.scroll",
+        "voxel.item.recipe.recipe_basic",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
     // Weapons
@@ -1742,7 +1742,7 @@
     ),
     // Other
     Simple("common.items.utility.coins"): VoxTrans(
-        "voxel.item.utility.v-coin",
+        "voxel.item.utility.veloren_coin",
         (0.0, 0.0, 0.0), (-20.0, 25.0, 10.0), 0.9,
     ),
     Simple("common.items.utility.collar"): VoxTrans(
@@ -1914,19 +1914,19 @@
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
     Simple("common.items.recipes.utility"): VoxTrans(
-        "voxel.item.recipe.scroll",
+        "voxel.item.recipe.recipe_basic",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
     Simple("common.items.recipes.equipment.basic"): VoxTrans(
-        "voxel.item.recipe.scroll",
+        "voxel.item.recipe.recipe_basic",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
     Simple("common.items.recipes.equipment.moderate"): VoxTrans(
-        "voxel.item.recipe.scroll",
+        "voxel.item.recipe.recipe_basic",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
     Simple("common.items.recipes.equipment.advanced"): VoxTrans(
-        "voxel.item.recipe.scroll",
+        "voxel.item.recipe.recipe_basic",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
     Simple("common.items.recipes.unique.bloodmoon_relic"): VoxTrans(
@@ -3579,11 +3579,11 @@
         (0.0, 0.0, 0.0), (-80.0, 15.0, 15.0), 1.0,
     ),
     Simple("common.items.food.cheese"): VoxTrans(
-        "voxel.item.food.cheese",
+        "voxel.item.food.dwarven_cheese_quarter",
         (0.0, 0.0, 0.0), (-60.0, 27.0, 17.0), 0.7,
     ),
     Simple("common.items.food.blue_cheese"): VoxTrans(
-        "voxel.item.food.blue_cheese",
+        "voxel.item.food.blue_cheese_quarter",
         (0.0, 0.0, 0.0), (-60.0, -10.0, 0.0), 0.8,
     ),
     Simple("common.items.food.mushroom"): VoxTrans(
@@ -3591,11 +3591,11 @@
         (0.0, 0.0, 0.0), (-50.0, 70.0, 40.0), 1.0,
     ),
     Simple("common.items.mineral.ore.velorite"): VoxTrans(
-        "voxel.item.velorite.velorite_ore",
+        "voxel.item.mineral.ore.velorite",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.8,
     ),
     Simple("common.items.mineral.ore.veloritefrag"): VoxTrans(
-        "voxel.item.velorite.velorite",
+        "voxel.item.mineral.ore.veloritefrag",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.7,
     ),
     Simple("common.items.food.apple_mushroom_curry"): VoxTrans(
