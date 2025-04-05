@@ -2329,9 +2329,7 @@ impl AgentData<'_> {
                 .id_maps
                 .uid_entity(mount.mount)
                 .and_then(|e| read_data.bodies.get(e))
-                // TODO: Need some better way to know if an entity can be controlled. But this
-                //       is what is used in `systems::mount` right now.
-                .is_none_or(|b| matches!(b, Body::Humanoid(_)))
+                .is_none_or(|b| b.has_free_will())
         }) || read_data
             .is_volume_riders
             .get(*self.entity)
