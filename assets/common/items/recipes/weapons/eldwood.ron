@@ -6,6 +6,6 @@ ItemDef(
             "eldwood_weapons",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

@@ -17,6 +17,6 @@ ItemDef(
             "troll_hide_pack",
         ],
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

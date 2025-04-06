@@ -6,6 +6,6 @@ ItemDef(
             "ironwood_weapons",
         ],
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

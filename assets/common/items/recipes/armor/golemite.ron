@@ -14,6 +14,6 @@ ItemDef(
             "golemite_head",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

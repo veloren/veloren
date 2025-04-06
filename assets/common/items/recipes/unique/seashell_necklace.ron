@@ -6,6 +6,6 @@ ItemDef(
             "seashell_necklace",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

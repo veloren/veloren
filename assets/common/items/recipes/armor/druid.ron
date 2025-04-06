@@ -13,6 +13,6 @@ ItemDef(
             "druid_shoulder",
         ],
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

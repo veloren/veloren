@@ -13,6 +13,6 @@ ItemDef(
             "silken_shoulder",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

@@ -12,6 +12,6 @@ ItemDef(
             "dragonscale_shoulder",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

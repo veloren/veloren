@@ -6,6 +6,6 @@ ItemDef(
             "bloodmoon_relic",
         ],
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )

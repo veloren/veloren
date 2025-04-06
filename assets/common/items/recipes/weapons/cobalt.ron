@@ -7,6 +7,6 @@ ItemDef(
             "cobalt_weapons",
         ],
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

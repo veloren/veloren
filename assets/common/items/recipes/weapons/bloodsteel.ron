@@ -7,6 +7,6 @@ ItemDef(
             "bloodsteel_weapons",
         ],
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )

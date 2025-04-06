@@ -13,6 +13,6 @@ ItemDef(
             "moonweave_shoulder",
         ],
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )

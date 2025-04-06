@@ -12,6 +12,6 @@ ItemDef(
             "firework_yellow",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

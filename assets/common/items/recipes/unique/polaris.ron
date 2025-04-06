@@ -6,6 +6,6 @@ ItemDef(
             "polaris",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

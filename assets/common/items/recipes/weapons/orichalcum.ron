@@ -7,6 +7,6 @@ ItemDef(
             "orichalcum_weapons",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

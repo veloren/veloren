@@ -9,6 +9,6 @@ ItemDef(
             "potion_medium",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )
