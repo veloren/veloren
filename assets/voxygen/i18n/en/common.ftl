@@ -1,4 +1,13 @@
 ### This component hosts keys that are used in multiple places in UI
+###
+### Also, keys that don't fit into the existing files in the other UI
+### components (such as those in the `hud` folder) can be placed here.
+### This is part of an effort to minimize the creation of new localization
+### files because:
+### * New files have to be manually added as new components in weblate before
+###   they can be translated.
+### * Since the Weblate UI is used for translation, there is less need to limit
+###   the size of files for making navigation easier.
 
 ## Buttons
 common-singleplayer = Singleplayer
@@ -123,3 +132,9 @@ common-sprite-chest = Chest
 common-sprite-mud = Mud
 common-sprite-grave = Grave
 common-sprite-crate = Crate
+
+## Diary section titles
+hud-diary-sections-skill_trees-title = Skill-Trees
+hud-diary-sections-abilities-title = Abilities
+hud-diary-sections-stats-title = Stats
+hud-diary-sections-recipes-title = Recipes

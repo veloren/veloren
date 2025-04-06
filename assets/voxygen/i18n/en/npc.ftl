@@ -494,3 +494,7 @@ npc-speech-pilot-continue_hold =
     .a1 = Traffic is heavy, we're still on hold!
     .a2 = Continuing to hold!
     .a3 = Another ship is loading, we'll be holding for a bit longer.
+
+## Signs
+
+npc-signs-keep_out =  Keep Out!
