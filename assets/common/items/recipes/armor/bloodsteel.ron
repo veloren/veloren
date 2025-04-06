@@ -14,6 +14,6 @@ ItemDef(
             "bloodsteel_head",
         ],
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )

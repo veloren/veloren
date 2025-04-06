@@ -6,6 +6,6 @@ ItemDef(
             "frostwood_weapons",
         ],
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )

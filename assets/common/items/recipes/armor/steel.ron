@@ -14,6 +14,6 @@ ItemDef(
             "steel_head",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

@@ -12,6 +12,6 @@ ItemDef(
             "carapace_shoulder",
         ],
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

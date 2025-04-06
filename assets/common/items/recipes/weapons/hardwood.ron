@@ -6,6 +6,6 @@ ItemDef(
             "hardwood_weapons",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

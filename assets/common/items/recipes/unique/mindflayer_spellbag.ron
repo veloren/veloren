@@ -6,6 +6,6 @@ ItemDef(
             "mindflayer_spellbag",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

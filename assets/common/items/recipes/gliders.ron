@@ -14,6 +14,6 @@ ItemDef(
             "winter_wings",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

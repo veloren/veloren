@@ -6,6 +6,6 @@ ItemDef(
             "winged_coronet",
         ],
     ),
-    quality: Common,
+    quality: High,
     tags: [],
 )

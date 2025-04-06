@@ -13,6 +13,6 @@ ItemDef(
             "sunsilk_shoulder",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

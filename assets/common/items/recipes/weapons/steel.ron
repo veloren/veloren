@@ -7,6 +7,6 @@ ItemDef(
             "steel_weapons",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

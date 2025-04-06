@@ -13,6 +13,6 @@ ItemDef(
             "brinestone_crown",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

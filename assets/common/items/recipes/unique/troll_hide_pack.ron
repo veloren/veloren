@@ -6,6 +6,6 @@ ItemDef(
             "troll_hide_pack",
         ],
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )
