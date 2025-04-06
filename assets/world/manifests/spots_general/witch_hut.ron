@@ -11,7 +11,6 @@
             8: Filled(Air, (r: 255, g: 255, b: 255)),
             247: Sprite(DoorDark(4)),
             248: Sprite(DoorDark(0)),
-            249: Sprite(PotionDummy()),
             251: Sprite(SmokeDummy()),
          },
     ),

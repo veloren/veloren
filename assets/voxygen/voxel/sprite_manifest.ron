@@ -2239,16 +2239,6 @@ PotionMinor: [(
 ],
     wind_sway: 0.0,
 )],
-PotionDummy: [(
-    variations: [
-        (
-            model: "voxygen.voxel.sprite.misc.potion_green",
-            offset: (-5.0, -5.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-],
-    wind_sway: 0.0,
-)],
 // Ground Fire Bowls
 FireBowlGround: [(
     variations: [

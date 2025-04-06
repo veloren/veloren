@@ -367,7 +367,7 @@ sprites! {
         Beehive     = 0x24,
         Bowl        = 0x25,
         PotionMinor = 0x26,
-        PotionDummy = 0x27,
+        //= 0x27,
         VialEmpty   = 0x28,
     },
     MineableResource = 5 has Damage {
