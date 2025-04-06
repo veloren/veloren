@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use common::{
     GroupTarget,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
@@ -364,5 +366,13 @@ fn conical_bezier_cylinder_collision(
         let dist_sqrd = closest_pos.xy().distance_squared(center_pos_b.xy());
         dist_sqrd < (bezier_rad + rad_b).powi(2)
     };
-    z_check && rad_check
+    let endpoints_check = {
+        let tangent = bezier.evaluate_derivative(t);
+        let dir = center_pos_b - closest_pos;
+        // `rad_check` only makes sense if the angle from the nearest bezier point to
+        // the target is 90 degrees
+        tangent.angle_between(dir) >= 0.45 * PI
+    };
+
+    z_check && rad_check && endpoints_check
 }
