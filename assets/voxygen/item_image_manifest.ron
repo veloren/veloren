@@ -4,43 +4,43 @@
 ({
     // Crafting Stations
     Simple("Anvil"): VoxTrans(
-        "voxel.sprite.anvil.anvil-0",
+        "voxel.sprite.crafting_station.anvil",
         (0.5, 0.5, 0.0), (0.0, 60.0, 90.0), 1.0,
     ),
     Simple("Cauldron"): VoxTrans(
-        "voxel.sprite.cauldron.cauldron-0",
+        "voxel.sprite.crafting_station.cauldron",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 1.0,
     ),
     Simple("CookingPot"): VoxTrans(
-        "voxel.sprite.cooking_pot.pot-0",
+        "voxel.sprite.crafting_station.cooking_pot",
         (0.0, 0.0, 0.0), (0.0, 90.0, 90.0), 1.2,
     ),
     Simple("CraftingBench"): VoxTrans(
-        "voxel.sprite.crafting_bench.crafting_bench-0",
+        "voxel.sprite.crafting_station.crafting_bench",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
     ),
     Simple("Forge"): VoxTrans(
-        "voxel.sprite.forge.forge",
+        "voxel.sprite.crafting_station.forge",
         (0.0, 0.0, 0.0), (-80.0, 20.0, 0.0), 1.0,
     ),
     Simple("Loom"): VoxTrans(
-        "voxel.sprite.loom.loom",
+        "voxel.sprite.crafting_station.loom",
         (0.0, 0.0, 0.0), (-100.0, 00.0, 0.0), 1.0,
     ),
     Simple("SpinningWheel"): VoxTrans(
-        "voxel.sprite.spinning_wheel.spinning_wheel",
+        "voxel.sprite.crafting_station.spinning_wheel",
         (0.0, 0.0, 0.0), (-70.0, 10.0, 0.0), 1.0,
     ),
     Simple("TanningRack"): VoxTrans(
-        "voxel.sprite.tanning_rack.tanning_rack",
+        "voxel.sprite.crafting_station.tanning_rack",
         (0.0, 0.0, 0.0), (-90.0, 20.0, 0.0), 1.0,
     ),
     Simple("DismantlingBench"): VoxTrans(
-        "voxel.sprite.salvaging_station.salvaging_station-0",
+        "voxel.sprite.crafting_station.salvaging_station",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 0.9,
     ),
     Simple("RepairBench"): VoxTrans(
-        "voxel.sprite.repair_bench.repair_bench-0",
+        "voxel.sprite.crafting_station.repair_bench",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 0.9,
     ),
     // Recipe Icon

@@ -2780,7 +2780,7 @@ WardrobeSingleMesa: [(
 Anvil: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.anvil.anvil-0",
+            model: "voxygen.voxel.sprite.crafting_station.anvil",
             offset: (-5.5, -7.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2791,7 +2791,7 @@ Anvil: [(
 Cauldron: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.cauldron.cauldron-0",
+            model: "voxygen.voxel.sprite.crafting_station.cauldron",
             offset: (-10.0, -9.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2802,7 +2802,7 @@ Cauldron: [(
 Forge: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.forge.forge",
+            model: "voxygen.voxel.sprite.crafting_station.forge",
             offset: (-6.5, -6.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2812,7 +2812,7 @@ Forge: [(
 Loom: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.loom.loom",
+            model: "voxygen.voxel.sprite.crafting_station.loom",
             offset: (-6.0, -4.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2823,7 +2823,7 @@ Loom: [(
 DismantlingBench: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.salvaging_station.salvaging_station-0",
+            model: "voxygen.voxel.sprite.crafting_station.salvaging_station",
             offset: (-7.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2833,7 +2833,7 @@ DismantlingBench: [(
 SpinningWheel: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.spinning_wheel.spinning_wheel",
+            model: "voxygen.voxel.sprite.crafting_station.spinning_wheel",
             offset: (-7.5, -5.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2843,7 +2843,7 @@ SpinningWheel: [(
 TanningRack: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.tanning_rack.tanning_rack",
+            model: "voxygen.voxel.sprite.crafting_station.tanning_rack",
             offset: (-7.5, -4.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2854,7 +2854,7 @@ TanningRack: [(
 CraftingBench: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.crafting_bench.crafting_bench-0",
+            model: "voxygen.voxel.sprite.crafting_station.crafting_bench",
             offset: (-9.5, -7.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2865,7 +2865,7 @@ CraftingBench: [(
 CookingPot: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.cooking_pot.pot-0",
+            model: "voxygen.voxel.sprite.crafting_station.cooking_pot",
             offset: (-7.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2876,7 +2876,7 @@ CookingPot: [(
 RepairBench: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.repair_bench.repair_bench-0",
+            model: "voxygen.voxel.sprite.crafting_station.repair_bench",
             offset: (-7.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
