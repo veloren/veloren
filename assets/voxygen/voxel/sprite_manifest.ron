@@ -6,6 +6,10 @@ Empty: [()],
 //TOWN AND DUNGEON SPRITES - INCLUDES NICHE SPRITES LIKE TRAPS (EVEN NATURAL TRAPS LIKE COBWEBS), ONE-WAY PORTALS, BARRIER BLOCKS, ETC.
 //IF EVER IN DOUBT, ASK - IS THIS MORE MAN-MADE OR NATURAL? MAN-MADE STUFF AND TRAPS GO HERE
 
+// Gimmicks and special blocks
+
+OneWayWall: [()],
+
 DungeonWallDecor: [(
     variations: [
         (
@@ -61,7 +65,9 @@ DungeonWallDecor: [(
     ],
     wind_sway: 0.0,
 )],
-// WitchWindow
+
+// Window
+
 WitchWindow: [(
     variations: [
         (
@@ -112,7 +118,6 @@ Window4: [(
     ],
     wind_sway: 0.0,
 )],
-OneWayWall: [()],
 Sign: [(
     variations: [
         (
@@ -1551,97 +1556,6 @@ Helm: [(
     wind_sway: 0,
 )],
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Bed 
 
 BedWoodWoodlandHead: [(
@@ -1842,7 +1756,7 @@ BookshelfMiddle: [(
     wind_sway: 0,
 )],
 
-//HandCartWood
+// HandCartWood
 
 HandCartWoodHead: [(
     variations: [
@@ -1888,7 +1802,7 @@ BenchWoodWoodland: [(
     wind_sway: 0,
 )],
 
-//ChairSingle
+// ChairSingle
 
 ChairWoodWoodland: [(
     variations: [
@@ -1911,7 +1825,7 @@ ChairWoodWoodland2: [(
     wind_sway: 0,
 )],
 
-//ChairDouble
+// ChairDouble
    
 BenchWoodWoodlandGreen1: [(
     variations: [
@@ -1943,7 +1857,7 @@ BenchWoodWoodlandGreen3: [(
     ],
     wind_sway: 0,
 )],
-    
+
 // CoatRack
 
 CoatrackMetalWoodland: [(
@@ -2010,7 +1924,7 @@ Crate: [(
     wind_sway: 0.0,
 )],
 
-// DrawerLarge
+// Drawer
 
 DrawerWoodWoodlandL1: [(
     variations: [
@@ -2033,8 +1947,6 @@ DrawerWoodWoodlandL2: [(
     wind_sway: 0,
 )],
 
-//DrawerMedium
-
 DrawerWoodWoodlandM1: [(
     variations: [
         (
@@ -2056,8 +1968,6 @@ DrawerWoodWoodlandM2: [(
     wind_sway: 0,
 )],
 
-// DrawerSmall
-    
 DrawerWoodWoodlandS: [(
     variations: [
         (
@@ -2074,9 +1984,7 @@ DrawerWoodWoodlandS: [(
     wind_sway: 0,
 )],
 
-//TableSide
-
-// TableDining
+// Table
 
 DiningtableWoodWoodlandRound: [(
     variations: [
@@ -2099,8 +2007,6 @@ DiningtableWoodWoodlandSquare: [(
     wind_sway: 0,
 )],
 
-// TableDouble
-
 TableWoodFancyWoodlandCorner: [(
     variations: [
         (
@@ -2122,7 +2028,7 @@ TableWoodFancyWoodlandBody: [(
     wind_sway: 0,
 )],
 
-// WardrobeDouble
+// Wardrobe
 
 WardrobedoubleWoodWoodland: [(
     variations: [
@@ -2145,8 +2051,6 @@ WardrobedoubleWoodWoodland2: [(
     wind_sway: 0,
 )],
 
-// WardrobeSingle
-
 WardrobesingleWoodWoodland: [(
     variations: [
         (
@@ -2168,7 +2072,7 @@ WardrobesingleWoodWoodland2: [(
     wind_sway: 0,
 )],
 
-// Pot
+// Flower pot
 
 FlowerpotWoodWoodlandS: [(
     variations: [
