@@ -12,7 +12,7 @@ jobs:
   mirror-gitlab-repo:
     uses: veloren/.github/.github/workflows/mirror.yml@main
     with:
-      repository-url: ${{ github.repositoryUrl }}
+      repository-url: https://gitlab.com/veloren/veloren.git
       rewrite-lfs: true
     secrets:
       token: ${{ secrets.MIRROR_TOKEN_GITHUB }}
