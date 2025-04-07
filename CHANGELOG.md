@@ -83,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed airship dock position.
 - Fixed throwables pickup sound.
 - Re-oriented LoD model for Haniwa Catacombs.
+- Made it easier to interact with sprites on moving airships.
 
 ## [0.17.0] - 2024-12-28
 

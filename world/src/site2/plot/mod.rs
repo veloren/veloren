@@ -263,6 +263,21 @@ impl PlotKind {
             PlotKind::SavannahWorkshop(w) => Some(PlotKindMeta::Workshop {
                 door_tile: Some(w.door_tile),
             }),
+            // TODO: Support one plot being many things?
+            PlotKind::DesertCityMultiPlot(plot) => match &plot.plot_kind {
+                desert_city_multiplot::PlotKind::MarketHall { .. } => None,
+                desert_city_multiplot::PlotKind::Multiple { subplots } => {
+                    subplots.iter().find_map(|p| match &p.0 {
+                        desert_city_multiplot::SubPlotKind::WorkshopHouse { .. } => {
+                            Some(PlotKindMeta::Workshop { door_tile: None })
+                        },
+                        desert_city_multiplot::SubPlotKind::Library => None,
+                        desert_city_multiplot::SubPlotKind::WatchTower(_) => None,
+                        desert_city_multiplot::SubPlotKind::PalmTree => None,
+                        desert_city_multiplot::SubPlotKind::AnimalShed => None,
+                    })
+                },
+            },
             PlotKind::Tavern(t) => Some(PlotKindMeta::Other {
                 door_tile: t.door_tile,
             }),
@@ -280,7 +295,6 @@ impl PlotKind {
             | PlotKind::GliderFinish(_)
             | PlotKind::JungleRuin(_)
             | PlotKind::DesertCityArena(_)
-            | PlotKind::DesertCityMultiPlot(_)
             | PlotKind::Plaza(_)
             | PlotKind::Castle(_)
             | PlotKind::Road(_)

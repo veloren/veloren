@@ -246,14 +246,14 @@ impl World {
                         }
                     })
                     .chain(
-                        layer::cave::surface_entrances(&Land::from_sim(self.sim())).map(|wpos| {
-                            world_msg::Marker {
+                        layer::cave::surface_entrances(&Land::from_sim(self.sim()), index).map(
+                            |wpos| world_msg::Marker {
                                 id: None,
                                 name: None,
                                 kind: world_msg::MarkerKind::Cave,
                                 wpos,
-                            }
-                        }),
+                            },
+                        ),
                     )
                     .collect(),
                 possible_starting_sites: {

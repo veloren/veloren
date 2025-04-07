@@ -23,8 +23,8 @@ fn cave(c: &mut Criterion) {
     group.sample_size(10);
     group.bench_function("generate_entrances", |b| {
         b.iter(|| {
-            let entrances =
-                black_box(layer::cave::surface_entrances(&land)).map(|e| e.wpos_to_cpos());
+            let entrances = black_box(layer::cave::surface_entrances(&land, index.as_index_ref()))
+                .map(|e| e.wpos_to_cpos());
             for entrance in entrances {
                 _ = black_box(world.generate_chunk(
                     index.as_index_ref(),
@@ -39,7 +39,7 @@ fn cave(c: &mut Criterion) {
 
     group.bench_function("generate_multiple_tunnels", |b| {
         b.iter(|| {
-            let entrances = layer::cave::surface_entrances(&land)
+            let entrances = layer::cave::surface_entrances(&land, index.as_index_ref())
                 .map(|e| e.wpos_to_cpos())
                 .step_by(6);
             for entrance in entrances {

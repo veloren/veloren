@@ -17,7 +17,7 @@ use rand::prelude::*;
 use std::sync::Arc;
 use vek::*;
 
-enum PlotKind {
+pub enum PlotKind {
     MarketHall {
         floors: i32,
         towers: [(WatchTower, Vec2<i32>); 4],
@@ -27,7 +27,7 @@ enum PlotKind {
     },
 }
 
-enum SubPlotKind {
+pub enum SubPlotKind {
     WorkshopHouse { floors: i32 },
     Library,
     WatchTower(WatchTower),
@@ -35,7 +35,7 @@ enum SubPlotKind {
     AnimalShed,
 }
 
-struct WatchTower {
+pub struct WatchTower {
     length: i32,
     height: i32,
 }
@@ -49,7 +49,7 @@ pub struct DesertCityMultiPlot {
     /// Approximate altitude of the door tile
     pub(crate) alt: i32,
     diameter: i32,
-    plot_kind: PlotKind,
+    pub(crate) plot_kind: PlotKind,
     campfire: bool,
 }
 

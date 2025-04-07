@@ -105,7 +105,7 @@ use common::{
         loot_owner::LootOwnerKind,
         skillset::{SkillGroupKind, SkillsPersistenceError, skills::Skill},
     },
-    consts::MAX_PICKUP_RANGE,
+    consts::{MAX_NPCINTERACT_RANGE, MAX_PICKUP_RANGE},
     link::Is,
     mounting::{Mount, Rider, VolumePos},
     outcome::Outcome,
@@ -3636,6 +3636,19 @@ impl Hud {
         }
         // Quest Window
         let stats = client.state().ecs().read_storage::<comp::Stats>();
+        let interpolated = client.state().ecs().read_storage::<vcomp::Interpolated>();
+        if let Some((sender, dialogue)) = &self.current_dialogue
+            && let Some(i) = interpolated.get(*sender)
+            && let Some(player_i) = interpolated.get(client.entity())
+            && i.pos.distance_squared(player_i.pos) > MAX_NPCINTERACT_RANGE.powi(2)
+        {
+            self.show.quest(false);
+            events.push(Event::Dialogue(*sender, rtsim::Dialogue {
+                id: dialogue.id,
+                kind: rtsim::DialogueKind::End,
+            }));
+        }
+
         let dialogue_open = if self.show.quest
             && let Some((sender, dialogue)) = &self.current_dialogue
         {
