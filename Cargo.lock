@@ -8089,7 +8089,6 @@ dependencies = [
  "veloren-client",
  "veloren-client-i18n",
  "veloren-common",
- "veloren-common-assets",
  "veloren-common-base",
  "veloren-common-ecs",
  "veloren-common-frontend",

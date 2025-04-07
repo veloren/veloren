@@ -439,16 +439,17 @@ impl TerrainChunkData {
     pub fn can_shadow_sun(&self) -> bool { self.visible.is_visible() || self.can_shadow_sun }
 }
 
-pub(super) struct SpriteRenderState {
+pub(crate) struct SpriteRenderState {
     // TODO: This could be an `AssetHandle<SpriteSpec>`, to get hot-reloading. However, this would
     // need to regenerate `sprite_data` and `sprite_atlas_textures`, and re-run
     // `get_sprite_instances` for any meshed chunks.
     //pub sprite_config: Arc<SpriteSpec>,
 
     // Maps sprite kind + variant to data detailing how to render it
-    pub sprite_data: HashMap<SpriteKind, FilteredSpriteData>,
-    pub missing_sprite_placeholder: SpriteData,
-    pub sprite_atlas_textures: AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>,
+    pub(super) sprite_data: HashMap<SpriteKind, FilteredSpriteData>,
+    pub(super) missing_sprite_placeholder: SpriteData,
+    pub(super) sprite_atlas_textures:
+        AtlasTextures<pipelines::sprite::Locals, FigureSpriteAtlasData>,
 }
 
 #[derive(Clone)]
