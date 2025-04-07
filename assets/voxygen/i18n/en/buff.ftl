@@ -1,16 +1,26 @@
 ## Regeneration
 buff-heal = Heal
     .desc = Gain health over time.
-    .stat = Restores { $str_total } health points.
+    .stat = { $duration ->
+        [1] Restores { $str_total } health points over { $duration } second.
+        *[other] Restores { $str_total } health points over { $duration } seconds.
+    }
 ## Potion
 buff-potion = Potion
     .desc = Drinking...
 ## Agility
 buff-agility = Agility
-    .desc = Your movement is faster, but you deal less damage, and take more damage.
-    .stat =
-        Increases movement speed by { $strength } %.
-        In return, your attack power and defense decrease drastically.
+    .desc =
+        Your movement is faster,
+        but you deal less damage and take more damage.
+    .stat = { $duration ->
+        [1] Increases movement speed by { $strength } %.
+            In return, your attack and defense decrease drastically.
+            Lasts for { $duration } second.
+        *[other] Increases movement speed by { $strength } %.
+                 In return, your attack and defense decrease drastically.
+                 Lasts for { $duration } seconds.
+    }
 ## Saturation
 buff-saturation = Saturation
     .desc = Gain health over time from consumables.
@@ -20,23 +30,41 @@ buff-campfire_heal = Campfire Heal
 ## Energy Regen
 buff-energy_regen = Energy Regeneration
     .desc = Faster energy regeneration.
-    .stat = Restores { $str_total } energy.
+    .stat = { $duration ->
+        [1] Restores { $str_total } energy over { $duration } second.
+        *[other] Restores { $str_total } energy over { $duration } seconds.
+    }
 ## Health Increase
 buff-increase_max_health = Increase Max Health
     .desc = Your maximum HP is increased.
-    .stat =
-        Raises maximum health
-        by { $strength }.
+    .stat = { $duration ->
+        [1] Raises maximum health
+            by { $strength }.
+            Lasts for { $duration } second.
+        *[other] Raises maximum health
+                 by { $strength }.
+                 Lasts for { $duration } seconds.
+    }
 ## Energy Increase
 buff-increase_max_energy = Increase Max Energy
     .desc = Your maximum energy is increased.
-    .stat =
-        Raises maximum energy
-        by { $strength }.
+    .stat = { $duration ->
+        [1] Raises maximum energy
+            by { $strength }.
+            Lasts for { $duration } second.
+        *[other] Raises maximum energy
+                 by { $strength }.
+                 Lasts for { $duration } seconds.
+    }
 ## Invulnerability
 buff-invulnerability = Invulnerability
     .desc = You cannot be damaged by any attack.
-    .stat = Grants invulnerability.
+    .stat = { $duration ->
+        [1] Grants invulnerability.
+            Lasts for { $duration } second.
+        *[other] Grants invulnerability.
+                 Lasts for { $duration } seconds.
+    }
 ## Protection Ward
 buff-protectingward = Protecting Ward
     .desc = You are protected, somewhat, from attacks.
@@ -79,9 +107,14 @@ buff-parried = Parried
 ## Potion sickness
 buff-potionsickness = Potion sickness
     .desc = Potions have less positive effect on you after recently consuming a potion.
-    .stat =
-        Decreases the positive effects of
-        subsequent potions by { $strength } %.
+    .stat = { $duration ->
+        [1] Decreases the positive effects of
+            subsequent potions by { $strength } %.
+            Lasts for { $duration } second.
+        *[other] Decreases the positive effects of
+                 subsequent potions by { $strength } %.
+                 Lasts for { $duration } seconds.
+    }
 ## Reckless
 buff-reckless = Reckless
     .desc = Your attacks are more powerful. However, you are leaving your defenses open.

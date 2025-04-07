@@ -14,7 +14,7 @@ use common::{
     trade::{Good, SitePrices},
 };
 use conrod_core::image;
-use i18n::{Localization, fluent_args};
+use i18n::{FluentValue, Localization, fluent_args};
 use std::{borrow::Cow, fmt::Write};
 
 pub fn price_desc<'a>(
@@ -244,6 +244,14 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, i18n: &Localization) -> Cow
     }
 }
 
+fn almost_integer(number: &f32) -> FluentValue {
+    let epsilon = 0.001;
+    if number.fract() < epsilon {
+        return FluentValue::from(number.round() as usize);
+    } else {
+        return FluentValue::from(format!("{:.<3}", number));
+    };
+}
 /// Takes N `effects` and returns N effect descriptions
 /// If effect isn't intended to have description, returns empty string
 ///
@@ -260,8 +268,10 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                 let mut description = String::new();
                 if let Effect::Buff(buff) = effect {
                     let strength = buff.data.strength;
-                    let dur_secs = buff.data.duration.map(|d| d.0 as f32);
-                    let str_total = dur_secs.map_or(strength, |secs| strength * secs);
+                    let duration = buff.data.duration.map(|d| d.0 as f32);
+                    let str_total = duration.map_or(strength, |secs| strength * secs);
+                    let str_duration = duration.unwrap_or(0.0);
+                    let fluent_duration = almost_integer(&str_duration);
 
                     let format_float =
                         |input: f32| format!("{:.1}", input).trim_end_matches(".0").to_string();
@@ -272,6 +282,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             let key = "buff-heal";
                             i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "str_total" => format_float(str_total),
+                                "duration" => fluent_duration,
                             })
                         },
                         // Shows its full possible regen
@@ -279,6 +290,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             let key = buff_key(buff.kind);
                             i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "str_total" => format_float(str_total),
+                                "duration" => fluent_duration,
                             })
                         },
                         // Show buff strength
@@ -287,6 +299,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             let key = buff_key(buff.kind);
                             i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "strength" => format_float(strength),
+                                "duration" => fluent_duration,
                             })
                         },
                         // Show percentage
@@ -295,12 +308,15 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                             let key = buff_key(buff.kind);
                             i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "strength" => format_float(strength * 100.0),
+                                "duration" => fluent_duration,
                             })
                         },
-                        // Independent of strength
+                        // Independent of strength, still has duration
                         BuffKind::Invulnerability => {
                             let key = buff_key(buff.kind);
-                            i18n.get_attr(key, "stat")
+                            i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
+                                "duration" => fluent_duration,
+                            })
                         },
                         // Have no stat description
                         BuffKind::Bleeding
@@ -340,71 +356,6 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
-
-                    let dur_desc = if let Some(dur_secs) = dur_secs {
-                        match buff.kind {
-                            BuffKind::Saturation
-                            | BuffKind::Regeneration
-                            | BuffKind::EnergyRegen => {
-                                i18n.get_msg_ctx("buff-text-over_seconds", &i18n::fluent_args! {
-                                    "dur_secs" => dur_secs
-                                })
-                            },
-                            BuffKind::IncreaseMaxEnergy
-                            | BuffKind::Agility
-                            | BuffKind::IncreaseMaxHealth
-                            | BuffKind::Invulnerability
-                            | BuffKind::PotionSickness
-                            | BuffKind::Polymorphed => {
-                                i18n.get_msg_ctx("buff-text-for_seconds", &i18n::fluent_args! {
-                                    "dur_secs" => dur_secs
-                                })
-                            },
-                            BuffKind::Bleeding
-                            | BuffKind::Burning
-                            | BuffKind::Potion
-                            | BuffKind::CampfireHeal
-                            | BuffKind::Cursed
-                            | BuffKind::ProtectingWard
-                            | BuffKind::Crippled
-                            | BuffKind::Frenzied
-                            | BuffKind::Frozen
-                            | BuffKind::Wet
-                            | BuffKind::Ensnared
-                            | BuffKind::Poisoned
-                            | BuffKind::Hastened
-                            | BuffKind::Fortitude
-                            | BuffKind::Parried
-                            | BuffKind::Reckless
-                            | BuffKind::Flame
-                            | BuffKind::Frigid
-                            | BuffKind::Lifesteal
-                            // | BuffKind::SalamanderAspect
-                            | BuffKind::ImminentCritical
-                            | BuffKind::Fury
-                            | BuffKind::Sunderer
-                            | BuffKind::Defiance
-                            | BuffKind::Bloodfeast
-                            | BuffKind::Berserk
-                            | BuffKind::Heatstroke
-                            | BuffKind::ScornfulTaunt
-                            | BuffKind::Rooted
-                            | BuffKind::Winded
-                            | BuffKind::Concussion
-                            | BuffKind::Staggered
-                            | BuffKind::Tenacity
-                            | BuffKind::Resilience => Cow::Borrowed(""),
-                        }
-                    } else if let BuffKind::Saturation
-                    | BuffKind::Regeneration
-                    | BuffKind::EnergyRegen = buff.kind
-                    {
-                        i18n.get_msg("buff-text-every_second")
-                    } else {
-                        Cow::Borrowed("")
-                    };
-
-                    write!(&mut description, " {}", dur_desc).unwrap();
                 }
                 descriptions.push(description);
             }
