@@ -224,7 +224,7 @@ impl FilteredSpriteData {
 #[cfg(test)]
 mod test {
     use super::SpriteSpec;
-    use common_assets::AssetExt;
+    use common::assets::AssetExt;
 
     #[test]
     fn test_sprite_spec_valid() {

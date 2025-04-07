@@ -10,7 +10,7 @@ workspace = true
 [features]
 worldgen = ["server-agent/worldgen"]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-state/plugins", "common-systems/plugins"]
+plugins = ["common-state/plugins", "common-systems/plugins", "common/plugins"]
 persistent_world = []
 hot-reloading = ["common/hot-reloading"]
 hot-agent = ["server-agent/use-dyn-lib"]
