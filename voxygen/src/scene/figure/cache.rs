@@ -77,7 +77,6 @@ pub trait ModelEntryFuture<const N: usize> {
     type ModelEntry: ModelEntry;
 
     // TODO: is there a potential use for this?
-    #[expect(dead_code)]
     fn into_done(self) -> Option<Self::ModelEntry>;
 
     fn get_done(&self) -> Option<&Self::ModelEntry>;
@@ -148,11 +147,11 @@ type TerrainModelEntryLod<'b> = Option<&'b TerrainModelEntry<LOD_COUNT>>;
 /// TODO: merge item_key and extra field into an enum
 pub struct FigureKey<Body> {
     /// Body pointed to by this key.
-    pub(super) body: Body,
+    pub body: Body,
     /// Only used by Body::ItemDrop
     pub item_key: Option<Arc<ItemKey>>,
     /// Extra state.
-    pub(super) extra: Option<Arc<CharacterCacheKey>>,
+    pub extra: Option<Arc<CharacterCacheKey>>,
 }
 
 #[derive(Deserialize, Eq, Hash, PartialEq, Debug)]
@@ -185,9 +184,9 @@ pub(super) struct CharacterThirdPersonKey {
 /// store only the minimum information required to correctly update the model.
 ///
 /// TODO: Memoize, etc.
-pub(super) struct CharacterCacheKey {
+pub struct CharacterCacheKey {
     /// Character state that is only visible in third person.
-    pub third_person: Option<CharacterThirdPersonKey>,
+    pub(super) third_person: Option<CharacterThirdPersonKey>,
     /// Tool state should be present when a character is either in third person,
     /// or is in first person and the character state is tool-using.
     ///
@@ -196,16 +195,20 @@ pub(super) struct CharacterCacheKey {
     /// tools are equipped, but currently we are more focused on the big
     /// performance impact of recreating the whole model whenever the character
     /// state changes, so for now we don't bother with this.
-    pub tool: Option<CharacterToolKey>,
-    pub lantern: Option<String>,
-    pub glider: Option<String>,
-    pub hand: Option<String>,
-    pub foot: Option<String>,
-    pub head: Option<String>,
+    pub(super) tool: Option<CharacterToolKey>,
+    pub(super) lantern: Option<String>,
+    pub(super) glider: Option<String>,
+    pub(super) hand: Option<String>,
+    pub(super) foot: Option<String>,
+    pub(super) head: Option<String>,
 }
 
 impl CharacterCacheKey {
-    fn from(cs: Option<&CharacterState>, camera_mode: CameraMode, inventory: &Inventory) -> Self {
+    pub fn from(
+        cs: Option<&CharacterState>,
+        camera_mode: CameraMode,
+        inventory: &Inventory,
+    ) -> Self {
         let is_first_person = match camera_mode {
             CameraMode::FirstPerson => true,
             CameraMode::ThirdPerson | CameraMode::Freefly => false,
@@ -323,7 +326,7 @@ where
     ///
     /// NOTE: Since this is intended to be called primarily in order to render
     /// the model, we don't return skeleton data.
-    pub fn get_model<'b>(
+    pub(crate) fn get_model<'b>(
         &'b self,
         // TODO: If we ever convert to using an atlas here, use this.
         _atlas: &super::FigureAtlas,
@@ -628,7 +631,7 @@ where
         > + Eq
         + Hash,
 {
-    pub fn get_or_create_terrain_model<'c>(
+    pub(crate) fn get_or_create_terrain_model<'c>(
         &'c mut self,
         renderer: &mut Renderer,
         atlas: &mut super::FigureAtlas,

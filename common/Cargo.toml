@@ -21,6 +21,7 @@ bin_recipe_gen = ["ron"]
 bin_asset_migrate = ["ron"]
 rrt_pathfinding = ["kiddo"]
 calendar_events = []
+plugins = ["common-assets/plugins"]
 
 default = ["simd"]
 

@@ -6214,7 +6214,7 @@ impl BodySpec for ship::Body {
 #[cfg(feature = "plugins")]
 mod plugin {
     use super::assets;
-    use common_assets::{AssetExt, AssetHandle, Concatenate, MultiRon};
+    use common::assets::{AssetExt, AssetHandle, Concatenate, MultiRon};
     use hashbrown::HashMap;
     use serde::Deserialize;
 

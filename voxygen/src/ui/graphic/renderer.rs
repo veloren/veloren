@@ -110,18 +110,35 @@ impl Pipeline for Voxel {
     }
 }
 
-pub fn draw_vox(
-    segment: &Segment,
+pub fn draw_voxes(
+    segments: &[(Mat4<f32>, &Segment)],
     output_size: Vec2<u16>,
     transform: Transform,
     sample_strat: SampleStrat,
+    offset_scaling: Vec3<f32>,
 ) -> RgbaImage {
     let output_size = output_size.map(|e| e as usize);
     debug_assert!(output_size.map(|e| e != 0).reduce_and());
+    debug_assert!(!segments.is_empty());
+
+    let bounds = segments
+        .iter()
+        .map(|(t, s)| {
+            let size = s.size().as_::<f32>();
+
+            Aabb {
+                min: t.mul_point(Vec3::zero()),
+                max: t.mul_point(size),
+            }
+            .made_valid()
+        })
+        .reduce(|a, b| a.union(b))
+        .expect("`semgents` shouldn't be empty");
 
     let ori_mat = Mat4::from(transform.ori);
-    let rotated_segment_dims = (ori_mat * Vec4::from_direction(segment.size().map(|e| e as f32)))
-        .xyz()
+
+    let rotated_segment_dims = ori_mat
+        .mul_direction(Vec3::from(bounds.size()))
         .map(|e| e.abs());
 
     let dims = match sample_strat {
@@ -143,11 +160,7 @@ pub fn draw_vox(
 
     debug_assert!(dims[0] != 0 && dims[1] != 0);
 
-    // Rendering buffers
-    let mut color = Buffer2d::new(dims, [0; 4]);
-    let mut depth = Buffer2d::new(dims, 1.0);
-
-    let (w, h, d) = segment.size().map(|e| e as f32).into_tuple();
+    let (w, h, d) = bounds.size().into_tuple();
 
     let mvp = if transform.orth {
         Mat4::<f32>::orthographic_rh_no(FrustumPlanes {
@@ -176,17 +189,27 @@ pub fn draw_vox(
         } * transform.zoom,
     ) * Mat4::translation_3d(transform.offset)
         * ori_mat
-        * Mat4::translation_3d([-w / 2.0, -h / 2.0, -d / 2.0]);
+        * Mat4::translation_3d([
+            -w / 2.0 * offset_scaling.x,
+            -h / 2.0 * offset_scaling.y,
+            -d / 2.0 * offset_scaling.z,
+        ]);
 
-    Voxel {
-        mvp,
-        light_dir: Vec3::broadcast(-1.0).normalized(),
+    // Rendering buffers
+    let mut color = Buffer2d::new(dims, [0; 4]);
+    let mut depth = Buffer2d::new(dims, 1.0);
+
+    for (t, segment) in segments {
+        Voxel {
+            mvp: mvp * *t,
+            light_dir: Vec3::broadcast(-1.0).normalized(),
+        }
+        .draw::<rasterizer::Triangles<_>, _>(
+            &generate_mesh(segment, Vec3::from(0.0)),
+            &mut color,
+            Some(&mut depth),
+        );
     }
-    .draw::<rasterizer::Triangles<_>, _>(
-        &generate_mesh(segment, Vec3::from(0.0)),
-        &mut color,
-        Some(&mut depth),
-    );
 
     let rgba_img = RgbaImage::from_vec(
         dims[0] as u32,
@@ -215,6 +238,21 @@ pub fn draw_vox(
             output_size.y as u32,
         ),
     }
+}
+
+pub fn draw_vox(
+    segment: &Segment,
+    output_size: Vec2<u16>,
+    transform: Transform,
+    sample_strat: SampleStrat,
+) -> RgbaImage {
+    draw_voxes(
+        &[(Mat4::identity(), segment)],
+        output_size,
+        transform,
+        sample_strat,
+        Vec3::one(),
+    )
 }
 
 fn ao_level(side1: bool, corner: bool, side2: bool) -> u8 {

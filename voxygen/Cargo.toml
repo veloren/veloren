@@ -35,14 +35,13 @@ tracy = ["common-frontend/tracy", "client/tracy"]
 tracy-memory = ["tracy"] # enables heap profiling with tracy
 plugins = [
     "client/plugins",
-    "common-assets/plugins",
     "server/plugins",
     "anim/plugins",
+    "common/plugins",
 ]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
-bin_img_export = ["common-assets"]
 bin_cmd_doc_gen = []
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
@@ -60,7 +59,6 @@ default = ["default-no-egui", "egui-ui"]
 [dependencies]
 client = { package = "veloren-client", path = "../client" }
 common = { package = "veloren-common", path = "../common" }
-common-assets = { package = "veloren-common-assets", path = "../common/assets", optional = true } # img-export
 common-base = { package = "veloren-common-base", path = "../common/base" }
 common-ecs = { package = "veloren-common-ecs", path = "../common/ecs" }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
@@ -90,7 +88,7 @@ shaderc = { git = "https://github.com/pythonesque/shaderc-rs", rev = "f2605a0206
 # Ui
 conrod_core = { git = "https://gitlab.com/veloren/conrod.git", branch = "copypasta_0.7" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git", branch = "copypasta_0.7" }
-euc = "0.5.0"
+euc = "0.5.3"
 iced = { package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28" }
 iced_winit = { git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28" }
 glyph_brush = "0.7.0"
@@ -189,7 +187,7 @@ name = "meshing_benchmark"
 
 [[bin]]
 name = "img_export"
-required-features = ["bin_img_export"]
+required-features = []
 
 [[bin]]
 name = "cmd_doc_gen"
