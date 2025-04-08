@@ -12,6 +12,6 @@ ItemDef(
             "scale_shoulder",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

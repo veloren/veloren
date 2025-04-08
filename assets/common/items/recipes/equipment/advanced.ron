@@ -12,6 +12,6 @@ ItemDef(
             "merchant_turban",
         ],
     ),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )

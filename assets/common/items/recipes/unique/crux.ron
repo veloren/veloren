@@ -6,6 +6,6 @@ ItemDef(
             "crux",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

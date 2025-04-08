@@ -6,6 +6,6 @@ ItemDef(
             "abyssal_gorget",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

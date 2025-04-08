@@ -9,6 +9,6 @@ ItemDef(
             "fang_necklace",
         ],
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Nerf npc aimbot.
 - Minor improvements to NPC pathfinding to reduce illogal pathing around obstacles.
 - Updated rat model.
+- Recipes now have relevant quality (colour) ratings.
 
 ### Removed
 

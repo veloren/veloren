@@ -6,6 +6,6 @@ ItemDef(
             "abyssal_ring",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

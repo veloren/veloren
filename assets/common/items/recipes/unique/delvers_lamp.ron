@@ -6,6 +6,6 @@ ItemDef(
             "delvers_lamp",
         ],
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )
