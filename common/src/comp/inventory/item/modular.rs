@@ -398,6 +398,7 @@ pub enum ModularWeaponCreationError {
     MaterialNotFound,
     PrimaryComponentNotFound,
     SecondaryComponentNotFound,
+    WeaponHandednessNotFound,
 }
 
 /// Check if hand restrictions are compatible.
@@ -407,6 +408,28 @@ pub fn compatible_handedness(a: Option<Hands>, b: Option<Hands>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => a == b,
         _ => true,
+    }
+}
+
+/// Check if hand combination is matching.
+///
+/// Uses primary and secondary hands, as well as optional restriction
+pub fn matching_handedness(
+    primary: Option<Hands>,
+    secondary: Option<Hands>,
+    restriction: Option<Hands>,
+) -> bool {
+    match (primary, secondary, restriction) {
+        (Some(a), Some(b), Some(c)) => (a == b) && (b == c),
+
+        (None, None, Some(Hands::Two)) => false,
+        (None, None, Some(Hands::One)) => true,
+
+        (Some(a), None, Some(c)) => a == c,
+        (None, Some(b), Some(c)) => b == c,
+        (Some(a), Some(b), None) => a == b,
+
+        (_, _, None) => true,
     }
 }
 
@@ -428,7 +451,7 @@ pub fn generate_weapon_primary_components(
             .into_iter()
             .flatten()
             .filter(|(_comp, hand)| compatible_handedness(hand_restriction, *hand))
-            .map(|(c, h)| (c.duplicate(ability_map, msm), hand_restriction.or(*h)))
+            .map(|(c, h)| (c.duplicate(ability_map, msm), *h))
             .collect())
     } else {
         Err(ModularWeaponCreationError::MaterialNotFound)
@@ -468,7 +491,7 @@ pub fn random_weapon_primary_component(
                 .choose(&mut rng)
                 .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?;
             let comp = comp.duplicate(ability_map, msm);
-            Ok((comp, hand_restriction.or(*hand)))
+            Ok((comp, (*hand)))
         } else {
             Err(ModularWeaponCreationError::MaterialNotFound)
         }
@@ -501,8 +524,7 @@ pub fn generate_weapons(
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand))
-            .filter(|(_def, hand)| compatible_handedness(comp_hand, *hand));
+            .filter(|(_def, hand)| matching_handedness(comp_hand, *hand, hand_restriction));
 
         for (def, _hand) in secondaries {
             let secondary = Item::new_from_item_base(
@@ -511,13 +533,12 @@ pub fn generate_weapons(
                 ability_map,
                 msm,
             );
-            let it = Item::new_from_item_base(
+            weapons.push(Item::new_from_item_base(
                 ItemBase::Modular(ModularBase::Tool),
                 vec![comp.duplicate(ability_map, msm), secondary],
                 ability_map,
                 msm,
-            );
-            weapons.push(it);
+            ));
         }
     }
 
@@ -537,14 +558,14 @@ pub fn random_weapon(
         let ability_map = &AbilityMap::load().read();
         let msm = &MaterialStatManifest::load().read();
 
-        let (primary_component, hand_restriction) =
+        let (primary_component, primary_hands) =
             random_weapon_primary_component(tool, material, hand_restriction, rng)?;
 
         let secondary_components = SECONDARY_COMPONENT_POOL
             .get(&tool)
             .into_iter()
             .flatten()
-            .filter(|(_def, hand)| compatible_handedness(hand_restriction, *hand))
+            .filter(|(_def, hand)| matching_handedness(primary_hands, *hand, hand_restriction))
             .collect::<Vec<_>>();
 
         let secondary_component = {

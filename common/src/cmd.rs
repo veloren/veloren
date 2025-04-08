@@ -45,9 +45,15 @@ impl ChatCommandData {
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub enum KitSpec {
     Item(String),
-    ModularWeapon {
+    ModularWeaponSet {
         tool: comp::tool::ToolKind,
         material: comp::item::Material,
+        hands: Option<comp::item::tool::Hands>,
+    },
+    ModularWeaponRandom {
+        tool: comp::tool::ToolKind,
+        material: comp::item::Material,
+        hands: Option<comp::item::tool::Hands>,
     },
 }
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
@@ -1560,11 +1566,29 @@ mod tests {
                     KitSpec::Item(item_id) => {
                         Item::new_from_asset_expect(item_id);
                     },
-                    KitSpec::ModularWeapon { tool, material } => {
-                        comp::item::modular::random_weapon(*tool, *material, None, &mut rng)
+                    KitSpec::ModularWeaponSet {
+                        tool,
+                        material,
+                        hands,
+                    } => {
+                        comp::item::modular::generate_weapons(*tool, *material, *hands)
                             .unwrap_or_else(|_| {
                                 panic!(
-                                    "Failed to synthesize a modular {tool:?} made of {material:?}."
+                                    "Failed to synthesize a modular {tool:?} set made of \
+                                     {material:?}."
+                                )
+                            });
+                    },
+                    KitSpec::ModularWeaponRandom {
+                        tool,
+                        material,
+                        hands,
+                    } => {
+                        comp::item::modular::random_weapon(*tool, *material, *hands, &mut rng)
+                            .unwrap_or_else(|_| {
+                                panic!(
+                                    "Failed to synthesize a random {hands:?}-handed modular \
+                                     {tool:?} made of {material:?}."
                                 )
                             });
                     },

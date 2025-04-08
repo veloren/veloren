@@ -443,61 +443,61 @@
         ),
         "common.items.armor.mail.steel.shoulder": (
             left: (
-                vox_spec: ("armor.mail.steel", (-5.5, -4.0 , -1.5), 3),
+                vox_spec: ("armor.mail.steel", (-5.5, -4.0 , -1.5), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.steel", (-0.5, -4.0, -1.5), 3),
+                vox_spec: ("armor.mail.steel", (-0.5, -4.0, -1.5), 4),
                 color: None
             )
         ),
         "common.items.armor.mail.cobalt.shoulder": (
             left: (
-                vox_spec: ("armor.mail.cobalt", (-6.0, -3.5 , -1.0), 2),
+                vox_spec: ("armor.mail.cobalt", (-6.0, -3.5 , -1.0), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.cobalt", (-1.0, -3.5, -1.0), 2),
+                vox_spec: ("armor.mail.cobalt", (-1.0, -3.5, -1.0), 4),
                 color: None
             )
         ),
         "common.items.armor.mail.bloodsteel.shoulder": (
             left: (
-                vox_spec: ("armor.mail.bloodsteel", (-6.5, -4.0, -1.5), 3),
+                vox_spec: ("armor.mail.bloodsteel", (-6.5, -4.0, -1.5), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bloodsteel", (-1.5, -4.0, -1.5), 3),
+                vox_spec: ("armor.mail.bloodsteel", (-1.5, -4.0, -1.5), 4),
                 color: None
             )
         ),
         "common.items.armor.mail.orichalcum.shoulder": (
             left: (
-                vox_spec: ("armor.mail.orichalcum", (-6.0, -3.5, -2.0), 5),
+                vox_spec: ("armor.mail.orichalcum", (-6.0, -3.5, -2.0), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.orichalcum", (-1.0, -3.5, -2.0), 5),
+                vox_spec: ("armor.mail.orichalcum", (-1.0, -3.5, -2.0), 4),
                 color: None
             )
         ),
         "common.items.armor.golemite.shoulder": (
             left: (
-                vox_spec: ("armor.golemite.golemite", (-5.5, -3.5, -1.0), 5),
+                vox_spec: ("armor.golemite.golemite", (-5.5, -3.5, -1.0), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.golemite.golemite", (-1.5, -3.5, -1.0), 5),
+                vox_spec: ("armor.golemite.golemite", (-1.5, -3.5, -1.0), 4),
                 color: None
             )
         ),
         "common.items.armor.ashen.shoulder": (
             left: (
-                vox_spec: ("armor.ashen.ashen", (-5.0, -3.5, -1.0), 5),
+                vox_spec: ("armor.ashen.ashen", (-5.0, -3.5, -1.0), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.ashen.ashen", (-1.0, -3.5, -1.0), 5),
+                vox_spec: ("armor.ashen.ashen", (-1.0, -3.5, -1.0), 4),
                 color: None
             )
         ),
