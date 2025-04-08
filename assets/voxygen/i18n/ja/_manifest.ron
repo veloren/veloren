@@ -12,15 +12,7 @@
             asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 0.9,
         ),
-        "metamorph": Font (
-            asset_key: "voxygen.font.bdfUMplus-outline",
-            scale_ratio: 1.0,
-        ),
         "alkhemi": Font (
-            asset_key: "voxygen.font.bdfUMplus-outline",
-            scale_ratio: 1.0,
-        ),
-        "wizard": Font (
             asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 1.0,
         ),

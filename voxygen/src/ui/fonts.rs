@@ -40,8 +40,7 @@ macro_rules! conrod_fonts {
 }
 
 conrod_fonts! {
-    // TODO: wizard and metamorph aren't used, should we remove them?
-    [opensans, metamorph, alkhemi, cyri, wizard]
+    [opensans, alkhemi, cyri]
 }
 
 pub struct IcedFont {
@@ -83,5 +82,5 @@ macro_rules! iced_fonts {
 }
 
 iced_fonts! {
-    [opensans, metamorph, alkhemi, cyri, wizard]
+    [opensans, alkhemi, cyri]
 }

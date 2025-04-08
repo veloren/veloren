@@ -10,15 +10,7 @@
             asset_key: "voxygen.font.NotoSansTC-Regular",
             scale_ratio: 1.0,
         ),
-        "metamorph": Font (
-            asset_key: "voxygen.font.NotoSansTC-Regular",
-            scale_ratio: 1.0,
-        ),
         "alkhemi": Font (
-            asset_key: "voxygen.font.NotoSansTC-Regular",
-            scale_ratio: 1.0,
-        ),
-        "wizard": Font (
             asset_key: "voxygen.font.NotoSansTC-Regular",
             scale_ratio: 1.0,
         ),
