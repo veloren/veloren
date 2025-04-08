@@ -476,7 +476,7 @@ impl Widget for Sound<'_> {
         //    .w_h(400.0, 22.0)
         //    .color(MENU_BG)
         //    .label_color(TEXT_COLOR)
-        //    .label_font_id(self.fonts.opensans.conrod_id)
+        //    .label_font_id(self.fonts.universal.conrod_id)
         //    .down_from(state.ids.audio_device_text, 10.0)
         //    .set(state.ids.audio_device_list, ui)
         //{

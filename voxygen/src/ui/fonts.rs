@@ -40,7 +40,7 @@ macro_rules! conrod_fonts {
 }
 
 conrod_fonts! {
-    [opensans, alkhemi, cyri]
+    [universal, alkhemi, cyri]
 }
 
 pub struct IcedFont {
@@ -82,5 +82,5 @@ macro_rules! iced_fonts {
 }
 
 iced_fonts! {
-    [opensans, alkhemi, cyri]
+    [universal, alkhemi, cyri]
 }

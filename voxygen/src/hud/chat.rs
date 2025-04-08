@@ -512,8 +512,8 @@ impl Widget for Chat<'_> {
                 .restrict_to_height(false)
                 .color(color)
                 .line_spacing(2.0)
-                .font_size(self.fonts.opensans.scale(15))
-                .font_id(self.fonts.opensans.conrod_id);
+                .font_size(self.fonts.universal.scale(15))
+                .font_id(self.fonts.universal.conrod_id);
 
             if let Some(pos) = force_cursor {
                 text_edit = text_edit.cursor_pos(pos);
@@ -676,8 +676,8 @@ impl Widget for Chat<'_> {
                 // fn format_message called below
 
                 let text = Text::new(text)
-                    .font_size(self.fonts.opensans.scale(15))
-                    .font_id(self.fonts.opensans.conrod_id)
+                    .font_size(self.fonts.universal.scale(15))
+                    .font_id(self.fonts.universal.conrod_id)
                     .w(chat_size.x - CHAT_ICON_WIDTH - 1.0)
                     .wrap_by_word()
                     .color(color)
@@ -693,7 +693,7 @@ impl Widget for Chat<'_> {
                 // If the user is a moderator display a moderator icon with their alias.
                 if *is_moderator {
                     let group_width =
-                        group_width(chat_type, ui, &self.fonts.opensans).unwrap_or(0.0);
+                        group_width(chat_type, ui, &self.fonts.universal).unwrap_or(0.0);
                     Image::new(self.imgs.chat_moderator_badge)
                         .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
                         .top_left_with_margins_on(item.widget_id, 2.0, 7.0 + group_width)
@@ -714,8 +714,8 @@ impl Widget for Chat<'_> {
                 // Needs to be larger than the space above.
                 item.set(
                     Text::new("")
-                        .font_size(self.fonts.opensans.scale(6))
-                        .font_id(self.fonts.opensans.conrod_id)
+                        .font_size(self.fonts.universal.scale(6))
+                        .font_id(self.fonts.universal.conrod_id)
                         .w(chat_size.x),
                     ui,
                 );
@@ -971,8 +971,8 @@ fn cursor_offset_to_index(
     // This moves the cursor to the given offset. Conrod is a pain.
     //
     // Width and font must match that of the chat TextEdit
-    let font = ui.fonts.get(fonts.opensans.conrod_id)?;
-    let font_size = fonts.opensans.scale(15);
+    let font = ui.fonts.get(fonts.universal.conrod_id)?;
+    let font_size = fonts.universal.scale(15);
     let infos = text::line::infos(text, font, font_size).wrap_by_whitespace(input_width);
 
     cursor::index_before_char(infos, offset)

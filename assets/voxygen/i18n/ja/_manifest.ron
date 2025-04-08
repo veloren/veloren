@@ -8,10 +8,6 @@
     ),
     convert_utf8_to_ascii: false,
     fonts: {
-        "opensans": Font (
-            asset_key: "voxygen.font.bdfUMplus-outline",
-            scale_ratio: 0.9,
-        ),
         "alkhemi": Font (
             asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 1.0,

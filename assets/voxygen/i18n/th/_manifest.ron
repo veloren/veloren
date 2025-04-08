@@ -8,10 +8,6 @@
     ),
     convert_utf8_to_ascii: false,
     fonts: {
-        "opensans": Font (
-            asset_key: "voxygen.font.Sarabun-Regular",
-            scale_ratio: 1.0,
-        ),
         "alkhemi": Font (
             asset_key: "voxygen.font.Sarabun-Regular",
             scale_ratio: 1.0,

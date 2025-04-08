@@ -179,7 +179,7 @@ impl assets::Compound for Language {
             .cloned();
         let raw::Manifest {
             convert_utf8_to_ascii,
-            fonts,
+            mut fonts,
             metadata,
         } = manifest;
 
@@ -212,6 +212,12 @@ impl assets::Compound for Language {
         // Basically a hack, but conrod can't use isolation marks yet.
         // Veloren Issue 1649
         bundle.set_use_isolating(false);
+
+        // TODO: add a test that referenced fonts exists
+        fonts.insert("universal".to_owned(), Font {
+            asset_key: "voxygen.font.GoNotoCurrent".to_owned(),
+            scale_ratio: 1.0,
+        });
 
         Ok(Self {
             bundle,
