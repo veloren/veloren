@@ -239,6 +239,12 @@
         // License appears to be satisfied by inclusion of its text file.
         license: "OFL",
         license_link: "https://scripts.sil.org/OFL",
+    ), (
+        name: "EnterCommand",
+        authors: ["Font End Dev"],
+        asset_path: "voxygen/font/EnterCommand.ttf",
+        license: "CC BY 4.0",
+        license_link: "https://creativecommons.org/licenses/by/4.0/legalcode.txt",
     ),],
     models: [(
         name: "Vroom",
