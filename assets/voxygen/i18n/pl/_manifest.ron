@@ -13,7 +13,7 @@
             scale_ratio: 1.0,
         ),
         "cyri": Font (
-            asset_key: "voxygen.font.OpenSans-Regular",
+            asset_key: "voxygen.font.EnterCommand",
             scale_ratio: 1.0,
         ),
     }
