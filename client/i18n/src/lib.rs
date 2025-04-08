@@ -214,7 +214,7 @@ impl assets::Compound for Language {
         bundle.set_use_isolating(false);
 
         // TODO: add a test that referenced fonts exists
-        fonts.insert("universal".to_owned(), Font {
+        fonts.entry("universal".to_owned()).or_insert(Font {
             asset_key: "voxygen.font.GoNotoCurrent".to_owned(),
             scale_ratio: 1.0,
         });

@@ -8,6 +8,10 @@
     ),
     convert_utf8_to_ascii: false,
     fonts: {
+        "universal": Font (
+            asset_key: "voxygen.font.bdfUMplus-outline",
+            scale_ratio: 0.75,
+        ),
         "alkhemi": Font (
             asset_key: "voxygen.font.bdfUMplus-outline",
             scale_ratio: 0.75,
