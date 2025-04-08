@@ -247,10 +247,11 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, i18n: &Localization) -> Cow
 fn almost_integer(number: &f32) -> FluentValue {
     let epsilon = 0.001;
     if number.fract() < epsilon {
-        return FluentValue::from(number.round() as usize);
-    } else {
-        return FluentValue::from(format!("{:.<3}", number));
-    };
+        FluentValue::from(number.round() as usize)
+    }
+    else {
+        FluentValue::from(format!("{:.<3}", number))
+    }
 }
 /// Takes N `effects` and returns N effect descriptions
 /// If effect isn't intended to have description, returns empty string

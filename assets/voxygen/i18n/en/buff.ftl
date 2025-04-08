@@ -173,7 +173,5 @@ buff-tenacity = Tenacity
 buff-resilience = Resilience
     .desc = After having just taken a debilitating attack, you become more resilient to future incapaciting effects.
 ## Util
-buff-text-over_seconds = over { $dur_secs } seconds
-buff-text-for_seconds = for { $dur_secs } seconds
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove
