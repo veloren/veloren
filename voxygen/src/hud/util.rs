@@ -248,8 +248,7 @@ fn almost_integer(number: &f32) -> FluentValue {
     let epsilon = 0.001;
     if number.fract() < epsilon {
         FluentValue::from(number.round() as usize)
-    }
-    else {
+    } else {
         FluentValue::from(format!("{:.<3}", number))
     }
 }
