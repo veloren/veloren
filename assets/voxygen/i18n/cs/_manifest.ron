@@ -4,7 +4,6 @@
         language_name: "Čeština (Czech)",
         language_identifier: "cs",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",

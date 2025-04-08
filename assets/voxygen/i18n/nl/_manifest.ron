@@ -18,7 +18,6 @@
         language_name: "Nederlands (Dutch)",
         language_identifier: "nl",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",

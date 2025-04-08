@@ -10,8 +10,6 @@ use fluent_bundle::{FluentResource, bundle::FluentBundle};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use unic_langid::LanguageIdentifier;
 
-use deunicode::deunicode;
-
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, io};
@@ -73,7 +71,6 @@ struct Language {
     /// Font configuration is stored here
     pub(crate) fonts: Fonts,
     pub(crate) metadata: LanguageMetadata,
-    pub(crate) convert_utf8_to_ascii: bool,
 }
 
 impl Language {
@@ -85,12 +82,6 @@ impl Language {
         for err in errs {
             tracing::error!("err: {err} for {key}");
         }
-
-        let msg = if self.convert_utf8_to_ascii {
-            deunicode(&msg).into()
-        } else {
-            msg
-        };
 
         Some(msg)
     }
@@ -111,12 +102,6 @@ impl Language {
         for err in errs {
             tracing::error!("err: {err} for {key}");
         }
-
-        let msg = if self.convert_utf8_to_ascii {
-            deunicode(&msg).into()
-        } else {
-            msg
-        };
 
         Some(msg)
     }
@@ -163,12 +148,6 @@ impl Language {
             tracing::error!("err: {err} for {key}");
         }
 
-        let msg = if self.convert_utf8_to_ascii {
-            deunicode(&msg).into()
-        } else {
-            msg
-        };
-
         Some(msg)
     }
 }
@@ -178,7 +157,6 @@ impl assets::Compound for Language {
             .load::<raw::Manifest>(&[path, ".", "_manifest"].concat())?
             .cloned();
         let raw::Manifest {
-            convert_utf8_to_ascii,
             mut fonts,
             metadata,
         } = manifest;
@@ -223,7 +201,6 @@ impl assets::Compound for Language {
             bundle,
             fonts,
             metadata,
-            convert_utf8_to_ascii,
         })
     }
 }

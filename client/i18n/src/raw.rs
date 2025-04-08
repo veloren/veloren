@@ -8,9 +8,6 @@ use serde::{Deserialize, Serialize};
 /// See `Language` for more info on each attributes
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub(crate) struct Manifest {
-    /// Whether to convert the input text encoded in UTF-8
-    /// into a ASCII version by using the `deunicode` crate.
-    pub(crate) convert_utf8_to_ascii: bool,
     pub(crate) fonts: Fonts,
     pub(crate) metadata: LanguageMetadata,
 }

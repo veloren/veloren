@@ -6,7 +6,6 @@
         language_name: "Español de España (Spanish - Spain)",
         language_identifier: "es",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",

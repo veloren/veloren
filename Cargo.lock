@@ -1771,12 +1771,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "deunicode"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "339544cc9e2c4dc3fc7149fd630c5f22263a4fdf18a98afd0075784968b5cf00"
-
-[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7650,7 +7644,6 @@ name = "veloren-client-i18n"
 version = "0.13.0"
 dependencies = [
  "clap",
- "deunicode",
  "fluent",
  "fluent-bundle",
  "fluent-syntax",

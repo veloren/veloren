@@ -6,7 +6,6 @@
         language_name: "简体中文 (Simplified Chinese)",
         language_identifier: "zh-Hans",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.WenQuanYiZenHei",

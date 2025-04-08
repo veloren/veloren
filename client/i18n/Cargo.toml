@@ -20,7 +20,6 @@ fluent = "0.16"
 fluent-bundle = "0.15"
 # Utility
 hashbrown = { workspace = true }
-deunicode = "1.0"
 tracing = { workspace = true }
 # Bin
 clap = { workspace = true, optional = true }

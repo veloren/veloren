@@ -6,7 +6,6 @@
         language_name: "Српски (Serbian)",
         language_identifier: "sr",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",

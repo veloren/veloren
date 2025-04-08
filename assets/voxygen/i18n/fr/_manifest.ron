@@ -4,7 +4,6 @@
         language_name: "Français (French)",
         language_identifier: "fr",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",

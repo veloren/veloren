@@ -18,7 +18,6 @@
         language_name: "Norsk bokmål (Norwegian Bokmål)",
         language_identifier: "nb",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",

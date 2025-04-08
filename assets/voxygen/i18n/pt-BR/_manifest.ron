@@ -6,7 +6,6 @@
         language_name: "Português Brasileiro (Portuguese - Brazil)",
         language_identifier: "pt-BR",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",

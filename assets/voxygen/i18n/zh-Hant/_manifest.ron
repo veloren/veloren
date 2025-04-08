@@ -4,7 +4,6 @@
         language_name: "繁體中文 (Traditional Chinese)",
         language_identifier: "zh-Hant",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.NotoSansTC-Regular",

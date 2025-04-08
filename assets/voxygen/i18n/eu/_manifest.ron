@@ -6,7 +6,6 @@
         language_name: "Euskara (Basque)",
         language_identifier: "eu",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",

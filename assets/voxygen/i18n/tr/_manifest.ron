@@ -18,7 +18,6 @@
         language_name: "Türkçe (Turkish)",
         language_identifier: "tr",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",
