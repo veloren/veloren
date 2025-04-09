@@ -202,11 +202,11 @@
         ),
         "common.items.armor.miner.hand": (
             left: (
-                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.mail.bronze", (-1.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.bronze.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.mail.bronze", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
