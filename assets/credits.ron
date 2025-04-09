@@ -240,6 +240,13 @@
         license: "OFL",
         license_link: "https://scripts.sil.org/OFL",
     ), (
+        name: "GoNotoCurrent",
+        authors: ["The Noto Project Authors"],
+        asset_path: "voxygen/font/GoNotoCurrent.ttf",
+        // License appears to be satisfied by inclusion of its text file.
+        license: "OFL",
+        license_link: "https://scripts.sil.org/OFL",
+    ), (
         name: "EnterCommand",
         authors: ["Font End Dev"],
         asset_path: "voxygen/font/EnterCommand.ttf",
