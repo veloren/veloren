@@ -803,7 +803,10 @@ pub enum CharacterAbility {
         num_projectiles: Amount,
         projectile_spread: f32,
         damage_effect: Option<CombatEffect>,
-        move_efficiency: f32,
+        #[serde(default)]
+        movement_modifier: MovementModifier,
+        #[serde(default)]
+        ori_modifier: OrientationModifier,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -936,6 +939,10 @@ pub enum CharacterAbility {
         custom_combo: CustomCombo,
         #[serde(default)]
         meta: AbilityMeta,
+        #[serde(default)]
+        movement_modifier: MovementModifier,
+        #[serde(default)]
+        ori_modifier: OrientationModifier,
     },
     ChargedRanged {
         energy_cost: f32,
@@ -1396,7 +1403,8 @@ impl CharacterAbility {
                 num_projectiles: _,
                 projectile_spread: _,
                 damage_effect: _,
-                move_efficiency: _,
+                movement_modifier: _,
+                ori_modifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -1584,6 +1592,8 @@ impl CharacterAbility {
                 ref mut damage_effect,
                 meta: _,
                 custom_combo: _,
+                movement_modifier: _,
+                ori_modifier: _,
             } => {
                 *swing_duration /= stats.speed;
                 *buildup_strike = buildup_strike
@@ -2418,7 +2428,8 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 num_projectiles,
                 projectile_spread,
                 damage_effect,
-                move_efficiency,
+                movement_modifier,
+                ori_modifier,
                 meta: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 static_data: basic_ranged::StaticData {
@@ -2432,11 +2443,14 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     projectile_spread: *projectile_spread,
                     ability_info,
                     damage_effect: *damage_effect,
-                    move_efficiency: *move_efficiency,
+                    movement_modifier: *movement_modifier,
+                    ori_modifier: *ori_modifier,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
+                movement_modifier: movement_modifier.buildup,
+                ori_modifier: ori_modifier.buildup,
             }),
             CharacterAbility::Boost {
                 movement_duration,
@@ -2654,6 +2668,8 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 damage_effect,
                 custom_combo,
                 meta: _,
+                movement_modifier,
+                ori_modifier,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
                     energy_cost: *energy_cost,
@@ -2669,6 +2685,8 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     specifier: *specifier,
                     damage_effect: *damage_effect,
                     custom_combo: *custom_combo,
+                    movement_modifier: *movement_modifier,
+                    ori_modifier: *ori_modifier,
                 },
                 stage_section: if buildup_strike.is_some() {
                     StageSection::Buildup
@@ -2678,6 +2696,8 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 timer: Duration::default(),
                 exhausted: false,
                 charge_amount: 0.0,
+                movement_modifier: movement_modifier.buildup,
+                ori_modifier: ori_modifier.buildup,
             }),
             CharacterAbility::ChargedRanged {
                 energy_cost: _,

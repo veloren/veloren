@@ -4,7 +4,7 @@ use crate::{
         DamageKind, DamageSource, GroupTarget,
     },
     comp::{
-        Body, CharacterState, Ori, StateUpdate, beam,
+        Body, CharacterState, StateUpdate, beam,
         body::{biped_large, bird_large, golem},
         character_state::OutputEvents,
         object::Body::{Flamethrower, Lavathrower},
@@ -166,36 +166,14 @@ impl CharacterBehavior for Data {
                     && (self.static_data.energy_drain <= f32::EPSILON
                         || update.energy.current() > 0.0)
                 {
-                    let beam_ori = {
-                        // We want Beam to use Ori of owner.
-                        // But we also want beam to use Z part of where owner looks.
-                        // This means that we need to merge this data to one Ori.
-                        //
-                        // This code just gets look_dir without Z part
-                        // and normalizes it. This is what `xy_dir is`.
-                        //
-                        // Then we find rotation between xy_dir and look_dir
-                        // which gives us quaternion how of what rotation we need
-                        // to do to get Z part we want.
-                        //
-                        // Then we construct Ori without Z part
-                        // and applying `pitch` to get needed orientation.
-                        let look_dir = data.inputs.look_dir;
-                        let xy_dir = Dir::from_unnormalized(Vec3::new(look_dir.x, look_dir.y, 0.0))
-                            .unwrap_or_default();
-                        let pitch = xy_dir.rotation_between(look_dir);
-
-                        Ori::from(Vec3::new(
-                            update.ori.look_vec().x,
-                            update.ori.look_vec().y,
-                            0.0,
-                        ))
-                        .prerotated(pitch)
-                    };
+                    // We want Beam to use Ori of owner.
+                    // But we also want beam to use Z part of where owner looks.
+                    // This means that we need to merge this data to one Ori.
+                    let beam_dir = data.inputs.look_dir.merge_z(data.ori.look_dir());
 
                     update.character = CharacterState::BasicBeam(Data {
                         beam_offset: body_offsets,
-                        aim_dir: beam_ori.look_dir(),
+                        aim_dir: beam_dir,
                         timer: tick_attack_or_default(data, self.timer, None),
                         ..*self
                     });

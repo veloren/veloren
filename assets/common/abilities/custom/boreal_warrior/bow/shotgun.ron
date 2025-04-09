@@ -26,5 +26,8 @@ BasicRanged(
         strength: Value(0.3),
         chance: 1.0,
     ))),
-    move_efficiency: 0.3,
+    movement_modifier: (
+        buildup: Some(0.3),
+        recover: Some(0.3),
+    ),
 )
