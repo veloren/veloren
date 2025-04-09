@@ -42,6 +42,10 @@ pub struct StaticData {
     pub damage_effect: Option<CombatEffect>,
     /// The actual additional combo is modified by duration of charge
     pub custom_combo: CustomCombo,
+    /// Adjusts move speed during the attack per stage
+    pub movement_modifier: MovementModifier,
+    /// Adjusts turning rate during the attack per stage
+    pub ori_modifier: OrientationModifier,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -57,6 +61,10 @@ pub struct Data {
     pub exhausted: bool,
     /// How much the attack charged by
     pub charge_amount: f32,
+    /// Adjusts move speed during the attack per stage
+    pub movement_modifier: Option<f32>,
+    /// Adjusts turning rate during the attack per stage
+    pub ori_modifier: Option<f32>,
 }
 
 impl Data {
@@ -74,8 +82,8 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 0.7);
+        handle_orientation(data, &mut update, self.ori_modifier.unwrap_or(1.0), None);
+        handle_move(data, &mut update, self.movement_modifier.unwrap_or(0.7));
         handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
@@ -140,6 +148,8 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::ChargedMelee(Data {
                         stage_section: StageSection::Action,
                         timer: Duration::default(),
+                        movement_modifier: self.static_data.movement_modifier.swing,
+                        ori_modifier: self.static_data.ori_modifier.swing,
                         ..*self
                     });
                 }
@@ -201,6 +211,8 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::ChargedMelee(Data {
                         stage_section: StageSection::Recover,
                         timer: Duration::default(),
+                        movement_modifier: self.static_data.movement_modifier.recover,
+                        ori_modifier: self.static_data.ori_modifier.recover,
                         ..*self
                     });
                 }

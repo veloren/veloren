@@ -37,7 +37,10 @@ pub struct StaticData {
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     pub damage_effect: Option<CombatEffect>,
-    pub move_efficiency: f32,
+    /// Adjusts move speed during the attack per stage
+    pub movement_modifier: MovementModifier,
+    /// Adjusts turning rate during the attack per stage
+    pub ori_modifier: OrientationModifier,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -51,14 +54,18 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Whether the attack fired already
     pub exhausted: bool,
+    /// Adjusts move speed during the attack
+    pub movement_modifier: Option<f32>,
+    /// How fast the entity should turn
+    pub ori_modifier: Option<f32>,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, self.static_data.move_efficiency);
+        handle_orientation(data, &mut update, self.ori_modifier.unwrap_or(1.0), None);
+        handle_move(data, &mut update, self.movement_modifier.unwrap_or(0.7));
         handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
@@ -103,6 +110,8 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::BasicRanged(Data {
                         timer: Duration::default(),
                         stage_section: StageSection::Recover,
+                        movement_modifier: self.static_data.movement_modifier.recover,
+                        ori_modifier: self.static_data.ori_modifier.recover,
                         ..*self
                     });
                 }
@@ -129,15 +138,26 @@ impl CharacterBehavior for Data {
                             data.scale.map_or(1.0, |s| s.0),
                         );
                         let pos = Pos(data.pos.0 + body_offsets);
-                        // Adds a slight spread to the projectiles. First projectile has no spread,
-                        // and spread increases linearly with number of projectiles created.
-                        let dir = Dir::from_unnormalized(data.inputs.look_dir.map(|x| {
-                            let offset = (2.0 * thread_rng().gen::<f32>() - 1.0)
-                                * self.static_data.projectile_spread
-                                * i as f32;
-                            x + offset
-                        }))
-                        .unwrap_or(data.inputs.look_dir);
+
+                        let dir = {
+                            let look_dir = if self.static_data.ori_modifier.buildup.is_some() {
+                                data.inputs.look_dir.merge_z(data.ori.look_dir())
+                            } else {
+                                data.inputs.look_dir
+                            };
+
+                            // Adds a slight spread to the projectiles. First projectile has no
+                            // spread, and spread increases linearly
+                            // with number of projectiles created.
+                            Dir::from_unnormalized(look_dir.map(|x| {
+                                let offset = (2.0 * thread_rng().gen::<f32>() - 1.0)
+                                    * self.static_data.projectile_spread
+                                    * i as f32;
+                                x + offset
+                            }))
+                            .unwrap_or(data.inputs.look_dir)
+                        };
+
                         // Tells server to create and shoot the projectile
                         output_events.emit_server(ShootEvent {
                             entity: Some(data.entity),

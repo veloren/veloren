@@ -19,5 +19,8 @@ BasicRanged(
     projectile_speed: 30.0,
     num_projectiles: Value(12),
     projectile_spread: 0.6,
-    move_efficiency: 0.8,
+    movement_modifier: (
+        buildup: Some(0.8),
+        recover: Some(0.8),
+    ),
 )

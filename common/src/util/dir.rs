@@ -1,3 +1,5 @@
+use crate::comp::Ori;
+
 use super::{Plane, Projection};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -126,6 +128,24 @@ impl Dir {
     pub fn vec(&self) -> &Vec3<f32> { &self.0 }
 
     pub fn to_vec(self) -> Vec3<f32> { self.0 }
+
+    pub fn merge_z(self, look_dir: Self) -> Self {
+        // This code just gets look_dir without Z part
+        // and normalizes it. This is what `xy_dir is`.
+        //
+        // Then we find rotation between xy_dir and look_dir
+        // which gives us quaternion how of what rotation we need
+        // to do to get Z part we want.
+        //
+        // Then we construct Ori without Z part
+        // and applying `pitch` to get needed orientation.
+        let xy_dir = Dir::from_unnormalized(Vec3::new(self.x, self.y, 0.0)).unwrap_or_default();
+        let pitch = xy_dir.rotation_between(self);
+
+        Ori::from(Vec3::new(look_dir.x, look_dir.y, 0.0))
+            .prerotated(pitch)
+            .look_dir()
+    }
 }
 
 impl std::ops::Deref for Dir {
