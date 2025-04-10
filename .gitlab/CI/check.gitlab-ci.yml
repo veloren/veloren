@@ -14,7 +14,7 @@ code-quality:
     - source ./.gitlab/scripts/code-quality.sh
     # Brings the target branch into the job's scope - used to define the full range of commits between the target and merged result.
     - git fetch origin ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}:refs/remotes/origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
-    - git lfs fsck origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}..HEAD
+    - git lfs fsck --pointers origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}..HEAD
 
 security:
   extends: .recompile-branch
