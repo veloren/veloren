@@ -6079,7 +6079,10 @@ make_vox_spec!(
 
 impl ItemCentralSpec {
     fn mesh_bone0(&self, item: &body::item::Body, item_key: &ItemKey) -> BoneMeshes {
-        let coin_pouch = ModelWithOptionalIndex("voxel.object.pouch".to_string(), DEFAULT_INDEX);
+        let coin_pouch = ModelWithOptionalIndex(
+            "voxel.sprite.furniture.sack_leather_M".to_string(),
+            DEFAULT_INDEX,
+        );
 
         if let Some(spec) = match item {
             body::item::Body::CoinPouch => Some(&coin_pouch),

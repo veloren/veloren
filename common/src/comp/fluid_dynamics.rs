@@ -297,15 +297,7 @@ impl Body {
                 | object::Body::BoltFireBig
                 | object::Body::BoltNature
                 | object::Body::Bomb
-                | object::Body::PotionBlue
-                | object::Body::PotionGreen
-                | object::Body::PotionRed
-                | object::Body::Pouch
                 | object::Body::Pumpkin
-                | object::Body::Pumpkin2
-                | object::Body::Pumpkin3
-                | object::Body::Pumpkin4
-                | object::Body::Pumpkin5
                 | object::Body::Pebble
                 | object::Body::IronPikeBomb
                 | object::Body::StrigoiHead => {
