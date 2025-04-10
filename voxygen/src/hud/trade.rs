@@ -4,7 +4,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, State as ConrodState, Text, TextEdit},
     widget_ids,
 };
-use specs::Entity as EcsEntity;
+use specs::{Entity as EcsEntity, WorldExt};
 use vek::*;
 
 use client::Client;
@@ -226,6 +226,7 @@ impl<'a> Trade<'a> {
             (x, is_ours) if ours == is_ours => x,
             _ => check_if_us(1)?.0,
         };
+
         // TODO: update in accordance with https://gitlab.com/veloren/veloren/-/issues/960
         let inventory = inventories.get(entity)?;
         // Get our inventory to use it in item tooltips
@@ -249,6 +250,7 @@ impl<'a> Trade<'a> {
             .scroll_kids_vertically()
             .set(state.ids.inv_alignment[who], ui);
 
+        // Retrieve player's name and gender from player list or default to Player {idx}
         let name = self
             .client
             .player_list()
@@ -262,8 +264,25 @@ impl<'a> Trade<'a> {
                     .map(|e| self.localized_strings.get_content(&e.name))
             })
             .unwrap_or_else(|| {
-                // TODO: localize
-                format!("Player {}", who)
+                // Using this method because player_info isn't accessible here
+                let ecs = self.client.state().ecs();
+                let bodies = ecs.read_storage::<common::comp::Body>();
+                let body = bodies.get(entity);
+                let gender_enum = body.and_then(|b| b.humanoid_gender());
+
+                // Determine gender string
+                let gender_str = match gender_enum {
+                    Some(common::comp::body::Gender::Feminine) => "she",
+                    Some(common::comp::body::Gender::Masculine) => "he",
+                    _ => "other", // Fallback
+                };
+
+                self.localized_strings
+                    .get_msg_ctx("hud-trade-player_who", &i18n::fluent_args! {
+                        "player_who" => who,
+                        "player_gender" => gender_str
+                    })
+                    .into_owned()
             });
 
         let offer_header = if ours {
