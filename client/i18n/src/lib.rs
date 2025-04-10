@@ -191,7 +191,12 @@ impl assets::Compound for Language {
         // Veloren Issue 1649
         bundle.set_use_isolating(false);
 
-        // TODO: add a test that referenced fonts exists
+        // Add a universal fallback-ish font, that's supposed to cover all
+        // languages.
+        // Use it for language menu, chat, etc.
+        //
+        // At the moment, covers all languages except Korean, so Korean uses
+        // different font here.
         fonts.entry("universal".to_owned()).or_insert(Font {
             asset_key: "voxygen.font.GoNotoCurrent".to_owned(),
             scale_ratio: 1.0,

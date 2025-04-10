@@ -84,3 +84,32 @@ macro_rules! iced_fonts {
 iced_fonts! {
     [universal, alkhemi, cyri]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use conrod_core::text::Font as ConrodFont;
+    use glyph_brush::ab_glyph::FontArc as GlyphFont;
+
+    #[test]
+    fn test_font_manifests() {
+        let lang_list = i18n::list_localizations();
+        for meta in lang_list {
+            let lang = i18n::LocalizationHandle::load_expect(&meta.language_identifier);
+            let lang = lang.read();
+            let fonts = lang.fonts();
+
+            // conrod check
+            for font in fonts.values() {
+                let raw_font = RawFont::load(&font.asset_key).unwrap().cloned();
+                let _ = ConrodFont::from_bytes(raw_font.0).unwrap();
+            }
+
+            // iced check
+            for font in fonts.values() {
+                let raw_font = RawFont::load(&font.asset_key).unwrap().cloned();
+                let _ = GlyphFont::try_from_vec(raw_font.0).unwrap();
+            }
+        }
+    }
+}
