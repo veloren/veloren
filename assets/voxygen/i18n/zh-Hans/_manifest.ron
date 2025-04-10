@@ -6,21 +6,8 @@
         language_name: "简体中文 (Simplified Chinese)",
         language_identifier: "zh-Hans",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
-        "opensans": Font (
-            asset_key: "voxygen.font.WenQuanYiZenHei",
-            scale_ratio: 1.0,
-        ),
-        "metamorph": Font (
-            asset_key: "voxygen.font.WenQuanYiZenHei",
-            scale_ratio: 1.0,
-        ),
         "alkhemi": Font (
-            asset_key: "voxygen.font.WenQuanYiZenHei",
-            scale_ratio: 1.0,
-        ),
-        "wizard": Font (
             asset_key: "voxygen.font.WenQuanYiZenHei",
             scale_ratio: 1.0,
         ),

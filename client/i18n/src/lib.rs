@@ -10,8 +10,6 @@ use fluent_bundle::{FluentResource, bundle::FluentBundle};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use unic_langid::LanguageIdentifier;
 
-use deunicode::deunicode;
-
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, io};
@@ -73,7 +71,6 @@ struct Language {
     /// Font configuration is stored here
     pub(crate) fonts: Fonts,
     pub(crate) metadata: LanguageMetadata,
-    pub(crate) convert_utf8_to_ascii: bool,
 }
 
 impl Language {
@@ -85,12 +82,6 @@ impl Language {
         for err in errs {
             tracing::error!("err: {err} for {key}");
         }
-
-        let msg = if self.convert_utf8_to_ascii {
-            deunicode(&msg).into()
-        } else {
-            msg
-        };
 
         Some(msg)
     }
@@ -111,12 +102,6 @@ impl Language {
         for err in errs {
             tracing::error!("err: {err} for {key}");
         }
-
-        let msg = if self.convert_utf8_to_ascii {
-            deunicode(&msg).into()
-        } else {
-            msg
-        };
 
         Some(msg)
     }
@@ -163,12 +148,6 @@ impl Language {
             tracing::error!("err: {err} for {key}");
         }
 
-        let msg = if self.convert_utf8_to_ascii {
-            deunicode(&msg).into()
-        } else {
-            msg
-        };
-
         Some(msg)
     }
 }
@@ -178,8 +157,7 @@ impl assets::Compound for Language {
             .load::<raw::Manifest>(&[path, ".", "_manifest"].concat())?
             .cloned();
         let raw::Manifest {
-            convert_utf8_to_ascii,
-            fonts,
+            mut fonts,
             metadata,
         } = manifest;
 
@@ -213,11 +191,21 @@ impl assets::Compound for Language {
         // Veloren Issue 1649
         bundle.set_use_isolating(false);
 
+        // Add a universal fallback-ish font, that's supposed to cover all
+        // languages.
+        // Use it for language menu, chat, etc.
+        //
+        // At the moment, covers all languages except Korean, so Korean uses
+        // different font here.
+        fonts.entry("universal".to_owned()).or_insert(Font {
+            asset_key: "voxygen.font.GoNotoCurrent".to_owned(),
+            scale_ratio: 1.0,
+        });
+
         Ok(Self {
             bundle,
             fonts,
             metadata,
-            convert_utf8_to_ascii,
         })
     }
 }

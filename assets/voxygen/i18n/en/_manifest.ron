@@ -6,22 +6,9 @@
         language_name: "English",
         language_identifier: "en",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
-        "opensans": Font (
-            asset_key: "voxygen.font.OpenSans-Regular",
-            scale_ratio: 1.0,
-        ),
-        "metamorph": Font (
-            asset_key: "voxygen.font.Metamorphous-Regular",
-            scale_ratio: 1.0,
-        ),
         "alkhemi": Font (
             asset_key: "voxygen.font.Alkhemikal",
-            scale_ratio: 1.0,
-        ),
-        "wizard": Font (
-            asset_key: "voxygen.font.wizard",
             scale_ratio: 1.0,
         ),
         "cyri": Font (

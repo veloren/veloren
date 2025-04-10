@@ -120,8 +120,8 @@ impl Screen {
             Container::new(
                 Column::with_children(vec![
                     iced::Text::new(i18n.get_msg("main-credits"))
-                        .font(fonts.alkhemi.id)
-                        .size(fonts.alkhemi.scale(35))
+                        .font(fonts.cyri.id)
+                        .size(fonts.cyri.scale(35))
                         .width(Length::Fill)
                         .horizontal_alignment(HorizontalAlignment::Center)
                         .into(),

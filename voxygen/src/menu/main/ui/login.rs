@@ -259,7 +259,8 @@ impl LanguageSelectBanner {
                         Space::new(Length::FillPortion(5), Length::Units(0)).into(),
                         Text::new(lang.language_name.clone())
                             .width(Length::FillPortion(95))
-                            .size(fonts.cyri.scale(25))
+                            .font(fonts.universal.id)
+                            .size(fonts.universal.scale(25))
                             .vertical_alignment(iced::VerticalAlignment::Center)
                             .into(),
                     ]),

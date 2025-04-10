@@ -6,21 +6,8 @@
         language_name: "ไทย (Thai)",
         language_identifier: "th",
     ),
-    convert_utf8_to_ascii: false,
     fonts: {
-        "opensans": Font (
-            asset_key: "voxygen.font.Sarabun-Regular",
-            scale_ratio: 1.0,
-        ),
-        "metamorph": Font (
-            asset_key: "voxygen.font.Sarabun-Regular",
-            scale_ratio: 1.0,
-        ),
         "alkhemi": Font (
-            asset_key: "voxygen.font.Sarabun-Regular",
-            scale_ratio: 1.0,
-        ),
-        "wizard": Font (
             asset_key: "voxygen.font.Sarabun-Regular",
             scale_ratio: 1.0,
         ),

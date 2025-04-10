@@ -263,7 +263,7 @@ impl KeyMouse {
             Key(NextTrack) => "Next Track",
             Key(LAlt) => {
                 if cfg!(target_os = "macos") {
-                    "Left Option ⌥"
+                    "Left Option"
                 } else {
                     // Assume Windows, Linux, BSD, etc.
                     "Left Alt"
@@ -271,7 +271,7 @@ impl KeyMouse {
             },
             Key(RAlt) => {
                 if cfg!(target_os = "macos") {
-                    "Right Option ⌥"
+                    "Right Option"
                 } else {
                     // Assume Windows, Linux, BSD, etc.
                     "Right Alt"
@@ -279,7 +279,7 @@ impl KeyMouse {
             },
             Key(LControl) => {
                 if cfg!(target_os = "macos") {
-                    "Left Cmd ⌘"
+                    "Left Cmd"
                 } else {
                     // Assume Windows, Linux, BSD, etc.
                     "Left Ctrl"
@@ -287,7 +287,7 @@ impl KeyMouse {
             },
             Key(RControl) => {
                 if cfg!(target_os = "macos") {
-                    "Right Cmd ⌘"
+                    "Right Cmd"
                 } else {
                     // Assume Windows, Linux, BSD, etc.
                     "Right Ctrl"
@@ -300,9 +300,10 @@ impl KeyMouse {
             // this key at all, so we keep the qualifier to minimise ambiguity.
             Key(LWin) => {
                 if cfg!(target_family = "windows") {
-                    "Win ⊞"
+                    "Win"
                 } else if cfg!(target_os = "macos") {
-                    "Left Cmd ⌘ (Super)" // Extra qualifier because both Ctrl and Win map to Cmd on Mac
+                    // Extra qualifier because both Ctrl and Win map to Cmd on Mac
+                    "Left Cmd (Super)"
                 } else {
                     // Assume Linux, BSD, etc.
                     "Super"
@@ -311,9 +312,10 @@ impl KeyMouse {
             // Most keyboards don't have this key, so throw in all the qualifiers
             Key(RWin) => {
                 if cfg!(target_family = "windows") {
-                    "Right Win ⊞"
+                    "Right Win"
                 } else if cfg!(target_os = "macos") {
-                    "Right Cmd ⌘ (Super)" // Extra qualifier because both Ctrl and Win map to Cmd on Mac
+                    // Extra qualifier because both Ctrl and Win map to Cmd on Mac
+                    "Right Cmd (Super)"
                 } else {
                     // Assume Linux, BSD, etc.
                     "Right Super"
