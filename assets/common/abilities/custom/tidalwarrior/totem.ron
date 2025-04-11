@@ -8,6 +8,7 @@ BasicSummon(
         body: Object(SeaLantern),
         scale: None,
         has_health: true,
+        use_npc_name: false,
         loadout_config: None,
         skillset_config: None,
     ),
