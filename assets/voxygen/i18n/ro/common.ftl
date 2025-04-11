@@ -66,7 +66,6 @@ common-kind-modular_component = Componentă Modulară
 common-kind-modular_component_partial = Componentă
 common-kind-glider = Planor
 common-kind-consumable = Consumabilă
-common-kind-throwable = Se poate arunca
 common-kind-utility = Utilitară
 common-kind-ingredient = Ingredient
 common-hands-one = O mână

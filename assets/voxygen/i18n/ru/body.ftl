@@ -64,3 +64,4 @@ body-npc-speech-biped_large-adlet_elder = старейшина адлетов
 body-npc-speech-biped_large-terracotta_besieger = терракотовый завоеватель
 body-npc-speech-biped_large-strigoi = стригой
 body-npc-speech-biped_large-executioner = палач
+body-npc-speech-biped_large-husk_brute = бездушный зверь

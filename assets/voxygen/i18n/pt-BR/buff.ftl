@@ -117,8 +117,6 @@ buff-potionsickness = Enjoo de Poção
 
 ## Utilidades
 
-buff-text-over_seconds = durante { $dur_secs } segundos
-buff-text-for_seconds = durante { $dur_secs } segundos
 buff-remove = Clique Para Remover
 buff-mysterious = Efeito misterioso
 

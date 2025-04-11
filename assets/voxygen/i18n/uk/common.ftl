@@ -72,7 +72,6 @@ common-kind-modular_component = Модульний Компонент
 common-kind-modular_component_partial = Компонент
 common-kind-glider = Дельтаплан
 common-kind-consumable = Вживане
-common-kind-throwable = Можна кинути
 common-kind-utility = Корисність
 common-kind-ingredient = Інгрідієнт
 common-hands-one = Одноручне

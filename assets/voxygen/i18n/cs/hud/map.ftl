@@ -45,3 +45,7 @@ hud-map-bridges = Mosty
 hud-map-glider_course = Kluzáková dráha
 hud-map-glider_courses = Kluzákové dráhy
 hud-map-myrmidon = Myrmidonská kobka
+hud-map-unknown = Neznámé
+hud-map-plaza = Náměstí
+hud-map-workshop = Dílna
+hud-map-airship_dock = Dok vzducholodí

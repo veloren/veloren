@@ -1,2 +1,16 @@
 weapon-component-sword-greatsword-iron = Лезвие Двуручного Железного Меча
     .desc = { "" }
+weapon-component-axe-jagged-cobalt = Оголовье Зазурбенного Топора из Кобальта
+    .desc = { "" }
+weapon-component-sword-sawblade-iron = Железная Пила
+    .desc = { "" }
+weapon-component-axe-greataxe-bloodsteel = Оголовье Большого Топора из Кровавой Стали
+    .desc = { "" }
+weapon-component-axe-battleaxe-bloodsteel = Оголовье Топора из Кровавой Стали
+    .desc = { "" }
+weapon-component-sword-katana-iron = Клинок Железной Катаны
+    .desc = { "" }
+weapon-component-sword-sabre-iron = Клинок Железной Сабли
+    .desc = { "" }
+weapon-component-axe-battleaxe-cobalt = Оголовье Кобальтого Боевого Топора
+    .desc = { "" }

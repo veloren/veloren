@@ -51,3 +51,5 @@ hud-crafting-repair_all = Всі
 hud-crafting-repair-selection = Обраний
 hud-crafting-tool_cata = Інструменти:
 hud-crafting-recipe-unlearned = Спочатку потрібно цей рецепт вивчити.
+hud-crafting-req_crafting_station = Станція:
+hud-crafting-repair_desc = Перетягніть сюди пошкоджені предмети, щоб відремонтувати їх

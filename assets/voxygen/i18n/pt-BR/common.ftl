@@ -71,7 +71,6 @@ common-kind-modular_component = Componente Modular
 common-kind-modular_component_partial = Componente
 common-kind-glider = Planador
 common-kind-consumable = Consumível
-common-kind-throwable = Arremessável
 common-kind-utility = Utilitário
 common-kind-ingredient = Ingrediente
 common-hands-one = Uma mão

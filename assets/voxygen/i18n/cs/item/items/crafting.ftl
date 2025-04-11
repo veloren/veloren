@@ -250,3 +250,7 @@ sprite-crafting_ing-animal_misc-large_horn = Velký roh
         Zbraně vyrobené z něj mají zesílený efekt dovedností.
 sprite-crafting_ing-cloth-lifecloth = Plátýnko
     .desc = Tkanina napuštěná jemností, kterou příroda nabízí.
+sprite-crafting_ing-bloody_tear = Kapka Krve
+    .desc = Vytvrzená koncentrovaná krev obětí nestvůry.
+sprite-crafting_ing-molten_core = Roztavené Jádro
+    .desc = Zhutněný tekutý meč ukutý ve velké zemské výhni.

@@ -80,3 +80,7 @@ pseudo-recipe-modular_weapon-sceptre = Spirskaft
     .desc = { "" }
 pseudo-recipe-repair = Reparera Utrustning
     .desc = { "" }
+recipe-armor-brinestone = Sältastenrustningsrecept
+    .desc = { "" }
+recipe-armor-druid = Druidrustningsrecept
+    .desc = { "" }

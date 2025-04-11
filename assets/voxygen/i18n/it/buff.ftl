@@ -195,7 +195,5 @@ buff-heatstroke = Colpo di calore
 
 ## Util
 
-buff-text-over_seconds = in { $dur_secs } secondi
-buff-text-for_seconds = per { $dur_secs } secondi
 buff-mysterious = Effetto misterioso
 buff-remove = Premi per rimuovere

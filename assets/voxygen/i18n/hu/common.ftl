@@ -60,7 +60,6 @@ common-tool-mining = Bányászás
 common-kind-modular_component = Alkotóelem
 common-kind-glider = Sárkányrepülő
 common-kind-consumable = Fogyasztási cikk
-common-kind-throwable = Eldobható
 common-kind-utility = Kellék
 common-kind-ingredient = Összetevő
 common-hands-one = Egykezes

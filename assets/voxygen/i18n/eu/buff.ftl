@@ -35,5 +35,3 @@ buff-increase_max_energy =
     .stat = Gehieneko energia { $strength } puntu igotzen du
 buff-increase_max_health =
     .stat = Gehieneko osasuna { $strength } puntu igotzen du
-buff-text-over_seconds = { $dur_secs } segundotan
-buff-text-for_seconds = { $dur_secs } segundoz

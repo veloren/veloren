@@ -69,7 +69,6 @@ common-kind-modular_component = Pieza modularra
 common-kind-modular_component_partial = Pieza
 common-kind-glider = Planeagailua
 common-kind-consumable = Kontsumigarria
-common-kind-throwable = Jaurtigarria
 common-kind-utility = Tresna
 common-kind-ingredient = Osagaia
 common-hands-one = Esku bakarra

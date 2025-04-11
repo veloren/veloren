@@ -62,7 +62,6 @@ common-tool-mining = Рударење
 common-kind-modular_component = Модуларна Компонента
 common-kind-glider = Једрењак
 common-kind-consumable = Јестиво
-common-kind-throwable = Може се Бацити
 common-kind-utility = Корисна Справа
 common-kind-ingredient = Састојак
 common-hands-one = Једноручни

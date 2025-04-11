@@ -123,9 +123,7 @@ buff-polymorphed = Polimorfismo
 
 ## Util
 
-buff-text-over_seconds = durante { $dur_secs } segundos
 buff-mysterious = Efecto misterioso
-buff-text-for_seconds = durante { $dur_secs } segundos
 buff-remove = Haz click para eliminar
 buff-imminentcritical =
     .desc = Tu próximo ataque golpeará críticamente al enemigo.

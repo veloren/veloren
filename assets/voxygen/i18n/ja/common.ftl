@@ -57,7 +57,6 @@ common-tool-pick = つるはし
 common-kind-modular_component = Modular Component
 common-kind-glider = グライダー
 common-kind-consumable = 消耗品
-common-kind-throwable = 投げられます
 common-kind-utility = ユーティリティ
 common-kind-ingredient = 材料
 common-hands-one = 片手持ち

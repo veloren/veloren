@@ -69,7 +69,6 @@ common-kind-modular_component = Componente modular
 common-kind-modular_component_partial = Componente
 common-kind-glider = Paravela
 common-kind-consumable = Consumible
-common-kind-throwable = Puede ser lanzado
 common-kind-utility = Utilidad
 common-kind-ingredient = Ingrediente
 common-hands-one = Una mano

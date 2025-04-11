@@ -36,3 +36,5 @@ weapon-sword-frost-admin_sword = Admin Storsvärd
     .desc = Borde det inte vara en hammare?
 armor-velorite-shoulder = Veloritmantel
     .desc = { "" }
+armor-velorite-chest = Veloritbröstplatta
+    .desc = { "" }

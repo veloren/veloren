@@ -65,7 +65,6 @@ common-tool-mining = Горная справа
 common-kind-modular_component = Модульны кампанент
 common-kind-glider = Планёр
 common-kind-consumable = Выдатковы прадмет
-common-kind-throwable = Кідальны прадмет
 common-kind-utility = Карыснасць
 common-kind-ingredient = Інгрэдыент
 common-hands-one = Аднаручнае

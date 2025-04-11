@@ -69,7 +69,6 @@ common-kind-modular_component = 모듈러 부품
 common-kind-modular_component_partial = 부품
 common-kind-glider = 글라이더
 common-kind-consumable = 소모품
-common-kind-throwable = 던질 수 있음
 common-kind-utility = 기능성
 common-kind-ingredient = 재료
 common-hands-one = 한손

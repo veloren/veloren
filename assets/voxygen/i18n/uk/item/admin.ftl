@@ -25,7 +25,7 @@ armor-velorite-chest = Велоритовий Нагрудник
 armor-velorite-boots = Велоритові Чоботи
     .desc = { "" }
 armor-velorite-back = Велоритова Накидка Адміна
-    .desc = Куди я знову подів свій банхамер?
+    .desc = Нагадайте мені, куди я подів свій банхамер?
 armor-tabard-admin_tabard = Накидка Адміна
     .desc =
         З великою силою приходить
@@ -36,3 +36,5 @@ armor-misc-back-admin_back = Плащ Адміна
         велика відповідальність.
 other-glider-vroom-debug = Вжух Глайдер
     .desc = робить вжух
+weapon-tool-broom_belzeshrub_purple = Белзешраб - Бог Мітла
+    .desc = Можна почути, як він хіхікає щоразу, коли ви сильно вдаряєтеся об землю...

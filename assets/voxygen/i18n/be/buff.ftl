@@ -35,8 +35,6 @@ buff-increase_max_energy =
     .stat = Павышае максімальнае здароўе на { $strength }
 buff-increase_max_health =
     .stat = Павышае максімальную энергію на { $strength }
-buff-text-over_seconds = на працягу { $dur_secs } сек.
-buff-text-for_seconds = на працягу { $dur_secs } сек.
 # Agility
 buff-agility = Спрыт
     .desc = Вы перамяшчаецеся хутчэй, але наносіце меньш шкоды, і атрымліваеце больш страт.

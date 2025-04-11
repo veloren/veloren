@@ -127,8 +127,6 @@ buff-polymorphed = Polimorfia
 
 ## Util
 
-buff-text-over_seconds = durante { $dur_secs } segundos
-buff-text-for_seconds = por { $dur_secs } segundos
 buff-remove = Click para remover
 # Imminent Critical
 buff-imminentcritical = Crítico Inminente

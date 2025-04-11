@@ -109,8 +109,6 @@ buff-parried = 받아넘겨짐
 
 ## Util
 
-buff-text-over_seconds = { $dur_secs }초에 걸쳐
-buff-text-for_seconds = { $dur_secs }초 동안
 buff-remove = 클릭하여 제거
 buff-agility = 민첩성
     .desc = 움직임이 빨라지지만, 데미지는 감소하고, 더 많은 피해를 입습니다.

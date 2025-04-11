@@ -1,11 +1,11 @@
 weapon-shield-wood-0 = Рваный Тарджет
     .desc = Надеюсь выдержит еще несколько ударов ...
 weapon-shield-starter = Деревянный Щит
-    .desc = Не способен сдерживать огонь.
+    .desc = Не защитит от огня.
 weapon-dagger-dagger_basic-0 = Подозрительный Нож Для Бумаги
     .desc = Быстро открывает письма.
 weapon-dagger-dagger_cult-0 = Магический Кинжал Культиста
-    .desc = Он принадлежал лидеру злого культа.
+    .desc = Он принадлежал лидеру Культа зла.
 weapon-dagger-dagger_rusty = Ржавый Кинжал
     .desc = Легко спрятать.
 weapon-bow-sagitta = Саггита

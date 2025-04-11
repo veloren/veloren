@@ -30,3 +30,5 @@ weapon-tool-shamisen = Сямісен
     .desc = Сямісен.
 weapon-tool-kora = Кора
     .desc = Кора.
+weapon-tool-banjo = Банджо
+    .desc = Банджо.

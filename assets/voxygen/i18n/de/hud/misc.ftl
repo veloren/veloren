@@ -89,3 +89,24 @@ hud-downed_recieving_help = Erhalte Hilfe.
 hud-help = Helfen
 hud-items_lost_dur = Deine ausgerüsteten Items haben Haltbarkeit verloren.
 hud-items_will_lose_dur = Deine ausgerüsteten Items werden Haltbarkeit verlieren.
+hud-init-stage-server-worldsim-erosion_time_left =
+    .days =
+        { $n ->
+            [one] ~{ $n } Tag verbleibend
+           *[other] ~{ $n } Tage verbleibend
+        }
+    .hours =
+        { $n ->
+            [one] ~{ $n } Stunde verbleibend
+           *[other] ~{ $n } Stunden verbleibend
+        }
+    .minutes =
+        { $n ->
+            [one] ~{ $n } Minute verbleibend
+           *[other] ~{ $n } Minuten verbleibend
+        }
+    .seconds =
+        { $n ->
+            [one] ~{ $n } Sekunde verbleibend
+           *[other] ~{ $n } Sekunden verbleibend
+        }

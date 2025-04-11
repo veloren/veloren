@@ -37,4 +37,4 @@ weapon-tool-broom_belzeshrub_purple = Белзешраб - Метла Бог
 armor-velorite-shoulder = Велоритовые Наплечники
     .desc = { "" }
 other-glider-vroom-debug = Врум Дельтаплан
-    .desc = Происходит врууум.
+    .desc = Он делает вжжжжж

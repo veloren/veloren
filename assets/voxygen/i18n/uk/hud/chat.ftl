@@ -2,13 +2,13 @@
 
 hud-chat-online_msg =
     { "[" }{ $name }] { $user_gender ->
-        [she] зайшла на сервер
-       *[he] зайшов на сервер
+        [she] зайшла на сервер.
+       *[he] зайшов на сервер.
     }
 hud-chat-offline_msg =
     { "[" }{ $name }] { $user_gender ->
-        [she] вийшла з серверу
-       *[he] вийшов з серверу
+        [she] вийшла з серверу.
+       *[he] вийшов з серверу.
     }
 hud-chat-goodbye = До побачення!
 hud-chat-connection_lost =

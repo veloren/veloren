@@ -169,7 +169,7 @@ object-honey = Miel
     .desc = Volé dans une ruche. Les abeilles ne vont pas être contentes !
 object-ice_shard = Éclat glacé
     .desc = Trouvé sur une créature glacée.
-sprite-mineral-ore-bloodstone = Pierre de Sang
+sprite-mineral-ore-bloodstone = Minerai d'Héliotrope
     .desc = Minerai d'un rouge profond, il rappelle le sang.
 sprite-mineral-ore-ancient_gold = Or ancien
     .desc = Ancien lingot d'or, imprégné d'énergies magiques.
@@ -197,9 +197,9 @@ sprite-mineral-ore-copper = Minerai de cuivre
     .desc = Métal brun. Composant essentiel de création du bronze.
 sprite-mineral-ore-gold = Minerai d'or
     .desc = Métal jaune précieux.
-sprite-mineral-ingot-bloodsteel = Lingot d'acier sanguin
+sprite-mineral-ingot-bloodsteel = Lingot d'Hémoacier
     .desc =
-        Alliage de pierre de sang et de fer, de couleur rouge foncé.
+        Alliage d'Héliotrope et de fer, de couleur rouge foncé.
 
         Peut être utilisé pour fabriquer des armes en métal.
 object-collar = Collier

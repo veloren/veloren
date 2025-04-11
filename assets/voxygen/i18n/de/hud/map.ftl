@@ -1,5 +1,5 @@
 hud-map-map_title = Karte
-hud-map-qlog_title = Aufgaben
+hud-map-qlog_title = Aufträge
 hud-map-topo_map = Topographie
 hud-map-difficulty = Schwierigkeit
 hud-map-towns = Städte
@@ -45,3 +45,7 @@ hud-map-glider_course = Gleiterkurs
 hud-map-glider_courses = Gleiterkurse
 hud-map-myrmidon = Myrmidonen-Verlies
 hud-map-bridges = Brücken
+hud-map-unknown = Unbekannt
+hud-map-plaza = Stadtplatz
+hud-map-workshop = Werkstatt
+hud-map-airship_dock = Luftschiff-Andockstelle

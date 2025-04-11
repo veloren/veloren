@@ -13,3 +13,4 @@ hud-group-in_menu = V Menu
 hud-group-members = Členové Skupiny
 hud-group-invite-declined = { $target } odmítl tvou pozvánku do skupiny.
 hud-group-invite-timed_out = Pozvánka do skupiny pro { $target } vypršela.
+hud-group-invite-accepted = { $target } přijal(a) tvou pozvánku do skupiny.

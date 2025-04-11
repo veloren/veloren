@@ -162,7 +162,7 @@ hud-settings-high_graphics = Hoch
 hud-settings-aim_offset_x = Horizontale Ziel-Verschiebung
 hud-settings-low_graphics = Niedrig
 hud-settings-fluid_rendering_mode-medium = Mittel
-hud-settings-use_prefixes = SI-Einheiten für Mengen verwenden
+hud-settings-use_prefixes = SI-Vorzeichen für Mengen verwenden
 hud-settings-medium_graphics = Mittel
 hud-settings-reflection_rendering_mode-high = Hoch
 hud-settings-slots = Inventarplätze
@@ -176,3 +176,6 @@ hud-settings-keybind-helper =
     M1 zum Setzen
     M2 zum Deaktivieren
 hud-settings-show_all_recipes = Zeige alle Rezepte
+hud-settings-gamepad = Gamepad
+hud-settings-keyboard = Tastatur
+hud-settings-use_health_prefixes = SI-Vorzeichen für die Lebensanzeige verwenden

@@ -31,7 +31,7 @@ hud-bag-stealth = Tarnung
 hud-bag-combat_rating_desc =
     Berechnet aus deiner 
     Ausrüstung und Gesundheit.
-hud-bag-protection_desc = Schadensreduzierung durch Rüstung
+hud-bag-protection_desc = Schadensreduzierung durch Rüstung.
 hud-bag-stun_res_desc =
     Widerstandsfähigkeit gegen Betäubung durch aufeinanderfolgende Treffer.
     Regeneriert wie Ausdauer.

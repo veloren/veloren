@@ -21,5 +21,3 @@ buff-increase_max_energy =
     .stat = スタミナ最大値を{ $strength }上げる
 buff-increase_max_health =
     .stat = 体力最大値を{ $strength }上げる
-buff-text-over_seconds = { $dur_secs }秒以上
-buff-text-for_seconds = { $dur_secs }秒間

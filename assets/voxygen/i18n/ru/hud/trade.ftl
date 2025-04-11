@@ -30,7 +30,7 @@ hud-trade-sell =
         [many] { $coin_formatted } монет
        *[other] { $coin_formatted } монет
     }
-hud-trade-tooltip_hint_1 = <Shift-ЛКМ чтобы Добавить/Удалить из сделки.>
+hud-trade-tooltip_hint_1 = <Shift-Click чтобы Добавить/Удалить из сделки.>
 hud-trade-tooltip_hint_2 = <Ctrl-ЛКМ чтобы сбалансировать цену.>
 hud-trade-your_offer = Ваше предложение
 hud-trade-their_offer = Вам предлагают
