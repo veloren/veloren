@@ -107,7 +107,13 @@ command-whitelist-desc = Adds/removes username to whitelist
 command-wiring-desc = Create wiring element
 command-world-desc = Send messages to everyone on the server
 command-wiki-desc = Open the wiki or search for a topic
-
+# Command: /players
+players-list-header = { $count ->
+  [1] { $count } player online 
+    { $player_list }
+  *[other] { $count } players online 
+    { $player_list }
+}
 ## Voxygen Client Commands
 
 command-clear-desc = Clears all messages in chat. Affects all chat tabs.

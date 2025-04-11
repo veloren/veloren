@@ -2409,24 +2409,31 @@ fn handle_players(
         &ecs.read_storage::<comp::Stats>(),
     );
 
-    // TODO: localize
+    // Contruct list of every player currently online
+    let mut player_list = String::new();
+    for (_, player, stat) in entity_tuples.join() {
+        player_list.push_str(&format!(
+            "[{}]{}\n",
+            player.alias,
+            stat.name.as_plain().unwrap_or("<?>")
+        ));
+    }
+
+    // Show all players currently online
     server.notify_client(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            Content::Plain(entity_tuples.join().fold(
-                format!("{} online players:", entity_tuples.join().count()),
-                |s, (_, player, stat)| {
-                    format!(
-                        "{}\n[{}]{}",
-                        s,
-                        player.alias,
-                        stat.name.as_plain().unwrap_or("<?>"),
-                    )
-                },
-            )),
+            Content::localized_with_args("players-list-header", [
+                (
+                    "count",
+                    LocalizationArg::from(entity_tuples.join().count() as u64),
+                ),
+                ("player_list", LocalizationArg::from(player_list)),
+            ]),
         ),
     );
+
     Ok(())
 }
 
