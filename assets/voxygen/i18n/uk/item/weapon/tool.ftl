@@ -1,6 +1,6 @@
 weapon-tool-broom = Мітла
     .desc = Вона починає розвалюватись.
-weapon-tool-fishing_rod_blue = Вудка
+weapon-tool-fishing_rod_blue = Рибальська вудка
     .desc = Пахне рибою.
 weapon-tool-golf_club = Ключка для Гольфу
     .desc = Сільський забіяка. Запеклий антиурбаніст. Кліматична криза? Яка кліматична криза?

@@ -1,6 +1,6 @@
 hud-group = Група
-hud-group-invite_to_join = [{ $name }] запросили Вас до їхньої групи!
-hud-group-invite_to_trade = [{ $name }] хочуть поторгувати з Вами.
+hud-group-invite_to_join = { "[" }{ $name }] запросили Вас до їхньої групи!
+hud-group-invite_to_trade = { "[" }{ $name }] хочуть поторгувати з Вами.
 hud-group-invite = Запросити
 hud-group-kick = Викинути
 hud-group-assign_leader = Призначити лідером
@@ -11,3 +11,5 @@ hud-group-add_friend = Додати друга
 hud-group-link_group = Зв'язати групи
 hud-group-in_menu = В меню
 hud-group-members = Учасники групи
+hud-group-invite-declined = { $target } відмовився(лася) від вашого запрошення до групи.
+hud-group-invite-timed_out = Термін дії запрошення до групи для { $target } закінчився.

@@ -480,3 +480,5 @@ weapon-axe-ornate-iron-1h = Järn-kilonda
     .desc = { "" }
 weapon-axe-ornate-cobalt-1h = Kobolt-kilonda
     .desc = { "" }
+weapon-sword-sawblade-iron-1h = Järn Sågdolk
+    .desc = { "" }

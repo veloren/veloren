@@ -45,3 +45,7 @@ hud-map-vampire_castle = Замок Вампира
 hud-map-cultist = Подземелье Культистов
 hud-map-bridges = Мосты
 hud-map-sahagin = Остров Сахагин
+hud-map-unknown = Неизвестно
+hud-map-workshop = Мастерская
+hud-map-airship_dock = Док для дирижаблей
+hud-map-plaza = Городская площадь

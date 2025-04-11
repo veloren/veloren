@@ -34,7 +34,7 @@ main-login-server_not_found = Server nicht gefunden.
 main-login-authentication_error = Authentifizierungsfehler auf dem Server.
 main-login-internal_error = Interner Fehler beim Client. Hinweis: Vielleicht wurde der Charakter gelöscht.
 main-login-failed_auth_server_url_invalid = Verbindung zum Authentifizierungsfehler fehlgeschlagen.
-main-login-insecure_auth_scheme = Das HTTP Protokoll wird nicht unterstützt. Es ist unsicher! Für Entwicklungszwecke kann HTTP für 'localhost'- und debug-builds genutzt werden
+main-login-insecure_auth_scheme = Das HTTP Protokoll wird nicht unterstützt. Es ist unsicher! Für Entwicklungszwecke kann HTTP für 'localhost'- und Debug-Builds genutzt werden.
 main-login-server_full = Server ist voll.
 main-login-untrusted_auth_server = Authentifizierungsserver wird nicht vertraut.
 main-login-timeout = Zeitüberschreitung: Der Server hat nicht rechtzeitig geantwortet. Hinweis: Der Server könnte derzeit überlastet sein oder es könnte einen Netzwerkprobleme geben.
@@ -45,8 +45,8 @@ main-login-failed_sending_request = Anfrage zum Authentifizierungsserver fehlges
 main-login-invalid_character = Der ausgewählte Charakter ist ungültig.
 main-login-client_crashed = Client abgestürzt.
 main-login-not_on_whitelist = Du bist nicht auf der Whitelist des Servers, dem du versucht hast beizutreten.
-main-login-banned = Du wurdest aus folgendem Grund gebannt:
-main-login-kicked = Du wurdest aus folgendem Grund gekickt:
+main-login-banned = Du wurdest aus folgendem Grund dauerhaft gebannt: { $reason }
+main-login-kicked = Du wurdest aus folgendem Grund gekickt: { $reason }
 main-login-select_language = Wähle eine Sprache
 main-login-client_version = Client-Version
 main-login-server_version = Server-Version
@@ -114,3 +114,4 @@ main-singleplayer-map_shape-square = Quadrat
 main-login-banned_until =
     Du wurdest vorübergehend aus dem folgenden Grund gebannt: { $reason }
     Bis: { $end_date }
+main-singleplayer-map_large_extra_warning = Das würde ungefähr die gleichen Ressourcen beanspruchen wie die Generation von { $count } Welten mit Standardeinstellungen.

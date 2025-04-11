@@ -42,7 +42,6 @@ common-weapons-hammer = Чук
 common-weapons-shield = Шит
 common-weapons-spear = Копие
 common-tool-pick = Кирка
-common-kind-throwable = Може да бъде хвърлен
 common-kind-ingredient = Съставка
 common-rand_name = Произволно име
 common-stats-armor = Броня

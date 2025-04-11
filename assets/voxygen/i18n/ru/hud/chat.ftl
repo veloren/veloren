@@ -76,3 +76,4 @@ hud-chat-tell-to-npc = Кому: [{ $alias }]: { $msg }
 hud-chat-message = { "[" }{ $alias }]: { $msg }
 hud-chat-message-with-name = { "[" }{ $alias }] { $name }: { $msg }
 hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }
+hud-chat-message-in-group-with-name = ({ $group }) [{ $alias }] { $name }: { $msg }

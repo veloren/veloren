@@ -41,8 +41,6 @@ buff-increase_max_health = Crește viața maximă
     .stat =
         Crește viața maximă
         cu { $strength }.
-buff-text-over_seconds = peste { $dur_secs } secunde
-buff-text-for_seconds = pentru { $dur_secs } secunde
 buff-energy_regen = Regenerare Energie
     .desc = Regenerare mai rapidă a energiei.
     .stat = Regenerează { $str_total } energie.

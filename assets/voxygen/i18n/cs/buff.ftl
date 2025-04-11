@@ -39,8 +39,6 @@ buff-increase_max_health = Zvýšení Maximálních Životů
     .stat =
         Zvyšuje maximální životy
         o { $strength }.
-buff-text-over_seconds = více než { $dur_secs } sekund
-buff-text-for_seconds = po dobu { $dur_secs } sekund
 buff-scornfultaunt = Pohrdavý Výsměch
     .desc = Pohrdavě se vysmíváš nepřátelům, což ti posiluje statečnost a výdrž. Ale tvoje smrt posílí tvého vraha.
 buff-winded = Bez dechu

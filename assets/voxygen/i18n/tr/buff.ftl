@@ -33,5 +33,3 @@ buff-increase_max_energy =
     .stat = Maksimum Enerjiyi { $strength } Arttırır.
 buff-increase_max_health =
     .stat = Maksimum Canı { $strength } Arttırır.
-buff-text-over_seconds = { $dur_secs } saniye içinde
-buff-text-for_seconds = { $dur_secs } saniye boyunca

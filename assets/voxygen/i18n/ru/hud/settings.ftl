@@ -41,43 +41,23 @@ hud-settings-reset_interface = По умолчанию
 hud-settings-pan_sensitivity = Чувствительность мыши
 hud-settings-zoom_sensitivity = Чувствительность масштабирования
 hud-settings-camera_clamp_angle = Угол для режима вертикального фиксатора камеры
-hud-settings-invert_scroll_zoom =
-    Инвертировать
-    масштаб прокрутки
-hud-settings-invert_mouse_y_axis =
-    Инвентировать ось
-    Y мыши
-hud-settings-invert_controller_y_axis =
-    Инвентировать ось
-    X контроллера
+hud-settings-invert_scroll_zoom = Инвертировать масштабирование камеры
+hud-settings-invert_mouse_y_axis = Инвертирование мыши по оси Y
+hud-settings-invert_controller_y_axis = Инвертирование контроллера по оси Y
 hud-settings-enable_mouse_smoothing = Сглаживание камеры
-hud-settings-free_look_behavior =
-    Переключение
-    свободной камеры
-hud-settings-auto_walk_behavior =
-    Переключение
-    автоматической ходьбы
-hud-settings-camera_clamp_behavior =
-    Переключение вертикального
-    фиксатора камеры
+hud-settings-free_look_behavior = Переключение камеры свободного обзора
+hud-settings-auto_walk_behavior = Переключение автоматической ходьбы
+hud-settings-camera_clamp_behavior = Переключение вертикального фиксатора камеры
 hud-settings-player_physics_behavior = Физика игрока (экспериментальная)
 hud-settings-stop_auto_walk_on_input = Остановить автоходьбу при движении
 hud-settings-auto_camera = Авто-камера
 hud-settings-bow_zoom = Приближение при натягивании тетивы
 hud-settings-reset_gameplay = По умолчанию
-hud-settings-view_distance =
-    Дальность
-    видимости
-hud-settings-entity_view_distance =
-    Дальность
-    видимости существ
+hud-settings-view_distance = Дальность прорисовки
+hud-settings-entity_view_distance = Дальность прорисовки существ
 hud-settings-lod_distance = Дистанция LoD
-hud-settings-sprites_view_distance =
-    Дальность
-    видимости спрайтов
-hud-settings-entities_detail_distance =
-    Дальность
-    деталей существ
+hud-settings-sprites_view_distance = Дальность прорисовки моделей
+hud-settings-entities_detail_distance = Дальность детализации существ
 hud-settings-maximum_fps = Максимальный FPS
 hud-settings-background_fps = FPS в фоновом режиме
 hud-settings-present_mode = Режим показа
@@ -119,7 +99,7 @@ hud-settings-bit_depth = Битовая глубина
 hud-settings-refresh_rate = Частота обновления
 hud-settings-lighting_rendering_mode = Качество освещения
 hud-settings-lighting_rendering_mode-ashikhmin = Высокое
-hud-settings-lighting_rendering_mode-blinnphong = Среднее
+hud-settings-lighting_rendering_mode-blinnphong = Тип B - Среднее
 hud-settings-lighting_rendering_mode-lambertian = Низкое
 hud-settings-shadow_rendering_mode = Качество тени
 hud-settings-shadow_rendering_mode-none = Отключено

@@ -70,7 +70,6 @@ common-kind-modular_component = 模块化组件
 common-kind-modular_component_partial = 模块化组件
 common-kind-glider = 滑翔伞
 common-kind-consumable = 消耗品
-common-kind-throwable = 垃圾
 common-kind-utility = 道具
 common-kind-ingredient = 配料
 common-hands-one = 单手

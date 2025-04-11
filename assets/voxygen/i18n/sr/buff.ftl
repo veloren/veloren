@@ -31,5 +31,3 @@ buff-ensnared = Заробљен/а
     .desc = Ноге се уплићу у лозу, отежавајући ти кретање.
 buff-increase_max_health =
     .stat = Подиже Максимално Здравље за { $strength }
-buff-text-over_seconds = током { $dur_secs } секунди
-buff-text-for_seconds = за { $dur_secs } секудни

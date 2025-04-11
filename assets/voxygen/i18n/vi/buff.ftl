@@ -33,5 +33,3 @@ buff-increase_max_energy =
     .stat = Tăng Mức Năng Lượng Tối Đa { $strength }
 buff-increase_max_health =
     .stat = Tăng Lượng Máu Tối Đa { $strength }
-buff-text-over_seconds = trong { $dur_secs } giây
-buff-text-for_seconds = khoảng { $dur_secs } giây

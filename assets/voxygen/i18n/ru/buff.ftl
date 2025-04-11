@@ -122,18 +122,6 @@ buff-reckless = Безрассудный
 
 ## Util
 
-buff-text-over_seconds =
-    более { $dur_secs ->
-        [one] секунды
-       *[other] { $dur_secs } секунд
-    }
-buff-text-for_seconds =
-    на { $dur_secs ->
-        [one] { $dur_secs } секунду
-        [few] { $dur_secs } секунды
-        [many] { $dur_secs } секунд
-       *[other] { $dur_secs } секунд
-    }
 buff-remove = Нажмите, чтобы удалить
 # Imminent Critical
 buff-imminentcritical = Неотвратимый Критический Удар

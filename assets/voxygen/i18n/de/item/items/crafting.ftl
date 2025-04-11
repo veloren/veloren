@@ -173,8 +173,7 @@ object-long_tusk = Langer Stoßzahn
     .desc =
         Ein beeindruckend langer Stoßzahn eines stolzen Tieres.
 
-        Kann zum Herstellen effizienter Waffen mit hoher
-        Reichweite verwendet werden.
+        Kann zum Herstellen effizienter Waffen mit hoher Reichweite verwendet werden.
 object-ice_shard = Eisige Scherbe
     .desc = Erbeutet von einer frostigen Kreatur.
 object-raptor_feather = Raptorfeder
@@ -252,3 +251,7 @@ sprite-crafting_ing-cursed_bead = Verfluchte Perle
     .desc = Welche unheilvolle Magie könnte diese alte, mystische Perle in sich bergen?
 sprite-crafting_ing-earthern_shard = Tonscherbe
     .desc = Ein gehärteter Splitter, der einst Teil eines lebendigen Keramikwesens war.
+sprite-crafting_ing-molten_core = Geschmolzener Kern
+    .desc = Verdichtetes Flüssigkeitsschwert, geschmiedet im großen Schmelzofen der Erde.
+sprite-crafting_ing-bloody_tear = Blutige Träne
+    .desc = Das gehärtete, konzentrierte Blut von der Bestie zahlreicher Opfer.

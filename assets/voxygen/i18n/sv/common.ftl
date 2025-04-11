@@ -72,7 +72,6 @@ common-kind-modular_component = Modulär Komponent
 common-kind-modular_component_partial = Komponent
 common-kind-glider = Glidare
 common-kind-consumable = Förbrukningsvara
-common-kind-throwable = Kan kastas
 common-kind-utility = Hjälpmedel
 common-kind-ingredient = Ingrediens
 common-hands-one = Enhänt

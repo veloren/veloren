@@ -204,7 +204,7 @@ common-abilities-sword-heavy_sweep = Těžké máchnutí
         Aktivuje pevný postoj.
 common-abilities-sword-heavy_pommel_strike = Úder na kebuli
     .desc =
-        Otřes nepřítele tupým úderem na hlavu.
+        Udeř nepřítele tupým úderem na hlavu. Pokud se pokusí blokovat, vyvede ho to víc z rovnováhy.
         Aktivuje pevný postoj.
 common-abilities-sword-agile_quick_draw = Vytasení
     .desc =

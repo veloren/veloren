@@ -13,10 +13,9 @@ buff-invulnerability = Nevundeblo
     .desc = Vi ne povas vunditas dum batalo.
 
 ## Debuffs
+
 buff-bleed = Sangi
 buff-burn = Brulanta
 
 ## Text
 
-buff-text-over_seconds = dum { $dur_secs } sekundoj
-buff-text-for_seconds = dum { $dur_secs } sekundoj

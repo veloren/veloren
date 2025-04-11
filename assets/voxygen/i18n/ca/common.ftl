@@ -65,7 +65,6 @@ common-tool-mining = Minar
 common-kind-modular_component = Component Modular
 common-kind-glider = Planador
 common-kind-consumable = Consumible
-common-kind-throwable = Llençable
 common-kind-utility = Utilitat
 common-kind-ingredient = Ingredient
 common-hands-one = Una Mà

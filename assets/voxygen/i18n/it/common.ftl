@@ -72,7 +72,6 @@ common-kind-modular_component = Componente modulare
 common-kind-modular_component_partial = Componente
 common-kind-glider = Deltaplano
 common-kind-consumable = Consumabile
-common-kind-throwable = Può essere lanciato
 common-kind-utility = Utilità
 common-kind-ingredient = Ingrediente
 common-hands-one = A una mano

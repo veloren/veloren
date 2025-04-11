@@ -109,8 +109,6 @@ buff-parried = Paré
 
 ## Util
 
-buff-text-over_seconds = pendant { $dur_secs } secondes
-buff-text-for_seconds = pour { $dur_secs } secondes
 buff-remove = Cliquer pour retirer
 # Reckless
 buff-reckless = Imprudent

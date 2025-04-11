@@ -23,29 +23,29 @@ buff-campfire_heal = Heilung durch Lagerfeuer
 
 buff-energy_regen = Ausdauerregeneration
     .desc = Schnellere Ausdauerregeneration.
-    .stat = Stellt { $str_total } Ausdauer wieder her
+    .stat = Stellt { $str_total } Ausdauer wieder her.
 
 ## Health Increase
 
 buff-increase_max_health = Erhöhung der maximalen Lebensenergie
-    .desc = Erhöhe deine maximale Lebensenergie
+    .desc = Erhöhe deine maximale Lebensenergie.
     .stat =
         Erhöht die maximale Lebensenergie
-        um { $strength }
+        um { $strength }.
 
 ## Energy Increase
 
 buff-increase_max_energy = Erhöhung der maximalen Ausdauer
-    .desc = Erhöhe deine maximale Ausdauer
+    .desc = Erhöhe deine maximale Ausdauer.
     .stat =
         Erhöht die maximale Ausdauer
-        um { $strength }
+        um { $strength }.
 
 ## Invulnerability
 
 buff-invulnerability = Unverwundbarkeit
     .desc = Du bist immun gegen jeglichen Schaden.
-    .stat = Gewährt Unverwundbarkeit
+    .stat = Gewährt Unverwundbarkeit.
 
 ## Protection Ward
 
@@ -99,8 +99,6 @@ buff-ensnared = Gefesselt
 
 ## Util
 
-buff-text-over_seconds = über { $dur_secs } Sekunden
-buff-text-for_seconds = für { $dur_secs } Sekunden
 buff-remove = Klicke zum Entfernen
 # Potion sickness
 buff-potionsickness = Zaubertrank-Übelkeit
@@ -109,7 +107,7 @@ buff-potionsickness = Zaubertrank-Übelkeit
         Reduziert deine Heilung von
         folgenden Tränken um { $strength }%.
 # Imminent Critical
-buff-imminentcritical =
+buff-imminentcritical = Unmittelbarer, kritischer Treffer
     .desc = Dein nächster Angriff wird deinen Gegner kritisch treffen.
 # Reckless
 buff-reckless = Rücksichtslos
@@ -136,7 +134,7 @@ buff-defiance = Trotz
 buff-polymorphed = Verwandelt
     .desc = Dein Körper verändert die Form.
 # Salamander's Aspect
-buff-salamanderaspect =
+buff-salamanderaspect = Salamander-Aspekt
     .desc = Du kannst nicht brennen und bewegst dich schnell durch Lava.
 # Frigid
 buff-frigid = Kalt
@@ -160,3 +158,17 @@ buff-sunderer = Zersplitterung
 # Poisoned
 buff-poisoned = Vergiftet
     .desc = Du spürst dein Leben dahinschwinden...
+buff-concussion = Gehirnerschütterung
+    .desc = Du wurdest stark am Kopf getroffen und hast Konzentrationsschwierigkeiten, was dich daran hindert, einige deiner komplexen Attacken durchzuführen.
+buff-rooted = Verwurzelt
+    .desc = Du steckst an Ort und Stelle fest und kannst dich nicht bewegen.
+buff-staggered = Schwindel
+    .desc = Du kannst keine Balance halten und bist anfälliger für schwere Attacken.
+buff-winded = Atemlos
+    .desc = Du kannst kaum atmen, was die Wiederherstellung von Energie und deine Geschwindigkeit beeinträchtigt.
+buff-tenacity = Hartnäckigkeit
+    .desc = Du erträgst schwere Attacken nicht nur leichter, sie liefern dir zudem auch Energie. Allerdings bist du langsamer.
+buff-resilience = Widerstandsfähigkeit
+    .desc = Nachdem du eine lähmende Attacke eingesteckt hast, wirst du widerständsfähiger gegen zukünftige, schwächende Effekte.
+buff-scornfultaunt = Hämischer Spott
+    .desc = Du verspottest deine Feinde hämisch, was deine Standhaftigkeit und Ausdauer verstärkt. Jedoch wird dein Gegner durch deinen Tod gestärkt.

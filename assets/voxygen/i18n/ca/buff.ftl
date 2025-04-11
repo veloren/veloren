@@ -35,5 +35,3 @@ buff-increase_max_energy =
     .stat = Augmenta l'Energia màxima en { $strength }
 buff-increase_max_health =
     .stat = Augmenta la Salut màxima en { $strength }
-buff-text-over_seconds = al llarg de { $dur_secs } segons
-buff-text-for_seconds = durant { $dur_secs } segons

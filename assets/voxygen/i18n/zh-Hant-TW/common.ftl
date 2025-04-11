@@ -72,7 +72,6 @@ common-kind-modular_component = 模組化元件
 common-kind-modular_component_partial = 元件
 common-kind-glider = 滑翔翼
 common-kind-consumable = 消耗品
-common-kind-throwable = 可投擲
 common-kind-utility = 工具
 common-kind-ingredient = 原料
 common-kind-recipegroup = 配方

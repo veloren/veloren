@@ -58,3 +58,5 @@ lantern-green = Limeskalslykta
     .desc = Den har en öppning som kan rymma en ring…
 glider-cultists = Skullgrin
     .desc = Död från ovan.
+lantern-delvers_lamp = Grävarens lampa
+    .desc = Perfekt för att gräva med.

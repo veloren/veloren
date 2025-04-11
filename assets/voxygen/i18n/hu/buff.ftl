@@ -33,5 +33,3 @@ buff-increase_max_energy =
     .stat = Megnöveli a maximális energiát ennyivel: { $strength }
 buff-increase_max_health =
     .stat = Megnöveli a maximális életerőt ennyivel: { $strength }
-buff-text-over_seconds = { $dur_secs } másodpercre
-buff-text-for_seconds = { $dur_secs } másodpercig

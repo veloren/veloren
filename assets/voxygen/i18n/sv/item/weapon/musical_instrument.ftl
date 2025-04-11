@@ -32,3 +32,5 @@ weapon-tool-kora = Kora
     .desc = Kora.
 weapon-tool-banjo = Banjo
     .desc = Banjo.
+weapon-tool-wooden_oud = Oud
+    .desc = Trä Oud.

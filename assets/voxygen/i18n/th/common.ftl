@@ -69,7 +69,6 @@ common-kind-modular_component = ส่วนประกอบ
 common-kind-modular_component_partial = วัสดุ
 common-kind-glider = เครื่องร่อน
 common-kind-consumable = ของใช้
-common-kind-throwable = ของใช้ชนิดปา
 common-kind-utility = อุปกรณ์ของใช้
 common-kind-ingredient = วัตถุดิบ
 common-hands-one = จับมือเดียว

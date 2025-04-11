@@ -62,7 +62,6 @@ common-tool-mining = Madencilik
 common-kind-modular_component = Modüler Parça
 common-kind-glider = Planör
 common-kind-consumable = Tüketilen
-common-kind-throwable = Fırlatılabilir
 common-kind-utility = Yararlı
 common-kind-ingredient = Malzeme
 common-hands-one = Tek Elli

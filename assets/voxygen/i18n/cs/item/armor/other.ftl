@@ -78,3 +78,7 @@ armor-misc-bag-soulkeeper_pure = Čistý tlumok na duše
     .desc = WIP.
 armor-misc-bag-soulkeeper_cursed = Prokletý tlumok na duše
     .desc = WIP.
+lantern-bloodmoon_relic = Relikvie Červeného měsíce
+    .desc = Půvabný pach krve slouží jako past i jako zdroj světla k lovu nočních stvůr.
+lantern-crux = Jádro
+    .desc = Spalující žár je pouhým vzorkem nezaměnitelného žáru Gigase.

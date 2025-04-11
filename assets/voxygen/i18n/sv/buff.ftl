@@ -175,8 +175,6 @@ buff-berserk = Bärsärk
 
 ## Util
 
-buff-text-over_seconds = under { $dur_secs } sekunder
-buff-text-for_seconds = i { $dur_secs } sekunder
 buff-mysterious = Mystisk effekt
 buff-remove = Klicka för att ta bort
 # Agility

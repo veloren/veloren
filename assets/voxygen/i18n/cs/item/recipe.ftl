@@ -106,3 +106,7 @@ recipe-weapons-ironwood = Recepty na zbraně z železného dřeva
     .desc = { "" }
 recipe-armor-golemite = Recepty na golemitové brnění
     .desc = { "" }
+recipe-unique-bloodmoon_relic = Recept na Relikvii Červeného měsíce
+    .desc = { "" }
+recipe-unique-crux = Recept na Jádro
+    .desc = { "" }

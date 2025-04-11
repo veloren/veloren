@@ -61,7 +61,6 @@ common-tool-mining = Khai Mỏ
 common-kind-modular_component = Thành phần Mô-đun
 common-kind-glider = Dù Lượn
 common-kind-consumable = Có thể hấp thụ
-common-kind-throwable = Có thể ném
 common-kind-ingredient = Nguyên Liệu
 common-hands-one = Một Tay
 common-hands-two = Hai Tay

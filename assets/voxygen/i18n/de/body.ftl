@@ -37,7 +37,7 @@ body-npc-speech-biped_large-mindflayer = ein Mindflayer
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-minotaur = ein Minotaur
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-tidal_warrior = ein Tidenkrieger
+body-npc-speech-biped_large-tidal_warrior = ein Gezeitenkrieger
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-harvester = ein Harvester
 # Monster descriptions, used ONLY in npc-speech-tell_monster

@@ -85,7 +85,32 @@ hud-init-stage-render-pipeline = Vytvářím vykreslovací potrubí ({ $done }/{
 hud-steal = Ukrást
 hud-items_will_lose_dur = Tvoje vybavení ztratí na trvanlivosti.
 hud-hardcore_will_char_deleted = Tato hardcore postava bude odstraněna.
-hud-press_key_to_give_up = Stiskem { $key } se vzdáš a zemřeš.
+hud-press_key_to_give_up = Podržením { $key } se vzdáš a zemřeš.
 hud-downed_recieving_help = Někdo ti pomáhá.
 hud-items_lost_dur = Tvoje vybavení ztratilo na trvanlivosti.
 hud-help = Když postava zemře, můžeš jí pomoct. Bude to zobrazeno jako možnost interakce s postavou (jako: "Pomoz" této postavě).
+hud-init-stage-server-worldsim-erosion_time_left =
+    .days =
+        { $n ->
+            [one] ~{ $n } den zbývá
+            [few] ~{ $n } dny zbývají
+           *[other] ~{ $n } dní zbývá
+        }
+    .hours =
+        { $n ->
+            [one] ~{ $n } hodina zbývá
+            [few] ~{ $n } hodiny zbývají
+           *[other] ~{ $n } hodin zbývá
+        }
+    .minutes =
+        { $n ->
+            [one] ~{ $n } minuta zbývá
+            [few] ~{ $n } minuty zbývají
+           *[other] ~{ $n } minut zbývá
+        }
+    .seconds =
+        { $n ->
+            [one] ~{ $n } sekunda zbývá
+            [few] ~{ $n } sekundy zbývají
+           *[other] ~{ $n } sekund zbývá
+        }
