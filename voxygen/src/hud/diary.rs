@@ -47,6 +47,7 @@ use conrod_core::{
 };
 use i18n::Localization;
 use std::borrow::Cow;
+use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 const ART_SIZE: [f64; 2] = [320.0, 320.0];
 
@@ -299,22 +300,6 @@ impl<'a> Diary<'a> {
 
 pub type SelectedSkillTree = SkillGroupKind;
 
-// TODO: make it enum?
-const TREES: [&str; 8] = [
-    "General Combat",
-    "Sword",
-    "Axe",
-    "Hammer",
-    "Bow",
-    "Fire Staff",
-    "Sceptre",
-    "Mining",
-];
-
-// Possible future sections: Bestiary ("Pokedex" of fought enemies), Weapon and
-// armour catalogue, Achievements...
-const SECTIONS: [&str; 4] = ["Skill-Trees", "Abilities", "Stats", "Recipes"];
-
 pub enum Event {
     Close,
     ChangeSkillTree(SelectedSkillTree),
@@ -323,12 +308,67 @@ pub enum Event {
     SelectExpBar(Option<SkillGroupKind>),
 }
 
-#[derive(PartialEq, Eq)]
+// Possible future sections: Bestiary ("Pokedex" of fought enemies), Weapon and
+// armour catalogue, Achievements...
+#[derive(EnumIter, PartialEq, Eq)]
 pub enum DiarySection {
     SkillTrees,
     AbilitySelection,
     Stats,
     Recipes,
+}
+
+impl DiarySection {
+    fn title_key(&self) -> &'static str {
+        match self {
+            DiarySection::SkillTrees => "hud-diary-sections-skill_trees-title",
+            DiarySection::AbilitySelection => "hud-diary-sections-abilities-title",
+            DiarySection::Stats => "hud-diary-sections-stats-title",
+            DiarySection::Recipes => "hud-diary-sections-recipes-title",
+        }
+    }
+}
+
+// Represents the SkillGroupKind items
+// that have a skill tree in the diary
+#[derive(EnumIter, PartialEq, Eq)]
+pub enum DiarySkillTree {
+    General,
+    Sword,
+    Axe,
+    Hammer,
+    Bow,
+    Staff,
+    Sceptre,
+    Pick,
+}
+
+impl DiarySkillTree {
+    fn title_key(&self) -> &'static str {
+        match self {
+            DiarySkillTree::General => "hud-skill_tree-general",
+            DiarySkillTree::Sword => "hud-skill_tree-sword",
+            DiarySkillTree::Axe => "hud-skill_tree-axe",
+            DiarySkillTree::Hammer => "hud-skill_tree-hammer",
+            DiarySkillTree::Bow => "hud-skill_tree-bow",
+            DiarySkillTree::Staff => "hud-skill_tree-staff",
+            DiarySkillTree::Sceptre => "hud-skill_tree-sceptre",
+            DiarySkillTree::Pick => "hud-skill_tree-mining",
+        }
+    }
+
+    fn to_skill_group(&self) -> SkillGroupKind {
+        match self {
+            DiarySkillTree::General => SkillGroupKind::General,
+            DiarySkillTree::Sword => SkillGroupKind::Weapon(ToolKind::Sword),
+            DiarySkillTree::Axe => SkillGroupKind::Weapon(ToolKind::Axe),
+            DiarySkillTree::Hammer => SkillGroupKind::Weapon(ToolKind::Hammer),
+            DiarySkillTree::Bow => SkillGroupKind::Weapon(ToolKind::Bow),
+            DiarySkillTree::Staff => SkillGroupKind::Weapon(ToolKind::Staff),
+            DiarySkillTree::Sceptre => SkillGroupKind::Weapon(ToolKind::Sceptre),
+            DiarySkillTree::Pick => SkillGroupKind::Weapon(ToolKind::Pick),
+        }
+    }
 }
 
 pub struct DiaryState {
@@ -426,34 +466,22 @@ impl Widget for Diary<'_> {
         // Section buttons
         let sel_section = &self.show.diary_fields.section;
 
+        let sections_len = DiarySection::iter().enumerate().len();
+
         // Update len
         state.update(|s| {
             s.ids
                 .section_imgs
-                .resize(SECTIONS.len(), &mut ui.widget_id_generator())
+                .resize(sections_len, &mut ui.widget_id_generator())
         });
         state.update(|s| {
             s.ids
                 .section_btns
-                .resize(SECTIONS.len(), &mut ui.widget_id_generator())
+                .resize(sections_len, &mut ui.widget_id_generator())
         });
-        for (i, section_name) in SECTIONS.iter().copied().enumerate() {
-            let section = match section_from_str(section_name) {
-                Some(st) => st,
-                None => {
-                    tracing::warn!("unexpected section name: {}", section_name);
-                    continue;
-                },
-            };
 
-            let section_name_key = match section {
-                DiarySection::SkillTrees => "hud-diary-sections-skill_trees-title",
-                DiarySection::AbilitySelection => "hud-diary-sections-abilities-title",
-                DiarySection::Stats => "hud-diary-sections-stats-title",
-                DiarySection::Recipes => "hud-diary-sections-recipes-title",
-            };
-
-            let section_name = self.localized_strings.get_msg(section_name_key);
+        for (i, section) in DiarySection::iter().enumerate() {
+            let section_name = self.localized_strings.get_msg(section.title_key());
 
             let btn_img = {
                 let img = match section {
@@ -510,62 +538,44 @@ impl Widget for Diary<'_> {
                 // Skill Trees
                 let sel_tab = &self.show.diary_fields.skilltreetab;
 
+                let skill_trees_len = DiarySkillTree::iter().enumerate().len();
+
                 // Skill Tree Selection
                 state.update(|s| {
                     s.ids
                         .weapon_btns
-                        .resize(TREES.len(), &mut ui.widget_id_generator())
+                        .resize(skill_trees_len, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
                         .weapon_imgs
-                        .resize(TREES.len(), &mut ui.widget_id_generator())
+                        .resize(skill_trees_len, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
                         .lock_imgs
-                        .resize(TREES.len(), &mut ui.widget_id_generator())
+                        .resize(skill_trees_len, &mut ui.widget_id_generator())
                 });
 
                 // Draw skillgroup tab's icons
-                for (i, skilltree_name) in TREES.iter().copied().enumerate() {
-                    let skill_group = match skill_tree_from_str(skilltree_name) {
-                        Some(st) => st,
-                        None => {
-                            tracing::warn!("unexpected tree name: {}", skilltree_name);
-                            continue;
-                        },
-                    };
-
-                    let skilltree_name_key = match skill_group {
-                        SkillGroupKind::General => "hud-skill_tree-general",
-                        SkillGroupKind::Weapon(ToolKind::Sword) => "hud-skill_tree-sword",
-                        SkillGroupKind::Weapon(ToolKind::Axe) => "hud-skill_tree-axe",
-                        SkillGroupKind::Weapon(ToolKind::Hammer) => "hud-skill_tree-hammer",
-                        SkillGroupKind::Weapon(ToolKind::Bow) => "hud-skill_tree-bow",
-                        SkillGroupKind::Weapon(ToolKind::Staff) => "hud-skill_tree-staff",
-                        SkillGroupKind::Weapon(ToolKind::Sceptre) => "hud-skill_tree-sceptre",
-                        SkillGroupKind::Weapon(ToolKind::Pick) => "hud-skill_tree-mining",
-                        _ => "",
-                    };
-
-                    let skilltree_name = self.localized_strings.get_msg(skilltree_name_key);
+                for (i, skill_tree) in DiarySkillTree::iter().enumerate() {
+                    let skill_tree_name = self.localized_strings.get_msg(skill_tree.title_key());
+                    let skill_group = skill_tree.to_skill_group();
 
                     // Check if we have this skill tree unlocked
                     let locked = !self.skill_set.skill_group_accessible(skill_group);
 
                     // Weapon button image
                     let btn_img = {
-                        let img = match skill_group {
-                            SkillGroupKind::General => self.imgs.swords_crossed,
-                            SkillGroupKind::Weapon(ToolKind::Sword) => self.imgs.sword,
-                            SkillGroupKind::Weapon(ToolKind::Axe) => self.imgs.axe,
-                            SkillGroupKind::Weapon(ToolKind::Hammer) => self.imgs.hammer,
-                            SkillGroupKind::Weapon(ToolKind::Bow) => self.imgs.bow,
-                            SkillGroupKind::Weapon(ToolKind::Staff) => self.imgs.staff,
-                            SkillGroupKind::Weapon(ToolKind::Sceptre) => self.imgs.sceptre,
-                            SkillGroupKind::Weapon(ToolKind::Pick) => self.imgs.mining,
-                            _ => self.imgs.nothing,
+                        let img = match skill_tree {
+                            DiarySkillTree::General => self.imgs.swords_crossed,
+                            DiarySkillTree::Sword => self.imgs.sword,
+                            DiarySkillTree::Axe => self.imgs.axe,
+                            DiarySkillTree::Hammer => self.imgs.hammer,
+                            DiarySkillTree::Bow => self.imgs.bow,
+                            DiarySkillTree::Staff => self.imgs.staff,
+                            DiarySkillTree::Sceptre => self.imgs.sceptre,
+                            DiarySkillTree::Pick => self.imgs.mining,
                         };
 
                         if i == 0 {
@@ -638,7 +648,7 @@ impl Widget for Diary<'_> {
                         .image_color(color)
                         .with_tooltip(
                             self.tooltip_manager,
-                            &skilltree_name,
+                            &skill_tree_name,
                             &tooltip_txt,
                             &diary_tooltip,
                             TEXT_COLOR,
@@ -1430,30 +1440,6 @@ impl Widget for Diary<'_> {
                 events
             },
         }
-    }
-}
-
-fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
-    match string {
-        "General Combat" => Some(SelectedSkillTree::General),
-        "Sword" => Some(SelectedSkillTree::Weapon(ToolKind::Sword)),
-        "Axe" => Some(SelectedSkillTree::Weapon(ToolKind::Axe)),
-        "Hammer" => Some(SelectedSkillTree::Weapon(ToolKind::Hammer)),
-        "Bow" => Some(SelectedSkillTree::Weapon(ToolKind::Bow)),
-        "Fire Staff" => Some(SelectedSkillTree::Weapon(ToolKind::Staff)),
-        "Sceptre" => Some(SelectedSkillTree::Weapon(ToolKind::Sceptre)),
-        "Mining" => Some(SelectedSkillTree::Weapon(ToolKind::Pick)),
-        _ => None,
-    }
-}
-
-fn section_from_str(string: &str) -> Option<DiarySection> {
-    match string {
-        "Abilities" => Some(DiarySection::AbilitySelection),
-        "Skill-Trees" => Some(DiarySection::SkillTrees),
-        "Stats" => Some(DiarySection::Stats),
-        "Recipes" => Some(DiarySection::Recipes),
-        _ => None,
     }
 }
 
