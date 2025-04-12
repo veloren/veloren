@@ -126,7 +126,7 @@ impl CharacterBehavior for Data {
                                 .flatten()
                                 .unwrap_or_else(|| {
                                     Content::with_attr(
-                                        "npc-custom-fallback-summon",
+                                        "name-custom-fallback-summon",
                                         body.gender_attr(),
                                     )
                                 }),
@@ -279,7 +279,6 @@ pub struct SummonInfo {
     body: comp::Body,
     scale: Option<comp::Scale>,
     has_health: bool,
-    #[serde(default)]
     use_npc_name: bool,
     // TODO: use assets for specifying skills and loadout?
     loadout_config: Option<loadout_builder::Preset>,

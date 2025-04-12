@@ -15,6 +15,7 @@ name-custom-template-paddy =
 name-custom-fallback-summon =
     .fem = Summon
     .masc = Summon
+    .neut = Summon
 
 ## Village NPC names
 name-custom-village-farmer =
