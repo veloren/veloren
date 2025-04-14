@@ -679,7 +679,24 @@ pub fn ability_description<'a>(
     ability_id: &str,
     loc: &'a Localization,
 ) -> (Cow<'a, str>, Cow<'a, str>) {
-    let ability = ability_id.replace('.', "-");
-
-    (loc.get_msg(&ability), loc.get_attr(&ability, "desc"))
+    let ability_i18n_key = ability_id.replace('.', "-");
+    match ability_i18n_key.as_str() {
+        "common-abilities-axe-execute"
+        | "common-abilities-axe-maelstrom"
+        | "common-abilities-axe-lacerate"
+        | "common-abilities-axe-riptide"
+        | "common-abilities-axe-bulkhead"
+        | "common-abilities-axe-capsize" => (
+            loc.get_msg(&ability_i18n_key),
+            loc.get_attr_ctx(&ability_i18n_key, "desc", &i18n::fluent_args! {
+                "min_combo" => 25,
+                "min_combo_upg" => 40,
+            }),
+        ),
+        // Default case, no input values
+        ability_i18n_key => (
+            loc.get_msg(ability_i18n_key),
+            loc.get_attr(ability_i18n_key, "desc"),
+        ),
+    }
 }
