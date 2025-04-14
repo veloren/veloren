@@ -495,6 +495,8 @@ pub struct PickupItem {
     created_at: ProgramTime,
     /// This [`ProgramTime`] only makes sense on the server
     next_merge_check: ProgramTime,
+    // flag to toggle merging
+    en_merge: bool,
 }
 
 /// Newtype around [`Item`] so that thrown projectiles can track which item
@@ -1609,11 +1611,12 @@ impl FrontendItem {
 }
 
 impl PickupItem {
-    pub fn new(item: Item, time: ProgramTime) -> Self {
+    pub fn new(item: Item, time: ProgramTime, en_merge: bool) -> Self {
         Self {
             items: vec![item],
             created_at: time,
             next_merge_check: time,
+            en_merge,
         }
     }
 
@@ -1655,7 +1658,7 @@ impl PickupItem {
         let self_item = self.item();
         let other_item = other.item();
 
-        self_item.can_merge(other_item)
+        self.en_merge && other.en_merge && self_item.can_merge(other_item)
     }
 
     // Attempt to merge another PickupItem into this one, can only fail if

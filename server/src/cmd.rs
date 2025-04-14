@@ -596,7 +596,7 @@ fn handle_drop_all(
             )),
             comp::Ori::default(),
             comp::Vel(vel),
-            comp::PickupItem::new(item, ProgramTime(server.state.get_program_time())),
+            comp::PickupItem::new(item, ProgramTime(server.state.get_program_time()), true),
             None,
         );
     }

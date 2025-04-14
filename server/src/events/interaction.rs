@@ -440,7 +440,7 @@ impl ServerEvent for MineBlockEvent {
                                         .with_z(rng.gen_range(5.0..10.0)),
                                 ),
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
-                                item: comp::PickupItem::new(item, *program_time),
+                                item: comp::PickupItem::new(item, *program_time, false),
                                 loot_owner,
                             });
                         }

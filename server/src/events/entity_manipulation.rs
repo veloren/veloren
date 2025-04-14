@@ -1009,7 +1009,7 @@ impl ServerEvent for DestroyEvent {
                                 pos: Pos(pos.0 + Vec3::unit_z() * 0.25 + offset),
                                 vel: vel.copied().unwrap_or(comp::Vel(Vec3::zero())),
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
-                                item: PickupItem::new(item, *data.program_time),
+                                item: PickupItem::new(item, *data.program_time, false),
                                 loot_owner: if let Some(loot_owner) = loot_owner {
                                     debug!(
                                         "Assigned UID {loot_owner:?} as the winner for the loot \
@@ -1870,7 +1870,11 @@ impl ServerEvent for BonkEvent {
                                         vel,
                                         body,
                                         object: None,
-                                        item: Some(comp::PickupItem::new(item, *program_time)),
+                                        item: Some(comp::PickupItem::new(
+                                            item,
+                                            *program_time,
+                                            false,
+                                        )),
                                         light_emitter: None,
                                         stats: None,
                                     });
