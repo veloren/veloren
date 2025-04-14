@@ -87,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Re-oriented LoD model for Haniwa Catacombs.
 - Made it easier to interact with sprites on moving airships.
 - Fixed mismatches in some armour item drop models.
+- Gnarling Chieftain's totem summons now face their target.
 
 ## [0.17.0] - 2024-12-28
 
