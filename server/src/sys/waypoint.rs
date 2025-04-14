@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::client::Client;
 use common::{
-    comp::{PhysicsState, Player, Pos, Vel, Waypoint, WaypointArea},
+    comp::{CharacterState, PhysicsState, Player, Pos, Vel, Waypoint, WaypointArea},
     resources::Time,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -30,6 +30,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Vel>,
         ReadExpect<'a, Arc<World>>,
         ReadExpect<'a, IndexOwned>,
+        ReadStorage<'a, CharacterState>,
     );
 
     const NAME: &'static str = "waypoint";
@@ -50,19 +51,24 @@ impl<'a> System<'a> for Sys {
             velocities,
             world,
             index,
+            character_states,
         ): Self::SystemData,
     ) {
-        for (entity, player_pos, _, client, physics, velocity) in (
+        for (entity, player_pos, _, client, physics, velocity, character_state) in (
             &entities,
             &positions,
             &players,
             &clients,
             physics_states.maybe(),
             &velocities,
+            &character_states,
         )
             .join()
         {
-            if physics.is_none_or(|ps| ps.on_ground.is_some()) && velocity.0.z >= 0.0 {
+            if character_state.is_sitting()
+                && physics.is_none_or(|ps| ps.on_ground.is_some())
+                && velocity.0.z >= 0.0
+            {
                 for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
                     if player_pos.0.distance_squared(waypoint_pos.0)
                         < waypoint_area.radius().powi(2)
