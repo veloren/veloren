@@ -13,5 +13,5 @@ FinisherMelee(
         range: 3.0,
         angle: 15.0,
     ),
-    minimum_combo: 30,
+    minimum_combo: 25,
 )

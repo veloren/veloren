@@ -14,5 +14,5 @@ FinisherMelee(
         angle: 360.0,
         multi_target: Some(Normal),
     ),
-    minimum_combo: 50,
+    minimum_combo: 40,
 )

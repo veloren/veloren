@@ -19,5 +19,5 @@ FinisherMelee(
             chance: 1.0,
         ))),
     ),
-    minimum_combo: 30,
+    minimum_combo: 25,
 )

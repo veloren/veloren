@@ -297,12 +297,12 @@ common-abilities-axe-adrenaline_rush = Adrenaline Rush
 common-abilities-axe-execute = Execute
     .desc =
         A devastating strike often known to be fatal.
-        Requires 30 combo to use.
-        Automatically upgrades to maelstrom at 50 combo if unlocked.
+        Requires { $min_combo } combo to use.
+        Automatically upgrades to Maelstrom at { $min_combo_upg } combo if unlocked.
 common-abilities-axe-maelstrom = Maelstrom
     .desc =
         Strike everything in your vicinity with a devastating, spinning strike.
-        Automatically upgrades from execute at 50 combo.
+        Automatically upgrades from Execute at { $min_combo_upg } combo.
 common-abilities-axe-rake = Rake
     .desc = Drag your axe across your foe, inducing bleeding.
 common-abilities-axe-bloodfeast = Bloodfeast
@@ -322,12 +322,12 @@ common-abilities-axe-fracture = Fracture
 common-abilities-axe-lacerate = Lacerate
     .desc =
         Flay your target, causing their lifeblood to flow out.
-        Requires 30 combo to use.
-        Automatically upgrades to riptide at 50 combo if unlocked.
+        Requires { $min_combo } combo to use.
+        Automatically upgrades to Riptide at { $min_combo_upg } combo if unlocked.
 common-abilities-axe-riptide = Riptide
     .desc =
         Flay everything nearby, parting them from their blood.
-        Automatically upgrades from lacerate at 50 combo.
+        Automatically upgrades from Lacerate at { $min_combo_upg } combo.
 common-abilities-axe-skull_bash = Skullbash
     .desc = A strike with the flat of your axe that can stagger.
 common-abilities-axe-sunder = Sunder
@@ -343,12 +343,12 @@ common-abilities-axe-keelhaul = Keelhaul
 common-abilities-axe-bulkhead = Bulkhead
     .desc =
         A heavy swing that some say can even stagger titans.
-        Requires 30 combo to use.
-        Automatically upgrades to capsize at 50 combo if unlocked.
+        Requires { $min_combo } combo to use.
+        Automatically upgrades to Capsize at { $min_combo_upg } combo if unlocked.
 common-abilities-axe-capsize = Capsize
     .desc =
         Stagger everything nearby with a heavy spinning strike.
-        Automatically upgrades from bulkhead at 50 combo.
+        Automatically upgrades from Bulkhead at { $min_combo_upg } combo.
 
 # Hammer abilities
 common-abilities-hammer-solid_smash = Solid Smash

@@ -155,7 +155,7 @@
             Contextualized(
                 pseudo_id: "common.abilities.axe.execute",
                 abilities: [
-                    ((combo: Some(50)), (Axe(Maelstrom), "common.abilities.axe.maelstrom")),
+                    ((combo: Some(40)), (Axe(Maelstrom), "common.abilities.axe.maelstrom")),
                     ((), (Axe(Execute), "common.abilities.axe.execute")),
                 ],
             ),
@@ -173,7 +173,7 @@
             Contextualized(
                 pseudo_id: "common.abilities.axe.lacerate",
                 abilities: [
-                    ((combo: Some(50)), (Axe(Riptide), "common.abilities.axe.riptide")),
+                    ((combo: Some(40)), (Axe(Riptide), "common.abilities.axe.riptide")),
                     ((), (Axe(Lacerate), "common.abilities.axe.lacerate")),
                 ],
             ),
@@ -185,7 +185,7 @@
             Contextualized(
                 pseudo_id: "common.abilities.axe.bulkhead",
                 abilities: [
-                    ((combo: Some(50)), (Axe(Capsize), "common.abilities.axe.capsize")),
+                    ((combo: Some(40)), (Axe(Capsize), "common.abilities.axe.capsize")),
                     ((), (Axe(Bulkhead), "common.abilities.axe.bulkhead")),
                 ],
             ),
