@@ -1,7 +1,12 @@
 # Descriptions and Help
 
 command-help-template = { $usage } { $description }
-command-help-additional-shortcuts = Additionally, you can use the following shortcuts:
+command-help-list = 
+  { $client-commands }
+  { $server-commands }
+  
+  Additionally, you can use the following shortcuts:
+  { $additional-shortcuts }
 
 ## Server Commands
 
@@ -121,6 +126,36 @@ command-experimental_shader-desc = Toggles an experimental shader.
 command-help-desc = Display information about commands
 command-mute-desc = Mutes chat messages from a player.
 command-unmute-desc = Unmutes a player muted with the 'mute' command.
+command-preprocess-target-error = Expected { $expected_list } after '@' found { $target }
+command-preprocess-not-looking-at-valid-target = Not looking at a valid target
+command-preprocess-not-selected-valid-target = Not selecting a valid target
+command-preprocess-not-valid-viewpoint-entity = Not viewing from a valid viewpoint entity
+command-preprocess-not-riding-valid-entity = Not riding a valid entity
+command-preprocess-not-valid-rider = No valid rider
+command-preprocess-no-player-entity = No player entity
+command-invalid-command-message =
+  Could not find a command named { $invalid-command }. 
+  Did you mean any of the following?
+  { $most-similar-command }
+  { $commands-with-same-prefix } 
+  
+  Type /help to see a list of all commands.
+command-mute-cannot-mute-self = You cannot mute yourself
+command-mute-success = Successfully muted { $player }
+command-mute-no-player-found = Could not find a player named { $player }
+command-mute-already-muted = { $player } is already muted
+command-mute-no-player-specified = You must specify a player
+command-unmute-cannot-unmute-self = You cannot unmute yourself
+command-unmute-success = Successfully unmuted { $player }
+command-unmute-no-muted-player-found = Could not find a muted player named { $player }
+command-unmute-no-player-specified = You must specify a player to mute
+# Only returns a list of shaders
+command-experimental-shaders-list = { $shader-list }
+command-experimental-shaders-not-found = There are no experimental shaders
+command-experimental-shaders-enabled = Enabled { $shader }
+command-experimental-shaders-disabled = Disabled { $shader }
+command-experimental-shaders-not-a-shader = { $shader } is not an expermimental shader, use this command with any arguments to see a complete list.
+command-experimental-shaders-not-valid = You must specify a valid experimental shader, to get a list of experimental shaders, use this command without any arguments.
 
 # Results and Warning
 
