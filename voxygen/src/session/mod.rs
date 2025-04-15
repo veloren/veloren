@@ -1708,15 +1708,11 @@ impl PlayState for SessionState {
                     HudEvent::SendCommand(name, args) => {
                         match run_command(self, global_state, &name, args) {
                             Ok(Some(info)) => {
-                                // TODO: Localise
-                                self.hud
-                                    .new_message(ChatType::CommandInfo.into_plain_msg(&info))
+                                self.hud.new_message(ChatType::CommandInfo.into_msg(info))
                             },
                             Ok(None) => {}, // Server will provide an info message
                             Err(error) => {
-                                // TODO: Localise
-                                self.hud
-                                    .new_message(ChatType::CommandError.into_plain_msg(error))
+                                self.hud.new_message(ChatType::CommandError.into_msg(error))
                             },
                         };
                     },

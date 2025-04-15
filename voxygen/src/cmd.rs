@@ -15,7 +15,7 @@ use common::{
     resources::PlayerEntity,
     uid::Uid,
 };
-use common_i18n::Content;
+use common_i18n::{Content, LocalizationArg};
 use common_net::sync::WorldSyncExt;
 use i18n::Localization;
 use itertools::Itertools;
@@ -175,7 +175,7 @@ impl FromStr for ChatCommandKind {
 /// commands give their feedback as an event, so in those cases this will always
 /// be Ok(None). An Err variant will be be displayed with the error icon and
 /// text color
-type CommandResult = Result<Option<String>, String>;
+type CommandResult = Result<Option<Content>, Content>;
 
 #[derive(EnumIter)]
 enum ClientEntityTarget {
@@ -247,25 +247,34 @@ fn preproccess_command(
             let target = ClientEntityTarget::iter()
                 .find(|t| t.keyword() == target_str)
                 .ok_or_else(|| {
-                    let help_string = ClientEntityTarget::iter()
+                    let expected_list = ClientEntityTarget::iter()
                         .map(|t| t.keyword().to_string())
-                        .reduce(|a, b| format!("{a}/{b}"))
-                        .unwrap_or_default();
-                    format!("Expected {help_string} after '@' found {target_str}")
+                        .collect::<Vec<String>>()
+                        .join("/");
+                    Content::localized_with_args("command-preprocess-target-error", [
+                        ("expected_list", LocalizationArg::from(expected_list)),
+                        ("target", LocalizationArg::from(target_str)),
+                    ])
                 })?;
             let uid = match target {
                 ClientEntityTarget::Target => session_state
                     .target_entity
                     .and_then(|e| ecs.uid_from_entity(e))
-                    .ok_or("Not looking at a valid target".to_string())?,
+                    .ok_or(Content::localized(
+                        "command-preprocess-not-looking-at-valid-target",
+                    ))?,
                 ClientEntityTarget::Selected => session_state
                     .selected_entity
                     .and_then(|(e, _)| ecs.uid_from_entity(e))
-                    .ok_or("You don't have a valid target selected".to_string())?,
+                    .ok_or(Content::localized(
+                        "command-preprocess-not-selected-valid-target",
+                    ))?,
                 ClientEntityTarget::Viewpoint => session_state
                     .viewpoint_entity
                     .and_then(|e| ecs.uid_from_entity(e))
-                    .ok_or("Not viewing from a valid viewpoint entity".to_string())?,
+                    .ok_or(Content::localized(
+                        "command-preprocess-not-valid-viewpoint-entity",
+                    ))?,
                 ClientEntityTarget::Mount => {
                     if let Some(player) = player {
                         ecs.read_storage::<Is<Rider>>()
@@ -277,9 +286,11 @@ fn preproccess_command(
                                     common::mounting::Volume::Entity(uid) => Some(uid),
                                 },
                             ))
-                            .ok_or("Not riding a valid entity".to_string())?
+                            .ok_or(Content::localized(
+                                "command-preprocess-not-riding-valid-entity",
+                            ))?
                     } else {
-                        return Err("No player entity".to_string());
+                        return Err(Content::localized("command-preprocess-no-player-entity"));
                     }
                 },
                 ClientEntityTarget::Rider => {
@@ -287,14 +298,14 @@ fn preproccess_command(
                         ecs.read_storage::<Is<Mount>>()
                             .get(player)
                             .map(|is_mount| is_mount.rider)
-                            .ok_or("No valid rider".to_string())?
+                            .ok_or(Content::localized("command-preprocess-not-valid-rider"))?
                     } else {
-                        return Err("No player entity".to_string());
+                        return Err(Content::localized("command-preprocess-no-player-entity"));
                     }
                 },
                 ClientEntityTarget::TargetSelf => player
                     .and_then(|e| ecs.uid_from_entity(e))
-                    .ok_or("No player entity")?,
+                    .ok_or(Content::localized("command-preprocess-no-player-entity"))?,
             };
             let uid = u64::from(uid);
             *arg = format!("uid@{uid}");
@@ -332,7 +343,7 @@ pub fn run_command(
     }
 }
 
-fn invalid_command_message(client: &Client, user_entered_invalid_command: String) -> String {
+fn invalid_command_message(client: &Client, user_entered_invalid_command: String) -> Content {
     let entity_role = client
         .state()
         .read_storage::<Admin>()
@@ -344,21 +355,32 @@ fn invalid_command_message(client: &Client, user_entered_invalid_command: String
         .map(|cmd| cmd.keyword())
         .chain(ClientChatCommand::iter().map(|cmd| cmd.keyword()));
 
-    let most_similar_str = usable_commands
+    let most_similar_cmd = usable_commands
         .clone()
         .min_by_key(|cmd| levenshtein(&user_entered_invalid_command, cmd))
         .expect("At least one command exists.");
 
     let commands_with_same_prefix = usable_commands
-        .filter(|cmd| cmd.starts_with(&user_entered_invalid_command) && cmd != &most_similar_str);
+        .filter(|cmd| cmd.starts_with(&user_entered_invalid_command) && cmd != &most_similar_cmd);
 
-    format!(
-        "Could not find a command named {}. Did you mean any of the following? \n/{} {} \n\nType \
-         /help to see a list of all commands.",
-        user_entered_invalid_command,
-        most_similar_str,
-        commands_with_same_prefix.fold(String::new(), |s, arg| s + "\n/" + arg)
-    )
+    Content::localized_with_args("command-invalid-command-message", [
+        (
+            "invalid-command",
+            LocalizationArg::from(user_entered_invalid_command.clone()),
+        ),
+        (
+            "most-similar-command",
+            LocalizationArg::from(String::from("/") + most_similar_cmd),
+        ),
+        (
+            "commands-with-same-prefix",
+            LocalizationArg::from(
+                commands_with_same_prefix
+                    .map(|cmd| format!("/{cmd}"))
+                    .collect::<String>(),
+            ),
+        ),
+    ])
 }
 
 fn run_client_command(
@@ -396,38 +418,42 @@ fn handle_help(
     let i18n = global_state.i18n.read();
 
     if let Some(cmd) = parse_cmd_args!(&args, ServerChatCommand) {
-        Ok(Some(i18n.get_content(&cmd.help_content())))
+        Ok(Some(cmd.help_content()))
     } else if let Some(cmd) = parse_cmd_args!(&args, ClientChatCommand) {
-        Ok(Some(i18n.get_content(&cmd.help_content())))
+        Ok(Some(cmd.help_content()))
     } else {
         let client = &mut session_state.client.borrow_mut();
 
-        let mut message = String::new();
         let entity_role = client
             .state()
             .read_storage::<Admin>()
             .get(client.entity())
             .map(|admin| admin.0);
 
-        ClientChatCommand::iter().for_each(|cmd| {
-            message += &i18n.get_content(&cmd.help_content());
-            message += "\n";
-        });
+        let client_commands = ClientChatCommand::iter()
+            .map(|cmd| i18n.get_content(&cmd.help_content()))
+            .join("\n");
+
         // Iterate through all ServerChatCommands you have permission to use.
-        ServerChatCommand::iter()
+        let server_commands = ServerChatCommand::iter()
             .filter(|cmd| cmd.needs_role() <= entity_role)
-            .for_each(|cmd| {
-                message += &i18n.get_content(&cmd.help_content());
-                message += "\n";
-            });
-        message += &i18n.get_msg("command-help-additional-shortcuts");
-        ServerChatCommand::iter()
+            .map(|cmd| i18n.get_content(&cmd.help_content()))
+            .join("\n");
+
+        let additional_shortcuts = ServerChatCommand::iter()
             .filter(|cmd| cmd.needs_role() <= entity_role)
             .filter_map(|cmd| cmd.short_keyword().map(|k| (k, cmd)))
-            .for_each(|(k, cmd)| {
-                message += &format!(" /{} => /{}", k, cmd.keyword());
-            });
-        Ok(Some(message))
+            .map(|(k, cmd)| format!("/{} => /{}", k, cmd.keyword()))
+            .join("\n");
+
+        Ok(Some(Content::localized_with_args("command-help-list", [
+            ("client-commands", LocalizationArg::from(client_commands)),
+            ("server-commands", LocalizationArg::from(server_commands)),
+            (
+                "additional-shortcuts",
+                LocalizationArg::from(additional_shortcuts),
+            ),
+        ])))
     }
 }
 
@@ -443,11 +469,16 @@ fn handle_mute(
             .player_list()
             .values()
             .find(|p| p.player_alias == alias)
-            .ok_or_else(|| format!("Could not find a player named {}", alias))?;
+            .ok_or_else(|| {
+                Content::localized_with_args("command-mute-no-player-found", [(
+                    "player",
+                    LocalizationArg::from(alias.clone()),
+                )])
+            })?;
 
         if let Some(me) = client.uid().and_then(|uid| client.player_list().get(&uid)) {
             if target.uuid == me.uuid {
-                return Err("You cannot mute yourself.".to_string());
+                return Err(Content::localized("command-mute-cannot-mute-self"));
             }
         }
 
@@ -457,12 +488,18 @@ fn handle_mute(
             .insert(target.uuid, alias.clone())
             .is_none()
         {
-            Ok(Some(format!("Successfully muted player {}.", alias)))
+            Ok(Some(Content::localized_with_args(
+                "command-mute-success",
+                [("player", LocalizationArg::from(alias))],
+            )))
         } else {
-            Err(format!("{} is already muted.", alias))
+            Err(Content::localized_with_args(
+                "command-mute-already-muted",
+                [("player", LocalizationArg::from(alias))],
+            ))
         }
     } else {
-        Err("You must specify a player to mute.".to_string())
+        Err(Content::localized("command-mute-no-player-specified"))
     }
 }
 
@@ -485,17 +522,23 @@ fn handle_unmute(
 
             if let Some(me) = client.uid().and_then(|uid| client.player_list().get(&uid)) {
                 if uuid == me.uuid {
-                    return Err("You cannot unmute yourself.".to_string());
+                    return Err(Content::localized("command-unmute-cannot-unmute-self"));
                 }
             }
 
             global_state.profile.mutelist.remove(&uuid);
-            Ok(Some(format!("Successfully unmuted player {}.", alias)))
+            Ok(Some(Content::localized_with_args(
+                "command-unmute-success",
+                [("player", LocalizationArg::from(alias))],
+            )))
         } else {
-            Err(format!("Could not find a muted player named {}.", alias))
+            Err(Content::localized_with_args(
+                "command-unmute-no-muted-player-found",
+                [("player", LocalizationArg::from(alias))],
+            ))
         }
     } else {
-        Err("You must specify a player to unmute.".to_string())
+        Err(Content::localized("command-unmute-no-player-specified"))
     }
 }
 
@@ -505,32 +548,40 @@ fn handle_experimental_shader(
     args: Vec<String>,
 ) -> CommandResult {
     if args.is_empty() {
-        Ok(Some(
-            ExperimentalShader::iter()
-                .map(|s| {
-                    let is_active = global_state
-                        .settings
-                        .graphics
-                        .render_mode
-                        .experimental_shaders
-                        .contains(&s);
-                    format!("[{}] {}", if is_active { "x" } else { "  " }, s)
-                })
-                .reduce(|mut a, b| {
-                    a.push('\n');
-                    a.push_str(&b);
-                    a
-                })
-                .ok_or("There are no experimental shaders.".to_string())?,
-        ))
+        Ok(Some(Content::localized_with_args(
+            "command-experimental-shaders-list",
+            [(
+                "shader-list",
+                LocalizationArg::from(
+                    ExperimentalShader::iter()
+                        .map(|s| {
+                            let is_active = global_state
+                                .settings
+                                .graphics
+                                .render_mode
+                                .experimental_shaders
+                                .contains(&s);
+                            format!("[{}] {}", if is_active { "x" } else { "  " }, s)
+                        })
+                        .collect::<Vec<String>>()
+                        .join("/"),
+                ),
+            )],
+        )))
     } else if let Some(item) = parse_cmd_args!(args, String) {
         if let Ok(shader) = ExperimentalShader::from_str(&item) {
             let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
             let res = if new_render_mode.experimental_shaders.remove(&shader) {
-                Ok(Some(format!("Disabled {item}.")))
+                Ok(Some(Content::localized_with_args(
+                    "command-experimental-shaders-disabled",
+                    [("shader", LocalizationArg::from(item))],
+                )))
             } else {
                 new_render_mode.experimental_shaders.insert(shader);
-                Ok(Some(format!("Enabled {item}.")))
+                Ok(Some(Content::localized_with_args(
+                    "command-experimental-shaders-enabled",
+                    [("shader", LocalizationArg::from(item))],
+                )))
             };
 
             change_render_mode(
@@ -541,17 +592,13 @@ fn handle_experimental_shader(
 
             res
         } else {
-            Err(format!(
-                "{item} is not an expermimental shader, use this command with any arguments to \
-                 see a complete list."
+            Err(Content::localized_with_args(
+                "command-experimental-shaders-not-a-shader",
+                [("shader", LocalizationArg::from(item))],
             ))
         }
     } else {
-        Err(
-            "You must specify a valid experimental shader, to get a list of experimental shaders, \
-             use this command without any arguments."
-                .to_string(),
-        )
+        Err(Content::localized("command-experimental-shaders-not-valid"))
     }
 }
 
@@ -569,8 +616,13 @@ fn handle_wiki(
     };
 
     open::that_detached(url)
-        .map(|_| None)
-        .map_err(|e| e.to_string())
+        .map(|_| Some(Content::localized("command-wiki-success")))
+        .map_err(|e| {
+            Content::localized_with_args("command-wiki-fail", [(
+                "error",
+                LocalizationArg::from(e.to_string()),
+            )])
+        })
 }
 
 trait TabComplete {
