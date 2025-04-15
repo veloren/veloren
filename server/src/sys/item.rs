@@ -57,8 +57,8 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
-            // Exponentially back of the frequency at which items are checked for merge
-            if program_time.0 < item.next_merge_check().0 {
+            // For items that merge, exponentially back off the frequency of the merge check
+            if !item.should_merge || program_time.0 < item.next_merge_check().0 {
                 continue;
             }
 
