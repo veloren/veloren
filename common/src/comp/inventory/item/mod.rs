@@ -495,7 +495,9 @@ pub struct PickupItem {
     created_at: ProgramTime,
     /// This [`ProgramTime`] only makes sense on the server
     next_merge_check: ProgramTime,
-    // flag to toggle merging
+    /// When set to `true`, this item will actively try to be merged into nearby
+    /// items of the same kind (see [`Item::can_merge`]). Currently only used
+    /// for inventory dropped items to prevent entity DoS.
     pub should_merge: bool,
 }
 
