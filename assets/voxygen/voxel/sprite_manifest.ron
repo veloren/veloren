@@ -6,6 +6,10 @@ Empty: [()],
 //TOWN AND DUNGEON SPRITES - INCLUDES NICHE SPRITES LIKE TRAPS (EVEN NATURAL TRAPS LIKE COBWEBS), ONE-WAY PORTALS, BARRIER BLOCKS, ETC.
 //IF EVER IN DOUBT, ASK - IS THIS MORE MAN-MADE OR NATURAL? MAN-MADE STUFF AND TRAPS GO HERE
 
+// Gimmicks and special blocks
+
+OneWayWall: [()],
+
 DungeonWallDecor: [(
     variations: [
         (
@@ -61,7 +65,9 @@ DungeonWallDecor: [(
     ],
     wind_sway: 0.0,
 )],
-// WitchWindow
+
+// Window
+
 WitchWindow: [(
     variations: [
         (
@@ -112,7 +118,6 @@ Window4: [(
     ],
     wind_sway: 0.0,
 )],
-OneWayWall: [()],
 Sign: [(
     variations: [
         (
@@ -1119,7 +1124,7 @@ SeaDecorPillar: [(
 SeashellLantern: [(
      variations: [
          (
-            model: "voxygen.voxel.object.seashell_lantern",
+            model: "voxygen.voxel.sprite.lantern.seashell_lantern",
             offset: (-4.5, -4.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
          ),
@@ -1551,97 +1556,6 @@ Helm: [(
     wind_sway: 0,
 )],
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Bed 
 
 BedWoodWoodlandHead: [(
@@ -1842,7 +1756,7 @@ BookshelfMiddle: [(
     wind_sway: 0,
 )],
 
-//HandCartWood
+// HandCartWood
 
 HandCartWoodHead: [(
     variations: [
@@ -1888,7 +1802,7 @@ BenchWoodWoodland: [(
     wind_sway: 0,
 )],
 
-//ChairSingle
+// ChairSingle
 
 ChairWoodWoodland: [(
     variations: [
@@ -1911,7 +1825,7 @@ ChairWoodWoodland2: [(
     wind_sway: 0,
 )],
 
-//ChairDouble
+// ChairDouble
    
 BenchWoodWoodlandGreen1: [(
     variations: [
@@ -1943,7 +1857,7 @@ BenchWoodWoodlandGreen3: [(
     ],
     wind_sway: 0,
 )],
-    
+
 // CoatRack
 
 CoatrackMetalWoodland: [(
@@ -2010,7 +1924,7 @@ Crate: [(
     wind_sway: 0.0,
 )],
 
-// DrawerLarge
+// Drawer
 
 DrawerWoodWoodlandL1: [(
     variations: [
@@ -2033,8 +1947,6 @@ DrawerWoodWoodlandL2: [(
     wind_sway: 0,
 )],
 
-//DrawerMedium
-
 DrawerWoodWoodlandM1: [(
     variations: [
         (
@@ -2056,8 +1968,6 @@ DrawerWoodWoodlandM2: [(
     wind_sway: 0,
 )],
 
-// DrawerSmall
-    
 DrawerWoodWoodlandS: [(
     variations: [
         (
@@ -2074,9 +1984,7 @@ DrawerWoodWoodlandS: [(
     wind_sway: 0,
 )],
 
-//TableSide
-
-// TableDining
+// Table
 
 DiningtableWoodWoodlandRound: [(
     variations: [
@@ -2099,8 +2007,6 @@ DiningtableWoodWoodlandSquare: [(
     wind_sway: 0,
 )],
 
-// TableDouble
-
 TableWoodFancyWoodlandCorner: [(
     variations: [
         (
@@ -2122,7 +2028,7 @@ TableWoodFancyWoodlandBody: [(
     wind_sway: 0,
 )],
 
-// WardrobeDouble
+// Wardrobe
 
 WardrobedoubleWoodWoodland: [(
     variations: [
@@ -2145,8 +2051,6 @@ WardrobedoubleWoodWoodland2: [(
     wind_sway: 0,
 )],
 
-// WardrobeSingle
-
 WardrobesingleWoodWoodland: [(
     variations: [
         (
@@ -2168,7 +2072,7 @@ WardrobesingleWoodWoodland2: [(
     wind_sway: 0,
 )],
 
-// Pot
+// Flower pot
 
 FlowerpotWoodWoodlandS: [(
     variations: [
@@ -2270,7 +2174,7 @@ DropGateBottom: [(
 VialEmpty: [(
     variations: [
         (
-            model: "voxygen.voxel.object.potion_empty",
+            model: "voxygen.voxel.sprite.potion.potion_empty",
             offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2281,7 +2185,7 @@ VialEmpty: [(
 Bowl: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.crafting_ing.bowl",
+            model: "voxygen.voxel.sprite.furniture.bowl",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2292,7 +2196,7 @@ Bowl: [(
 PotionMinor: [(
     variations: [
         (
-            model: "voxygen.voxel.object.potion_red",
+            model: "voxygen.voxel.sprite.potion.potion_red",
             offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2302,7 +2206,7 @@ PotionMinor: [(
 PotionDummy: [(
     variations: [
         (
-            model: "voxygen.voxel.object.potion_green",
+            model: "voxygen.voxel.sprite.misc.potion_green",
             offset: (-5.0, -5.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -2876,7 +2780,7 @@ WardrobeSingleMesa: [(
 Anvil: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.anvil.anvil-0",
+            model: "voxygen.voxel.sprite.crafting_station.anvil",
             offset: (-5.5, -7.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2887,7 +2791,7 @@ Anvil: [(
 Cauldron: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.cauldron.cauldron-0",
+            model: "voxygen.voxel.sprite.crafting_station.cauldron",
             offset: (-10.0, -9.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2898,7 +2802,7 @@ Cauldron: [(
 Forge: [(
     variations: [
         (
-            model: "voxygen.voxel.object.forge",
+            model: "voxygen.voxel.sprite.crafting_station.forge",
             offset: (-6.5, -6.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2908,7 +2812,7 @@ Forge: [(
 Loom: [(
     variations: [
         (
-            model: "voxygen.voxel.object.loom",
+            model: "voxygen.voxel.sprite.crafting_station.loom",
             offset: (-6.0, -4.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2919,7 +2823,7 @@ Loom: [(
 DismantlingBench: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.salvaging_station.salvaging_station-0",
+            model: "voxygen.voxel.sprite.crafting_station.salvaging_station",
             offset: (-7.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2929,7 +2833,7 @@ DismantlingBench: [(
 SpinningWheel: [(
     variations: [
         (
-            model: "voxygen.voxel.object.spinning_wheel",
+            model: "voxygen.voxel.sprite.crafting_station.spinning_wheel",
             offset: (-7.5, -5.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2939,7 +2843,7 @@ SpinningWheel: [(
 TanningRack: [(
     variations: [
         (
-            model: "voxygen.voxel.object.tanning_rack",
+            model: "voxygen.voxel.sprite.crafting_station.tanning_rack",
             offset: (-7.5, -4.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2950,7 +2854,7 @@ TanningRack: [(
 CraftingBench: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.crafting_bench.crafting_bench-0",
+            model: "voxygen.voxel.sprite.crafting_station.crafting_bench",
             offset: (-9.5, -7.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2961,7 +2865,7 @@ CraftingBench: [(
 CookingPot: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.cooking_pot.pot-0",
+            model: "voxygen.voxel.sprite.crafting_station.cooking_pot",
             offset: (-7.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2972,7 +2876,7 @@ CookingPot: [(
 RepairBench: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.repair_bench.repair_bench-0",
+            model: "voxygen.voxel.sprite.crafting_station.repair_bench",
             offset: (-7.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -2994,7 +2898,7 @@ EnsnaringVines: [(
 IronSpike: [(
     variations: [
         (
-            model: "voxygen.voxel.object.iron_spike",
+            model: "voxygen.voxel.sprite.misc.iron_spike",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3045,7 +2949,7 @@ BoneKeyDoor: [(
 Bomb: [(
     variations: [
         (
-            model: "voxygen.voxel.object.bomb",
+            model: "voxygen.voxel.sprite.bomb.bomb",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.5, 0.5, 0.5),
         ),
@@ -3066,7 +2970,7 @@ Bedroll: [(
 Tent: [(
     variations: [
         (
-            model: "voxygen.voxel.object.tent",
+            model: "voxygen.voxel.sprite.misc.tent",
             offset: (-7.5, -15.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3239,7 +3143,7 @@ Gravestone: [(
 Wood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.wood",
+            model: "voxygen.voxel.sprite.wood.wood",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3249,7 +3153,7 @@ Wood: [(
 Bamboo: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.bamboo",
+            model: "voxygen.voxel.sprite.wood.bamboo",
             offset: (-6.5, -6.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3259,7 +3163,7 @@ Bamboo: [(
 Hardwood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.hardwood",
+            model: "voxygen.voxel.sprite.wood.hardwood",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3269,7 +3173,7 @@ Hardwood: [(
 Ironwood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.ironwood",
+            model: "voxygen.voxel.sprite.wood.ironwood",
             offset: (-6.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3279,7 +3183,7 @@ Ironwood: [(
 Frostwood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.frostwood",
+            model: "voxygen.voxel.sprite.wood.frostwood",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -3289,7 +3193,7 @@ Frostwood: [(
 Eldwood: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.wood.log.eldwood",
+            model: "voxygen.voxel.sprite.wood.eldwood",
             offset: (-4.5, -5.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
@@ -7376,7 +7280,7 @@ LillyPads: [(
 SeaUrchin: [(
     variations: [
         (
-            model: "voxygen.voxel.object.sea_urchin",
+            model: "voxygen.voxel.sprite.sea_urchin.sea_urchin",
             offset: (-5.0, -6.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
