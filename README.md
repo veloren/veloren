@@ -4,7 +4,7 @@
 [![coverage report](https://gitlab.com/veloren/veloren/badges/master/coverage.svg)](https://gitlab.com/veloren/veloren/-/graphs/master/charts)
 [![translation status](https://translate.codeberg.org/widgets/veloren/-/svg-badge.svg)](https://translate.codeberg.org/engage/veloren/)
 [![dependency status](https://deps.rs/repo/gitlab/veloren/veloren/status.svg)](https://deps.rs/repo/gitlab/veloren/veloren)
-[![code contributor count](https://badgen.net/gitlab/contributors/veloren/veloren?label=code%20contributors)](https://gitlab.com/veloren/veloren/-/graphs/master)
+[![code contributor count](https://img.shields.io/gitlab/contributors/veloren%2Fveloren?label=code%20contributors)](https://gitlab.com/veloren/veloren/-/graphs/master)
 [![financial contributor count](https://badgen.net/opencollective/backers/veloren?label=financial%20contributors)](https://opencollective.com/veloren)
 [![discord](https://badgen.net/discord/members/veloren-community-449602562165833758?icon=discord&label=discord)](https://discord.gg/veloren-community-449602562165833758)
 
