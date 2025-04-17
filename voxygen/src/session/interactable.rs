@@ -561,6 +561,7 @@ impl EntityInteraction {
             Self::Mount | Self::Pet => consts::MAX_MOUNT_RANGE,
             Self::PickupItem => consts::MAX_PICKUP_RANGE,
             Self::Talk => consts::MAX_NPCINTERACT_RANGE,
+            Self::CampfireSit => consts::MAX_CAMPFIRE_RANGE,
             _ => consts::MAX_INTERACT_RANGE,
         }
     }

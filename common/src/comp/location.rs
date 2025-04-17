@@ -1,4 +1,4 @@
-use crate::{resources::Time, uid::Uid};
+use crate::{consts::MAX_CAMPFIRE_RANGE, resources::Time, uid::Uid};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use vek::*;
@@ -42,7 +42,7 @@ impl Component for WaypointArea {
 }
 
 impl Default for WaypointArea {
-    fn default() -> Self { Self(5.0) }
+    fn default() -> Self { Self(MAX_CAMPFIRE_RANGE) }
 }
 
 /// Marker on the map, used for sharing waypoint with group and
