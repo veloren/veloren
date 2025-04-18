@@ -1,4 +1,4 @@
-# ![Veloren logo on a screenshot](https://cdn.discordapp.com/attachments/541307708146581519/712295605170602075/logo.png)
+# ![Veloren logo on a screenshot](https://s3.eu-central-2.wasabisys.com/veloren-blog/cdn/247/veloren_old-gitlab-logo.webp)
 
 [![pipeline status](https://gitlab.com/veloren/veloren/badges/master/pipeline.svg)](https://gitlab.com/veloren/veloren/-/pipelines)
 [![coverage report](https://gitlab.com/veloren/veloren/badges/master/coverage.svg)](https://gitlab.com/veloren/veloren/-/graphs/master/charts)
