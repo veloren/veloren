@@ -3707,6 +3707,7 @@ impl Hud {
                 info.selected_entity,
                 &self.rot_imgs,
                 tooltip_manager,
+                global_state,
             )
             .set(self.ids.social_window, ui_widgets)
             {

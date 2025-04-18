@@ -2,7 +2,10 @@ use super::{
     Show, TEXT_COLOR, TEXT_COLOR_3, UI_HIGHLIGHT_0, UI_MAIN,
     img_ids::{Imgs, ImgsRot},
 };
-use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts};
+use crate::{
+    GlobalState,
+    ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
+};
 use chumsky::chain::Chain;
 use client::{self, Client};
 use common::{comp::group, resources::BattleMode, uid::Uid};
@@ -58,6 +61,7 @@ pub struct Social<'a> {
     selected_entity: Option<(specs::Entity, Instant)>,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    global_state: &'a GlobalState,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -73,6 +77,7 @@ impl<'a> Social<'a> {
         selected_entity: Option<(specs::Entity, Instant)>,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        global_state: &'a GlobalState,
     ) -> Self {
         Self {
             show,
@@ -84,6 +89,7 @@ impl<'a> Social<'a> {
             tooltip_manager,
             selected_entity,
             common: widget::CommonBuilder::default(),
+            global_state,
         }
     }
 }
@@ -338,10 +344,18 @@ impl Widget for Social<'_> {
 
             // Player name row background
             if i % 2 != 0 {
-                Rectangle::fill_with([300.0, 20.0], color::rgba(1.0, 1.0, 1.0, 0.025))
-                    .middle_of(state.ids.player_names[i])
-                    .depth(2.0)
-                    .set(state.ids.player_rows[i], ui);
+                Rectangle::fill_with(
+                    [300.0, 20.0],
+                    color::rgba(
+                        1.0,
+                        1.0,
+                        1.0,
+                        self.global_state.settings.interface.row_background_opacity,
+                    ),
+                )
+                .middle_of(state.ids.player_names[i])
+                .depth(2.0)
+                .set(state.ids.player_rows[i], ui);
             }
 
             // Moderator Badge

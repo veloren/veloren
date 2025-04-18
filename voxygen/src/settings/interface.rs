@@ -54,6 +54,7 @@ pub struct InterfaceSettings {
     pub minimap_zoom: f64,
     pub accum_experience: bool,
     pub xp_bar_skillgroup: Option<SkillGroupKind>,
+    pub row_background_opacity: f32,
 }
 
 impl Default for InterfaceSettings {
@@ -104,6 +105,7 @@ impl Default for InterfaceSettings {
             minimap_zoom: 160.0,
             accum_experience: true,
             xp_bar_skillgroup: Some(SkillGroupKind::General),
+            row_background_opacity: 0.025,
         }
     }
 }
