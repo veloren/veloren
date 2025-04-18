@@ -206,6 +206,7 @@ fn do_command(
         ServerChatCommand::Say => handle_say,
         ServerChatCommand::ServerPhysics => handle_server_physics,
         ServerChatCommand::SetMotd => handle_set_motd,
+        ServerChatCommand::SetWaypoint => handle_set_waypoint,
         ServerChatCommand::Ship => handle_spawn_ship,
         ServerChatCommand::Site => handle_site,
         ServerChatCommand::SkillPoint => handle_skill_point,
@@ -225,7 +226,6 @@ fn do_command(
         ServerChatCommand::Unban => handle_unban,
         ServerChatCommand::UnbanIp => handle_unban_ip,
         ServerChatCommand::Version => handle_version,
-        ServerChatCommand::Waypoint => handle_waypoint,
         ServerChatCommand::Wiring => handle_spawn_wiring,
         ServerChatCommand::Whitelist => handle_whitelist,
         ServerChatCommand::World => handle_world,
@@ -3428,7 +3428,7 @@ fn handle_explosion(
     Ok(())
 }
 
-fn handle_waypoint(
+fn handle_set_waypoint(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
@@ -3437,6 +3437,10 @@ fn handle_waypoint(
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
     let time = *server.state.mut_resource::<Time>();
+    let location_name = server
+        .world()
+        .get_location_name(server.index.as_index_ref(), pos.0.xy().as_::<i32>());
+
     insert_or_replace_component(
         server,
         target,
@@ -3447,13 +3451,21 @@ fn handle_waypoint(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            Content::Plain("Waypoint saved!".to_string()),
+            Content::localized("command-set-waypoint-result"),
         ),
     );
-    server.notify_client(
-        target,
-        ServerGeneral::Notification(Notification::WaypointSaved),
-    );
+
+    if let Some(location_name) = location_name {
+        server.notify_client(
+            target,
+            ServerGeneral::Notification(Notification::WaypointSaved { location_name }),
+        );
+    } else {
+        error!(
+            "Failed to get location name for waypoint. Client was not notified of new waypoint."
+        );
+    }
+
     Ok(())
 }
 

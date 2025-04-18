@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::client::Client;
 use common::{
     comp::{PhysicsState, Player, Pos, Vel, Waypoint, WaypointArea},
@@ -5,7 +7,8 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{Notification, ServerGeneral};
-use specs::{Entities, Join, LendJoin, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, WriteStorage};
+use world::{IndexOwned, World};
 
 /// Cooldown time (in seconds) for "Waypoint Saved" notifications
 const NOTIFY_TIME: f64 = 10.0;
@@ -25,6 +28,8 @@ impl<'a> System<'a> for Sys {
         Read<'a, Time>,
         ReadStorage<'a, PhysicsState>,
         ReadStorage<'a, Vel>,
+        ReadExpect<'a, Arc<World>>,
+        ReadExpect<'a, IndexOwned>,
     );
 
     const NAME: &'static str = "waypoint";
@@ -43,6 +48,8 @@ impl<'a> System<'a> for Sys {
             time,
             physics_states,
             velocities,
+            world,
+            index,
         ): Self::SystemData,
     ) {
         for (entity, player_pos, _, client, physics, velocity) in (
@@ -64,9 +71,16 @@ impl<'a> System<'a> for Sys {
                             waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
                         {
                             if wp_old.is_none_or(|w| w.elapsed(*time) > NOTIFY_TIME) {
-                                client.send_fallible(ServerGeneral::Notification(
-                                    Notification::WaypointSaved,
-                                ));
+                                let location_name = world.get_location_name(
+                                    index.as_index_ref(),
+                                    player_pos.0.xy().as_::<i32>(),
+                                );
+
+                                if let Some(location_name) = location_name {
+                                    client.send_fallible(ServerGeneral::Notification(
+                                        Notification::WaypointSaved { location_name },
+                                    ));
+                                }
                             }
                         }
                     }

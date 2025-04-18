@@ -86,6 +86,7 @@ command-say-desc = Send messages to everyone within shouting distance
 command-scale-desc = Scale your character
 command-server_physics-desc = Set/unset server-authoritative physics for an account
 command-set_motd-desc = Set the server description
+command-set-waypoint-desc = Set your waypoint to your current location.
 command-ship-desc = Spawns a ship
 command-site-desc = Teleport to a site
 command-skill_point-desc = Give yourself skill points for a particular skill tree
@@ -106,7 +107,6 @@ command-rtsim_tp-desc = Teleport to an rtsim npc
 command-unban-desc = Remove the ban for the given username. If there is an linked IP ban it will be removed as well.
 command-unban-ip-desc = Remove just the IP ban for the given username.
 command-version-desc = Prints server version
-command-waypoint-desc = Set your waypoint to your current position
 command-weather_zone-desc = Create a weather zone
 command-whitelist-desc = Adds/removes username to whitelist
 command-wiring-desc = Create wiring element
@@ -215,6 +215,7 @@ command-set-build-mode-on-unpersistent = Toggled build mode on. Changes will not
 command-set_motd-message-added = Server message of the day set to { $message }
 command-set_motd-message-removed = Removed server message of the day
 command-set_motd-message-not-set = This locale had no motd set
+command-set-waypoint-result = Waypoint set!
 command-invalid-alignment = Invalid alignment: { $alignment }
 command-kit-not-enough-slots = Inventory doesn't have enough slots
 command-lantern-unequiped = Please equip a lantern first
@@ -312,6 +313,8 @@ command-no-dismount = You're not riding or being ridden
 command-client-has-no-socketaddr = Cannot get socker addr (connected via mpsc connection) for { $target }
 command-parse-duration-error = Could not parse duration: { $error }
 command-ip-ban-require-online = { $error }. IP ban needs the target player to be online.
+command-waypoint-result = Your current waypoint is at { $waypoint };
+command-waypoint-error = Could not find your waypoint.
 
 # Unreachable/untestable but added for consistency
 

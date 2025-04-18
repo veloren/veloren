@@ -38,6 +38,7 @@ use common::{
         },
         skillset::{SkillGroupKind, SkillSet},
     },
+    resources::BattleMode,
 };
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
@@ -193,7 +194,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Diary<'a> {
     show: &'a Show,
-    _client: &'a Client,
+    client: &'a Client,
     global_state: &'a GlobalState,
     skill_set: &'a SkillSet,
     active_abilities: &'a ActiveAbilities,
@@ -267,7 +268,7 @@ impl<'a> Diary<'a> {
     ) -> Self {
         Self {
             show,
-            _client,
+            client: _client,
             global_state,
             skill_set,
             active_abilities,
@@ -314,7 +315,7 @@ pub enum Event {
 pub enum DiarySection {
     SkillTrees,
     AbilitySelection,
-    Stats,
+    Character,
     Recipes,
 }
 
@@ -323,7 +324,7 @@ impl DiarySection {
         match self {
             DiarySection::SkillTrees => "hud-diary-sections-skill_trees-title",
             DiarySection::AbilitySelection => "hud-diary-sections-abilities-title",
-            DiarySection::Stats => "hud-diary-sections-stats-title",
+            DiarySection::Character => "hud-diary-sections-character-title",
             DiarySection::Recipes => "hud-diary-sections-recipes-title",
         }
     }
@@ -487,7 +488,7 @@ impl Widget for Diary<'_> {
                 let img = match section {
                     DiarySection::AbilitySelection => self.imgs.spellbook_ico,
                     DiarySection::SkillTrees => self.imgs.skilltree_ico,
-                    DiarySection::Stats => self.imgs.stats_ico,
+                    DiarySection::Character => self.imgs.stats_ico,
                     DiarySection::Recipes => self.imgs.crafting_icon,
                 };
 
@@ -1158,41 +1159,28 @@ impl Widget for Diary<'_> {
 
                 events
             },
-            DiarySection::Stats => {
-                const STATS: [&str; 12] = [
-                    "Hitpoints",
-                    "Energy",
-                    "Poise",
-                    "Combat-Rating",
-                    "Protection",
-                    "Stun-Resistance",
-                    "Precision-Power",
-                    "Energy Reward",
-                    "Stealth",
-                    "Weapon Power",
-                    "Weapon Speed",
-                    "Weapon Effect Power",
-                ];
-
+            DiarySection::Character => {
                 // Background Art
                 Image::new(self.imgs.book_bg)
                     .w_h(299.0 * 4.0, 184.0 * 4.0)
                     .mid_top_with_margin_on(state.ids.content_align, 4.0)
                     .set(state.ids.spellbook_art, ui);
 
-                state.update(|s| {
-                    s.ids
-                        .stat_names
-                        .resize(STATS.len(), &mut ui.widget_id_generator())
-                });
-                state.update(|s| {
-                    s.ids
-                        .stat_values
-                        .resize(STATS.len(), &mut ui.widget_id_generator())
-                });
-                for (i, stat) in STATS.iter().copied().enumerate() {
+                if state.ids.stat_names.len() < STAT_COUNT {
+                    state.update(|s| {
+                        s.ids
+                            .stat_names
+                            .resize(STAT_COUNT, &mut ui.widget_id_generator());
+                        s.ids
+                            .stat_values
+                            .resize(STAT_COUNT, &mut ui.widget_id_generator());
+                    });
+                }
+
+                for (i, stat) in CharacterStat::iter().enumerate() {
                     // Stat names
-                    let mut txt = Text::new(stat)
+                    let localized_name = stat.localized_str(self.localized_strings);
+                    let mut txt = Text::new(&localized_name)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(29))
                         .color(BLACK);
@@ -1224,12 +1212,38 @@ impl Widget for Diary<'_> {
                             _ => None,
                         });
 
+                    let player_info = self
+                        .client
+                        .player_list()
+                        .get(&self.client.uid().unwrap())
+                        .unwrap();
+                    let (name, _gender) = player_info.character.as_ref().map_or_else(
+                        || ("Unknown".to_string(), None),
+                        |character_info| {
+                            (
+                                self.localized_strings.get_content(&character_info.name),
+                                character_info.gender,
+                            )
+                        },
+                    );
+
                     // Stat values
                     let value = match stat {
-                        "Hitpoints" => format!("{}", self.health.base_max() as u32),
-                        "Energy" => format!("{}", self.energy.base_max() as u32),
-                        "Poise" => format!("{}", self.poise.base_max() as u32),
-                        "Combat-Rating" => {
+                        CharacterStat::Name => name,
+                        CharacterStat::BattleMode => match player_info.battle_mode {
+                            BattleMode::PvP => "PvP".to_string(),
+                            BattleMode::PvE => "PvE".to_string(),
+                        },
+                        CharacterStat::Waypoint => self
+                            .client
+                            .waypoint()
+                            .as_ref()
+                            .cloned()
+                            .unwrap_or_else(|| "Unknown".to_string()),
+                        CharacterStat::Hitpoints => format!("{}", self.health.base_max() as u32),
+                        CharacterStat::Energy => format!("{}", self.energy.base_max() as u32),
+                        CharacterStat::Poise => format!("{}", self.poise.base_max() as u32),
+                        CharacterStat::CombatRating => {
                             let cr = combat::combat_rating(
                                 self.inventory,
                                 self.health,
@@ -1241,7 +1255,7 @@ impl Widget for Diary<'_> {
                             );
                             format!("{:.2}", cr * 10.0)
                         },
-                        "Protection" => {
+                        CharacterStat::Protection => {
                             let protection =
                                 combat::compute_protection(Some(self.inventory), self.msm);
                             match protection {
@@ -1249,7 +1263,7 @@ impl Widget for Diary<'_> {
                                 None => String::from("Invincible"),
                             }
                         },
-                        "Stun-Resistance" => {
+                        CharacterStat::StunResistance => {
                             let stun_res = Poise::compute_poise_damage_reduction(
                                 Some(self.inventory),
                                 self.msm,
@@ -1258,17 +1272,17 @@ impl Widget for Diary<'_> {
                             );
                             format!("{:.2}%", stun_res * 100.0)
                         },
-                        "Precision-Power" => {
+                        CharacterStat::PrecisionPower => {
                             let precision_power =
                                 combat::compute_precision_mult(Some(self.inventory), self.msm);
                             format!("x{:.2}", precision_power)
                         },
-                        "Energy Reward" => {
+                        CharacterStat::EnergyReward => {
                             let energy_rew =
                                 combat::compute_energy_reward_mod(Some(self.inventory), self.msm);
                             format!("{:+.0}%", (energy_rew - 1.0) * 100.0)
                         },
-                        "Stealth" => {
+                        CharacterStat::Stealth => {
                             let stealth_perception_multiplier =
                                 combat::perception_dist_multiplier_from_stealth(
                                     Some(self.inventory),
@@ -1280,7 +1294,7 @@ impl Widget for Diary<'_> {
 
                             txt
                         },
-                        "Weapon Power" => match (main_weap_stats, off_weap_stats) {
+                        CharacterStat::WeaponPower => match (main_weap_stats, off_weap_stats) {
                             (Some(m_stats), Some(o_stats)) => {
                                 format!("{}   {}", m_stats.power * 10.0, o_stats.power * 10.0)
                             },
@@ -1289,7 +1303,7 @@ impl Widget for Diary<'_> {
                             },
                             (None, None) => String::new(),
                         },
-                        "Weapon Speed" => {
+                        CharacterStat::WeaponSpeed => {
                             let spd_fmt = |sp| (sp - 1.0) * 100.0;
                             match (main_weap_stats, off_weap_stats) {
                                 (Some(m_stats), Some(o_stats)) => format!(
@@ -1303,7 +1317,8 @@ impl Widget for Diary<'_> {
                                 _ => String::new(),
                             }
                         },
-                        "Weapon Effect Power" => match (main_weap_stats, off_weap_stats) {
+                        CharacterStat::WeaponEffectPower => match (main_weap_stats, off_weap_stats)
+                        {
                             (Some(m_stats), Some(o_stats)) => {
                                 format!(
                                     "{}   {}",
@@ -1316,7 +1331,6 @@ impl Widget for Diary<'_> {
                             },
                             (None, None) => String::new(),
                         },
-                        unknown => unreachable!("{}", unknown),
                     };
 
                     let mut number = Text::new(&value)
@@ -1325,7 +1339,7 @@ impl Widget for Diary<'_> {
                         .color(BLACK);
 
                     if i == 0 {
-                        number = number.right_from(state.ids.stat_names[i], 265.0);
+                        number = number.right_from(state.ids.stat_names[i], 165.0);
                     } else {
                         number = number.down_from(state.ids.stat_values[i - 1], 10.0);
                     };
@@ -3300,6 +3314,52 @@ impl<'a> SkillStrings<'a> {
                 (title, desc)
             },
             Self::Empty => (Cow::Borrowed(""), Cow::Borrowed("")),
+        }
+    }
+}
+
+/// The number of variants of the [`CharacterStat`] enum.
+const STAT_COUNT: usize = 15;
+
+#[derive(EnumIter)]
+enum CharacterStat {
+    Name,
+    BattleMode,
+    Waypoint,
+    Hitpoints,
+    Energy,
+    Poise,
+    CombatRating,
+    Protection,
+    StunResistance,
+    PrecisionPower,
+    EnergyReward,
+    Stealth,
+    WeaponPower,
+    WeaponSpeed,
+    WeaponEffectPower,
+}
+
+impl CharacterStat {
+    fn localized_str<'a>(&self, i18n: &'a Localization) -> Cow<'a, str> {
+        use CharacterStat::*;
+
+        match self {
+            Name => i18n.get_msg("character_window-character_name"),
+            BattleMode => Cow::Borrowed("Battle Mode"),
+            Waypoint => Cow::Borrowed("Waypoint"),
+            Hitpoints => i18n.get_msg("hud-bag-health"),
+            Energy => i18n.get_msg("hud-bag-energy"),
+            CombatRating => i18n.get_msg("hud-bag-combat_rating"),
+            Protection => i18n.get_msg("hud-bag-protection"),
+            StunResistance => i18n.get_msg("hud-bag-stun_res"),
+            Poise => i18n.get_msg("common-stats-poise_res"),
+            PrecisionPower => i18n.get_msg("common-stats-precision_power"),
+            EnergyReward => i18n.get_msg("common-stats-energy_reward"),
+            Stealth => i18n.get_msg("common-stats-stealth"),
+            WeaponPower => i18n.get_msg("common-stats-power"),
+            WeaponSpeed => i18n.get_msg("common-stats-speed"),
+            WeaponEffectPower => i18n.get_msg("common-stats-effect-power"),
         }
     }
 }

@@ -31,6 +31,7 @@ pub enum ClientChatCommand {
     Help,
     Mute,
     Unmute,
+    Waypoint,
     Wiki,
 }
 
@@ -69,6 +70,9 @@ impl ClientChatCommand {
                 Content::localized("command-unmute-desc"),
                 None,
             ),
+            ClientChatCommand::Waypoint => {
+                cmd(vec![], Content::localized("command-waypoint-desc"), None)
+            },
             ClientChatCommand::Wiki => cmd(
                 vec![Any("topic", Optional)],
                 Content::localized("command-wiki-desc"),
@@ -84,6 +88,7 @@ impl ClientChatCommand {
             ClientChatCommand::Help => "help",
             ClientChatCommand::Mute => "mute",
             ClientChatCommand::Unmute => "unmute",
+            ClientChatCommand::Waypoint => "waypoint",
             ClientChatCommand::Wiki => "wiki",
         }
     }
@@ -395,6 +400,7 @@ fn run_client_command(
         ClientChatCommand::Help => handle_help,
         ClientChatCommand::Mute => handle_mute,
         ClientChatCommand::Unmute => handle_unmute,
+        ClientChatCommand::Waypoint => handle_waypoint,
         ClientChatCommand::Wiki => handle_wiki,
     };
 
@@ -599,6 +605,23 @@ fn handle_experimental_shader(
         }
     } else {
         Err(Content::localized("command-experimental-shaders-not-valid"))
+    }
+}
+
+fn handle_waypoint(
+    session_state: &mut SessionState,
+    _global_state: &mut GlobalState,
+    _args: Vec<String>,
+) -> CommandResult {
+    let client = &mut session_state.client.borrow();
+
+    if let Some(waypoint) = client.waypoint() {
+        Ok(Some(Content::localized_with_args(
+            "command-waypoint-result",
+            [("waypoint", LocalizationArg::from(waypoint.clone()))],
+        )))
+    } else {
+        Err(Content::localized("command-waypoint-error"))
     }
 }
 
