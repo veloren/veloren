@@ -5214,40 +5214,57 @@ fn handle_buff(
 
     let strength = strength.unwrap_or(0.01);
 
-    if buff == "all" {
-        let duration = duration.unwrap_or(5.0);
-        let buffdata = BuffData::new(strength, Some(Secs(duration)));
+    match buff.as_str() {
+        "all" => {
+            let duration = duration.unwrap_or(5.0);
+            let buffdata = BuffData::new(strength, Some(Secs(duration)));
 
-        // apply every(*) non-complex buff
-        //
-        // (*) BUFF_PACK contains all buffs except
-        // invulnerability
-        BUFF_PACK
-            .iter()
-            .filter_map(|kind_key| parse_buffkind(kind_key))
-            .filter(|buffkind| buffkind.is_simple())
-            .for_each(|buffkind| cast_buff(buffkind, buffdata, server, target));
-        Ok(())
-    } else {
-        let buffkind = parse_buffkind(&buff).ok_or_else(|| {
-            Content::localized_with_args("command-buff-unknown", [("buff", buff.clone())])
-        })?;
-        let buffdata = build_buff(
-            buffkind,
-            strength,
-            duration.unwrap_or(10.0),
-            (!buffkind.is_simple())
-                .then(|| {
-                    misc_data_spec.ok_or_else(|| {
-                        Content::localized_with_args("command-buff-data", [("buff", buff.clone())])
+            // apply every(*) non-complex buff
+            //
+            // (*) BUFF_PACK contains all buffs except
+            // invulnerability
+            BUFF_PACK
+                .iter()
+                .filter_map(|kind_key| parse_buffkind(kind_key))
+                .filter(|buffkind| buffkind.is_simple())
+                .for_each(|buffkind| cast_buff(buffkind, buffdata, server, target));
+        },
+        "clear" => {
+            if let Some(mut buffs) = server
+                .state
+                .ecs()
+                .write_storage::<comp::Buffs>()
+                .get_mut(target)
+            {
+                buffs.buffs.clear();
+                buffs.kinds.clear();
+            }
+        },
+        _ => {
+            let buffkind = parse_buffkind(&buff).ok_or_else(|| {
+                Content::localized_with_args("command-buff-unknown", [("buff", buff.clone())])
+            })?;
+            let buffdata = build_buff(
+                buffkind,
+                strength,
+                duration.unwrap_or(10.0),
+                (!buffkind.is_simple())
+                    .then(|| {
+                        misc_data_spec.ok_or_else(|| {
+                            Content::localized_with_args("command-buff-data", [(
+                                "buff",
+                                buff.clone(),
+                            )])
+                        })
                     })
-                })
-                .transpose()?,
-        )?;
+                    .transpose()?,
+            )?;
 
-        cast_buff(buffkind, buffdata, server, target);
-        Ok(())
+            cast_buff(buffkind, buffdata, server, target);
+        },
     }
+
+    Ok(())
 }
 
 fn build_buff(

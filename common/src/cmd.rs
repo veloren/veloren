@@ -210,8 +210,9 @@ lazy_static! {
     static ref BUFFS: Vec<String> = {
         let mut buff_pack: Vec<String> = BUFF_PARSER.keys().cloned().collect();
 
-        // Add `all` as valid command
+        // Add `all` and `clear` as valid command
         buff_pack.push("all".to_owned());
+        buff_pack.push("clear".to_owned());
         buff_pack
     };
 
