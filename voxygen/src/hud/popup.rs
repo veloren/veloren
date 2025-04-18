@@ -1,7 +1,6 @@
 use super::Show;
 use crate::ui::fonts::Fonts;
-use client::{self, Client};
-use common_net::msg::Notification;
+use client::{self, Client, UserNotification};
 use conrod_core::{
     Color, Colorable, Positionable, Widget, WidgetCommon,
     widget::{self, Text},
@@ -25,7 +24,7 @@ widget_ids! {
 pub struct Popup<'a> {
     i18n: &'a Localization,
     client: &'a Client,
-    new_notifications: &'a VecDeque<Notification>,
+    new_notifications: &'a VecDeque<UserNotification>,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -38,7 +37,7 @@ impl<'a> Popup<'a> {
     pub fn new(
         i18n: &'a Localization,
         client: &'a Client,
-        new_notifications: &'a VecDeque<Notification>,
+        new_notifications: &'a VecDeque<UserNotification>,
         fonts: &'a Fonts,
         show: &'a Show,
     ) -> Self {
@@ -123,7 +122,7 @@ impl Widget for Popup<'_> {
         // Push waypoint to message queue
         for notification in self.new_notifications {
             match notification {
-                Notification::WaypointSaved => {
+                UserNotification::WaypointUpdated => {
                     state.update(|s| {
                         if s.infos.is_empty() {
                             s.last_info_update = Instant::now();

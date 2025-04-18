@@ -443,6 +443,7 @@ pub enum ServerChatCommand {
     Scale,
     ServerPhysics,
     SetMotd,
+    SetWaypoint,
     Ship,
     Site,
     SkillPoint,
@@ -458,7 +459,6 @@ pub enum ServerChatCommand {
     Unban,
     UnbanIp,
     Version,
-    Waypoint,
     WeatherZone,
     Whitelist,
     Wiring,
@@ -1018,7 +1018,7 @@ impl ServerChatCommand {
             ServerChatCommand::Version => {
                 cmd(vec![], Content::localized("command-version-desc"), None)
             },
-            ServerChatCommand::Waypoint => cmd(
+            ServerChatCommand::SetWaypoint => cmd(
                 vec![],
                 Content::localized("command-waypoint-desc"),
                 Some(Admin),
@@ -1195,7 +1195,7 @@ impl ServerChatCommand {
             ServerChatCommand::Unban => "unban",
             ServerChatCommand::UnbanIp => "unban_ip",
             ServerChatCommand::Version => "version",
-            ServerChatCommand::Waypoint => "waypoint",
+            ServerChatCommand::SetWaypoint => "set_waypoint",
             ServerChatCommand::Wiring => "wiring",
             ServerChatCommand::Whitelist => "whitelist",
             ServerChatCommand::World => "world",

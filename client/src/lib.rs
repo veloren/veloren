@@ -114,7 +114,7 @@ pub enum Event {
     Disconnect,
     DisconnectionNotification(u64),
     InventoryUpdated(Vec<InventoryUpdateEvent>),
-    Notification(Notification),
+    Notification(UserNotification),
     SetViewDistance(u32),
     Outcome(Outcome),
     CharacterCreated(CharacterId),
@@ -126,6 +126,15 @@ pub enum Event {
     SpectatePosition(Vec3<f32>),
     PluginDataReceived(Vec<u8>),
     Dialogue(Uid, rtsim::Dialogue<true>),
+}
+
+/// A message for the user to be displayed through the UI.
+///
+/// This type mirrors the [`common_net::msg::Notification`] type, but does not
+/// include any data that the UI does not need.
+#[derive(Debug)]
+pub enum UserNotification {
+    WaypointUpdated,
 }
 
 #[derive(Debug)]
@@ -302,6 +311,7 @@ pub struct Client {
     pending_invites: HashSet<Uid>,
     // The pending trade the client is involved in, and it's id
     pending_trade: Option<(TradeId, PendingTrade, Option<SitePrices>)>,
+    waypoint: Option<String>,
 
     network: Option<Network>,
     participant: Option<Participant>,
@@ -1052,6 +1062,7 @@ impl Client {
             group_members: HashMap::new(),
             pending_invites: HashSet::new(),
             pending_trade: None,
+            waypoint: None,
 
             network: Some(network),
             participant: Some(participant),
@@ -1267,6 +1278,15 @@ impl Client {
     ) {
         let view_distances = self.set_view_distances_local(view_distances);
         self.send_msg(ClientGeneral::Character(character_id, view_distances));
+
+        if let Some(character) = self
+            .character_list
+            .characters
+            .iter()
+            .find(|x| x.character.id == Some(character_id))
+        {
+            self.waypoint = character.location.clone();
+        }
 
         // Assume we are in_game unless server tells us otherwise
         self.presence = Some(PresenceKind::Character(character_id));
@@ -2220,6 +2240,8 @@ impl Client {
         }))
     }
 
+    pub fn waypoint(&self) -> &Option<String> { &self.waypoint }
+
     pub fn set_battle_mode(&mut self, battle_mode: BattleMode) {
         self.send_msg(ClientGeneral::SetBattleMode(battle_mode));
     }
@@ -2758,7 +2780,10 @@ impl Client {
                 }
             },
             ServerGeneral::Notification(n) => {
-                frontend_events.push(Event::Notification(n));
+                let Notification::WaypointSaved { location_name } = n.clone();
+                self.waypoint = Some(location_name);
+
+                frontend_events.push(Event::Notification(UserNotification::WaypointUpdated));
             },
             ServerGeneral::PluginData(d) => {
                 let plugin_len = d.len();
@@ -3541,7 +3566,7 @@ mod tests {
                             debug!("Will be disconnected soon! :/")
                         },
                         Event::Notification(notification) => {
-                            let notification: Notification = notification;
+                            let notification: UserNotification = notification;
                             debug!("Notification: {:?}", notification);
                         },
                         _ => {},

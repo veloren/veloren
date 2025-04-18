@@ -86,7 +86,7 @@ use crate::{
     },
     window::Event as WinEvent,
 };
-use client::Client;
+use client::{Client, UserNotification};
 use common::{
     combat,
     comp::{
@@ -121,10 +121,7 @@ use common::{
 };
 use common_base::{prof_span, span};
 use common_net::{
-    msg::{
-        Notification,
-        world_msg::{Marker, MarkerKind, SiteId},
-    },
+    msg::world_msg::{Marker, MarkerKind, SiteId},
     sync::WorldSyncExt,
 };
 use conrod_core::{
@@ -1287,7 +1284,7 @@ pub struct Hud {
     ///
     /// Uses VecDeque to pop excess messages.
     message_backlog: VecDeque<comp::ChatMsg>,
-    new_notifications: VecDeque<Notification>,
+    new_notifications: VecDeque<UserNotification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
     content_bubbles: Vec<(Vec3<f32>, comp::SpeechBubble)>,
     pub show: Show,
@@ -4651,7 +4648,9 @@ impl Hud {
         }
     }
 
-    pub fn new_notification(&mut self, msg: Notification) { self.new_notifications.push_back(msg); }
+    pub fn new_notification(&mut self, msg: UserNotification) {
+        self.new_notifications.push_back(msg);
+    }
 
     pub fn set_scaling_mode(&mut self, scale_mode: ScaleMode) {
         self.ui.set_scaling_mode(scale_mode);

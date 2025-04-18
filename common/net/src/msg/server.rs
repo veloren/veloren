@@ -294,9 +294,15 @@ pub enum InviteAnswer {
     TimedOut,
 }
 
+/// A message that should be displayed to the player, possibly with data to
+/// update the client.
+///
+/// See [`veloren_client::UserNotification`] for the stripped down version,
+/// which the client sends to the UI after removing (and using) any data that is
+/// not relevant to rendering.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Notification {
-    WaypointSaved,
+    WaypointSaved { location_name: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
