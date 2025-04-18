@@ -267,7 +267,6 @@ pub struct PlayerInfo {
     pub player_alias: String,
     pub character: Option<CharacterInfo>,
     pub uuid: Uuid,
-    pub battle_mode: BattleMode,
 }
 
 /// used for localisation, filled by client and used by i18n code
@@ -285,6 +284,7 @@ pub struct CharacterInfo {
     /// directly from a client will be `Content::Plain`
     pub name: Content,
     pub gender: Option<Gender>,
+    pub battle_mode: BattleMode,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

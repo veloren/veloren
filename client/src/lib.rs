@@ -2247,22 +2247,25 @@ impl Client {
     }
 
     pub fn get_battle_mode(&self) -> BattleMode {
-        let uid = if let Some(uid) = self.uid() {
-            uid
-        } else {
+        let Some(uid) = self.uid() else {
             error!("Client entity does not have a Uid component");
 
             return BattleMode::PvP;
         };
-        let player_info = if let Some(player_info) = self.player_list.get(&uid) {
-            player_info
-        } else {
+
+        let Some(player_info) = self.player_list.get(&uid) else {
             error!("Client does not have PlayerInfo for its Uid");
 
             return BattleMode::PvP;
         };
 
-        player_info.battle_mode
+        let Some(ref character_info) = player_info.character else {
+            error!("Client does not have CharacterInfo for its PlayerInfo");
+
+            return BattleMode::PvP;
+        };
+
+        character_info.battle_mode
     }
 
     /// Execute a single client tick, handle input and update the game state by
@@ -2694,7 +2697,15 @@ impl Client {
                 battle_mode,
             )) => {
                 if let Some(player_info) = self.player_list.get_mut(&uid) {
-                    player_info.battle_mode = battle_mode;
+                    if let Some(ref mut character_info) = player_info.character {
+                        character_info.battle_mode = battle_mode;
+                    } else {
+                        warn!(
+                            "Received msg to update battle mode of uid {} to {:?} but this player \
+                             does not have a character",
+                            uid, battle_mode
+                        );
+                    }
                 } else {
                     warn!(
                         "Received msg to update battle mode of uid {} to {:?} but this uid is not \

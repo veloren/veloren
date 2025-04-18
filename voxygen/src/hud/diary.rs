@@ -1217,12 +1217,13 @@ impl Widget for Diary<'_> {
                         .player_list()
                         .get(&self.client.uid().unwrap())
                         .unwrap();
-                    let (name, _gender) = player_info.character.as_ref().map_or_else(
-                        || ("Unknown".to_string(), None),
+                    let (name, _gender, battle_mode) = player_info.character.as_ref().map_or_else(
+                        || ("Unknown".to_string(), None, BattleMode::PvP),
                         |character_info| {
                             (
                                 self.localized_strings.get_content(&character_info.name),
                                 character_info.gender,
+                                character_info.battle_mode,
                             )
                         },
                     );
@@ -1230,7 +1231,7 @@ impl Widget for Diary<'_> {
                     // Stat values
                     let value = match stat {
                         CharacterStat::Name => name,
-                        CharacterStat::BattleMode => match player_info.battle_mode {
+                        CharacterStat::BattleMode => match battle_mode {
                             BattleMode::PvP => "PvP".to_string(),
                             BattleMode::PvE => "PvE".to_string(),
                         },

@@ -374,7 +374,11 @@ impl Widget for Social<'_> {
             }
 
             // PvP Icon
-            if let BattleMode::PvP = player_info.battle_mode {
+            if player_info
+                .character
+                .as_ref()
+                .is_some_and(|character_info| matches!(character_info.battle_mode, BattleMode::PvP))
+            {
                 Image::new(self.imgs.player_pvp)
                     .w_h(20.0, 20.0)
                     .left_from(state.ids.player_names[i], 0.0)
