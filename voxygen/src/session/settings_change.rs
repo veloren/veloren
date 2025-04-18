@@ -134,6 +134,7 @@ pub enum Interface {
     TogglePoiseBar(bool),
     ToggleShortcutNumbers(ShortcutNumbers),
     BuffPosition(BuffPosition),
+    RowBackgroundOpacity(f32),
 
     UiScale(ScaleChange),
     //Minimap
@@ -702,6 +703,9 @@ impl SettingsChange {
                         session_state
                             .hud
                             .set_scaling_mode(settings.interface.ui_scale);
+                    },
+                    Interface::RowBackgroundOpacity(opacity) => {
+                        settings.interface.row_background_opacity = opacity;
                     },
                 }
             },
