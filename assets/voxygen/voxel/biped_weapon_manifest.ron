@@ -1213,7 +1213,7 @@
     ),
     // Throwables
     Tool("common.items.utility.bomb"): (
-        vox_spec: ("object.bomb", (-4.0, -6.0, 0.0)),
+        vox_spec: ("sprite.bomb.bomb", (-4.0, -6.0, 0.0)),
         color: None
     ),
     Tool("common.items.utility.firework_white"): (
