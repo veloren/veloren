@@ -71,6 +71,7 @@ impl Site {
                     })
                     .map(|(_, faction)| *faction)
             }),
+            count_loaded_chunks: 0,
             population: Default::default(),
             known_reports: Default::default(),
             nearby_sites_by_size: Vec::new(),

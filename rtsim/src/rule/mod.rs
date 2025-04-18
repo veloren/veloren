@@ -1,3 +1,4 @@
+pub mod architect;
 pub mod cleanup;
 pub mod migrate;
 pub mod npc_ai;

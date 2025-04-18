@@ -889,8 +889,9 @@ impl Server {
         #[cfg(feature = "worldgen")]
         {
             let mut rtsim = self.state.ecs().write_resource::<rtsim::RtSim>();
+            let world = self.state.ecs().read_resource::<Arc<World>>();
             for chunk in &self.state.terrain_changes().removed_chunks {
-                rtsim.hook_unload_chunk(*chunk);
+                rtsim.hook_unload_chunk(*chunk, &world);
             }
         }
 

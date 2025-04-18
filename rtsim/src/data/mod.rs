@@ -1,4 +1,5 @@
 pub mod airship;
+pub mod architect;
 pub mod faction;
 pub mod nature;
 pub mod npc;
@@ -15,6 +16,7 @@ pub use self::{
     site::{Site, SiteId, Sites},
 };
 use airship::AirshipSim;
+use architect::Architect;
 use common::resources::TimeOfDay;
 use enum_map::{EnumArray, EnumMap, enum_map};
 use serde::{Deserialize, Serialize, de, ser};
@@ -30,7 +32,7 @@ use std::{
 /// Note that this number does *not* need incrementing on every change: most
 /// field removals/additions are fine. This number should only be incremented
 /// when we wish to perform a *hard purge* of rtsim data.
-pub const CURRENT_VERSION: u32 = 8;
+pub const CURRENT_VERSION: u32 = 9;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Data {
@@ -47,6 +49,8 @@ pub struct Data {
     pub factions: Factions,
     #[serde(default)]
     pub reports: Reports,
+    #[serde(default)]
+    pub architect: Architect,
 
     #[serde(default)]
     pub tick: u64,
