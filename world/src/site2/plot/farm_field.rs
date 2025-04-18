@@ -18,7 +18,7 @@ enum Crop {
     Carrot,
     Radish,
     Turnip,
-    Cabbage,
+    Lettuce,
     Pumpkin,
     Sunflower,
     Cactus,
@@ -35,7 +35,7 @@ impl Crop {
             // Bushes
             Self::Tomato | Self::Cactus => Some((3.0, 1.0 / 3.0)),
             // Root & brassica
-            Self::Carrot | Self::Radish | Self::Turnip | Self::Cabbage | Self::Pumpkin => {
+            Self::Carrot | Self::Radish | Self::Turnip | Self::Lettuce | Self::Pumpkin => {
                 Some((6.0, 0.75))
             },
             Self::Sunflower => Some((4.0, 0.5)),
@@ -86,9 +86,9 @@ impl Crop {
                 (5.0, Some(SpriteKind::Empty)),
                 (1.0, Some(SpriteKind::Turnip)),
             ],
-            Self::Cabbage => &[
+            Self::Lettuce => &[
                 (5.0, Some(SpriteKind::Empty)),
-                (1.0, Some(SpriteKind::Cabbage)),
+                (1.0, Some(SpriteKind::Lettuce)),
             ],
             Self::Pumpkin => &[
                 (5.0, Some(SpriteKind::Empty)),
@@ -241,7 +241,7 @@ impl Structure for FarmField {
 
             Some(
                 old.into_vacant()
-                    .with_sprite(SpriteKind::Fence)
+                    .with_sprite(SpriteKind::FenceWoodWoodland)
                     .with_ori(ori)
                     .unwrap()
                     .with_adjacent_type(adjacent_type)

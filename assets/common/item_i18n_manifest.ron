@@ -2282,7 +2282,7 @@
         ): "object-honeycorn",
         Simple(
             "common.items.food.lettuce",
-        ): "sprite-cabbage-cabbage",
+        ): "sprite-lettuce-lettuce",
         Simple("common.items.food.meat"): "common-items-food-meat",
         Simple(
             "common.items.food.mushroom",

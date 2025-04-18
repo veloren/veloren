@@ -1347,7 +1347,7 @@ TerracottaBlock: [(
     wind_sway: 0.0,
 )],
 // Fences
-Fence: [
+FenceWoodWoodland: [
     (
         variations: [
             (
@@ -1403,7 +1403,28 @@ Fence: [
         wind_sway: 0.0,
         filter: (adjacent_type: End),
     ),
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.sprite.farms.fence_5",
+                offset: (-5.5, -5.5, 0.0),
+                lod_axes: (1.0, 1.0, 1.0),
+            ),
+        ],
+        wind_sway: 0.0,
+        filter: (adjacent_type: End),
+    ),
 ],
+FenceWoodGateWoodland: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.farms.fence_gate",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
 MyrmidonKeyDoor: [(
      variations: [
          (
@@ -1544,7 +1565,9 @@ DoorWide: [(
     ],
     wind_sway: 0.0,
 )],
-// Helm
+
+// Ship helm
+
 Helm: [(
     variations: [
         (
@@ -2085,68 +2108,81 @@ FlowerpotWoodWoodlandS: [(
     wind_sway: 0,
 )],
 
+// Stair handrails
 
+HandrailWoodWoodlandBase: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.handrail_wood_woodland_base",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+HandrailWoodWoodlandMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.handrail_wood_woodland_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+HandrailWoodWoodlandTop: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.handrail_wood_woodland_top",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
 
+//Household tools
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+BroomWoodWoodlandBlue: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.broom_wood_woodland_blue",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+ShovelWoodWoodlandGreen: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.shovel_wood_woodland_green",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+PitchforkWoodWoodlandGreen: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.pitchfork_wood_woodland_green",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+RakeWoodWoodland: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.rake_wood_woodland",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
 
 
 // Drop Gate Parts
@@ -3119,6 +3155,83 @@ Gravestone: [(
         ),
     ],
     wind_sway: 0.0,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5365,26 +5478,28 @@ WheatGreen: [(
     ],
     wind_sway: 0.4,
 )],
-// Cabbage
-Cabbage: [(
+// Lettuce
+Lettuce: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.cabbage.cabbage-0",
-            offset: (-6.0, -6.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.cabbage.cabbage-1",
-            offset: (-6.0, -6.0, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.cabbage.cabbage-2",
+            model: "voxygen.voxel.sprite.lettuce.lettuce_ready",
             offset: (-6.0, -6.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
-    wind_sway: 0.0,
+    wind_sway: 0.1,
+    filter: (collectable: true),
+),
+(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lettuce.lettuce_harvested",
+            offset: (-6.0, -6.0, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.1,
+    filter: (collectable: false),
 )],
 // Flax
 Flax: [(
@@ -7287,4 +7402,5 @@ SeaUrchin: [(
     ],
     wind_sway: 0.0,
 )],
+
 }

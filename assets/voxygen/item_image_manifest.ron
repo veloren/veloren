@@ -3715,7 +3715,7 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Simple("common.items.food.lettuce"): VoxTrans(
-        "voxel.sprite.cabbage.cabbage",
+        "voxel.sprite.lettuce.lettuce",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Simple("common.items.food.meat.fish_raw"): VoxTrans(

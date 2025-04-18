@@ -1,5 +1,5 @@
 use super::{
-    SpriteKind,
+    SpriteCfg, SpriteKind,
     sprite::{self, RelativeNeighborPosition},
 };
 use crate::{
@@ -354,7 +354,7 @@ impl Block {
                 | SpriteKind::Pumpkin
                 | SpriteKind::Beehive // TODO: Not a fruit, but kind of acts like one
                 | SpriteKind::Coconut => Some(rtsim::ChunkResource::Fruit),
-            SpriteKind::Cabbage
+            SpriteKind::Lettuce
                 | SpriteKind::Carrot
                 | SpriteKind::Tomato
                 | SpriteKind::Radish
@@ -588,6 +588,14 @@ impl Block {
     #[inline]
     pub fn default_tool(&self) -> Option<Option<ToolKind>> {
         self.get_sprite().and_then(|s| s.default_tool())
+    }
+
+    #[inline]
+    pub fn is_collectible(&self, sprite_cfg: Option<&SpriteCfg>) -> bool {
+        self.get_sprite().is_some_and(|s| {
+            sprite_cfg.and_then(|cfg| cfg.loot_table.as_ref()).is_some()
+                || s.default_tool() == Some(None)
+        }) && matches!(self.get_attr(), Ok(sprite::Collectable(true)) | Err(_))
     }
 
     #[inline]

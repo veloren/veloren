@@ -86,8 +86,16 @@ impl BlockInteraction {
         interaction: Interaction,
     ) -> Option<(Block, Self)> {
         let block = volume_pos.get_block(terrain, id_maps, colliders)?;
-        let block_interaction = match interaction {
+        match interaction {
             Interaction::Collect => {
+                // Check if the block is not collectable
+                if terrain.pos_chunk(volume_pos.pos).is_some_and(|chunk| {
+                    let sprite_chunk_pos = TerrainGrid::chunk_offs(volume_pos.pos);
+                    let sprite_cfg = chunk.meta().sprite_cfg_at(sprite_chunk_pos);
+                    !block.is_collectible(sprite_cfg)
+                }) {
+                    return None;
+                };
                 // Check if this is an unlockable sprite
                 let unlock = match volume_pos.kind {
                     Volume::Terrain => block.get_sprite().and_then(|sprite| {
@@ -110,13 +118,13 @@ impl BlockInteraction {
                 };
 
                 if let Some(unlock) = unlock {
-                    BlockInteraction::Unlock(unlock)
+                    Some((block, BlockInteraction::Unlock(unlock)))
                 } else if let Some(mine_tool) = block.mine_tool() {
-                    BlockInteraction::Mine(mine_tool)
+                    Some((block, BlockInteraction::Mine(mine_tool)))
                 } else {
-                    BlockInteraction::Collect {
+                    Some((block, BlockInteraction::Collect {
                         steal: block.is_owned(),
-                    }
+                    }))
                 }
             },
             Interaction::Read => match volume_pos.kind {
@@ -126,17 +134,17 @@ impl BlockInteraction {
                     let sprite_cfg = chunk.meta().sprite_cfg_at(sprite_chunk_pos);
                     sprite
                         .content(sprite_cfg.cloned())
-                        .map(BlockInteraction::Read)
+                        .map(|content| Some((block, BlockInteraction::Read(content))))
                 })?,
                 // Signs on volume entities are not currently supported
-                common::mounting::Volume::Entity(_) => return None,
+                common::mounting::Volume::Entity(_) => None,
             },
-            Interaction::Craft(tab) => BlockInteraction::Craft(tab),
-            Interaction::Mount => BlockInteraction::Mount,
-            Interaction::LightToggle(enable) => BlockInteraction::LightToggle(enable),
-        };
-
-        Some((block, block_interaction))
+            Interaction::Craft(tab) => Some((block, BlockInteraction::Craft(tab))),
+            Interaction::Mount => Some((block, BlockInteraction::Mount)),
+            Interaction::LightToggle(enable) => {
+                Some((block, BlockInteraction::LightToggle(enable)))
+            },
+        }
     }
 
     pub fn game_input(&self) -> GameInput {

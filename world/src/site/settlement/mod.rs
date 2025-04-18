@@ -515,7 +515,7 @@ impl Settlement {
                 crop: match rng.gen_range(0..8) {
                     0 => Crop::Corn,
                     1 => Crop::Wheat,
-                    2 => Crop::Cabbage,
+                    2 => Crop::Lettuce,
                     3 => Crop::Pumpkin,
                     4 => Crop::Flax,
                     5 => Crop::Carrot,
@@ -683,8 +683,8 @@ impl Settlement {
                                             Some(SpriteKind::WheatYellow)
                                         },
                                         Crop::Wheat => Some(SpriteKind::WheatGreen),
-                                        Crop::Cabbage if roll(2, 2) == 0 => {
-                                            Some(SpriteKind::Cabbage)
+                                        Crop::Lettuce if roll(2, 2) == 0 => {
+                                            Some(SpriteKind::Lettuce)
                                         },
                                         Crop::Pumpkin if roll(3, 2) == 0 => {
                                             Some(SpriteKind::Pumpkin)
@@ -1147,7 +1147,7 @@ fn transfer(wares: &mut Vec<Item>, bag: &mut Item) {
 pub enum Crop {
     Corn,
     Wheat,
-    Cabbage,
+    Lettuce,
     Pumpkin,
     Flax,
     Carrot,
