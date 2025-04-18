@@ -213,6 +213,47 @@ impl<'a> System<'a> for Sys {
                 vel.0 = v;
             }
 
+            // Check if the volume has buffs if they do apply them to the rider via a
+            // BuffEvent
+
+            // TODO: This is code copy of the mounting effects. We can probably consolidate
+            // at some point.
+            if let Some(target_buffs) = buffs.get(entity)
+                && let Some(block_buffs) = is_volume_rider.block.mount_buffs()
+            {
+                for effect in block_buffs.iter() {
+                    let emit_buff = !target_buffs.buffs.iter().any(|(_, buff)| {
+                        buff.cat_ids.iter()
+                            .any(|cat_id| matches!(cat_id, BuffCategory::FromLink(link) if link.is_link(is_volume_rider.get_link())))
+                            && buff.kind == effect.kind && buff.data.strength >= effect.data.strength
+                    });
+
+                    if emit_buff {
+                        let dest_info = DestInfo {
+                            stats: stats.get(entity),
+                            mass: masses.get(entity),
+                        };
+                        let mut cat_ids = effect.cat_ids.clone();
+                        cat_ids.push(BuffCategory::FromLink(
+                            is_volume_rider.get_link().downgrade().into_dyn(),
+                        ));
+
+                        emitters.emit(BuffEvent {
+                            entity,
+                            buff_change: BuffChange::Add(Buff::new(
+                                effect.kind,
+                                effect.data,
+                                cat_ids,
+                                common::comp::BuffSource::Block,
+                                *time,
+                                dest_info,
+                                masses.get(entity),
+                            )),
+                        });
+                    }
+                }
+            }
+
             let inputs = controllers.get_mut(entity).map(|c| {
                 let actions: Vec<_> = c
                     .actions

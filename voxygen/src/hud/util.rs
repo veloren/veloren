@@ -181,7 +181,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Saturation => "buff-saturation",
         BuffKind::Potion => "buff-potion",
         BuffKind::Agility => "buff-agility",
-        BuffKind::CampfireHeal => "buff-campfire_heal",
+        BuffKind::RestingHeal => "buff-resting_heal",
         BuffKind::EnergyRegen => "buff-energy_regen",
         BuffKind::IncreaseMaxHealth => "buff-increase_max_health",
         BuffKind::IncreaseMaxEnergy => "buff-increase_max_energy",
@@ -235,7 +235,7 @@ pub fn get_buff_title(buff: BuffKind, i18n: &Localization) -> Cow<str> {
 /// Returns localized buff description
 pub fn get_buff_desc(buff: BuffKind, data: BuffData, i18n: &Localization) -> Cow<str> {
     let key = buff_key(buff);
-    if let BuffKind::CampfireHeal = buff {
+    if let BuffKind::RestingHeal = buff {
         i18n.get_attr_ctx(key, "desc", &i18n::fluent_args! {
             "rate" => data.strength * 100.0
         })
@@ -321,7 +321,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         // Have no stat description
                         BuffKind::Bleeding
                         | BuffKind::Burning
-                        | BuffKind::CampfireHeal
+                        | BuffKind::RestingHeal
                         | BuffKind::Cursed
                         | BuffKind::ProtectingWard
                         | BuffKind::Crippled

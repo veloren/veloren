@@ -5263,7 +5263,7 @@ fn build_buff(
             | BuffKind::Saturation
             | BuffKind::Potion
             | BuffKind::Agility
-            | BuffKind::CampfireHeal
+            | BuffKind::RestingHeal
             | BuffKind::Frenzied
             | BuffKind::EnergyRegen
             | BuffKind::IncreaseMaxEnergy

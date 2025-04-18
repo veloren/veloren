@@ -435,6 +435,7 @@ impl Link for VolumeMounting {
             if block == this.block {
                 let _ = is_volume_riders.insert(rider, this.make_role());
                 riders.riders.insert(this.pos.pos, this.clone());
+
                 Ok(())
             } else {
                 Err(MountingError::NotMountable)

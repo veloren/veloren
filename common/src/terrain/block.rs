@@ -5,6 +5,7 @@ use super::{
 use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
     consts::FRIC_GROUND,
+    effect::BuffEffect,
     make_case_elim, rtsim,
     vol::FilledVox,
 };
@@ -596,6 +597,10 @@ impl Block {
     /// Get the position and direction to mount this block if any.
     pub fn mount_offset(&self) -> Option<(Vec3<f32>, Vec3<f32>)> {
         self.get_sprite().and_then(|sprite| sprite.mount_offset())
+    }
+
+    pub fn mount_buffs(&self) -> Option<Vec<BuffEffect>> {
+        self.get_sprite().and_then(|sprite| sprite.mount_buffs())
     }
 
     pub fn is_controller(&self) -> bool {

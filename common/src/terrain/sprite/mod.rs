@@ -38,9 +38,12 @@ mod magic;
 pub use self::magic::{Attribute, AttributeError};
 use crate::{
     attributes,
-    comp::{item::ItemDefinitionIdOwned, tool::ToolKind},
+    comp::{BuffData, BuffKind, item::ItemDefinitionIdOwned, tool::ToolKind},
+    effect::BuffEffect,
     lottery::LootSpec,
-    make_case_elim, sprites,
+    make_case_elim,
+    resources::Secs,
+    sprites,
     terrain::Block,
 };
 use common_i18n::Content;
@@ -1076,6 +1079,23 @@ impl SpriteKind {
 
     #[inline]
     pub fn is_mountable(&self) -> bool { self.mount_offset().is_some() }
+
+    /// Get the buff provided by the block (currently used for mounting)
+    #[inline]
+    pub fn mount_buffs(&self) -> Option<Vec<BuffEffect>> {
+        match self {
+            SpriteKind::BedWoodWoodlandHead
+            | SpriteKind::BedMesa
+            | SpriteKind::BedrollSnow
+            | SpriteKind::BedrollPirate
+            | SpriteKind::Bedroll => Some(vec![BuffEffect {
+                kind: BuffKind::RestingHeal,
+                data: BuffData::new(0.02, Some(Secs(1.0))),
+                cat_ids: Vec::new(),
+            }]),
+            _ => None,
+        }
+    }
 
     #[inline]
     pub fn is_controller(&self) -> bool { matches!(self, SpriteKind::Helm) }

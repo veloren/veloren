@@ -378,7 +378,7 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
         | BuffKind::Saturation
         | BuffKind::Potion
         | BuffKind::Agility
-        | BuffKind::CampfireHeal
+        | BuffKind::RestingHeal
         | BuffKind::EnergyRegen
         | BuffKind::IncreaseMaxEnergy
         | BuffKind::IncreaseMaxHealth

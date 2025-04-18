@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Type /wiki to open or the Veloren wiki or /wiki [topic] to search for a specific topic.
 - Adding a space after chat mode commands changes chat modes.
 - New and more granular options for the `/kit` command.
+- Beds now regen health when mounted.
 
 ### Changed
 
