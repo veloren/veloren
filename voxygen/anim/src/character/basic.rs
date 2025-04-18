@@ -193,18 +193,24 @@ impl Animation for BasicAction {
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
                 next.hand_r.position =
-                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
+                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -13.2, -4.0 + move1 * 3.3, 1.0);
                 next.hand_r.orientation = Quaternion::rotation_x(PI * 0.5);
-                next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2 + move2 * 5.0);
-                next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + move1 * -0.9)
-                    * Quaternion::rotation_y(move1 * 1.0 + move2 * -1.0)
-                    * Quaternion::rotation_z(move1 * 1.3 + move2 * -1.3);
+                next.chest.position += Vec3::new(0.0, move1 * -0.55, 0.0);
+                next.control.position =
+                    Vec3::new(s_a.sc.0, s_a.sc.1 + move2 * 3.3, s_a.sc.2 + move2 * 5.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.sc.3 + move1 * -0.99)
+                    * Quaternion::rotation_y(move1 * 1.1 + move2 * -1.1)
+                    * Quaternion::rotation_z(move1 * 1.43 + move2 * -1.43);
 
+                next.chest.position += Vec3::new(0.0, move2 * 2.2, 0.0);
                 next.chest.orientation =
-                    Quaternion::rotation_z(move1 * 1.0 + tension * 0.02 + move2 * -1.2);
-                next.head.orientation = Quaternion::rotation_z(move1 * -0.4 + move2 * 0.3);
-                next.belt.orientation = Quaternion::rotation_z(move1 * -0.25 + move2 * 0.2);
-                next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5 + move2 * 0.4);
+                    Quaternion::rotation_z(move1 * 1.1 + tension * 0.02 + move2 * -1.32);
+                next.head.position += Vec3::new(0.0, move2 * 1.1, 0.0);
+                next.head.orientation = Quaternion::rotation_x(move1 * 0.055 + move2 * -0.055)
+                    * Quaternion::rotation_y(move1 * 0.055 + move2 * -0.055)
+                    * Quaternion::rotation_z(move1 * -0.44 + move2 * 0.33);
+                next.belt.orientation = Quaternion::rotation_z(move1 * -0.275 + move2 * 0.22);
+                next.shorts.orientation = Quaternion::rotation_z(move1 * -0.66 + move2 * 0.33);
             },
             Some("common.abilities.sword.heavy_slam") => {
                 legacy_initialize();
@@ -217,26 +223,34 @@ impl Animation for BasicAction {
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
                 next.hand_r.position =
-                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
+                    Vec3::new(-s_a.sc.0 + 7.0 + move1 * -13.2, -5.0 + move1 * 3.3, -1.0);
+                next.chest.position += Vec3::new(0.0, move1 * -0.55, 0.0);
                 next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                 next.control.orientation = Quaternion::rotation_x(s_a.sc.3)
-                    * Quaternion::rotation_z(move1 * 0.3 + move2 * -0.7);
+                    * Quaternion::rotation_z(move1 * 0.33 + move2 * -0.77);
 
                 next.control
                     .orientation
-                    .rotate_x(move1 * 1.4 + tension / 50.0);
+                    .rotate_x(move1 * 1.54 + tension / 50.0);
                 next.control.position +=
-                    Vec3::new(move1 * -1.0, move1 * 2.0, move1 * 8.0) + Vec3::one() * tension / 4.0;
-                next.chest.orientation = Quaternion::rotation_z(move1 * 0.4 + tension / 50.0);
+                    Vec3::new(move1 * -2.2, 0.0, move1 * 9.9) + Vec3::one() * tension / 4.0;
+                next.chest.position += Vec3::new(0.0, move2 * 1.65, 0.0);
+                next.chest.orientation = Quaternion::rotation_z(move1 * 0.44 + tension / 50.0);
+                next.head.position += Vec3::new(0.0, move2 * 1.1, 0.0);
+                next.head.orientation = Quaternion::rotation_x(move2 * -0.22)
+                    * Quaternion::rotation_y(move1 * 0.055 + move2 * 0.055)
+                    * Quaternion::rotation_z(move2 * -0.165);
+                next.belt.orientation = Quaternion::rotation_z(move1 * -0.055 + move2 * 0.165);
+                next.shorts.orientation = Quaternion::rotation_z(move1 * -0.11 + move2 * 0.22);
 
                 if move2 < f32::EPSILON {
                     next.main_weapon_trail = false;
                     next.off_weapon_trail = false;
                 }
-                next.control.orientation.rotate_x(move2 * -3.0);
-                next.control.orientation.rotate_z(move2 * -0.4);
-                next.control.position += Vec3::new(move2 * 10.0, 0.0, move2 * -10.0);
-                next.chest.orientation.rotate_z(move2 * -0.6);
+                next.control.orientation.rotate_x(move2 * -3.3);
+                next.control.orientation.rotate_z(move2 * -0.44);
+                next.control.position += Vec3::new(move2 * 11.0, move2 * 5.5, move2 * -11.0);
+                next.chest.orientation.rotate_z(move2 * -0.66);
             },
             Some("common.abilities.sword.crippling_deep_rend") => {
                 legacy_initialize();
@@ -251,30 +265,35 @@ impl Animation for BasicAction {
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
                 next.hand_r.position =
-                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
+                    Vec3::new(-s_a.sc.0 + 3.0 + move1 * -9.0, -4.0 + move1 * 3.0, 0.0);
                 next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1pre * 0.5);
                 next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                 next.control.orientation =
                     Quaternion::rotation_x(s_a.sc.3) * Quaternion::rotation_z(move1pre * PI / 2.0);
 
-                next.foot_r.position += Vec3::new(0.0, move1pre * -3.0, 0.0);
+                next.foot_r.position += Vec3::new(0.0, move1pre * -2.5, 0.0);
                 next.foot_r.orientation.rotate_z(move1pre * -1.2);
+                next.chest.position += Vec3::new(0.0, move1pre * -2.0, 0.0);
                 next.chest.orientation = Quaternion::rotation_z(move1pre * -1.3);
-                next.head.orientation = Quaternion::rotation_z(move1pre * 0.7);
+                next.head.orientation = Quaternion::rotation_x(move1pre * -0.05)
+                    * Quaternion::rotation_y(move1pre * -0.05)
+                    * Quaternion::rotation_z(move1pre * 0.7);
                 next.belt.orientation = Quaternion::rotation_z(move1pre * 0.4);
                 next.shorts.orientation = Quaternion::rotation_z(move1pre * 0.8);
                 next.control.orientation.rotate_y(move1pre * -1.5);
                 next.control.orientation.rotate_z(move1pre * 0.0);
-                next.control.position += Vec3::new(move1pre * 12.0, 0.0, 0.0);
+                next.control.position += Vec3::new(move1pre * 9.0, move1pre * -1.5, 0.0);
 
+                next.chest.position += Vec3::new(0.0, move1post * 2.0, 0.0);
                 next.chest.orientation.rotate_z(move1post * 1.2);
+                next.head.position += Vec3::new(0.0, move1post * 1.0, 0.0);
                 next.head.orientation.rotate_z(move1post * -0.7);
                 next.belt.orientation.rotate_z(move1post * -0.3);
                 next.shorts.orientation.rotate_z(move1post * -0.8);
                 next.foot_r.orientation.rotate_z(move1post * 1.2);
-                next.foot_r.orientation.rotate_x(move1post * -0.6);
+                next.foot_r.orientation.rotate_x(move1post * -0.4);
                 next.control.orientation.rotate_z(move1post * -1.2);
-                next.control.position += Vec3::new(0.0, move1post * 4.0, move1post * 3.0);
+                next.control.position += Vec3::new(0.0, move1post * 8.0, move1post * 3.0);
 
                 next.control
                     .orientation
@@ -282,14 +301,14 @@ impl Animation for BasicAction {
                 next.chest.orientation.rotate_z(move2 * -0.4 + move3 * -1.4);
                 next.control
                     .orientation
-                    .rotate_z(move2 * 0.3 + move3 * -1.2);
+                    .rotate_z(move2 * 0.3 + move3 * -1.3);
                 next.head.orientation.rotate_z(move2 * 0.2 + move3 * 0.7);
                 next.belt.orientation.rotate_z(move3 * 0.3);
-                next.shorts.orientation.rotate_z(move2 * 0.2 + move3 * 0.7);
+                next.shorts.orientation.rotate_z(move2 * 0.2 + move3 * 0.6);
                 next.chest
                     .orientation
                     .rotate_y(move2 * -0.3 - tension / 100.0);
-                next.foot_r.orientation.rotate_z(move3 * -1.5);
+                next.foot_r.orientation.rotate_z(move3 * -1.2);
             },
             Some(
                 "common.abilities.sword.cleaving_spiral_slash"
@@ -304,20 +323,19 @@ impl Animation for BasicAction {
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
                 next.hand_r.position =
-                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
+                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -1.0);
                 next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);
                 next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                 next.control.orientation = Quaternion::rotation_x(s_a.sc.3);
 
-                next.chest.orientation = Quaternion::rotation_z(move1 * 1.2 + tension / 50.0);
-                next.head.orientation = Quaternion::rotation_z(move1 * -0.7);
+                next.chest.orientation = Quaternion::rotation_z(move1 * 1.2 + tension / 70.0);
+                next.head.orientation =
+                    Quaternion::rotation_y(move1 * 0.05) * Quaternion::rotation_z(move1 * -0.5);
                 next.belt.orientation = Quaternion::rotation_z(move1 * -0.3);
-                next.shorts.orientation = Quaternion::rotation_z(move1 * -0.8);
+                next.shorts.orientation = Quaternion::rotation_z(move1 * -0.6);
+                next.control.position += Vec3::new(0.0, move1 * 1.0, move1 * 1.0);
                 next.control.orientation.rotate_x(move1 * 0.2);
-                next.foot_r
-                    .orientation
-                    .rotate_x(move1 * -0.4 + move2_pre * 0.4);
-                next.foot_r.orientation.rotate_z(move1 * 1.4);
+                next.control.orientation.rotate_y(move1 * -1.0);
 
                 next.control.orientation.rotate_y(move2_pre * -1.6);
                 next.control.position += Vec3::new(0.0, 0.0, move2_pre * 4.0);
@@ -326,7 +344,7 @@ impl Animation for BasicAction {
                 next.head.orientation.rotate_z(move2 * 1.3);
                 next.belt.orientation.rotate_z(move2 * 0.6);
                 next.shorts.orientation.rotate_z(move2 * 1.5);
-                next.foot_r.orientation.rotate_z(move2_pre * -1.7);
+                next.control.orientation.rotate_y(move2 * 1.6);
                 next.control.orientation.rotate_z(move2 * -1.8);
                 next.control.position += Vec3::new(move2 * 14.0, 0.0, 0.0);
             },
@@ -412,17 +430,21 @@ impl Animation for BasicAction {
                     Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
                 next.hand_r.orientation = Quaternion::rotation_x(0.9 + move1 * 0.5);
                 next.control.position = Vec3::new(
-                    s_a.sc.0 + move2 * 12.0,
-                    s_a.sc.1,
-                    s_a.sc.2 + move1 * 6.0 - move2 * 8.0,
+                    s_a.sc.0 + move1 * -2.0 + move2 * 14.0,
+                    s_a.sc.1 + move2 * 4.0,
+                    s_a.sc.2 + move1 * 10.0 - move2 * 12.0,
                 );
                 next.control.orientation =
                     Quaternion::rotation_x(s_a.sc.3 + move1 * 1.6 + move2 * -2.6)
                         * Quaternion::rotation_y(move1 * -0.4 + move2 * 0.6)
                         * Quaternion::rotation_z(move1 * -0.2 + move2 * -0.2);
 
+                next.chest.position += Vec3::new(0.0, move1 * -1.0 + move2 * 2.0, 0.0);
                 next.chest.orientation = Quaternion::rotation_z(move1 * 1.0 + move2 * -1.2);
-                next.head.orientation = Quaternion::rotation_z(move1 * -0.4 + move2 * 0.3);
+                next.head.position += Vec3::new(0.0, move2 * 1.0, 0.0);
+                next.head.orientation = Quaternion::rotation_x(move1 * 0.05 + move2 * -0.25)
+                    * Quaternion::rotation_y(move1 * -0.05 + move2 * 0.05)
+                    * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.4);
                 next.belt.orientation = Quaternion::rotation_z(move1 * -0.25 + move2 * 0.2);
                 next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5 + move2 * 0.4);
             },
@@ -436,19 +458,23 @@ impl Animation for BasicAction {
                 next.hand_l.orientation =
                     Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
                 next.hand_r.position =
-                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -2.0);
+                    Vec3::new(-s_a.sc.0 + 6.0 + move1 * -12.0, -4.0 + move1 * 3.0, -1.0);
                 next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
                 next.control.orientation = Quaternion::rotation_x(s_a.sc.3)
                     * Quaternion::rotation_z(move1 * 0.3 + move2 * -0.7);
 
                 next.control.orientation.rotate_x(move1 * 1.4);
-                next.control.position += Vec3::new(move1 * -1.0, move1 * 2.0, move1 * 8.0);
-                next.chest.orientation = Quaternion::rotation_z(move1 * 0.4);
+                next.control.position += Vec3::new(move1 * -2.0, move1 * -2.0, move1 * 10.0);
+                next.chest.position += Vec3::new(0.0, move1 * -1.0 + move2 * 2.0, 0.0);
+                next.chest.orientation = Quaternion::rotation_z(move1 * 0.4 + move2 * -0.6);
+                next.head.position += Vec3::new(0.0, move2 * 1.0, 0.0);
+                next.head.orientation = Quaternion::rotation_x(move1 * 0.05 + move2 * -0.25)
+                    * Quaternion::rotation_y(move1 * 0.1 + move2 * -0.05)
+                    * Quaternion::rotation_z(move1 * 0.1 + move2 * -0.25);
 
                 next.control.orientation.rotate_x(move2 * -3.0);
                 next.control.orientation.rotate_z(move2 * -0.4);
-                next.control.position += Vec3::new(move2 * 10.0, 0.0, move2 * -10.0);
-                next.chest.orientation.rotate_z(move2 * -0.6);
+                next.control.position += Vec3::new(move2 * 12.0, move2 * 6.0, move2 * -11.0);
             },
             Some("common.abilities.sword.defensive_counter") => {
                 legacy_initialize();
@@ -473,22 +499,23 @@ impl Animation for BasicAction {
                     next.foot_r.orientation = Quaternion::identity();
                 }
 
-                next.foot_r.position +=
-                    Vec3::new(0.0, move1 * 4.0, (1.0 - (move1 - 0.5) * 2.0) * 2.0);
+                next.foot_l.position += Vec3::new(0.0, move1 * 4.0, 1.0 - (move1 - 0.5) * 2.0);
                 next.torso.position += Vec3::new(0.0, move1 * -2.0, 0.0);
                 next.chest.position += Vec3::new(0.0, move1 * 2.0, move1 * -3.0);
-                next.shorts.orientation = Quaternion::rotation_x(move1 * 0.5);
+                next.head.position += Vec3::new(0.0, move1 * 1.0, 0.0);
+                next.shorts.orientation = Quaternion::rotation_x(move1 * 0.3);
                 next.shorts.position += Vec3::new(0.0, move1 * 1.5, 0.0);
                 next.control.orientation.rotate_y(move1 * -1.5);
                 next.control.orientation.rotate_z(move1 * 0.8);
 
-                next.chest.orientation = Quaternion::rotation_z(move2 * -0.7);
-                next.head.orientation = Quaternion::rotation_z(move2 * 0.4);
+                next.chest.orientation = Quaternion::rotation_z(move2 * -0.8);
+                next.head.orientation =
+                    Quaternion::rotation_x(move2 * 0.05) * Quaternion::rotation_z(move2 * 0.35);
                 next.shorts.orientation.rotate_z(move2 * 0.5);
-                next.belt.orientation = Quaternion::rotation_z(move2 * 0.1);
-                next.control.orientation.rotate_z(move2 * -1.4);
-                next.control.orientation.rotate_x(move2 * 0.5);
-                next.control.position += Vec3::new(move2 * 7.0, 0.0, move2 * 6.0);
+                next.belt.orientation = Quaternion::rotation_z(move2 * 0.3);
+                next.control.orientation.rotate_z(move2 * -1.8);
+                next.control.orientation.rotate_x(move2 * 0.3);
+                next.control.position += Vec3::new(move2 * 7.0, move2 * 7.0, move2 * 6.0);
             },
             Some("common.abilities.sword.defensive_riposte") => {
                 legacy_initialize();
@@ -507,8 +534,11 @@ impl Animation for BasicAction {
                 next.control.orientation = Quaternion::rotation_x(s_a.sc.3)
                     * Quaternion::rotation_z(move1 * 1.3 + move2 * -0.7);
 
+                next.chest.position += Vec3::new(0.0, move1 * -1.0, 0.0);
                 next.chest.orientation = Quaternion::rotation_z(move1 * 0.8);
-                next.head.orientation = Quaternion::rotation_z(move1 * -0.4);
+                next.head.orientation = Quaternion::rotation_x(move1 * 0.05)
+                    * Quaternion::rotation_y(move1 * 0.05)
+                    * Quaternion::rotation_z(move1 * -0.4);
                 next.belt.orientation = Quaternion::rotation_z(move1 * -0.2);
                 next.shorts.orientation = Quaternion::rotation_z(move1 * -0.5);
                 next.control.orientation.rotate_x(move1 * 0.5);
@@ -516,8 +546,12 @@ impl Animation for BasicAction {
                 next.control.orientation.rotate_z(move1 * -0.5);
                 next.control.position += Vec3::new(0.0, move1 * 5.0, move1 * 8.0);
 
+                next.chest.position += Vec3::new(0.0, move2 * 2.0, 0.0);
                 next.chest.orientation.rotate_z(move2 * -1.4);
-                next.head.orientation.rotate_z(move2 * 0.9);
+                next.head.position += Vec3::new(0.0, move2 * 1.0, 0.0);
+                next.head.orientation.rotate_x(move2 * -0.1);
+                next.head.orientation.rotate_y(move2 * -0.1);
+                next.head.orientation.rotate_z(move2 * 0.8);
                 next.belt.orientation.rotate_z(move2 * -0.3);
                 next.shorts.orientation.rotate_z(move2 * 0.6);
                 next.control.orientation.rotate_y(move2 * -4.0);
@@ -525,7 +559,7 @@ impl Animation for BasicAction {
                     .orientation
                     .rotate_z(move2_slow * -3.0 + move2 * 1.0);
                 next.control.position +=
-                    Vec3::new(move2_slow * 11.0, move2_slow * -4.0, move2_slow * -6.0);
+                    Vec3::new(move2_slow * 14.0, move2_slow * -2.0, move2_slow * -7.0);
             },
             Some("common.abilities.sword.heavy_fortitude") => {
                 legacy_initialize();

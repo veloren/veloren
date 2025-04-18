@@ -79,8 +79,8 @@ impl Animation for JumpAnimation {
 
         next.shorts.position = Vec3::new(
             0.0,
-            s_a.shorts.0 + speednorm * 3.0,
-            s_a.shorts.1 + speednorm * 2.0,
+            s_a.shorts.0 + speednorm * 1.2,
+            s_a.shorts.1 + speednorm * 1.0,
         );
         next.shorts.orientation =
             Quaternion::rotation_x(speednorm * 0.5) * Quaternion::rotation_z(tilt * 3.0);
