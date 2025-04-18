@@ -807,7 +807,8 @@ image_ids! {
         buff_plus_0: "voxygen.element.de_buffs.buff_plus_0",
         buff_saturation_0: "voxygen.element.de_buffs.buff_saturation_0",
         buff_potion_0: "voxygen.element.de_buffs.buff_potion_0",
-        buff_campfire_heal_0: "voxygen.element.de_buffs.buff_campfire_heal_0",
+        // TODO Change buff image name
+        buff_resting_heal_0: "voxygen.element.de_buffs.buff_campfire_heal_0",
         buff_energyplus_0: "voxygen.element.de_buffs.buff_energyplus_0",
         buff_healthplus_0: "voxygen.element.de_buffs.buff_healthplus_0",
         buff_invincibility_0: "voxygen.element.de_buffs.buff_invincibility_0",

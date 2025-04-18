@@ -487,7 +487,7 @@ pub fn handle_create_special_entity(server: &mut Server, ev: CreateSpecialEntity
                 .with(comp::Auras::new(vec![
                     Aura::new(
                         AuraKind::Buff {
-                            kind: BuffKind::CampfireHeal,
+                            kind: BuffKind::RestingHeal,
                             data: BuffData::new(0.02, Some(Secs(1.0))),
                             category: BuffCategory::Natural,
                             source: BuffSource::World,

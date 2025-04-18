@@ -44,9 +44,9 @@ pub enum BuffKind {
     /// Movement speed increases linearly with strength 1.0 is an 100% increase
     /// Damage vulnerability and damage reduction are both hard set to 100%
     Agility,
-    /// Applied when sitting at a campfire.
+    /// Applied when resting (sitting at campfire or sleeping).
     /// Strength is fraction of health restored per second.
-    CampfireHeal,
+    RestingHeal,
     /// Restores energy/time for some period.
     /// Strength should be the healing per second.
     EnergyRegen,
@@ -250,7 +250,7 @@ impl BuffKind {
             | BuffKind::Saturation
             | BuffKind::Potion
             | BuffKind::Agility
-            | BuffKind::CampfireHeal
+            | BuffKind::RestingHeal
             | BuffKind::Frenzied
             | BuffKind::EnergyRegen
             | BuffKind::IncreaseMaxEnergy
@@ -362,7 +362,7 @@ impl BuffKind {
                 BuffEffect::DamageReduction(-1.0),
                 BuffEffect::AttackDamage(0.0),
             ],
-            BuffKind::CampfireHeal => vec![BuffEffect::HealthChangeOverTime {
+            BuffKind::RestingHeal => vec![BuffEffect::HealthChangeOverTime {
                 rate: data.strength,
                 kind: ModifierKind::Multiplicative,
                 instance,
@@ -905,6 +905,8 @@ pub enum BuffSource {
     Item,
     /// Applied by another buff (like an after-effect)
     Buff,
+    /// Applied by a block
+    Block,
     /// Some other source
     Unknown,
 }

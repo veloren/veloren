@@ -118,20 +118,20 @@ fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Volume
 
         let maybe_uid = state.ecs().read_storage::<Uid>().get(rider).copied();
 
-        if let Some(rider) = maybe_uid
+        if let Some(rider_uid) = maybe_uid
             && within_range
         {
             let _link_successful = state
                 .link(VolumeMounting {
                     pos: volume_pos,
                     block,
-                    rider,
+                    rider: rider_uid,
                 })
                 .is_ok();
             #[cfg(feature = "worldgen")]
             if _link_successful {
                 let uid_allocator = state.ecs().read_resource::<IdMaps>();
-                if let Some(rider_entity) = uid_allocator.uid_entity(rider)
+                if let Some(rider_entity) = uid_allocator.uid_entity(rider_uid)
                     && let Some(rider_actor) = state.entity_as_actor(rider_entity)
                     && let Some(volume_pos) = volume_pos.try_map_entity(|uid| {
                         let entity = uid_allocator.uid_entity(uid)?;

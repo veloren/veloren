@@ -5354,7 +5354,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Potion => imgs.buff_potion_0,
         // TODO: Need unique image for Agility (uses same as Hastened atm)
         BuffKind::Agility => imgs.buff_haste_0,
-        BuffKind::CampfireHeal => imgs.buff_campfire_heal_0,
+        BuffKind::RestingHeal => imgs.buff_resting_heal_0,
         BuffKind::EnergyRegen => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxEnergy => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxHealth => imgs.buff_healthplus_0,

@@ -24,9 +24,9 @@ buff-agility = Agility
 ## Saturation
 buff-saturation = Saturation
     .desc = Gain health over time from consumables.
-## Campfire
-buff-campfire_heal = Campfire Heal
-    .desc = Resting at a campfire heals { $rate } % HP per second.
+## Campfire/Bed
+buff-resting_heal = Resting Heal
+    .desc = Resting heals { $rate } % HP per second.
 ## Energy Regen
 buff-energy_regen = Energy Regeneration
     .desc = Faster energy regeneration.
