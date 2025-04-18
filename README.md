@@ -9,7 +9,7 @@
 ![discord](https://img.shields.io/discord/449602562165833758?logo=discord&logoColor=%23f8f8f8&label=discord&color=%23788dd5)
 
 <a href="https://opencollective.com/veloren/donate?interval=month&amount=5" target="_blank">
-  <img src="https://opencollective.com/veloren/contribute/button@2x.png?color=blue" width="29%" />
+  <img src="https://opencollective.com/veloren/contribute/button@2x.png?color=blue" width="29%">
 </a>
 
 ## Welcome to Veloren!
@@ -23,7 +23,7 @@ Currently, most communication among contributors takes place on our [official Di
 Translators are welcome to contribute on our Weblate instance.
 
 <a href="https://translate.codeberg.org/engage/veloren/">
-<img src="https://translate.codeberg.org/widgets/veloren/-/open-graph.png" alt="Translation status" width="55%"/>
+<img src="https://translate.codeberg.org/widgets/veloren/-/open-graph.png" alt="Translation status" width="55%">
 </a>
 
 ## Useful links
