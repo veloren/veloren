@@ -886,7 +886,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "Egg",
             "Spade",
             "Stream",
-            "Cabbage",
+            "Lettuce",
             "Tomato",
             "Rapier",
             "Katana",

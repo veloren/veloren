@@ -240,9 +240,17 @@ sprites! {
         Ladder = 0xC2,
         BookshelfEnd = 0xC3,
         BookshelfMiddle = 0xC4,
+        HandrailWoodWoodlandBase = 0xC5,
+        HandrailWoodWoodlandMiddle = 0xC6,
+        HandrailWoodWoodlandTop = 0xC7,
+        BroomWoodWoodlandBlue = 0xC8,
+        ShovelWoodWoodlandGreen = 0xC9,
+        PitchforkWoodWoodlandGreen = 0xCA,
+        RakeWoodWoodland = 0xCB,
+        FenceWoodGateWoodland = 0xCC,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
-    Plant = 3 has Growth, Owned, SnowCovered {
+    Plant = 3 has Growth, Owned, SnowCovered, Collectable {
         // Cacti
         BarrelCactus    = 0x00,
         RoundCactus     = 0x01,
@@ -298,7 +306,7 @@ sprites! {
         WheatGreen    = 0x43, // TODO: Remove `WheatGreen`, make part of the `Growth` attribute
         LingonBerry   = 0x44,
         Blueberry     = 0x45,
-        Cabbage       = 0x46,
+        Lettuce       = 0x46,
         Pumpkin       = 0x47,
         Carrot        = 0x48,
         Tomato        = 0x49,
@@ -487,7 +495,7 @@ sprites! {
         LanternAirshipGroundChestnutS = 0x10,
         LanternAirshipGroundRedS = 0x11,
     },
-    Container = 9 has Ori, Owned {
+    Container = 9 has Ori, Owned, Collectable {
         Chest             = 0x00,
         DungeonChest0     = 0x01,
         DungeonChest1     = 0x02,
@@ -506,7 +514,7 @@ sprites! {
         CrateBlock        = 0x0F,
     },
     Modular = 10 has Ori, AdjacentType {
-        Fence = 0x00,
+        FenceWoodWoodland = 0x00,
     }
 }
 
@@ -517,6 +525,7 @@ attributes! {
     MirrorZ { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |MirrorZ(x)| x as u16 },
     Growth { bits: 4, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Growth(x)| x as u16 },
     LightEnabled { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |LightEnabled(x)| x as u16 },
+    Collectable { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |Collectable(x)| x as u16 },
     Damage { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |Damage(x)| x as u16 },
     Owned { bits: 1, err: Infallible, from: |bits| Ok(Self(bits == 1)), into: |Owned(x)| x as u16 },
     AdjacentType { bits: 3, err: Infallible, from: |bits| Ok(Self(bits as u8)), into: |AdjacentType(x)| x as u16 },
@@ -549,6 +558,13 @@ impl Default for Growth {
 pub struct LightEnabled(pub bool);
 
 impl Default for LightEnabled {
+    fn default() -> Self { Self(true) }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize)]
+pub struct Collectable(pub bool);
+
+impl Default for Collectable {
     fn default() -> Self { Self(true) }
 }
 
@@ -612,7 +628,6 @@ impl SpriteKind {
             SpriteKind::Scarecrow => 3.0,
             SpriteKind::Turnip => 0.36,
             SpriteKind::Pumpkin => 0.81,
-            SpriteKind::Cabbage => 0.45,
             SpriteKind::Chest => 1.09,
             SpriteKind::CommonLockedChest => 1.09,
             SpriteKind::DungeonChest0 => 1.09,
@@ -627,7 +642,7 @@ impl SpriteKind {
             SpriteKind::TerracottaChest => 1.09,
             SpriteKind::TerracottaStatue => 5.29,
             SpriteKind::TerracottaBlock => 1.00,
-            SpriteKind::Fence => 1.09,
+            SpriteKind::FenceWoodWoodland => 1.09,
             SpriteKind::SeaDecorChain => 1.09,
             SpriteKind::SeaDecorBlock => 1.00,
             SpriteKind::SeaDecorWindowHor => 0.55,
@@ -844,6 +859,8 @@ impl SpriteKind {
             SpriteKind::HandCartWoodHead => 1.091,
             SpriteKind::HandCartWoodMiddle => 1.091,
             SpriteKind::HandCartWoodTail => 1.091,
+            SpriteKind::HandrailWoodWoodlandBase | SpriteKind::HandrailWoodWoodlandMiddle => 1.727,
+            SpriteKind::HandrailWoodWoodlandTop => 1.181,
             _ => return None,
         })
     }
@@ -919,6 +936,7 @@ impl SpriteKind {
             //SpriteKind::LongGrass => item("common.items.grasses.long"),
             //SpriteKind::MediumGrass => item("common.items.grasses.medium"),
             //SpriteKind::ShortGrass => item("common.items.grasses.short"),
+            SpriteKind::Lettuce => item("common.items.food.lettuce"),
             SpriteKind::Coconut => item("common.items.food.coconut"),
             SpriteKind::Beehive => item("common.items.crafting_ing.honey"),
             SpriteKind::Stones => item("common.items.crafting_ing.stones"),
@@ -988,13 +1006,6 @@ impl SpriteKind {
             },
             _ => return None,
         }))
-    }
-
-    /// Can this sprite be picked up to yield an item without a tool?
-    #[inline]
-    pub fn is_collectible(&self, sprite_cfg: Option<&SpriteCfg>) -> bool {
-        sprite_cfg.and_then(|cfg| cfg.loot_table.as_ref()).is_some()
-            || self.default_tool() == Some(None)
     }
 
     /// Is this sprite *expected* to be picked up?

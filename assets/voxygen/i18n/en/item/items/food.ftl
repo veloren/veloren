@@ -1,7 +1,7 @@
 sprite-carrot-carrot = Carrot
     .desc = An orange root vegetable. They say it'll improve your vision!
 
-sprite-cabbage-cabbage = Lettuce
+sprite-lettuce-lettuce = Lettuce
     .desc = A vibrant green leafy vegetable. Lettuce make some salads!
 
 sprite-mushrooms-mushroom-10 = Mushroom

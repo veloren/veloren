@@ -1162,6 +1162,11 @@ pub fn handle_manipulate_loadout(
             let sprite_interact =
                 sprite_at_pos.and_then(Option::<interact::SpriteInteractKind>::from);
             if let Some(sprite_interact) = sprite_interact {
+                let sprite_chunk_pos = TerrainGrid::chunk_offs(sprite_pos);
+                let sprite_cfg = data
+                    .terrain
+                    .pos_chunk(sprite_pos)
+                    .and_then(|chunk| chunk.meta().sprite_cfg_at(sprite_chunk_pos));
                 if can_reach_block(
                     data.pos.0,
                     sprite_pos,
@@ -1169,18 +1174,12 @@ pub fn handle_manipulate_loadout(
                     data.body,
                     data.terrain,
                 ) {
-                    let sprite_chunk_pos = TerrainGrid::chunk_offs(sprite_pos);
-                    let sprite_cfg = data
-                        .terrain
-                        .pos_chunk(sprite_pos)
-                        .and_then(|chunk| chunk.meta().sprite_cfg_at(sprite_chunk_pos));
                     let required_item =
                         sprite_at_pos.and_then(|s| match s.unlock_condition(sprite_cfg.cloned()) {
                             UnlockKind::Free => None,
                             UnlockKind::Requires(item) => Some((item, false)),
                             UnlockKind::Consumes(item) => Some((item, true)),
                         });
-
                     // None: An required items exist but no available
                     // Some(None): No required items
                     // Some(Some(_)): Required items satisfied, contains info about them

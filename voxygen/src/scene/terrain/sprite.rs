@@ -67,6 +67,7 @@ macro_rules! impl_sprite_attribute_filter {
 impl_sprite_attribute_filter!(
     Growth growth_stage = |filter: Range<u8>, growth| { filter.contains(&growth.0) },
     LightEnabled light_enabled = |filter: bool, light_enabled| { *filter == light_enabled.0 },
+    Collectable collectable = |filter: bool, collectable| { *filter == collectable.0 },
     Damage damage = |filter: Range<u8>, damage| { filter.contains(&damage.0) },
     AdjacentType adjacent_type = |filter: RelativeNeighborPosition, adjacent_type| { (*filter as u8) == adjacent_type.0 },
     SnowCovered snow_covered = |filter: bool, snow_covered| { *filter == snow_covered.0 },
