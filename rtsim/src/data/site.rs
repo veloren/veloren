@@ -21,6 +21,10 @@ pub struct Site {
     /// noticeboard or something).
     pub known_reports: HashSet<ReportId>,
 
+    /// How many chunks this site is loaded in.
+    #[serde(skip)]
+    pub count_loaded_chunks: usize,
+
     /// The site generated during initial worldgen that this site corresponds
     /// to.
     ///
@@ -61,6 +65,8 @@ impl Site {
             .retain(|report| reports.contains_key(*report));
         // TODO: Limit number of reports
     }
+
+    pub fn is_loaded(&self) -> bool { self.count_loaded_chunks > 0 }
 }
 
 #[derive(Clone, Default, Serialize, Deserialize)]

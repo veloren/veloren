@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor improvements to NPC pathfinding to reduce illogal pathing around obstacles.
 - Updated rat model.
 - Recipes now have relevant quality (colour) ratings.
+- Changed how RtSim handles repopulating NPCs. Instead of instantly creating a new one when one dies, it has a queue with a minimum time before trying to repopulate.
 
 ### Removed
 

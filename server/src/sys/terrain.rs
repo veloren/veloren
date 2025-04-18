@@ -167,7 +167,7 @@ impl<'a> System<'a> for Sys {
                 data.terrain_changes.new_chunks.insert(key);
                 #[cfg(feature = "worldgen")]
                 data.rtsim
-                    .hook_load_chunk(key, supplement.rtsim_max_resources);
+                    .hook_load_chunk(key, supplement.rtsim_max_resources, &data.world);
             }
 
             // Handle chunk supplement

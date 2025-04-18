@@ -197,6 +197,7 @@ impl RtState {
     fn start_default_rules(&mut self) {
         info!("Starting default rtsim rules...");
         self.start_rule::<rule::migrate::Migrate>();
+        self.start_rule::<rule::architect::Architect>();
         self.start_rule::<rule::replenish_resources::ReplenishResources>();
         self.start_rule::<rule::report::ReportEvents>();
         self.start_rule::<rule::sync_npcs::SyncNpcs>();

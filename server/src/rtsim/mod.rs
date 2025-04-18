@@ -187,15 +187,52 @@ impl RtSim {
         )
     }
 
-    pub fn hook_load_chunk(&mut self, key: Vec2<i32>, max_res: EnumMap<ChunkResource, usize>) {
+    pub fn hook_load_chunk(
+        &mut self,
+        key: Vec2<i32>,
+        max_res: EnumMap<ChunkResource, usize>,
+        world: &World,
+    ) {
         if let Some(chunk_state) = self.state.get_resource_mut::<ChunkStates>().0.get_mut(key) {
             *chunk_state = Some(LoadedChunkState { max_res });
         }
+
+        if let Some(chunk) = world.sim().get(key) {
+            let data = self.state.get_data_mut();
+            for site in chunk.sites.iter() {
+                let Some(site) = data.sites.world_site_map.get(site) else {
+                    continue;
+                };
+
+                let site = *site;
+                let Some(site) = data.sites.get_mut(site) else {
+                    continue;
+                };
+
+                site.count_loaded_chunks += 1;
+            }
+        }
     }
 
-    pub fn hook_unload_chunk(&mut self, key: Vec2<i32>) {
+    pub fn hook_unload_chunk(&mut self, key: Vec2<i32>, world: &World) {
         if let Some(chunk_state) = self.state.get_resource_mut::<ChunkStates>().0.get_mut(key) {
             *chunk_state = None;
+        }
+
+        if let Some(chunk) = world.sim().get(key) {
+            let data = self.state.get_data_mut();
+            for site in chunk.sites.iter() {
+                let Some(site) = data.sites.world_site_map.get(site) else {
+                    continue;
+                };
+
+                let site = *site;
+                let Some(site) = data.sites.get_mut(site) else {
+                    continue;
+                };
+
+                site.count_loaded_chunks = site.count_loaded_chunks.saturating_sub(1);
+            }
         }
     }
 

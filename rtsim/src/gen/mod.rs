@@ -44,6 +44,7 @@ impl Data {
             factions: Default::default(),
             reports: Default::default(),
             airship_sim: Default::default(),
+            architect: Default::default(),
 
             tick: 0,
             time_of_day: TimeOfDay(settings.start_time),
@@ -315,7 +316,7 @@ impl Data {
         }
         // Spawn one monster Gigasfrost into the world
         // Try a few times to find a location that's not underwater
-        if let Some((wpos, chunk)) = (0..100)
+        if let Some((wpos, _)) = (0..100)
             .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))
             .find_map(|pos| Some((pos, world.sim().get(pos).filter(|c| !c.is_underwater())?)))
             .map(|(pos, chunk)| {
@@ -328,9 +329,7 @@ impl Data {
                 )
             })
         {
-            let species = Some(comp::body::biped_large::Species::Gigasfrost)
-                .filter(|_| chunk.temp < CONFIG.snow_temp)
-                .unwrap_or(comp::body::biped_large::Species::Gigasfrost);
+            let species = comp::body::biped_large::Species::Gigasfrost;
 
             this.npcs.create_npc(Npc::new(
                 rng.gen(),

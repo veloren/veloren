@@ -1,27 +1,22 @@
 use crate::{
     RtState, Rule, RuleError,
-    data::{Npc, Sentiment, npc::SimulationMode},
-    event::{EventCtx, OnDeath, OnHealthChange, OnHelped, OnMountVolume, OnTick},
+    data::{Sentiment, npc::SimulationMode},
+    event::{EventCtx, OnHealthChange, OnHelped, OnMountVolume, OnTick},
 };
 use common::{
     comp::{self, Body},
     mounting::{Volume, VolumePos},
-    rtsim::{Actor, NpcAction, NpcActivity, Personality},
+    rtsim::{Actor, NpcAction, NpcActivity},
     terrain::{CoordinateConversions, TerrainChunkSize},
     vol::RectVolSize,
 };
-use rand::prelude::*;
-use rand_chacha::ChaChaRng;
 use slotmap::SecondaryMap;
-use tracing::{error, warn};
 use vek::{Clamp, Vec2};
-use world::{CONFIG, site::SiteKind};
 
 pub struct SimulateNpcs;
 
 impl Rule for SimulateNpcs {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
-        rtstate.bind(on_death);
         rtstate.bind(on_helped);
         rtstate.bind(on_health_changed);
         rtstate.bind(on_mount_volume);
@@ -47,140 +42,6 @@ fn on_mount_volume(ctx: EventCtx<SimulateNpcs, OnMountVolume>) {
             Some(ctx.event.actor),
             comp::Content::localized("npc-speech-welcome-aboard"),
         ))
-    }
-}
-
-fn on_death(ctx: EventCtx<SimulateNpcs, OnDeath>) {
-    let data = &mut *ctx.state.data_mut();
-
-    if let Actor::Npc(npc_id) = ctx.event.actor {
-        if let Some(npc) = data.npcs.get(npc_id) {
-            let mut rng = ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>());
-
-            // Respawn dead NPCs
-            let details = match npc.body {
-                Body::Humanoid(_) => {
-                    if let Some((site_id, site)) = data
-                        .sites
-                        .iter()
-                        .filter(|(id, site)| {
-                            // Don't respawn in the same town
-                            Some(*id) != npc.home
-                                && site.world_site.is_some_and(|s| {
-                                    matches!(
-                                        ctx.index.sites.get(s).kind,
-                                        SiteKind::Refactor(_)
-                                            | SiteKind::CliffTown(_)
-                                            | SiteKind::SavannahTown(_)
-                                            | SiteKind::CoastalTown(_)
-                                            | SiteKind::DesertCity(_)
-                                    )
-                                })
-                        })
-                        .min_by_key(|(_, site)| site.population.len())
-                    {
-                        let rand_wpos = |rng: &mut ChaChaRng| {
-                            let wpos2d = site.wpos.map(|e| e + rng.gen_range(-10..10));
-                            wpos2d
-                                .map(|e| e as f32 + 0.5)
-                                .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
-                        };
-                        let random_humanoid = |rng: &mut ChaChaRng| {
-                            let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
-                            Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
-                        };
-                        let npc_id = data.spawn_npc(
-                            Npc::new(
-                                rng.gen(),
-                                rand_wpos(&mut rng),
-                                random_humanoid(&mut rng),
-                                npc.role.clone(),
-                            )
-                            .with_personality(Personality::random(&mut rng))
-                            .with_home(site_id)
-                            .with_faction(npc.faction),
-                        );
-                        Some((npc_id, Some(site_id)))
-                    } else {
-                        warn!("No site found for respawning humanoid");
-                        None
-                    }
-                },
-                body => {
-                    let home = npc.home.and_then(|_| {
-                        data.sites
-                            .iter()
-                            .filter(|(id, site)| {
-                                Some(*id) != npc.home
-                                    && site.world_site.is_some_and(|s| {
-                                        matches!(
-                                            ctx.index.sites.get(s).kind,
-                                            SiteKind::Terracotta(_)
-                                                | SiteKind::Haniwa(_)
-                                                | SiteKind::Myrmidon(_)
-                                                | SiteKind::Adlet(_)
-                                                | SiteKind::DwarvenMine(_)
-                                                | SiteKind::ChapelSite(_)
-                                                | SiteKind::Cultist(_)
-                                                | SiteKind::Gnarling(_)
-                                                | SiteKind::Sahagin(_)
-                                                | SiteKind::VampireCastle(_),
-                                        )
-                                    })
-                            })
-                            .min_by_key(|(_, site)| site.population.len())
-                    });
-
-                    let wpos = if let Some((_, home)) = home {
-                        let wpos2d = home.wpos.map(|e| e + rng.gen_range(-10..10));
-                        wpos2d
-                            .map(|e| e as f32 + 0.5)
-                            .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
-                    } else {
-                        let is_gigas = matches!(body, Body::BipedLarge(body) if body.species == comp::body::biped_large::Species::Gigasfrost);
-
-                        let pos = (0..(if is_gigas {
-                            /* More attempts for gigas */
-                            100
-                        } else {
-                            10
-                        }))
-                            .map(|_| {
-                                ctx.world
-                                    .sim()
-                                    .get_size()
-                                    .map(|sz| rng.gen_range(0..sz as i32))
-                            })
-                            .find(|pos| {
-                                ctx.world.sim().get(*pos).is_some_and(|c| {
-                                    !c.is_underwater() && (!is_gigas || c.temp < CONFIG.snow_temp)
-                                })
-                            })
-                            .unwrap_or(ctx.world.sim().get_size().as_() / 2);
-                        let wpos2d = pos.cpos_to_wpos_center();
-                        wpos2d
-                            .map(|e| e as f32 + 0.5)
-                            .with_z(ctx.world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
-                    };
-
-                    let home = home.map(|(site_id, _)| site_id);
-
-                    let npc_id = data.npcs.create_npc(
-                        Npc::new(rng.gen(), wpos, body, npc.role.clone()).with_home(home),
-                    );
-                    Some((npc_id, home))
-                },
-            };
-
-            // Add the NPC to their home site
-            if let Some((npc_id, Some(home_site))) = details {
-                if let Some(home) = data.sites.get_mut(home_site) {
-                    home.population.insert(npc_id);
-                }
-            }
-        } else {
-            error!("Trying to respawn non-existent NPC");
-        }
     }
 }
 
