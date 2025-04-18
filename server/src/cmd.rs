@@ -5247,7 +5247,10 @@ fn handle_buff(
             let buffdata = build_buff(
                 buffkind,
                 strength,
-                duration.unwrap_or(10.0),
+                duration.unwrap_or(match buffkind {
+                    BuffKind::ComboGeneration => 1.0,
+                    _ => 10.0,
+                }),
                 (!buffkind.is_simple())
                     .then(|| {
                         misc_data_spec.ok_or_else(|| {
