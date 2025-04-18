@@ -5356,6 +5356,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Agility => imgs.buff_haste_0,
         BuffKind::RestingHeal => imgs.buff_resting_heal_0,
         BuffKind::EnergyRegen => imgs.buff_energyplus_0,
+        BuffKind::ComboGeneration => imgs.buff_fury,
         BuffKind::IncreaseMaxEnergy => imgs.buff_energyplus_0,
         BuffKind::IncreaseMaxHealth => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,

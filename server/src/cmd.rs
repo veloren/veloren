@@ -5295,6 +5295,7 @@ fn build_buff(
             | BuffKind::RestingHeal
             | BuffKind::Frenzied
             | BuffKind::EnergyRegen
+            | BuffKind::ComboGeneration
             | BuffKind::IncreaseMaxEnergy
             | BuffKind::IncreaseMaxHealth
             | BuffKind::Invulnerability

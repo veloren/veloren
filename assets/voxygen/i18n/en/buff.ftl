@@ -34,6 +34,13 @@ buff-energy_regen = Energy Regeneration
         [1] Restores { $str_total } energy over { $duration } second.
         *[other] Restores { $str_total } energy over { $duration } seconds.
     }
+## Combo Generation
+buff-combo_generation = Combo Generation
+    .desc = Generates combo over time.
+    .stat = { $duration ->
+        [1] Generates { $str_total } combo over { $duration } second.
+        *[other] Generates { $str_total } combo over { $duration } seconds.
+    }
 ## Health Increase
 buff-increase_max_health = Increase Max Health
     .desc = Your maximum HP is increased.

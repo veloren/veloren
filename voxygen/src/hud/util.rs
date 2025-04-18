@@ -183,6 +183,7 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Agility => "buff-agility",
         BuffKind::RestingHeal => "buff-resting_heal",
         BuffKind::EnergyRegen => "buff-energy_regen",
+        BuffKind::ComboGeneration => "buff-combo_generation",
         BuffKind::IncreaseMaxHealth => "buff-increase_max_health",
         BuffKind::IncreaseMaxEnergy => "buff-increase_max_energy",
         BuffKind::Invulnerability => "buff-invulnerability",
@@ -287,6 +288,13 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         },
                         // Shows its full possible regen
                         BuffKind::EnergyRegen => {
+                            let key = buff_key(buff.kind);
+                            i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
+                                "str_total" => format_float(str_total),
+                                "duration" => fluent_duration,
+                            })
+                        },
+                        BuffKind::ComboGeneration => {
                             let key = buff_key(buff.kind);
                             i18n.get_attr_ctx(key, "stat", &i18n::fluent_args! {
                                 "str_total" => format_float(str_total),

@@ -158,6 +158,7 @@ lazy_static! {
             BuffKind::Agility => "agility",
             BuffKind::RestingHeal => "resting_heal",
             BuffKind::EnergyRegen => "energy_regen",
+            BuffKind::ComboGeneration => "combo_generation",
             BuffKind::IncreaseMaxEnergy => "increase_max_energy",
             BuffKind::IncreaseMaxHealth => "increase_max_health",
             BuffKind::Invulnerability => "invulnerability",
