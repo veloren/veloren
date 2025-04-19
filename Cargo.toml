@@ -147,8 +147,8 @@ chrono = { version = "0.4.24", default-features = false, features = [
     "serde",
 ] }
 chrono-tz = { version = "0.10", features = ["serde"] }
-crossbeam-channel = { version = "0.5" }
-crossbeam-utils = { version = "0.8.1" }
+crossbeam-channel = { version = "0.5.15" }
+crossbeam-utils = { version = "0.8.7" }
 enum-map = { version = "2.4" }
 futures-util = { version = "0.3.7", default-features = false }
 fxhash = { version = "0.2.1" }
@@ -189,7 +189,7 @@ sha2 = "0.10"
 slab = { version = "0.4.2" }
 specs = { version = "0.20", features = ["nightly"] }
 strum = { version = "0.26.3", features = ["derive"] }
-tokio = { version = "1.28", default-features = false, features = ["rt"] }
+tokio = { version = "1.44", default-features = false, features = ["rt"] }
 tracing = { version = "0.1" }
 vek = { version = "0.17.0", features = ["serde", "mint"] }
 quinn = { version = "0.11" }

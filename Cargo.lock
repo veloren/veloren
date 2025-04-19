@@ -1160,7 +1160,7 @@ dependencies = [
 [[package]]
 name = "conrod_core"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#59fddc617696e68d28a75c2137a08c2572efb986"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#c74446362371dc837b8b4b6d6ddcd7693b48d9b6"
 dependencies = [
  "conrod_derive",
  "copypasta",
@@ -1175,7 +1175,7 @@ dependencies = [
 [[package]]
 name = "conrod_derive"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#59fddc617696e68d28a75c2137a08c2572efb986"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#c74446362371dc837b8b4b6d6ddcd7693b48d9b6"
 dependencies = [
  "proc-macro2 0.4.30",
  "quote 0.6.13",
@@ -1185,7 +1185,7 @@ dependencies = [
 [[package]]
 name = "conrod_winit"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#59fddc617696e68d28a75c2137a08c2572efb986"
+source = "git+https://gitlab.com/veloren/conrod.git?branch=copypasta_0.7#c74446362371dc837b8b4b6d6ddcd7693b48d9b6"
 
 [[package]]
 name = "console"
@@ -1509,9 +1509,9 @@ dependencies = [
 
 [[package]]
 name = "crossbeam-channel"
-version = "0.5.14"
+version = "0.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06ba6d68e24814cb8de6bb986db8222d3a027d15872cabc0d18817bc3c0e4471"
+checksum = "82b8f8f868b36967f9606790d1903570de9ceaf870a7bf9fbbd3016d636a2cb2"
 dependencies = [
  "crossbeam-utils 0.8.21",
 ]
@@ -1682,7 +1682,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e16e44ab292b1dddfdaf7be62cfd8877df52f2f3fde5858d95bab606be259f20"
 dependencies = [
  "bitflags 2.8.0",
- "libloading 0.8.6",
+ "libloading 0.7.4",
  "winapi",
 ]
 
@@ -1906,7 +1906,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330c60081dcc4c72131f8eb70510f1ac07223e5d4163db481a04a0befcffa412"
 dependencies = [
- "libloading 0.8.6",
+ "libloading 0.7.4",
 ]
 
 [[package]]
@@ -3883,7 +3883,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if 1.0.0",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -7123,9 +7123,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.42.0"
+version = "1.44.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cec9b21b0450273377fc97bd4c33a8acffc8c996c987a7c5b319a0083707551"
+checksum = "e6b88822cbe49de4185e3a4cbf8321dd487cf5fe0c5c65695fef6346371e9c48"
 dependencies = [
  "backtrace",
  "bytes",
@@ -7140,9 +7140,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-macros"
-version = "2.4.0"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "693d596312e88961bc67d7f1f97af8a70227d9f90c31bba5806eec004978d752"
+checksum = "6e06d43f1345a3bcd39f6a56dbb7dcab2ba47e68e8ac134855e7e2bdbaf8cab8"
 dependencies = [
  "proc-macro2 1.0.93",
  "quote 1.0.38",
@@ -7357,7 +7357,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69fff37da548239c3bf9e64a12193d261e8b22b660991c6fd2df057c168f435f"
 dependencies = [
  "cc",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -8962,7 +8962,7 @@ dependencies = [
  "js-sys",
  "khronos-egl",
  "libc",
- "libloading 0.8.6",
+ "libloading 0.7.4",
  "log",
  "metal",
  "naga",
