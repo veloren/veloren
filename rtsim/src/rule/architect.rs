@@ -118,12 +118,97 @@ fn role_personality(rng: &mut impl Rng, role: &Role) -> Personality {
     }
 }
 
+fn spawn_anywhere(
+    data: &mut Data,
+    world: &World,
+    death: &Death,
+    rng: &mut impl Rng,
+    body: Body,
+    personality: Personality,
+) {
+    let mut attempt = |check: bool| {
+        let cpos = world
+            .sim()
+            .map_size_lg()
+            .chunks()
+            .map(|s| rng.gen_range(0..s as i32));
+
+        // TODO: If we had access to `ChunkStates` here we could make sure
+        // these aren't getting respawned in loaded chunks.
+        if let Some(chunk) = world.sim().get(cpos)
+            && (!check || !chunk.is_underwater())
+        {
+            let wpos = cpos.cpos_to_wpos_center();
+            let wpos = wpos.as_().with_z(world.sim().get_surface_alt_approx(wpos));
+
+            data.spawn_npc(
+                Npc::new(rng.gen(), wpos, body, death.role.clone()).with_personality(personality),
+            );
+            return true;
+        }
+
+        false
+    };
+    for _ in 0..RESPAWN_ATTEMPTS {
+        if attempt(true) {
+            return;
+        }
+    }
+    attempt(false);
+}
+
+fn spawn_any_settlement(
+    data: &mut Data,
+    world: &World,
+    index: IndexRef,
+    death: &Death,
+    rng: &mut impl Rng,
+    body: Body,
+    personality: Personality,
+) -> bool {
+    if let Some((id, site)) = data
+        .sites
+        .iter()
+        .filter(|(_, site)| {
+            !site.is_loaded()
+                && site
+                    .world_site
+                    .and_then(|s| {
+                        Some(index.sites.get(s).site2()?.plots().any(|p| {
+                            matches!(
+                                p.kind().meta(),
+                                Some(world::site2::plot::PlotKindMeta::House { .. })
+                            )
+                        }))
+                    })
+                    .unwrap_or(false)
+        })
+        .choose(rng)
+    {
+        let wpos = site.wpos;
+        let wpos = wpos
+            .as_()
+            .with_z(world.sim().get_alt_approx(wpos).unwrap_or(0.0));
+        let mut npc = Npc::new(rng.gen(), wpos, body, death.role.clone())
+            .with_personality(personality)
+            .with_home(id);
+        if let Some(faction) = site.faction {
+            npc = npc.with_faction(faction);
+        }
+        data.spawn_npc(npc);
+
+        true
+    } else {
+        false
+    }
+}
+
 fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> bool {
     let mut rng = thread_rng();
     let body = randomize_body(death.body, &mut rng);
     let personality = role_personality(&mut rng, &death.role);
     // First try and respawn in the same faction.
-    if let Some(faction_id) = death.faction
+    let did_spawn = if let Some(faction_id) = death.faction
         && data.factions.get(faction_id).is_some()
     {
         if let Some((id, site)) = data
@@ -149,7 +234,9 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
         }
     } else {
         match &death.role {
-            Role::Civilised(_) => todo!(),
+            Role::Civilised(_) => {
+                spawn_any_settlement(data, world, index, death, &mut rng, body, personality)
+            },
             Role::Wild => {
                 let site_filter: fn(&SiteKind) -> bool = match body {
                     Body::BirdLarge(body) => match body.species {
@@ -267,5 +354,27 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                 unimplemented!()
             },
         }
+    };
+
+    // If enough time has passed, try spawning anyway.
+    if !did_spawn && death.time.0 + MIN_SPAWN_DELAY * 5.0 < data.time_of_day.0 {
+        match death.role {
+            Role::Civilised(_) => {
+                if !spawn_any_settlement(data, world, index, death, &mut rng, body, personality) {
+                    spawn_anywhere(data, world, death, &mut rng, body, personality)
+                }
+            },
+            Role::Wild | Role::Monster => {
+                spawn_anywhere(data, world, death, &mut rng, body, personality)
+            },
+            Role::Vehicle => {
+                // Vehicles don't die as of now.
+                unimplemented!()
+            },
+        }
+
+        true
+    } else {
+        did_spawn
     }
 }
