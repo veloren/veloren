@@ -1,15 +1,15 @@
-# ![Veloren logo on a screenshot](https://cdn.discordapp.com/attachments/541307708146581519/712295605170602075/logo.png)
+# ![Veloren logo on a screenshot](https://s3.eu-central-2.wasabisys.com/veloren-blog/cdn/247/veloren_old-gitlab-banner.webp)
 
 [![pipeline status](https://gitlab.com/veloren/veloren/badges/master/pipeline.svg)](https://gitlab.com/veloren/veloren/-/pipelines)
 [![coverage report](https://gitlab.com/veloren/veloren/badges/master/coverage.svg)](https://gitlab.com/veloren/veloren/-/graphs/master/charts)
 [![translation status](https://translate.codeberg.org/widgets/veloren/-/svg-badge.svg)](https://translate.codeberg.org/engage/veloren/)
 [![dependency status](https://deps.rs/repo/gitlab/veloren/veloren/status.svg)](https://deps.rs/repo/gitlab/veloren/veloren)
-[![code contributor count](https://badgen.net/gitlab/contributors/veloren/veloren?label=code%20contributors)](https://gitlab.com/veloren/veloren/-/graphs/master)
-[![financial contributor count](https://badgen.net/opencollective/backers/veloren?label=financial%20contributors)](https://opencollective.com/veloren)
-[![discord](https://badgen.net/discord/members/veloren-community-449602562165833758?icon=discord&label=discord)](https://discord.gg/veloren-community-449602562165833758)
+[![code contributor count](https://img.shields.io/gitlab/contributors/veloren%2Fveloren?label=code%20contributors)](https://gitlab.com/veloren/veloren/-/graphs/master)
+[![financial contributor count](https://img.shields.io/opencollective/all/veloren?label=financial%20contributors)](https://opencollective.com/veloren)
+[![discord](https://img.shields.io/discord/449602562165833758?logo=discord&logoColor=%23f8f8f8&label=discord&color=%23788dd5)](https://discord.gg/veloren-community-449602562165833758)
 
 <a href="https://opencollective.com/veloren/donate?interval=month&amount=5" target="_blank">
-  <img src="https://opencollective.com/veloren/contribute/button@2x.png?color=blue" width="29%" />
+  <img src="https://opencollective.com/veloren/contribute/button@2x.png?color=blue" width="29%">
 </a>
 
 ## Welcome to Veloren!
@@ -23,7 +23,7 @@ Currently, most communication among contributors takes place on our [official Di
 Translators are welcome to contribute on our Weblate instance.
 
 <a href="https://translate.codeberg.org/engage/veloren/">
-<img src="https://translate.codeberg.org/widgets/veloren/-/open-graph.png" alt="Translation status" width="55%"/>
+<img src="https://translate.codeberg.org/widgets/veloren/-/open-graph.png" alt="Translation status" width="55%">
 </a>
 
 ## Useful links
