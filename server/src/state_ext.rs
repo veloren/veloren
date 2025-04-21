@@ -627,21 +627,9 @@ impl StateExt for State {
                 return Err(err);
             }
 
-            if self
-                .ecs()
-                .read_component::<Client>()
-                .get(entity)
-                .is_some_and(|client| client.client_type.emit_login_events())
-            {
-                // Notify clients of a player list update
-                self.notify_players(ServerGeneral::PlayerListUpdate(
-                    PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
-                        name: stats.name.clone(),
-                        // NOTE: hack, read docs on body::Gender for more
-                        gender: stats.original_body.humanoid_gender(),
-                    }),
-                ));
-            }
+            let name = stats.name.clone();
+            // NOTE: hack, read docs on body::Gender for more
+            let gender = stats.original_body.humanoid_gender();
 
             // NOTE: By fetching the player_uid, we validated that the entity exists,
             // and we call nothing that can delete it in any of the subsequent
@@ -719,6 +707,8 @@ impl StateExt for State {
                 error!("Player has no pos, cannot load {} pets", pets.len());
             }
 
+            let settings = self.ecs().read_resource::<Settings>();
+            let mut char_battle_mode = settings.gameplay.battle_mode.default_mode();
             let presences = self.ecs().read_storage::<Presence>();
             let presence = presences.get(entity);
             if let Some(Presence {
@@ -728,28 +718,41 @@ impl StateExt for State {
             {
                 let battlemode_buffer = self.ecs().fetch::<BattleModeBuffer>();
                 let mut players = self.ecs().write_storage::<comp::Player>();
-                if let Some((mode, change)) = battlemode_buffer.get(char_id) {
-                    if let Some(mut player_info) = players.get_mut(entity) {
-                        player_info.battle_mode = *mode;
+                if let Some(mut player_info) = players.get_mut(entity) {
+                    if let Some((mode, change)) = battlemode_buffer.get(char_id) {
+                        char_battle_mode = *mode;
                         player_info.last_battlemode_change = Some(*change);
-                    }
-                } else {
-                    // TODO: this sounds related to handle_exit_ingame? Actually, sounds like
-                    // trying to place character specific info on the `Player` component. TODO
-                    // document component better.
-                    // FIXME:
-                    // ???
-                    //
-                    // This probably shouldn't exist,
-                    // but without this code, character gets battle_mode from
-                    // another character on this account.
-                    let settings = self.ecs().read_resource::<Settings>();
-                    let mode = settings.gameplay.battle_mode.default_mode();
-                    if let Some(mut player_info) = players.get_mut(entity) {
-                        player_info.battle_mode = mode;
+                    } else {
+                        // TODO: this sounds related to handle_exit_ingame? Actually, sounds like
+                        // trying to place character specific info on the `Player` component. TODO
+                        // document component better.
+                        // FIXME:
+                        // ???
+                        //
+                        // This probably shouldn't exist,
+                        // but without this code, character gets battle_mode from
+                        // another character on this account.
                         player_info.last_battlemode_change = None;
                     }
+
+                    player_info.battle_mode = char_battle_mode;
                 }
+            }
+
+            if self
+                .ecs()
+                .read_component::<Client>()
+                .get(entity)
+                .is_some_and(|client| client.client_type.emit_login_events())
+            {
+                // Notify clients of a player list update
+                self.notify_players(ServerGeneral::PlayerListUpdate(
+                    PlayerListUpdate::SelectedCharacter(player_uid, CharacterInfo {
+                        name,
+                        gender,
+                        battle_mode: char_battle_mode,
+                    }),
+                ));
             }
         }
 

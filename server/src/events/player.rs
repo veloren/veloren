@@ -594,10 +594,10 @@ pub fn handle_possess(
                             name: s.name.clone(),
                             // NOTE: hack, read docs on body::Gender for more
                             gender: s.original_body.humanoid_gender(),
+                            battle_mode: player.battle_mode,
                         }
                     }),
                     uuid: player.uuid(),
-                    battle_mode: player.battle_mode,
                 },
             ));
             let remove_player_msg =
