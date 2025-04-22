@@ -1,3 +1,15 @@
+//! This module handles client-side chat commands and command processing.
+//!
+//! It provides functionality for:
+//! - Defining client-side chat commands
+//! - Processing and executing commands (both client and server commands)
+//! - Command argument parsing and validation
+//! - Tab completion for command arguments
+//! - Entity targeting via special syntax (e.g., @target, @self)
+//!
+//! The command system allows players to interact with the game through text
+//! commands prefixed with a slash (e.g., /help, /wiki).
+
 use std::str::FromStr;
 
 use crate::{
@@ -23,19 +35,36 @@ use levenshtein::levenshtein;
 use specs::{Join, WorldExt};
 use strum::{EnumIter, IntoEnumIterator};
 
+/// Represents all available client-side chat commands.
+///
+/// These commands are processed locally by the client without sending
+/// requests to the server. Each command provides specific client-side
+/// functionality like clearing the chat, accessing help, or managing
+/// user preferences.
 // Please keep this sorted alphabetically, same as with server commands :-)
 #[derive(Clone, Copy, strum::EnumIter)]
 pub enum ClientChatCommand {
+    /// Clears the chat window
     Clear,
+    /// Toggles experimental shader features
     ExperimentalShader,
+    /// Displays help information about commands
     Help,
+    /// Mutes a player in the chat
     Mute,
+    /// Unmutes a previously muted player
     Unmute,
     Waypoint,
+    /// Opens the Veloren wiki in a browser
     Wiki,
 }
 
 impl ClientChatCommand {
+    /// Returns metadata about the command including its arguments and
+    /// description.
+    ///
+    /// This information is used for command processing, validation, and help
+    /// text generation.
     pub fn data(&self) -> ChatCommandData {
         use ArgumentSpec::*;
         use Requirement::*;
@@ -81,6 +110,9 @@ impl ClientChatCommand {
         }
     }
 
+    /// Returns the command's keyword (the text used to invoke the command).
+    ///
+    /// For example, the Help command is invoked with "/help".
     pub fn keyword(&self) -> &'static str {
         match self {
             ClientChatCommand::Clear => "clear",
@@ -108,30 +140,6 @@ impl ClientChatCommand {
         ])
     }
 
-    /// Returns a format string for parsing arguments with scan_fmt
-    pub fn arg_fmt(&self) -> String {
-        self.data()
-            .args
-            .iter()
-            .map(|arg| match arg {
-                ArgumentSpec::PlayerName(_) => "{}",
-                ArgumentSpec::EntityTarget(_) => "{}",
-                ArgumentSpec::SiteName(_) => "{/.*/}",
-                ArgumentSpec::Float(_, _, _) => "{}",
-                ArgumentSpec::Integer(_, _, _) => "{d}",
-                ArgumentSpec::Any(_, _) => "{}",
-                ArgumentSpec::Command(_) => "{}",
-                ArgumentSpec::Message(_) => "{/.*/}",
-                ArgumentSpec::SubCommand => "{} {/.*/}",
-                ArgumentSpec::Enum(_, _, _) => "{}",
-                ArgumentSpec::AssetPath(_, _, _, _) => "{}",
-                ArgumentSpec::Boolean(_, _, _) => "{}",
-                ArgumentSpec::Flag(_) => "{}",
-            })
-            .collect::<Vec<_>>()
-            .join(" ")
-    }
-
     /// Produce an iterator over all the available commands
     pub fn iter() -> impl Iterator<Item = Self> + Clone {
         <Self as strum::IntoEnumIterator>::iter()
@@ -156,6 +164,11 @@ impl FromStr for ClientChatCommand {
     }
 }
 
+/// Represents either a client-side or server-side command.
+///
+/// This enum is used to distinguish between commands that are processed
+/// locally by the client and those that need to be sent to the server
+/// for processing.
 #[derive(Clone, Copy)]
 pub enum ChatCommandKind {
     Client(ClientChatCommand),
@@ -179,16 +192,30 @@ impl FromStr for ChatCommandKind {
 /// Represents the feedback shown to the user of a command, if any. Server
 /// commands give their feedback as an event, so in those cases this will always
 /// be Ok(None). An Err variant will be be displayed with the error icon and
-/// text color
+/// text color.
+///
+/// - Ok(Some(Content)) - Success with a message to display
+/// - Ok(None) - Success with no message (server commands typically use this)
+/// - Err(Content) - Error with a message to display
 type CommandResult = Result<Option<Content>, Content>;
 
+/// Special entity targets that can be referenced in commands using @ syntax.
+///
+/// This allows players to reference entities in commands without knowing
+/// their specific UIDs, using contextual references like @target or @self.
 #[derive(EnumIter)]
 enum ClientEntityTarget {
+    /// The entity the player is currently looking at/targeting
     Target,
+    /// The entity the player has explicitly selected
     Selected,
+    /// The entity from whose perspective the player is viewing the world
     Viewpoint,
+    /// The entity the player is mounted on (if any)
     Mount,
+    /// The entity that is riding the player (if any)
     Rider,
+    /// The player's own entity
     TargetSelf,
 }
 
@@ -207,11 +234,17 @@ impl ClientEntityTarget {
     }
 }
 
+/// Preprocesses command arguments before execution.
+///
+/// This function handles special syntax like entity targeting (e.g., @target,
+/// @self) and resolves them to actual entity UIDs. It also handles subcommands
+/// and asset path prefixing.
 fn preproccess_command(
     session_state: &mut SessionState,
     command: &ChatCommandKind,
     args: &mut [String],
 ) -> CommandResult {
+    // Get the argument specifications for the command
     let mut cmd_args = match command {
         ChatCommandKind::Client(cmd) => cmd.data().args,
         ChatCommandKind::Server(cmd) => cmd.data().args,
@@ -219,13 +252,17 @@ fn preproccess_command(
     let client = &mut session_state.client.borrow_mut();
     let ecs = client.state().ecs();
     let player = ecs.read_resource::<PlayerEntity>().0;
+
     let mut command_start = 0;
+
     for (i, arg) in args.iter_mut().enumerate() {
         let mut could_be_entity_target = false;
+
         if let Some(post_cmd_args) = cmd_args.get(i - command_start..) {
             for (j, arg_spec) in post_cmd_args.iter().enumerate() {
                 match arg_spec {
                     ArgumentSpec::EntityTarget(_) => could_be_entity_target = true,
+
                     ArgumentSpec::SubCommand => {
                         if let Some(sub_command) =
                             ServerChatCommand::iter().find(|cmd| cmd.keyword() == arg)
@@ -235,23 +272,32 @@ fn preproccess_command(
                             break;
                         }
                     },
+
                     ArgumentSpec::AssetPath(_, prefix, _, _) => {
                         *arg = prefix.to_string() + arg;
                     },
                     _ => {},
                 }
+
                 if matches!(arg_spec.requirement(), Requirement::Required) {
                     break;
                 }
             }
         } else if matches!(cmd_args.last(), Some(ArgumentSpec::SubCommand)) {
+            // If we're past the defined args but the last arg was a subcommand,
+            // we could still have entity targets in subcommand args
             could_be_entity_target = true;
         }
+        // Process entity targeting syntax (e.g., @target, @self)
         if could_be_entity_target && arg.starts_with(ClientEntityTarget::PREFIX) {
+            // Extract the target keyword (e.g., "target" from "@target")
             let target_str = arg.trim_start_matches(ClientEntityTarget::PREFIX);
+
+            // Find the matching target type
             let target = ClientEntityTarget::iter()
                 .find(|t| t.keyword() == target_str)
                 .ok_or_else(|| {
+                    // Generate error with list of valid targets if not found
                     let expected_list = ClientEntityTarget::iter()
                         .map(|t| t.keyword().to_string())
                         .collect::<Vec<String>>()
@@ -312,6 +358,8 @@ fn preproccess_command(
                     .and_then(|e| ecs.uid_from_entity(e))
                     .ok_or(Content::localized("command-preprocess-no-player-entity"))?,
             };
+
+            // Convert the target to a UID string format
             let uid = u64::from(uid);
             *arg = format!("uid@{uid}");
         }
@@ -320,10 +368,12 @@ fn preproccess_command(
     Ok(None)
 }
 
-/// Runs a command by either sending it to the server or processing it
-/// locally. Returns a String to be output to the chat.
-// Note: it's not clear what data future commands will need access to, so the
-// signature of this function might change
+/// Runs a command by either sending it to the server or processing it locally.
+///
+/// This is the main entry point for executing chat commands. It parses the
+/// command, preprocesses its arguments, and then either:
+/// - Sends server commands to the server for processing
+/// - Processes client commands locally
 pub fn run_command(
     session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -348,6 +398,7 @@ pub fn run_command(
     }
 }
 
+/// Generates a helpful error message when an invalid command is entered.
 fn invalid_command_message(client: &Client, user_entered_invalid_command: String) -> Content {
     let entity_role = client
         .state()
@@ -388,6 +439,10 @@ fn invalid_command_message(client: &Client, user_entered_invalid_command: String
     ])
 }
 
+/// Executes a client-side command.
+///
+/// This function dispatches to the appropriate handler function based on the
+/// command.
 fn run_client_command(
     session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -407,6 +462,7 @@ fn run_client_command(
     command(session_state, global_state, args)
 }
 
+/// Handles the /clear [`ClientChatCommand`] which clears the chat window [``]
 fn handle_clear(
     session_state: &mut SessionState,
     _global_state: &mut GlobalState,
@@ -416,6 +472,11 @@ fn handle_clear(
     Ok(None)
 }
 
+/// Handles the /help [`ClientChatCommand`] which displays help information.
+///
+/// If a command name is provided as an argument, displays help for that
+/// specific command. Otherwise, displays a list of all available commands the
+/// player can use, filtered by their administrative role.
 fn handle_help(
     session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -463,6 +524,7 @@ fn handle_help(
     }
 }
 
+/// Handles the /mute [`ClientChatCommand`] which mutes a player in the chat.
 fn handle_mute(
     session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -509,13 +571,15 @@ fn handle_mute(
     }
 }
 
+/// Handles the /unmute [`ClientChatCommand`] which unmutes a previously muted
+/// player.
 fn handle_unmute(
     session_state: &mut SessionState,
     global_state: &mut GlobalState,
     args: Vec<String>,
 ) -> CommandResult {
-    // Note that we don't care if this is a real player, so that it's possible
-    // to unmute someone when they're offline
+    // Note that we don't care if this is a real player currently online,
+    // so that it's possible to unmute someone when they're offline.
     if let Some(alias) = parse_cmd_args!(args, String) {
         if let Some(uuid) = global_state
             .profile
@@ -533,6 +597,7 @@ fn handle_unmute(
             }
 
             global_state.profile.mutelist.remove(&uuid);
+
             Ok(Some(Content::localized_with_args(
                 "command-unmute-success",
                 [("player", LocalizationArg::from(alias))],
@@ -548,6 +613,8 @@ fn handle_unmute(
     }
 }
 
+/// Handles the /experimental_shader [`ClientChatCommand`] which toggles
+/// experimental shader features.
 fn handle_experimental_shader(
     _session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -608,6 +675,9 @@ fn handle_experimental_shader(
     }
 }
 
+/// Handles the /waypoint [`ClientChatCommand`], which displays the name of the
+/// site or biome where the current waypoint is located. Returns an error if no
+/// waypoint is currently set.
 fn handle_waypoint(
     session_state: &mut SessionState,
     _global_state: &mut GlobalState,
@@ -625,6 +695,12 @@ fn handle_waypoint(
     }
 }
 
+/// Handles the /wiki [`ClientChatCommand`] which opens the Veloren wiki in a
+/// browser.
+///
+/// With no arguments, opens the wiki homepage.
+/// With arguments, performs a search on the wiki for the specified terms.
+/// Returns an error if the browser fails to open.
 fn handle_wiki(
     _session_state: &mut SessionState,
     _global_state: &mut GlobalState,
@@ -648,6 +724,10 @@ fn handle_wiki(
         })
 }
 
+/// Trait for types that can provide tab completion suggestions.
+///
+/// This trait is implemented by types that can generate a list of possible
+/// completions for a partial input string.
 trait TabComplete {
     fn complete(&self, part: &str, client: &Client, i18n: &Localization) -> Vec<String>;
 }
@@ -657,8 +737,10 @@ impl TabComplete for ArgumentSpec {
         match self {
             ArgumentSpec::PlayerName(_) => complete_player(part, client),
             ArgumentSpec::EntityTarget(_) => {
+                // Check if the input starts with the entity target prefix '@'
                 if let Some((spec, end)) = part.split_once(ClientEntityTarget::PREFIX) {
                     match spec {
+                        // If it's just "@", complete with all possible target keywords
                         "" => ClientEntityTarget::iter()
                             .filter_map(|target| {
                                 let ident = target.keyword();
@@ -669,10 +751,13 @@ impl TabComplete for ArgumentSpec {
                                 }
                             })
                             .collect(),
+                        // If it's "@uid", complete with actual UIDs from the ECS
                         "uid" => {
+                            // Try to parse the number after "@uid" or default to 0 if empty
                             if let Some(end) =
                                 u64::from_str(end).ok().or(end.is_empty().then_some(0))
                             {
+                                // Find UIDs greater than the parsed number
                                 client
                                     .state()
                                     .ecs()
@@ -700,9 +785,9 @@ impl TabComplete for ArgumentSpec {
             ArgumentSpec::SiteName(_) => complete_site(part, client, i18n),
             ArgumentSpec::Float(_, x, _) => {
                 if part.is_empty() {
-                    vec![format!("{:.1}", x)]
+                    vec![format!("{:.1}", x)] // Suggest default with one decimal place
                 } else {
-                    vec![]
+                    vec![] // No suggestions if already typing
                 }
             },
             ArgumentSpec::Integer(_, x, _) => {
@@ -712,16 +797,19 @@ impl TabComplete for ArgumentSpec {
                     vec![]
                 }
             },
+            // No specific completion for arbitrary 'Any' arguments
             ArgumentSpec::Any(_, _) => vec![],
             ArgumentSpec::Command(_) => complete_command(part, ""),
             ArgumentSpec::Message(_) => complete_player(part, client),
             ArgumentSpec::SubCommand => complete_command(part, ""),
             ArgumentSpec::Enum(_, strings, _) => strings
                 .iter()
-                .filter(|string| string.starts_with(part))
+                .filter(|string| string.starts_with(part)) // Filter by partial input
                 .map(|c| c.to_string())
                 .collect(),
+            // Complete with asset paths
             ArgumentSpec::AssetPath(_, prefix, paths, _) => {
+                // If input starts with '#', search within paths
                 if let Some(part_stripped) = part.strip_prefix('#') {
                     paths
                         .iter()
@@ -729,6 +817,7 @@ impl TabComplete for ArgumentSpec {
                         .filter_map(|c| Some(c.strip_prefix(prefix)?.to_string()))
                         .collect()
                 } else {
+                    // Otherwise, complete based on path hierarchy
                     let part_with_prefix = prefix.to_string() + part;
                     let depth = part_with_prefix.split('.').count();
                     paths
@@ -750,6 +839,7 @@ impl TabComplete for ArgumentSpec {
     }
 }
 
+/// Returns a list of player names that start with the given partial input.
 fn complete_player(part: &str, client: &Client) -> Vec<String> {
     client
         .player_list()
@@ -760,6 +850,7 @@ fn complete_player(part: &str, client: &Client) -> Vec<String> {
         .collect()
 }
 
+/// Returns a list of site names that start with the given partial input.
 fn complete_site(mut part: &str, client: &Client, i18n: &Localization) -> Vec<String> {
     if let Some(p) = part.strip_prefix('"') {
         part = p;
@@ -782,29 +873,44 @@ fn complete_site(mut part: &str, client: &Client, i18n: &Localization) -> Vec<St
         .collect()
 }
 
-// Get the byte index of the nth word. Used in completing "/sudo p subcmd"
+/// Gets the byte index of the nth word in a string.
 fn nth_word(line: &str, n: usize) -> Option<usize> {
     let mut is_space = false;
     let mut j = 0;
+
     for (i, c) in line.char_indices() {
+        // State machine to detect word boundaries
         match (is_space, c.is_whitespace()) {
+            // We were in a space and still are - continue
             (true, true) => {},
+
+            // We were in a space but now found a non-space character
+            // This marks the start of a new word
             (true, false) => {
                 is_space = false;
-                j += 1;
+                j += 1; // Increment word counter
             },
+
+            // We were in a word but now found a space character
+            // This marks the end of the current word
             (false, true) => {
                 is_space = true;
             },
+
+            // We were in a word and still are - continue
             (false, false) => {},
         }
+
         if j == n {
             return Some(i);
         }
     }
+
     None
 }
 
+/// Returns a list of [`ClientChatCommand`] and [`ServerChatCommand`] names that
+/// start with the given partial input.
 fn complete_command(part: &str, prefix: &str) -> Vec<String> {
     ServerChatCommand::iter_with_keywords()
         .map(|(kwd, _)| kwd)
@@ -814,25 +920,41 @@ fn complete_command(part: &str, prefix: &str) -> Vec<String> {
         .collect()
 }
 
+/// Main tab completion function for chat input.
+///
+/// This function handles tab completion for both commands and regular chat.
+/// It determines what kind of completion is needed based on the input and
+/// delegates to the appropriate completion function.
 pub fn complete(line: &str, client: &Client, i18n: &Localization, cmd_prefix: &str) -> Vec<String> {
+    // Get the last word in the input line, which is what we're trying to complete
+    // If the line ends with whitespace, we're starting a new word
     let word = if line.chars().last().is_none_or(char::is_whitespace) {
         ""
     } else {
         line.split_whitespace().last().unwrap_or("")
     };
 
+    // Check if we're completing a command (starts with the command prefix)
     if line.starts_with(cmd_prefix) {
+        // Strip the command prefix for easier processing
         let line = line.strip_prefix(cmd_prefix).unwrap_or(line);
         let mut iter = line.split_whitespace();
+
+        // Get the command name (first word)
         let cmd = iter.next().unwrap_or("");
-        let i = iter.count() + usize::from(word.is_empty());
-        if i == 0 {
+
+        // If the line ends with whitespace, we're starting a new argument
+        let argument_position = iter.count() + usize::from(word.is_empty());
+
+        // If we're at position 0, we're completing the command name itself
+        if argument_position == 0 {
             // Completing chat command name. This is the start of the line so the prefix
             // will be part of it
             let word = word.strip_prefix(cmd_prefix).unwrap_or(word);
             return complete_command(word, cmd_prefix);
         }
 
+        // Try to parse the command to get its argument specifications
         let args = {
             if let Ok(cmd) = cmd.parse::<ServerChatCommand>() {
                 Some(cmd.data().args)
@@ -844,29 +966,32 @@ pub fn complete(line: &str, client: &Client, i18n: &Localization, cmd_prefix: &s
         };
 
         if let Some(args) = args {
-            if let Some(arg) = args.get(i - 1) {
-                // Complete ith argument
+            // If we're completing an argument that's defined in the command's spec
+            if let Some(arg) = args.get(argument_position - 1) {
+                // Complete the current argument using its type-specific completion
                 arg.complete(word, client, i18n)
             } else {
-                // Complete past the last argument
+                // We're past the defined arguments, handle special cases
                 match args.last() {
+                    // For subcommands (like in "/sudo player kill"), recursively complete
                     Some(ArgumentSpec::SubCommand) => {
+                        // Find where the subcommand starts in the input
                         if let Some(index) = nth_word(line, args.len()) {
+                            // Recursively complete the subcommand part
                             complete(&line[index..], client, i18n, "")
                         } else {
                             vec![]
                         }
                     },
+                    // For message arguments, complete with player names
                     Some(ArgumentSpec::Message(_)) => complete_player(word, client),
-                    _ => vec![], // End of command. Nothing to complete
+                    _ => vec![],
                 }
             }
         } else {
-            // Completing for unknown chat command
             complete_player(word, client)
         }
     } else {
-        // Not completing a command
         complete_player(word, client)
     }
 }
