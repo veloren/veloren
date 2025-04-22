@@ -2,10 +2,12 @@ use crate::util::SpatialGrid;
 
 /// Cached [`SpatialGrid`] for reuse within different ecs systems during a tick.
 /// This is used to accelerate queries on entities within a specific area.
-/// Updated within the physics system [`crate::sys::phys::Sys`] after new entity
-/// positions are calculated for the tick. So any position modifications outside
-/// the physics system will not be reflected here until the next tick when the
-/// physics system runs.
+/// Updated within the physics system [`phys::Sys`]
+/// after new entity positions are calculated for the tick. So any position
+/// modifications outside the physics system will not be reflected here until
+/// the next tick when the physics system runs.
+///
+/// [`phys::Sys`]: veloren_common_systems::phys::Sys
 pub struct CachedSpatialGrid(pub SpatialGrid);
 
 impl Default for CachedSpatialGrid {

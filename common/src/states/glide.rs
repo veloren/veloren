@@ -45,7 +45,7 @@ impl Data {
     /// leading edge to trailing edge through its centre) measured in block
     /// units.
     ///
-    ///  https://en.wikipedia.org/wiki/Elliptical_wing
+    ///  <https://en.wikipedia.org/wiki/Elliptical_wing>
     pub fn new(span_length: f32, chord_length: f32, ori: Ori) -> Self {
         let planform_area = PI * chord_length * span_length * 0.25;
         let aspect_ratio = span_length.powi(2) / planform_area;

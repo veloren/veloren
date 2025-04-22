@@ -286,7 +286,7 @@ impl Default for UpscaleMode {
 }
 
 /// Present modes
-/// See https://docs.rs/wgpu/0.7.0/wgpu/enum.PresentMode.html
+/// See <https://docs.rs/wgpu/0.7.0/wgpu/enum.PresentMode.html>
 #[derive(Default, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum PresentMode {
     Mailbox,

@@ -1,4 +1,4 @@
-//! Based on: https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_notes.pdf
+//! Based on: <https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_notes.pdf>
 //!
 //! See additional details in the [NUM_SIZES] docs
 
@@ -18,7 +18,7 @@ use vek::*;
 ///
 /// 1 -> 1/2 -> 1/4 -> 1/8 -> 1/16 -> 1/8 -> 1/4 -> 1/2 -> 1
 ///                           ~~~~
-///     [downsampling]      smallest      [upsampling]
+///     \[downsampling\]      smallest      \[upsampling\]
 ///
 /// The textures used for downsampling are re-used when upsampling.
 ///

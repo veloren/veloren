@@ -974,7 +974,7 @@ impl<F: Fn(f32, f32) -> f32, const NUM_SAMPLES: usize> PidController<F, NUM_SAMP
 
     /// The amount to set the control variable to is a weighed sum of the
     /// proportional error, the integral error, and the derivative error.
-    /// https://en.wikipedia.org/wiki/PID_controller#Mathematical_form
+    /// <https://en.wikipedia.org/wiki/PID_controller#Mathematical_form>
     pub fn calc_err(&self) -> f32 {
         self.kp * self.proportional_err()
             + self.ki * self.integral_err()
@@ -988,7 +988,7 @@ impl<F: Fn(f32, f32) -> f32, const NUM_SAMPLES: usize> PidController<F, NUM_SAMP
     /// The integral error is the error function integrated over all previous
     /// values, updated per point. The trapezoid rule for numerical integration
     /// was chosen because it's fairly easy to calculate and sufficiently
-    /// accurate. https://en.wikipedia.org/wiki/Trapezoidal_rule#Uniform_grid
+    /// accurate. <https://en.wikipedia.org/wiki/Trapezoidal_rule#Uniform_grid>
     pub fn integral_err(&self) -> f32 { self.integral_error as f32 }
 
     fn update_integral_err(&mut self) {
@@ -1019,7 +1019,7 @@ impl<F: Fn(f32, f32) -> f32, const NUM_SAMPLES: usize> PidController<F, NUM_SAMP
     /// based on the most recent 2 samples. Using more than 2 samples might
     /// improve the accuracy of the estimate of the derivative, but it would be
     /// an estimate of the derivative error further in the past.
-    /// https://en.wikipedia.org/wiki/Numerical_differentiation#Finite_differences
+    /// <https://en.wikipedia.org/wiki/Numerical_differentiation#Finite_differences>
     pub fn derivative_err(&self) -> f32 {
         let f = |x| (self.e)(self.sp, x);
         let (a, x0) = self.pv_samples[(self.pv_idx + NUM_SAMPLES - 1) % NUM_SAMPLES];

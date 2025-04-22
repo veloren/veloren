@@ -22,6 +22,7 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 ///
 /// Available options are:
 /// * "system" => system specific project data directory
+#[expect(rustdoc::invalid_html_tags)]
 /// * "executable" => <executable dir>/userdata
 ///
 /// > **Note:** _case insensitive_

@@ -546,7 +546,7 @@ pub fn generate_mesh<'a>(
 }
 
 /// NOTE: Make sure to reflect any changes to how meshing is performanced in
-/// [scene::terrain::Terrain::skip_remesh].
+/// [veloren-voxygen::scene::terrain::Terrain::skip_remesh].
 pub fn should_draw_greedy(
     pos: Vec3<i32>,
     delta: Vec3<i32>,

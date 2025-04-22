@@ -64,7 +64,7 @@ macro_rules! trackers {
                 Some(self.create_entity_package_with_uid(entity, uid, pos, vel, ori))
             }
 
-            /// See [create_entity_package].
+            /// See [`Self::create_entity_package`].
             ///
             /// NOTE: Only if you're certain you know the UID for the entity, and it hasn't
             /// changed!

@@ -225,7 +225,7 @@ pub struct LocalizationHandle {
 pub type Localization = LocalizationGuard;
 
 /// RAII guard returned from [`LocalizationHandle::read()`], resembles
-/// [`AssetGuard`]
+/// [`AssetReadGuard`]
 pub struct LocalizationGuard {
     active: AssetReadGuard<Language>,
     fallback: Option<AssetReadGuard<Language>>,

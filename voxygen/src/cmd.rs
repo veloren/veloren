@@ -54,6 +54,8 @@ pub enum ClientChatCommand {
     Mute,
     /// Unmutes a previously muted player
     Unmute,
+    /// Displays the name of the site or biome where the current waypoint is
+    /// located.
     Waypoint,
     /// Opens the Veloren wiki in a browser
     Wiki,
@@ -462,7 +464,7 @@ fn run_client_command(
     command(session_state, global_state, args)
 }
 
-/// Handles the /clear [`ClientChatCommand`] which clears the chat window [``]
+/// Handles [`ClientChatCommand::Unmute`]
 fn handle_clear(
     session_state: &mut SessionState,
     _global_state: &mut GlobalState,
@@ -472,7 +474,7 @@ fn handle_clear(
     Ok(None)
 }
 
-/// Handles the /help [`ClientChatCommand`] which displays help information.
+/// Handles [`ClientChatCommand::Help`]
 ///
 /// If a command name is provided as an argument, displays help for that
 /// specific command. Otherwise, displays a list of all available commands the
@@ -524,7 +526,7 @@ fn handle_help(
     }
 }
 
-/// Handles the /mute [`ClientChatCommand`] which mutes a player in the chat.
+/// Handles [`ClientChatCommand::Mute`]
 fn handle_mute(
     session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -571,8 +573,7 @@ fn handle_mute(
     }
 }
 
-/// Handles the /unmute [`ClientChatCommand`] which unmutes a previously muted
-/// player.
+/// Handles [`ClientChatCommand::Unmutse`]
 fn handle_unmute(
     session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -613,8 +614,7 @@ fn handle_unmute(
     }
 }
 
-/// Handles the /experimental_shader [`ClientChatCommand`] which toggles
-/// experimental shader features.
+/// Handles [`ClientChatCommand::ExperimentalShader`]
 fn handle_experimental_shader(
     _session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -675,9 +675,7 @@ fn handle_experimental_shader(
     }
 }
 
-/// Handles the /waypoint [`ClientChatCommand`], which displays the name of the
-/// site or biome where the current waypoint is located. Returns an error if no
-/// waypoint is currently set.
+/// Handles [`ClientChatCommand::Waypoint`]
 fn handle_waypoint(
     session_state: &mut SessionState,
     _global_state: &mut GlobalState,
@@ -695,12 +693,10 @@ fn handle_waypoint(
     }
 }
 
-/// Handles the /wiki [`ClientChatCommand`] which opens the Veloren wiki in a
-/// browser.
+/// Handles [`ClientChatCommand::Wiki`]
 ///
 /// With no arguments, opens the wiki homepage.
 /// With arguments, performs a search on the wiki for the specified terms.
-/// Returns an error if the browser fails to open.
 fn handle_wiki(
     _session_state: &mut SessionState,
     _global_state: &mut GlobalState,
@@ -876,32 +872,24 @@ fn complete_site(mut part: &str, client: &Client, i18n: &Localization) -> Vec<St
 /// Gets the byte index of the nth word in a string.
 fn nth_word(line: &str, n: usize) -> Option<usize> {
     let mut is_space = false;
-    let mut j = 0;
+    let mut word_counter = 0;
 
     for (i, c) in line.char_indices() {
-        // State machine to detect word boundaries
         match (is_space, c.is_whitespace()) {
-            // We were in a space and still are - continue
             (true, true) => {},
-
-            // We were in a space but now found a non-space character
-            // This marks the start of a new word
+            // start of a new word
             (true, false) => {
                 is_space = false;
-                j += 1; // Increment word counter
+                word_counter += 1;
             },
-
-            // We were in a word but now found a space character
-            // This marks the end of the current word
+            // end of the current word
             (false, true) => {
                 is_space = true;
             },
-
-            // We were in a word and still are - continue
             (false, false) => {},
         }
 
-        if j == n {
+        if word_counter == n {
             return Some(i);
         }
     }

@@ -59,7 +59,7 @@ impl Energy {
     ///
     /// Note: The returned value uses an internal format so don't expect it to
     /// be useful for anything other than a parameter to
-    /// [`Self::update_maximum`].
+    /// [`Self::update_internal_integer_maximum`].
     pub fn needs_maximum_update(&self, modifiers: comp::stats::StatsModifier) -> Option<u32> {
         let maximum = modifiers
             .compute_maximum(self.base_max())

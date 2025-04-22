@@ -25,8 +25,9 @@ pub enum AuraKind {
     /// Enables free-for-all friendly-fire. Includes group members, and pets.
     /// BattleMode checks still apply.
     FriendlyFire,
-    /// Ignores the [`crate::comp::BattleMode`] of all entities affected by this
-    /// aura, only player entities will be affected by this aura.
+    /// Ignores the [`crate::resources::BattleMode`] of all entities
+    /// affected by this aura, only player entities will be affected by this
+    /// aura.
     ForcePvP,
     /* TODO: Implement other effects here. Things to think about
      * are terrain/sprite effects, collision and physics, and

@@ -1,9 +1,9 @@
 use super::Alt;
 use rayon::prelude::*;
 
-/// From https://github.com/fastscape-lem/fastscapelib-fortran/blob/master/src/Diffusion.f90
+/// From <https://github.com/fastscape-lem/fastscapelib-fortran/blob/master/src/Diffusion.f90>
 ///
-/// See https://fastscape-lem.github.io/fastscapelib-fortran
+/// See <https://fastscape-lem.github.io/fastscapelib-fortran>
 ///
 /// nx = grid size x
 ///
@@ -20,7 +20,7 @@ use rayon::prelude::*;
 ///
 /// h = heights of cells at each cell in the grid.
 ///
-/// b = basement height at each cell in the grid (see https://en.wikipedia.org/wiki/Basement_(geology)).
+/// b = basement height at each cell in the grid (see <https://en.wikipedia.org/wiki/Basement_(geology)>).
 ///
 /// kd = bedrock transport coefficient (or diffusivity) for hillslope processes
 /// in meter squared per year (double precision) at each cell in the grid.

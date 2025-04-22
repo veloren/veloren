@@ -359,7 +359,7 @@ pub struct Chaser {
 
 impl Chaser {
     /// Returns bearing and speed
-    /// Bearing is a Vec3<f32> dictating the direction of movement
+    /// Bearing is a `Vec3<f32>` dictating the direction of movement
     /// Speed is an f32 between 0.0 and 1.0
     pub fn chase<V>(
         &mut self,

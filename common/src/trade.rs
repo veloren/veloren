@@ -75,7 +75,7 @@ pub enum TradeResult {
 /// that may still have contents.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PendingTrade {
-    /// `parties[0]` is the entity that initiated the trade, parties[1] is the
+    /// `parties[0]` is the entity that initiated the trade, `parties[1]` is the
     /// other entity that's being traded with
     pub parties: [Uid; 2],
     /// `offers[i]` represents the items and quantities of the party i's items

@@ -67,7 +67,7 @@ pub trait EditableSetting: Clone + Default {
     /// The best error type is Infallible.
     type Error: fmt::Debug;
 
-    /// Into<Setting> is expected to migrate directly to the latest version,
+    /// `Into<Setting>` is expected to migrate directly to the latest version,
     /// which can be implemented using "chaining".  The use of `Into` here
     /// rather than TryInto is intended (together with the expected use of
     /// chaining) to prevent migrations from invalidating old save files
@@ -76,11 +76,11 @@ pub trait EditableSetting: Clone + Default {
     /// panic).
     type Legacy: Serialize + DeserializeOwned + Into<Self>;
 
-    /// TryInto<(Version, Self)> is expected to migrate to the latest version
+    /// `TryInto<(Version, Self)>` is expected to migrate to the latest version
     /// from any older version, using "chaining" (see [super::banlist] for
     /// examples).
     ///
-    /// From<Self> is intended to construct the latest version of the
+    /// `From<Self>` is intended to construct the latest version of the
     /// configuratino file from Self, which we use to save the config file
     /// on migration or modification.  Note that it should always be the
     /// case that if x is constructed from any of Self::clone, Self::default, or
