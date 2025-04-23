@@ -83,16 +83,16 @@ sprite-crafting_ing-golem_core = Noyau de golem
 sprite-crafting_ing-earthern_shard = Éclat de terre
     .desc = Tesson durci qui faisait autrefois partie d'un être de céramique animé.
 sprite-twigs-twigs-0 = Brindilles
-    .desc = Trouvé près des arbres, un écureuil a dû la faire tomber.
+    .desc = Trouvées près des arbres, un écureuil a dû les faire tomber.
 sprite-crafting_ing-hide-carapace = Carapace dure
     .desc = Carapace dure et résistante, un bouclier pour de nombreuses créatures.
 sprite-crafting_ing-hide-animal_hide = Peau d'animal
     .desc = Peau commune de la plupart des animaux. Devient du cuir.
-sprite-crafting_ing-animal_misc-sharp_fang = Dent aiguisé
+sprite-crafting_ing-animal_misc-sharp_fang = Dent aiguisée
     .desc =
-        Une dent aiguisé comme un rasoir d'un animal féroce.
+        Une dent d'un animal féreoce, aiguisée comme un rasoir.
 
-        Les armes conçues avec auront des effets plus puissant et plus long.
+        Les armes conçues avec cet objet auront des effets plus puissants et plus longs.
 sprite-crafting_ing-animal_misc-venom_sac = Sac à venin
     .desc = Sac à venin provenant d'une créature venimeuse.
 sprite-crafting_ing-leather-rigid_leather = Cuir rigide
@@ -113,7 +113,7 @@ sprite-crafting_ing-cloth-linen = Lin
     .desc = Textile fabriqué à partir de fibres de lin.
 sprite-crafting_ing-cloth-linen_red = Lin rouge
     .desc = Textile en fibre de lin, teint pour ressortir.
-sprite-crafting_ing-cloth-moonweave = Tissu de lune
+sprite-crafting_ing-cloth-moonweave = Tisselune
     .desc = Un textile léger mais très robuste.
 sprite-crafting_ing-cloth-silk = Soie
     .desc = Fibre fine et résistante produite par les araignées.

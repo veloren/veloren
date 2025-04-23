@@ -1,13 +1,15 @@
 buff-remove = Klikni pro zrušení
-buff-heal = Léčení
-    .desc = Přidá život během určitého času.
-    .stat = Obnoví { $str_total } životů.
+buff-heal = Heal
+    .desc = Časem doplňuje zdraví.
+    .stat =
+        { $duration ->
+            [1] Obnoví { $str_total } životů během { $duration } sekundy.
+           *[other] Obnoví { $str_total } životů během { $duration } sekund.
+        }
 buff-potion = Lektvar
     .desc = Piju...
 buff-saturation = Nasycení
     .desc = Přidá život během času ze Spotřebních.
-buff-campfire_heal = Léčba Táborákem
-    .desc = Odpočinek u ohně léčí { $rate }% za sekundu.
 buff-invulnerability = Nezranitelnost
     .desc = Žádný útok tě nezraní.
     .stat = Zaručuje nezranitelnost.
@@ -34,11 +36,23 @@ buff-increase_max_energy = Zvýšení Maximální Energie
     .stat =
         Zvedne maximální energii
         o { $strength }.
-buff-increase_max_health = Zvýšení Maximálních Životů
-    .desc = Tvé maximální životy jsou zvýšeny.
+buff-increase_max_health = Zvýšení zdraví
+    .desc = Tvá hodnota maximálního zdraví je zvýšena.
     .stat =
-        Zvyšuje maximální životy
-        o { $strength }.
+        { $duration ->
+            [1]
+                Zvyšuje maximum životů
+                o { $strength }.
+                Trvá { $duration } sekundu.
+            [few]
+                Zvyšuje maximum životů
+                o { $strength }.
+                Trvá { $duration } sekundy.
+           *[other]
+                Zvyšuje maximum životů
+                o { $strength }.
+                Trvá { $duration } sekund.
+        }
 buff-scornfultaunt = Pohrdavý Výsměch
     .desc = Pohrdavě se vysmíváš nepřátelům, což ti posiluje statečnost a výdrž. Ale tvoje smrt posílí tvého vraha.
 buff-winded = Bez dechu
@@ -57,13 +71,31 @@ buff-lifesteal = Ukradený život
 buff-heatstroke = Úpal
     .desc = Byl jsi vystaven horku a nyní máš úpal. Tvoje odměna energie a rychlost pohybu jsou osekány. Vychladni.
 buff-agility = Hbitost
-    .desc = Pohybuješ se rychleji, ale udílíš méně a dostáváš více poškození.
+    .desc =
+        Pohybuješ se rychleji,
+        ale udílíš méně a dostáváš více poškození.
     .stat =
-        Zvyšuje rychlost pohybu o { $strength } %.
-        Výměnou za to jsou tvé útoky a obrana drasticky sníženy.
-buff-energy_regen = Obnova Energie
+        { $duration ->
+            [1]
+                Zvyšuje rychlost o { $strength } %.
+                Výměnou za to se drasticky sníží tvůj útok a obrana.
+                Trvá { $duration } sekundu.
+            [few]
+                Zvyšuje rychlost o { $strength } %.
+                Výměnou za to se drasticky sníží tvůj útok a obrana.
+                Trvá { $duration } sekundy.
+           *[other]
+                Zvyšuje rychlost o { $strength } %.
+                Výměnou za to se drasticky sníží tvůj útok a obrana.
+                Trvá { $duration } sekund.
+        }
+buff-energy_regen = Obnova energie
     .desc = Rychlejší obnovení energie.
-    .stat = Obnovuje { $str_total } energie.
+    .stat =
+        { $duration ->
+            [1] Obnoví { $str_total } energie během { $duration } sekundy.
+           *[other] Obnoví { $str_total } energie během { $duration } sekund.
+        }
 buff-hastened = Zrychlení
     .desc = Tvoje pohyby a útoky jsou rychlejší.
 buff-poisoned = Otrávený
@@ -99,3 +131,5 @@ buff-tenacity = Houževnatost
     .desc = Nejen že jsi schopen odrazit těžší útoky, ale také tě nabíjí energií. Ale jsi zároveň pomalejší.
 buff-resilience = Odolnost
     .desc = Po zásahu oslabujícím útokem jsi odolnější proti dalším oslabujícím efektům.
+buff-resting_heal = Léčení odpočinkem
+    .desc = Odpočinek obnoví { $rate } % zdraví za sekundu.

@@ -16,8 +16,6 @@ buff-saturation = Saturation
 
 ## Feu de camp
 
-buff-campfire_heal = Soin autour d'un feu de camp
-    .desc = Se reposer à côté d'un feu de camp restaure { $rate }% de santé chaque seconde.
 
 ## Régen d'Endurance
 

@@ -16,8 +16,6 @@ buff-saturation = 포만감
 
 ## Campfire
 
-buff-campfire_heal = 모닥불 회복
-    .desc = 모닥불 앞에서 쉬어 초당 { $rate }% 체력을 회복한다.
 
 ## Energy Regen
 

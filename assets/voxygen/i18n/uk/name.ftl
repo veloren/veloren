@@ -3,20 +3,25 @@
 ### If you want to customize names NPCs use in their speech, check out body.ftl
 ### with their body-npc-speech-* keys
 
+
 ## Misc
+
 name-misc-with-alias-template = { $alias } ({ $old_name })
 
 ## Used for template EntityConfig
+
 name-custom-template-paddy =
     .fem = Paddy
     .masc = Paddy
 
 ## Fallback summon
+
 name-custom-fallback-summon =
     .fem = Прикликана
     .masc = Прикликаний
 
 ## Village NPC names
+
 name-custom-village-farmer =
     .fem = Фермерка
     .masc = Фермер
@@ -58,6 +63,7 @@ name-custom-village-merchant =
     .masc = Торговець
 
 ## Travelers
+
 name-custom-world-traveler0 =
     .fem = Мандрівниця-новачка
     .masc = Мандрівник-новачок
@@ -72,3 +78,4 @@ name-custom-world-traveler3 =
     .masc = Мандрівник-експерт
 
 ##
+

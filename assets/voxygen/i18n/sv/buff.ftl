@@ -16,8 +16,6 @@ buff-saturation = Mättnad
 
 ## Campfire
 
-buff-campfire_heal = Helande lägereld
-    .desc = Att vila vid en lägereld helar { $rate }% per sekund.
 
 ## Energy Regen
 

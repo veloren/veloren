@@ -61,3 +61,5 @@ sprite-food-meat-bird_large_cooked = Obří pečená palička
     .desc = Na tohle jídlo se pějí legendy.
 object-sunflower_ice_tea = Slunečnicový ledový čaj
     .desc = Uvařený z čerstvě vyloupaných slunečnicových semínek.
+sprite-lettuce-lettuce = Hlávkový salát
+    .desc = Jasně zelená listová zelenina. Ze salátu se dělají saláty!

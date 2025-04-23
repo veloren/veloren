@@ -16,8 +16,6 @@ buff-saturation = Насыщение
 
 ## Campfire
 
-buff-campfire_heal = Исцеление у Костра
-    .desc = Отдых у костра лечит { $rate }% в секунду.
 
 ## Energy Regen
 

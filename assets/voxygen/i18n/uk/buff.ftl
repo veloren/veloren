@@ -16,8 +16,6 @@ buff-saturation = Насичення
 
 ## Campfire
 
-buff-campfire_heal = Відновлення біля вогнища
-    .desc = Відпочинок біля вогнища лікує на { $rate }% за секунду.
 
 ## Energy Regen
 

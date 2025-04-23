@@ -15,11 +15,11 @@ hud-press_key_to_toggle_keybindings_fmt = Appuyer sur { $key } pour afficher les
 hud-press_key_to_toggle_debug_info_fmt = Appuyer sur { $key } pour activer les informations de débogage
 hud-press_key_to_respawn = Appuyez sur { $key } pour réapparaitre au dernier feu de camp visité.
 hud-tutorial_btn = Tutoriel
-hud-tutorial_click_here = Appuyez sur [ { $key } ] pour libérer votre souris et cliquez sur ce bouton!
+hud-tutorial_click_here = Appuyez sur [ { $key } ] pour libérer votre souris et cliquez sur ce bouton !
 hud-tutorial_elements = Artisanat
 hud-temp_quest_headline = Salutations voyageur !
 hud-temp_quest_text =
-    Pour commencer votre voyage, vous pourriez commencer à chercher dans ce village et rassembler quelques provisions.
+    Pour commencer votre voyage, vous pourriez commencer par explorer ce village et rassembler quelques provisions.
 
     Vous êtes invités à prendre tout ce dont vous avez besoin pour votre voyage !
 
@@ -27,14 +27,14 @@ hud-temp_quest_text =
 
     Le menu d'artisanat vous permet de créer des armures, des armes, de la nourriture et bien plus encore !
 
-    Les animaux sauvages tout autour de la ville sont une excellente source de Chutes de Cuir pour créer une protection contre les dangers du monde.
+    Les animaux sauvages tout autour de la ville sont une excellente source de peaux pour vous protéger contre les dangers du monde.
 
     Dès que vous vous sentez prêt, essayez d'obtenir un équipement encore meilleur grâce aux nombreux défis marqués sur votre carte !
 hud-spell = Sorts
 hud-diary = Journal
 hud-free_look_indicator = Vue libre active. Appuyez sur { $key } pour la désactiver.
-hud-camera_clamp_indicator = Verrouillage vertical de la caméra active. Appuyez sur { $key } pour la désactiver.
-hud-auto_walk_indicator = Marche automatique active
+hud-camera_clamp_indicator = Limitation verticale de la caméra active. Appuyez sur { $key } pour la désactiver.
+hud-auto_walk_indicator = Marche/Nage automatique active
 hud-zoom_lock_indicator-remind = Zoom verrouillé
 hud-zoom_lock_indicator-enable = Zoom de la caméra verrouillé
 hud-zoom_lock_indicator-disable = Zoom de la caméra déverrouillé
@@ -72,7 +72,7 @@ hud-deactivate = Désactiver
 hud-lay = Se coucher
 hud-init-stage-multiplayer = Démarrage du multijoueur
 -client = Client
-hud-init-stage-render-pipeline = Creation d'un rendu pipeline ({ $done }/{ $total })
+hud-init-stage-render-pipeline = Création de la pipeline de rendu ({ $done }/{ $total })
 hud-init-stage-client-request-server-version = { "[" }{ -client }]: En attente de la version serveur...
 hud-init-stage-client-load-init-data = { "[" }{ -client }]: Chargement des données d'initialisation du serveur...
 hud-init-stage-client-starting-client = { "[" }{ -client }]: Préparation du client...
@@ -85,3 +85,28 @@ hud-hardcore_char_deleted = Ce personnage hardcore a été supprimé.
 hud-press_key_to_return_to_char_menu = Appuyez sur { $key } pour revenir au menu des personnages.
 hud-items_will_lose_dur = Votre outil équipé va perdre de la durabilité.
 hud-items_lost_dur = Votre outil équipé a perdu de la durabilité.
+hud-init-stage-server-worldsim-erosion_time_left =
+    .days =
+        { $n ->
+            [one] ~{ $n } jour restant
+           *[other] ~{ $n } jours restants
+        }
+    .hours =
+        { $n ->
+            [one] ~{ $n } heure restante
+           *[other] ~{ $n } heures restantes
+        }
+    .minutes =
+        { $n ->
+            [one] ~{ $n } minute restante
+           *[other] ~{ $n } minutes restantes
+        }
+    .seconds =
+        { $n ->
+            [one] ~{ $n } seconde restante
+           *[other] ~{ $n } secondes restantes
+        }
+hud-hardcore_will_char_deleted = Ce personnage hardcore va être supprimé.
+hud-press_key_to_give_up = Maintenez { $key } pour abandonner et mourir.
+hud-downed_recieving_help = En train de recevoir de l'aide.
+hud-help = Aider

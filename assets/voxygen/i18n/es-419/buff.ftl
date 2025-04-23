@@ -16,8 +16,6 @@ buff-saturation = Saturación
 
 ## Campfire
 
-buff-campfire_heal = Curación de fogata
-    .desc = Descansar en una fogata cura { $rate }% por segundo.
 
 ## Energy Regen
 
