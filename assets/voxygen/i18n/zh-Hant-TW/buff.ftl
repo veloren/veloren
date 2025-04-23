@@ -24,8 +24,6 @@ buff-saturation = 飽食
 
 ## 營火
 
-buff-campfire_heal = 營火治癒
-    .desc = 在營火旁休息，每秒恢復 { $rate } % 生命值
 
 ## 能量恢復
 

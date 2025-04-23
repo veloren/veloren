@@ -16,8 +16,6 @@ buff-saturation = Saturación
 
 ## Hogueras
 
-buff-campfire_heal = Descanso en hoguera
-    .desc = Descansar en una hoguera restaura { $rate } % de salud por segundo.
 
 ## Regeneración de energía
 

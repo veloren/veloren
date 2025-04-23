@@ -26,8 +26,6 @@ buff-saturation = Saturazione
 
 ## Campfire
 
-buff-campfire_heal = Cura del falò
-    .desc = Riposare vicino un fuoco da campo cura il { $rate }% al secondo.
 
 ## Energy Regen
 

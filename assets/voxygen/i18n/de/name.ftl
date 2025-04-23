@@ -1,6 +1,6 @@
 name-custom-village-farmer =
-    .fem = Bauer
-    .masc = Bäuerin
+    .fem = Bäuerin
+    .masc = Bauer
 name-custom-village-hunter =
     .fem = Jägerin
     .masc = Jäger

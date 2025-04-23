@@ -16,8 +16,6 @@ buff-saturation = Nasycenie
 
 ## Ognisko
 
-buff-campfire_heal = Odpoczynek przy ognisku
-    .desc = Odpoczywanie przy ognisku przywraca { $rate }% zdrowia na sekundę.
 
 ## Regeneracja Energii
 

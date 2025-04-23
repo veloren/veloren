@@ -107,4 +107,4 @@ hud-diary-sections-recipes-title = Рецепты
 common-tool-throwable = Метательный
 common-kind-lantern = Фонарь
 hud-diary-sections-skill_trees-title = Деревья-Навыков
-hud-diary-sections-stats-title = Статистика
+hud-diary-sections-character-title = Персонаж

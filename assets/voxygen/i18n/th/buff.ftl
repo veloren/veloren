@@ -16,8 +16,6 @@ buff-saturation = ท้องอิ่ม
 
 ## Campfire
 
-buff-campfire_heal = พักผ่อน ณ แคมป์ไฟ
-    .desc = เมื่อนั่งพักที่แคมป์ไฟจะช่วยพื้นฟูพลังชีวิต { $rate }% ต่อวินาที
 
 ## Energy Regen
 

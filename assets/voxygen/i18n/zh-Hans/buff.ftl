@@ -16,8 +16,6 @@ buff-saturation = 饱腹
 
 ## Campfire
 
-buff-campfire_heal = 篝火疗愈
-    .desc = 在篝火旁休息每秒可治愈{ $rate }%生命.
 
 ## Energy Regen
 

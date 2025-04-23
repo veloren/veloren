@@ -94,3 +94,4 @@ gamepad-north = Север
 gamepad-z = Z
 gamepad-right_trigger = Правая Боковая Кнопка
 gameinput-controls = Управление
+gameinput-cancelclimb = Отменить карабканье

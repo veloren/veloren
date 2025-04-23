@@ -16,8 +16,6 @@ buff-saturation = Sättigung
 
 ## Campfire
 
-buff-campfire_heal = Heilung durch Lagerfeuer
-    .desc = Das Sitzen am Lagerfeuer heilt { $rate }% der Lebensenergie pro Sekunde.
 
 ## Energy Regen
 

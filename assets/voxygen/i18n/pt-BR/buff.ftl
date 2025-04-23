@@ -16,8 +16,6 @@ buff-saturation = Saturação
 
 ## Fogueira
 
-buff-campfire_heal = Cura de Acampamento
-    .desc = Descansar próximo a uma fogueira de acampamento cura { $rate }% de vida por segundo.
 
 ## Recuperação de Energia
 
