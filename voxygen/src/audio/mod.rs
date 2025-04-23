@@ -12,9 +12,16 @@ use channel::{
     AmbienceChannel, AmbienceChannelTag, LoopPoint, MusicChannel, MusicChannelTag, SfxChannel,
     UiChannel,
 };
+use cpal::{
+    Device,
+    traits::{DeviceTrait, HostTrait},
+};
 use kira::{
     AudioManager, AudioManagerSettings, Decibels, Tween, Value,
-    backend::{self, DefaultBackend},
+    backend::{
+        self,
+        cpal::{CpalBackend, CpalBackendSettings},
+    },
     clock::{ClockHandle, ClockSpeed, ClockTime},
     effect::filter::{FilterBuilder, FilterHandle},
     listener::ListenerHandle,
@@ -24,7 +31,8 @@ use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
 use soundcache::load_ogg;
 use std::{collections::VecDeque, time::Duration};
-use tracing::{debug, error, warn};
+use strum::Display;
+use tracing::{debug, error, info, warn};
 
 use common::{
     assets::{AssetExt, AssetHandle},
@@ -69,6 +77,32 @@ struct Tracks {
     ui: TrackHandle,
     sfx: TrackHandle,
     ambience: TrackHandle,
+}
+
+#[derive(Clone, Copy, Debug, Display)]
+pub enum SfxChannelSettings {
+    Low,
+    Medium,
+    High,
+}
+
+impl SfxChannelSettings {
+    pub fn from_str_slice(str: &str) -> Self {
+        match str {
+            "Low" => SfxChannelSettings::Low,
+            "Medium" => SfxChannelSettings::Medium,
+            "High" => SfxChannelSettings::High,
+            _ => SfxChannelSettings::Medium,
+        }
+    }
+
+    pub fn to_usize(&self) -> usize {
+        match self {
+            SfxChannelSettings::Low => 16,
+            SfxChannelSettings::Medium => 32,
+            SfxChannelSettings::High => 64,
+        }
+    }
 }
 
 struct Effects {
@@ -154,7 +188,7 @@ struct AudioFrontendInner {
 }
 
 enum AudioCreationError {
-    Manager(<DefaultBackend as backend::Backend>::Error),
+    Manager(<CpalBackend as backend::Backend>::Error),
     Clock(kira::ResourceLimitReached),
     Track(kira::ResourceLimitReached),
     Listener(kira::ResourceLimitReached),
@@ -165,12 +199,20 @@ impl AudioFrontendInner {
         num_sfx_channels: usize,
         num_ui_channels: usize,
         buffer_size: usize,
+        device: Option<Device>,
+        sample_rate: Option<u32>,
     ) -> Result<Self, AudioCreationError> {
-        let manager_settings = AudioManagerSettings {
-            internal_buffer_size: buffer_size,
+        let backend_settings = CpalBackendSettings {
+            device,
+            sample_rate,
             ..Default::default()
         };
-        let mut manager = AudioManager::<DefaultBackend>::new(manager_settings)
+        let manager_settings = AudioManagerSettings {
+            internal_buffer_size: buffer_size,
+            backend_settings,
+            ..Default::default()
+        };
+        let mut manager = AudioManager::<CpalBackend>::new(manager_settings)
             .map_err(AudioCreationError::Manager)?;
 
         let mut clock = manager
@@ -301,38 +343,73 @@ impl AudioFrontend {
         combat_music_enabled: bool,
         buffer_size: usize,
     ) -> Self {
-        let inner = AudioFrontendInner::new(num_sfx_channels, num_ui_channels, buffer_size)
-            .inspect_err(|err| match err {
-                AudioCreationError::Manager(e) => {
-                    #[cfg(unix)]
-                    error!(
-                        ?e,
-                        "failed to construct audio frontend manager. Is `pulseaudio-alsa` \
-                         installed?"
+        let mut device = cpal::default_host().default_output_device();
+        let mut samplerate = None;
+        if let Some(device) = device.as_mut() {
+            if let Ok(default_output_config) = device.default_output_config() {
+                // Max samplerate
+                info!(
+                    "Current default samplerate: {:?}",
+                    default_output_config.sample_rate().0
+                );
+                if default_output_config.sample_rate().0 > 48000 {
+                    warn!(
+                        "Current default samplerate is higher than 48000; attempting to lower \
+                         samplerate to 44100"
                     );
-                    #[cfg(not(unix))]
-                    error!(?e, "failed to construct audio frontend manager.");
-                },
-                AudioCreationError::Clock(e) => {
-                    error!(?e, "Failed to construct audio frontend clock.")
-                },
-                AudioCreationError::Track(e) => {
-                    error!(?e, "Failed to construct audio frontend track.")
-                },
-                AudioCreationError::Listener(e) => {
-                    error!(?e, "Failed to construct audio frontend listener.")
-                },
-            })
-            .ok();
+                    samplerate = Some(44100)
+                }
+            }
+        }
+        let inner = AudioFrontendInner::new(
+            num_sfx_channels,
+            num_ui_channels,
+            buffer_size,
+            device,
+            samplerate,
+        )
+        .inspect_err(|err| match err {
+            AudioCreationError::Manager(e) => {
+                #[cfg(unix)]
+                error!(
+                    ?e,
+                    "failed to construct audio frontend manager. Is `pulseaudio-alsa` installed?"
+                );
+                #[cfg(not(unix))]
+                error!(?e, "failed to construct audio frontend manager.");
+            },
+            AudioCreationError::Clock(e) => {
+                error!(?e, "Failed to construct audio frontend clock.")
+            },
+            AudioCreationError::Track(e) => {
+                error!(?e, "Failed to construct audio frontend track.")
+            },
+            AudioCreationError::Listener(e) => {
+                error!(?e, "Failed to construct audio frontend listener.")
+            },
+        })
+        .ok();
 
-        Self {
-            inner,
-            volumes: Volumes::default(),
-            music_spacing: 1.0,
-            mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
-            subtitles: VecDeque::new(),
-            subtitles_enabled: subtitles,
-            combat_music_enabled,
+        if let Some(inner) = inner {
+            Self {
+                inner: Some(inner),
+                volumes: Volumes::default(),
+                music_spacing: 1.0,
+                mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
+                subtitles: VecDeque::new(),
+                subtitles_enabled: subtitles,
+                combat_music_enabled,
+            }
+        } else {
+            Self {
+                inner: None,
+                volumes: Volumes::default(),
+                music_spacing: 1.0,
+                mtm: AssetExt::load_expect("voxygen.audio.music_transition_manifest"),
+                subtitles: VecDeque::new(),
+                subtitles_enabled: subtitles,
+                combat_music_enabled,
+            }
         }
     }
 
@@ -367,6 +444,14 @@ impl AudioFrontend {
             .as_ref()
             .map(|i| i.channels.count_active())
             .unwrap_or_default()
+    }
+
+    pub fn get_cpu_usage(&mut self) -> f32 {
+        if let Some(inner) = self.inner.as_mut() {
+            inner.manager.backend_mut().pop_cpu_usage().unwrap_or(0.0)
+        } else {
+            0.0
+        }
     }
 
     /// Play a music file with the given tag. Pass in the length of the track in
@@ -651,6 +736,9 @@ impl AudioFrontend {
         }
     }
 
+    /// Retrieves the current setting for master volume
+    pub fn get_master_volume(&self) -> f32 { self.volumes.master }
+
     /// Retrieves the current setting for music volume
     pub fn get_music_volume(&self) -> f32 { self.volumes.music }
 
@@ -743,6 +831,21 @@ impl AudioFrontend {
             }
             for channel in &mut inner.channels.ui {
                 channel.stop();
+            }
+        }
+    }
+
+    pub fn set_num_sfx_channels(&mut self, channels: usize) {
+        if let Some(inner) = self.inner.as_mut() {
+            inner.channels.sfx = Vec::new();
+            for _ in 0..channels {
+                if let Ok(channel) =
+                    SfxChannel::new(&mut inner.tracks.sfx, inner.listener.handle.id())
+                {
+                    inner.channels.sfx.push(channel);
+                } else {
+                    warn!("Cannot create sfx channel")
+                }
             }
         }
     }

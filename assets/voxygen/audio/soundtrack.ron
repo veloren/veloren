@@ -41,7 +41,7 @@
             ],
             sites: [Void],
             music_state: Activity(Explore),
-            artist: ("Stone Music Productions", "https://www.stonemusicproductions.com/"),
+            artist: ("Stone Music Productions", "https://soundcloud.com/stone_music_productions/"),
         )),
         Individual((
             title: "A Peaceful Moment",
@@ -568,7 +568,7 @@
                 Settlement(SavannahTown),
             ],
             music_state: Activity(Explore),
-            artist: ("Stone Music Productions", "https://www.stonemusicproductions.com/"),
+            artist: ("Stone Music Productions", "https://soundcloud.com/stone_music_productions/"),
         )),
         Individual((
             title: "Life of a Background Mob",

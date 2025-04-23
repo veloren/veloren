@@ -1,6 +1,7 @@
 use super::SessionState;
 use crate::{
     GlobalState,
+    audio::SfxChannelSettings,
     controller::ControllerSettings,
     game_input::GameInput,
     hud::{
@@ -31,7 +32,7 @@ pub enum Audio {
     MuteAmbienceVolume(bool),
     AdjustMusicSpacing(f32),
     ToggleCombatMusic(bool),
-    //ChangeAudioDevice(String),
+    SetNumSfxChannels(SfxChannelSettings),
     ResetAudioSettings,
 }
 #[derive(Clone)]
@@ -299,6 +300,11 @@ impl SettingsChange {
                     },
                     Audio::ToggleCombatMusic(combat_music_enabled) => {
                         global_state.audio.combat_music_enabled = combat_music_enabled
+                    },
+                    Audio::SetNumSfxChannels(level) => {
+                        let num = SfxChannelSettings::to_usize(&level);
+                        global_state.audio.set_num_sfx_channels(num);
+                        settings.audio.num_sfx_channels = num;
                     },
                     Audio::ResetAudioSettings => {
                         settings.audio = AudioSettings::default();

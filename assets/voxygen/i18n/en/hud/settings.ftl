@@ -137,6 +137,7 @@ hud-settings-ambience_volume = Ambience Volume
 hud-settings-combat_music = Combat Music
 hud-settings-music_spacing = Music Spacing
 hud-settings-audio_device = Audio Device
+hud-settings-sfx_channels = SFX Channel Capacity
 hud-settings-reset_sound = Reset to Defaults
 hud-settings-english_fallback = Display English for missing translations
 hud-settings-language_send_to_server = Send the configured language to servers (for localizing rules and motd messages)
