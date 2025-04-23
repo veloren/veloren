@@ -16,9 +16,11 @@ use vek::*;
 /// sizes there is a total of 8 passes going from the largest to the smallest to
 /// the largest again:
 ///
+/// ```text
 /// 1 -> 1/2 -> 1/4 -> 1/8 -> 1/16 -> 1/8 -> 1/4 -> 1/2 -> 1
 ///                           ~~~~
-///     \[downsampling\]      smallest      \[upsampling\]
+///     [downsampling]      smallest      [upsampling]
+/// ```
 ///
 /// The textures used for downsampling are re-used when upsampling.
 ///

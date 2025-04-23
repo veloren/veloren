@@ -573,7 +573,7 @@ fn handle_mute(
     }
 }
 
-/// Handles [`ClientChatCommand::Unmutse`]
+/// Handles [`ClientChatCommand::Unmute`]
 fn handle_unmute(
     session_state: &mut SessionState,
     global_state: &mut GlobalState,
@@ -697,6 +697,7 @@ fn handle_waypoint(
 ///
 /// With no arguments, opens the wiki homepage.
 /// With arguments, performs a search on the wiki for the specified terms.
+/// Returns an error if the browser fails to open.
 fn handle_wiki(
     _session_state: &mut SessionState,
     _global_state: &mut GlobalState,
