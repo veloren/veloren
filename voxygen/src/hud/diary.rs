@@ -3347,8 +3347,8 @@ impl CharacterStat {
 
         match self {
             Name => i18n.get_msg("character_window-character_name"),
-            BattleMode => Cow::Borrowed("Battle Mode"),
-            Waypoint => Cow::Borrowed("Waypoint"),
+            BattleMode => i18n.get_msg("hud-battle-mode"),
+            Waypoint => i18n.get_msg("hud-waypoint"),
             Hitpoints => i18n.get_msg("hud-bag-health"),
             Energy => i18n.get_msg("hud-bag-energy"),
             CombatRating => i18n.get_msg("hud-bag-combat_rating"),
