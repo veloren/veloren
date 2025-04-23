@@ -65,7 +65,7 @@ impl Default for AudioSettings {
             music_volume: AudioVolume::new(0.5, false),
             sfx_volume: AudioVolume::new(0.8, false),
             ambience_volume: AudioVolume::new(0.8, false),
-            num_sfx_channels: 48,
+            num_sfx_channels: 32,
             num_ui_channels: 16,
             music_spacing: 1.0,
             subtitles: false,

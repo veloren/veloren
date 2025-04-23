@@ -149,6 +149,8 @@ pub struct MusicMgr {
     began_playing: Option<ClockTime>,
     /// Instant at which the current track should stop
     song_end: Option<ClockTime>,
+    /// Currently staying silent for gap between tracks
+    is_gap: bool,
     /// Time until the next track should be played after a track ends
     gap_length: f32,
     /// Time remaining for gap
@@ -212,6 +214,7 @@ impl MusicMgr {
             soundtrack: Self::load_soundtrack_items(calendar),
             began_playing: None,
             song_end: None,
+            is_gap: true,
             gap_length: 0.0,
             gap_time: -1.0,
             last_track: String::from("None"),
@@ -301,7 +304,7 @@ impl MusicMgr {
         let began_playing = *self.began_playing.get_or_insert(now);
         let last_interrupt_attempt = *self.last_interrupt_attempt.get_or_insert(now);
         let song_end = *self.song_end.get_or_insert(now);
-        let mut time_since_began_playing = time_f64(now) - time_f64(began_playing);
+        let time_since_began_playing = time_f64(now) - time_f64(began_playing);
 
         // TODO: Instead of a constant tick, make this a timer that starts only when
         // combat might end, providing a proper "buffer".
@@ -327,7 +330,6 @@ impl MusicMgr {
                 > time_f64(song_end) - time_f64(began_playing) // Amount of time between when the song ends and when it began playing
                 || interrupt)
         {
-            time_since_began_playing = time_f64(now) - time_f64(began_playing);
             if time_since_began_playing > self.track_length as f64
                 && self.last_activity
                     != MusicState::Activity(MusicActivity::Combat(CombatIntensity::High))
@@ -355,7 +357,7 @@ impl MusicMgr {
                     )
             {
                 // If current state is Explore, insert a gap now.
-                if self.gap_time == 0.0 {
+                if !self.is_gap {
                     self.gap_length = self.generate_silence_between_tracks(
                         audio.music_spacing,
                         client,
@@ -364,9 +366,10 @@ impl MusicMgr {
                     );
                     self.gap_time = self.gap_length as f64;
                     self.song_end = audio.get_clock_time();
+                    self.is_gap = true
                 } else if self.gap_time < 0.0 {
                     // Gap time is up, play a track
-                    // Hack to make combat situations not cancel explore music
+                    // Hack to make combat situations not cancel explore music for now
                     if music_state
                         == MusicState::Transition(
                             MusicActivity::Explore,
@@ -381,6 +384,7 @@ impl MusicMgr {
                         self.last_activity = next_activity;
                         self.gap_time = 0.0;
                         self.gap_length = 0.0;
+                        self.is_gap = false;
                     }
                 }
             } else if music_state
@@ -410,7 +414,9 @@ impl MusicMgr {
 
         if time_since_began_playing > self.track_length as f64 {
             // Time remaining = Max time - (current time - time song ended)
-            self.gap_time = (self.gap_length as f64) - (time_f64(now) - time_f64(song_end));
+            if self.is_gap {
+                self.gap_time = (self.gap_length as f64) - (time_f64(now) - time_f64(song_end));
+            }
         }
     }
 
@@ -513,7 +519,6 @@ impl MusicMgr {
 
         if let Ok(track) = new_maybe_track {
             let now = audio.get_clock_time().unwrap();
-            // println!("Now playing {:?}", track.title);
             self.last_track = String::from(&track.title);
             self.began_playing = Some(now);
             self.song_end = Some(ClockTime::from_ticks_f64(
@@ -631,9 +636,15 @@ impl MusicMgr {
 
     pub fn current_artist(&self) -> String { self.current_artist.clone() }
 
-    pub fn reset_track(&mut self) {
+    pub fn reset_track(&mut self, audio: &mut AudioFrontend) {
         self.current_artist = String::from("None");
         self.current_track = String::from("None");
+        self.gap_length = 1.0;
+        self.gap_time = 1.0;
+        self.is_gap = true;
+        self.track_length = 0.0;
+        self.began_playing = audio.get_clock_time();
+        self.song_end = audio.get_clock_time();
     }
 
     /// Loads default soundtrack if no events are active. Otherwise, attempts to

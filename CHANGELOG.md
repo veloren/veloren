@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adding a space after chat mode commands changes chat modes.
 - New and more granular options for the `/kit` command.
 - Beds now regen health when mounted.
+- Setting dropdown for SFX channel capacity.
 
 ### Changed
 
@@ -90,6 +91,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made it easier to interact with sprites on moving airships.
 - Fixed mismatches in some armour item drop models.
 - Gnarling Chieftain's totem summons now face their target.
+- Game should no longer crash when encountering bad audio device configuration.
+- Audio backend tries to switch to a lower samplerate when detecting an abnormally high one.
+- Fixed music tracks playing straight after one another sometimes.
 
 ## [0.17.0] - 2024-12-28
 

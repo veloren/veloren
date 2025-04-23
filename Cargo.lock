@@ -517,7 +517,7 @@ dependencies = [
  "bitflags 2.8.0",
  "cexpr",
  "clang-sys",
- "itertools 0.13.0",
+ "itertools 0.10.5",
  "proc-macro2 1.0.93",
  "quote 1.0.38",
  "regex",
@@ -724,7 +724,7 @@ dependencies = [
  "cap-primitives",
  "cap-std",
  "io-lifetimes",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -752,7 +752,7 @@ dependencies = [
  "ipnet",
  "maybe-owned",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
  "winx",
 ]
 
@@ -2124,7 +2124,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33d852cb9b869c2a9b3df2f71a3074817f01e1844f839a144f5fcef059a4eb5d"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2693,9 +2693,9 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.29.0"
+version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c28091a37a5d09b555cb6628fd954da299b536433834f5b8e59eba78e0cbbf8a"
+checksum = "bf3aa70d918d2b234126ff4f850f628f172542bf0603ded26b8ee36e5e22d5f9"
 dependencies = [
  "mint",
 ]
@@ -3801,13 +3801,12 @@ dependencies = [
 
 [[package]]
 name = "kira"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15d97c4d549cb864dbd2eb22391231d785a25ec908268603b70abeba5845fd66"
+version = "0.10.5"
+source = "git+https://github.com/DaforLynx/kira.git?tag=v0.10.5-with-samplerate-selection#854d0e8c63230045c5bc464376fa1caed73eb441"
 dependencies = [
  "atomic-arena",
  "cpal",
- "glam 0.29.0",
+ "glam 0.30.1",
  "mint",
  "paste",
  "rtrb",
@@ -5484,7 +5483,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -5941,7 +5940,7 @@ dependencies = [
  "libc",
  "linux-raw-sys",
  "once_cell",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -6698,7 +6697,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "libc",
  "psm",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -7383,9 +7382,9 @@ dependencies = [
 
 [[package]]
 name = "triple_buffer"
-version = "8.0.0"
+version = "8.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e66931c8eca6381f0d34656a9341f09bd462010488c1a3bc0acd3f2d08dffce"
+checksum = "de7a7d39da903eaef0d0fd14aae8c8c36cdd7dc1d5a251f88c84b676e8dc0a14"
 dependencies = [
  "crossbeam-utils 0.8.21",
 ]
@@ -7414,7 +7413,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "rand",
  "static_assertions",
 ]
@@ -8032,6 +8031,7 @@ dependencies = [
  "clap",
  "conrod_core",
  "conrod_winit",
+ "cpal",
  "criterion",
  "crossbeam-channel",
  "crossbeam-utils 0.8.21",
@@ -9085,7 +9085,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]

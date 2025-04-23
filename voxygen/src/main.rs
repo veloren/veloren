@@ -162,7 +162,6 @@ fn main() {
             false, // We're disabling combat music for now
             settings.audio.buffer_size,
         ),
-        //    AudioOutput::Device(ref dev) => Some(dev.clone()),
     };
 
     audio.set_master_volume(settings.audio.master_volume.get_checked());

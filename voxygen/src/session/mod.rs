@@ -424,7 +424,7 @@ impl SessionState {
                 client::Event::CharacterEdited(_) => {},
                 client::Event::CharacterError(_) => {},
                 client::Event::CharacterJoined(_) => {
-                    self.scene.music_mgr.reset_track();
+                    self.scene.music_mgr.reset_track(&mut global_state.audio);
                 },
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
@@ -1640,6 +1640,7 @@ impl PlayState for SessionState {
                     current_track: self.scene.music_mgr().current_track(),
                     current_artist: self.scene.music_mgr().current_artist(),
                     active_channels: global_state.audio.get_num_active_channels(),
+                    audio_cpu_usage: global_state.audio.get_cpu_usage(),
                 }
             });
 

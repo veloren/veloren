@@ -672,6 +672,7 @@ pub struct DebugInfo {
     pub current_track: String,
     pub current_artist: String,
     pub active_channels: ActiveChannels,
+    pub audio_cpu_usage: f32,
 }
 
 pub struct HudInfo<'a> {
@@ -2882,11 +2883,12 @@ impl Hud {
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.song_info, ui_widgets);
             Text::new(&format!(
-                "Active channels: M{}, A{}, S{}, U{}",
+                "Active channels: M{}, A{}, S{}, U{}, CPU: {:2.0}%",
                 debug_info.active_channels.music,
                 debug_info.active_channels.ambience,
                 debug_info.active_channels.sfx,
                 debug_info.active_channels.ui,
+                debug_info.audio_cpu_usage * 100.0,
             ))
             .color(TEXT_COLOR)
             .down_from(self.ids.song_info, V_PAD)

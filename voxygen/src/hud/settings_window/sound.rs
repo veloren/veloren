@@ -2,14 +2,15 @@ use super::{RESET_BUTTONS_HEIGHT, RESET_BUTTONS_WIDTH};
 
 use crate::{
     GlobalState,
-    hud::{TEXT_COLOR, TEXT_COLOR_GREY, img_ids::Imgs},
-    session::settings_change::{Audio as AudioChange, Audio::*},
+    audio::SfxChannelSettings,
+    hud::{MENU_BG, TEXT_COLOR, TEXT_COLOR_GREY, img_ids::Imgs},
+    session::settings_change::Audio::{self as AudioChange, *},
     ui::{ImageSlider, ToggleButton, fonts::Fonts},
 };
 use conrod_core::{
     Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
     position::{Align, Relative},
-    widget::{self, Button, Rectangle, Scrollbar, Text},
+    widget::{self, Button, DropDownList, Rectangle, Scrollbar, Text},
     widget_ids,
 };
 use i18n::Localization;
@@ -42,11 +43,13 @@ widget_ids! {
         music_spacing_text,
         music_spacing_slider,
         music_spacing_number,
-        //audio_device_list,
-        //audio_device_text,
         reset_sound_button,
         combat_music_toggle_label,
         combat_music_toggle_button,
+        sfx_channels_label,
+        sfx_channels_list,
+        // audio_device_list,
+        // audio_device_text,
     }
 }
 
@@ -433,6 +436,62 @@ impl Widget for Sound<'_> {
         .color(TEXT_COLOR)
         .set(state.ids.music_spacing_number, ui);
 
+        // Num Sfx Channels
+        // --------------------------------------------
+        Text::new(&self.localized_strings.get_msg("hud-settings-sfx_channels"))
+            .down_from(state.ids.music_spacing_number, 10.0)
+            .x_align_to(state.ids.music_spacing_text, Align::Start)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.sfx_channels_label, ui);
+
+        let current: Option<usize> = match self.global_state.settings.audio.num_sfx_channels {
+            16 => Some(0),
+            32 => Some(1),
+            64 => Some(2),
+            _ => None,
+        };
+
+        let num_sfx_setting_list = [
+            SfxChannelSettings::Low.to_string(),
+            SfxChannelSettings::Medium.to_string(),
+            SfxChannelSettings::High.to_string(),
+        ];
+
+        let num_sfx_setting_list_shown = vec![
+            format!(
+                "{} ({})",
+                &SfxChannelSettings::Low.to_string(),
+                &SfxChannelSettings::Low.to_usize().to_string()
+            ),
+            format!(
+                "{} ({})",
+                &SfxChannelSettings::Medium.to_string(),
+                &SfxChannelSettings::Medium.to_usize().to_string()
+            ),
+            format!(
+                "{} ({})",
+                &SfxChannelSettings::High.to_string(),
+                &SfxChannelSettings::High.to_usize().to_string()
+            ),
+        ];
+
+        if let Some(clicked) = DropDownList::new(&num_sfx_setting_list_shown, current)
+            .w_h(150.0, 22.0)
+            .color(MENU_BG)
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.sfx_channels_label, 10.0)
+            .set(state.ids.sfx_channels_list, ui)
+        {
+            let new_val = &num_sfx_setting_list[clicked];
+
+            events.push(SetNumSfxChannels(SfxChannelSettings::from_str_slice(
+                new_val,
+            )));
+        }
+
         // Combat music toggle
         // let audio = &self.global_state.audio;
 
@@ -459,18 +518,17 @@ impl Widget for Sound<'_> {
 
         // Audio Device Selector
         // --------------------------------------------
-        // let device = &self.global_state.audio.device;
-        //let device_list = &self.global_state.audio.device_list;
-        //Text::new(self.localized_strings.get("hud.settings.audio_device"
-        // ))    .down_from(state.ids.sfx_volume_slider, 10.0)
-        //    .font_size(self.fonts.cyri.scale(14))
-        //    .font_id(self.fonts.cyri.conrod_id)
-        //    .color(TEXT_COLOR)
-        //    .set(state.ids.audio_device_text, ui);
+        // let device = &self.global_state.audio.current_device;
+        // let device_list = self.global_state.audio.get_device_list();
+        // Text::new(&self.localized_strings.get_msg("hud.settings.audio_device"))
+        //     .down_from(state.ids.music_spacing_number, 10.0)
+        //     .font_size(self.fonts.cyri.scale(14))
+        //     .font_id(self.fonts.cyri.conrod_id)
+        //     .color(TEXT_COLOR)
+        //     .set(state.ids.audio_device_text, ui);
 
-        //// Get which device is currently selected
-        //let selected = device_list.iter().position(|x|
-        // x.contains(device));
+        // // Get which device is currently selected
+        // let selected = device_list.iter().position(|d| d == device);
 
         //if let Some(clicked) = DropDownList::new(&device_list, selected)
         //    .w_h(400.0, 22.0)
@@ -489,7 +547,7 @@ impl Widget for Sound<'_> {
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.combat_music_toggle_button, 12.0)
+            .down_from(state.ids.sfx_channels_list, 12.0)
             .x_align_to(state.ids.ambience_volume_text, Align::Start)
             .label(&self.localized_strings.get_msg("hud-settings-reset_sound"))
             .label_font_size(self.fonts.cyri.scale(14))
