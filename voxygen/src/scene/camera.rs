@@ -71,8 +71,8 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
     }
 }
 
-/// Generalized method to construct a perspective projection with x ∈ [-1,1], y
-/// ∈ [-1,1], z ∈ [0,1] given fov_y_radians, aspect_ratio, 1/n, and 1/f.  Note
+/// Generalized method to construct a perspective projection with `x ∈ [-1,1], y
+/// ∈ [-1,1], z ∈ [0,1]` given fov_y_radians, aspect_ratio, 1/n, and 1/f.  Note
 /// that you pass in *1/n* and *1/f*, not n and f like you normally would for a
 /// perspective projection; this is done to enable uniform handling of both
 /// finite and infinite far planes.
@@ -126,7 +126,7 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 /// (assuming a finite far plane--see below for details on the infinite
 /// case) the change in the integer representation of the mantissa at z=n/2:
 ///
-/// ```ignore
+/// ```text
 /// e = floor(ln(near/(far - near))/ln(2))
 /// db/dz = 2^(2-e) / ((1 / far - 1 / near) * (far)^2)
 /// ```
@@ -135,14 +135,14 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 /// integer representation of the mantissa (assuming 32-bit floating points)
 /// is around:
 ///
-/// ```ignore
+/// ```text
 /// abs(2^(-23) / (db/dz)).
 /// ```
 ///
 /// In particular, if your worst-case target accuracy over the depth range
 /// is Δz, you should be okay if:
 ///
-/// ```ignore
+/// ```text
 /// abs(Δz * (db/dz)) * 2^(23) ≥ 1.
 /// ```
 ///
@@ -150,9 +150,9 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 /// it's possible that artifacts may be introduced elsewhere during the
 /// computation that reduce precision further; the most famous example of
 /// this is that OpenGL wipes out most of the precision gains by going from
-/// [-1,1] to [0,1] by letting
+/// \[-1,1\] to \[0,1\] by letting
 ///
-/// ```ignore
+/// ```text
 /// clip space depth = depth * 0.5 + 0.5
 /// ```
 ///
@@ -177,14 +177,14 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 /// potentially removing artifacts!  Specifically, in the 0 to 1 depth plane
 /// case, the assigned depth value (after perspective division) becomes:
 ///
-/// ```ignore
+/// ```text
 /// depth = 1 - near/z
 /// ```
 ///
 /// while in the 1 to 0 depth plane case (which you should be using), the
 /// equation is even simpler:
 ///
-/// ```ignore
+/// ```text
 /// depth = near/z
 /// ```
 ///
@@ -194,7 +194,7 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 /// absolute z value for which that precision can be achieved (the upper
 /// bound is tight in some cases, but in others may be conservative):
 ///
-/// ```ignore
+/// ```text
 /// db/dz ≥ 1/z
 /// ```
 ///
@@ -202,7 +202,7 @@ fn clamp_and_modulate(ori: Vec3<f32>) -> Vec3<f32> {
 /// precision at least in the range (again, this is for the 1 to 0 infinite
 /// case only!):
 ///
-/// ```ignore
+/// ```text
 /// abs(z) ≤ Δz * 2^23
 /// ```
 ///

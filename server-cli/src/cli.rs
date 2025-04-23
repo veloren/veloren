@@ -141,7 +141,7 @@ pub struct ArgvApp {
     /// Doesn't listen on STDIN
     ///
     /// Useful if you want to send the server in background, and your kernels
-    /// terminal driver will send SIGTTIN to it otherwise. (https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Redirections) and you dont want to use `stty -tostop`
+    /// terminal driver will send SIGTTIN to it otherwise. <https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Redirections> and you dont want to use `stty -tostop`
     /// or `nohub` or `tmux` or `screen` or `<<< \"\\004\"` to the program.
     pub non_interactive: bool,
     #[arg(long)]

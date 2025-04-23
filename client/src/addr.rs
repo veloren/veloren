@@ -4,13 +4,13 @@ use tracing::trace;
 
 #[derive(Clone, Debug)]
 pub enum ConnectionArgs {
-    ///hostname: (hostname|ip):[<port>]
+    ///hostname: `(hostname|ip):[<port>]`
     Quic {
         hostname: String,
         prefer_ipv6: bool,
         validate_tls: bool,
     },
-    ///hostname: (hostname|ip):[<port>]
+    ///hostname: `(hostname|ip):[<port>]`
     Tcp {
         hostname: String,
         prefer_ipv6: bool,

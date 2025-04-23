@@ -81,7 +81,7 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 /// The intent is that you should not construct this structure directly, nor
 /// should you define or construct the `Cases` structure directly.  Instead, to
 /// use this you are expected to wrap your enum declaration in a call to
-/// [make_case_elim!], as follows:
+/// [`crate::make_case_elim!`], as follows:
 ///
 /// ```
 /// veloren_common::make_case_elim!(
@@ -167,8 +167,8 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 /// Instead, we'll just present the method you can use most easily to pattern
 /// match using the PureCases pattern we mentioned earlier:
 ///
-/// pub fn elim_case_pure<'a, Type>(&'a self, cases: &'a $mod::PureCases<Type>)
-/// -> &'a Type
+/// `pub fn elim_case_pure<'a, Type>(&'a self, cases: &'a $mod::PureCases<Type>)
+/// -> &'a Type`
 ///
 /// If self is expression of your defined enum type, and match data defined by
 /// PureCases, this evaluates the pattern match on self and returns the matched

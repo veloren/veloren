@@ -8,7 +8,7 @@ use core::convert::{Infallible, TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
 
 /// NOTE: Always replace this with the latest server description version. Then
-/// update the ServerDescriptionRaw, the TryFrom<ServerDescriptionRaw> for
+/// update the ServerDescriptionRaw, the `TryFrom<ServerDescriptionRaw>` for
 /// ServerDescription, the previously most recent module, and add a new module
 /// for the latest version!  Please respect the migration upgrade guarantee
 /// found in the parent module with any upgrade.

@@ -247,7 +247,7 @@ end of 2nd level Enums
 /// Inform the client of updates to the player list.
 ///
 /// Note: Before emiting any of these, check if the current
-/// [`Client::client_type`] wants to emit login events.
+/// [`veloren_client::Client::client_type`] wants to emit login events.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PlayerListUpdate {
     Init(HashMap<Uid, PlayerInfo>),

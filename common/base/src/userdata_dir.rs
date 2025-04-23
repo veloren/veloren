@@ -22,7 +22,7 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 ///
 /// Available options are:
 /// * "system" => system specific project data directory
-/// * "executable" => <executable dir>/userdata
+/// * "executable" => `<executable dir>/userdata`
 ///
 /// > **Note:** _case insensitive_
 pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str) -> PathBuf {

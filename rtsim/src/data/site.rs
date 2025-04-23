@@ -17,8 +17,8 @@ pub struct Site {
     pub wpos: Vec2<i32>,
     pub faction: Option<FactionId>,
 
-    /// The [`Report`]s that the site tracks (you can imagine them being on a
-    /// noticeboard or something).
+    /// The [`veloren_rtsim::data::report::Report`]s that the site tracks (you
+    /// can imagine them being on a noticeboard or something).
     pub known_reports: HashSet<ReportId>,
 
     /// How many chunks this site is loaded in.

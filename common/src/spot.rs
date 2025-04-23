@@ -13,11 +13,12 @@ use strum::EnumIter;
 /// To add a new spot, one must:
 ///
 /// 1. Add a new variant to the [`Spot`] enum.
-/// 2. Add a new entry to [`Spot::generate`] that tells the system where to
-///    generate your new spot.
-/// 3. Add a new arm to the `match` expression in [`Spot::apply_spots_to`] that
-///    tells the generator how to generate a spot, including the base structure
-///    that composes the spot and the entities that should be spawned there.
+/// 2. Add a new entry to [`veloren-world::layer::spot::SpotGenerate::generate`]
+///    that tells the system where to generate your new spot.
+/// 3. Add a new arm to the `match` expression in
+///    [`veloren-world::layer::spot::apply_spots_to`] that tells the generator
+///    how to generate a spot, including the base structure that composes the
+///    spot and the entities that should be spawned there.
 ///
 /// Only add spots with randomly spawned NPCs here. Spots that only use
 /// EntitySpawner blocks can be added in assets/world/manifests/spots.ron

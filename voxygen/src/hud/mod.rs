@@ -820,7 +820,7 @@ pub enum PressBehavior {
     Toggle = 0,
 }
 /// Similar to [PressBehavior], with different semantics for settings that
-/// change state automatically. There is no [PressBehavior::update][update]
+/// change state automatically. There is no [PressBehavior::update]
 /// implementation because it doesn't apply to the use case; this is just a
 /// sentinel.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

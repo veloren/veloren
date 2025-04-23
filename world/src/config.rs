@@ -21,7 +21,7 @@ pub struct Config {
     /// slows down as it flows downhill, which consequently leads to lower
     /// velocities and higher river area for the same flow rate.
     ///
-    /// See https://wwwrcamnl.wr.usgs.gov/sws/fieldmethods/Indirects/nvalues/index.htm.
+    /// See <https://wwwrcamnl.wr.usgs.gov/sws/fieldmethods/Indirects/nvalues/index.htm>.
     ///
     /// The default is set to over 0.06, which is pretty high but still within a
     /// reasonable range for rivers.  The higher this is, the quicker rivers

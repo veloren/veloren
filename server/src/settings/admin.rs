@@ -8,7 +8,7 @@ use core::convert::{Infallible, TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
 
 /// NOTE: Always replace this with the latest admins version. Then update the
-/// AdminsRaw, the TryFrom<AdminsRaw> for Admins, the previously most recent
+/// AdminsRaw, the `TryFrom<AdminsRaw>` for Admins, the previously most recent
 /// module, and add a new module for the latest version!  Please respect the
 /// migration upgrade guarantee found in the parent module with any upgrade.
 pub use self::v1::*;

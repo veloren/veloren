@@ -32,6 +32,9 @@
 //! have more than 256 kinds, so there's not enough space), the category also
 //! corresponds to a 'kind mask': a bitmask that, when applied to the first two
 //! of the three bytes gives us the [`SpriteKind`].
+//!
+//! [`BlockKind`]: crate::terrain::block::BlockKind
+//! [`SpriteKind`]: crate::terrain::sprite::SpriteKind
 
 mod magic;
 //use inline_tweak::tweak_fn;

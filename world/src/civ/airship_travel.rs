@@ -78,10 +78,10 @@ pub struct AirshipDockingApproach {
 /// A route that an airship flies round-trip between two sites.
 #[derive(Clone, Debug)]
 pub struct AirshipRoute {
-    /// site[0] is the home site, site[1] is the away site.
+    /// site\[0\] is the home site, site\[1\] is the away site.
     pub sites: [Id<site::Site>; 2],
-    /// approaches[0] is flying from the home site to the away site.
-    /// approaches[1] is flying from the away site to the home site.
+    /// approaches\[0\] is flying from the home site to the away site.
+    /// approaches\[1\] is flying from the away site to the home site.
     pub approaches: [AirshipDockingApproach; 2],
     /// The distance between the two sites.
     pub distance: u32,

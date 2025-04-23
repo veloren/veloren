@@ -228,7 +228,7 @@ pub struct Npc {
     /// The current health of the NPC, < 0.0 is dead and 1.0 is max.
     pub health_fraction: f32,
 
-    /// The [`Report`]s that the NPC is aware of.
+    /// The [`veloren_rtsim::data::report::Report`]s that the NPC is aware of.
     pub known_reports: HashSet<ReportId>,
 
     #[serde(default)]

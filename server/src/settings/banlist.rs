@@ -9,9 +9,9 @@ use core::convert::{TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
 
 /// NOTE: Always replace this with the latest banlist version. Then update the
-/// BanlistRaw, the TryFrom<BanlistRaw> for Banlist, the previously most recent
-/// module, and add a new module for the latest version!  Please respect the
-/// migration upgrade guarantee found in the parent module with any upgrade.
+/// BanlistRaw, the `TryFrom<BanlistRaw>` for Banlist, the previously most
+/// recent module, and add a new module for the latest version!  Please respect
+/// the migration upgrade guarantee found in the parent module with any upgrade.
 pub use self::v2::*;
 
 /// Versioned settings files, one per version (v0 is only here as an example; we
@@ -127,14 +127,14 @@ pub enum BanOperation {
         reason: String,
         info: BanInfo,
         /// NOTE: Should always be higher than the `now` date provided to
-        /// [`BanList::ban_operation`] , if this is present!
+        /// [`Banlist::ban_operation`] , if this is present!
         end_date: Option<chrono::DateTime<chrono::Utc>>,
     },
     BanIp {
         reason: String,
         info: BanInfo,
         /// NOTE: Should always be higher than the `now` date provided to
-        /// [`BanList::ban_operation`] , if this is present!
+        /// [`Banlist::ban_operation`] , if this is present!
         end_date: Option<chrono::DateTime<chrono::Utc>>,
         ip: NormalizedIpAddr,
     },

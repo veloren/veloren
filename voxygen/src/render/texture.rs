@@ -161,7 +161,7 @@ impl Texture {
     }
 
     /// Note: the user is responsible for making sure the texture is fully
-    /// initialized before doing partial writes on Dx12 AMD: https://github.com/gfx-rs/wgpu/issues/1306
+    /// initialized before doing partial writes on Dx12 AMD: <https://github.com/gfx-rs/wgpu/issues/1306>
     pub fn new_raw(
         device: &wgpu::Device,
         texture_info: &wgpu::TextureDescriptor,

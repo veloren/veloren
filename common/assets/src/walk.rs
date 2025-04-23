@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// Represent tree of directory, result of [generate_tree].
+/// Represent tree of directory, result of [Walk::generate].
 ///
 /// Note that paths are always relative to root it was generated from.
 #[derive(Debug, Clone)]

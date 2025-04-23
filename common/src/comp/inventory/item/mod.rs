@@ -1532,7 +1532,7 @@ impl Item {
     }
 
     /// Checks if this item and another are suitable for grouping into the same
-    /// [`PickItem`].
+    /// [`PickupItem`].
     ///
     /// Also see [`Item::try_merge`].
     pub fn can_merge(&self, other: &Self) -> bool {
@@ -1548,7 +1548,7 @@ impl Item {
     }
 
     /// Checks if this item and another are suitable for grouping into the same
-    /// [`PickItem`] and combines stackable items if possible.
+    /// [`PickupItem`] and combines stackable items if possible.
     ///
     /// If the sum of both amounts is larger than their max amount, a remainder
     /// item is returned as `Ok(Some(remainder))`. A remainder item will
