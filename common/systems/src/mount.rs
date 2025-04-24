@@ -128,7 +128,7 @@ impl<'a> System<'a> for Sys {
             let Some(inputs_and_actions) = controllers.get_mut(rider_entity).map(|c| {
                 // Only take inputs and actions from the rider if the mount is not
                 // intelligent (TODO: expand the definition of 'intelligent').
-                if !matches!(body, Some(Body::Humanoid(_))) {
+                if body.is_some_and(|b| !b.has_free_will()) {
                     let actions = c
                         .actions
                         .extract_if(.., |action| match action {

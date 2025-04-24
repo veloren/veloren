@@ -304,6 +304,33 @@ impl Body {
         }
     }
 
+    /// This is used to see if a body can be controlled by its rider.
+    pub fn has_free_will(&self) -> bool {
+        match self {
+            Body::Humanoid(_) | Body::BipedLarge(_) | Body::BipedSmall(_) => true,
+            Body::Crustacean(body) => match body.species {
+                crustacean::Species::Crab => false,
+                crustacean::Species::SoldierCrab => false,
+                crustacean::Species::Karkatha => true,
+            },
+            Body::QuadrupedSmall(_)
+            | Body::QuadrupedMedium(_)
+            | Body::BirdMedium(_)
+            | Body::FishMedium(_)
+            | Body::Dragon(_)
+            | Body::BirdLarge(_)
+            | Body::FishSmall(_)
+            | Body::Object(_)
+            | Body::Golem(_)
+            | Body::Theropod(_)
+            | Body::QuadrupedLow(_)
+            | Body::Ship(_)
+            | Body::Arthropod(_)
+            | Body::Item(_)
+            | Body::Plugin(_) => false,
+        }
+    }
+
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
     pub fn is_campfire(&self) -> bool { matches!(self, Body::Object(object::Body::CampfireLit)) }
