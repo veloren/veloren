@@ -1632,11 +1632,7 @@ pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {
 /// Checked `Duration` addition. Computes `timer` + `dt`, only applying
 /// the explicitly given modifier and returning None if overflow
 /// occurred.
-pub fn checked_tick(
-    data: &JoinData<'_>,
-    timer: Duration,
-    modifier: Option<f32>,
-) -> Option<Duration> {
+fn checked_tick(data: &JoinData<'_>, timer: Duration, modifier: Option<f32>) -> Option<Duration> {
     timer.checked_add(Duration::from_secs_f32(data.dt.0 * modifier.unwrap_or(1.0)))
 }
 
@@ -1649,7 +1645,7 @@ pub fn tick_or_default(data: &JoinData<'_>, timer: Duration, modifier: Option<f3
 /// Checked `Duration` addition. Computes `timer` + `dt`, applying relevant stat
 /// attack modifiers and returning None if overflow
 /// occurred.
-pub fn checked_tick_attack(
+fn checked_tick_attack(
     data: &JoinData<'_>,
     timer: Duration,
     other_modifier: Option<f32>,
