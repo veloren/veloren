@@ -7,7 +7,8 @@ pub const MAX_NPCINTERACT_RANGE: f32 = 8.0;
 pub const MAX_INTERACT_RANGE: f32 = 5.0;
 pub const MAX_WAYPOINT_RANGE: f32 = 4.0;
 // Player-imperceptible offset to ensure campfire healing is always
-// within waypoint range
+// within waypoint range (may not be necessary if floating point handling is
+// reliable)
 pub const MAX_CAMPFIRE_RANGE: f32 = MAX_WAYPOINT_RANGE - 0.001;
 
 pub const GRAVITY: f32 = 25.0;
