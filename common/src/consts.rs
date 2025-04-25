@@ -6,8 +6,9 @@ pub const MAX_TRADE_RANGE: f32 = 5.0;
 pub const MAX_NPCINTERACT_RANGE: f32 = 8.0;
 pub const MAX_INTERACT_RANGE: f32 = 5.0;
 pub const MAX_WAYPOINT_RANGE: f32 = 4.0;
-// 'Sit' popup should always be within waypoint range
-pub const MAX_CAMPFIRE_RANGE: f32 = MAX_WAYPOINT_RANGE - 0.01;
+// Player-imperceptible offset to ensure campfire UI and effects are always
+// within waypoint range
+pub const MAX_CAMPFIRE_RANGE: f32 = MAX_WAYPOINT_RANGE - 0.001;
 
 pub const GRAVITY: f32 = 25.0;
 pub const FRIC_GROUND: f32 = 0.15;

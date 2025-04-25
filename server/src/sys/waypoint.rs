@@ -15,6 +15,7 @@ const NOTIFY_TIME: f64 = 10.0;
 
 /// This system updates player waypoints
 /// TODO: Make this faster by only considering local waypoints
+/// TODO: Improve reliability of the 'Waypoint Saved' notification
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
