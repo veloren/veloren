@@ -13,6 +13,7 @@ use common::{
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
         tool::AbilityMap,
     },
+    consts::MAX_CAMPFIRE_RANGE,
     event::{
         CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         CreateShipEvent, CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent,
@@ -492,7 +493,7 @@ pub fn handle_create_special_entity(server: &mut Server, ev: CreateSpecialEntity
                             category: BuffCategory::Natural,
                             source: BuffSource::World,
                         },
-                        5.0,
+                        MAX_CAMPFIRE_RANGE,
                         None,
                         AuraTarget::All,
                         Time(time),
