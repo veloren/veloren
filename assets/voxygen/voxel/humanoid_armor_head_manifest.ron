@@ -8,7 +8,15 @@
             vox_spec: ("armor.misc.head.exclamation", (-10.0, -10.0, 20.0)),
             color: None
         ),
+        (Danari, Female, "common.items.armor.misc.head.exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-10.0, -10.0, 20.0)),
+            color: None
+        ),
         (Dwarf, Male, "common.items.armor.misc.head.exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-13.0, -10.0, 18.0)),
+            color: None
+        ),
+        (Dwarf, Female, "common.items.armor.misc.head.exclamation"): (
             vox_spec: ("armor.misc.head.exclamation", (-13.0, -10.0, 18.0)),
             color: None
         ),
@@ -16,11 +24,23 @@
             vox_spec: ("armor.misc.head.exclamation", (-12.0, -11.0, 18.0)),
             color: None
         ),
+        (Human, Female, "common.items.armor.misc.head.exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-12.0, -11.0, 18.0)),
+            color: None
+        ),
         (Orc, Male, "common.items.armor.misc.head.exclamation"): (
             vox_spec: ("armor.misc.head.exclamation", (-11.0, -12.0, 18.0)),
             color: None
         ),
+        (Orc, Female, "common.items.armor.misc.head.exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-11.0, -12.0, 18.0)),
+            color: None
+        ),
         (Draugr, Male, "common.items.armor.misc.head.exclamation"): (
+            vox_spec: ("armor.misc.head.exclamation", (-14.0, -11.0, 18.0)),
+            color: None
+        ),
+        (Draugr, Female, "common.items.armor.misc.head.exclamation"): (
             vox_spec: ("armor.misc.head.exclamation", (-14.0, -11.0, 18.0)),
             color: None
         ),//fix
@@ -386,7 +406,7 @@
             color: None
         ),
         (Elf, Female, "common.items.armor.blacksmith.hat"): (
-            vox_spec: ("armor.blacksmith.hat", (-3.0, -1.0, -3.0)),
+            vox_spec: ("armor.blacksmith.hat", (-3.0, 0.0, -3.0)),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.blacksmith.hat"): (
@@ -402,7 +422,7 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.blacksmith.hat"): (
-            vox_spec: ("armor.blacksmith.hat", (-2.0, 1.0, -1.0)),
+            vox_spec: ("armor.blacksmith.hat", (-2.0, 0.0, -1.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.blacksmith.hat"): (
@@ -414,7 +434,7 @@
             color: None
         ),
         (Orc, Male, "common.items.armor.blacksmith.hat"): (
-            vox_spec: ("armor.blacksmith.hat", (-3.0, 2.0, 0.0)),
+            vox_spec: ("armor.blacksmith.hat", (-3.0, 2.0, -1.0)),
             color: None
         ),
         (Orc, Female, "common.items.armor.blacksmith.hat"): (
@@ -435,7 +455,7 @@
             color: None
         ),
         (Elf, Female, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist", (3.0, 8.0, 1.0), 0),
+            vox_spec: ("armor.alchemist", (3.0, 9.0, 1.0), 0),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.alchemist.hat"): (
@@ -451,7 +471,7 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.alchemist.hat"): (
-            vox_spec: ("armor.alchemist", (4.0, 10.0, 3.0), 0),
+            vox_spec: ("armor.alchemist", (4.0, 9.0, 3.0), 0),
             color: None
         ),
         (Draugr, Male, "common.items.armor.alchemist.hat"): (
@@ -717,51 +737,51 @@
         ),
         //
         (Human, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-4.0, -5.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-4.0, -8.0, -2.0)),
             color: None
         ),
         (Human, Male, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-4.0, -5.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-4.0, -9.0, -2.0)),
             color: None
         ),
         (Elf, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-3.0, -5.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -9.0, -2.0)),
             color: None
         ),
         (Elf, Male, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-3.0, -5.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -9.0, -2.0)),
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-3.0, -7.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -10.0, -2.0)),
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet_orc_m", (-3.0, -4.0, 0.0)),
+            vox_spec: ("armor.misc.head.helmet_orc_m", (-3.0, -4.5, 0.0)),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-5.0, -5.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-5.0, -8.0, -2.0)),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-5.0, -5.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-5.0, -8.0, -2.0)),
             color: None
         ),
         (Draugr, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-6.0, -5.0, -1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-6.0, -9.0, -1.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-6.0, -5.0, 1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-6.0, -9.0, 0.0)),
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-2.0, -6.0, 1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-2.0, -9.0, 0.0)),
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.helmet"): (
-            vox_spec: ("armor.misc.head.helmet", (-2.0, -6.0, 1.0)),
+            vox_spec: ("armor.misc.head.helmet", (-2.0, -9.0, 0.0)),
             color: None
         ),
         //
@@ -1452,149 +1472,149 @@
         ),
         // Woolly Wintercap (Christmas hat+event)
         (Human, Male, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-4.0, -7.0, -3.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-4.0, -7.0, -6.0)),
             color: None
         ),
         (Human, Female, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-4.0, -7.0, -3.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-4.0, -7.0, -6.0)),
             color: None
         ),
         (Elf, Male, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -7.0, -4.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -7.0, -6.0)),
             color: None
         ),
         (Elf, Female, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -8.0, -4.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -8.0, -6.0)),
             color: None
         ),
         (Dwarf, Male, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-5.0, -6.0, -3.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-5.0, -6.0, -6.0)),
             color: None
         ),
         (Dwarf, Female, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-5.0, -6.0, -3.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-5.0, -6.0, -5.0)),
             color: None
         ),
         (Danari, Male, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -7.0, -2.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -7.0, -4.0)),
             color: None
         ),
         (Danari, Female, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -7.0, -2.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -7.0, -4.0)),
             color: None
         ),
         (Draugr, Male, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -7.0, -3.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -7.0, -5.0)),
             color: None
         ),
         (Draugr, Female, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -7.0, -4.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -7.0, -6.0)),
             color: None
         ),
         (Orc, Male, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -5.0, -2.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -5.0, -5.0)),
             color: None
         ),
         (Orc, Female, "common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -8.0, -4.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -8.0, -6.0)),
             color: None
         ),
         // Hare Hat (Easter hat+event)
         (Human, Male, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-4.0, -6.0, -4.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-4.0, -6.0, -6.0)),
             color: None
         ),
         (Human, Female, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-4.0, -5.0, -4.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-4.0, -5.0, -6.0)),
             color: None
         ),
         (Elf, Male, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-3.0, -6.0, -5.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-3.0, -6.0, -7.0)),
             color: None
         ),
         (Elf, Female, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-3.0, -6.0, -5.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-3.0, -6.0, -7.0)),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-5.0, -5.0, -5.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-5.0, -5.0, -7.0)),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-5.0, -5.0, -5.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-5.0, -5.0, -7.0)),
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-2.0, -6.0, -2.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-2.0, -6.0, -4.0)),
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-2.0, -6.0, -2.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-2.0, -6.0, -4.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-6.0, -6.0, -3.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-6.0, -6.0, -5.0)),
             color: None
         ),
         (Draugr, Female, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-6.0, -6.0, -4.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-6.0, -6.0, -6.0)),
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-3.0, -5.0, -3.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-3.0, -5.0, -5.0)),
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.hare_hat"): (
-            vox_spec: ("armor.misc.head.hare_hat", (-3.0, -7.0, -5.0)),
+            vox_spec: ("armor.misc.head.hare_hat", (-3.0, -7.0, -7.0)),
             color: None
         ),
         // Cat Capuche (April Fools hat+event)
         (Human, Male, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-4.0, -6.0, -4.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-4.0, -6.0, -6.0)),
             color: None
         ),
         (Human, Female, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-4.0, -5.0, -4.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-4.0, -5.0, -6.0)),
             color: None
         ),
         (Elf, Male, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-3.0, -6.0, -5.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-3.0, -6.0, -7.0)),
             color: None
         ),
         (Elf, Female, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-3.0, -6.0, -5.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-3.0, -6.0, -7.0)),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-5.0, -5.0, -5.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-5.0, -5.0, -7.0)),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-5.0, -5.0, -5.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-5.0, -5.0, -7.0)),
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-2.0, -6.0, -2.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-2.0, -6.0, -4.0)),
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-2.0, -6.0, -2.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-2.0, -6.0, -4.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-6.0, -6.0, -3.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-6.0, -6.0, -5.0)),
             color: None
         ),
         (Draugr, Female, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-6.0, -6.0, -4.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-6.0, -6.0, -6.0)),
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-3.0, -5.0, -3.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-3.0, -5.0, -5.0)),
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.cat_capuche"): (
-            vox_spec: ("armor.misc.head.cat_capuche", (-3.0, -7.0, -5.0)),
+            vox_spec: ("armor.misc.head.cat_capuche", (-3.0, -7.0, -7.0)),
             color: None
         ),
         // Gnarling Chieftain Mask
@@ -2037,6 +2057,55 @@
         (Draugr, Female, "common.items.armor.misc.head.scarlet_spectacles"): (
             vox_spec: ("armor.misc.head.scarlet_spectacles.draugr", (2.0, 8.0, 2.0)),
             color: None,
+        ),
+        //
+        (Human, Male, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (1.0, 0.0, 3.0), 0),
+            color: None
+        ),
+        (Human, Female, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (1.0, 1.0, 3.0), 0),
+            color: None
+        ),
+        (Elf, Male, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (2.0, 0.0, 3.0), 0),
+            color: None
+        ),
+        (Elf, Female, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (2.0, 0.0, 3.0), 0),
+            color: None
+        ),
+        (Dwarf, Male, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (0.0, 1.0, 2.0), 0),
+            color: None
+        ),
+        (Dwarf, Female, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (0.0, 1.0, 2.0), 0),
+            color: None
+        ),
+        (Danari, Male, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (3.0, 0.0, 4.0), 0),
+            color: None
+        ),
+        (Danari, Female, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (3.0, 0.0, 4.0), 0),
+            color: None
+        ),
+        (Draugr, Male, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (-1.0, 0.0, 3.0), 0),
+            color: None
+        ),
+        (Draugr, Female, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (-1.0, 0.0, 3.0), 0),
+            color: None
+        ),
+        (Orc, Male, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (2.0, 1.0, 3.0), 0),
+            color: None
+        ),
+        (Orc, Female, "common.items.armor.hide.leather.head"): (
+            vox_spec: ("armor.misc.head.leather-0", (2.0, -1.0, 2.0), 0),
+            color: None
         ),
     }
 ))
