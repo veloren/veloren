@@ -514,7 +514,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         // **Desert**
         // Area animals
         ("world.wildlife.spawn.desert.area", |c, _col| {
-            close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
+            close(c.temp, CONFIG.desert_temp + 0.1, 0.4)
                 * close(c.humidity, CONFIG.desert_hum, 0.4)
                 * BASE_DENSITY
                 * 0.8
