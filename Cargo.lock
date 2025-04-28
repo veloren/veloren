@@ -3801,8 +3801,8 @@ dependencies = [
 
 [[package]]
 name = "kira"
-version = "0.10.5"
-source = "git+https://github.com/DaforLynx/kira.git?tag=v0.10.5-with-samplerate-selection#854d0e8c63230045c5bc464376fa1caed73eb441"
+version = "0.10.6"
+source = "git+https://github.com/DaforLynx/kira.git?tag=v0.10.6-with-config#f1516a8d9599834787adae8bebf78e975d1b73e5"
 dependencies = [
  "atomic-arena",
  "cpal",

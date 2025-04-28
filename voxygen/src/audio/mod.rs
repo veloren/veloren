@@ -13,7 +13,7 @@ use channel::{
     UiChannel,
 };
 use cpal::{
-    Device,
+    Device, SampleRate, StreamConfig, SupportedStreamConfigRange,
     traits::{DeviceTrait, HostTrait},
 };
 use kira::{
@@ -200,13 +200,9 @@ impl AudioFrontendInner {
         num_ui_channels: usize,
         buffer_size: usize,
         device: Option<Device>,
-        sample_rate: Option<u32>,
+        config: Option<StreamConfig>,
     ) -> Result<Self, AudioCreationError> {
-        let backend_settings = CpalBackendSettings {
-            device,
-            sample_rate,
-            ..Default::default()
-        };
+        let backend_settings = CpalBackendSettings { device, config };
         let manager_settings = AudioManagerSettings {
             internal_buffer_size: buffer_size,
             backend_settings,
@@ -344,29 +340,57 @@ impl AudioFrontend {
         buffer_size: usize,
     ) -> Self {
         let mut device = cpal::default_host().default_output_device();
-        let mut samplerate = None;
+        let mut supported_config = None;
+        let mut samplerate = 44100;
         if let Some(device) = device.as_mut() {
             if let Ok(default_output_config) = device.default_output_config() {
-                // Max samplerate
                 info!(
                     "Current default samplerate: {:?}",
                     default_output_config.sample_rate().0
                 );
-                if default_output_config.sample_rate().0 > 48000 {
+                samplerate = default_output_config.sample_rate().0;
+                if samplerate > 48000 {
                     warn!(
                         "Current default samplerate is higher than 48000; attempting to lower \
-                         samplerate to 44100"
+                         samplerate"
                     );
-                    samplerate = Some(44100)
+                    let supported_configs = device.supported_output_configs();
+                    if let Ok(supported_configs) = supported_configs {
+                        let best_config = supported_configs.max_by(|x, y| {
+                            SupportedStreamConfigRange::cmp_default_heuristics(x, y)
+                        });
+                        if let Some(best_config) = best_config {
+                            warn!("Attempting to change samplerate to 48khz");
+                            supported_config = best_config.try_with_sample_rate(SampleRate(48000));
+                            if supported_config.is_none() {
+                                warn!("Attempting to change samplerate to 44.1khz");
+                                supported_config =
+                                    best_config.try_with_sample_rate(SampleRate(44100));
+                            }
+                            if supported_config.is_none() {
+                                warn!("Could not change samplerate, using default")
+                            }
+                        }
+                    }
                 }
             }
+        }
+        let mut config = None;
+        if let Some(supported_config) = supported_config {
+            info!(
+                "Samplerate is {:?}",
+                supported_config.config().sample_rate.0
+            );
+            config = Some(supported_config.config())
+        } else {
+            info!("Samplerate is {:?}", samplerate)
         }
         let inner = AudioFrontendInner::new(
             num_sfx_channels,
             num_ui_channels,
             buffer_size,
             device,
-            samplerate,
+            config,
         )
         .inspect_err(|err| match err {
             AudioCreationError::Manager(e) => {

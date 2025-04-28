@@ -129,7 +129,7 @@ dot_vox = "5.1"
 guillotiere = "0.6.2"
 hashbrown = { workspace = true }
 image = { workspace = true, features = ["ico"] }
-kira = { git="https://github.com/DaforLynx/kira.git", tag="v0.10.5-with-samplerate-selection", default-features = false, features = [
+kira = { git="https://github.com/DaforLynx/kira.git", tag="v0.10.6-with-config", default-features = false, features = [
     "cpal",
     "symphonia",
     "ogg",
