@@ -7,9 +7,9 @@
 // Please keep it sorted by rarity so it's easier to reason about things
 [
     // High tier Ores
-    (0.025, Item("common.items.mineral.ore.gold")),
-    (0.03, Item("common.items.mineral.ore.silver")),
+    (0.08, Item("common.items.mineral.ore.gold")),
     (0.1, Item("common.items.mineral.ore.bloodstone")),
+    (0.18, Item("common.items.mineral.ore.silver")),
     (0.2, Item("common.items.mineral.ore.cobalt")),
     (0.5, Item("common.items.mineral.ore.coal")),
     (1.0, Item("common.items.mineral.ore.iron")),
