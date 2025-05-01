@@ -44,13 +44,13 @@ Most Veloren servers require you to register with the official authentication se
 
 ### Official social media and websites
 
-- [Website](https://veloren.net)
-- [Discord](https://discord.gg/veloren-community-449602562165833758)
-- [Matrix](https://matrix.to/#/#veloren-space:fachschaften.org)
-- [Mastodon](https://floss.social/@veloren)
-- [Reddit](https://www.reddit.com/r/Veloren)
-- [YouTube](https://youtube.com/@Veloren)
-- [Twitch](https://www.twitch.tv/veloren_dev)
+[![Website](https://img.shields.io/badge/Website-000?style=for-the-badge&logo=internetarchive&logoColor=white)](https://veloren.net)<br/>
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/veloren-community-449602562165833758)<br/>
+[![Matrix](https://img.shields.io/badge/Matrix-000000?style=for-the-badge&logo=matrix&logoColor=white)](https://matrix.to/#/#veloren-space:fachschaften.org)<br/>
+[![Mastodon](https://img.shields.io/badge/Mastodon-6364FF?style=for-the-badge&logo=mastodon&logoColor=white)](https://floss.social/@veloren)<br/>
+[![Reddit](https://img.shields.io/badge/Reddit-FF4500?style=for-the-badge&logo=reddit&logoColor=white)](https://www.reddit.com/r/Veloren)<br/>
+[![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/@Veloren)<br/>
+[![Twitch](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/veloren_dev)<br/>
 
 ## Get Veloren
 
