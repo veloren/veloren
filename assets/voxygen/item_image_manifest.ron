@@ -4131,7 +4131,7 @@
     ),
     Simple("common.items.crafting_tools.mortar_pestle"): VoxTrans(
         "voxel.item.crafting_tool.mortar_pestle",
-        (0.0, 0.0, 0.0), (-40.0, 15.0, 17.0), 0.8,
+        (0.0, 0.0, 0.0), (-55.0, 15.0, 17.0), 0.8,
     ),
     Simple("common.items.crafting_ing.empty_vial"): VoxTrans(
         "voxel.sprite.potion.potion_empty",
