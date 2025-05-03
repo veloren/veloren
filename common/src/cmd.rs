@@ -1082,7 +1082,11 @@ impl ServerChatCommand {
                 Some(Admin),
             ),
             ServerChatCommand::RepairEquipment => cmd(
-                vec![],
+                vec![ArgumentSpec::Boolean(
+                    "repair inventory",
+                    true.to_string(),
+                    Optional,
+                )],
                 Content::localized("command-repair_equipment-desc"),
                 Some(Admin),
             ),

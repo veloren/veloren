@@ -5690,13 +5690,15 @@ fn handle_scale(
     }
 }
 
+// /repair_equipment <false/true>
 fn handle_repair_equipment(
     server: &mut Server,
     client: EcsEntity,
     target: EcsEntity,
-    _args: Vec<String>,
+    args: Vec<String>,
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
+    let repair_inventory = parse_cmd_args!(args, bool).unwrap_or(false);
     let ecs = server.state.ecs();
     if let Some(mut inventory) = ecs.write_storage::<comp::Inventory>().get_mut(target) {
         let ability_map = ecs.read_resource::<AbilityMap>();
@@ -5704,17 +5706,34 @@ fn handle_repair_equipment(
         let slots = inventory
             .equipped_items_with_slot()
             .filter(|(_, item)| item.has_durability())
-            .map(|(slot, _)| slot)
-            .collect::<Vec<_>>();
+            .map(|(slot, _)| Slot::Equip(slot))
+            .chain(
+                repair_inventory
+                    .then(|| {
+                        inventory
+                            .slots_with_id()
+                            .filter(|(_, item)| {
+                                item.as_ref().is_some_and(|item| item.has_durability())
+                            })
+                            .map(|(slot, _)| Slot::Inventory(slot))
+                    })
+                    .into_iter()
+                    .flatten(),
+            )
+            .collect::<Vec<Slot>>();
+
         for slot in slots {
-            inventory.repair_item_at_slot(Slot::Equip(slot), &ability_map, &msm);
+            inventory.repair_item_at_slot(slot, &ability_map, &msm);
         }
+
+        let key = if repair_inventory {
+            "command-repaired-inventory_items"
+        } else {
+            "command-repaired-items"
+        };
         server.notify_client(
             client,
-            ServerGeneral::server_msg(
-                ChatType::CommandInfo,
-                Content::localized("command-repaired-items"),
-            ),
+            ServerGeneral::server_msg(ChatType::CommandInfo, Content::localized(key)),
         );
         Ok(())
     } else {
