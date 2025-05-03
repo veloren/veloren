@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed how RtSim handles repopulating NPCs. Instead of instantly creating a new one when one dies, it has a queue with a minimum time before trying to repopulate.
 - Sitting at a campfire is now required to set your spawn point.
 - Automatic item merging only applies to inventory events.
+- Parry now has the same precision power as backstab.
 
 ### Removed
 
