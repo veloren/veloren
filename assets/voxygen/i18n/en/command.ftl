@@ -251,6 +251,7 @@ command-locations-list = Available locations: { $locations }
 command-weather-valid-values = Valid values are 'clear', 'rain', 'wind' and 'storm'.
 command-scale-set = Set scale to { $scale }
 command-repaired-items = Repaired all equipped items
+command-repaired-inventory_items = Repaired all items
 command-message-group-missing = You are using group chat but do not belong to a group. Use /world or
   /region to change chat.
 command-tell-to-yourself = You can't /tell yourself.
