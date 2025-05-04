@@ -49,6 +49,16 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
+    "potion_trans": (
+        output: ("common.items.consumable.potion_trans", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.empty_vial"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.phoenix_feather"), 1, false),
+            (Item("common.items.flowers.sunflower"), 3, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+        ],
+        craft_sprite: Some(Cauldron),
+    ),
     "potion_agility": (
         output: ("common.items.consumable.potion_agility", 1),
         inputs: [
