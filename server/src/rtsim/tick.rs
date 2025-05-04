@@ -3,7 +3,10 @@ use crate::sys::terrain::SpawnEntityData;
 use common::{
     LoadoutBuilder,
     calendar::Calendar,
-    comp::{self, Body, Presence, PresenceKind},
+    comp::{
+        self, Body, Item, Presence, PresenceKind, inventory::trade_pricing::TradePricing,
+        slot::ArmorSlot,
+    },
     event::{CreateNpcEvent, CreateShipEvent, DeleteEvent, EventBus, NpcBuilder},
     generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time, TimeOfDay},
@@ -14,6 +17,7 @@ use common::{
     util::Dir,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use rand::Rng;
 use rtsim::data::{
     Npc, Sites,
     npc::{Profession, SimulationMode},
@@ -21,7 +25,119 @@ use rtsim::data::{
 use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{sync::Arc, time::Duration};
 use tracing::error;
-use world::site::settlement::trader_loadout;
+
+pub fn trader_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+    mut permitted: impl FnMut(Good) -> bool,
+) -> LoadoutBuilder {
+    let rng = &mut rand::thread_rng();
+    let mut backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
+    let mut bag1 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let mut bag2 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let mut bag3 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let mut bag4 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let slots = backpack.slots().len() + 4 * bag1.slots().len();
+    let mut stockmap: hashbrown::HashMap<Good, f32> = economy
+        .map(|e| {
+            e.unconsumed_stock
+                .clone()
+                .into_iter()
+                .filter(|(good, _)| permitted(*good))
+                .collect()
+        })
+        .unwrap_or_default();
+    // modify stock for better gameplay
+
+    // TODO: currently econsim spends all its food on population, resulting in none
+    // for the players to buy; the `.max` is temporary to ensure that there's some
+    // food for sale at every site, to be used until we have some solution like NPC
+    // houses as a limit on econsim population growth
+    if permitted(Good::Food) {
+        stockmap
+            .entry(Good::Food)
+            .and_modify(|e| *e = e.max(10_000.0))
+            .or_insert(10_000.0);
+    }
+    // Reduce amount of potions so merchants do not oversupply potions.
+    // TODO: Maybe remove when merchants and their inventories are rtsim?
+    // Note: Likely without effect now that potions are counted as food
+    if permitted(Good::Potions) {
+        stockmap
+            .entry(Good::Potions)
+            .and_modify(|e| *e = e.powf(0.25));
+    }
+    // It's safe to truncate here, because coins clamped to 3000 max
+    // also we don't really want negative values here
+    if permitted(Good::Coin) {
+        stockmap
+            .entry(Good::Coin)
+            .and_modify(|e| *e = e.min(rng.gen_range(1000.0..3000.0)));
+    }
+    // assume roughly 10 merchants sharing a town's stock (other logic for coins)
+    stockmap
+        .iter_mut()
+        .filter(|(good, _amount)| **good != Good::Coin)
+        .for_each(|(_good, amount)| *amount *= 0.1);
+    // Fill bags with stuff according to unclaimed stock
+    let ability_map = &comp::tool::AbilityMap::load().read();
+    let msm = &comp::item::MaterialStatManifest::load().read();
+    let mut wares: Vec<Item> =
+        TradePricing::random_items(&mut stockmap, slots as u32, true, true, 16)
+            .iter()
+            .filter_map(|(n, a)| {
+                let i = Item::new_from_item_definition_id(n.as_ref(), ability_map, msm).ok();
+                i.map(|mut i| {
+                    i.set_amount(*a)
+                        .map_err(|_| tracing::error!("merchant loadout amount failure"))
+                        .ok();
+                    i
+                })
+            })
+            .collect();
+    sort_wares(&mut wares);
+    transfer(&mut wares, &mut backpack);
+    transfer(&mut wares, &mut bag1);
+    transfer(&mut wares, &mut bag2);
+    transfer(&mut wares, &mut bag3);
+    transfer(&mut wares, &mut bag4);
+
+    loadout_builder
+        .back(Some(backpack))
+        .bag(ArmorSlot::Bag1, Some(bag1))
+        .bag(ArmorSlot::Bag2, Some(bag2))
+        .bag(ArmorSlot::Bag3, Some(bag3))
+        .bag(ArmorSlot::Bag4, Some(bag4))
+}
+
+fn sort_wares(bag: &mut [Item]) {
+    use common::comp::item::TagExampleInfo;
+
+    bag.sort_by(|a, b| {
+        a.quality()
+            .cmp(&b.quality())
+        // sort by kind
+        .then(
+            Ord::cmp(
+                a.tags().first().map_or("", |tag| tag.name()),
+                b.tags().first().map_or("", |tag| tag.name()),
+            )
+        )
+        // sort by name
+        .then(#[expect(deprecated)] Ord::cmp(&a.name(), &b.name()))
+    });
+}
+
+fn transfer(wares: &mut Vec<Item>, bag: &mut Item) {
+    let capacity = bag.slots().len();
+    for (s, w) in bag
+        .slots_mut()
+        .iter_mut()
+        .zip(wares.drain(0..wares.len().min(capacity)))
+    {
+        *s = Some(w);
+    }
+}
 
 fn humanoid_config(profession: &Profession) -> &'static str {
     match profession {
@@ -159,7 +275,7 @@ fn get_npc_entity_info(
     if let Some(profession) = npc.profession() {
         let economy = npc.home.and_then(|home| {
             let site = sites.get(home)?.world_site?;
-            index.sites.get(site).trade_information(site.id())
+            index.sites.get(site).trade_information(site)
         });
 
         let config_asset = humanoid_config(&profession);

@@ -37,28 +37,30 @@ fn good_pricing_csv(world: &World, index: &Index) -> Result<(), Box<dyn Error>> 
         if let Some(site_id) = civsite.site_tmp {
             let site = index.sites.get(site_id);
             if site.do_economic_simulation() {
-                let prices = site.economy.get_site_prices();
-                //println!("{:?}: {:?} {:?}", site.name(), civsite.center, prices);
-                csv.write_record([
-                    site.name(),
-                    &format!("{}", civsite.center.x),
-                    &format!("{}", civsite.center.y),
-                    &format!("{}", prices.values.get(&Good::Flour).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::Meat).unwrap_or(&0.0)),
-                    &format!(
-                        "{}",
-                        prices.values.get(&Good::Transportation).unwrap_or(&0.0)
-                    ),
-                    &format!("{}", prices.values.get(&Good::Food).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::Wood).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::Stone).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::Tools).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::Armor).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::Ingredients).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::Potions).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::Coin).unwrap_or(&0.0)),
-                    &format!("{}", prices.values.get(&Good::RoadSecurity).unwrap_or(&0.0)),
-                ])?;
+                if let Some(economy) = site.economy.as_ref() {
+                    let prices = economy.get_site_prices();
+                    //println!("{:?}: {:?} {:?}", site.name(), civsite.center, prices);
+                    csv.write_record([
+                        site.name(),
+                        &format!("{}", civsite.center.x),
+                        &format!("{}", civsite.center.y),
+                        &format!("{}", prices.values.get(&Good::Flour).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::Meat).unwrap_or(&0.0)),
+                        &format!(
+                            "{}",
+                            prices.values.get(&Good::Transportation).unwrap_or(&0.0)
+                        ),
+                        &format!("{}", prices.values.get(&Good::Food).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::Wood).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::Stone).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::Tools).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::Armor).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::Ingredients).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::Potions).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::Coin).unwrap_or(&0.0)),
+                        &format!("{}", prices.values.get(&Good::RoadSecurity).unwrap_or(&0.0)),
+                    ])?;
+                }
             }
         }
     }
@@ -138,8 +140,8 @@ fn economy_sqlite(world: &World, index: &Index) -> Result<(), Box<dyn Error>> {
     for civsite in world.civs().sites() {
         if let Some(site_id) = civsite.site_tmp {
             let site = index.sites.get(site_id);
-            if site.do_economic_simulation() {
-                let prices = site.economy.get_site_prices();
+            if let Some(econ) = site.economy.as_ref() {
+                let prices = econ.get_site_prices();
                 conn.execute(
                     "REPLACE INTO site (xcoord, ycoord, name) VALUES (?1, ?2, ?3)",
                     [

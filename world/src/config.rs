@@ -87,8 +87,6 @@ pub struct Features {
     pub scatter: bool,
     pub paths: bool,
     pub spots: bool,
-    pub site2_towns: bool,
-    pub site2_giant_trees: bool,
     // 1.0 is the default wildlife density
     pub wildlife_density: f32,
     pub peak_naming: bool,

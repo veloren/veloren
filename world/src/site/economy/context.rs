@@ -1,10 +1,7 @@
 /// this contains global housekeeping info during simulation
 use crate::{
     Index,
-    site::{
-        SiteKind,
-        economy::{DAYS_PER_MONTH, DAYS_PER_YEAR, Economy, INTER_SITE_TRADE},
-    },
+    site::economy::{DAYS_PER_MONTH, DAYS_PER_YEAR, Economy, INTER_SITE_TRADE},
 };
 use rayon::prelude::*;
 use tracing::{debug, info};
@@ -113,38 +110,12 @@ impl Environment {
         }
 
         {
-            let mut castles = EconStatistics::default();
             let mut towns = EconStatistics::default();
             let dungeons = EconStatistics::default();
             for site in index.sites.ids() {
                 let site = &index.sites[site];
-                match site.kind {
-                    SiteKind::Settlement(_)
-                    | SiteKind::Refactor(_)
-                    | SiteKind::CliffTown(_)
-                    | SiteKind::SavannahTown(_)
-                    | SiteKind::CoastalTown(_)
-                    | SiteKind::DesertCity(_) => towns += site.economy.pop,
-                    SiteKind::Castle(_) => castles += site.economy.pop,
-                    SiteKind::Tree(_)
-                    | SiteKind::GiantTree(_)
-                    | SiteKind::Gnarling(_)
-                    | SiteKind::Adlet(_)
-                    | SiteKind::Cultist(_)
-                    | SiteKind::Sahagin(_)
-                    | SiteKind::Haniwa(_)
-                    | SiteKind::JungleRuin(_)
-                    | SiteKind::Myrmidon(_)
-                    | SiteKind::ChapelSite(_)
-                    | SiteKind::DwarvenMine(_)
-                    | SiteKind::Terracotta(_)
-                    | SiteKind::Bridge(_)
-                    | SiteKind::PirateHideout(_)
-                    | SiteKind::RockCircle(_)
-                    | SiteKind::TrollCave(_)
-                    | SiteKind::VampireCastle(_)
-                    | SiteKind::GliderCourse(_)
-                    | SiteKind::Camp(_) => {},
+                if let Some(econ) = site.economy.as_ref() {
+                    towns += econ.pop;
                 }
             }
             if towns.valid() {
@@ -153,14 +124,6 @@ impl Environment {
                     towns.min,
                     towns.max,
                     towns.sum / (towns.count as f32)
-                );
-            }
-            if castles.valid() {
-                info!(
-                    "Castles {:.0}-{:.0} avg {:.0}",
-                    castles.min,
-                    castles.max,
-                    castles.sum / (castles.count as f32)
                 );
             }
             if dungeons.valid() {
@@ -176,21 +139,7 @@ impl Environment {
 
     fn csv_tick(&mut self, index: &Index) {
         if let Some(f) = self.csv_file.as_mut() {
-            if let Some(site) = index.sites.values().find(|s| {
-                !matches!(
-                    s.kind,
-                    SiteKind::Terracotta(_)
-                        | SiteKind::Haniwa(_)
-                        | SiteKind::Myrmidon(_)
-                        | SiteKind::Adlet(_)
-                        | SiteKind::DwarvenMine(_)
-                        | SiteKind::ChapelSite(_)
-                        | SiteKind::Cultist(_)
-                        | SiteKind::Gnarling(_)
-                        | SiteKind::Sahagin(_)
-                        | SiteKind::VampireCastle(_),
-                )
-            }) {
+            if let Some(site) = index.sites.values().find(|s| s.do_economic_simulation()) {
                 Economy::csv_entry(f, site).unwrap_or_else(|_| {
                     self.csv_file.take();
                 });
@@ -249,12 +198,17 @@ fn tick(index: &mut Index, dt: f32, _env: &mut Environment) {
     if INTER_SITE_TRADE {
         // move deliverables to recipient cities
         for (id, deliv) in index.trade.deliveries.drain() {
-            index.sites.get_mut(id).economy.deliveries.extend(deliv);
+            index
+                .sites
+                .get_mut(id)
+                .economy_mut()
+                .deliveries
+                .extend(deliv);
         }
     }
     index.sites.par_iter_mut().for_each(|(site_id, site)| {
         if site.do_economic_simulation() {
-            site.economy.tick(site_id, dt);
+            site.economy_mut().tick(site_id, dt);
             // helpful for debugging but not compatible with parallel execution
             // vc.context(&site_id.id().to_string()));
         }
@@ -262,7 +216,7 @@ fn tick(index: &mut Index, dt: f32, _env: &mut Environment) {
     if INTER_SITE_TRADE {
         // distribute orders (travelling merchants)
         for (_id, site) in index.sites.iter_mut() {
-            for (i, mut v) in site.economy.orders.drain() {
+            for (i, mut v) in site.economy_mut().orders.drain() {
                 index.trade.orders.entry(i).or_default().append(&mut v);
             }
         }
@@ -271,7 +225,7 @@ fn tick(index: &mut Index, dt: f32, _env: &mut Environment) {
             let siteinfo = index.sites.get_mut(site);
             if siteinfo.do_economic_simulation() {
                 siteinfo
-                    .economy
+                    .economy_mut()
                     .trade_at_site(site, orders, &mut index.trade.deliveries);
             }
         }
@@ -290,7 +244,7 @@ mod tests {
         trade::Good,
     };
     use hashbrown::HashMap;
-    use rand::SeedableRng;
+    use rand::{Rng, SeedableRng};
     use rand_chacha::ChaChaRng;
     use serde::{Deserialize, Serialize};
     use std::convert::TryInto;
@@ -334,7 +288,9 @@ mod tests {
                 map.get(&id).cloned().unwrap_or_else(|| site.name().into())
             });
             println!("Site id {:?} name {}", id.id(), name);
-            site.economy.print_details();
+            if let Some(econ) = site.economy.as_ref() {
+                econ.print_details();
+            }
         }
     }
 
@@ -391,23 +347,25 @@ mod tests {
                 info!("Civs created");
                 let mut outarr: Vec<EconomySetup> = Vec::new();
                 for i in index.sites.values() {
-                    let resources: Vec<ResourcesSetup> = i
-                        .economy
+                    let Some(econ) = i.economy.as_ref() else {
+                        continue;
+                    };
+                    let resources: Vec<ResourcesSetup> = econ
                         .natural_resources
                         .chunks_per_resource
                         .iter()
                         .map(|(good, a)| ResourcesSetup {
                             good: good.into(),
-                            amount: *a * i.economy.natural_resources.average_yield_per_chunk[good],
+                            amount: *a * econ.natural_resources.average_yield_per_chunk[good],
                         })
                         .collect();
-                    let neighbors = i.economy.neighbors.iter().map(|j| j.id.id()).collect();
+                    let neighbors = econ.neighbors.iter().map(|j| j.id.id()).collect();
                     let val = EconomySetup {
                         name: i.name().into(),
-                        position: (i.get_origin().x, i.get_origin().y),
+                        position: (i.origin.x, i.origin.y),
                         resources,
                         neighbors,
-                        kind: i.kind.convert_to_meta().unwrap_or_default(),
+                        kind: i.meta().unwrap_or_default(),
                     };
                     outarr.push(val);
                 }
@@ -422,6 +380,8 @@ mod tests {
                 let econ_testinput: Vec<EconomySetup> =
                     ron::de::from_reader(ron_file).expect("economy_testinput2.ron parse error");
                 names = Some(HashMap::new());
+                let land = crate::Land::from_sim(&sim);
+                let mut meta = crate::site::SitesGenMeta::new(rng.gen());
                 for i in econ_testinput.iter() {
                     let wpos = Vec2 {
                         x: i.position.0,
@@ -431,22 +391,35 @@ mod tests {
                     // loading on demand using the public API. There is no way to set
                     // the name, do we care?
                     let mut settlement = match i.kind {
-                        SiteKindMeta::Castle => crate::site::Site::castle(
-                            crate::site::Castle::generate(wpos, None, &mut rng),
+                        SiteKindMeta::Castle => {
+                            crate::site::Site::generate_citadel(&land, &mut rng, wpos)
+                        },
+                        _ => crate::site::Site::generate_city(
+                            &land,
+                            crate::IndexRef {
+                                colors: &index.colors(),
+                                features: &index.features(),
+                                index: &index,
+                            },
+                            &mut rng,
+                            wpos,
+                            1.0,
+                            None,
+                            &mut meta,
                         ),
-                        // common::terrain::site::SitesKind::Settlement |
-                        _ => crate::site::Site::settlement(crate::site::Settlement::generate(
-                            wpos, None, &mut rng,
-                        )),
                     };
                     for g in i.resources.iter() {
                         //let c = sim::SimChunk::new();
                         //settlement.economy.add_chunk(ch, distance_squared)
                         // bypass the API for now
-                        settlement.economy.natural_resources.chunks_per_resource
-                            [g.good.try_into().unwrap_or_default()] = g.amount;
-                        settlement.economy.natural_resources.average_yield_per_chunk
-                            [g.good.try_into().unwrap_or_default()] = 1.0;
+                        settlement
+                            .economy_mut()
+                            .natural_resources
+                            .chunks_per_resource[g.good.try_into().unwrap_or_default()] = g.amount;
+                        settlement
+                            .economy_mut()
+                            .natural_resources
+                            .average_yield_per_chunk[g.good.try_into().unwrap_or_default()] = 1.0;
                     }
                     let id = index.sites.insert(settlement);
                     names.as_mut().map(|map| map.insert(id, i.name.clone()));
@@ -457,7 +430,7 @@ mod tests {
                     if let Some(id) = index.sites.recreate_id(id as u64) {
                         for nid in econ.neighbors.iter() {
                             if let Some(nid) = index.sites.recreate_id(*nid) {
-                                let town = &mut index.sites.get_mut(id).economy;
+                                let town = index.sites.get_mut(id).economy_mut();
                                 town.add_neighbor(nid, 0);
                             }
                         }
@@ -471,6 +444,7 @@ mod tests {
 
     struct Simenv {
         index: crate::index::Index,
+        sim: sim::WorldSim,
         rng: ChaChaRng,
         targets: HashMap<Id<crate::site::Site>, f32>,
         names: HashMap<Id<crate::site::Site>, String>,
@@ -486,16 +460,29 @@ mod tests {
             resources: &[(Good, f32)],
         ) -> Id<crate::site::Site> {
             let wpos = Vec2 { x: 42, y: 42 };
-            let mut settlement = crate::site::Site::settlement(crate::site::Settlement::generate(
-                wpos,
-                None,
+            let mut meta = crate::site::SitesGenMeta::new(env.rng.gen());
+            let mut settlement = crate::site::Site::generate_city(
+                &crate::Land::from_sim(&env.sim),
+                crate::IndexRef {
+                    colors: &env.index.colors(),
+                    features: &env.index.features(),
+                    index: &env.index,
+                },
                 &mut env.rng,
-            ));
+                wpos,
+                1.0,
+                None,
+                &mut meta,
+            );
             for (good, amount) in resources.iter() {
-                settlement.economy.natural_resources.chunks_per_resource
-                    [(*good).try_into().unwrap_or_default()] = *amount;
-                settlement.economy.natural_resources.average_yield_per_chunk
-                    [(*good).try_into().unwrap_or_default()] = 1.0;
+                settlement
+                    .economy_mut()
+                    .natural_resources
+                    .chunks_per_resource[(*good).try_into().unwrap_or_default()] = *amount;
+                settlement
+                    .economy_mut()
+                    .natural_resources
+                    .average_yield_per_chunk[(*good).try_into().unwrap_or_default()] = 1.0;
             }
             let id = env.index.sites.insert(settlement);
             env.targets.insert(id, target);
@@ -514,11 +501,12 @@ mod tests {
             };
             let index = crate::index::Index::new(seed);
             info!("Index created");
-            let mut sim = sim::WorldSim::generate(seed, opts, &threadpool, &|_| {});
+            let sim = sim::WorldSim::generate(seed, opts, &threadpool, &|_| {});
             info!("World loaded");
             let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
             let mut env = Simenv {
                 index,
+                sim,
                 rng,
                 targets: HashMap::new(),
                 names: HashMap::new(),
@@ -560,18 +548,20 @@ mod tests {
                 let center = env.index.sites.recreate_id(i);
                 center.zip(previous).map(|(center, previous)| {
                     env.index.sites[center]
-                        .economy
+                        .economy_mut()
                         .add_neighbor(previous, i as usize);
                     env.index.sites[previous]
-                        .economy
+                        .economy_mut()
                         .add_neighbor(center, i as usize);
                 });
             }
-            crate::sim2::simulate(&mut env.index, &mut sim);
+            crate::sim2::simulate(&mut env.index, &mut env.sim);
             show_economy(&env.index.sites, &Some(env.names));
             // check population (shrinks if economy gets broken)
             for (id, site) in env.index.sites.iter() {
-                assert!(site.economy.pop >= env.targets[&id]);
+                if let Some(econ) = site.economy.as_ref() {
+                    assert!(econ.pop >= env.targets[&id]);
+                }
             }
         });
     }

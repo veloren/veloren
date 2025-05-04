@@ -1,6 +1,6 @@
 use super::*;
 
-fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathResult<Vec2<i32>> {
+fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site::Site) -> PathResult<Vec2<i32>> {
     let heuristic = |tile: &Vec2<i32>| tile.as_::<f32>().distance(end.as_());
     let mut astar = Astar::new(1_000, start, BuildHasherDefault::<FxHasher64>::default());
 
@@ -27,7 +27,7 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site2::Site) -> PathRes
             | TileKind::DwarvenMine
             | TileKind::GnarlingFortification => 5.0,
         };
-        let is_door_tile = |plot: Id<site2::Plot>, tile: Vec2<i32>| {
+        let is_door_tile = |plot: Id<site::Plot>, tile: Vec2<i32>| {
             site.plot(plot)
                 .kind()
                 .meta()
@@ -136,26 +136,23 @@ fn path_site(
     site: Id<WorldSite>,
     index: IndexRef,
 ) -> Option<Vec<Vec2<f32>>> {
-    if let Some(site) = index.sites.get(site).site2() {
-        let start = site.wpos_tile_pos(start.as_());
+    let site = index.sites.get(site);
+    let start = site.wpos_tile_pos(start.as_());
 
-        let end = site.wpos_tile_pos(end.as_());
+    let end = site.wpos_tile_pos(end.as_());
 
-        let nodes = match path_in_site(start, end, site) {
-            PathResult::Path(p, _c) => p.nodes,
-            PathResult::Exhausted(p) => p.nodes,
-            PathResult::None(_) | PathResult::Pending => return None,
-        };
+    let nodes = match path_in_site(start, end, site) {
+        PathResult::Path(p, _c) => p.nodes,
+        PathResult::Exhausted(p) => p.nodes,
+        PathResult::None(_) | PathResult::Pending => return None,
+    };
 
-        Some(
-            nodes
-                .into_iter()
-                .map(|tile| site.tile_center_wpos(tile).as_() + 0.5)
-                .collect(),
-        )
-    } else {
-        None
-    }
+    Some(
+        nodes
+            .into_iter()
+            .map(|tile| site.tile_center_wpos(tile).as_() + 0.5)
+            .collect(),
+    )
 }
 
 fn path_between_towns(

@@ -1156,17 +1156,19 @@ impl Economy {
 
     pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Error> {
         use std::io::Write;
+        let d = Economy::default();
+        let economy = site.economy.as_deref().unwrap_or(&d);
         write!(
             *f,
             "{}, {}, {}, {:.1}, {},,",
             site.name(),
-            site.get_origin().x,
-            site.get_origin().y,
-            site.economy.pop,
-            site.economy.neighbors.len(),
+            site.origin.x,
+            site.origin.y,
+            economy.pop,
+            economy.neighbors.len(),
         )?;
         for g in good_list() {
-            if let Some(value) = site.economy.values[g] {
+            if let Some(value) = economy.values[g] {
                 write!(*f, "{:.2},", value)?;
             } else {
                 f.write_all(b",")?;
@@ -1174,7 +1176,7 @@ impl Economy {
         }
         f.write_all(b",")?;
         for g in good_list() {
-            if let Some(labor_value) = site.economy.labor_values[g] {
+            if let Some(labor_value) = economy.labor_values[g] {
                 write!(f, "{:.2},", labor_value)?;
             } else {
                 f.write_all(b",")?;
@@ -1182,27 +1184,27 @@ impl Economy {
         }
         f.write_all(b",")?;
         for g in good_list() {
-            write!(f, "{:.1},", site.economy.stocks[g])?;
+            write!(f, "{:.1},", economy.stocks[g])?;
         }
         f.write_all(b",")?;
         for g in good_list() {
-            write!(f, "{:.1},", site.economy.marginal_surplus[g])?;
+            write!(f, "{:.1},", economy.marginal_surplus[g])?;
         }
         f.write_all(b",")?;
         for l in LaborIndex::list() {
-            write!(f, "{:.1},", site.economy.labors[l] * site.economy.pop)?;
+            write!(f, "{:.1},", economy.labors[l] * economy.pop)?;
         }
         f.write_all(b",")?;
         for l in LaborIndex::list() {
-            write!(f, "{:.2},", site.economy.productivity[l])?;
+            write!(f, "{:.2},", economy.productivity[l])?;
         }
         f.write_all(b",")?;
         for l in LaborIndex::list() {
-            write!(f, "{:.1},", site.economy.yields[l])?;
+            write!(f, "{:.1},", economy.yields[l])?;
         }
         f.write_all(b",")?;
         for l in LaborIndex::list() {
-            let limit = site.economy.limited_by[l];
+            let limit = economy.limited_by[l];
             if limit == GoodIndex::default() {
                 f.write_all(b",")?;
             } else {
@@ -1211,8 +1213,8 @@ impl Economy {
         }
         f.write_all(b",")?;
         for g in good_list() {
-            if site.economy.last_exports[g] >= 0.1 || site.economy.last_exports[g] <= -0.1 {
-                write!(f, "{:.1},", site.economy.last_exports[g])?;
+            if economy.last_exports[g] >= 0.1 || economy.last_exports[g] <= -0.1 {
+                write!(f, "{:.1},", economy.last_exports[g])?;
             } else {
                 f.write_all(b",")?;
             }

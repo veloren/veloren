@@ -2829,10 +2829,10 @@ impl SimChunk {
         self.sites
             .iter()
             .filter(|id| {
-                index_sites[**id].get_origin().distance_squared(wpos2d) as f32
+                index_sites[**id].origin.distance_squared(wpos2d) as f32
                     <= index_sites[**id].radius().powi(2)
             })
-            .min_by_key(|id| index_sites[**id].get_origin().distance_squared(wpos2d))
+            .min_by_key(|id| index_sites[**id].origin.distance_squared(wpos2d))
             .map(|id| index_sites[*id].name().to_string())
             .or_else(|| self.poi.map(|poi| civs_pois[poi].name.clone()))
     }

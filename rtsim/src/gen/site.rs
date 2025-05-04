@@ -17,39 +17,41 @@ impl Site {
         rng: &mut impl Rng,
     ) -> Self {
         let world_site = index.sites.get(world_site_id);
-        let wpos = world_site.get_origin();
+        let wpos = world_site.origin;
 
         // TODO: This is stupid, do better
         let good_or_evil = match &world_site.kind {
             // Good
-            SiteKind::Refactor(_)
-            | SiteKind::CliffTown(_)
-            | SiteKind::DesertCity(_)
-            | SiteKind::SavannahTown(_)
-            | SiteKind::CoastalTown(_) => Some(true),
+            Some(
+                SiteKind::Refactor
+                | SiteKind::CliffTown
+                | SiteKind::DesertCity
+                | SiteKind::SavannahTown
+                | SiteKind::CoastalTown
+                | SiteKind::Citadel,
+            ) => Some(true),
             // Evil
-            SiteKind::Myrmidon(_)
-            | SiteKind::ChapelSite(_)
-            | SiteKind::Terracotta(_)
-            | SiteKind::Gnarling(_)
-            | SiteKind::Cultist(_)
-            | SiteKind::Sahagin(_)
-            | SiteKind::PirateHideout(_)
-            | SiteKind::JungleRuin(_)
-            | SiteKind::RockCircle(_)
-            | SiteKind::TrollCave(_)
-            | SiteKind::Camp(_)
-            | SiteKind::Haniwa(_)
-            | SiteKind::Adlet(_)
-            | SiteKind::VampireCastle(_)
-            | SiteKind::DwarvenMine(_) => Some(false),
+            Some(
+                SiteKind::Myrmidon
+                | SiteKind::ChapelSite
+                | SiteKind::Terracotta
+                | SiteKind::Gnarling
+                | SiteKind::Cultist
+                | SiteKind::Sahagin
+                | SiteKind::PirateHideout
+                | SiteKind::JungleRuin
+                | SiteKind::RockCircle
+                | SiteKind::TrollCave
+                | SiteKind::Camp
+                | SiteKind::Haniwa
+                | SiteKind::Adlet
+                | SiteKind::VampireCastle
+                | SiteKind::DwarvenMine,
+            ) => Some(false),
             // Neutral
-            SiteKind::Settlement(_)
-            | SiteKind::Castle(_)
-            | SiteKind::Tree(_)
-            | SiteKind::GiantTree(_)
-            | SiteKind::GliderCourse(_)
-            | SiteKind::Bridge(_) => None,
+            Some(SiteKind::GiantTree | SiteKind::GliderCourse | SiteKind::Bridge(..)) | None => {
+                None
+            },
         };
 
         Self {

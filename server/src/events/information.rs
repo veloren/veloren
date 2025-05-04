@@ -50,9 +50,10 @@ impl ServerEvent for RequestSiteInfoEvent {
         for ev in events {
             if let Some(client) = clients.get(ev.entity) {
                 let site_id = index.sites.recreate_id(ev.id);
-                let info = if let Some(site_id) = site_id {
-                    let site = index.sites.get(site_id);
-                    site.economy.get_information(site_id)
+                let info = if let Some(site_id) = site_id
+                    && let Some(economy) = index.sites.get(site_id).economy.as_ref()
+                {
+                    economy.get_information(site_id)
                 } else {
                     EconomyInfo {
                         id: ev.id,

@@ -137,7 +137,7 @@ impl Tunnel {
         let _start = self.a.wpos.map(|e| e as f64 + 0.5);
         let _end = self.b.wpos.map(|e| e as f64 + 0.5);
         if let Some((t, closest, dist)) = self.possibly_near(wposf, 1.0) {
-            let horizontal = Lerp::lerp_unclamped(
+            let horizontal = Lerp::<f64>::lerp_unclamped(
                 MIN_RADIUS as f64,
                 MAX_RADIUS as f64,
                 (info.index().noise.cave_fbm_nz.get(
@@ -147,7 +147,7 @@ impl Tunnel {
                     .clamped(0.0, 1.0)
                     .powf(3.0),
             );
-            let vertical = Lerp::lerp_unclamped(
+            let vertical = Lerp::<f64>::lerp_unclamped(
                 MIN_RADIUS as f64,
                 MAX_RADIUS as f64,
                 (info.index().noise.cave_fbm_nz.get(
@@ -459,8 +459,9 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             .sites
             .iter()
             .filter_map(|site| {
-                if let SiteKind::GiantTree(t) = &info.index.sites.get(*site).kind {
-                    Some(t.origin.distance_squared(info.wpos) as f32 / t.radius().powi(2))
+                let site = info.index.sites.get(*site);
+                if site.kind == Some(SiteKind::GiantTree) {
+                    Some(site.origin.distance_squared(info.wpos) as f32 / site.radius().powi(2))
                 } else {
                     None
                 }

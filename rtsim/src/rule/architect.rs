@@ -173,13 +173,13 @@ fn spawn_any_settlement(
             !site.is_loaded()
                 && site
                     .world_site
-                    .and_then(|s| {
-                        Some(index.sites.get(s).site2()?.plots().any(|p| {
+                    .map(|s| {
+                        index.sites.get(s).any_plot(|p| {
                             matches!(
                                 p.kind().meta(),
-                                Some(world::site2::plot::PlotKindMeta::House { .. })
+                                Some(world::site::plot::PlotKindMeta::House { .. })
                             )
-                        }))
+                        })
                     })
                     .unwrap_or(false)
         })
@@ -241,28 +241,26 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                 let site_filter: fn(&SiteKind) -> bool = match body {
                     Body::BirdLarge(body) => match body.species {
                         comp::bird_large::Species::Phoenix => {
-                            |site| matches!(site, SiteKind::DwarvenMine(_))
+                            |site| matches!(site, SiteKind::DwarvenMine)
                         },
                         comp::bird_large::Species::Cockatrice => {
-                            |site| matches!(site, SiteKind::Myrmidon(_))
+                            |site| matches!(site, SiteKind::Myrmidon)
                         },
-                        comp::bird_large::Species::Roc => {
-                            |site| matches!(site, SiteKind::Haniwa(_))
-                        },
+                        comp::bird_large::Species::Roc => |site| matches!(site, SiteKind::Haniwa),
                         comp::bird_large::Species::FlameWyvern => {
-                            |site| matches!(site, SiteKind::Terracotta(_))
+                            |site| matches!(site, SiteKind::Terracotta)
                         },
                         comp::bird_large::Species::CloudWyvern => {
-                            |site| matches!(site, SiteKind::Sahagin(_))
+                            |site| matches!(site, SiteKind::Sahagin)
                         },
                         comp::bird_large::Species::FrostWyvern => {
-                            |site| matches!(site, SiteKind::Adlet(_))
+                            |site| matches!(site, SiteKind::Adlet)
                         },
                         comp::bird_large::Species::SeaWyvern => {
-                            |site| matches!(site, SiteKind::ChapelSite(_))
+                            |site| matches!(site, SiteKind::ChapelSite)
                         },
                         comp::bird_large::Species::WealdWyvern => {
-                            |site| matches!(site, SiteKind::GiantTree(_))
+                            |site| matches!(site, SiteKind::GiantTree)
                         },
                     },
                     _ => |_| true,
@@ -275,7 +273,8 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                         !site.is_loaded()
                             && site
                                 .world_site
-                                .is_some_and(|s| site_filter(&index.sites.get(s).kind))
+                                .and_then(|s| index.sites.get(s).kind)
+                                .is_some_and(|s| site_filter(&s))
                     })
                     .choose(&mut rng)
                 {

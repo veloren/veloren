@@ -90,7 +90,8 @@ impl Index {
         self.sites
             .recreate_id(site_id)
             .map(|i| self.sites.get(i))
-            .map(|s| s.economy.get_site_prices())
+            .and_then(|s| s.economy.as_ref())
+            .map(|econ| econ.get_site_prices())
     }
 }
 
