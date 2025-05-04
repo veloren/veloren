@@ -1728,9 +1728,6 @@
         Transformation: (
             files: [
                 "voxygen.audio.sfx.abilities.surprise_egg_0",
-                "voxygen.audio.sfx.abilities.surprise_egg_1",
-                "voxygen.audio.sfx.abilities.surprise_egg_2",
-                "voxygen.audio.sfx.abilities.surprise_egg_3",
             ],
             threshold: 2.2,
             subtitle: "subtitle-transformation",
