@@ -318,11 +318,11 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             // Collectible checked in addition to container for case that sprite requires a tool to
             // collect and cannot be collected by hand, yet still meets the container check
             _ if sprite_kind.is_defined_as_container()
-                && sprite_kind.default_tool() == Some(None) =>
+                && sprite_kind.collectible_info() == Some(None) =>
             {
                 Some(SpriteInteractKind::Chest)
             },
-            _ if sprite_kind.default_tool() == Some(None) => Some(SpriteInteractKind::Fallback),
+            _ if sprite_kind.collectible_info() == Some(None) => Some(SpriteInteractKind::Fallback),
             _ => None,
         }
     }

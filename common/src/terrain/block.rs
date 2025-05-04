@@ -1,5 +1,5 @@
 use super::{
-    SpriteCfg, SpriteKind,
+    SpriteKind,
     sprite::{self, RelativeNeighborPosition},
 };
 use crate::{
@@ -384,6 +384,10 @@ impl Block {
                 | SpriteKind::CommonLockedChest => Some(rtsim::ChunkResource::Loot),
             _ => None,
         }
+        // Don't count collected sprites.
+        // TODO: we may want to have rtsim still spawn these sprites when depleted by spawning them
+        // in the "collected" state, see `into_collected` for sprites that would need this.
+        .filter(|_|  matches!(self.get_attr(), Ok(sprite::Collectable(false)) | Err(_)))
     }
 
     #[inline]
@@ -585,20 +589,28 @@ impl Block {
         }
     }
 
-    /// Whether the block containes a sprite that marked to be collectible
+    /// Whether the block containes a sprite that is collectible.
     ///
-    /// Check docs for [`SpriteKind::default_tool`] for more.
+    /// Note, this is based on [`SpriteKind::collectible_info`] and accounts for
+    /// if the [`Collectable`][`sprite::Collectable`] sprite attr is `false`.
     #[inline]
-    pub fn default_tool(&self) -> Option<Option<ToolKind>> {
-        self.get_sprite().and_then(|s| s.default_tool())
+    pub fn is_collectible(&self) -> bool {
+        self.get_sprite()
+            .is_some_and(|s| s.collectible_info().is_some())
+            && matches!(self.get_attr(), Ok(sprite::Collectable(true)) | Err(_))
     }
 
+    /// Can this sprite be picked up to yield an item without a tool?
+    ///
+    /// Note, this is based on [`SpriteKind::collectible_info`] and accounts for
+    /// if the [`Collectable`][`sprite::Collectable`] sprite attr is `false`.
     #[inline]
-    pub fn is_collectible(&self, sprite_cfg: Option<&SpriteCfg>) -> bool {
-        self.get_sprite().is_some_and(|s| {
-            sprite_cfg.and_then(|cfg| cfg.loot_table.as_ref()).is_some()
-                || s.default_tool() == Some(None)
-        }) && matches!(self.get_attr(), Ok(sprite::Collectable(true)) | Err(_))
+    pub fn is_directly_collectible(&self) -> bool {
+        // NOTE: This doesn't require `SpriteCfg` because `SpriteCfg::loot_table` is
+        // only expected to be set for `collectible_info.is_some()` sprites!
+        self.get_sprite()
+            .is_some_and(|s| s.collectible_info() == Some(None))
+            && matches!(self.get_attr(), Ok(sprite::Collectable(true)) | Err(_))
     }
 
     #[inline]
@@ -740,6 +752,22 @@ impl Block {
             // FIXME: Figure out if there's some sensible way to determine what medium to
             // replace a filled block with if it's removed.
             Block::air(SpriteKind::Empty)
+        }
+    }
+
+    /// Apply the effect of collecting the sprite in this block.
+    ///
+    /// This sets the `Collectable` attribute to `false` for some sprites like
+    /// `Lettuce`. Other sprites will simply be removed via
+    /// [`into_vacant`][Self::into_vacant].
+    #[inline]
+    #[must_use]
+    pub fn into_collected(self) -> Self {
+        match self.get_sprite() {
+            Some(SpriteKind::Lettuce) => self.with_attr(sprite::Collectable(false)).expect(
+                "Setting collectable will not fail since this sprite has Collectable attribute",
+            ),
+            _ => self.into_vacant(),
         }
     }
 

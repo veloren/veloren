@@ -45,6 +45,7 @@ make_case_elim!(
         // NOTE: When adding set it equal to `23`.
         // = 23,
         EntitySpawner(entitykind: String, spawn_chance: f32) = 24,
+        // TODO: It seems like only Keyhole and KeyholeBars are used out of the keyhole variants?
         Keyhole(consumes: String) = 25,
         BoneKeyhole(consumes: String) = 26,
         GlassKeyhole(consumes: String) = 27,

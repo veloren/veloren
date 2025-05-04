@@ -256,6 +256,8 @@ impl VolumePos {
                 Mat4::translation_3d(self.pos.as_()),
                 *terrain.get(self.pos).ok()?,
             )),
+            // TODO: theorectically we could store Entity here and translate when syncing over
+            // network?
             Volume::Entity(uid) => id_maps.uid_entity(uid).and_then(|entity| {
                 let collider = colliders.get(entity)?;
                 let (pos, ori) = read_pos_and_ori(entity)?;

@@ -335,6 +335,8 @@ impl TerrainGrid {
         Some(cubic(x[0], x[1], x[2], x[3], pos.x.fract() as f32))
     }
 
+    /// Note, this returns `None` both when a chunk doesn't exist and when there
+    /// is no sprite cfg at this position in an existing chunk.
     pub fn sprite_cfg_at(&self, wpos: Vec3<i32>) -> Option<&SpriteCfg> {
         let chunk = self.pos_chunk(wpos)?;
         let sprite_chunk_pos = TerrainGrid::chunk_offs(wpos);

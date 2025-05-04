@@ -1545,6 +1545,9 @@ impl Hud {
             let stances = ecs.read_storage::<comp::Stance>();
             let char_activities = ecs.read_storage::<comp::CharacterActivity>();
             let time = ecs.read_resource::<Time>();
+            let id_maps = ecs.read_resource::<common::uid::IdMaps>();
+            let terrain = ecs.read_resource::<common::terrain::TerrainGrid>();
+            let colliders = ecs.read_storage::<comp::Collider>();
 
             // Check if there was a persistence load error of the skillset, and if so
             // display a dialog prompt
@@ -2082,16 +2085,15 @@ impl Hud {
                     .filter_map(|(position, (block, interactions))| {
                         position
                             .get_block_and_transform(
-                                &ecs.read_resource(),
-                                &ecs.read_resource(),
+                                &terrain,
+                                &id_maps,
+                                // Use the visual position of voxel collider entity
                                 |e| {
-                                    ecs.read_storage::<vcomp::Interpolated>().get(e).map(
-                                        |interpolated| {
-                                            (comp::Pos(interpolated.pos), interpolated.ori)
-                                        },
-                                    )
+                                    interpolated.get(e).map(|interpolated| {
+                                        (comp::Pos(interpolated.pos), interpolated.ori)
+                                    })
                                 },
-                                &ecs.read_storage(),
+                                &colliders,
                             )
                             .map(|(mat, _)| (mat, *position, interactions, *block))
                     })
@@ -2235,17 +2237,17 @@ impl Hud {
                     ),
                 };
 
-                // TODO: Handle this better. The items returned from `try_reclaim_from_block`
-                // are based on rng. We probably want some function to get only gauranteed items
-                // from `LootSpec`.
-                let interactable_item = block
-                    .get_sprite()
-                    .filter(|s| !s.should_drop_mystery())
-                    .and_then(|_| {
+                if let Some(sprite) = block.get_sprite() {
+                    // TODO: Handle this better. The items returned from `try_reclaim_from_block`
+                    // are based on rng. We probably want some function to get only gauranteed items
+                    // from `LootSpec`.
+                    let interactable_item = if sprite.should_drop_mystery() {
+                        None
+                    } else {
                         Item::try_reclaim_from_block(block, None).and_then(|mut items| {
                             debug_assert!(
                                 items.len() <= 1,
-                                "The amount of items returned from Item::try_reclam_from_block \
+                                "The amount of items returned from Item::try_reclaim_from_block \
                                  for non-container items must not be higher than one"
                             );
                             let (amount, mut item) = items.pop()?;
@@ -2255,9 +2257,8 @@ impl Hud {
                             );
                             Some(item)
                         })
-                    });
+                    };
 
-                if let Some(sprite) = block.get_sprite() {
                     let (desc, quality) = interactable_item.map_or_else(
                         || (get_sprite_desc(sprite, i18n), overitem::TEXT_COLOR),
                         |item| {
