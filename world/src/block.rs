@@ -314,9 +314,12 @@ pub fn block_from_structure<'a>(
                     None,
                 ))
             } else if calendar.is_some_and(|c| c.is_event(CalendarEvent::Halloween))
-                && (*sblock == StructureBlock::TemperateLeaves
-                    || *sblock == StructureBlock::Chestnut
-                    || *sblock == StructureBlock::CherryLeaves)
+                && matches!(
+                    *sblock,
+                    StructureBlock::TemperateLeaves
+                        | StructureBlock::Chestnut
+                        | StructureBlock::CherryLeaves
+                )
             {
                 crate::all::leaf_color(index, structure_seed, lerp, &StructureBlock::AutumnLeaves)
                     .map(|col| (Block::new(BlockKind::Leaves, col), None, None))

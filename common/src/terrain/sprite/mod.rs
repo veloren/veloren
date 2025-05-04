@@ -1012,6 +1012,7 @@ impl SpriteKind {
             SpriteKind::Ironwood => item("common.items.log.ironwood"),
             SpriteKind::Frostwood => item("common.items.log.frostwood"),
             SpriteKind::Eldwood => item("common.items.log.eldwood"),
+            // TODO: why does this have a loot table?
             SpriteKind::MagicalBarrier => table("common.loot_tables.sprite.chest"),
             SpriteKind::WitchChest => table("common.loot_tables.spot.witch"),
             SpriteKind::PirateChest => table("common.loot_tables.spot.buccaneer"),
@@ -1322,7 +1323,7 @@ impl<'a> TryFrom<&'a str> for SpriteKind {
 }
 
 // TODO: Free and Requires are currently unused.
-#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum UnlockKind {
     /// The sprite can be freely unlocked without any conditions
     Free,
@@ -1334,7 +1335,7 @@ pub enum UnlockKind {
     Consumes(ItemDefinitionIdOwned),
 }
 
-#[derive(Default, PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct SpriteCfg {
     /// Signifies that this sprite needs an item to be unlocked.
     pub unlock: Option<UnlockKind>,
@@ -1366,7 +1367,7 @@ pub struct SpriteCfg {
 }
 
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use super::*;
 
     #[test]

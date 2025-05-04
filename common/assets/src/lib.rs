@@ -204,7 +204,13 @@ impl CacheCombined for AssetCache {
     }
 }
 
-/// Loads directory and all files in it
+/// Loads directory and all files in it.
+///
+/// "rec" stands for "recursively"
+///
+/// Note, this only gets the ids of assets, they are not actually loaded. The
+/// returned handle can be used to iterate over the IDs or to iterate over
+/// assets trying to load them.
 ///
 /// # Errors
 /// An error is returned if the given id does not match a valid readable
