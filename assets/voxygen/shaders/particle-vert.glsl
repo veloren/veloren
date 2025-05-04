@@ -1101,7 +1101,7 @@ void main() {
             attr = Attr(
                 spiral_motion(vec3(0, 0, radius), radius, percent(), frequency, spiral / 9.0 * 2.0 * PI * frequency + radius),
                 vec3((2.5 * (1 - slow_start(0.05)))),
-                vec4(trans_colors[color], 2.0),
+                vec4(trans_colors[color] * 2.2, 1.0),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
