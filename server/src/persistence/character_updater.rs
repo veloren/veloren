@@ -1,5 +1,5 @@
 use crate::comp;
-use common::character::CharacterId;
+use common::{character::CharacterId, event::PermanentChange};
 
 use crate::persistence::{
     ConnectionMode, DatabaseSettings, EditableComponents, PersistedComponents, VelorenConnection,
@@ -51,7 +51,7 @@ enum CharacterUpdaterAction {
         character_id: CharacterId,
         character_alias: Option<String>,
         editable_components: EditableComponents,
-        trusted: bool,
+        trusted_change: Option<PermanentChange>,
     },
     DisconnectedSuccess,
 }
@@ -184,7 +184,7 @@ impl CharacterUpdater {
                             character_alias,
                             player_uuid,
                             editable_components,
-                            trusted,
+                            trusted_change,
                         } => {
                             match execute_character_edit(
                                 entity,
@@ -192,7 +192,7 @@ impl CharacterUpdater {
                                 character_alias,
                                 &player_uuid,
                                 editable_components,
-                                trusted,
+                                trusted_change,
                                 &mut conn,
                             ) {
                                 Ok(response) => {
@@ -317,7 +317,7 @@ impl CharacterUpdater {
         character_id: CharacterId,
         alias: Option<String>,
         editable_components: EditableComponents,
-        trusted: bool,
+        trusted_change: Option<PermanentChange>,
     ) {
         if let Err(e) =
             self.update_tx
@@ -329,7 +329,7 @@ impl CharacterUpdater {
                     character_id,
                     character_alias: alias,
                     editable_components,
-                    trusted,
+                    trusted_change,
                 })
         {
             error!(?e, "Could not send character edit request");
@@ -490,7 +490,7 @@ fn execute_character_edit(
     alias: Option<String>,
     requesting_player_uuid: &str,
     editable_components: EditableComponents,
-    trusted: bool,
+    trusted_change: Option<PermanentChange>,
     connection: &mut VelorenConnection,
 ) -> Result<CharacterUpdaterMessage, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
@@ -500,7 +500,7 @@ fn execute_character_edit(
         response_kind: CharacterScreenResponseKind::CharacterEdit(
             super::character::edit_character(
                 editable_components,
-                trusted,
+                trusted_change,
                 &mut transaction,
                 character_id,
                 requesting_player_uuid,

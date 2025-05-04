@@ -501,13 +501,17 @@ pub struct ChangeStanceEvent {
     pub stance: comp::Stance,
 }
 
+pub struct PermanentChange {
+    pub expected_old_body: comp::Body,
+}
+
 pub struct ChangeBodyEvent {
     pub entity: EcsEntity,
     pub new_body: comp::Body,
-    /// If this change should be persisted.
+    /// Is Some if this change should be persisted.
     ///
     /// Only applies to player characters.
-    pub permanent: bool,
+    pub permanent_change: Option<PermanentChange>,
 }
 
 pub struct RemoveLightEmitterEvent {

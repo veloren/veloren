@@ -106,7 +106,7 @@ pub fn edit_character(
         id,
         Some(character_alias),
         (body,),
-        false,
+        None,
     );
     Ok(())
 }

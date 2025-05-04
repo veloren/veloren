@@ -44,8 +44,8 @@ use common::{
         DeleteEvent, DestroyEvent, DownedEvent, EmitExt, Emitter, EnergyChangeEvent,
         EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent, HelpDownedEvent,
         KillEvent, KnockbackEvent, LandOnGroundEvent, MakeAdminEvent, ParryHookEvent,
-        PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent, ShootEvent,
-        SoundEvent, StartInteractionEvent, StartTeleportingEvent, TeleportToEvent,
+        PermanentChange, PoiseChangeEvent, RegrowHeadEvent, RemoveLightEmitterEvent, RespawnEvent,
+        ShootEvent, SoundEvent, StartInteractionEvent, StartTeleportingEvent, TeleportToEvent,
         TeleportToPositionEvent, TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
@@ -1804,22 +1804,26 @@ pub fn emit_effect_events(
         },
         common::effect::Effect::Permanent(permanent_effect) => match permanent_effect {
             common::effect::PermanentEffect::CycleBodyType => {
-                if let Some(new_body) = tgt_body.and_then(|body| match body {
-                    Body::Humanoid(body) => Some(Body::Humanoid(comp::humanoid::Body {
-                        body_type: match body.body_type {
-                            comp::humanoid::BodyType::Female => comp::humanoid::BodyType::Male,
-                            comp::humanoid::BodyType::Male => comp::humanoid::BodyType::Female,
-                        },
-                        ..*body
-                    })),
-                    // Only allow humanoids for now.
-                    _ => None,
-                }) {
+                if let Some(body) = tgt_body
+                    && let Some(new_body) = match body {
+                        Body::Humanoid(body) => Some(Body::Humanoid(comp::humanoid::Body {
+                            body_type: match body.body_type {
+                                comp::humanoid::BodyType::Female => comp::humanoid::BodyType::Male,
+                                comp::humanoid::BodyType::Male => comp::humanoid::BodyType::Female,
+                            },
+                            ..*body
+                        })),
+                        // Only allow humanoids for now.
+                        _ => None,
+                    }
+                {
                     // TODO: Change only the body from the character list?
                     emitters.emit(ChangeBodyEvent {
                         entity,
                         new_body,
-                        permanent: true,
+                        permanent_change: Some(PermanentChange {
+                            expected_old_body: *body,
+                        }),
                     });
                     if let Some(pos) = tgt_pos {
                         emitters.emit(Outcome::Transformation { pos: pos.0 });
@@ -2551,21 +2555,18 @@ impl ServerEvent for ChangeBodyEvent {
     ) {
         for ev in events {
             if let Some(mut body) = bodies.get_mut(ev.entity) {
-                *body = ev.new_body;
-                masses
-                    .insert(ev.entity, ev.new_body.mass())
-                    .expect("We just got this entities body");
-                densities
-                    .insert(ev.entity, ev.new_body.density())
-                    .expect("We just got this entities body");
-                colliders
-                    .insert(ev.entity, ev.new_body.collider())
-                    .expect("We just got this entities body");
+                if let Some(permanent_change) = ev.permanent_change {
+                    // If we aren't changing the right body, skip this change.
+                    if permanent_change.expected_old_body != *body {
+                        continue;
+                    }
 
-                if ev.permanent {
-                    if let Some(mut stats) = stats.get_mut(ev.entity) {
+                    if let Some(mut stats) = stats.get_mut(ev.entity)
+                        && stats.original_body == permanent_change.expected_old_body
+                    {
                         stats.original_body = ev.new_body;
                     }
+
                     if let Some(player) = players.get(ev.entity)
                         && let Some(comp::Presence {
                             kind: comp::PresenceKind::Character(character_id),
@@ -2578,10 +2579,21 @@ impl ServerEvent for ChangeBodyEvent {
                             *character_id,
                             None,
                             (ev.new_body,),
-                            true,
+                            Some(permanent_change),
                         );
                     }
                 }
+
+                *body = ev.new_body;
+                masses
+                    .insert(ev.entity, ev.new_body.mass())
+                    .expect("We just got this entities body");
+                densities
+                    .insert(ev.entity, ev.new_body.density())
+                    .expect("We just got this entities body");
+                colliders
+                    .insert(ev.entity, ev.new_body.collider())
+                    .expect("We just got this entities body");
             }
         }
     }

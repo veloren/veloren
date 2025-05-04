@@ -29,7 +29,7 @@ use crate::{
 use common::{
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp::Content,
-    event::UpdateCharacterMetadata,
+    event::{PermanentChange, UpdateCharacterMetadata},
     npc::NPC_NAMES,
 };
 use core::ops::Range;
@@ -625,7 +625,7 @@ pub fn create_character(
 
 pub fn edit_character(
     editable_components: EditableComponents,
-    trusted: bool,
+    trusted_change: Option<PermanentChange>,
     transaction: &mut Transaction,
     character_id: CharacterId,
     uuid: &str,
@@ -640,7 +640,11 @@ pub fn edit_character(
             .find(|c| c.character.id == Some(character_id))
         {
             if let (comp::Body::Humanoid(new), comp::Body::Humanoid(old)) = (body, char.body) {
-                if !trusted && (new.species != old.species || new.body_type != old.body_type) {
+                let allow_change = match trusted_change {
+                    Some(change) => change.expected_old_body == char.body,
+                    None => new.species == old.species && new.body_type == old.body_type,
+                };
+                if !allow_change {
                     warn!(
                         "Character edit rejected due to failed validation - Character ID: {} \
                          Alias: {:?}",

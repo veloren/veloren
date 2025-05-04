@@ -48,7 +48,7 @@ use common::{
     effect::Effect,
     event::{
         ClientDisconnectEvent, CreateNpcEvent, CreateSpecialEntityEvent, EventBus, ExplosionEvent,
-        GroupManipEvent, InitiateInviteEvent, TamePetEvent,
+        GroupManipEvent, InitiateInviteEvent, PermanentChange, TamePetEvent,
     },
     generation::{EntityConfig, EntityInfo, SpecialEntity},
     link::Is,
@@ -1245,7 +1245,9 @@ fn handle_set_body_type(
                                 *id,
                                 None,
                                 (*new_body,),
-                                true,
+                                Some(PermanentChange {
+                                    expected_old_body: old_body,
+                                }),
                             );
                     } else {
                         return Err(Content::localized("cmd-set_body_type-not_character"));
