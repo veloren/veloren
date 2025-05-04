@@ -1,4 +1,4 @@
-use super::{BlockKind, StructureSprite};
+use super::{BlockKind, SpriteCfg, StructureSprite};
 use crate::{
     assets::{self, AssetCache, AssetExt, AssetHandle, BoxedError, DotVox, Ron, SharedString},
     make_case_elim,
@@ -11,8 +11,6 @@ use hashbrown::HashMap;
 use serde::Deserialize;
 use std::{num::NonZeroU8, sync::Arc};
 use vek::*;
-
-use crate::terrain::SpriteCfg;
 
 make_case_elim!(
     structure_block,
@@ -61,7 +59,7 @@ make_case_elim!(
         CherryLeaves = 37,
         AutumnLeaves = 38,
         RedwoodWood = 39,
-        SpriteWithCfg(kind: StructureSprite, sprite_cfg: SpriteCfg) = 40,
+        SpriteWithCfg(sprite: StructureSprite, sprite_cfg: SpriteCfg) = 40,
         Choice(block_table: Vec<(f32, StructureBlock)>) = 41,
     }
 );
@@ -263,6 +261,11 @@ mod tests {
     };
 
     pub fn validate_sprite_and_cfg(sprite: StructureSprite, sprite_cfg: &SpriteCfg) {
+        let sprite = sprite
+            .get_block(|sprite| Block::empty().with_sprite(sprite))
+            .get_sprite()
+            .expect("This should have the sprite");
+
         let SpriteCfg {
             // TODO: write validation for UnlockKind?
             unlock: _,
@@ -270,11 +273,6 @@ mod tests {
             content: _,
             loot_table,
         } = sprite_cfg;
-
-        let sprite = sprite
-            .get_block(Block::air)
-            .get_sprite()
-            .expect("This should have the sprite");
 
         if let Some(loot_table) = loot_table.clone() {
             if !sprite.is_defined_as_container() {
