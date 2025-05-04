@@ -28,8 +28,8 @@ use tracing::{debug, trace};
 use vek::*;
 use veloren_world::{
     World,
-    civ::SiteKind,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
+    site::SiteKind,
 };
 
 fn lz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Vec<u8> {

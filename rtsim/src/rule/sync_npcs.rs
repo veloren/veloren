@@ -36,23 +36,21 @@ fn on_setup(ctx: EventCtx<SyncNpcs, OnSetup>) {
 
     // Update the list of nearest sites by size for each site
     let sites_iter = data.sites.iter().filter_map(|(site_id, site)| {
-        let site2 = site
-            .world_site
-            .and_then(|ws| ctx.index.sites.get(ws).site2())?;
-        Some((site_id, site, site2))
+        let world_site = site.world_site.map(|ws| ctx.index.sites.get(ws))?;
+        Some((site_id, site, world_site))
     });
     let nearest_by_size = sites_iter.clone()
-        .map(|(site_id, site, site2)| {
+        .map(|(site_id, site, world_site)| {
             let mut other_sites = sites_iter.clone()
                 // Only include sites in the list if they're not the current one and they're more populus
-                .filter(|(other_id, _, other_site2)| *other_id != site_id && other_site2.plots().len() > site2.plots().len())
+                .filter(|(other_id, _, other_site)| *other_id != site_id && other_site.plots().len() > world_site.plots().len())
                 .collect::<Vec<_>>();
             other_sites.sort_by_key(|(_, other, _)| other.wpos.as_::<i64>().distance_squared(site.wpos.as_::<i64>()));
             let mut max_size = 0;
             // Remove sites that aren't in increasing order of size (Stalin sort?!)
-            other_sites.retain(|(_, _, other_site2)| {
-                if other_site2.plots().len() > max_size {
-                    max_size = other_site2.plots().len();
+            other_sites.retain(|(_, _, other_site)| {
+                if other_site.plots().len() > max_size {
+                    max_size = other_site.plots().len();
                     true
                 } else {
                     false

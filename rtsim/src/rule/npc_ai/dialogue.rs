@@ -199,26 +199,22 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
             && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
         {
             let direction_to_nearest =
-                |f: fn(&&world::site2::Plot) -> bool,
-                 plot_name: fn(&world::site2::Plot) -> Content| {
+                |f: fn(&&world::site::Plot) -> bool,
+                 plot_name: fn(&world::site::Plot) -> Content| {
                     now(move |ctx, _| {
-                        if let Some(ws) = ctx.index.sites.get(ws_id).site2() {
-                            if let Some(p) = ws.plots().filter(f).min_by_key(|p| {
-                                ws.tile_center_wpos(p.root_tile())
-                                    .distance_squared(ctx.npc.wpos.xy().as_())
-                            }) {
-                                ctx.controller.dialogue_marker(
-                                    session,
-                                    ws.tile_center_wpos(p.root_tile()),
-                                    plot_name(p),
-                                );
-                                session.say_statement(Content::localized("npc-response-directions"))
-                            } else {
-                                session
-                                    .say_statement(Content::localized("npc-response-doesnt_exist"))
-                            }
+                        let ws = ctx.index.sites.get(ws_id);
+                        if let Some(p) = ws.plots().filter(f).min_by_key(|p| {
+                            ws.tile_center_wpos(p.root_tile())
+                                .distance_squared(ctx.npc.wpos.xy().as_())
+                        }) {
+                            ctx.controller.dialogue_marker(
+                                session,
+                                ws.tile_center_wpos(p.root_tile()),
+                                plot_name(p),
+                            );
+                            session.say_statement(Content::localized("npc-response-directions"))
                         } else {
-                            session.say_statement(Content::localized("npc-info-unknown"))
+                            session.say_statement(Content::localized("npc-response-doesnt_exist"))
                         }
                     })
                     .boxed()

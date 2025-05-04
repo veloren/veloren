@@ -22,7 +22,6 @@ pub mod pathfinding;
 pub mod sim;
 pub mod sim2;
 pub mod site;
-pub mod site2;
 pub mod util;
 
 // Reexports
@@ -110,7 +109,6 @@ pub struct Colors {
     pub block: block::Colors,
     pub column: column::Colors,
     pub layer: layer::Colors,
-    pub site: site::Colors,
 }
 
 impl assets::Asset for Colors {
@@ -191,57 +189,16 @@ impl World {
                 sites: self
                     .civs()
                     .sites
-                    .iter()
-                    .filter(|(_, site)| {
-                        !matches!(
-                            &site.kind,
-                            civ::SiteKind::PirateHideout
-                                | civ::SiteKind::JungleRuin
-                                | civ::SiteKind::RockCircle
-                                | civ::SiteKind::TrollCave
-                                | civ::SiteKind::Camp
-                        )
-                    })
-                    .map(|(_, site)| {
+                    .values()
+                    .filter_map(|site| Some((site.kind.marker()?, site)))
+                    .map(|(marker, site)| {
                         world_msg::Marker {
                             id: site.site_tmp.map(|i| i.id()),
                             name: site
                                 .site_tmp
                                 .map(|id| Content::Plain(index.sites[id].name().to_string())),
                             // TODO: Probably unify these, at some point
-                            kind: match &site.kind {
-                                civ::SiteKind::Settlement
-                                | civ::SiteKind::Refactor
-                                | civ::SiteKind::CliffTown
-                                | civ::SiteKind::SavannahTown
-                                | civ::SiteKind::CoastalTown
-                                | civ::SiteKind::DesertCity
-                                | civ::SiteKind::PirateHideout
-                                | civ::SiteKind::JungleRuin
-                                | civ::SiteKind::RockCircle
-                                | civ::SiteKind::TrollCave
-                                | civ::SiteKind::Camp => world_msg::MarkerKind::Town,
-                                civ::SiteKind::Castle => world_msg::MarkerKind::Castle,
-                                civ::SiteKind::Tree | civ::SiteKind::GiantTree => {
-                                    world_msg::MarkerKind::Tree
-                                },
-                                // TODO: Maybe change?
-                                civ::SiteKind::Gnarling => world_msg::MarkerKind::Gnarling,
-                                civ::SiteKind::DwarvenMine => world_msg::MarkerKind::DwarvenMine,
-                                civ::SiteKind::ChapelSite => world_msg::MarkerKind::ChapelSite,
-                                civ::SiteKind::Terracotta => world_msg::MarkerKind::Terracotta,
-                                civ::SiteKind::Citadel => world_msg::MarkerKind::Castle,
-                                civ::SiteKind::Bridge(_, _) => world_msg::MarkerKind::Bridge,
-                                civ::SiteKind::GliderCourse => world_msg::MarkerKind::GliderCourse,
-                                civ::SiteKind::Cultist => world_msg::MarkerKind::Cultist,
-                                civ::SiteKind::Sahagin => world_msg::MarkerKind::Sahagin,
-                                civ::SiteKind::Myrmidon => world_msg::MarkerKind::Myrmidon,
-                                civ::SiteKind::Adlet => world_msg::MarkerKind::Adlet,
-                                civ::SiteKind::Haniwa => world_msg::MarkerKind::Haniwa,
-                                civ::SiteKind::VampireCastle => {
-                                    world_msg::MarkerKind::VampireCastle
-                                },
-                            },
+                            kind: marker,
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }
                     })
@@ -267,8 +224,17 @@ impl World {
                         .map(|(civ_site, site_id)| {
                             // Score the site according to how suitable it is to be a starting site
 
-                            let (site2, mut score) = match &index.sites[site_id].kind {
-                                SiteKind::Refactor(site2) => (site2, 2.0),
+                            let site = &index.sites[site_id];
+                            let mut score = match site.kind {
+                                Some(SiteKind::Refactor) => 2.0,
+                                Some(kind)
+                                    if matches!(
+                                        kind.meta(),
+                                        Some(common::terrain::SiteKindMeta::Settlement(_))
+                                    ) =>
+                                {
+                                    1.0
+                                },
                                 // Non-town sites should not be chosen as starting sites and get a
                                 // score of 0
                                 _ => return (site_id.id(), 0.0),
@@ -278,7 +244,7 @@ impl World {
                             const OPTIMAL_STARTER_TOWN_SIZE: f32 = 30.0;
 
                             // Prefer sites of a medium size
-                            let plots = site2.plots().len() as f32;
+                            let plots = site.plots().len() as f32;
                             let size_score = if plots > OPTIMAL_STARTER_TOWN_SIZE {
                                 1.0 + (1.0
                                     / (1.0 + ((plots - OPTIMAL_STARTER_TOWN_SIZE) / 15.0).powi(3)))
@@ -438,16 +404,16 @@ impl World {
                 .iter()
                 .filter(|id| {
                     index.sites[**id]
-                        .get_origin()
+                        .origin
                         .distance_squared(chunk_center_wpos2d) as f32
                         <= index.sites[**id].radius().powi(2)
                 })
                 .min_by_key(|id| {
                     index.sites[**id]
-                        .get_origin()
+                        .origin
                         .distance_squared(chunk_center_wpos2d)
                 })
-                .map(|id| index.sites[*id].kind.convert_to_meta().unwrap_or_default()),
+                .map(|id| index.sites[*id].meta().unwrap_or_default()),
             self.sim.approx_chunk_terrain_normal(chunk_pos),
             sim_chunk.rockiness,
             sim_chunk.cliff_height,
@@ -546,7 +512,7 @@ impl World {
         sim_chunk
             .sites
             .iter()
-            .for_each(|site| index.sites[*site].apply_to(&mut canvas, &mut dynamic_rng));
+            .for_each(|site| index.sites[*site].render(&mut canvas, &mut dynamic_rng));
 
         let mut rtsim_resource_blocks = std::mem::take(&mut canvas.rtsim_resource_blocks);
         let mut supplement = ChunkSupplement {
@@ -599,14 +565,7 @@ impl World {
 
         // Apply site supplementary information
         sim_chunk.sites.iter().for_each(|site| {
-            index.sites[*site].apply_supplement(
-                &mut dynamic_rng,
-                chunk_wpos2d,
-                sample_get,
-                &mut supplement,
-                site.id(),
-                time.as_ref(),
-            )
+            index.sites[*site].apply_supplement(&mut dynamic_rng, chunk_wpos2d, &mut supplement)
         });
 
         // Finally, defragment to minimize space consumption.
@@ -711,84 +670,81 @@ impl World {
                 .sites
                 .iter()
                 .filter(|(_, site)| {
-                    site.get_origin()
+                    site.origin
                         .map2(min_wpos.zip(max_wpos), |e, (min, max)| e >= min && e < max)
                         .reduce_and()
                 })
-                .filter_map(|(_, site)| {
-                    site.site2().map(|site| {
-                        site.plots().filter_map(|plot| match &plot.kind {
-                            site2::plot::PlotKind::House(h) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                h.roof_color(),
-                                lod::ObjectKind::House,
-                            )),
-                            site2::plot::PlotKind::GiantTree(t) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                t.leaf_color(),
-                                lod::ObjectKind::GiantTree,
-                            )),
-                            site2::plot::PlotKind::Haniwa(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::Haniwa,
-                            )),
-                            site2::plot::PlotKind::DesertCityMultiPlot(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::Desert,
-                            )),
-                            site2::plot::PlotKind::DesertCityArena(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::Arena,
-                            )),
-                            site2::plot::PlotKind::SavannahHut(_)
-                            | site2::plot::PlotKind::SavannahWorkshop(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::SavannahHut,
-                            )),
-                            site2::plot::PlotKind::SavannahAirshipDock(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::SavannahAirshipDock,
-                            )),
-                            site2::plot::PlotKind::TerracottaPalace(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::TerracottaPalace,
-                            )),
-                            site2::plot::PlotKind::TerracottaHouse(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::TerracottaHouse,
-                            )),
-                            site2::plot::PlotKind::TerracottaYard(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::TerracottaYard,
-                            )),
-                            site2::plot::PlotKind::AirshipDock(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::AirshipDock,
-                            )),
-                            site2::plot::PlotKind::CoastalHouse(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::CoastalHouse,
-                            )),
-                            site2::plot::PlotKind::CoastalWorkshop(_) => Some((
-                                site.tile_wpos(plot.root_tile),
-                                Rgb::black(),
-                                lod::ObjectKind::CoastalWorkshop,
-                            )),
-                            _ => None,
-                        })
+                .flat_map(|(_, site)| {
+                    site.plots().filter_map(|plot| match &plot.kind {
+                        site::plot::PlotKind::House(h) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            h.roof_color(),
+                            lod::ObjectKind::House,
+                        )),
+                        site::plot::PlotKind::GiantTree(t) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            t.leaf_color(),
+                            lod::ObjectKind::GiantTree,
+                        )),
+                        site::plot::PlotKind::Haniwa(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::Haniwa,
+                        )),
+                        site::plot::PlotKind::DesertCityMultiPlot(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::Desert,
+                        )),
+                        site::plot::PlotKind::DesertCityArena(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::Arena,
+                        )),
+                        site::plot::PlotKind::SavannahHut(_)
+                        | site::plot::PlotKind::SavannahWorkshop(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::SavannahHut,
+                        )),
+                        site::plot::PlotKind::SavannahAirshipDock(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::SavannahAirshipDock,
+                        )),
+                        site::plot::PlotKind::TerracottaPalace(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::TerracottaPalace,
+                        )),
+                        site::plot::PlotKind::TerracottaHouse(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::TerracottaHouse,
+                        )),
+                        site::plot::PlotKind::TerracottaYard(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::TerracottaYard,
+                        )),
+                        site::plot::PlotKind::AirshipDock(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::AirshipDock,
+                        )),
+                        site::plot::PlotKind::CoastalHouse(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::CoastalHouse,
+                        )),
+                        site::plot::PlotKind::CoastalWorkshop(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::CoastalWorkshop,
+                        )),
+                        _ => None,
                     })
                 })
-                .flatten()
                 .filter_map(|(wpos2d, color, model)| {
                     ColumnGen::new(self.sim())
                         .get((wpos2d, index, self.sim().calendar.as_ref()))

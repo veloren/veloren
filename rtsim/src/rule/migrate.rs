@@ -6,7 +6,7 @@ use crate::{
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::warn;
-use world::site::SiteKind;
+use world::site::plot::PlotKindMeta;
 
 /// This rule runs at rtsim startup and broadly acts to perform some primitive
 /// migration/sanitisation in order to ensure that the state of rtsim is mostly
@@ -26,7 +26,7 @@ impl Rule for Migrate {
                     .index
                     .sites
                     .iter()
-                    .find(|(_, world_site)| world_site.get_origin() == site.wpos)
+                    .find(|(_, world_site)| world_site.origin == site.wpos)
                 {
                     site.world_site = Some(world_site_id);
                     data.sites.world_site_map.insert(world_site_id, site_id);
@@ -83,17 +83,26 @@ impl Rule for Migrate {
                         .sites
                         .iter()
                         .filter(|(_, site)| {
-                            // TODO: This is a bit silly, but needs to wait on the removal of site1
-                            site.world_site.is_some_and(|ws| {
-                                matches!(
-                                    &ctx.index.sites.get(ws).kind,
-                                    SiteKind::Refactor(_)
-                                        | SiteKind::CliffTown(_)
-                                        | SiteKind::SavannahTown(_)
-                                        | SiteKind::CoastalTown(_)
-                                        | SiteKind::DesertCity(_)
-                                )
-                            })
+                            let ally_faction = match (
+                                npc.faction.and_then(|f| data.factions.get(f)),
+                                site.faction.and_then(|f| data.factions.get(f)),
+                            ) {
+                                (None, None) => true,
+                                (None, Some(_)) => true,
+                                (Some(_), None) => true,
+                                (Some(npc_faction), Some(site_faction)) => {
+                                    npc_faction.good_or_evil == site_faction.good_or_evil
+                                },
+                            };
+
+                            // See if there is at least one house in this site.
+                            let has_house = site.world_site.is_some_and(|ws| {
+                                ctx.index.sites.get(ws).any_plot(|p| {
+                                    matches!(p.meta(), Some(PlotKindMeta::House { .. }))
+                                })
+                            });
+
+                            ally_faction && has_house
                         })
                         .min_by_key(|(_, site)| {
                             site.wpos.as_().distance_squared(npc.wpos.xy()) as i32

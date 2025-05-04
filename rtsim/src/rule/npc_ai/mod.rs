@@ -72,9 +72,8 @@ use vek::*;
 use world::{
     IndexRef, World,
     civ::{self, Track},
-    site::{Site as WorldSite, SiteKind},
-    site2::{
-        self, PlotKind, TileKind,
+    site::{
+        self, PlotKind, Site as WorldSite, SiteKind, TileKind,
         plot::{PlotKindMeta, tavern},
     },
     util::NEIGHBORS,
@@ -350,17 +349,7 @@ fn adventure() -> impl Action<DefaultState> {
             .sites
             .iter()
             .filter(|(site_id, site)| {
-                // Only path toward towns
-                matches!(
-                    site.world_site.map(|ws| &ctx.index.sites.get(ws).kind),
-                    Some(
-                        SiteKind::Refactor(_)
-                            | SiteKind::CliffTown(_)
-                            | SiteKind::SavannahTown(_)
-                            | SiteKind::CoastalTown(_)
-                            | SiteKind::DesertCity(_)
-                    ),
-                ) && (ctx.npc.current_site != Some(*site_id))
+                site.world_site.is_some_and(|ws| ctx.index.sites.get(ws).any_plot(|plot| matches!(plot.meta(), Some(PlotKindMeta::Workshop { .. })))) && (ctx.npc.current_site != Some(*site_id))
                     && ctx.rng.gen_bool(0.25)
             })
             .min_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
@@ -461,35 +450,26 @@ fn find_forest(ctx: &mut NpcCtx) -> Option<Vec2<f32>> {
 }
 
 fn find_farm(ctx: &mut NpcCtx, site: SiteId) -> Option<Vec2<f32>> {
-    ctx.state
-        .data()
-        .sites
-        .get(site)
-        .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
-        .and_then(|site2| {
-            let farm = site2
-                .plots()
-                .filter(|p| matches!(p.kind(), PlotKind::FarmField(_)))
-                .choose(&mut ctx.rng)?;
+    ctx.state.data().sites.get(site).and_then(|site| {
+        let site = ctx.index.sites.get(site.world_site?);
+        let farm = site
+            .filter_plots(|p| matches!(p.kind(), PlotKind::FarmField(_)))
+            .choose(&mut ctx.rng)?;
 
-            Some(site2.tile_center_wpos(farm.root_tile()).as_())
-        })
+        Some(site.tile_center_wpos(farm.root_tile()).as_())
+    })
 }
 
 fn choose_plaza(ctx: &mut NpcCtx, site: SiteId) -> Option<Vec2<f32>> {
-    ctx.state
-        .data()
-        .sites
-        .get(site)
-        .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
-        .and_then(|site2| {
-            let plaza = &site2.plots[site2.plazas().choose(&mut ctx.rng)?];
-            let tile = plaza
-                .tiles()
-                .choose(&mut ctx.rng)
-                .unwrap_or_else(|| plaza.root_tile());
-            Some(site2.tile_center_wpos(tile).as_())
-        })
+    ctx.state.data().sites.get(site).and_then(|site| {
+        let site = ctx.index.sites.get(site.world_site?);
+        let plaza = &site.plots[site.plazas().choose(&mut ctx.rng)?];
+        let tile = plaza
+            .tiles()
+            .choose(&mut ctx.rng)
+            .unwrap_or_else(|| plaza.root_tile());
+        Some(site.tile_center_wpos(tile).as_())
+    })
 }
 
 const WALKING_SPEED: f32 = 0.35;
@@ -501,8 +481,8 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
             && let Some(home) = ctx.npc.home
             && Some(home) == ctx.npc.current_site
             && let Some(home_pop_ratio) = ctx.state.data().sites.get(home)
-                .and_then(|site| Some((site, ctx.index.sites.get(site.world_site?).site2()?)))
-                .map(|(site, site2)| site.population.len() as f32 / site2.plots().len() as f32)
+                .and_then(|site| Some((site, ctx.index.sites.get(site.world_site?))))
+                .and_then(|(site, world_site)| { let houses = world_site.filter_plots(|p| matches!(p.meta(), Some(PlotKindMeta::House { .. }))).count(); if houses == 0 { return None } Some(site.population.len() as f32 / houses as f32) } )
                 // Only consider moving if the population is more than 1.5x the number of homes
                 .filter(|pop_ratio| *pop_ratio > 1.5)
             && let Some(new_home) = ctx
@@ -514,18 +494,16 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                 .filter(|(site_id, _)| Some(*site_id) != ctx.npc.home)
                 // Only consider towns as potential homes
                 .filter_map(|(site_id, site)| {
-                    let site2 = match site.world_site.map(|ws| &ctx.index.sites.get(ws).kind) {
-                        Some(SiteKind::Refactor(site2)
-                            | SiteKind::CliffTown(site2)
-                            | SiteKind::SavannahTown(site2)
-                            | SiteKind::CoastalTown(site2)
-                            | SiteKind::DesertCity(site2)) => site2,
-                        _ => return None,
-                    };
-                    Some((site_id, site, site2))
+                    let world_site = site.world_site.map(|ws| ctx.index.sites.get(ws))?;
+                    let house_count = world_site.filter_plots(|p| matches!(p.meta(), Some(PlotKindMeta::House { .. }))).count();
+
+                    if house_count == 0 {
+                        return None;
+                    }
+                    Some((site_id, site, house_count))
                 })
                 // Only select sites that are less densely populated than our own
-                .filter(|(_, site, site2)| (site.population.len() as f32 / site2.plots().len() as f32) < home_pop_ratio)
+                .filter(|(_, site, houses)| (site.population.len() as f32 / *houses as f32) < home_pop_ratio)
                 // Find the closest of the candidate sites
                 .min_by_key(|(_, site, _)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
                 .map(|(site_id, _, _)| site_id)
@@ -556,14 +534,14 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                         .data()
                         .sites
                         .get(visiting_site)
-                        .and_then(|site| ctx.index.sites.get(site.world_site?).site2())
-                        .and_then(|site2| {
+                        .and_then(|site| Some(ctx.index.sites.get(site.world_site?)))
+                        .and_then(|site| {
                             // Find a house in the site we're visiting
-                            let house = site2
+                            let house = site
                                 .plots()
                                 .filter(|p| matches!(p.kind().meta(), Some(PlotKindMeta::House { .. })))
                                 .choose(&mut ctx.rng)?;
-                            Some(site2.tile_center_wpos(house.root_tile()).as_())
+                            Some(site.tile_center_wpos(house.root_tile()).as_())
                         })
                     {
                         just(|ctx, _| {
@@ -594,8 +572,8 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
             && (matches!(day_period, DayPeriod::Evening) || is_free_time || ctx.rng.gen_bool(0.05)) {
             let mut fun_activities = Vec::new();
 
-            if let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site
-                && let Some(ws) = ctx.index.sites.get(ws_id).site2() {
+            if let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site {
+                let ws = ctx.index.sites.get(ws_id);
                 if let Some(arena) = ws.plots().find_map(|p| match p.kind() { PlotKind::DesertCityArena(a) => Some(a), _ => None}) {
                     let wait_time = ctx.rng.gen_range(100.0..300.0);
                     // We don't use Z coordinates for seats because they are complicated to calculate from the Ramp procedural generation
@@ -645,7 +623,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                     let bar_pos = tavern.rooms.values().flat_map(|room|
                         room.details.iter().filter_map(|detail| match detail {
                             tavern::Detail::Bar { aabr } => {
-                                let side = site2::util::Dir::from_vec2(room.bounds.center().xy() - aabr.center());
+                                let side = site::util::Dir::from_vec2(room.bounds.center().xy() - aabr.center());
                                 let pos = side.select_aabr_with(*aabr, aabr.center()) + side.to_vec2();
 
                                 Some(pos.with_z(room.bounds.min.z))
@@ -820,8 +798,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
         } else if matches!(ctx.npc.profession(), Some(Profession::Chef))
             && ctx.rng.gen_bool(0.8)
             && let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site
-            && let Some(ws) = ctx.index.sites.get(ws_id).site2()
-            && let Some(tavern) = ws.plots().filter_map(|p| match p.kind() {  PlotKind::Tavern(a) => Some(a), _ => None }).choose(&mut ctx.rng)
+            && let Some(tavern) = ctx.index.sites.get(ws_id).plots().filter_map(|p| match p.kind() {  PlotKind::Tavern(a) => Some(a), _ => None }).choose(&mut ctx.rng)
             && let Some((bar_pos, room_center)) = tavern.rooms.values().flat_map(|room|
                 room.details.iter().filter_map(|detail| match detail {
                     tavern::Detail::Bar { aabr } => {
@@ -874,13 +851,12 @@ fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
             .sites
             .iter()
             .filter(|(id, _)| Some(*id) != ctx.npc.current_site)
-            .filter_map(|(_, site)| ctx.index.sites.get(site.world_site?).site2())
+            .filter_map(|(_, site)| Some(ctx.index.sites.get(site.world_site?)))
             .flat_map(|site| {
-                site.plots()
-                    .filter(|plot| {
-                        matches!(plot.kind().meta(), Some(PlotKindMeta::AirshipDock { .. }))
-                    })
-                    .map(|plot| site.tile_center_wpos(plot.root_tile()))
+                site.filter_plots(|plot| {
+                    matches!(plot.kind().meta(), Some(PlotKindMeta::AirshipDock { .. }))
+                })
+                .map(|plot| site.tile_center_wpos(plot.root_tile()))
             })
             .choose(&mut ctx.rng);
         if let Some(station_wpos) = station_wpos {
@@ -1171,39 +1147,39 @@ fn bird_large() -> impl Action<DefaultState> {
                             && site.world_site.is_some_and(|site| {
                             match ctx.npc.body {
                                 common::comp::Body::BirdLarge(b) => match b.species {
-                                    bird_large::Species::Phoenix => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::Terracotta(_)
-                                    | SiteKind::Haniwa(_)
-                                    | SiteKind::Myrmidon(_)
-                                    | SiteKind::Adlet(_)
-                                    | SiteKind::DwarvenMine(_)
-                                    | SiteKind::ChapelSite(_)
-                                    | SiteKind::Cultist(_)
-                                    | SiteKind::Gnarling(_)
-                                    | SiteKind::Sahagin(_)
-                                    | SiteKind::VampireCastle(_)),
-                                    bird_large::Species::Cockatrice => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::GiantTree(_)),
-                                    bird_large::Species::Roc => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::Haniwa(_)
-                                    | SiteKind::Cultist(_)),
-                                    bird_large::Species::FlameWyvern => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::DwarvenMine(_)
-                                    | SiteKind::Terracotta(_)),
-                                    bird_large::Species::CloudWyvern => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::ChapelSite(_)
-                                    | SiteKind::Sahagin(_)),
-                                    bird_large::Species::FrostWyvern => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::Adlet(_)
-                                    | SiteKind::Myrmidon(_)),
-                                    bird_large::Species::SeaWyvern => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::ChapelSite(_)
-                                    | SiteKind::Sahagin(_)),
-                                    bird_large::Species::WealdWyvern => matches!(&ctx.index.sites.get(site).kind,
-                                    SiteKind::GiantTree(_)
-                                    | SiteKind::Gnarling(_)),
+                                    bird_large::Species::Phoenix => matches!(ctx.index.sites.get(site).kind,
+                                    Some(SiteKind::Terracotta
+                                    | SiteKind::Haniwa
+                                    | SiteKind::Myrmidon
+                                    | SiteKind::Adlet
+                                    | SiteKind::DwarvenMine
+                                    | SiteKind::ChapelSite
+                                    | SiteKind::Cultist
+                                    | SiteKind::Gnarling
+                                    | SiteKind::Sahagin
+                                    | SiteKind::VampireCastle)),
+                                    bird_large::Species::Cockatrice => matches!(ctx.index.sites.get(site).kind,
+                                    Some(SiteKind::GiantTree)),
+                                    bird_large::Species::Roc => matches!(ctx.index.sites.get(site).kind,
+                                    Some(SiteKind::Haniwa
+                                    | SiteKind::Cultist)),
+                                    bird_large::Species::FlameWyvern => matches!(ctx.index.sites.get(site).kind,
+                                    Some(SiteKind::DwarvenMine
+                                    | SiteKind::Terracotta)),
+                                    bird_large::Species::CloudWyvern => matches!(ctx.index.sites.get(site).kind,
+                                    Some(SiteKind::ChapelSite
+                                    | SiteKind::Sahagin)),
+                                    bird_large::Species::FrostWyvern => matches!(ctx.index.sites.get(site).kind,
+                                    Some(SiteKind::Adlet
+                                    | SiteKind::Myrmidon)),
+                                    bird_large::Species::SeaWyvern => matches!(ctx.index.sites.get(site).kind,
+                                    Some(SiteKind::ChapelSite
+                                    | SiteKind::Sahagin)),
+                                    bird_large::Species::WealdWyvern => matches!(ctx.index.sites.get(site).kind,
+                                    Some(SiteKind::GiantTree
+                                    | SiteKind::Gnarling)),
                                 },
-                                _ => matches!(&ctx.index.sites.get(site).kind, SiteKind::GiantTree(_)),
+                                _ => matches!(&ctx.index.sites.get(site).kind, Some(SiteKind::GiantTree)),
                             }
                         })
                     })

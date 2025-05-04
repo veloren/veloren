@@ -23,8 +23,7 @@ use vek::*;
 use world::{
     CONFIG, IndexRef, World,
     civ::airship_travel::{AirshipDockingSide, Airships},
-    site::SiteKind,
-    site2::{PlotKind, plot::PlotKindMeta},
+    site::{PlotKind, SiteKind, plot::PlotKindMeta},
     util::seed_expan,
 };
 
@@ -88,17 +87,10 @@ impl Data {
         };
 
         // Spawn some test entities at the sites
-        for (site_id, site, site2) in this.sites.iter()
-        // TODO: Stupid. Only find site2 towns
+        for (site_id, site, world_site) in this.sites.iter()
+        // TODO: Stupid. Only find site towns
         .filter_map(|(site_id, site)| Some((site_id, site, site.world_site
-            .and_then(|ws| match &index.sites.get(ws).kind {
-                SiteKind::Refactor(site2)
-                | SiteKind::CliffTown(site2)
-                | SiteKind::SavannahTown(site2)
-                | SiteKind::CoastalTown(site2)
-                | SiteKind::DesertCity(site2) => Some(site2),
-                _ => None,
-            })?)))
+            .map(|ws| index.sites.get(ws)).filter(|site| site.meta().is_some_and(|m| matches!(m, common::terrain::SiteKindMeta::Settlement(_))))?)))
         {
             let Some(good_or_evil) = site
                 .faction
@@ -109,11 +101,11 @@ impl Data {
             };
 
             let rand_wpos = |rng: &mut SmallRng, matches_plot: fn(&PlotKind) -> bool| {
-                let wpos2d = site2
+                let wpos2d = world_site
                     .plots()
                     .filter(|plot| matches_plot(plot.kind()))
                     .choose(&mut thread_rng())
-                    .map(|plot| site2.tile_center_wpos(plot.root_tile()))
+                    .map(|plot| world_site.tile_center_wpos(plot.root_tile()))
                     .unwrap_or_else(|| site.wpos.map(|e| e + rng.gen_range(-10..10)));
                 wpos2d
                     .map(|e| e as f32 + 0.5)
@@ -139,7 +131,7 @@ impl Data {
             }) as _;
             let matches_plazas = (|kind: &PlotKind| matches!(kind, PlotKind::Plaza(_))) as _;
             if good_or_evil {
-                for _ in 0..site2.plots().len() {
+                for _ in 0..world_site.plots().len() {
                     this.npcs.create_npc(
                         Npc::new(
                             rng.gen(),
@@ -178,7 +170,7 @@ impl Data {
             }
             // Merchants
             if good_or_evil {
-                for _ in 0..(site2.plots().len() / 6) + 1 {
+                for _ in 0..(world_site.plots().len() / 6) + 1 {
                     this.npcs.create_npc(
                         Npc::new(
                             rng.gen(),
@@ -228,24 +220,24 @@ impl Data {
                     .map(|e| e as f32 + 0.5)
                     .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0))
             };
-            let site_kind = site.world_site.map(|ws| &index.sites.get(ws).kind);
+            let site_kind = site.world_site.and_then(|ws| index.sites.get(ws).kind);
             let Some(species) = [
                 Some(comp::body::bird_large::Species::Phoenix)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::DwarvenMine(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::DwarvenMine))),
                 Some(comp::body::bird_large::Species::Cockatrice)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Myrmidon(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Myrmidon))),
                 Some(comp::body::bird_large::Species::Roc)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Haniwa(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Haniwa))),
                 Some(comp::body::bird_large::Species::FlameWyvern)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Terracotta(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Terracotta))),
                 Some(comp::body::bird_large::Species::CloudWyvern)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Sahagin(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Sahagin))),
                 Some(comp::body::bird_large::Species::FrostWyvern)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::Adlet(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::Adlet))),
                 Some(comp::body::bird_large::Species::SeaWyvern)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::ChapelSite(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::ChapelSite))),
                 Some(comp::body::bird_large::Species::WealdWyvern)
-                    .filter(|_| matches!(site_kind, Some(SiteKind::GiantTree(_)))),
+                    .filter(|_| matches!(site_kind, Some(SiteKind::GiantTree))),
             ]
             .into_iter()
             .flatten()
@@ -361,20 +353,11 @@ impl Data {
                 Some((
                     site_id,
                     site,
-                    site.world_site
-                        .and_then(|ws| match &index.sites.get(ws).kind {
-                            SiteKind::Refactor(site2)
-                            | SiteKind::CliffTown(site2)
-                            | SiteKind::SavannahTown(site2)
-                            | SiteKind::CoastalTown(site2)
-                            | SiteKind::DesertCity(site2) => Some(site2),
-                            _ => None,
-                        })?,
+                    site.world_site.map(|ws| index.sites.get(ws))?,
                 ))
             })
-            .flat_map(|(site_id, _, site2)| {
-                site2
-                    .plots
+            .flat_map(|(site_id, _, site)| {
+                site.plots
                     .values()
                     .filter_map(move |plot| {
                         if let Some(PlotKindMeta::AirshipDock {
@@ -392,7 +375,7 @@ impl Data {
                                             .airships
                                             .should_spawn_airship_at_docking_position(
                                                 docking_pos,
-                                                site2.name(),
+                                                site.name(),
                                             )
                                         {
                                             let (airship_pos, airship_dir) =
@@ -412,7 +395,7 @@ impl Data {
                                                 center,
                                                 docking_pos: *docking_pos,
                                                 site_id,
-                                                site_name: site2.name().to_string(),
+                                                site_name: site.name().to_string(),
                                             })
                                         } else {
                                             None

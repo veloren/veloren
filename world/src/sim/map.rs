@@ -120,21 +120,21 @@ pub fn sample_pos(
                 sample.river.river_kind,
                 sample.river.spline_derivative,
                 sample.path.0.is_way(),
-                sample
-                    .sites
-                    .iter()
-                    .any(|site| match &index.sites.get(*site).kind {
-                        SiteKind::Bridge(bridge) => {
+                sample.sites.iter().any(|site| {
+                    let site = &index.sites.get(*site);
+                    match site.kind {
+                        Some(SiteKind::Bridge(_, _)) => {
                             if let Some(plot) =
-                                bridge.wpos_tile(TerrainChunkSize::center_wpos(pos)).plot
+                                site.wpos_tile(TerrainChunkSize::center_wpos(pos)).plot
                             {
-                                matches!(bridge.plot(plot).kind, crate::site2::PlotKind::Bridge(_))
+                                matches!(site.plot(plot).kind, crate::site::PlotKind::Bridge(_))
                             } else {
                                 false
                             }
                         },
                         _ => false,
-                    }),
+                    }
+                }),
             )
         })
         .unwrap_or((

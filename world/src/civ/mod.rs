@@ -8,9 +8,7 @@ use crate::{
     civ::airship_travel::Airships,
     config::CONFIG,
     sim::WorldSim,
-    site::{Castle, Settlement, Site as WorldSite, Tree, namegen::NameGen},
-    site2,
-    site2::genstat::SitesGenMeta,
+    site::{self, Site as WorldSite, SiteKind, SitesGenMeta, namegen::NameGen},
     util::{DHashMap, NEIGHBORS, attempt, seed_expan},
 };
 use common::{
@@ -19,10 +17,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{
-        BiomeKind, CoordinateConversions, MapSizeLg, TERRAIN_CHUNK_BLOCKS_LG, TerrainChunkSize,
-        uniform_idx_as_vec2,
-    },
+    terrain::{BiomeKind, CoordinateConversions, MapSizeLg, TerrainChunkSize, uniform_idx_as_vec2},
     vol::RectVolSize,
 };
 use common_base::prof_span;
@@ -276,31 +271,16 @@ impl Civs {
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let (loc, kind) = match ctx.rng.gen_range(0..116) {
-                    0..=4 => {
-                        if index.features().site2_giant_trees {
-                            (
-                                find_site_loc(
-                                    &mut ctx,
-                                    &ProximityRequirementsBuilder::new()
-                                        .avoid_all_of(this.tree_enemies(), 40)
-                                        .finalize(&world_dims),
-                                    &SiteKind::GiantTree,
-                                )?,
-                                SiteKind::GiantTree,
-                            )
-                        } else {
-                            (
-                                find_site_loc(
-                                    &mut ctx,
-                                    &ProximityRequirementsBuilder::new()
-                                        .avoid_all_of(this.tree_enemies(), 40)
-                                        .finalize(&world_dims),
-                                    &SiteKind::Tree,
-                                )?,
-                                SiteKind::Tree,
-                            )
-                        }
-                    },
+                    0..=4 => (
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirementsBuilder::new()
+                                .avoid_all_of(this.tree_enemies(), 40)
+                                .finalize(&world_dims),
+                            &SiteKind::GiantTree,
+                        )?,
+                        SiteKind::GiantTree,
+                    ),
                     5..=15 => (
                         find_site_loc(
                             &mut ctx,
@@ -492,8 +472,6 @@ impl Civs {
             let wpos = site.center * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32);
 
             let (radius, flatten_radius) = match &site.kind {
-                SiteKind::Settlement => (32i32, 10.0f32),
-                SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::CliffTown => (2i32, 1.0),
                 SiteKind::SavannahTown => (48i32, 25.0),
@@ -502,7 +480,6 @@ impl Civs {
                 SiteKind::DesertCity => (64i32, 25.0),
                 SiteKind::ChapelSite => (36i32, 10.0),
                 SiteKind::Terracotta => (64i32, 35.0),
-                SiteKind::Tree => (12i32, 8.0),
                 SiteKind::GiantTree => (12i32, 8.0),
                 SiteKind::Gnarling => (16i32, 10.0),
                 SiteKind::Citadel => (16i32, 0.0),
@@ -521,25 +498,13 @@ impl Civs {
                 SiteKind::Myrmidon => (64i32, 35.0),
             };
 
-            let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
-                SiteKind::Settlement => (10.0, 6, true),
-                SiteKind::Castle => (0.0, 6, true),
-                _ => (0.0, 0, false),
-            };
-
             // Flatten ground
             if let Some(center_alt) = ctx.sim.get_alt_approx(wpos) {
                 for offs in Spiral2d::new().take(radius.pow(2) as usize) {
-                    let center_alt = center_alt
-                        + if offs.magnitude_squared() <= raise_dist.pow(2) {
-                            raise
-                        } else {
-                            0.0
-                        }; // Raise the town centre up a little
                     let pos = site.center + offs;
                     let factor = ((1.0
                         - (site.center - pos).map(|e| e as f32).magnitude()
-                            / flatten_radius.max(0.01))
+                            / f32::max(flatten_radius, 0.01))
                         * 1.25)
                         .min(1.0);
                     let rng = &mut ctx.rng;
@@ -558,10 +523,6 @@ impl Civs {
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;
                             chunk.surface_veg *= 1.0 - factor * rng.gen_range(0.25..0.9);
-
-                            if make_waypoint && offs == Vec2::zero() {
-                                chunk.contains_waypoint = true;
-                            }
                         });
                 }
             }
@@ -588,15 +549,9 @@ impl Civs {
                     index,
                 };
                 match &sim_site.kind {
-                    SiteKind::Settlement => {
-                        WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
-                    },
-                    SiteKind::Castle => {
-                        WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
-                    },
                     SiteKind::Refactor => {
                         let size = Lerp::lerp(0.03, 1.0, rng.gen_range(0.0..1f32).powi(5));
-                        WorldSite::refactor(site2::Site::generate_city(
+                        WorldSite::generate_city(
                             &Land::from_sim(ctx.sim),
                             index_ref,
                             &mut rng,
@@ -604,110 +559,82 @@ impl Civs {
                             size,
                             calendar,
                             &mut gen_meta,
-                        ))
+                        )
                     },
-                    SiteKind::GliderCourse => {
-                        WorldSite::glider_course(site2::Site::generate_glider_course(
-                            &Land::from_sim(ctx.sim),
-                            index_ref,
-                            &mut rng,
-                            wpos,
-                        ))
-                    },
-                    SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
+                    SiteKind::GliderCourse => WorldSite::generate_glider_course(
+                        &Land::from_sim(ctx.sim),
+                        index_ref,
+                        &mut rng,
+                        wpos,
+                    ),
+                    SiteKind::CliffTown => WorldSite::generate_cliff_town(
                         &Land::from_sim(ctx.sim),
                         index_ref,
                         &mut rng,
                         wpos,
                         &mut gen_meta,
-                    )),
-                    SiteKind::SavannahTown => {
-                        WorldSite::savannah_town(site2::Site::generate_savannah_town(
-                            &Land::from_sim(ctx.sim),
-                            index_ref,
-                            &mut rng,
-                            wpos,
-                            &mut gen_meta,
-                        ))
-                    },
-                    SiteKind::CoastalTown => {
-                        WorldSite::coastal_town(site2::Site::generate_coastal_town(
-                            &Land::from_sim(ctx.sim),
-                            index_ref,
-                            &mut rng,
-                            wpos,
-                            &mut gen_meta,
-                        ))
-                    },
+                    ),
+                    SiteKind::SavannahTown => WorldSite::generate_savannah_town(
+                        &Land::from_sim(ctx.sim),
+                        index_ref,
+                        &mut rng,
+                        wpos,
+                        &mut gen_meta,
+                    ),
+                    SiteKind::CoastalTown => WorldSite::generate_coastal_town(
+                        &Land::from_sim(ctx.sim),
+                        index_ref,
+                        &mut rng,
+                        wpos,
+                        &mut gen_meta,
+                    ),
                     SiteKind::PirateHideout => {
-                        WorldSite::pirate_hideout(site2::Site::generate_pirate_hideout(
-                            &Land::from_sim(ctx.sim),
-                            &mut rng,
-                            wpos,
-                        ))
+                        WorldSite::generate_pirate_hideout(&Land::from_sim(ctx.sim), &mut rng, wpos)
                     },
-                    SiteKind::JungleRuin => WorldSite::jungle_ruin(
-                        site2::Site::generate_jungle_ruin(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    SiteKind::JungleRuin => {
+                        WorldSite::generate_jungle_ruin(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::RockCircle => {
+                        WorldSite::generate_rock_circle(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+
+                    SiteKind::TrollCave => {
+                        WorldSite::generate_troll_cave(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::Camp => {
+                        WorldSite::generate_camp(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::DesertCity => WorldSite::generate_desert_city(
+                        &Land::from_sim(ctx.sim),
+                        index_ref,
+                        &mut rng,
+                        wpos,
+                        &mut gen_meta,
                     ),
-                    SiteKind::RockCircle => WorldSite::rock_circle(
-                        site2::Site::generate_rock_circle(&Land::from_sim(ctx.sim), &mut rng, wpos),
+                    SiteKind::GiantTree => {
+                        WorldSite::generate_giant_tree(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::Gnarling => {
+                        WorldSite::generate_gnarling(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::DwarvenMine => {
+                        WorldSite::generate_mine(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::ChapelSite => {
+                        WorldSite::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::Terracotta => WorldSite::generate_terracotta(
+                        &Land::from_sim(ctx.sim),
+                        index_ref,
+                        &mut rng,
+                        wpos,
+                        &mut gen_meta,
                     ),
-                    SiteKind::TrollCave => WorldSite::troll_cave(site2::Site::generate_troll_cave(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
-                    SiteKind::Camp => WorldSite::troll_cave(site2::Site::generate_camp(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
-                    SiteKind::DesertCity => {
-                        WorldSite::desert_city(site2::Site::generate_desert_city(
-                            &Land::from_sim(ctx.sim),
-                            index_ref,
-                            &mut rng,
-                            wpos,
-                            &mut gen_meta,
-                        ))
+                    SiteKind::Citadel => {
+                        WorldSite::generate_citadel(&Land::from_sim(ctx.sim), &mut rng, wpos)
                     },
-                    SiteKind::Tree => {
-                        WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
-                    },
-                    SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
-                    SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
-                    SiteKind::DwarvenMine => WorldSite::dwarven_mine(site2::Site::generate_mine(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
-                    SiteKind::ChapelSite => WorldSite::chapel_site(
-                        site2::Site::generate_chapel_site(&Land::from_sim(ctx.sim), &mut rng, wpos),
-                    ),
-                    SiteKind::Terracotta => {
-                        WorldSite::terracotta(site2::Site::generate_terracotta(
-                            &Land::from_sim(ctx.sim),
-                            index_ref,
-                            &mut rng,
-                            wpos,
-                            &mut gen_meta,
-                        ))
-                    },
-                    SiteKind::Citadel => WorldSite::gnarling(site2::Site::generate_citadel(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
                     SiteKind::Bridge(a, b) => {
-                        let mut bridge_site = site2::Site::generate_bridge(
+                        let mut bridge_site = WorldSite::generate_bridge(
                             &Land::from_sim(ctx.sim),
                             index_ref,
                             &mut rng,
@@ -721,7 +648,7 @@ impl Civs {
                                 .plots
                                 .values()
                                 .find_map(|plot| match &plot.kind {
-                                    site2::PlotKind::Bridge(bridge) => Some(bridge),
+                                    site::PlotKind::Bridge(bridge) => Some(bridge),
                                     _ => None,
                                 })
                         {
@@ -737,43 +664,35 @@ impl Civs {
                             update_offset(bridge.original_end, bridge.end.xy());
                         }
                         bridge_site.demarcate_obstacles(&Land::from_sim(ctx.sim));
-                        WorldSite::bridge(bridge_site)
+                        bridge_site
                     },
-                    SiteKind::Adlet => WorldSite::adlet(site2::Site::generate_adlet(
+                    SiteKind::Adlet => WorldSite::generate_adlet(
                         &Land::from_sim(ctx.sim),
                         &mut rng,
                         wpos,
                         index_ref,
-                    )),
-                    SiteKind::Haniwa => WorldSite::haniwa(site2::Site::generate_haniwa(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
-                    SiteKind::Cultist => WorldSite::cultist(site2::Site::generate_cultist(
-                        &Land::from_sim(ctx.sim),
-                        &mut rng,
-                        wpos,
-                    )),
-                    SiteKind::Myrmidon => WorldSite::myrmidon(site2::Site::generate_myrmidon(
+                    ),
+                    SiteKind::Haniwa => {
+                        WorldSite::generate_haniwa(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::Cultist => {
+                        WorldSite::generate_cultist(&Land::from_sim(ctx.sim), &mut rng, wpos)
+                    },
+                    SiteKind::Myrmidon => WorldSite::generate_myrmidon(
                         &Land::from_sim(ctx.sim),
                         index_ref,
                         &mut rng,
                         wpos,
                         &mut gen_meta,
-                    )),
-                    SiteKind::Sahagin => WorldSite::sahagin(site2::Site::generate_sahagin(
+                    ),
+                    SiteKind::Sahagin => WorldSite::generate_sahagin(
                         &Land::from_sim(ctx.sim),
                         index_ref,
                         &mut rng,
                         wpos,
-                    )),
+                    ),
                     SiteKind::VampireCastle => {
-                        WorldSite::vampire_castle(site2::Site::generate_vampire_castle(
-                            &Land::from_sim(ctx.sim),
-                            &mut rng,
-                            wpos,
-                        ))
+                        WorldSite::generate_vampire_castle(&Land::from_sim(ctx.sim), &mut rng, wpos)
                     },
                 }
             });
@@ -808,12 +727,12 @@ impl Civs {
                             index
                                 .sites
                                 .get_mut(index1)
-                                .economy
+                                .economy_mut()
                                 .add_neighbor(index2, cost);
                             index
                                 .sites
                                 .get_mut(index2)
-                                .economy
+                                .economy_mut()
                                 .add_neighbor(index1, cost);
                         }
                     }
@@ -831,11 +750,13 @@ impl Civs {
             let wpos = chpos.map(|e| e as i64) * TerrainChunkSize::RECT_SIZE.map(|e| e as i64);
             let closest_site = (*sites)
                 .iter_mut()
-                .filter(|s| !matches!(s.1.kind, crate::site::SiteKind::Myrmidon(_)))
-                .min_by_key(|(_id, s)| s.get_origin().map(|e| e as i64).distance_squared(wpos));
-            if let Some((_id, s)) = closest_site {
-                let distance_squared = s.get_origin().map(|e| e as i64).distance_squared(wpos);
-                s.economy
+                .filter(|s| !matches!(s.1.kind, Some(crate::site::SiteKind::Myrmidon)))
+                .min_by_key(|(_id, s)| s.origin.map(|e| e as i64).distance_squared(wpos));
+            if let Some((_id, s)) = closest_site
+                && s.do_economic_simulation()
+            {
+                let distance_squared = s.origin.map(|e| e as i64).distance_squared(wpos);
+                s.economy_mut()
                     .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
             }
         });
@@ -846,9 +767,11 @@ impl Civs {
             .generate_airship_routes(sites, sim, index.seed);
         drop(guard);
 
-        sites
-            .iter_mut()
-            .for_each(|(_, s)| s.economy.cache_economy());
+        sites.iter_mut().for_each(|(_, s)| {
+            if let Some(econ) = s.economy.as_mut() {
+                econ.cache_economy()
+            }
+        });
 
         this
     }
@@ -1377,12 +1300,10 @@ impl Civs {
                 matches!(
                     p.kind,
                     SiteKind::Refactor
-                        | SiteKind::Settlement
                         | SiteKind::CliffTown
                         | SiteKind::SavannahTown
                         | SiteKind::CoastalTown
                         | SiteKind::DesertCity
-                        | SiteKind::Castle
                 )
             })
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
@@ -1391,12 +1312,10 @@ impl Civs {
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
         if let SiteKind::Refactor
-        | SiteKind::Settlement
         | SiteKind::CliffTown
         | SiteKind::SavannahTown
         | SiteKind::CoastalTown
-        | SiteKind::DesertCity
-        | SiteKind::Castle = self.sites[site].kind
+        | SiteKind::DesertCity = self.sites[site].kind
         {
             for (nearby, _) in nearby.into_iter().take(4) {
                 prof_span!("for nearby");
@@ -1489,65 +1408,41 @@ impl Civs {
 
     fn gnarling_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
+            SiteKind::GiantTree => None,
             _ => Some(s.center),
         })
     }
 
     fn adlet_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn haniwa_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn chapel_site_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn mine_site_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn terracotta_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn cultist_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn myrmidon_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn vampire_castle_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn tree_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
@@ -1565,15 +1460,12 @@ impl Civs {
     }
 
     fn jungle_ruin_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn town_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
-            SiteKind::Castle | SiteKind::Citadel => None,
+            SiteKind::Citadel => None,
             _ => Some(s.center),
         })
     }
@@ -1589,38 +1481,23 @@ impl Civs {
     }
 
     fn pirate_hideout_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn sahagin_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn rock_circle_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn troll_cave_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 
     fn camp_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
-        self.sites().filter_map(|s| match s.kind {
-            SiteKind::Tree | SiteKind::GiantTree => None,
-            _ => Some(s.center),
-        })
+        self.sites().map(|s| s.center)
     }
 }
 
@@ -1942,37 +1819,6 @@ impl fmt::Display for Site {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SiteKind {
-    Settlement,
-    Castle,
-    Refactor,
-    CliffTown,
-    SavannahTown,
-    CoastalTown,
-    DesertCity,
-    ChapelSite,
-    Terracotta,
-    Tree,
-    GiantTree,
-    Gnarling,
-    Citadel,
-    Bridge(Vec2<i32>, Vec2<i32>),
-    Adlet,
-    Haniwa,
-    PirateHideout,
-    RockCircle,
-    TrollCave,
-    Camp,
-    DwarvenMine,
-    JungleRuin,
-    Cultist,
-    Sahagin,
-    VampireCastle,
-    GliderCourse,
-    Myrmidon,
-}
-
 impl SiteKind {
     pub fn is_suitable_loc(&self, loc: Vec2<i32>, sim: &WorldSim) -> bool {
         let on_land = || -> bool {
@@ -2003,7 +1849,7 @@ impl SiteKind {
                     (attributes.potable_water || (attributes.aquifer && matches!(self, SiteKind::CliffTown)))
                         && attributes.building_materials
                         && attributes.heating
-                        // Because of how the algorithm for site2 towns work, they have to start on land.
+                        // Because of how the algorithm for site towns work, they have to start on land.
                         && on_land()
                 })
             };
@@ -2026,7 +1872,7 @@ impl SiteKind {
                         && on_flat_terrain()
                         && (-0.3..0.4).contains(&chunk.temp)
                 },
-                SiteKind::GiantTree | SiteKind::Tree => {
+                SiteKind::GiantTree => {
                     on_land()
                         && on_flat_terrain()
                         && chunk.tree_density > 0.4
@@ -2099,33 +1945,7 @@ impl SiteKind {
                 },
                 SiteKind::Cultist => on_land() && chunk.temp < 0.5 && chunk.near_cliffs(),
                 SiteKind::VampireCastle => on_land() && chunk.temp <= -0.8 && chunk.near_cliffs(),
-                SiteKind::Castle => {
-                    if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {
-                        return false;
-                    }
-                    const HILL_RADIUS: i32 = 3 * TERRAIN_CHUNK_BLOCKS_LG as i32;
-                    for x in (-HILL_RADIUS)..HILL_RADIUS {
-                        for y in (-HILL_RADIUS)..HILL_RADIUS {
-                            let check_loc = loc + Vec2::new(x, y);
-                            if let Some(true) = sim
-                                .get_alt_approx(check_loc)
-                                .map(|surrounding_alt| surrounding_alt > chunk.alt + 1.0)
-                            {
-                                return false;
-                            }
-                            // Castles are really big, so to avoid parts of them ending up
-                            // underwater or in other awkward positions
-                            // we have to do this
-                            if sim
-                                .get(check_loc).is_none_or(|c| c.is_underwater() || c.near_cliffs())
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                    true
-                },
-                SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(),
+                SiteKind::Refactor => suitable_for_town(),
                 SiteKind::Bridge(_, _) => true,
             }
         })
@@ -2173,16 +1993,13 @@ impl Site {
     pub fn is_settlement(&self) -> bool {
         matches!(
             self.kind,
-            SiteKind::Settlement
-                | SiteKind::Refactor
+            SiteKind::Refactor
                 | SiteKind::CliffTown
                 | SiteKind::DesertCity
                 | SiteKind::SavannahTown
                 | SiteKind::CoastalTown
         )
     }
-
-    pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
 
     pub fn is_bridge(&self) -> bool { matches!(self.kind, SiteKind::Bridge(_, _)) }
 }

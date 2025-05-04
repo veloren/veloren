@@ -360,7 +360,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
             },
         },
         // This is just a placeholder for future biomes
-        // Currently Ironwood has been included in the world\src\site2\plot\giant_tree.rs
+        // Currently Ironwood has been included in the world\src\site\plot\giant_tree.rs
         // ScatterConfig {
         //     kind: Ironwood,
         //     water_mode: Ground,

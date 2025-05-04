@@ -1,7 +1,6 @@
 use crate::{
     sim::WorldSim,
-    site::{self, Site},
-    site2::plot::PlotKindMeta,
+    site::{self, Site, plot::PlotKindMeta},
     util::{DHashMap, DHashSet, seed_expan},
 };
 use common::{
@@ -90,12 +89,12 @@ pub struct AirshipRoute {
 impl AirshipRoute {
     fn new(
         site1: Id<site::Site>,
-        site2: Id<site::Site>,
+        site: Id<site::Site>,
         approaches: [AirshipDockingApproach; 2],
         distance: u32,
     ) -> Self {
         Self {
-            sites: [site1, site2],
+            sites: [site1, site],
             approaches,
             distance,
         }
@@ -242,9 +241,8 @@ impl Airships {
         let mut dock_pos_id = 0;
         sites
             .iter()
-            .flat_map(|(site_id, site)| site.site2().map(|site2| (site_id, site2)))
-            .flat_map(|(site_id, site2)| {
-                site2.plots().flat_map(move |plot| {
+            .flat_map(|(site_id, site)| {
+                site.plots().flat_map(move |plot| {
                     if let Some(PlotKindMeta::AirshipDock {
                         center,
                         docking_positions,
@@ -452,9 +450,9 @@ impl Airships {
                 }
             }
             if let Some(ref final_best_trial) = best_trial {
-                for (site1, site2) in final_best_trial.0.iter() {
-                    let dock1_route = routes.get(&DockConnectionHashKey(*site1, *site2)).unwrap();
-                    let dock2_route = routes.get(&DockConnectionHashKey(*site2, *site1)).unwrap();
+                for (site1, site) in final_best_trial.0.iter() {
+                    let dock1_route = routes.get(&DockConnectionHashKey(*site1, *site)).unwrap();
+                    let dock2_route = routes.get(&DockConnectionHashKey(*site, *site1)).unwrap();
                     let con1 = dock_connections
                         .iter_mut()
                         .find(|con| con.dock.site_id == *site1)
@@ -464,7 +462,7 @@ impl Airships {
                     }
                     let con2 = dock_connections
                         .iter_mut()
-                        .find(|con| con.dock.site_id == *site2)
+                        .find(|con| con.dock.site_id == *site)
                         .unwrap();
                     if con2.available_connections > 0 {
                         con2.add_connection(dock2_route);
