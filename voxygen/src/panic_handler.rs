@@ -83,7 +83,7 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
                     .set_title("Veloren has crashed!")
                     //somehow `<` and `>` are invalid characters and cause the msg to get replaced
                     // by some generic text thus i replace them
-                    .set_text(&dialog_message.replace('<', "[").replace('>', "]"))
+                    .set_text(dialog_message.replace('<', "[").replace('>', "]"))
                     .alert()
                     .show()
                     .unwrap()
