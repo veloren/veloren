@@ -32,13 +32,9 @@ hot-reloading = ["common/hot-reloading"]
 singleplayer = ["server"]
 simd = ["vek/platform_intrinsics"]
 tracy = ["common-frontend/tracy", "client/tracy"]
-tracy-memory = ["tracy"] # enables heap profiling with tracy
-plugins = [
-    "client/plugins",
-    "server/plugins",
-    "anim/plugins",
-    "common/plugins",
-]
+tracy-memory = ["tracy"]
+# enables heap profiling with tracy
+plugins = ["client/plugins", "server/plugins", "anim/plugins", "common/plugins"]
 egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
@@ -129,13 +125,13 @@ dot_vox = "5.1"
 guillotiere = "0.6.2"
 hashbrown = { workspace = true }
 image = { workspace = true, features = ["ico"] }
-kira = { git="https://github.com/DaforLynx/kira.git", tag="v0.10.6-with-config", default-features = false, features = [
+kira = { git = "https://github.com/DaforLynx/kira.git", tag = "v0.10.6-with-config", default-features = false, features = [
     "cpal",
     "symphonia",
     "ogg",
 ] }
 lazy_static = { workspace = true }
-native-dialog = { version = "0.7.0", optional = true }
+native-dialog = { version = "0.9.0", optional = true }
 num = { workspace = true }
 ordered-float = { workspace = true }
 rand = { workspace = true }
