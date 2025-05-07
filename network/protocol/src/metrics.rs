@@ -248,7 +248,7 @@ impl ProtocolMetricCache {
     }
 
     pub(crate) fn init_sid(&mut self, sid: Sid) -> &CacheLine {
-        let cid = &self.cid;
+        let cid = self.cid.as_str();
         let m = &self.m;
         self.cache.entry(sid).or_insert_with_key(|sid| {
             let s = sid.to_string();
@@ -347,7 +347,7 @@ impl ProtocolMetricCache {
 #[cfg(feature = "metrics")]
 impl Drop for ProtocolMetricCache {
     fn drop(&mut self) {
-        let cid = &self.cid;
+        let cid = self.cid.as_str();
         let m = &self.m;
         let finished = RemoveReason::Finished.to_str();
         let dropped = RemoveReason::Dropped.to_str();

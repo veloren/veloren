@@ -75,16 +75,17 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
 
         #[cfg(feature = "native-dialog")]
         {
-            use native_dialog::{MessageDialog, MessageType};
+            use native_dialog::{DialogBuilder, MessageLevel};
 
             let mbox = move || {
-                MessageDialog::new()
+                DialogBuilder::message()
+                    .set_level(MessageLevel::Error)
                     .set_title("Veloren has crashed!")
                     //somehow `<` and `>` are invalid characters and cause the msg to get replaced
                     // by some generic text thus i replace them
-                    .set_text(&dialog_message.replace('<', "[").replace('>', "]"))
-                    .set_type(MessageType::Error)
-                    .show_alert()
+                    .set_text(dialog_message.replace('<', "[").replace('>', "]"))
+                    .alert()
+                    .show()
                     .unwrap()
             };
 
