@@ -69,7 +69,7 @@ pub trait EditableSetting: Clone + Default {
 
     /// `Into<Setting>` is expected to migrate directly to the latest version,
     /// which can be implemented using "chaining".  The use of `Into` here
-    /// rather than TryInto is intended (together with the expected use of
+    /// rather than `TryInto` is intended (together with the expected use of
     /// chaining) to prevent migrations from invalidating old save files
     /// without warning; there should always be a non-failing migration path
     /// from the oldest to latest format (if the migration path fails, we can
@@ -81,11 +81,11 @@ pub trait EditableSetting: Clone + Default {
     /// examples).
     ///
     /// `From<Self>` is intended to construct the latest version of the
-    /// configuratino file from Self, which we use to save the config file
+    /// configuration file from `Self`, which we use to save the config file
     /// on migration or modification.  Note that it should always be the
-    /// case that if x is constructed from any of Self::clone, Self::default, or
-    /// Setting::try_into, then Setting::try_from(Self::into(x)).is_ok() must be
-    /// true!
+    /// case that if x is constructed from any of `Self::clone`,
+    /// `Self::default`, or `Setting::try_into`, then
+    /// `Setting::try_from(Self::into(x)).is_ok()` must be true!
     ///
     /// The error should be used to fail validation *of the original settings
     /// file* that cannot be caught with parsing.  If we can possibly avoid
@@ -183,31 +183,31 @@ pub trait EditableSetting: Clone + Default {
         }
     }
 
-    /// If the result of calling f is None, we return None (this constitutes an
-    /// early return and lets us abandon the in-progress edit).  For
-    /// example, this can be used to avoid adding a new ban entry if someone
-    /// is already banned and the user didn't explicitly specify that they
-    /// wanted to add a new ban record, even though it would be completely
-    /// valid to attach one.
+    /// If the result of calling `f` is `None`, we return `None` (this
+    /// constitutes an early return and lets us abandon the in-progress
+    /// edit).  For example, this can be used to avoid adding a new ban
+    /// entry if someone is already banned and the user didn't explicitly
+    /// specify that they wanted to add a new ban record, even though it
+    /// would be completely valid to attach one.
     ///
-    /// Otherwise (the result of calling f was Some(r)), we always return
-    /// Some((r, res)), where:
+    /// Otherwise (the result of calling `f` was `Some(r))`, we always return
+    /// `Some((r, res))`, where:
     ///
-    /// If res is Ok(()), validation succeeded for the edited, and changes made
-    /// inside the closure are applied both in memory (to self) and
+    /// If `res` is `Ok(())`, validation succeeded for the edited, and changes
+    /// made inside the closure are applied both in memory (to self) and
     /// atomically on disk.
     ///
-    /// Otherwise (res is Err(e)), some step in the edit process failed.
+    /// Otherwise `(res is Err(e))`, some step in the edit process failed.
     /// Specifically:
     ///
-    /// * If e is Integrity, validation failed and the settings were not
-    ///   updated.
-    /// * If e is Io, validation succeeded and the settings were updated in
-    ///   memory, but they could not be saved to storage (and a warning was
-    ///   logged). The reason we return an error even though the operation was
-    ///   partially successful is so we can alert the player who ran the command
-    ///   about the failure, as they will often be an administrator who can
-    ///   usefully act upon that information.
+    /// * If `e` is `ErrorInternal::Integrity`, validation failed and the
+    ///   settings were not updated.
+    /// * If `e` is `ErrorInternal::Io`, validation succeeded and the settings
+    ///   were updated in memory, but they could not be saved to storage (and a
+    ///   warning was logged). The reason we return an error even though the
+    ///   operation was partially successful is so we can alert the player who
+    ///   ran the command about the failure, as they will often be an
+    ///   administrator who can usefully act upon that information.
     #[must_use]
     fn edit<R>(
         &mut self,

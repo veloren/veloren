@@ -76,7 +76,7 @@ pub enum CharacterScreenResponseKind {
 /// screen.
 ///
 /// Responses are polled on each server tick in the format
-/// [`CharacterLoaderResponse`]
+/// [`CharacterUpdaterMessage`]
 pub struct CharacterLoader {
     update_rx: crossbeam_channel::Receiver<CharacterUpdaterMessage>,
     update_tx: crossbeam_channel::Sender<CharacterLoaderRequest>,
@@ -118,8 +118,8 @@ impl CharacterLoader {
     }
 
     // TODO: Refactor the way that we send errors to the client to not require a
-    // specific Result type per CharacterLoaderResponseKind, and remove
-    // CharacterLoaderResponse::is_err()
+    // specific Result type per CharacterScreenResponseKind, and remove
+    // CharacterScreenResponse::is_err()
     fn process_request(
         request: CharacterLoaderRequest,
         connection: &Connection,
@@ -186,6 +186,6 @@ impl CharacterLoader {
         }
     }
 
-    /// Returns a non-blocking iterator over CharacterLoaderResponse messages
+    /// Returns a non-blocking iterator over CharacterUpdaterMessage messages
     pub fn messages(&self) -> TryIter<CharacterUpdaterMessage> { self.update_rx.try_iter() }
 }
