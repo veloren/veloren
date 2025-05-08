@@ -118,7 +118,7 @@ impl CharacterLoader {
     }
 
     // TODO: Refactor the way that we send errors to the client to not require a
-    // specific Result type per CharacterScreenResponse, and remove
+    // specific Result type per CharacterScreenResponseKind, and remove
     // CharacterScreenResponse::is_err()
     fn process_request(
         request: CharacterLoaderRequest,
