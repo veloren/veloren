@@ -225,21 +225,22 @@ impl information::HostEntity for WasiHostCtx {
             .get(&self_)
             .map_err(|_err| types::Error::RuntimeError)?
             .uid;
-        // Safety: No reference is leaked out the function so it is safe.
-        let world = unsafe { self.ecs.get().ok_or(types::Error::EcsPointerNotAvailable)? };
-        let player = world
-            .id_maps
-            .uid_entity(uid)
-            .ok_or(types::Error::EcsEntityNotFound)?;
-        world
-            .health
-            .get(player)
-            .map(|health| information::Health {
-                current: health.current(),
-                base_max: health.base_max(),
-                maximum: health.maximum(),
-            })
-            .ok_or(types::Error::EcsComponentNotFound)
+        self.ecs.with(|world| {
+            let world = world.ok_or(types::Error::EcsPointerNotAvailable)?;
+            let player = world
+                .id_maps
+                .uid_entity(uid)
+                .ok_or(types::Error::EcsEntityNotFound)?;
+            world
+                .health
+                .get(player)
+                .map(|health| information::Health {
+                    current: health.current(),
+                    base_max: health.base_max(),
+                    maximum: health.maximum(),
+                })
+                .ok_or(types::Error::EcsComponentNotFound)
+        })
     }
 
     fn name(
@@ -251,18 +252,19 @@ impl information::HostEntity for WasiHostCtx {
             .get(&self_)
             .map_err(|_err| types::Error::RuntimeError)?
             .uid;
-        // Safety: No reference is leaked out the function so it is safe.
-        let world = unsafe { self.ecs.get().ok_or(types::Error::EcsPointerNotAvailable)? };
-        let player = world
-            .id_maps
-            .uid_entity(uid)
-            .ok_or(types::Error::EcsEntityNotFound)?;
-        Ok(world
-            .player
-            .get(player)
-            .ok_or(types::Error::EcsComponentNotFound)?
-            .alias
-            .to_owned())
+        self.ecs.with(|world| {
+            let world = world.ok_or(types::Error::EcsPointerNotAvailable)?;
+            let player = world
+                .id_maps
+                .uid_entity(uid)
+                .ok_or(types::Error::EcsEntityNotFound)?;
+            Ok(world
+                .player
+                .get(player)
+                .ok_or(types::Error::EcsComponentNotFound)?
+                .alias
+                .to_owned())
+        })
     }
 
     fn drop(
