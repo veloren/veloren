@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sitting at a campfire is now required to set your spawn point.
 - Automatic item merging only applies to inventory events.
 - Parry now has the same precision power as backstab.
+- Improved safety railings on airships to mitigate surprise skydiving.
 
 ### Removed
 
