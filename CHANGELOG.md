@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Audio backend tries to switch to a lower samplerate when detecting an abnormally high one.
 - Fixed music tracks playing straight after one another sometimes.
 - Fixed some summons taking control of the boss.
+- Desert area wildlife is back to spawning in hot temperatures.
 
 ## [0.17.0] - 2024-12-28
 
