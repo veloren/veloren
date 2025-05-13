@@ -379,7 +379,15 @@ impl HumHeadSpec {
             .maybe_add(beard)
             .maybe_add(accessory)
             .maybe_add(helmet)
-            .unify_with(|v| if v.is_hollow() { Cell::Empty } else { v });
+            .unify_with(|v, old_v| {
+                if old_v.attr().is_not_overridable() {
+                    old_v
+                } else if v.attr().is_hollow() {
+                    Cell::Empty
+                } else {
+                    v
+                }
+            });
         (
             head,
             Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),
@@ -6097,7 +6105,7 @@ impl ItemCentralSpec {
                 .map(|mat_cell| match mat_cell {
                     MatCell::None => None,
                     MatCell::Mat(_) => Some(MatCell::None),
-                    MatCell::Normal(data) => data.is_hollow().then_some(MatCell::None),
+                    MatCell::Normal(data) => data.attr.is_hollow().then_some(MatCell::None),
                 })
                 .to_segment(|_| Default::default()),
                 _ => graceful_load_segment_fullspec(&full_spec, spec.1),
@@ -6127,7 +6135,7 @@ fn segment_center(segment: &Segment) -> Option<Vec3<f32>> {
         (i32::MAX, 0, i32::MAX, 0, i32::MAX, 0);
     for pos in segment.full_pos_iter() {
         if let Ok(Cell::Filled(data)) = segment.get(pos) {
-            if !data.is_hollow() {
+            if !data.attr.is_hollow() {
                 if pos.x < x_min {
                     x_min = pos.x;
                 } else if pos.x > x_max {

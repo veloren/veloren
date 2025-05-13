@@ -1,5 +1,6 @@
 pub mod cell;
 pub mod mat_cell;
+use cell::CellAttr;
 pub use mat_cell::Material;
 
 // Reexport
@@ -23,9 +24,9 @@ impl From<Segment> for TerrainSegment {
         TerrainSegment::from_fn(value.sz, (), |pos| match value.get(pos) {
             Err(_) | Ok(Cell::Empty) => Block::air(SpriteKind::Empty),
             Ok(cell) => {
-                if cell.is_hollow() {
+                if cell.attr().is_hollow() {
                     Block::air(SpriteKind::Empty)
-                } else if cell.is_glowy() {
+                } else if cell.attr().is_glowy() {
                     Block::new(BlockKind::GlowingRock, cell.get_color().unwrap())
                 } else {
                     Block::new(BlockKind::Misc, cell.get_color().unwrap())
@@ -83,12 +84,7 @@ impl Segment {
                                 voxel.z,
                             )
                             .map(i32::from),
-                            Cell::new(
-                                color,
-                                (13..16).contains(&voxel.i), // Glowy
-                                (8..13).contains(&voxel.i),  // Shiny
-                                voxel.i == 16,               //Hollow
-                            ),
+                            Cell::new(color, CellAttr::from_index(voxel.i)),
                         )
                         .unwrap();
                 };
@@ -116,14 +112,8 @@ impl Segment {
     #[must_use]
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
         self.map(|cell| {
-            cell.get_color().map(|rgb| {
-                Cell::new(
-                    transform(rgb),
-                    cell.is_glowy(),
-                    cell.is_shiny(),
-                    cell.is_hollow(),
-                )
-            })
+            cell.get_color()
+                .map(|rgb| Cell::new(transform(rgb), cell.attr()))
         })
     }
 }
@@ -150,9 +140,11 @@ impl<V: FilledVox + Copy> DynaUnionizer<V> {
         }
     }
 
-    pub fn unify(self) -> (Dyna<V, ()>, Vec3<i32>) { self.unify_with(|v| v) }
+    pub fn unify(self) -> (Dyna<V, ()>, Vec3<i32>) { self.unify_with(|v, _| v) }
 
-    pub fn unify_with(self, mut f: impl FnMut(V) -> V) -> (Dyna<V, ()>, Vec3<i32>) {
+    /// Unify dynamic volumes, with a function that takes (cell, old_cell) and
+    /// returns the cell to use.
+    pub fn unify_with(self, mut f: impl FnMut(V, V) -> V) -> (Dyna<V, ()>, Vec3<i32>) {
         if self.0.is_empty() {
             return (
                 Dyna::filled(Vec3::zero(), V::default_non_filled(), ()),
@@ -176,7 +168,10 @@ impl<V: FilledVox + Copy> DynaUnionizer<V> {
         for (dyna, offset) in self.0 {
             for (pos, vox) in dyna.full_vol_iter() {
                 if vox.is_filled() {
-                    combined.set(origin + offset + pos, f(*vox)).unwrap();
+                    let cell_pos = origin + offset + pos;
+                    let old_vox = *combined.get(cell_pos).unwrap();
+                    let new_vox = f(*vox, old_vox);
+                    combined.set(cell_pos, new_vox).unwrap();
                 }
             }
         }
@@ -193,7 +188,7 @@ impl MatSegment {
         for (pos, vox) in self.full_vol_iter() {
             let data = match vox {
                 MatCell::None => continue,
-                MatCell::Mat(mat) => CellData::new(map(*mat), false, false, false),
+                MatCell::Mat(mat) => CellData::new(map(*mat), CellAttr::empty()),
                 MatCell::Normal(data) => *data,
             };
             vol.set(pos, Cell::Filled(data)).unwrap();
@@ -258,12 +253,7 @@ impl MatSegment {
                             .get(index as usize)
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
-                        MatCell::Normal(CellData::new(
-                            color,
-                            (13..16).contains(&index),
-                            (8..13).contains(&index),
-                            index == 16, // Hollow
-                        ))
+                        MatCell::Normal(CellData::new(color, CellAttr::from_index(index)))
                     },
                 };
 

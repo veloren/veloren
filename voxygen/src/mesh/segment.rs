@@ -94,7 +94,7 @@ where
         make_face_texel: |col_light: &mut [u8; 4], vol: &mut V, pos, light, _, _| {
             let cell = vol.get(pos).ok();
             let (glowy, shiny) = cell
-                .map(|c| (c.is_glowy(), c.is_shiny()))
+                .map(|c| (c.attr().is_glowy(), c.attr().is_shiny()))
                 .unwrap_or_default();
             let col = cell
                 .and_then(|vox| vox.get_color())
@@ -335,7 +335,7 @@ where
         },
         make_face_texel: move |col_light: &mut [u8; 4], flat: &mut _, pos, light, _glow, _ao| {
             let cell = flat_get(flat, pos);
-            let (glowy, shiny) = (cell.is_glowy(), cell.is_shiny());
+            let (glowy, shiny) = (cell.attr().is_glowy(), cell.attr().is_shiny());
             *col_light =
                 TerrainVertex::make_col_light_figure(light, glowy, shiny, get_color(flat, pos));
         },
