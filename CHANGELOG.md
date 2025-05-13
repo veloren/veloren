@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Witch and Pirate sets (T3 and T1 respectively) are now obtainable and have been given new models, alongside Twig Set being changed out for Adventurer Set.
 - Updated Tidal Warrior model.
 - Emitted sfx now take into account both player and camera position, instead of just camera position, when determining volume.
+- Danari horns are now showed when wearing a hat or helmet.
 
 ### Removed
 
