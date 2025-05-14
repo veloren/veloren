@@ -1968,7 +1968,10 @@ fn handle_spawn_training_dummy(
 
     let body = comp::Body::Object(comp::object::Body::TrainingDummy);
 
-    let stats = comp::Stats::new(Content::with_attr("npc-custom-village-dummy", "neut"), body);
+    let stats = comp::Stats::new(
+        Content::with_attr("name-custom-village-dummy", "neut"),
+        body,
+    );
     let skill_set = comp::SkillSet::default();
     let health = comp::Health::new(body);
     let poise = comp::Poise::new(body);
