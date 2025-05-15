@@ -6345,7 +6345,7 @@ dependencies = [
  "log",
  "memmap2 0.5.10",
  "smithay-client-toolkit 0.16.1",
- "tiny-skia",
+ "tiny-skia 0.8.4",
 ]
 
 [[package]]
@@ -7254,7 +7254,22 @@ dependencies = [
  "bytemuck",
  "cfg-if 1.0.0",
  "png",
- "tiny-skia-path",
+ "tiny-skia-path 0.8.4",
+]
+
+[[package]]
+name = "tiny-skia"
+version = "0.11.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83d13394d44dae3207b52a326c0c85a8bf87f1541f23b0d143811088497b09ab"
+dependencies = [
+ "arrayref",
+ "arrayvec",
+ "bytemuck",
+ "cfg-if 1.0.0",
+ "log",
+ "png",
+ "tiny-skia-path 0.11.4",
 ]
 
 [[package]]
@@ -7262,6 +7277,17 @@ name = "tiny-skia-path"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "adbfb5d3f3dd57a0e11d12f4f13d4ebbbc1b5c15b7ab0a156d030b21da5f677c"
+dependencies = [
+ "arrayref",
+ "bytemuck",
+ "strict-num",
+]
+
+[[package]]
+name = "tiny-skia-path"
+version = "0.11.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c9e7fc0c2e86a30b117d0462aa261b72b7a99b7ebd7deb3a14ceda95c5bdc93"
 dependencies = [
  "arrayref",
  "bytemuck",
@@ -8380,6 +8406,7 @@ dependencies = [
  "signal-hook",
  "strum",
  "svg_fmt",
+ "tiny-skia 0.11.4",
  "tracing",
  "tracing-subscriber",
  "vek 0.17.1",

@@ -1,7 +1,7 @@
 #![expect(dead_code)]
 
-pub mod airship_travel;
 pub mod airship_route_map;
+pub mod airship_travel;
 mod econ;
 
 use crate::{
@@ -742,10 +742,8 @@ impl Civs {
         }
 
         prof_span!(guard, "generate airship routes");
-        this.airships
-            .generate_airship_routes(ctx.sim, index);
-        this.airships
-            .generate_airship_routes2(ctx.sim, index);
+        this.airships.generate_airship_routes(ctx.sim, index);
+        this.airships.generate_airship_routes2(ctx.sim, index);
         drop(guard);
 
         // TODO: this looks optimizable
