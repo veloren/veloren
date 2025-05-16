@@ -3,9 +3,12 @@ ItemDef(
     legacy_description: "",
     kind: RecipeGroup(
         recipes: [
+            "polaris",
+            "delvers_lamp",
+            "bloodmoon_relic",
             "crux",
         ],
     ),
-    quality: Legendary,
+    quality: Common,
     tags: [],
 )

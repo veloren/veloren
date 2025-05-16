@@ -1785,14 +1785,6 @@
         "voxel.item.recipe.recipe_blacksmithing",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
-    Simple("common.items.recipes.unique.polaris"): VoxTrans(
-        "voxel.item.recipe.recipe_blacksmithing",
-        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
-    ),
-    Simple("common.items.recipes.unique.delvers_lamp"): VoxTrans(
-        "voxel.item.recipe.recipe_lapidary",
-        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
-    ),
     Simple("common.items.recipes.weapons.iron"): VoxTrans(
         "voxel.item.recipe.recipe_blacksmithing",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
@@ -1929,14 +1921,10 @@
         "voxel.item.recipe.recipe_basic",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
-    Simple("common.items.recipes.unique.bloodmoon_relic"): VoxTrans(
+    Simple("common.items.recipes.lanterns"): VoxTrans(
         "voxel.item.recipe.recipe_blacksmithing",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
-    Simple("common.items.recipes.unique.crux"): VoxTrans(
-        "voxel.item.recipe.recipe_blacksmithing",
-        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
-    ),   
     // Armor
     // Starter Parts
     Simple("common.items.armor.misc.foot.sandals"): VoxTrans(

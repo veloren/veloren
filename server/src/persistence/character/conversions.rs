@@ -390,9 +390,12 @@ pub fn convert_inventory_from_database_items(
     // inventory at the correct position.
     //
     let loadout = convert_loadout_from_database_items(loadout_container_id, loadout_items)?;
-    let overflow_items =
+    let mut overflow_items =
         convert_overflow_items_from_database_items(overflow_items_container_id, overflow_items)?;
-    let recipe_book = convert_recipe_book_from_database_items(recipe_book_items)?;
+    let (recipe_book, duplicate_recipes) =
+        convert_recipe_book_from_database_items(recipe_book_items)?;
+    overflow_items.extend(duplicate_recipes);
+
     let mut inventory = Inventory::with_loadout_humanoid(loadout).with_recipe_book(recipe_book);
     let mut item_indices = HashMap::new();
 
@@ -900,12 +903,14 @@ pub fn convert_active_abilities_from_database(ability_sets: &AbilitySets) -> Act
     json_models::active_abilities_from_db_model(ability_sets)
 }
 
+/// If ok, returns a tuple of the constructed `RecipeBook` and a `Vec` of
+/// duplicate recipes.
 pub fn convert_recipe_book_from_database_items(
     database_items: &[Item],
-) -> Result<RecipeBook, PersistenceError> {
-    let mut recipes_groups = Vec::new();
+) -> Result<(RecipeBook, Vec<common::comp::Item>), PersistenceError> {
+    let mut recipe_groups = Vec::new();
 
-    for db_item in database_items.iter() {
+    for (index, db_item) in database_items.iter().enumerate() {
         let item = get_item_from_asset(db_item.item_definition_id.as_str())?;
 
         // NOTE: item id is currently *unique*, so we can store the ID safely.
@@ -914,10 +919,28 @@ pub fn convert_recipe_book_from_database_items(
             |_| PersistenceError::ConversionError("Item with zero item_id".to_owned()),
         )?));
 
-        recipes_groups.push(item);
+        recipe_groups.push((index, item));
     }
 
-    let recipe_book = RecipeBook::recipe_book_from_persistence(recipes_groups);
+    // We don't care about order here as we restore the order later.
+    recipe_groups.sort_unstable_by(|(_, item_a), (_, item_b)| {
+        item_a
+            .item_definition_id()
+            .cmp(&item_b.item_definition_id())
+    });
+    let (unique, _) = recipe_groups.partition_dedup_by(|(_, item_a), (_, item_b)| {
+        item_a.item_definition_id() == item_b.item_definition_id()
+    });
+    // Restore original order after finding duplicates.
+    // No equal indices so unstable sort is fine.
+    unique.sort_unstable_by_key(|(index, _)| *index);
+    let unique_len = unique.len();
 
-    Ok(recipe_book)
+    let mut recipe_groups = recipe_groups.into_iter().map(|(.., r)| r);
+    let unique_groups = (&mut recipe_groups).take(unique_len).collect::<Vec<_>>();
+    let duplicate_recipes = recipe_groups.collect::<Vec<_>>();
+
+    let recipe_book = RecipeBook::recipe_book_from_persistence(unique_groups);
+
+    Ok((recipe_book, duplicate_recipes))
 }

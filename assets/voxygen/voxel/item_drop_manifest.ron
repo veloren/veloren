@@ -437,13 +437,12 @@
     Simple("common.items.recipes.armor.bloodsteel"): "voxel.item.recipe.recipe_blacksmithing",
     Simple("common.items.recipes.armor.orichalcum"): "voxel.item.recipe.recipe_blacksmithing",
     Simple("common.items.recipes.armor.golemite"): "voxel.item.recipe.recipe_blacksmithing",
-    Simple("common.items.recipes.unique.polaris"): "voxel.item.recipe.recipe_blacksmithing",
-    Simple("common.items.recipes.unique.delvers_lamp"): "voxel.item.recipe.recipe_lapidary",
     Simple("common.items.recipes.weapons.iron"): "voxel.item.recipe.recipe_blacksmithing",
     Simple("common.items.recipes.weapons.steel"): "voxel.item.recipe.recipe_blacksmithing",
     Simple("common.items.recipes.weapons.cobalt"): "voxel.item.recipe.recipe_blacksmithing",
     Simple("common.items.recipes.weapons.bloodsteel"): "voxel.item.recipe.recipe_blacksmithing",
     Simple("common.items.recipes.weapons.orichalcum"): "voxel.item.recipe.recipe_blacksmithing",
+    Simple("common.items.recipes.lanterns"): "voxel.item.recipe.recipe_blacksmithing",
     Simple("common.items.recipes.gliders"): "voxel.item.recipe.recipe_carpentry",
     Simple("common.items.recipes.instruments"): "voxel.item.recipe.recipe_carpentry",
     Simple("common.items.recipes.weapons.bamboo"): "voxel.item.recipe.recipe_carpentry",
@@ -473,8 +472,6 @@
     Simple("common.items.recipes.equipment.basic"): "voxel.item.recipe.recipe_basic",
     Simple("common.items.recipes.equipment.moderate"): "voxel.item.recipe.recipe_basic",
     Simple("common.items.recipes.equipment.advanced"): "voxel.item.recipe.recipe_basic",
-    Simple("common.items.recipes.unique.crux"): "voxel.item.recipe.recipe_blacksmithing",
-    Simple("common.items.recipes.unique.bloodmoon_relic"): "voxel.item.recipe.recipe_blacksmithing",
     // Armor
     // Starter Parts
     Simple("common.items.armor.misc.foot.sandals"): "voxel.armor.misc.foot.cloth_sandal",

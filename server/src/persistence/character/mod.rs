@@ -393,7 +393,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
 
             let recipe_book_items = load_items(connection, recipe_book_container_id)?;
 
-            let recipe_book = convert_recipe_book_from_database_items(&recipe_book_items)?;
+            let (recipe_book, _) = convert_recipe_book_from_database_items(&recipe_book_items)?;
 
             Ok(CharacterItem {
                 character: char,

@@ -7,5 +7,4 @@
     (2.0, Item("common.items.consumable.potion_minor")),
     // Gold
     (2.0, MultiDrop(Item("common.items.utility.coins"), 25, 50)),
-    (0.5, Item("common.items.recipes.unique.delvers_lamp")),
 ]

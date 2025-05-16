@@ -1,5 +1,4 @@
 [
     (1.0, LootTable("common.loot_tables.armor.boreal")),
     (1.0, Item("common.items.crafting_ing.glacial_crystal")),
-    (1.0, Item("common.items.recipes.unique.polaris")),
 ]

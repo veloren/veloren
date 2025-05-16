@@ -18,6 +18,7 @@
             (1.0, Item("common.items.recipes.unique.abyssal_gorget")),
             (1.0, Item("common.items.recipes.unique.mindflayer_spellbag")),
             (1.0, Item("common.items.recipes.equipment.advanced")),
+            (1.0, Item("common.items.recipes.lanterns")),
         ]),
         Lottery([
             (0.6, Nothing),
