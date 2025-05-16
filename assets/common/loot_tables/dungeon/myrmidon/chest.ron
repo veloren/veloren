@@ -17,6 +17,7 @@
             (1.0, Item("common.items.recipes.instruments")),
             (1.0, Item("common.items.recipes.potions")),
             (1.0, Item("common.items.recipes.gliders")),
+            (1.0, Item("common.items.recipes.lanterns")),
             (0.5, Item("common.items.recipes.equipment.moderate")),
             (0.5, Item("common.items.recipes.equipment.advanced")),
             (1.0, Item("common.items.recipes.armor.orichalcum")),

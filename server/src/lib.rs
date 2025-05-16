@@ -4,7 +4,13 @@
     clippy::needless_pass_by_ref_mut // until we find a better way for specs
 )]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(box_patterns, let_chains, option_zip, const_type_name)]
+#![feature(
+    box_patterns,
+    let_chains,
+    option_zip,
+    const_type_name,
+    slice_partition_dedup
+)]
 
 pub mod automod;
 mod character_creator;

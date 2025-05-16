@@ -35,13 +35,11 @@
     (0.25, Item("common.items.recipes.weapons.orichalcum")),
     (0.25, Item("common.items.recipes.weapons.eldwood")),
     (0.25, Item("common.items.recipes.armor.brinestone")),
+    (0.25, Item("common.items.recipes.armor.golemite")),
     // Unique items
     (1.25, Item("common.items.recipes.unique.seashell_necklace")),
     (0.6, Item("common.items.recipes.unique.winged_coronet")),
     (0.5, Item("common.items.recipes.unique.troll_hide_pack")),
-    (0.2, Item("common.items.recipes.unique.abyssal_gorget")),
-    (0.15, Item("common.items.recipes.unique.mindflayer_spellbag")),
-    (0.1, Item("common.items.recipes.unique.polaris")),
-    (0.1, Item("common.items.recipes.unique.bloodmoon_relic")),
-    (0.1, Item("common.items.recipes.unique.crux")),        
+    (0.25, Item("common.items.recipes.unique.abyssal_gorget")),
+    (0.2, Item("common.items.recipes.unique.mindflayer_spellbag")),     
 ]

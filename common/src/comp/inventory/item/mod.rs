@@ -653,7 +653,7 @@ impl ItemBase {
 // TODO: could this theorectically hold a ref to the actual components and
 // lazily get their IDs for hash/partialeq/debug/to_owned/etc? (i.e. eliminating
 // `Vec`s)
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ItemDefinitionId<'a> {
     Simple(Cow<'a, str>),
     Modular {
