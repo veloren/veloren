@@ -1,18 +1,18 @@
 RapidMelee(
-    buildup_duration: 0.1,
+    buildup_duration: 0.2,
     swing_duration: 0.1,
-    recover_duration: 0.1,
+    recover_duration: 0.15,
     melee_constructor: (
         kind: Slash(
             damage: 9,
-            poise: 5,
+            poise: 3,
             knockback: 0,
             energy_regen: 0,
         ),
         range: 4.0,
         angle: 10.0,
     ),
-    energy_cost: 5,
+    energy_cost: 6,
     max_strikes: Some(4),
     move_modifier: 0.35,
     ori_modifier: 0.25,
