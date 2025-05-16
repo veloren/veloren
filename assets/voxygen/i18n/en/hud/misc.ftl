@@ -68,8 +68,9 @@ hud-mount = Mount
 hud-follow = Follow
 hud-stay = Stay
 hud-sit = Sit
+hud-waypoint_interact = Set Waypoint
 hud-steer = Steer
-hud-lay = Lay
+hud-rest = Rest
 hud-portal = Portal
 
 -server = Server

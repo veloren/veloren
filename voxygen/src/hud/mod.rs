@@ -2171,7 +2171,7 @@ impl Hud {
                     BlockInteraction::Mount => {
                         let key = match block.get_sprite() {
                             Some(sprite) if sprite.is_controller() => "hud-steer",
-                            Some(sprite) if sprite.is_bed() => "hud-lay",
+                            Some(sprite) if sprite.is_bed() => "hud-rest",
                             _ => "hud-sit",
                         };
                         (
@@ -2284,7 +2284,9 @@ impl Hud {
                 let over_pos = pos + Vec3::unit_z() * 1.5;
 
                 let (name, interaction_text) = match interaction {
-                    EntityInteraction::CampfireSit => ("hud-crafting-campfire", "hud-sit"),
+                    EntityInteraction::CampfireSit => {
+                        ("hud-crafting-campfire", "hud-waypoint_interact")
+                    },
                     EntityInteraction::ActivatePortal => ("hud-portal", "hud-activate"),
                     _ => unreachable!(),
                 };

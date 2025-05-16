@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved safety railings on airships to mitigate surprise skydiving.
 - Updated tradable recipes and balanced some prices.
 - Merged craftable lanterns into a single recipe.
+- Updated campfire and bed interaction texts.
 
 ### Removed
 
