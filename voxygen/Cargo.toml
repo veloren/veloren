@@ -164,7 +164,8 @@ dispatch = "0.2"
 winres = "0.1"
 
 [target.'cfg(target_family = "windows")'.dependencies]
-mimalloc = "0.1.29"
+mimalloc = "=0.1.43"
+libmimalloc-sys = "=0.1.39"
 
 # Mumble
 [target.'cfg(not(target_os="macos"))'.dependencies]
