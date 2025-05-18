@@ -1496,49 +1496,100 @@
         ): "armor-savage-shoulder",
         Simple(
             "common.items.armor.witch.back",
-        ): "common-items-armor-witch-back",
+        ): "armor-witch-back",
         Simple(
             "common.items.armor.witch.belt",
-        ): "common-items-armor-witch-belt",
+        ): "armor-witch-belt",
         Simple(
             "common.items.armor.witch.chest",
-        ): "common-items-armor-witch-chest",
+        ): "armor-witch-chest",
         Simple(
             "common.items.armor.witch.foot",
-        ): "common-items-armor-witch-foot",
+        ): "armor-witch-foot",
         Simple(
             "common.items.armor.witch.hand",
-        ): "common-items-armor-witch-hand",
+        ): "armor-witch-hand",
         Simple(
             "common.items.armor.witch.hat",
         ): "armor-witch-hat",
         Simple(
             "common.items.armor.witch.pants",
-        ): "common-items-armor-witch-pants",
+        ): "armor-witch-pants",
         Simple(
             "common.items.armor.witch.shoulder",
-        ): "common-items-armor-witch-shoulder",
+        ): "armor-witch-shoulder",
+        Simple(
+            "common.items.armor.buccaneer.back",
+        ): "armor-buccaneer-back",
+        Simple(
+            "common.items.armor.buccaneer.belt",
+        ): "armor-buccaneer-belt",
+        Simple(
+            "common.items.armor.buccaneer.chest",
+        ): "armor-buccaneer-chest",
+        Simple(
+            "common.items.armor.buccaneer.foot",
+        ): "armor-buccaneer-foot",
+        Simple(
+            "common.items.armor.buccaneer.hand",
+        ): "armor-buccaneer-hand",
+        Simple(
+            "common.items.armor.buccaneer.head",
+        ): "armor-buccaneer-head",
+        Simple(
+            "common.items.armor.buccaneer.pants",
+        ): "armor-buccaneer-pants",
+        Simple(
+            "common.items.armor.buccaneer.shoulder",
+        ): "armor-buccaneer-shoulder",
+        Simple(
+            "common.items.armor.pirate.back",
+        ): "armor-pirate-back",
         Simple(
             "common.items.armor.pirate.belt",
-        ): "common-items-armor-pirate-belt",
+        ): "armor-pirate-belt",
         Simple(
             "common.items.armor.pirate.chest",
-        ): "common-items-armor-pirate-chest",
+        ): "armor-pirate-chest",
         Simple(
             "common.items.armor.pirate.foot",
-        ): "common-items-armor-pirate-foot",
+        ): "armor-pirate-foot",
         Simple(
             "common.items.armor.pirate.hand",
-        ): "common-items-armor-pirate-hand",
+        ): "armor-pirate-hand",
         Simple(
-            "common.items.armor.pirate.hat",
-        ): "armor-pirate-hat",
+            "common.items.armor.pirate.head",
+        ): "armor-pirate-head",
         Simple(
             "common.items.armor.pirate.pants",
-        ): "common-items-armor-pirate-pants",
+        ): "armor-pirate-pants",
         Simple(
             "common.items.armor.pirate.shoulder",
-        ): "common-items-armor-pirate-shoulder",
+        ): "armor-pirate-shoulder",
+        Simple(
+            "common.items.armor.adventurer.back",
+        ): "armor-adventurer-back",
+        Simple(
+            "common.items.armor.adventurer.belt",
+        ): "armor-adventurer-belt",
+        Simple(
+            "common.items.armor.adventurer.chest",
+        ): "armor-adventurer-chest",
+        Simple(
+            "common.items.armor.adventurer.foot",
+        ): "armor-adventurer-foot",
+        Simple(
+            "common.items.armor.adventurer.hand",
+        ): "armor-adventurer-hand",
+        Simple(
+            "common.items.armor.adventurer.head",
+        ): "armor-adventurer-head",
+        Simple(
+            "common.items.armor.adventurer.pants",
+        ): "armor-adventurer-pants",
+        Simple(
+            "common.items.armor.adventurer.shoulder",
+        ): "armor-adventurer-shoulder",
         Simple(
             "common.items.armor.miner.back",
         ): "common-items-armor-miner-back",
@@ -1972,24 +2023,6 @@
             "common.items.armor.tarasque.shoulder",
         ): "armor-tarasque-shoulder",
         Simple(
-            "common.items.armor.twigs.belt",
-        ): "armor-twigs-belt",
-        Simple(
-            "common.items.armor.twigs.chest",
-        ): "armor-twigs-chest",
-        Simple(
-            "common.items.armor.twigs.foot",
-        ): "armor-twigs-foot",
-        Simple(
-            "common.items.armor.twigs.hand",
-        ): "armor-twigs-hand",
-        Simple(
-            "common.items.armor.twigs.pants",
-        ): "armor-twigs-pants",
-        Simple(
-            "common.items.armor.twigs.shoulder",
-        ): "armor-twigs-shoulder",
-        Simple(
             "common.items.armor.cultist.bandana",
         ): "armor-cultist-bandana",
         Simple(
@@ -2239,8 +2272,14 @@
             "common.items.utility.firework_yellow",
         ): "weapon-projectile-fireworks_yellow",
         Simple(
-            "common.items.utility.lockpick_0",
-        ): "object-lockpick",
+            "common.items.utility.lockpick.lockpick_copper",
+        ): "object-lockpick_copper",
+        Simple(
+            "common.items.utility.lockpick.lockpick_iron",
+        ): "object-lockpick_iron",
+        Simple(
+            "common.items.utility.lockpick.lockpick_cobalt",
+        ): "object-lockpick_cobalt",
         Simple(
             "common.items.utility.training_dummy",
         ): "object-training_dummy",
@@ -3570,6 +3609,12 @@
         Simple(
             "common.items.tag_examples.gnarling",
         ): "common-items-tag_examples-gnarling",
+        Simple(
+            "common.items.tag_examples.witch",
+        ): "common-items-tag_examples-witch",
+        Simple(
+            "common.items.tag_examples.pirate",
+        ): "common-items-tag_examples-pirate",
         Simple(
             "common.items.flowers.blue",
         ): "common-items-flowers-blue",

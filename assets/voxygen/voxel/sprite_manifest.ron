@@ -920,6 +920,27 @@ CommonLockedChest: [(
     ],
     wind_sway: 0.0,
 )],
+WitchChest: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_witch",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+PirateChest: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.chests.chest_skull_1",
+            offset: (-7.5, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+
+    ],
+    wind_sway: 0.0,
+)],
 // Dungeon Chests
 DungeonChest0: [(
     variations: [
@@ -934,7 +955,7 @@ DungeonChest0: [(
 DungeonChest1: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.chests.chest_skull",
+            model: "voxygen.voxel.sprite.chests.chest_skull_0",
             offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -985,7 +1006,7 @@ DungeonChest5: [(
 ChestBuried: [(
     variations: [
         (
-            model: "voxygen.voxel.sprite.underwater_chests.chest_skull",
+            model: "voxygen.voxel.sprite.underwater_chests.chest_skull_0",
             offset: (-10.0, -8.0, 0.0),
             lod_axes: (0.0, 0.0, 0.5),
         ),

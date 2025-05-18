@@ -6,8 +6,8 @@ use crate::{
     data::{AgentData, AgentEmitters, AttackData, Path, ReadData, Tactic, TargetData},
     util::{
         aim_projectile, are_our_owners_hostile, entities_have_line_of_sight, get_attacker,
-        get_entity_by_id, is_dead_or_invulnerable, is_dressed_as_cultist, is_invulnerable,
-        is_steering, is_village_guard, is_villager,
+        get_entity_by_id, is_dead_or_invulnerable, is_dressed_as_cultist, is_dressed_as_pirate,
+        is_dressed_as_witch, is_invulnerable, is_steering, is_village_guard, is_villager,
     },
 };
 use common::{
@@ -2157,7 +2157,9 @@ impl AgentData<'_> {
         (entity != *self.entity)
             && !self.passive_towards(entity, read_data)
             && (are_our_owners_hostile(self.alignment, other_alignment, read_data)
-                || (is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)))
+                || (is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)
+                    || (is_villager(self.alignment) && is_dressed_as_witch(entity, read_data))
+                    || (is_villager(self.alignment) && is_dressed_as_pirate(entity, read_data))))
     }
 
     pub fn is_hunting_animal(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
@@ -2313,6 +2315,10 @@ impl AgentData<'_> {
                     chat_villager_remembers_fighting();
                 } else if is_dressed_as_cultist(target, read_data) {
                     chat(Content::localized("npc-speech-villager_cultist_alarm"));
+                } else if is_dressed_as_witch(target, read_data) {
+                    chat(Content::localized("npc-speech-villager_witch_alarm"));
+                } else if is_dressed_as_pirate(target, read_data) {
+                    chat(Content::localized("npc-speech-villager_pirate_alarm"));
                 } else {
                     chat(Content::localized("npc-speech-menacing"));
                 }

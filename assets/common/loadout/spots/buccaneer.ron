@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.armor.buccaneer.head"),
+    back: Item("common.items.armor.buccaneer.back"),
+    shoulders: Item("common.items.armor.buccaneer.shoulder"),
+    chest: Item("common.items.armor.buccaneer.chest"),
+    gloves: Item("common.items.armor.buccaneer.hand"),
+    belt: Item("common.items.armor.buccaneer.belt"),
+    legs: Item("common.items.armor.buccaneer.pants"),
+    feet: Item("common.items.armor.buccaneer.foot"),
+    lantern: Item("common.items.lantern.blue_0"),
+)

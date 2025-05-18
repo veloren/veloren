@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Adventurer Headband",
+    legacy_description: "Made out of a flimsy material, akin to a twig.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(2.025)),
+            poise_resilience: Some(Normal(1.215)),
+            stealth: Some(0.06975),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

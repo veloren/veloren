@@ -8,7 +8,7 @@
             8: Filled(Air, (r: 255, g: 255, b: 255)),
             212: Filled(Air, (r: 255, g: 255, b: 255)),
             213: Filled(Air, (r: 255, g: 255, b: 255)),
-            187: Keyhole("common.items.utility.lockpick_0"), // Lockpick
+            187: Keyhole("common.items.utility.lockpick.lockpick_cobalt"), // Lockpick
             224: Sprite(KeyDoor()),
             215: Filled(Lava, (r: 212, g: 91, b: 0)),
             136: Sprite(Lantern()),

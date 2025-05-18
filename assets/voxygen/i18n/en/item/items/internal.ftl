@@ -22,6 +22,12 @@ common-items-food-sage = Sage
 common-items-tag_examples-cultist = Anything related to cultists
     .desc = These items are a little creepy.
 
+common-items-tag_examples-witch = Anything related to the occult
+    .desc = Drenched in foul odor of dark magic.
+
+common-items-tag_examples-pirate = Anything related to thieving pirates
+    .desc = Smells like booty and the ocean.
+
 common-items-grasses-medium = Medium Grass
     .desc = Greener than an orc's snout.
 

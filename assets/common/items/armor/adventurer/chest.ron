@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Adventurer Tunic",
+    legacy_description: "A cheap yet fashionable alternative.",
+    kind: Armor((
+        kind: Chest,
+        stats: FromSet("Adventurer"),
+    )),
+    quality: Low,
+    tags: [],
+)

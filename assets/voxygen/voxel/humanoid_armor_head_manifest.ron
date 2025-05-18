@@ -48,53 +48,53 @@
             vox_spec: ("armor.misc.head.exclamation", (-11.0, -11.0, 18.0)),
             color: None
         ),
-        //
+        // Witch
         (Human, Male, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-4.0, -5.0, 5.0)),
+            vox_spec: ("armor.witch.witch", (-4.0, -5.0, 5.0), 0),
             color: None
         ),
         (Human, Female, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-4.0, -5.0, 5.0)),
+            vox_spec: ("armor.witch.witch", (-4.0, -5.0, 5.0), 0),
             color: None
         ),
         (Elf, Male, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-3.0, -5.0, 5.0)),
+            vox_spec: ("armor.witch.witch", (-3.0, -5.0, 5.0), 0),
             color: None
         ),
         (Elf, Female, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-3.0, -6.0, 5.0)),
+            vox_spec: ("armor.witch.witch", (-3.0, -6.0, 5.0), 0),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-5.0, -4.0, 5.0)),
+            vox_spec: ("armor.witch.witch", (-5.0, -4.0, 5.0), 0),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-5.0, -4.0, 5.0)),
+            vox_spec: ("armor.witch.witch", (-5.0, -4.0, 5.0), 0),
             color: None
         ),
         (Danari, Male, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-2.0, -5.0, 7.0)),
+            vox_spec: ("armor.witch.witch", (-2.0, -5.0, 7.0), 0),
             color: None
         ),
         (Danari, Female, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-2.0, -5.0, 7.0)),
+            vox_spec: ("armor.witch.witch", (-2.0, -5.0, 7.0), 0),
             color: None
         ),
         (Draugr, Male, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-6.0, -5.0, 7.0)),
+            vox_spec: ("armor.witch.witch", (-6.0, -5.0, 7.0), 0),
             color: None
         ),
         (Draugr, Female, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-6.0, -5.0, 6.0)),
+            vox_spec: ("armor.witch.witch", (-6.0, -5.0, 6.0), 0),
             color: None
         ),
         (Orc, Male, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-3.0, -3.0, 8.0)),
+            vox_spec: ("armor.witch.witch", (-3.0, -3.0, 7.0), 0),
             color: None
         ),
         (Orc, Female, "common.items.armor.witch.hat"): (
-            vox_spec: ("armor.witch.hat", (-3.0, -6.0, 5.0)),
+            vox_spec: ("armor.witch.witch", (-3.0, -6.0, 5.0), 0),
             color: None
         ),
 //
@@ -343,53 +343,102 @@
             color: None
         ),
 
-        //
-        (Human, Male, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-4.0, -4.0, 5.0)),
+        // Buccaneer
+        (Human, Male, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-4.0, -4.0, 2.0), 0),
             color: None
         ),
-        (Human, Female, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-4.0, -4.0, 5.0)),
+        (Human, Female, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-4.0, -3.0, 2.0), 0),
             color: None
         ),
-        (Elf, Male, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-3.0, -4.0, 5.0)),
+        (Elf, Male, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-3.0, -4.0, 2.0), 0),
             color: None
         ),
-        (Elf, Female, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-3.0, -5.0, 5.0)),
+        (Elf, Female, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-3.0, -4.0, 2.0), 0),
             color: None
         ),
-        (Dwarf, Male, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-5.0, -3.0, 5.0)),
+        (Dwarf, Male, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-5.0, -3.0, 2.0), 0),
             color: None
         ),
-        (Dwarf, Female, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-5.0, -3.0, 5.0)),
+        (Dwarf, Female, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-5.0, -3.0, 2.0), 0),
             color: None
         ),
-        (Danari, Male, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-2.0, -4.0, 7.0)),
+        (Danari, Male, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-2.0, -4.0, 4.0), 0),
             color: None
         ),
-        (Danari, Female, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-2.0, -4.0, 7.0)),
+        (Danari, Female, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-2.0, -4.0, 4.0), 0),
             color: None
         ),
-        (Draugr, Male, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-6.0, -4.0, 7.0)),
+        (Draugr, Male, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-6.0, -4.0, 4.0), 0),
             color: None
         ),
-        (Draugr, Female, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-6.0, -4.0, 6.0)),
+        (Draugr, Female, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-6.0, -4.0, 3.0), 0),
             color: None
         ),
-        (Orc, Male, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-3.0, -2.0, 8.0)),
+        (Orc, Male, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-3.0, -2.0, 4.0), 0),
             color: None
         ),
-        (Orc, Female, "common.items.armor.pirate.hat"): (
-            vox_spec: ("armor.pirate.hat", (-3.0, -5.0, 5.0)),
+        (Orc, Female, "common.items.armor.buccaneer.head"): (
+            vox_spec: ("armor.buccaneer.buccaneer", (-3.0, -5.0, 2.0), 0),
+            color: None
+        ),
+        // Pirate
+        (Human, Male, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-4.0, -6.0, -1.0), 0),
+            color: None
+        ),
+        (Human, Female, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-4.0, -5.0, -1.0), 0),
+            color: None
+        ),
+        (Elf, Male, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-3.0, -6.0, -1.0), 0),
+            color: None
+        ),
+        (Elf, Female, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-3.0, -6.0, -1.0), 0),
+            color: None
+        ),
+        (Dwarf, Male, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-5.0, -5.0, -1.0), 0),
+            color: None
+        ),
+        (Dwarf, Female, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-5.0, -5.0, -1.0), 0),
+            color: None
+        ),
+        (Danari, Male, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-2.0, -6.0, 1.0), 0),
+            color: None
+        ),
+        (Danari, Female, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-2.0, -6.0, 1.0), 0),
+            color: None
+        ),
+        (Draugr, Male, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-6.0, -6.0, 1.0), 0),
+            color: None
+        ),
+        (Draugr, Female, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-6.0, -6.0, 0.0), 0),
+            color: None
+        ),
+        (Orc, Male, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-3.0, -4.0, 1.0), 0),
+            color: None
+        ),
+        (Orc, Female, "common.items.armor.pirate.head"): (
+            vox_spec: ("armor.pirate.pirate", (-3.0, -7.0, -1.0), 0),
             color: None
         ),
         //
@@ -1323,7 +1372,7 @@
             vox_spec: ("armor.misc.head.boreal_warhelm", (-3.0, -7.0, -4.0)),
             color: None
         ),
-            // Golemite Helmet
+        // Golemite Helmet
         (Human, Male, "common.items.armor.golemite.head"): (
             vox_spec: ("armor.golemite.golemite", (-4.0, -6.0, -2.0), 0),
             color: None
@@ -1372,7 +1421,7 @@
             vox_spec: ("armor.golemite.golemite", (-3.0, -7.0, -2.0), 0),
             color: None
         ),
-            // Ashen Helmet
+        // Ashen Helmet
         (Human, Male, "common.items.armor.ashen.head"): (
             vox_spec: ("armor.ashen.ashen", (-4.0, -6.0, -3.0), 0),
             color: None
@@ -2105,6 +2154,54 @@
         ),
         (Orc, Female, "common.items.armor.hide.leather.head"): (
             vox_spec: ("armor.misc.head.leather-0", (2.0, -1.0, 2.0), 0),
+        ),
+        // Adventurer Helmet
+        (Human, Male, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-4.0, -5.0, -2.0), 0),
+            color: None
+        ),
+        (Human, Female, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-4.0, -4.0, -2.0), 0),
+            color: None
+        ),
+        (Elf, Male, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-3.0, -5.0, -2.0), 0),
+            color: None
+        ),
+        (Elf, Female, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-3.0, -5.0, -2.0), 0),
+            color: None
+        ),
+        (Dwarf, Male, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-5.0, -4.0, -2.0), 0),
+            color: None
+        ),
+        (Dwarf, Female, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-5.0, -4.0, -2.0), 0),
+            color: None
+        ),
+        (Danari, Male, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-2.0, -5.0, 0.0), 0),
+            color: None
+        ),
+        (Danari, Female, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-2.0, -5.0, 0.0), 0),
+            color: None
+        ),
+        (Draugr, Male, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-6.0, -5.0, -0.5), 0),
+            color: None
+        ),
+        (Draugr, Female, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-6.0, -5.0, -1.0), 0),
+            color: None
+        ),
+        (Orc, Male, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-3.0, -4.5, -0.5), 0),
+            color: None
+        ),
+        (Orc, Female, "common.items.armor.adventurer.head"): (
+            vox_spec: ("armor.adventurer.adventurer", (-3.0, -6.0, -2.0), 0),
             color: None
         ),
     }

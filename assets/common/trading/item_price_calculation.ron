@@ -9,12 +9,14 @@ loot_tables: [
 
     // Non-craftable Armor
     (15.0, true, "common.loot_tables.armor.cloth"),
-    (6.0, true, "common.loot_tables.armor.twigs"),
-    (6.0, true, "common.loot_tables.armor.twigsflowers"),
+    (12.0, true, "common.loot_tables.armor.adventurer"),
     (6.0, true, "common.loot_tables.armor.twigsleaves"),
     (2.0, false, "common.trading.misc_armor"),
-    (0.3334, true, "common.trading.misc_armor_sellable"),
+    (0.22, false, "common.loot_tables.armor.pirate"),
+    (0.15, false, "common.loot_tables.spot.buccaneer"),
+    (0.10, false, "common.loot_tables.armor.witch"),
     (0.09, false, "common.loot_tables.armor.cultist"),
+    (0.3334, true, "common.trading.misc_armor_sellable"),
     (0.0016, false, "common.loot_tables.armor.boreal"),
 
     // Ingredients

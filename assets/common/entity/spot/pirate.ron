@@ -3,7 +3,7 @@
     name: Translate("name-custom-spot-pirate"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.humanoids.pirate"),
+    loot: Nothing,
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.pirate"),
@@ -14,6 +14,6 @@
         )),
     ),
     meta: [
-        SkillSetAsset("common.skillset.preset.rank2.fullskill"),
+        SkillSetAsset("common.skillset.preset.rank1.fullskill"),
     ],
 )

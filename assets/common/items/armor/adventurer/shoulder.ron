@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Adventurer Shoulders",
+    legacy_description: "A heavy burden rests atop these shoulders.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Adventurer"),
+    )),
+    quality: Low,
+    tags: [],
+)

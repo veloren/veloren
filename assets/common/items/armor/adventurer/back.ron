@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Adventurer Cape",
+    legacy_description: "Style is not a proper substitute for function.",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Adventurer"),
+    )),
+    quality: Low,
+    tags: [],
+)

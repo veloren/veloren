@@ -265,14 +265,19 @@
             poise_resilience: Some(Normal(20.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.5),
-            precision_power: Some(0.4),
+            precision_power: Some(0.4284),
+        ),
+        "Buccaneer": (
+            protection: Some(Normal(35.2836)),
+            energy_max: Some(21.384),
+            energy_reward: Some(0.21384),
+            precision_power: Some(0.399168),
         ),
         "Pirate": (
-            protection: Some(Normal(120.0)),
-            poise_resilience: Some(Normal(20.0)),
-            energy_max: Some(45.0),
-            energy_reward: Some(0.5),
-            precision_power: Some(0.4),
+            protection: Some(Normal(27.45)),
+            energy_max: Some(17.82),
+            energy_reward: Some(0.1782),
+            precision_power: Some(0.3024),
         ),
         "Savage": (
             protection: Some(Normal(60.0)),
@@ -280,11 +285,11 @@
         "Tarasque": (
             protection: Some(Normal(60.0)),
         ),
-        "Twigs": (
-            protection: Some(Normal(20.0)),
-        ),
         "Twigs Flowers": (
-            protection: Some(Normal(20.0)),
+            protection: Some(Normal(14.0)),
+            energy_max: Some(65.0),
+            energy_reward: Some(0.65),
+            stealth: Some(0.55),
         ),
         "Twigs Leaves": (
             protection: Some(Normal(20.0)),
@@ -293,11 +298,10 @@
             protection: Some(Normal(100.0)),
         ),
         "Witch": (
-            protection: Some(Normal(120.0)),
-            poise_resilience: Some(Normal(20.0)),
-            energy_max: Some(45.0),
-            energy_reward: Some(0.5),
-            precision_power: Some(0.4),
+            protection: Some(Normal(13.023)),
+            energy_max: Some(78.1596),
+            energy_reward: Some(0.5211),
+            precision_power: Some(0.192456),
         ),
         "Cardinal": (
             protection: Some(Normal(540.0)),
@@ -338,6 +342,11 @@
             energy_reward: Some(0.729),
             precision_power: Some(0.388),
             stealth: Some(1.51875),
-        ),        
+        ),
+        "Adventurer": (
+            protection: Some(Normal(18.225)),
+            poise_resilience: Some(Normal(10.935)),
+            stealth: Some(0.62775),
+        ),       
     },
 )

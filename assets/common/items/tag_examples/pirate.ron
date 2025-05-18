@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Anything related to theiving pirates",
+    legacy_description: "Smells like booty and the ocean.",
+    kind: TagExamples(
+        item_ids: [
+            "common.items.armor.pirate.belt",
+            "common.items.armor.pirate.chest",
+            "common.items.armor.pirate.pants",
+            "common.items.armor.pirate.foot",
+            "common.items.armor.pirate.hand",
+            "common.items.armor.pirate.shoulder",
+            "common.items.armor.pirate.head",
+        ],
+    ),
+    quality: Epic,
+    tags: [],
+)

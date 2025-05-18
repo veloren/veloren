@@ -1,15 +1,15 @@
 ItemDef(
     legacy_name: "Witch Hat",
-    legacy_description: "Draws strength from dark arts.",
+    legacy_description: "Draws strength from the dark arts, no doubt!",
     kind: Armor((
         kind: Head,
         stats: Direct((
-            protection: Some(Normal(2.0)),
-            energy_max: Some(10.0),
-            energy_reward: Some(0.12),
+            protection: Some(Normal(1.447)),
+            energy_max: Some(8.6844),
+            energy_reward: Some(0.0579),
+            precision_power: Some(0.021384),
         )),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: High,
+    tags: [Witch],
 )

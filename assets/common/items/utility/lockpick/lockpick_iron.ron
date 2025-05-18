@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Iron Lockpick",
+    legacy_description: "Used to open uncommon locks. Will break when used against tough locks.",
+    kind: Utility(
+        kind: Key,
+    ),
+    quality: Common,
+    tags: [Utility],
+)

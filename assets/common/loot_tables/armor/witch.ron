@@ -1,0 +1,10 @@
+[
+    (0.25, Item("common.items.armor.witch.hat")),
+    (1.0, Item("common.items.armor.witch.back")),
+    (1.0, Item("common.items.armor.witch.belt")),
+    (1.0, Item("common.items.armor.witch.chest")),
+    (1.0, Item("common.items.armor.witch.foot")),
+    (1.0, Item("common.items.armor.witch.hand")),
+    (1.0, Item("common.items.armor.witch.pants")),
+    (1.0, Item("common.items.armor.witch.shoulder")),
+]

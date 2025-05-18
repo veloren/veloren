@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "Anything related to the occult",
+    legacy_description: "Drenched in foul odor of dark magic.",
+    kind: TagExamples(
+        item_ids: [
+            "common.items.armor.witch.back",
+            "common.items.armor.witch.belt",
+            "common.items.armor.witch.chest",
+            "common.items.armor.witch.pants",
+            "common.items.armor.witch.foot",
+            "common.items.armor.witch.hand",
+            "common.items.armor.witch.shoulder",
+            "common.items.armor.witch.hat",
+        ],
+    ),
+    quality: High,
+    tags: [],
+)

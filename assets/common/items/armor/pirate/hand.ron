@@ -1,11 +1,10 @@
 ItemDef(
     legacy_name: "Pirate Gloves",
-    legacy_description: "",
+    legacy_description: "Just enough thread to guard you from rope burn.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Pirate"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: Common,
+    tags: [Pirate],
 )

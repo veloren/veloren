@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Buccaneer Pantaloons",
+    legacy_description: "Stained with the blood of those forced to walk the plank.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Buccaneer"),
+    )),
+    quality: Moderate,
+    tags: [Pirate],
+)

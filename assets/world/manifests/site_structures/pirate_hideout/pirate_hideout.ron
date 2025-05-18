@@ -1,9 +1,16 @@
+#![enable(implicit_some)]
 #![enable(unwrap_newtypes)]
 
 [
     (
         specifier: "world.structure.spots.pirate_hideout",
         center: (32, 27, 5),
+        custom_indices: {
+            243: SpriteWithCfg(DungeonChest1, (
+                loot_table: "common.loot_tables.spot.pirate_hideout",
+            )),
+            244: Sprite(PirateChest()),
+         },
 
     ),
 ]

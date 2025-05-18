@@ -4,7 +4,8 @@ ItemDef(
     kind: RecipeGroup(
         recipes: [
             "collar_basic",
-            "lockpick",
+            "lockpick_iron",
+            "lockpick_cobalt",
             "gold_ingot",
             "silver_ingot",
         ],

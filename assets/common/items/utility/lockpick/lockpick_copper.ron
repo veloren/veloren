@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Common Lockpick",
+    legacy_description: "Used to open common locks. Will break after use.",
+    kind: Utility(
+        kind: Key,
+    ),
+    quality: Low,
+    tags: [Utility],
+)

@@ -1,11 +1,10 @@
 ItemDef(
     legacy_name: "Witch Cape",
-    legacy_description: "",
+    legacy_description: "Dark magic used to keep warm from the elements, no doubt!",
     kind: Armor((
         kind: Back,
         stats: FromSet("Witch"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: High,
+    tags: [Witch],
 )

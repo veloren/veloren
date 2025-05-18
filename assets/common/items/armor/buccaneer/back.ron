@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Buccaneer Mantel",
+    legacy_description: "Once belonged to a seafaring merchant.",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Buccaneer"),
+    )),
+    quality: Moderate,
+    tags: [Pirate],
+)
