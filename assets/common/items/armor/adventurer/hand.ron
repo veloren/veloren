@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Adventurer Handwraps",
+    legacy_description: "Just enough ward from a singular cut.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Adventurer"),
+    )),
+    quality: Low,
+    tags: [],
+)

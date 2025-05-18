@@ -1,11 +1,10 @@
 ItemDef(
     legacy_name: "Witch Skirt",
-    legacy_description: "",
+    legacy_description: "Nice and flowy...and filled with the dark arts, no doubt!",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Witch"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: High,
+    tags: [Witch],
 )

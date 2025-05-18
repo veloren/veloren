@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "Pirate Bandana",
+    legacy_description: "A foul red sash which hides the blunt trauma.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(2.97)),
+            energy_max: Some(1.98),
+            energy_reward: Some(0.0198),
+            precision_power: Some(0.0336),
+        )),
+    )),
+    quality: Common,
+    tags: [Pirate],
+)

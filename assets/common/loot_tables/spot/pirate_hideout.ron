@@ -1,0 +1,40 @@
+[
+    (1, All([
+        Item("common.items.armor.pirate.hand"),
+        Item("common.items.armor.pirate.belt"),
+        Item("common.items.armor.pirate.back"),
+        MultiDrop(Item("common.items.utility.coins"), 30, 75),
+        LootTable("common.loot_tables.materials.common"),
+        LootTable("common.loot_tables.food.wild_ingredients"),
+        ],
+    )),
+    (1, All([
+        Item("common.items.armor.pirate.pants"),
+        Item("common.items.armor.pirate.shoulder"),
+        Item("common.items.armor.pirate.foot"),
+        MultiDrop(Item("common.items.food.coconut"), 2, 4),
+        MultiDrop(Item("common.items.food.meat.fish_raw"), 3, 4),
+        ],
+    )),
+    (0.7, All([
+        Item("common.items.armor.pirate.pants"),
+        Item("common.items.armor.pirate.chest"),
+        Item("common.items.recipes.equipment.basic"),
+        Item("common.items.recipes.equipment.moderate"),
+        MultiDrop(Item("common.items.consumable.potion_minor"), 2, 3),
+        ],
+    )),
+    (0.7, All([
+        Item("common.items.armor.pirate.head"),
+        Item("common.items.armor.pirate.chest"),
+        MultiDrop(Item("common.items.utility.bomb"), 1, 3),
+        Item("common.items.armor.misc.ring.gold"),
+        ],
+    )),
+    (0.2, All([
+        Item("common.items.armor.misc.head.crown"),
+        Item("common.items.recipes.equipment.advanced"),
+        Item("common.items.armor.misc.neck.gold"),
+        ],
+    )),
+]

@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "Buccaneer Hat",
+    legacy_description: "Thick, rich leather fit for a captain!",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(3.9204)),
+            energy_max: Some(2.376),
+            energy_reward: Some(0.02376),
+            precision_power: Some(0.044352),
+        )),
+    )),
+    quality: Moderate,
+    tags: [Pirate],
+)

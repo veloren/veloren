@@ -56,6 +56,16 @@ impl Structure for PirateHideout {
             .translate(model_pos)
             .fill(Fill::Prefab(Box::new(model), model_pos, rng));
 
+        if thread_rng.gen_range(0..=3) < 1 {
+            // buccaneer
+            painter.spawn(
+                EntityInfo::at(center.with_z(base + 2).as_()).with_asset_expect(
+                    "common.entity.spot.buccaneer",
+                    &mut thread_rng,
+                    None,
+                ),
+            )
+        }
         // npcs
         let npc_radius = 15;
         let phi = TAU / 5.0;
@@ -65,7 +75,7 @@ impl Structure for PirateHideout {
                 center.y + (npc_radius as f32 * ((n as f32 * phi).sin())) as i32,
             );
 
-            match RandomField::new(0).get(npc_pos.with_z(base)) % 10 {
+            match RandomField::new(0).get(npc_pos.with_z(base + 2)) % 10 {
                 // rat
                 0 => painter.spawn(
                     EntityInfo::at(npc_pos.with_z(base).as_()).with_asset_expect(

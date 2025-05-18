@@ -1,11 +1,10 @@
 ItemDef(
-    legacy_name: "Pirate Mantle",
-    legacy_description: "",
+    legacy_name: "Pirate Hem",
+    legacy_description: "Comfortable spot for a parrot to perch.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Pirate"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: Common,
+    tags: [Pirate],
 )

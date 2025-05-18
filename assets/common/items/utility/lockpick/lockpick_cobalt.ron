@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Cobalt Lockpick",
+    legacy_description: "Used to open rare locks. Will break when used against the toughest of locks.",
+    kind: Utility(
+        kind: Key,
+    ),
+    quality: High,
+    tags: [Utility],
+)

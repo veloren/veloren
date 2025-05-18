@@ -84,6 +84,8 @@ ItemDef(
             "plain_cloth_glider",
             // Lanterns
             "black_lantern",
+            // Utility
+            "lockpick_copper",
         ],
     ),
     quality: Common,

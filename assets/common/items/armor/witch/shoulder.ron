@@ -1,11 +1,10 @@
 ItemDef(
     legacy_name: "Witch Mantle",
-    legacy_description: "",
+    legacy_description: "Made from orphan tears, no doubt!",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Witch"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: High,
+    tags: [Witch],
 )

@@ -1,11 +1,10 @@
 ItemDef(
-    legacy_name: "Pirate Pants",
-    legacy_description: "",
+    legacy_name: "Pirate Breeches",
+    legacy_description: "There seems to be leftover sand from the previous beach.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Pirate"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: Common,
+    tags: [Pirate],
 )

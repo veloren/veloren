@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Adventurer Boots",
+    legacy_description: "Hardy boots to start your journey in.",
+    kind: Armor((
+        kind: Foot,
+        stats: FromSet("Adventurer"),
+    )),
+    quality: Low,
+    tags: [],
+)

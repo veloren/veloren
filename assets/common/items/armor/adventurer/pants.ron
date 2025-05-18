@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Adventurer Stockings",
+    legacy_description: "You'll need the extra warmth on your travels.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Adventurer"),
+    )),
+    quality: Low,
+    tags: [],
+)

@@ -202,6 +202,26 @@ pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
     })
 }
 
+pub fn is_dressed_as_witch(entity: EcsEntity, read_data: &ReadData) -> bool {
+    read_data.inventories.get(entity).is_some_and(|inventory| {
+        inventory
+            .equipped_items()
+            .filter(|item| item.tags().contains(&ItemTag::Witch))
+            .count()
+            > 3
+    })
+}
+
+pub fn is_dressed_as_pirate(entity: EcsEntity, read_data: &ReadData) -> bool {
+    read_data.inventories.get(entity).is_some_and(|inventory| {
+        inventory
+            .equipped_items()
+            .filter(|item| item.tags().contains(&ItemTag::Pirate))
+            .count()
+            > 4
+    })
+}
+
 pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {
     read_data
         .healths

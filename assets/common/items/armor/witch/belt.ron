@@ -1,11 +1,10 @@
 ItemDef(
     legacy_name: "Witch Belt",
-    legacy_description: "",
+    legacy_description: "Keeps those magic pants from running away, no doubt!",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Witch"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: High,
+    tags: [Witch],
 )

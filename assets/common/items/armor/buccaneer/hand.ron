@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Buccaneer Tulle Gloves",
+    legacy_description: "Just the right grip to steer your ship through a storm.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Buccaneer"),
+    )),
+    quality: Moderate,
+    tags: [Pirate],
+)

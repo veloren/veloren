@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New and more granular options for the `/kit` command.
 - Beds now regen health when mounted.
 - Setting dropdown for SFX channel capacity.
+- New Buccaneer entity spawn at the Pirate Hideout, including a new T2 obtainable buccaneer set.
 
 ### Changed
 
@@ -74,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated tradable recipes and balanced some prices.
 - Merged craftable lanterns into a single recipe.
 - Updated campfire and bed interaction texts.
+- Witch and Pirate sets (T3 and T1 respectively) are now obtainable and have been given new models, alongside Twig Set being changed out for Adventurer Set.
 
 ### Removed
 

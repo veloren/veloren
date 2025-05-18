@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Buccaneer Belt",
+    legacy_description: "A bedazzled jewl to accentuate your riches.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Buccaneer"),
+    )),
+    quality: Moderate,
+    tags: [Pirate],
+)

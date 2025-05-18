@@ -1,11 +1,10 @@
 ItemDef(
-    legacy_name: "Pirate Jacket",
-    legacy_description: "",
+    legacy_name: "Pirate Vest",
+    legacy_description: "Torn to shreds from countless fights.",
     kind: Armor((
         kind: Chest,
         stats: FromSet("Pirate"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: Common,
+    tags: [Pirate],
 )

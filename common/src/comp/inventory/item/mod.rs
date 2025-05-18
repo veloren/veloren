@@ -276,6 +276,8 @@ pub enum ItemTag {
     Utility,
     Bag,
     SalvageInto(Material, u32),
+    Witch,
+    Pirate,
 }
 
 impl TagExampleInfo for ItemTag {
@@ -293,6 +295,8 @@ impl TagExampleInfo for ItemTag {
             ItemTag::Utility => "utility",
             ItemTag::Bag => "bag",
             ItemTag::SalvageInto(_, _) => "salvage",
+            ItemTag::Witch => "witch",
+            ItemTag::Pirate => "pirate",
         }
     }
 
@@ -302,6 +306,8 @@ impl TagExampleInfo for ItemTag {
             ItemTag::Material(material) => material.exemplar_identifier(),
             ItemTag::Cultist => Some("common.items.tag_examples.cultist"),
             ItemTag::Gnarling => Some("common.items.tag_examples.gnarling"),
+            ItemTag::Witch => Some("common.items.tag_examples.witch"),
+            ItemTag::Pirate => Some("common.items.tag_examples.pirate"),
             ItemTag::MaterialKind(_)
             | ItemTag::Potion
             | ItemTag::Food

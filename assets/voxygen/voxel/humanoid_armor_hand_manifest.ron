@@ -110,16 +110,6 @@
                 color: None
             )
         ),
-        "common.items.armor.twigs.hand": (
-            left: (
-                vox_spec: ("armor.twigs.hand", (-1.5, -1.5, -2.5)),
-                color: None
-            ),
-            right: (
-                vox_spec: ("armor.twigs.hand", (-1.5, -1.5, -2.5)),
-                color: None
-            )
-        ),
         "common.items.armor.twigsleaves.hand": (
             left: (
                 vox_spec: ("armor.twigsleaves.hand", (-2.5, -1.5, -2.5)),
@@ -262,21 +252,31 @@
         ),
         "common.items.armor.witch.hand": (
             left: (
-                vox_spec: ("armor.witch.hand", (-2.5, -2.5, -3.5)),
+                vox_spec: ("armor.witch.witch", (-2.5, -2.5, -3.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.witch.hand", (-1.5, -2.5, -3.5)),
+                vox_spec: ("armor.witch.witch", (-1.5, -2.5, -3.5), 3),
+                color: None
+            )
+        ),
+        "common.items.armor.buccaneer.hand": (
+            left: (
+                vox_spec: ("armor.buccaneer.buccaneer", (-2.5, -1.5, -3.5), 3),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.buccaneer.buccaneer", (-1.5, -1.5, -3.5), 3),
                 color: None
             )
         ),
         "common.items.armor.pirate.hand": (
             left: (
-                vox_spec: ("armor.pirate.hand", (-2.5, -2.5, -3.5)),
+                vox_spec: ("armor.pirate.pirate", (-1.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.pirate.hand", (-1.5, -2.5, -3.5)),
+                vox_spec: ("armor.pirate.pirate", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
@@ -447,6 +447,16 @@
             ),
             right:(
                 vox_spec: ("armor.merchant.hand", (-1.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
+        "common.items.armor.adventurer.hand": (
+            left: (
+                vox_spec: ("armor.adventurer.adventurer", (-1.5, -1.5, -2.5), 3),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.adventurer.adventurer", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),

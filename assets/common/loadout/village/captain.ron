@@ -3,9 +3,9 @@
     head: Seasonal([
         (Some(Christmas), Choice([
             (1, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
-            (1, Some(Item("common.items.armor.pirate.hat")))
+            (1, Some(Item("common.items.armor.buccaneer.head")))
         ])),
-        (None, Item("common.items.armor.pirate.hat")),
+        (None, Item("common.items.armor.buccaneer.head")),
     ]),
     shoulders: Item("common.items.armor.mail.orichalcum.shoulder"),
     chest: Item("common.items.armor.mail.orichalcum.chest"),

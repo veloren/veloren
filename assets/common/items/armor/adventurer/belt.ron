@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Adventurer Belt",
+    legacy_description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Adventurer"),
+    )),
+    quality: Low,
+    tags: [],
+)

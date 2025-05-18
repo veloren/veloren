@@ -1,0 +1,19 @@
+#![enable(implicit_some)]
+(
+    name: Translate("name-custom-spot-buccaneer"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Enemy),
+    loot: Nothing,
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.spots.buccaneer"),
+            active_hands: InHands((
+                ModularWeapon(tool: Sword, material: Steel, hands: One),
+                ModularWeapon(tool: Sword, material: Steel, hands: One),
+            )),
+        )),
+    ),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank2.fullskill"),
+    ],
+)

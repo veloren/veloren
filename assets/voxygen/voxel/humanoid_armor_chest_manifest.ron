@@ -117,10 +117,6 @@
             vox_spec: ("armor.misc.chest.shirt_white", (-7.0, -3.5, 2.0)),
             color: Some((135, 82, 67))
         ),
-        "common.items.armor.twigs.chest": (
-            vox_spec: ("armor.twigs.chest", (-7.0, -3.5, 2.0)),
-            color: None
-        ),
         "common.items.armor.twigsleaves.chest": (
             vox_spec: ("armor.twigsleaves.chest", (-7.0, -3.5, 2.0)),
             color: None
@@ -187,11 +183,15 @@
             color: None
         ),
         "common.items.armor.witch.chest": (
-            vox_spec: ("armor.witch.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.witch.witch", (-7.0, -3.5, 2.0), 7),
+            color: None
+        ),
+        "common.items.armor.buccaneer.chest": (
+            vox_spec: ("armor.buccaneer.buccaneer", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.pirate.chest": (
-            vox_spec: ("armor.pirate.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.pirate.pirate", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.alchemist.chest": (
@@ -268,6 +268,10 @@
         ),
         "common.items.armor.merchant.chest": (
             vox_spec: ("armor.merchant.chest", (-7.0, -3.5, 1.0)),
+            color: None
+        ),
+        "common.items.armor.adventurer.chest": (
+            vox_spec: ("armor.adventurer.adventurer", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
     },

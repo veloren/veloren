@@ -113,7 +113,15 @@
             color: None
         ),
         "common.items.armor.witch.back": (
-            vox_spec: ("armor.witch.back", (-4.0, -1.5, -11.0)),
+            vox_spec: ("armor.witch.witch", (-4.0, -1.5, -11.0), 1),
+            color: None
+        ),
+        "common.items.armor.buccaneer.back": (
+            vox_spec: ("armor.buccaneer.buccaneer", (-4.0, -1.5, -10.5), 1),
+            color: None
+        ),
+        "common.items.armor.pirate.back": (
+            vox_spec: ("armor.pirate.pirate", (-4.0, -4.5, -7.0), 1),
             color: None
         ),
         "common.items.armor.cloth.druid.back": (
@@ -162,6 +170,10 @@
         ),
         "common.items.armor.merchant.back": (
             vox_spec: ("armor.merchant.back", (-8.0, -8.5, -11.0)),
+            color: None
+        ),
+        "common.items.armor.adventurer.back": (
+            vox_spec: ("armor.adventurer.adventurer", (-4.0, -1.5, -8.0), 1),
             color: None
         ),
     },

@@ -13,7 +13,7 @@
             138: Sprite(ForgeTools()),
             139: Sprite(FireBowlGround()),
             140: Sprite(DoorBars()),
-            141: KeyholeBars("common.items.utility.lockpick_0"),
+            141: KeyholeBars("common.items.utility.lockpick.lockpick_cobalt"),
             142: Sprite(WoodBarricades()),
             169: Filled(GlowingRock, (r: 49, g: 49, b: 49)),
             209: Filled(GlowingRock, (r: 83, g: 83, b: 83)),

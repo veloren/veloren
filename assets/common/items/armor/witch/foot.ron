@@ -1,11 +1,10 @@
 ItemDef(
     legacy_name: "Witch Boots",
-    legacy_description: "",
+    legacy_description: "Each step absorbs the life beneath, no doubt!",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Witch"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: High,
+    tags: [Witch],
 )

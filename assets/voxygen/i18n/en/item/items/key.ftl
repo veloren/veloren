@@ -1,5 +1,11 @@
-object-lockpick = Common Lockpick
+object-lockpick_copper = Copper Lockpick
     .desc = Used to open common locks. Will break after use.
+
+object-lockpick_iron = Iron Lockpick
+    .desc = Used to open uncommon locks. Will break when used against tough locks.
+
+object-lockpick_cobalt = Cobalt Lockpick
+    .desc = Used to open rare locks. Will break when used against the toughest of locks.
 
 object-key-bone = Bone Key
     .desc = Used to open bone locks. Will break after use.

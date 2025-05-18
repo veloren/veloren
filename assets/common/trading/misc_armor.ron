@@ -27,10 +27,6 @@
 
     // Pirate
     (0.03, Item("common.items.armor.misc.head.crown")),
-    (0.03, Item("common.items.armor.pirate.hat")),
-
-    // Witch
-    (0.03, Item("common.items.armor.witch.hat")),
 
     // Gnarling
     (0.3, Item("common.items.armor.misc.head.gnarling_mask")),

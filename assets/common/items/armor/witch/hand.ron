@@ -1,11 +1,10 @@
 ItemDef(
     legacy_name: "Witch Handwarmers",
-    legacy_description: "",
+    legacy_description: "Used for nefarious foraging, no doubt!",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Witch"),
     )),
-    quality: Epic,
-    tags: [
-    ],
+    quality: High,
+    tags: [Witch],
 )

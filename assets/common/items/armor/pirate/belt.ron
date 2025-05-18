@@ -1,10 +1,10 @@
 ItemDef(
-    legacy_name: "Pirate Belt",
-    legacy_description: "",
+    legacy_name: "Pirate Sash",
+    legacy_description: "Looks to be a wet bundle of linen.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Pirate"),
     )),
-    quality: Epic,
-    tags: [],
+    quality: Common,
+    tags: [Pirate],
 )

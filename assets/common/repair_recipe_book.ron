@@ -216,32 +216,42 @@ recipes: {
     ItemDefId("common.items.armor.misc.pants.worker_blue"): ( inputs: [], ),
     ItemDefId("common.items.armor.misc.foot.sandals"): ( inputs: [], ),
     // Twigs set
-    ItemDefId("common.items.armor.twigs.belt"): (
+    ItemDefId("common.items.armor.adventurer.head"): (
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 1),
         ],
     ),
-    ItemDefId("common.items.armor.twigs.chest"): (
+    ItemDefId("common.items.armor.adventurer.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.adventurer.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 1),
+        ],
+    ),
+    ItemDefId("common.items.armor.adventurer.chest"): (
         inputs: [
         (Item("common.items.crafting_ing.twigs"), 3),
         ],
     ),
-    ItemDefId("common.items.armor.twigs.foot"): (
+    ItemDefId("common.items.armor.adventurer.foot"): (
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 1),
         ],
     ),
-    ItemDefId("common.items.armor.twigs.hand"): (
+    ItemDefId("common.items.armor.adventurer.hand"): (
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 1),
         ],
     ),
-    ItemDefId("common.items.armor.twigs.pants"): (
+    ItemDefId("common.items.armor.adventurer.pants"): (
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 2),
         ],
     ),
-    ItemDefId("common.items.armor.twigs.shoulder"): (
+    ItemDefId("common.items.armor.adventurer.shoulder"): (
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 2),
         ],
@@ -1275,7 +1285,7 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
-    ItemDefId("common.items.armor.pirate.hat"): (
+    ItemDefId("common.items.armor.pirate.head"): (
         inputs: [
             (Item("common.items.crafting_ing.leather.rigid_leather"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 3),

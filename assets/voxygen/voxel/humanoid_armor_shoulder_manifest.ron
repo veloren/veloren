@@ -121,16 +121,6 @@
                 color: None
             )
         ),
-        "common.items.armor.twigs.shoulder": (
-            left: (
-                vox_spec: ("armor.twigs.shoulder", (-5.0, -4.0 , -1.0)),
-                color: None
-            ),
-            right: (
-                vox_spec: ("armor.twigs.shoulder", (-1.0, -4.0, -1.0)),
-                color: None
-            )
-        ),
         "common.items.armor.twigsleaves.shoulder": (
             left: (
                 vox_spec: ("armor.twigsleaves.shoulder", (-6.0, -5.0 , -1.0)),
@@ -343,22 +333,32 @@
         ),
         "common.items.armor.witch.shoulder": (
             left: (
-                vox_spec: ("armor.witch.shoulder", (-5.0, -3.5, -1.0)),
+                vox_spec: ("armor.witch.witch", (-4.0, -2.5, -1.0), 4),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.witch.shoulder", (-1.0, -3.5, -1.0)),
-            color: None
+                vox_spec: ("armor.witch.witch", (-1.0, -2.5, -1.0), 4),
+                color: None
+            )
+        ),
+        "common.items.armor.buccaneer.shoulder": (
+            left: (
+                vox_spec: ("armor.buccaneer.buccaneer", (-4.0, -2.5 , -0.0), 4),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.buccaneer.buccaneer", (-1.0, -2.5, -0.0), 4),
+                color: None
             )
         ),
         "common.items.armor.pirate.shoulder": (
             left: (
-                vox_spec: ("armor.pirate.shoulder", (-5.0, -3.5 , -1.0)),
+                vox_spec: ("armor.pirate.pirate", (-1.0, -2.5, -0.5), 4),
                 color: None
             ),
             right: (
-            vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),
-            color: None
+                vox_spec: ("armor.pirate.pirate", (-2.0, -2.5, -0.5), 4),
+                color: None
             )
         ),
         "common.items.armor.cloth.linen.shoulder": (
@@ -520,6 +520,16 @@
                 vox_spec: ("armor.empty", (0.0, 0.0 , 0.0)),
                 color: None
             ),
+        ),
+        "common.items.armor.adventurer.shoulder": (
+            left: (
+                vox_spec: ("armor.adventurer.adventurer", (-3.0, -2.5, -0.5), 4),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.adventurer.adventurer", (-1.0, -2.5, -0.5), 4),
+                color: None
+            )
         ),
     },
 ))

@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Buccaneer Jacket",
+    legacy_description: "The smell of the ocean follows you.",
+    kind: Armor((
+        kind: Chest,
+        stats: FromSet("Buccaneer"),
+    )),
+    quality: Moderate,
+    tags: [Pirate],
+)

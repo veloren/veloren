@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Pirate Satchel",
+    legacy_description: "Is it filled with treasure or simply dead fish?",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Pirate"),
+    )),
+    quality: Common,
+    tags: [Pirate],
+    slots: 3,
+)

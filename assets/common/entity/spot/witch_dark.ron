@@ -3,7 +3,7 @@
     name: Translate("name-custom-spot-witch_dark"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.humanoids.witch"),
+    loot: Nothing,
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.witch"),

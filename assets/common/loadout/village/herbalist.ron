@@ -14,17 +14,14 @@
         ])),
     ]),
     chest: Choice([
-        (1, Item("common.items.armor.twigs.chest")),
         (1, Item("common.items.armor.twigsflowers.chest")),
         (1, Item("common.items.armor.twigsleaves.chest")),
     ]),
     legs: Choice([
-        (1, Item("common.items.armor.twigs.pants")),
         (1, Item("common.items.armor.twigsflowers.pants")),
         (1, Item("common.items.armor.twigsleaves.pants")),
     ]),
     feet: Choice([
-        (1, Item("common.items.armor.twigs.foot")),
         (1, Item("common.items.armor.twigsflowers.foot")),
         (1, Item("common.items.armor.twigsleaves.foot")),
         (1, Item("common.items.armor.misc.foot.sandals")),

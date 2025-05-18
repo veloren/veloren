@@ -56,10 +56,6 @@
             vox_spec: ("armor.leather_plate.belt", (-4.0, -3.5, 2.0)),
             color: None
         ),
-        "common.items.armor.twigs.belt": (
-            vox_spec: ("armor.twigs.belt", (-4.0, -3.5, -1.0)),
-            color: None
-        ),
         "common.items.armor.twigsleaves.belt": (
             vox_spec: ("armor.twigsleaves.belt", (-4.0, -3.5, -1.0)),
             color: None
@@ -117,11 +113,15 @@
             color: None
         ),
         "common.items.armor.witch.belt":(
-            vox_spec: ("armor.witch.belt", (-4.0, -3.5, -2.0)),
+            vox_spec: ("armor.witch.witch", (-4.0, -3.5, -2.0), 5),
+            color: None
+        ),
+        "common.items.armor.buccaneer.belt":(
+            vox_spec: ("armor.buccaneer.buccaneer", (-4.0, -3.5, 2.0), 5),
             color: None
         ),
         "common.items.armor.pirate.belt":(
-            vox_spec: ("armor.pirate.belt", (-4.0, -3.5, 2.0)),
+            vox_spec: ("armor.pirate.pirate", (-4.0, -3.5, 0.0), 5),
             color: None
         ),
         "common.items.armor.alchemist.belt":(
@@ -198,6 +198,10 @@
         ),
         "common.items.armor.merchant.belt": (
             vox_spec: ("armor.merchant.belt", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        "common.items.armor.adventurer.belt":(
+            vox_spec: ("armor.adventurer.adventurer", (-4.0, -3.5, 2.0), 5),
             color: None
         ),
     },

@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Buccaneer Shoulderpads",
+    legacy_description: "Heavy are the shoulders burdened with the lives of many.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Buccaneer"),
+    )),
+    quality: Moderate,
+    tags: [Pirate],
+)

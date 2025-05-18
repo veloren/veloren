@@ -1,0 +1,10 @@
+[
+    (1.0, Item("common.items.armor.adventurer.head")),
+    (1.0, Item("common.items.armor.adventurer.back")),
+    (1.0, Item("common.items.armor.adventurer.belt")),
+    (1.0, Item("common.items.armor.adventurer.chest")),
+    (1.0, Item("common.items.armor.adventurer.foot")),
+    (1.0, Item("common.items.armor.adventurer.hand")),
+    (1.0, Item("common.items.armor.adventurer.pants")),
+    (1.0, Item("common.items.armor.adventurer.shoulder")),
+]

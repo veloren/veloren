@@ -56,10 +56,6 @@
             vox_spec: ("armor.misc.foot.jackalope", (-2.5, -4.5, -2.0)),
             color: None
         ),
-        "common.items.armor.twigs.foot": (
-            vox_spec: ("armor.twigs.foot", (-2.5, -3.5, -2.0)),
-            color: None
-        ),
         "common.items.armor.twigsleaves.foot": (
             vox_spec: ("armor.twigsleaves.foot", (-2.5, -3.5, -2.0)),
             color: None
@@ -117,11 +113,15 @@
             color: None
         ),
         "common.items.armor.witch.foot": (
-            vox_spec: ("armor.witch.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.witch.witch", (-2.5, -3.5, -2.0), 2),
+            color: None
+        ),
+        "common.items.armor.buccaneer.foot": (
+            vox_spec: ("armor.buccaneer.buccaneer", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.pirate.foot": (
-            vox_spec: ("armor.pirate.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.pirate.pirate", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.cloth.linen.foot": (
@@ -185,7 +185,11 @@
             color: None
         ),
         "common.items.armor.merchant.foot": (
-            vox_spec: ("armor.merchant.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.merchant.foot", (-2.5, -2.5, -2.0)),
+            color: None
+        ),
+        "common.items.armor.adventurer.foot": (
+            vox_spec: ("armor.adventurer.adventurer", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.misc.foot.ski": (
