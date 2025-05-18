@@ -3863,9 +3863,9 @@ checksum = "a25169bd5913a4b437588a7e3d127cd6e90127b60e0ffbd834a38f1599e016b8"
 
 [[package]]
 name = "libmimalloc-sys"
-version = "0.1.42"
+version = "0.1.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec9d6fac27761dabcd4ee73571cdb06b7022dc99089acbe5435691edffaac0f4"
+checksum = "23aa6811d3bd4deb8a84dde645f943476d13b248d818edcf8ce0b2f37f036b44"
 dependencies = [
  "cc",
  "libc",
@@ -4125,9 +4125,9 @@ dependencies = [
 
 [[package]]
 name = "mimalloc"
-version = "0.1.46"
+version = "0.1.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "995942f432bbb4822a7e9c3faa87a695185b0d09273ba85f097b54f4e458f2af"
+checksum = "68914350ae34959d83f732418d51e2427a794055d0b9529f48259ac07af65633"
 dependencies = [
  "libmimalloc-sys",
 ]
@@ -8154,6 +8154,7 @@ dependencies = [
  "http-body-util",
  "hyper",
  "lazy_static",
+ "libmimalloc-sys",
  "mimalloc",
  "num_cpus",
  "prometheus",
@@ -8214,6 +8215,7 @@ dependencies = [
  "kira",
  "lazy_static",
  "levenshtein",
+ "libmimalloc-sys",
  "mimalloc",
  "mumble-link",
  "native-dialog",
