@@ -181,6 +181,7 @@ pub enum SfxEvent {
     Music(ToolKind, AbilitySpec),
     Yeet,
     Hiss,
+    LongHiss,
     Klonk,
     SmashKlonk,
     FireShockwave,
@@ -569,6 +570,10 @@ impl SfxMgr {
                     },
                     Body::Object(object::Body::Lavathrower) => {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::DeepLaugh);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
+                    },
+                    Body::Object(object::Body::SeaLantern) => {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::LongHiss);
                         audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     },
                     Body::Object(object::Body::Tornado)

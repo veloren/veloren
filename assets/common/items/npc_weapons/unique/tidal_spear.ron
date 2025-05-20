@@ -1,11 +1,11 @@
 ItemDef(
-    legacy_name: "Tidal Claws",
-    legacy_description: "Snip snap",
+    legacy_name: "Tidal Spear",
+    legacy_description: "Poke stab",
     kind: Tool((
-        kind: Natural,
+        kind: Spear,
         hands: Two,
         stats: (
-            equip_time_secs: 0.0,
+            equip_time_secs: 0.5,
             power: 1.0,
             effect_power: 1.0,
             speed: 1.0,

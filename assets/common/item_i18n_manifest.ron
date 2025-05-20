@@ -3064,8 +3064,8 @@
             "common.items.npc_weapons.unique.theropodsmall",
         ): "common-items-npc_weapons-unique-theropodsmall",
         Simple(
-            "common.items.npc_weapons.unique.tidal_claws",
-        ): "common-items-npc_weapons-unique-tidal_claws",
+            "common.items.npc_weapons.unique.tidal_spear",
+        ): "common-items-npc_weapons-unique-tidal_spear",
         Simple(
             "common.items.npc_weapons.unique.tidal_totem",
         ): "common-items-npc_weapons-unique-tidal_totem",

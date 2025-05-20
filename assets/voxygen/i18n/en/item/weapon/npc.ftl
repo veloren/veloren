@@ -346,8 +346,8 @@ common-items-npc_weapons-unique-theropodcharge = Theropod Charge
 common-items-npc_weapons-unique-theropodsmall = Theropod Small
     .desc = testing123
 
-common-items-npc_weapons-unique-tidal_claws = Tidal Claws
-    .desc = Snip snap
+common-items-npc_weapons-unique-tidal_spear = Tidal Spear
+    .desc = Poke stab
 
 common-items-npc_weapons-unique-tidal_totem = Tidal Totem
     .desc = Yeet

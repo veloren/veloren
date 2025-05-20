@@ -220,23 +220,77 @@ impl Animation for WieldAnimation {
                         Quaternion::rotation_x(-1.0 + short * 0.2) * Quaternion::rotation_y(-1.8);
                 },
                 Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
-                    next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
-                    next.control_r.position = Vec3::new(1.0, 2.0, 2.0);
+                    if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                        match spec.as_str() {
+                            "Tidal Warrior" => {
+                                next.control_l.position = Vec3::new(-1.0, 4.0, 8.0);
+                                next.control_r.position = Vec3::new(10.0, 2.0, 2.0);
 
-                    next.control.position = Vec3::new(
-                        -3.0,
-                        3.0 + s_a.grip.0 / 1.2,
-                        -11.0 + -s_a.grip.0 / 2.0 + short * -1.5,
-                    );
+                                next.control.position = Vec3::new(
+                                    -3.0,
+                                    3.0 + s_a.grip.0 / 1.2,
+                                    -11.0 + -s_a.grip.0 / 2.0 + short * -1.5,
+                                );
 
-                    next.control_l.orientation =
-                        Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.5);
-                    next.control_r.orientation = Quaternion::rotation_x(PI / 2.5)
-                        * Quaternion::rotation_y(0.5)
-                        * Quaternion::rotation_z(0.0);
+                                next.control_l.orientation =
+                                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.9);
+                                next.control_r.orientation = Quaternion::rotation_x(PI / 2.5)
+                                    * Quaternion::rotation_y(0.9)
+                                    * Quaternion::rotation_z(0.0);
 
-                    next.control.orientation =
-                        Quaternion::rotation_x(-0.2 + short * 0.2) * Quaternion::rotation_y(-0.1);
+                                next.control.orientation =
+                                    Quaternion::rotation_x(-0.2 + short * 0.2)
+                                        * Quaternion::rotation_y(-0.3);
+                            },
+                            _ => {
+                                next.control_l.position = Vec3::new(-1.0, 3.0, 12.0);
+                                next.control_r.position = Vec3::new(1.0, 2.0, 2.0);
+
+                                next.control.position = Vec3::new(
+                                    -3.0,
+                                    3.0 + s_a.grip.0 / 1.2,
+                                    -11.0 + -s_a.grip.0 / 2.0 + short * -1.5,
+                                );
+
+                                next.control_l.orientation =
+                                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.5);
+                                next.control_r.orientation = Quaternion::rotation_x(PI / 2.5)
+                                    * Quaternion::rotation_y(0.5)
+                                    * Quaternion::rotation_z(0.0);
+
+                                next.control.orientation =
+                                    Quaternion::rotation_x(-0.2 + short * 0.2)
+                                        * Quaternion::rotation_y(-0.1);
+                            },
+                        }
+                    }
+                },
+                Some(ToolKind::Spear) => {
+                    if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                        match spec.as_str() {
+                            "Tidal Warrior" => {
+                                next.control_l.position = Vec3::new(-1.0, 4.0, 8.0);
+                                next.control_r.position = Vec3::new(10.0, 2.0, 2.0);
+
+                                next.control.position = Vec3::new(
+                                    -3.0,
+                                    3.0 + s_a.grip.0 / 1.2,
+                                    -11.0 + -s_a.grip.0 / 2.0 + short * -1.5,
+                                );
+
+                                next.control_l.orientation =
+                                    Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_y(-0.9);
+                                next.control_r.orientation = Quaternion::rotation_x(PI / 2.5)
+                                    * Quaternion::rotation_y(0.9)
+                                    * Quaternion::rotation_z(0.0);
+
+                                next.control.orientation =
+                                    Quaternion::rotation_x(-0.2 + short * 0.2)
+                                        * Quaternion::rotation_y(-0.3);
+                            },
+                            _ => {},
+                        }
+                    }
                 },
                 Some(ToolKind::Natural) => {
                     if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
