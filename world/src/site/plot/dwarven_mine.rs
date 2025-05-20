@@ -1,16 +1,3 @@
-/*  Credits:
-Zesterer: Code, Testing
-Isse: Code
-Gemu: Sprite-Art/NPC-Design and 3D Models
-Floppy: NPC-Integration, Combat-Skill, Code and Animations
-Sam: NPC Combat-Skills
-Pfau: Level Design, NPC Concepts, Story, Code
-Dialex: Testing, Site-Icon
-Froggy: Testing
-Imbris: Honorable Mention
-ChatGPT: Improving Code Quality, Speeding up finding Syntax Errors
-*/
-
 use super::*;
 use crate::Land;
 use gen::render_prefab;
