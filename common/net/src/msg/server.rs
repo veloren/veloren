@@ -7,7 +7,8 @@ use common::{
     calendar::Calendar,
     character::{self, CharacterItem},
     comp::{
-        self, AdminRole, Content, body::Gender, invite::InviteKind, item::MaterialStatManifest,
+        self, AdminRole, Content, body::Gender, gizmos::Gizmos, invite::InviteKind,
+        item::MaterialStatManifest,
     },
     event::{PluginHash, UpdateCharacterMetadata},
     lod,
@@ -230,6 +231,7 @@ pub enum ServerGeneral {
     /// is acquired
     UpdateRecipes,
     SetPlayerRole(Option<AdminRole>),
+    Gizmos(Vec<Gizmos>),
 }
 
 impl ServerGeneral {
@@ -378,7 +380,8 @@ impl ServerMsg {
                         | ServerGeneral::WeatherUpdate(_)
                         | ServerGeneral::LocalWindUpdate(_)
                         | ServerGeneral::SpectatePosition(_)
-                        | ServerGeneral::UpdateRecipes => {
+                        | ServerGeneral::UpdateRecipes
+                        | ServerGeneral::Gizmos(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

@@ -32,8 +32,8 @@ use common::{
     },
     combat,
     comp::{
-        self, AdminRole, Aura, AuraKind, BuffCategory, ChatType, Content, Inventory, Item,
-        LightEmitter, LocalizationArg, WaypointArea,
+        self, AdminRole, Aura, AuraKind, BuffCategory, ChatType, Content, GizmoSubscriber,
+        Inventory, Item, LightEmitter, LocalizationArg, WaypointArea,
         agent::{FlightMode, PidControllers},
         aura::{AuraKindVariant, AuraTarget},
         buff::{Buff, BuffData, BuffKind, BuffSource, DestInfo, MiscBuffData},
@@ -169,6 +169,8 @@ fn do_command(
         ServerChatCommand::Explosion => handle_explosion,
         ServerChatCommand::Faction => handle_faction,
         ServerChatCommand::GiveItem => handle_give_item,
+        ServerChatCommand::Gizmos => handle_gizmos,
+        ServerChatCommand::GizmosRange => handle_gizmos_range,
         ServerChatCommand::Goto => handle_goto,
         ServerChatCommand::GotoRand => handle_goto_rand,
         ServerChatCommand::Group => handle_group,
@@ -696,6 +698,101 @@ fn handle_give_item(
                 "item", item_name,
             )]))
         }
+    } else {
+        Err(action.help_content())
+    }
+}
+
+fn handle_gizmos(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let (Some(kind), gizmo_target) = parse_cmd_args!(args, String, EntityTarget) {
+        let mut subscribers = server.state().ecs().write_storage::<GizmoSubscriber>();
+
+        let gizmo_target = gizmo_target
+            .map(|gizmo_target| get_entity_target(gizmo_target, server))
+            .transpose()?
+            .map(|gizmo_target| {
+                server
+                    .state()
+                    .ecs()
+                    .read_storage()
+                    .get(gizmo_target)
+                    .copied()
+                    .ok_or(Content::localized("command-entity-dead"))
+            })
+            .transpose()?;
+
+        match kind.as_str() {
+            "All" => {
+                let subscriber = subscribers
+                    .entry(target)
+                    .map_err(|_| Content::localized("command-entity-dead"))?
+                    .or_insert_with(Default::default);
+                let context = match gizmo_target {
+                    Some(uid) => comp::gizmos::GizmoContext::EnabledWithTarget(uid),
+                    None => comp::gizmos::GizmoContext::Enabled,
+                };
+                for (_, ctx) in subscriber.gizmos.iter_mut() {
+                    *ctx = context.clone();
+                }
+                Ok(())
+            },
+            "None" => {
+                subscribers.remove(target);
+                Ok(())
+            },
+            s => {
+                if let Ok(kind) = comp::gizmos::GizmoSubscription::from_str(s) {
+                    let subscriber = subscribers
+                        .entry(target)
+                        .map_err(|_| Content::localized("command-entity-dead"))?
+                        .or_insert_with(Default::default);
+
+                    subscriber.gizmos[kind] = match gizmo_target {
+                        Some(uid) => comp::gizmos::GizmoContext::EnabledWithTarget(uid),
+                        None => match subscriber.gizmos[kind] {
+                            comp::gizmos::GizmoContext::Disabled => {
+                                comp::gizmos::GizmoContext::Enabled
+                            },
+                            comp::gizmos::GizmoContext::Enabled
+                            | comp::gizmos::GizmoContext::EnabledWithTarget(_) => {
+                                comp::gizmos::GizmoContext::Disabled
+                            },
+                        },
+                    };
+
+                    Ok(())
+                } else {
+                    Err(action.help_content())
+                }
+            },
+        }
+    } else {
+        Err(action.help_content())
+    }
+}
+
+fn handle_gizmos_range(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(range) = parse_cmd_args!(args, f32) {
+        let mut subscribers = server.state().ecs().write_storage::<GizmoSubscriber>();
+        subscribers
+            .entry(target)
+            .map_err(|_| Content::localized("command-entity-dead"))?
+            .or_insert_with(Default::default)
+            .range = range;
+
+        Ok(())
     } else {
         Err(action.help_content())
     }

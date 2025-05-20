@@ -280,6 +280,7 @@ impl State {
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Stance>();
         ecs.register::<comp::Teleporting>();
+        ecs.register::<comp::GizmoSubscriber>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

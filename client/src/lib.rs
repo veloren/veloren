@@ -22,6 +22,7 @@ use common::{
         InventoryUpdateEvent, MapMarkerChange, PresenceKind, UtteranceKind,
         chat::KillSource,
         controller::CraftEvent,
+        gizmos::Gizmos,
         group,
         inventory::item::{ItemKind, modular, tool},
         invite::{InviteKind, InviteResponse},
@@ -126,6 +127,7 @@ pub enum Event {
     SpectatePosition(Vec3<f32>),
     PluginDataReceived(Vec<u8>),
     Dialogue(Uid, rtsim::Dialogue<true>),
+    Gizmos(Vec<Gizmos>),
 }
 
 /// A message for the user to be displayed through the UI.
@@ -3021,6 +3023,7 @@ impl Client {
             ServerGeneral::UpdateRecipes => {
                 self.update_available_recipes();
             },
+            ServerGeneral::Gizmos(gizmos) => frontend_events.push(Event::Gizmos(gizmos)),
             _ => unreachable!("Not a in_game message"),
         }
         Ok(())

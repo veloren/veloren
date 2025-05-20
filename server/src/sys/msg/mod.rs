@@ -1,5 +1,6 @@
 pub mod character_screen;
 pub mod general;
+pub mod gizmos;
 pub mod in_game;
 pub mod network_events;
 pub mod ping;
@@ -17,6 +18,7 @@ use specs::DispatcherBuilder;
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     //run ping after general, as its super fast anyway. also don't get duplicate
     // disconnect then.
+    dispatch::<gizmos::Sys>(dispatch_builder, &[]);
     dispatch::<character_screen::Sys>(dispatch_builder, &[]);
     dispatch::<general::Sys>(dispatch_builder, &[]);
     dispatch::<in_game::Sys>(dispatch_builder, &[]);

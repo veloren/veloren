@@ -4,6 +4,7 @@ mod target;
 
 use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, time::Duration};
 
+use itertools::Itertools;
 #[cfg(not(target_os = "macos"))]
 use mumble_link::SharedLink;
 use ordered_float::OrderedFloat;
@@ -122,6 +123,7 @@ pub struct SessionState {
     hitboxes: HashMap<specs::Entity, DebugShapeId>,
     lines: PlayerDebugLines,
     tracks: HashMap<Vec2<i32>, Vec<DebugShapeId>>,
+    gizmos: Vec<(DebugShapeId, common::resources::Time, bool)>,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -197,6 +199,7 @@ impl SessionState {
             metadata,
             tracks: HashMap::new(),
             lines: Default::default(),
+            gizmos: Vec::new(),
         }
     }
 
@@ -256,6 +259,7 @@ impl SessionState {
             &global_state.settings,
             &mut self.hitboxes,
             &mut self.tracks,
+            &mut self.gizmos,
         );
         self.scene.maintain_debug_vectors(&client, &mut self.lines);
 
@@ -450,6 +454,54 @@ impl SessionState {
                 },
                 client::Event::PluginDataReceived(data) => {
                     tracing::warn!("Received plugin data at wrong time {}", data.len());
+                },
+                client::Event::Gizmos(gizmos) => {
+                    self.gizmos.retain(|gizmos| {
+                        let keep = gizmos.2;
+                        if !keep {
+                            self.scene.debug.remove_shape(gizmos.0);
+                        }
+                        keep
+                    });
+                    for gizmos in gizmos {
+                        let mut add_shape = |shape, pos: Vec3<f32>| {
+                            let id = self.scene.debug.add_shape(shape);
+                            self.scene.debug.set_context(
+                                id,
+                                pos.with_w(0.0).into_array(),
+                                gizmos.color.map(|c| c as f32 / 255.0).into_array(),
+                                [0.0, 0.0, 0.0, 1.0],
+                            );
+                            self.gizmos.push((
+                                id,
+                                gizmos.end_time.unwrap_or(common::resources::Time(
+                                    client.state().get_time() + 1.0,
+                                )),
+                                gizmos.end_time.is_some(),
+                            ));
+                        };
+                        match gizmos.shape {
+                            comp::gizmos::Shape::Sphere(sphere) => {
+                                add_shape(
+                                    crate::scene::DebugShape::CapsulePrism {
+                                        p0: Vec2::zero(),
+                                        p1: Vec2::zero(),
+                                        radius: sphere.radius,
+                                        height: sphere.radius * 2.0,
+                                    },
+                                    sphere.center,
+                                );
+                            },
+                            comp::gizmos::Shape::LineStrip(lines) => {
+                                for (a, b) in lines.into_iter().tuple_windows::<(_, _)>() {
+                                    add_shape(
+                                        crate::scene::DebugShape::Line([Vec3::zero(), b - a], 0.1),
+                                        a,
+                                    );
+                                }
+                            },
+                        }
+                    }
                 },
             }
         }
