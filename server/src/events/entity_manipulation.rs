@@ -68,11 +68,9 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt, synced_components::Head
 use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
 use hashbrown::HashSet;
 use rand::Rng;
-#[cfg(feature = "worldgen")]
-use specs::WriteExpect;
 use specs::{
     DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, Read, ReadExpect,
-    ReadStorage, SystemData, WorldExt, Write, WriteStorage, shred,
+    ReadStorage, SystemData, WorldExt, Write, WriteExpect, WriteStorage, shred,
 };
 #[cfg(feature = "worldgen")] use std::sync::Arc;
 use std::{borrow::Cow, collections::HashMap, iter, time::Duration};
