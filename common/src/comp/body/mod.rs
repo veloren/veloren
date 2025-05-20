@@ -595,6 +595,7 @@ impl Body {
                 biped_large::Species::Forgemaster => Vec3::new(6.5, 5.0, 8.0),
                 biped_large::Species::Strigoi => Vec3::new(3.8, 3.0, 5.0),
                 biped_large::Species::Executioner => Vec3::new(2.8, 2.8, 4.7),
+                biped_large::Species::Tidalwarrior => Vec3::new(7.0, 8.2, 6.8),
                 _ => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {

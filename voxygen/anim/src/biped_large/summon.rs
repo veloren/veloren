@@ -283,6 +283,38 @@ impl Animation for SummonAnimation {
                 },
                 _ => {},
             },
+            Some(ToolKind::Spear) => match ability_id {
+                Some("common.abilities.custom.tidalwarrior.totem") => {
+                    let wave = (anim_time * 6.0).sin();
+                    next.main.position = Vec3::new(-10.0, -8.0, 12.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(2.5) * Quaternion::rotation_z(PI / 2.0);
+                    next.jaw.orientation = Quaternion::rotation_x(-0.3 + move1 * wave / 4.0);
+                    next.hand_l.position = Vec3::new(
+                        -s_a.hand.0,
+                        s_a.hand.1 + 8.0 * move1,
+                        s_a.hand.2 + 6.0 * move1,
+                    );
+                    next.hand_r.position = Vec3::new(
+                        s_a.hand.0,
+                        s_a.hand.1 + 8.0 * move1,
+                        s_a.hand.2 + 6.0 * move1,
+                    );
+                    next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 1.4)
+                        * Quaternion::rotation_y(move1 * 0.5 - move2 * 0.8);
+                    next.shoulder_r.orientation =
+                        Quaternion::rotation_x(move1 * 1.4) * Quaternion::rotation_y(move1 * -0.2);
+                    next.head.orientation = Quaternion::rotation_x(move1 * 0.25 + move2 * -0.25)
+                        * Quaternion::rotation_z(move1 * 0.25);
+                    next.hand_l.orientation = Quaternion::rotation_x(move1 * 1.0)
+                        * Quaternion::rotation_y(move1 * wave / 2.0);
+                    next.hand_r.orientation = Quaternion::rotation_x(move1 * 1.0)
+                        * Quaternion::rotation_y(move1 * wave / 2.0);
+                    next.foot_l.orientation = Quaternion::rotation_x(move1 * 0.3 + move2 * -0.3);
+                    next.foot_r.orientation = Quaternion::rotation_x(move1 * 0.3 + move2 * -0.3);
+                },
+                _ => {},
+            },
             _ => {},
         }
 

@@ -1763,8 +1763,8 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
-    Tool("common.items.npc_weapons.unique.tidal_claws"): (
-        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+    Tool("common.items.npc_weapons.unique.tidal_spear"): (
+        vox_spec: ("weapon.spear.tidal_spear", (-1.5, -6.0, -6.0)),
         color: None
     ),
     Tool("common.items.npc_weapons.unique.husk_brute"): (

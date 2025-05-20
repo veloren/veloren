@@ -1054,6 +1054,44 @@
             threshold: 0.3,
             subtitle: "subtitle-pickup_instrument",
         ),
+        //        
+        // Spear
+        //
+        Wield(Spear): (
+            files: [
+                "voxygen.audio.sfx.weapon.dagger_out",
+            ],
+            threshold: 0.5,
+            subtitle: "subtitle-wield_spear",
+        ),
+        Unwield(Spear): (
+            files: [
+                "voxygen.audio.sfx.weapon.dagger_in",
+            ],
+            threshold: 0.5,
+            subtitle: "subtitle-unwield_spear",
+        ),
+        Attack(BasicMelee(Action), Spear): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing_sword",
+            ],
+            threshold: 0.8,
+            subtitle: "subtitle-spear_attack",
+        ),
+        Attack(DashMelee(Action), Spear): (
+            files: [
+                "voxygen.audio.sfx.abilities.sword_dash",
+            ],
+            threshold: 0.8,
+            subtitle: "subtitle-spear_attack",
+        ),
+        Inventory(CollectedTool(Spear)): (
+            files: [
+                "voxygen.audio.sfx.inventory.pickup_sword",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-pickup_spear",
+        ),        
         //
         // Dagger
         //
@@ -1498,7 +1536,13 @@
                     "voxygen.audio.sfx.abilities.hiss",
             ],
             threshold: 0.2,
-        ),        
+        ),
+        LongHiss: (
+            files: [
+                    "voxygen.audio.sfx.abilities.long_hiss",
+            ],
+            threshold: 0.2,
+        ),
         BloodmoonHeiressSummon: (
             files: [
                     "voxygen.audio.sfx.abilities.bloodmoon_heiress_summon",

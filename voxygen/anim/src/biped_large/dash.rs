@@ -246,6 +246,34 @@ impl Animation for DashAnimation {
                 },
                 _ => {},
             },
+            Some(ToolKind::Spear) => match ability_id {
+                Some("common.abilities.custom.tidalwarrior.scuttle") => {
+                    next.head.orientation =
+                        Quaternion::rotation_x(0.0) * Quaternion::rotation_z(move1 * -0.3);
+                    next.upper_torso.orientation = Quaternion::rotation_x(move1 * -0.1);
+                    next.lower_torso.orientation = Quaternion::rotation_x(move1 * 0.1)
+                        * Quaternion::rotation_x(move1 * -0.1)
+                        * Quaternion::rotation_z(move1 * -0.2);
+
+                    next.hand_l.position = Vec3::new(-14.0, 6.0 + motion * 1.5, -6.0);
+
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / -4.0 + move1 * 1.0)
+                        * Quaternion::rotation_y(0.0)
+                        * Quaternion::rotation_z(-0.35 + motion * -0.6);
+                    next.hand_r.position = Vec3::new(14.0, 10.0 + motion * -1.5, -6.0);
+
+                    next.hand_r.orientation = Quaternion::rotation_x(PI / 3.0 + move1 * 1.0)
+                        * Quaternion::rotation_y(0.0)
+                        * Quaternion::rotation_z(0.35 + motion * 0.6);
+
+                    next.shoulder_l.orientation = Quaternion::rotation_x(move1 * 0.8);
+                    next.shoulder_r.orientation = Quaternion::rotation_x(move1 * 0.8);
+                    next.main.position = Vec3::new(-14.0, 0.0, -12.0);
+                    next.main.orientation = Quaternion::rotation_x(PI / -2.0 + 0.2 * move2)
+                        * Quaternion::rotation_y(0.5 + motion * 0.3);
+                },
+                _ => {},
+            },
             Some(ToolKind::Hammer) => match ability_id {
                 Some("common.abilities.custom.cyclops.dash") => {
                     next.control_l.position = Vec3::new(-1.0, 2.0, 12.0 + move3 * 3.0);

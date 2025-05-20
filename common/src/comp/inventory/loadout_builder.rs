@@ -893,7 +893,7 @@ pub fn default_main_tool(body: &Body) -> Option<&'static str> {
                 Some("common.items.npc_weapons.axe.minotaur_axe")
             },
             (biped_large::Species::Tidalwarrior, _) => {
-                Some("common.items.npc_weapons.unique.tidal_claws")
+                Some("common.items.npc_weapons.unique.tidal_spear")
             },
             (biped_large::Species::Yeti, _) => Some("common.items.npc_weapons.hammer.yeti_hammer"),
             (biped_large::Species::Harvester, _) => {

@@ -207,66 +207,6 @@ impl Animation for AlphaAnimation {
                         * Quaternion::rotation_z(move1 * -0.5 + move2 * 0.6);
                     next.head.orientation = Quaternion::rotation_x(move1 * 0.3);
                 },
-                Some("common.abilities.custom.tidalwarrior.pincer") => {
-                    if mirror > 0.0 {
-                        next.head.orientation = Quaternion::rotation_z(move1 * 0.75);
-                        next.upper_torso.orientation =
-                            Quaternion::rotation_x(move1 * 0.2 + move2 * 0.7)
-                                * Quaternion::rotation_z(move1 * -1.0 + move2 * 1.3);
-                        next.lower_torso.orientation =
-                            Quaternion::rotation_x(move1 * 0.2 + move2 * -0.7)
-                                * Quaternion::rotation_y(move1 * -0.5 + move2 * 0.7)
-                                * Quaternion::rotation_z(move1 * 1.0 + move2 * -1.2);
-
-                        next.shoulder_l.orientation =
-                            Quaternion::rotation_x(move1 * 0.3 + move2 * 0.8)
-                                * Quaternion::rotation_y(move1 * -0.3 + move2 * -0.5);
-                        next.hand_l.position = Vec3::new(
-                            -14.0 + move1 * -2.0 + move2 * 4.0,
-                            2.0 + move2 * 4.0,
-                            -4.0 + move2 * 3.0,
-                        );
-
-                        next.hand_l.orientation = Quaternion::rotation_x(PI / 3.0 + move2 * 1.5)
-                            * Quaternion::rotation_y(move2 * 0.5)
-                            * Quaternion::rotation_z(-0.35 + move1 * -0.5 + move2 * 1.0);
-                        next.hand_r.position = Vec3::new(14.0, 2.0, -4.0);
-
-                        next.hand_r.orientation =
-                            Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(0.35);
-
-                        next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
-                    } else {
-                        next.head.orientation = Quaternion::rotation_z(move1 * -0.75);
-                        next.upper_torso.orientation =
-                            Quaternion::rotation_x(move1 * 0.2 + move2 * 0.7)
-                                * Quaternion::rotation_z(move1 * 1.0 + move2 * -1.3);
-                        next.lower_torso.orientation =
-                            Quaternion::rotation_x(move1 * 0.2 + move2 * -0.7)
-                                * Quaternion::rotation_y(move1 * 0.5 + move2 * -0.7)
-                                * Quaternion::rotation_z(move1 * -1.0 + move2 * 1.2);
-
-                        next.shoulder_r.orientation =
-                            Quaternion::rotation_x(move1 * 0.3 + move2 * 0.8)
-                                * Quaternion::rotation_y(move1 * 0.3 + move2 * 0.5);
-                        next.hand_r.position = Vec3::new(
-                            14.0 + move1 * 2.0 + move2 * -4.0,
-                            2.0 + move2 * 4.0,
-                            -4.0 + move2 * 3.0,
-                        );
-
-                        next.hand_r.orientation = Quaternion::rotation_x(PI / 3.0 + move2 * 1.5)
-                            * Quaternion::rotation_y(move2 * -0.5)
-                            * Quaternion::rotation_z(0.35 + move1 * 0.5 + move2 * -1.0);
-                        next.hand_l.position = Vec3::new(-14.0, 2.0, -4.0);
-
-                        next.hand_l.orientation =
-                            Quaternion::rotation_x(PI / 3.0) * Quaternion::rotation_z(-0.35);
-
-                        next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
-                    };
-                    next.torso.position = Vec3::new(0.0, move2 * -10.35, move2 * -4.7);
-                },
                 Some("common.abilities.custom.minotaur.cripplingstrike") => {
                     next.control_l.position = Vec3::new(0.0, 4.0, 5.0);
                     next.control_r.position = Vec3::new(0.0, 4.0, 5.0);
@@ -514,6 +454,36 @@ impl Animation for AlphaAnimation {
                         next.hand_l.orientation = Quaternion::rotation_z(move1 * 1.0)
                             * Quaternion::rotation_y(move1 * -0.8 + move2 * 1.2);
                     }
+                },
+                _ => {},
+            },
+            Some(ToolKind::Spear) => match ability_id {
+                Some("common.abilities.custom.tidalwarrior.pincer") => {
+                    next.head.orientation = Quaternion::rotation_z(move1 * -0.75);
+                    next.upper_torso.orientation =
+                        Quaternion::rotation_x(move1 * 0.2 + move2 * 0.4)
+                            * Quaternion::rotation_z(move1 * 1.0 + move2 * -1.3);
+                    next.lower_torso.orientation =
+                        Quaternion::rotation_x(move1 * 0.2 + move2 * -0.9)
+                            * Quaternion::rotation_y(move1 * 0.1 + move2 * -0.2)
+                            * Quaternion::rotation_z(move1 * -1.0 + move2 * 1.2);
+
+                    next.hand_r.position = Vec3::new(
+                        14.0 + move1 * 2.0 + move2 * 3.0,
+                        6.0 + move2 * 2.0,
+                        -6.0 - move2 * 3.0,
+                    );
+
+                    next.hand_r.orientation = Quaternion::rotation_y(move2 * -0.5);
+                    next.hand_l.position = Vec3::new(-14.0, 7.0, -9.0);
+
+                    next.hand_l.orientation =
+                        Quaternion::rotation_x(0.1 * move2) * Quaternion::rotation_z(-0.35);
+                    next.torso.position = Vec3::new(0.0, move2 * -10.35, move2 * -1.0);
+
+                    next.main.position = Vec3::new(-14.0, 0.0, -14.0);
+                    next.main.orientation = Quaternion::rotation_x(PI / -2.0 - 0.2 * move2)
+                        * Quaternion::rotation_y(0.4 + 0.4 * move2);
                 },
                 _ => {},
             },

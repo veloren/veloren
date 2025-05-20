@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Merged craftable lanterns into a single recipe.
 - Updated campfire and bed interaction texts.
 - Witch and Pirate sets (T3 and T1 respectively) are now obtainable and have been given new models, alongside Twig Set being changed out for Adventurer Set.
+- Updated Tidal Warrior model.
 
 ### Removed
 

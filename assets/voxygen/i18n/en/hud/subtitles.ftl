@@ -56,6 +56,11 @@ subtitle-unwield_sceptre = Sceptre unequipped
 subtitle-sceptre_heal = Sceptre heal aura
 subtitle-pickup_sceptre = Sceptre picked up
 
+subtitle-wield_spear = Spear equipped
+subtitle-uwield_spear = Spear unequipped
+subtitle-spear_attack = Spear swung
+subtitle-pickup_spear = Spear picked up
+
 subtitle-wield_dagger = Dagger equipped
 subtitle-uwield_dagger = Dagger unequipped
 subtitle-dagger_attack = Dagger swung
