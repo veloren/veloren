@@ -3920,15 +3920,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "line_drawing"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5f309016f7f96b0147c6f223d5a8c4e678bf13ae8fb4f85f60c3bb5e0598ea8"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
 name = "linked-hash-map"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8389,7 +8380,6 @@ dependencies = [
  "itertools 0.14.0",
  "kiddo",
  "lazy_static",
- "line_drawing",
  "lz-fear",
  "minifb",
  "noise",

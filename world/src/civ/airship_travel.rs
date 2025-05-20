@@ -1,6 +1,6 @@
 use crate::{
-    civ::airship_route_map::*,
     Index,
+    civ::airship_route_map::*,
     sim::WorldSim,
     site::{self, Site, plot::PlotKindMeta},
     util::{DHashMap, DHashSet, seed_expan},
@@ -593,9 +593,11 @@ impl Airships {
         let mut max_score = 0.0;
         let mut max_connections: Vec<(usize, usize)> = Vec::default();
         let mut max_final_indeces = vec![];
+        // Use a deterministic RNG to ensure that the results are the same each time the world is generated with the same seed.
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(index.seed));
 
         for _ in 0..100 {
-            search_order.shuffle(&mut rand::thread_rng());
+            search_order.shuffle(&mut rng);
 
             let mut node_conn_working_copy = node_connections.clone();
             let (high_score, best_connections, best_final_indeces) = triangulation
@@ -634,10 +636,11 @@ impl Airships {
                 .map(|(node_id, _)| *node_id)
                 .collect::<Vec<_>>();
             assert!(odd_nodes.len() == 0);
-            debug_airships!("node_connections_optimized: {:?}", node_connections_optimized);
+            debug_airships!(
+                "node_connections_optimized: {:?}",
+                node_connections_optimized
+            );
         }
-
-
 
         save_airship_routes_triangulation(&triangulation, &all_dock_points, index, world_sim);
         save_airship_routes_optimized_tesselation(
@@ -648,20 +651,12 @@ impl Airships {
             world_sim,
         );
 
-        if let Some(circuit) = find_eulerian_circuit(
-            &node_connections_optimized) 
-            && let Some(best_route_segments) = best_eulerian_circuit_segments(
-                &node_connections_optimized,
-                &circuit,
-            )
+        if let Some(circuit) = find_eulerian_circuit(&node_connections_optimized)
+            && let Some(best_route_segments) =
+                best_eulerian_circuit_segments(&node_connections_optimized, &circuit)
         {
             debug_airships!("Best route segments: {:?}", best_route_segments);
-            save_airship_route_segments(
-                &best_route_segments,
-                &all_dock_points,
-                index,
-                world_sim,
-            );
+            save_airship_route_segments(&best_route_segments, &all_dock_points, index, world_sim);
         }
 
         // let edge_counts_unsorted = result.count_edges_per_node();
@@ -1064,14 +1059,14 @@ impl Airships {
             docking_pos2.1.xy() - docking_pos1.1.xy(),
         );
         let dock2_to_dock1_angle = std::f32::consts::TAU - dock1_to_dock2_angle;
-        debug_airships!(
-            "airship_approaches_for_route - dock1_pos:{:?}, dock2_pos:{:?}, \
-             dock1_to_dock2_angle:{}, dock2_to_dock1_angle:{}",
-            docking_pos1,
-            docking_pos2,
-            dock1_to_dock2_angle,
-            dock2_to_dock1_angle
-        );
+        // debug_airships!(
+        //     "airship_approaches_for_route - dock1_pos:{:?}, dock2_pos:{:?}, \
+        //      dock1_to_dock2_angle:{}, dock2_to_dock1_angle:{}",
+        //     docking_pos1,
+        //     docking_pos2,
+        //     dock1_to_dock2_angle,
+        //     dock2_to_dock1_angle
+        // );
 
         [
             Airships::docking_approach_for(
@@ -1096,7 +1091,7 @@ impl Airships {
     }
 
     /// Returns the angle from vec v1 to vec v2 in the CCW direction.
-    fn angle_between_vectors_ccw(v1: Vec2<f32>, v2: Vec2<f32>) -> f32 {
+    pub fn angle_between_vectors_ccw(v1: Vec2<f32>, v2: Vec2<f32>) -> f32 {
         let dot_product = v1.dot(v2);
         let det = v1.x * v2.y - v1.y * v2.x; // determinant
         let angle = det.atan2(dot_product); // atan2(det, dot_product) gives the CCW angle
@@ -1108,7 +1103,7 @@ impl Airships {
     }
 
     /// Returns the angle from vec v1 to vec v2 in the CW direction.
-    fn angle_between_vectors_cw(v1: Vec2<f32>, v2: Vec2<f32>) -> f32 {
+    pub fn angle_between_vectors_cw(v1: Vec2<f32>, v2: Vec2<f32>) -> f32 {
         let ccw_angle = Airships::angle_between_vectors_ccw(v1, v2);
         std::f32::consts::TAU - ccw_angle
     }
@@ -1702,8 +1697,7 @@ fn find_eulerian_circuit(graph: &DockNodeGraph) -> Option<Vec<usize>> {
             current_vertex = stack.pop().unwrap();
         } else {
             stack.push(current_vertex);
-            if let Some(&next_vertex) =
-                graph.get(&current_vertex).unwrap().connected.iter().next()
+            if let Some(&next_vertex) = graph.get(&current_vertex).unwrap().connected.iter().next()
             {
                 graph
                     .get_mut(&current_vertex)
@@ -1727,16 +1721,22 @@ fn find_eulerian_circuit(graph: &DockNodeGraph) -> Option<Vec<usize>> {
     Some(circuit)
 }
 
-/// Get the optimal grouping of Eulerian Circuit nodes and edges such that a maximum number of sub-circuits
-/// are created, and the length of each sub-circuit is as similar as possible.
-/// 
-/// The Airship dock nodes are connected in a Eulerian Circuit, where each edge of the tessellation
-/// is traversed exactly once. The circuit is a closed loop, so the first and last node are the same.
-/// The single circuit can be broken into multiple segments, each being also a closed loop. This is
-/// desirable for airship routes, to limit the number of airships associated with each "route" where a route
-/// is a closed circuit of docking sites. Since each edge is flown in only one direction, the maximum number
-/// of possible closed loop segments is equal to the maximum number of edges connected to any node, divided by 2.
-fn best_eulerian_circuit_segments(graph: &DockNodeGraph, circuit: &Vec<usize>) -> Option<Vec<Vec<usize>>> {
+/// Get the optimal grouping of Eulerian Circuit nodes and edges such that a
+/// maximum number of sub-circuits are created, and the length of each
+/// sub-circuit is as similar as possible.
+///
+/// The Airship dock nodes are connected in a Eulerian Circuit, where each edge
+/// of the tessellation is traversed exactly once. The circuit is a closed loop,
+/// so the first and last node are the same. The single circuit can be broken
+/// into multiple segments, each being also a closed loop. This is desirable for
+/// airship routes, to limit the number of airships associated with each "route"
+/// where a route is a closed circuit of docking sites. Since each edge is flown
+/// in only one direction, the maximum number of possible closed loop segments
+/// is equal to the maximum number of edges connected to any node, divided by 2.
+fn best_eulerian_circuit_segments(
+    graph: &DockNodeGraph,
+    circuit: &Vec<usize>,
+) -> Option<Vec<Vec<usize>>> {
     // get the node_connections keys, which are node ids.
     // Sort the nodes (node ids) by the number of connections to other nodes.
     let sorted_node_ids: Vec<usize> = graph
@@ -1751,9 +1751,9 @@ fn best_eulerian_circuit_segments(graph: &DockNodeGraph, circuit: &Vec<usize>) -
     let mut best_segments = Vec::new();
 
     // For each node_id in the sorted node ids,
-    // break the circuit into circular segments that start and end with that node_id.
-    // The best set of segments is the one with the most segments and where the
-    // length of the segments differ the least.
+    // break the circuit into circular segments that start and end with that
+    // node_id. The best set of segments is the one with the most segments and
+    // where the length of the segments differ the least.
     sorted_node_ids.iter().for_each(|&node_id| {
         let mut segments = Vec::new();
         let mut current_segment = Vec::new();
@@ -1761,7 +1761,7 @@ fn best_eulerian_circuit_segments(graph: &DockNodeGraph, circuit: &Vec<usize>) -
         let mut starting_index = usize::MAX;
         let mut end_index = usize::MAX;
         let mut prev_value = usize::MAX;
-        
+
         for (index, &value) in circuit.iter().cycle().enumerate() {
             // println!("Index: {}, Value: {}", index, value);
             if value == node_id {
@@ -1785,37 +1785,40 @@ fn best_eulerian_circuit_segments(graph: &DockNodeGraph, circuit: &Vec<usize>) -
                 }
                 prev_value = value;
             }
-        
+
             // Stop cycling once we've looped back to the value before the starting index
             if index == end_index {
                 break;
             }
         }
-        
+
         // Add the last segment
         if !current_segment.is_empty() {
             current_segment.push(node_id);
             segments.push(current_segment);
         }
-        
-        let avg_segment_length = segments.iter()
-            .map(|segment| segment.len())
-            .sum::<usize>() as f32 / segments.len() as f32;
+
+        let avg_segment_length = segments.iter().map(|segment| segment.len()).sum::<usize>() as f32
+            / segments.len() as f32;
 
         // We want similar segment lengths, so calculate the spread as the
         // standard deviation of the segment lengths.
-        let seg_lengths_spread = segments.iter()
-        .map(|segment| (segment.len() as f32 - avg_segment_length).powi(2))
-        .sum::<f32>()
-        .sqrt() / segments.len() as f32;
-        
+        let seg_lengths_spread = segments
+            .iter()
+            .map(|segment| (segment.len() as f32 - avg_segment_length).powi(2))
+            .sum::<f32>()
+            .sqrt()
+            / segments.len() as f32;
+
         // First take the longest segment count, then if the segment count is the same
         // as the longest so far, take the one with the least length spread.
         if segments.len() > max_segments_count {
             max_segments_count = segments.len();
             min_segments_len_spread = seg_lengths_spread;
             best_segments = segments;
-        } else if segments.len() == max_segments_count && seg_lengths_spread < min_segments_len_spread {
+        } else if segments.len() == max_segments_count
+            && seg_lengths_spread < min_segments_len_spread
+        {
             min_segments_len_spread = seg_lengths_spread;
             best_segments = segments;
         }
@@ -1830,8 +1833,8 @@ fn best_eulerian_circuit_segments(graph: &DockNodeGraph, circuit: &Vec<usize>) -
 mod tests {
     use super::{
         AirshipDockingSide, Airships, DockNode, TriangulationExt, approx::assert_relative_eq,
-        approximate_hull_diameter, four_point_angle_score, hull_ratio_distance_score,
-        find_eulerian_circuit, best_eulerian_circuit_segments
+        approximate_hull_diameter, best_eulerian_circuit_segments, find_eulerian_circuit,
+        four_point_angle_score, hull_ratio_distance_score,
     };
     use delaunator::{Point, Triangulation, triangulate};
     use itertools::Itertools;
@@ -2582,7 +2585,6 @@ mod tests {
         .collect();
 
         if let Some(circuit) = find_eulerian_circuit(&node_connections) {
-
             if cfg!(debug_assertions) {
                 println!("Eulerian circuit: {:?}", circuit);
             }
@@ -2622,11 +2624,7 @@ mod tests {
                 // debug print the sorted node ids
                 sorted_node_ids.iter().for_each(|&node_id| {
                     if let Some(node) = node_connections.get(&node_id) {
-                        println!(
-                            "Node id {}: {} edges",
-                            node.node_id,
-                            node.connected.len(),
-                        );
+                        println!("Node id {}: {} edges", node.node_id, node.connected.len(),);
                     }
                 });
             }
@@ -2636,9 +2634,9 @@ mod tests {
             let mut best_segments = Vec::new();
 
             // For each node_id in the sorted node ids,
-            // break the circuit into circular segments that start and end with that node_id.
-            // The best set of segments is the one with the most segments and where the
-            // length of the segments differ the least.
+            // break the circuit into circular segments that start and end with that
+            // node_id. The best set of segments is the one with the most
+            // segments and where the length of the segments differ the least.
             sorted_node_ids.iter().for_each(|&node_id| {
                 if cfg!(debug_assertions) {
                     println!("Segments starting with node id {}:", node_id);
@@ -2650,7 +2648,7 @@ mod tests {
                 let mut starting_index = usize::MAX;
                 let mut end_index = usize::MAX;
                 let mut prev_value = usize::MAX;
-                
+
                 for (index, &value) in circuit.iter().cycle().enumerate() {
                     if value == node_id {
                         if starting_index == usize::MAX {
@@ -2661,7 +2659,10 @@ mod tests {
                                 end_index = index + circuit_len - 2;
                             }
                             if cfg!(debug_assertions) {
-                                println!("starting_index: {}, circuit_len: {}, end_index: {}", starting_index, circuit_len, end_index);
+                                println!(
+                                    "starting_index: {}, circuit_len: {}, end_index: {}",
+                                    starting_index, circuit_len, end_index
+                                );
                             }
                         }
                         if !current_segment.is_empty() {
@@ -2679,7 +2680,7 @@ mod tests {
                         }
                         prev_value = value;
                     }
-                
+
                     // Stop cycling once we've looped back to the value before the starting index
                     if index == end_index {
                         if cfg!(debug_assertions) {
@@ -2688,7 +2689,7 @@ mod tests {
                         break;
                     }
                 }
-                
+
                 // Add the last segment
                 if !current_segment.is_empty() {
                     current_segment.push(node_id);
@@ -2697,24 +2698,29 @@ mod tests {
                     }
                     segments.push(current_segment);
                 }
-                
+
                 if cfg!(debug_assertions) {
                     println!("Segments: {:?}", segments);
                 }
 
-                let avg_segment_length = segments.iter()
-                    .map(|segment| segment.len())
-                    .sum::<usize>() as f32 / segments.len() as f32;
+                let avg_segment_length = segments.iter().map(|segment| segment.len()).sum::<usize>()
+                    as f32
+                    / segments.len() as f32;
 
                 // We want similar segment lengths, so calculate the spread as the
                 // standard deviation of the segment lengths.
-                let seg_lengths_spread = segments.iter()
-                .map(|segment| (segment.len() as f32 - avg_segment_length).powi(2))
-                .sum::<f32>()
-                .sqrt() / segments.len() as f32;
-                
+                let seg_lengths_spread = segments
+                    .iter()
+                    .map(|segment| (segment.len() as f32 - avg_segment_length).powi(2))
+                    .sum::<f32>()
+                    .sqrt()
+                    / segments.len() as f32;
+
                 if cfg!(debug_assertions) {
-                    println!("avg_segment_length: {}, seg_lengths_spread: {}", avg_segment_length, seg_lengths_spread);
+                    println!(
+                        "avg_segment_length: {}, seg_lengths_spread: {}",
+                        avg_segment_length, seg_lengths_spread
+                    );
                 }
                 // First take the longest segment count, then if the segment count is the same
                 // as the longest so far, take the one with the least length spread.
@@ -2722,20 +2728,24 @@ mod tests {
                     max_segments_count = segments.len();
                     min_segments_len_spread = seg_lengths_spread;
                     best_segments = segments;
-                } else if segments.len() == max_segments_count && seg_lengths_spread < min_segments_len_spread {
+                } else if segments.len() == max_segments_count
+                    && seg_lengths_spread < min_segments_len_spread
+                {
                     min_segments_len_spread = seg_lengths_spread;
                     best_segments = segments;
                 }
             });
             if cfg!(debug_assertions) {
-                println!("max_segments_count: {}, min_segments_len_spread: {}", max_segments_count, min_segments_len_spread);
+                println!(
+                    "max_segments_count: {}, min_segments_len_spread: {}",
+                    max_segments_count, min_segments_len_spread
+                );
                 println!("Best segments: {:?}", best_segments);
             }
 
-            if let Some(best_segments2) = best_eulerian_circuit_segments(
-                &node_connections,
-                &circuit,
-            ) {
+            if let Some(best_segments2) =
+                best_eulerian_circuit_segments(&node_connections, &circuit)
+            {
                 if cfg!(debug_assertions) {
                     println!("Best segments2: {:?}", best_segments2);
                 }
@@ -2753,10 +2763,8 @@ mod tests {
             } else {
                 panic!("No best segments2 found");
             }
-
         } else {
             panic!("No Eulerian circuit found");
         }
     }
-
 }
