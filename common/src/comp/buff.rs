@@ -48,8 +48,11 @@ pub enum BuffKind {
     /// Strength is fraction of health restored per second.
     RestingHeal,
     /// Restores energy/time for some period.
-    /// Strength should be the healing per second.
+    /// Strength should be the energy regenerated per second.
     EnergyRegen,
+    /// Generates combo over time for some period.
+    /// Strength should be the combo generated per second.
+    ComboGeneration,
     /// Raises maximum energy.
     /// Strength should be 10x the effect to max energy.
     IncreaseMaxEnergy,
@@ -253,6 +256,7 @@ impl BuffKind {
             | BuffKind::RestingHeal
             | BuffKind::Frenzied
             | BuffKind::EnergyRegen
+            | BuffKind::ComboGeneration
             | BuffKind::IncreaseMaxEnergy
             | BuffKind::IncreaseMaxHealth
             | BuffKind::Invulnerability
@@ -387,6 +391,17 @@ impl BuffKind {
                 tick_dur: Secs(0.25),
                 reset_rate_on_tick: false,
             }],
+            BuffKind::ComboGeneration => {
+                let target_tick_dur = 0.25;
+                // Combo per tick must be an integer
+                let nearest_valid_tick_dur =
+                    (data.strength as f64 * target_tick_dur).round() / data.strength as f64;
+
+                vec![BuffEffect::ComboChangeOverTime {
+                    rate: data.strength,
+                    tick_dur: Secs(nearest_valid_tick_dur),
+                }]
+            },
             BuffKind::IncreaseMaxEnergy => vec![BuffEffect::MaxEnergyModifier {
                 value: data.strength,
                 kind: ModifierKind::Additive,
@@ -711,6 +726,11 @@ pub enum BuffEffect {
         kind: ModifierKind,
         tick_dur: Secs,
         reset_rate_on_tick: bool,
+    },
+    /// Periodically change entity combo
+    ComboChangeOverTime {
+        rate: f32,
+        tick_dur: Secs,
     },
     /// Changes maximum health by a certain amount
     MaxHealthModifier {

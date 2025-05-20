@@ -5250,7 +5250,10 @@ fn handle_buff(
             let buffdata = build_buff(
                 buffkind,
                 strength,
-                duration.unwrap_or(10.0),
+                duration.unwrap_or(match buffkind {
+                    BuffKind::ComboGeneration => 1.0,
+                    _ => 10.0,
+                }),
                 (!buffkind.is_simple())
                     .then(|| {
                         misc_data_spec.ok_or_else(|| {
@@ -5298,6 +5301,7 @@ fn build_buff(
             | BuffKind::RestingHeal
             | BuffKind::Frenzied
             | BuffKind::EnergyRegen
+            | BuffKind::ComboGeneration
             | BuffKind::IncreaseMaxEnergy
             | BuffKind::IncreaseMaxHealth
             | BuffKind::Invulnerability
