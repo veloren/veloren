@@ -119,6 +119,7 @@ hud-settings-shadow_rendering_mode-none = None
 hud-settings-shadow_rendering_mode-cheap = Cheap
 hud-settings-shadow_rendering_mode-map = Map
 hud-settings-shadow_rendering_mode-map-resolution = Resolution
+hud-settings-rain = Rain
 hud-settings-rain_occlusion-resolution = Rain Occlusion Resolution
 hud-settings-lod_detail = LoD Detail
 hud-settings-reset_graphics = Reset to Defaults

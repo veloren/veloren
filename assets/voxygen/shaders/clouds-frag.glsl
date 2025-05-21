@@ -266,7 +266,7 @@ void main() {
     }
     color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, dist, 1.0), cloud_blend);
 
-    #if (CLOUD_MODE == CLOUD_MODE_NONE)
+    #ifndef RAIN_ENABLED
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
     #else
         if (medium.x == MEDIUM_AIR && rain_density > 0.001) {
