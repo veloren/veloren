@@ -140,6 +140,7 @@ impl<'a> System<'a> for Sys {
                     emitters.emit(ChangeBodyEvent {
                         entity: e,
                         new_body: Body::Object(object::Body::Campfire),
+                        permanent_change: None,
                     });
                     emitters.emit(RemoveLightEmitterEvent { entity: e });
                 }
@@ -574,7 +575,11 @@ impl<'a> System<'a> for Sys {
             // Update body if needed.
             let new_body = body_override.unwrap_or(stat.original_body);
             if new_body != *body {
-                emitters.emit(ChangeBodyEvent { entity, new_body });
+                emitters.emit(ChangeBodyEvent {
+                    entity,
+                    new_body,
+                    permanent_change: None,
+                });
             }
 
             // Remove buffs that expire

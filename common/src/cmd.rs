@@ -446,6 +446,7 @@ pub enum ServerChatCommand {
     Say,
     Scale,
     ServerPhysics,
+    SetBodyType,
     SetMotd,
     SetWaypoint,
     Ship,
@@ -912,6 +913,18 @@ impl ServerChatCommand {
                 Content::localized("command-set_motd-desc"),
                 Some(Admin),
             ),
+            ServerChatCommand::SetBodyType => cmd(
+                vec![
+                    Enum(
+                        "body type",
+                        vec!["Female".to_string(), "Male".to_string()],
+                        Required,
+                    ),
+                    Boolean("permanent", "false".to_string(), Requirement::Optional),
+                ],
+                Content::localized("command-set_body_type-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::Ship => cmd(
                 vec![
                     Enum(
@@ -1209,6 +1222,7 @@ impl ServerChatCommand {
             ServerChatCommand::Say => "say",
             ServerChatCommand::ServerPhysics => "server_physics",
             ServerChatCommand::SetMotd => "set_motd",
+            ServerChatCommand::SetBodyType => "set_body_type",
             ServerChatCommand::Ship => "ship",
             ServerChatCommand::Site => "site",
             ServerChatCommand::SkillPoint => "skill_point",

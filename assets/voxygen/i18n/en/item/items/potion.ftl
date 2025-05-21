@@ -4,6 +4,9 @@ object-potion_red = Potent Potion
 object-potion_curious = Curious Potion
     .desc = Wonder what this does...
 
+object-potion_trans = Hastened Reformation Tincture
+    .desc = Permanently changes your body type
+
 object-potion_agility = Potion of Agility
     .desc = Fly, you fools!
 

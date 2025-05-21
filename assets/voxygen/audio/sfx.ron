@@ -1252,6 +1252,41 @@
             threshold: 0.3,
             subtitle: "subtitle-consume_potion",
         ),
+        Inventory(Consumed(Simple("common.items.consumable.potion_trans"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_potion",
+        ),
+        Inventory(Consumed(Simple("common.items.consumable.potion_curious"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_potion",
+        ),
+        Inventory(Consumed(Simple("common.items.consumable.potion_agility"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_potion",
+        ),
+        Inventory(Consumed(Simple("common.items.consumable.potion_combustion"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_potion",
+        ),
+        Inventory(Consumed(Simple("common.items.consumable.potion_freezing"))): (
+            files: [
+                "voxygen.audio.sfx.inventory.consumable.liquid",
+            ],
+            threshold: 0.3,
+            subtitle: "subtitle-consume_potion",
+        ),
         Inventory(Consumed(Simple("common.items.food.apple"))): (
             files: [
                 "voxygen.audio.sfx.inventory.consumable.apple",
@@ -1689,6 +1724,13 @@
             ],
             threshold: 2.2,
             subtitle: "subtitle-surprise_egg",
+        ),
+        Transformation: (
+            files: [
+                "voxygen.audio.sfx.abilities.surprise_egg_0",
+            ],
+            threshold: 2.2,
+            subtitle: "subtitle-transformation",
         ),
         LaserBeam: (
             files: [

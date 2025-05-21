@@ -29,7 +29,7 @@ use crate::{
 use common::{
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER},
     comp::Content,
-    event::UpdateCharacterMetadata,
+    event::{PermanentChange, UpdateCharacterMetadata},
     npc::NPC_NAMES,
 };
 use core::ops::Range;
@@ -625,10 +625,11 @@ pub fn create_character(
 
 pub fn edit_character(
     editable_components: EditableComponents,
+    trusted_change: Option<PermanentChange>,
     transaction: &mut Transaction,
     character_id: CharacterId,
     uuid: &str,
-    character_alias: &str,
+    character_alias: Option<&str>,
 ) -> CharacterCreationResult {
     let (body,) = editable_components;
     let mut char_list = load_character_list(uuid, transaction);
@@ -639,10 +640,14 @@ pub fn edit_character(
             .find(|c| c.character.id == Some(character_id))
         {
             if let (comp::Body::Humanoid(new), comp::Body::Humanoid(old)) = (body, char.body) {
-                if new.species != old.species || new.body_type != old.body_type {
+                let allow_change = match trusted_change {
+                    Some(change) => change.expected_old_body == char.body,
+                    None => new.species == old.species && new.body_type == old.body_type,
+                };
+                if !allow_change {
                     warn!(
                         "Character edit rejected due to failed validation - Character ID: {} \
-                         Alias: {}",
+                         Alias: {:?}",
                         character_id.0, character_alias
                     );
                     return Err(PersistenceError::CharacterDataError);
@@ -664,11 +669,13 @@ pub fn edit_character(
     ])?;
     drop(stmt);
 
-    let mut stmt =
-        transaction.prepare_cached("UPDATE character SET alias = ?1 WHERE character_id = ?2")?;
+    if let Some(character_alias) = character_alias {
+        let mut stmt = transaction
+            .prepare_cached("UPDATE character SET alias = ?1 WHERE character_id = ?2")?;
 
-    stmt.execute([&character_alias, &character_id.0 as &dyn ToSql])?;
-    drop(stmt);
+        stmt.execute([&character_alias, &character_id.0 as &dyn ToSql])?;
+        drop(stmt);
+    }
 
     char_list.map(|list| (character_id, list))
 }

@@ -936,6 +936,7 @@
     Simple("common.items.consumable.potion_minor"): "voxel.sprite.potion.potion_red",
     Simple("common.items.consumable.potion_big"): "voxel.sprite.potion.potion_red",
     Simple("common.items.consumable.potion_curious"): "voxel.item.consumable.potion_curious",
+    Simple("common.items.consumable.potion_trans"): "voxel.item.consumable.potion_trans",
     Simple("common.items.consumable.potion_combustion"): "voxel.item.consumable.potion_combustion",
     Simple("common.items.consumable.potion_freezing"): "voxel.item.consumable.potion_freezing",
     Simple("common.items.consumable.potion_agility"): "voxel.item.consumable.potion_agility",

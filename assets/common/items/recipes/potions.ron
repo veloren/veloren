@@ -5,6 +5,7 @@ ItemDef(
         recipes: [
             "potion_combustion",
             "potion_freezing",
+            "potion_trans",
             "potion_agility",
             "potion_medium",
         ],

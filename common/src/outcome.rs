@@ -192,6 +192,9 @@ pub enum Outcome {
         mass: f32,
         kind: comp::fluid_dynamics::LiquidKind,
     },
+    Transformation {
+        pos: Vec3<f32>,
+    },
 }
 
 impl Outcome {
@@ -232,7 +235,8 @@ impl Outcome {
             | Outcome::FromTheAshes { pos }
             | Outcome::ClayGolemDash { pos }
             | Outcome::Glider { pos, .. }
-            | Outcome::Splash { pos, .. } => Some(*pos),
+            | Outcome::Splash { pos, .. }
+            | Outcome::Transformation { pos } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
             | Outcome::DamagedBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }

@@ -2,7 +2,7 @@ use crate::{make_case_elim, make_proj_elim};
 use rand::{Rng, seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use strum::{EnumIter, IntoEnumIterator};
+use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
 
 make_proj_elim!(
     body,
@@ -432,7 +432,19 @@ impl Species {
 make_case_elim!(
     body_type,
     #[derive(
-        Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, EnumIter,
+        Copy,
+        Clone,
+        Debug,
+        PartialEq,
+        Eq,
+        PartialOrd,
+        Ord,
+        Hash,
+        Serialize,
+        Deserialize,
+        EnumIter,
+        EnumString,
+        Display,
     )]
     #[repr(u32)]
     pub enum BodyType {
