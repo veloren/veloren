@@ -13,6 +13,7 @@ pub mod compass;
 pub mod controller;
 mod energy;
 pub mod fluid_dynamics;
+pub mod gizmos;
 pub mod group;
 mod hardcore;
 mod health;
@@ -71,6 +72,7 @@ pub use self::{
     },
     energy::Energy,
     fluid_dynamics::Fluid,
+    gizmos::GizmoSubscriber,
     group::Group,
     hardcore::Hardcore,
     inputs::CanBuild,

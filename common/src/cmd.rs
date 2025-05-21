@@ -397,6 +397,8 @@ pub enum ServerChatCommand {
     Explosion,
     Faction,
     GiveItem,
+    Gizmos,
+    GizmosRange,
     Goto,
     GotoRand,
     Group,
@@ -671,6 +673,29 @@ impl ServerChatCommand {
                     Integer("num", 1, Optional),
                 ],
                 Content::localized("command-give_item-desc"),
+                Some(Admin),
+            ),
+            ServerChatCommand::Gizmos => cmd(
+                vec![
+                    Enum(
+                        "kind",
+                        ["All".to_string(), "None".to_string()]
+                            .into_iter()
+                            .chain(
+                                comp::gizmos::GizmoSubscription::iter()
+                                    .map(|kind| kind.to_string()),
+                            )
+                            .collect(),
+                        Required,
+                    ),
+                    EntityTarget(Optional),
+                ],
+                Content::localized("command-gizmos-desc"),
+                Some(Admin),
+            ),
+            ServerChatCommand::GizmosRange => cmd(
+                vec![Float("range", 32.0, Required)],
+                Content::localized("command-gizmos_range-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Goto => cmd(
@@ -1145,6 +1170,8 @@ impl ServerChatCommand {
             ServerChatCommand::Explosion => "explosion",
             ServerChatCommand::Faction => "faction",
             ServerChatCommand::GiveItem => "give_item",
+            ServerChatCommand::Gizmos => "gizmos",
+            ServerChatCommand::GizmosRange => "gizmos_range",
             ServerChatCommand::Goto => "goto",
             ServerChatCommand::GotoRand => "goto_rand",
             ServerChatCommand::Group => "group",

@@ -202,7 +202,8 @@ impl Client {
                     | ServerGeneral::WeatherUpdate(_)
                     | ServerGeneral::LocalWindUpdate(_)
                     | ServerGeneral::SpectatePosition(_)
-                    | ServerGeneral::UpdateRecipes => {
+                    | ServerGeneral::UpdateRecipes
+                    | ServerGeneral::Gizmos(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },
                     // Terrain

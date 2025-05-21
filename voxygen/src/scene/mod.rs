@@ -1515,6 +1515,7 @@ impl Scene {
         settings: &Settings,
         hitboxes: &mut HashMap<specs::Entity, DebugShapeId>,
         tracks: &mut HashMap<Vec2<i32>, Vec<DebugShapeId>>,
+        gizmos: &mut Vec<(DebugShapeId, common::resources::Time, bool)>,
     ) {
         let ecs = client.state().ecs();
         {
@@ -1642,6 +1643,15 @@ impl Scene {
             let keep = current_entities.contains(k);
             if !keep {
                 self.debug.remove_shape(*v);
+            }
+            keep
+        });
+
+        let time = client.state().get_time();
+        gizmos.retain(|(id, end_time, _)| {
+            let keep = end_time.0 > time;
+            if !keep {
+                self.debug.remove_shape(*id);
             }
             keep
         });

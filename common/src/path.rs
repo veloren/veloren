@@ -72,6 +72,12 @@ pub struct Route {
     next_idx: usize,
 }
 
+impl Route {
+    pub fn get_path(&self) -> &Path<Vec3<i32>> { &self.path }
+
+    pub fn next_idx(&self) -> usize { self.next_idx }
+}
+
 impl From<Path<Vec3<i32>>> for Route {
     fn from(path: Path<Vec3<i32>>) -> Self { Self { path, next_idx: 0 } }
 }
@@ -506,6 +512,10 @@ impl Chaser {
             }
         }
     }
+
+    pub fn get_route(&self) -> Option<&Route> { self.route.as_ref().map(|(r, _)| r) }
+
+    pub fn last_target(&self) -> Option<Vec3<f32>> { self.last_search_tgt }
 }
 
 fn walkable<V>(vol: &V, pos: Vec3<i32>) -> bool

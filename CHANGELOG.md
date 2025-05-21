@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Beds now regen health when mounted.
 - Setting dropdown for SFX channel capacity.
 - New Buccaneer entity spawn at the Pirate Hideout, including a new T2 obtainable buccaneer set.
+- Serverside gizmos for debugging things like pathfinding.
 
 ### Changed
 

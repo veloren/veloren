@@ -669,6 +669,12 @@ pub struct Agent {
     pub rtsim_outbox: Option<VecDeque<NpcInput>>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct SharedChaser {
+    pub nodes: Vec<Vec3<f32>>,
+    pub goal: Option<Vec3<f32>>,
+}
+
 #[derive(Clone, Debug)]
 /// Always clamped between `0.0` and `1.0`.
 pub struct Awareness {
