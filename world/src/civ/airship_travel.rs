@@ -18,7 +18,7 @@ use std::{fs::OpenOptions, io::Write};
 use tracing::warn;
 use vek::*;
 
-const AIRSHIP_TRAVEL_DEBUG: bool = true;
+const AIRSHIP_TRAVEL_DEBUG: bool = false;
 
 macro_rules! debug_airships {
     ($($arg:tt)*) => {
@@ -584,6 +584,8 @@ impl Airships {
         let hull_dia_approx = approximate_hull_diameter(&all_dock_points);
         debug_airships!("Tessellation hull diameter approx: {}", hull_dia_approx);
 
+        save_airship_routes_triangulation(&triangulation, &all_dock_points, index, world_sim);
+
         // node_connections.keys() are the node indices (ids).
         // Since they are in a hashmap, they are not sorted.
         // Below, we sort them to randomize the start point for the
@@ -635,14 +637,14 @@ impl Airships {
                 .filter(|(_, dock_node)| dock_node.connected.len() % 2 == 1)
                 .map(|(node_id, _)| *node_id)
                 .collect::<Vec<_>>();
-            assert!(odd_nodes.len() == 0);
             debug_airships!(
-                "node_connections_optimized: {:?}",
+                "odd node count: {}, node_connections_optimized: {:?}",
+                odd_nodes.len(),
                 node_connections_optimized
             );
+            assert!(odd_nodes.len() == 0);
         }
 
-        save_airship_routes_triangulation(&triangulation, &all_dock_points, index, world_sim);
         save_airship_routes_optimized_tesselation(
             &triangulation,
             &all_dock_points,
@@ -651,101 +653,14 @@ impl Airships {
             world_sim,
         );
 
-        if let Some(circuit) = find_eulerian_circuit(&node_connections_optimized)
-            && let Some(best_route_segments) =
-                best_eulerian_circuit_segments(&node_connections_optimized, &circuit)
-        {
-            debug_airships!("Best route segments: {:?}", best_route_segments);
-            save_airship_route_segments(&best_route_segments, &all_dock_points, index, world_sim);
+        if let Some((best_segments, circuit, max_seg_len, min_spread, iteration)) = find_best_eulerian_circuit(&node_connections_optimized) {
+            debug_airships!("Max segment length: {}", max_seg_len);
+            debug_airships!("Min spread: {}", min_spread);
+            debug_airships!("Iteration: {}", iteration);
+            debug_airships!("Best segments: {:?}", best_segments);
+            debug_airships!("Circuit: {:?}", circuit);
+            save_airship_route_segments(&best_segments, &all_dock_points, index, world_sim);
         }
-
-        // let edge_counts_unsorted = result.count_edges_per_node();
-        // let mut edge_counts_sorted: Vec<_> =
-        // edge_counts_unsorted.iter().collect(); edge_counts_sorted.
-        // sort_by(|a, b| a.1.cmp(&b.1));
-
-        // #[cfg(debug_assertions)]
-        // {
-        //     debug_airships!("all_dock_points: {:?}", all_dock_points);
-        //     debug_airships!("triangulation {:?}", result);
-
-        //     debug_airships!("triangle chunks (len {})",
-        // result.triangles.len());     for chunk in
-        // result.triangles.chunks(3) {         if let [a, b, c] = chunk
-        // {             debug_airships!("{}, {}, {}", a, b, c);
-        //         }
-        //     }
-
-        //     debug_airships!("hull (len {}) {:?}", result.hull.len(),
-        // result.hull);
-
-        //     debug_airships!("halfedges (len {}):", result.halfedges.len());
-        //     for i in 0..result.halfedges.len() {
-        //         if result.halfedges[i] == delaunator::EMPTY {
-        //             let vertex = result.triangles[i];
-        //             debug_airships!(
-        //                 "{}, {}, {}, 4294967295, 0, 0",
-        //                 vertex,
-        //                 all_dock_points[vertex].x,
-        //                 all_dock_points[vertex].y
-        //             );
-        //         } else {
-        //             let vertex1 = result.triangles[i];
-        //             let vertex2 = result.triangles[result.halfedges[i]];
-        //             debug_airships!(
-        //                 "{}, {}, {}, {}, {}, {}",
-        //                 vertex1,
-        //                 all_dock_points[vertex1].x,
-        //                 all_dock_points[vertex1].y,
-        //                 vertex2,
-        //                 all_dock_points[vertex2].x,
-        //                 all_dock_points[vertex2].y
-        //             );
-        //         }
-        //     }
-
-        //     debug_airships!("Sorted by number of edges: {:?}",
-        // edge_counts_sorted);
-
-        //     for (node_index, count) in &edge_counts_sorted {
-        //         debug_airships!("Node index {}: {} edges", node_index,
-        // count);         let connected =
-        // result.connected_nodes(**node_index);         for
-        // connected_node in connected {             if
-        // result.is_hull_edge((**node_index, connected_node)) {
-        //                 debug_airships!(
-        //                     "  {} on hull, {} edges",
-        //                     connected_node,
-        //                     edge_counts_unsorted[&connected_node]
-        //                 );
-        //             } else {
-        //                 debug_airships!(
-        //                     "  {}, {} edges",
-        //                     connected_node,
-        //                     edge_counts_unsorted[&connected_node]
-        //                 );
-        //             }
-        //         }
-        //     }
-
-        //     let mut node_connections = result.node_connections();
-        //     debug_airships!("Node connections: {:?}", node_connections);
-        //     for (_, dock_node) in &node_connections {
-        //         debug_airships!(
-        //             "Node index {}: {} edges, on hull: {}",
-        //             dock_node.node_id,
-        //             dock_node.connected.len(),
-        //             dock_node.on_hull
-        //         );
-        //         for connected_node in &dock_node.connected {
-        //             debug_airships!(
-        //                 "  {}, {} edges",
-        //                 connected_node,
-        //                 edge_counts_unsorted[connected_node]
-        //             );
-        //         }
-        //     }
-        // }
     }
 
     /// Given a docking position, find the airship route and approach index
@@ -1396,10 +1311,10 @@ fn dock_nodes_score(
         (best_score, best_odd_indeces)
     } else if odd_nodes.len() == 6 || odd_nodes.len() == 8 {
         debug_airship_tess_opt!("dock_nodes_score: {} odd nodes", odd_nodes.len());
-        (0.25, best_odd_indeces)
+        (0.25, odd_nodes)
     } else {
         debug_airship_tess_opt!("dock_nodes_score: more than 8 odd nodes, score is 0.0");
-        (0.0, best_odd_indeces)
+        (0.10, odd_nodes)
     }
 }
 
@@ -1487,7 +1402,7 @@ impl TriangulationExt for Triangulation {
     }
 
     /// A triangulation tessellation produces nodes that can have an odd number
-    /// of edges. The algorithm that computes routes through the
+    /// of edges. The eulerian circuit algorithm that computes routes through the
     /// tessellation requires that all nodes have an even number of edges.
     /// This function will remove edges from the tessellation by finding odd
     /// nodes and pairing them with other connected odd nodes until all odd
@@ -1596,7 +1511,7 @@ impl TriangulationExt for Triangulation {
                             node.connected.iter().for_each(|con_node_id| {
                                 if let Some(con_node) = node_connections.get(con_node_id) {
                                     if con_node.connected.len() % 2 == 1
-                                        && !(node.on_hull && con_node.on_hull)
+                                        //&& !(node.on_hull && con_node.on_hull)
                                     {
                                         mod_stack.push((
                                             EdgeRemovalStackNodeType::Check,
@@ -1642,29 +1557,18 @@ impl TriangulationExt for Triangulation {
                 },
                 EdgeRemovalStackNodeType::Check => {
                     // Check
-                    // If from and to are not on hull
                     //  Modify from & to DockNodes
                     //  push from-to onto current_connections
                     //  push Undo node to stack to undo the from-to modifications
                     //  push Find node to stack with index = from index + 1
                     // End
-                    if let Some(node) = node_connections.get(&node_id1)
-                        && let Some(con_node) = node_connections.get(&node_id2)
-                    {
-                        // Make sure that hull edges have been eliminated already.
-                        assert!(
-                            !(node.on_hull && con_node.on_hull),
-                            "Hull edges should have been eliminated already"
-                        );
-                        // The edge to be removed is not on the hull, remove the edge.
-                        debug_airship_tess_opt!("Removing edge {} -> {}", node_id1, node_id2);
-                        remove_edge(node_id1, node_id2, node_connections);
-                        curr_connections.push((node_id1, node_id2));
-                        debug_airship_tess_opt!("Current connections: {:?}", curr_connections);
-                        mod_stack.push((EdgeRemovalStackNodeType::Undo, index, node_id1, node_id2));
-                        mod_stack.push((EdgeRemovalStackNodeType::Find, index + 1, 0, 0));
-                        debug_airship_tess_opt!("Mod stack: {:?}", mod_stack);
-                    }
+                    debug_airship_tess_opt!("Removing edge {} -> {}", node_id1, node_id2);
+                    remove_edge(node_id1, node_id2, node_connections);
+                    curr_connections.push((node_id1, node_id2));
+                    debug_airship_tess_opt!("Current connections: {:?}", curr_connections);
+                    mod_stack.push((EdgeRemovalStackNodeType::Undo, index, node_id1, node_id2));
+                    mod_stack.push((EdgeRemovalStackNodeType::Find, index + 1, 0, 0));
+                    debug_airship_tess_opt!("Mod stack: {:?}", mod_stack);
                 },
                 EdgeRemovalStackNodeType::Undo => {
                     // Undo
@@ -1684,41 +1588,74 @@ impl TriangulationExt for Triangulation {
     }
 }
 
-fn find_eulerian_circuit(graph: &DockNodeGraph) -> Option<Vec<usize>> {
-    let mut graph = graph.clone();
-    let mut circuit = Vec::new();
-    let mut stack = Vec::new();
+fn find_best_eulerian_circuit(graph: &DockNodeGraph) -> Option<(Vec<Vec<usize>>, Vec<usize>, usize, f32, usize)> {
+    let mut best_circuit = Vec::new();
+    let mut best_route_segments = Vec::new();
+    let mut best_max_seg_len = 0;
+    let mut best_min_spread = f32::MAX;
+    let mut best_iteration = 0;
 
-    let mut current_vertex = *graph.keys().next()?;
+    let graph_keys = graph.keys().copied().collect::<Vec<_>>();
 
-    while !stack.is_empty() || !graph[&current_vertex].connected.is_empty() {
-        if graph[&current_vertex].connected.is_empty() {
-            circuit.push(current_vertex);
-            current_vertex = stack.pop().unwrap();
-        } else {
-            stack.push(current_vertex);
-            if let Some(&next_vertex) = graph.get(&current_vertex).unwrap().connected.iter().next()
-            {
-                graph
-                    .get_mut(&current_vertex)
-                    .unwrap()
-                    .connected
-                    .remove(&next_vertex);
-                graph
-                    .get_mut(&next_vertex)
-                    .unwrap()
-                    .connected
-                    .remove(&current_vertex);
-                current_vertex = next_vertex;
+    for i in 0..graph_keys.len() {
+        let mut graph = graph.clone();
+        let mut circuit = Vec::new();
+        let mut stack = Vec::new();
+        let mut circuit_nodes = DHashSet::default();
+
+        let mut current_vertex = graph_keys[i];
+
+        while !stack.is_empty() || !graph[&current_vertex].connected.is_empty() {
+            if graph[&current_vertex].connected.is_empty() {
+                circuit.push(current_vertex);
+                circuit_nodes.insert(current_vertex);
+                current_vertex = stack.pop()?;
             } else {
-                return None;
+                stack.push(current_vertex);
+                if let Some(&next_vertex) =
+                    graph.get(&current_vertex)?.connected.iter()
+                    .find(|&vertex| !circuit_nodes.contains(vertex))
+                    .or(graph.get(&current_vertex)?.connected.iter().next())
+                {
+                    graph
+                        .get_mut(&current_vertex)?
+                        .connected
+                        .remove(&next_vertex);
+                    graph
+                        .get_mut(&next_vertex)?
+                        .connected
+                        .remove(&current_vertex);
+                    current_vertex = next_vertex;
+                } else {
+                    return None;
+                }
+            }
+        }
+        circuit.push(current_vertex);
+        circuit.reverse();
+
+        if let Some((route_segments, max_seg_len, min_spread)) = 
+            best_eulerian_circuit_segments(&graph, &circuit)
+        {
+            if max_seg_len > best_max_seg_len {
+                best_circuit = circuit.clone();
+                best_route_segments = route_segments;
+                best_max_seg_len = max_seg_len;
+                best_min_spread = min_spread;
+                best_iteration = i;
+            } else if max_seg_len == best_max_seg_len && min_spread < best_min_spread {
+                best_circuit = circuit.clone();
+                best_route_segments = route_segments;
+                best_max_seg_len = max_seg_len;
+                best_min_spread = min_spread;
+                best_iteration = i;
             }
         }
     }
-
-    circuit.push(current_vertex);
-    circuit.reverse();
-    Some(circuit)
+    if best_route_segments.is_empty() {
+        return None;
+    }
+    Some((best_route_segments, best_circuit, best_max_seg_len, best_min_spread, best_iteration))
 }
 
 /// Get the optimal grouping of Eulerian Circuit nodes and edges such that a
@@ -1736,7 +1673,7 @@ fn find_eulerian_circuit(graph: &DockNodeGraph) -> Option<Vec<usize>> {
 fn best_eulerian_circuit_segments(
     graph: &DockNodeGraph,
     circuit: &Vec<usize>,
-) -> Option<Vec<Vec<usize>>> {
+) -> Option<(Vec<Vec<usize>>, usize, f32)> {
     // get the node_connections keys, which are node ids.
     // Sort the nodes (node ids) by the number of connections to other nodes.
     let sorted_node_ids: Vec<usize> = graph
@@ -1826,29 +1763,67 @@ fn best_eulerian_circuit_segments(
     if best_segments.is_empty() {
         return None;
     }
-    Some(best_segments)
+    Some((best_segments, max_segments_count, min_segments_len_spread))
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        AirshipDockingSide, Airships, DockNode, TriangulationExt, approx::assert_relative_eq,
-        approximate_hull_diameter, best_eulerian_circuit_segments, find_eulerian_circuit,
+        AirshipDockingSide, Airships, DockNode, DockNodeGraph, TriangulationExt, approx::assert_relative_eq,
+        approximate_hull_diameter, best_eulerian_circuit_segments,
+        find_best_eulerian_circuit,
         four_point_angle_score, hull_ratio_distance_score,
     };
-    use delaunator::{Point, Triangulation, triangulate};
+    use delaunator::{Point, triangulate};
     use itertools::Itertools;
     use rand::prelude::*;
     use vek::{Quaternion, Vec2, Vec3};
 
     use crate::{
-        Index, all,
-        civ::airship_route_map::*,
-        sim::WorldSim,
-        site::{self, Site, plot::PlotKindMeta},
-        util::{DHashMap, DHashSet, seed_expan},
+        // site::{self, Site, plot::PlotKindMeta},
+        util::{DHashMap, DHashSet},
     };
 
+    fn find_eulerian_circuit(graph: &DockNodeGraph) -> Option<Vec<usize>> {
+        let mut graph = graph.clone();
+        let mut circuit = Vec::new();
+        let mut stack = Vec::new();
+        let mut circuit_nodes = DHashSet::default();
+
+        let mut current_vertex = *graph.keys().next()?;
+
+        while !stack.is_empty() || !graph[&current_vertex].connected.is_empty() {
+            if graph[&current_vertex].connected.is_empty() {
+                circuit.push(current_vertex);
+                circuit_nodes.insert(current_vertex);
+                current_vertex = stack.pop()?;
+            } else {
+                stack.push(current_vertex);
+                if let Some(&next_vertex) =
+                    graph.get(&current_vertex)?.connected.iter()
+                    .find(|&vertex| !circuit_nodes.contains(vertex))
+                    .or(graph.get(&current_vertex)?.connected.iter().next())
+                {
+                    graph
+                        .get_mut(&current_vertex)?
+                        .connected
+                        .remove(&next_vertex);
+                    graph
+                        .get_mut(&next_vertex)?
+                        .connected
+                        .remove(&current_vertex);
+                    current_vertex = next_vertex;
+                } else {
+                    return None;
+                }
+            }
+        }
+
+        circuit.push(current_vertex);
+        circuit.reverse();
+        Some(circuit)
+    }
+    
     #[test]
     fn basic_vec_test() {
         let vec1 = Vec3::new(0.0f32, 10.0, 0.0);
@@ -2323,25 +2298,12 @@ mod tests {
         let node_connections = triangulation.node_connections();
         println!("Node count: {}, odd con: ", node_connections.len());
 
-        // for node_id in 0..node_connections.len() {
-        //     if let Some(node) = node_connections.get(&node_id) {
-        //         println!("Node id {}: {} edges, on hull: {}", node.node_id,
-        // node.connected.len(), node.on_hull);         for connected_node in
-        // &node.connected {             println!("  {}, {} edges",
-        // connected_node, node_connections[connected_node].connected.len());
-        //         }
-        //     } else {
-        //         panic!("Node {} not found", node_id);
-        //     }
-        // }
-
         let hull_dia_approx = approximate_hull_diameter(&all_dock_points);
         println!("Hull diameter approx: {}", hull_dia_approx);
 
         // node_connections.keys() are the node indices (ids).
         // Since they are in a hashmap, they are not sorted.
         let mut search_order = node_connections.keys().copied().collect::<Vec<_>>();
-        // search_order.sort();
 
         let mut loop_count = 0;
         let mut target_score_loop_iteration = 0;
@@ -2584,187 +2546,347 @@ mod tests {
         .map(|&[x, y]| Vec2::new(x as f32, y as f32))
         .collect();
 
-        if let Some(circuit) = find_eulerian_circuit(&node_connections) {
-            if cfg!(debug_assertions) {
-                println!("Eulerian circuit: {:?}", circuit);
-            }
+        let circuit = find_eulerian_circuit(&node_connections).expect("find_eulerian_circuit should not fail");
+        if cfg!(debug_assertions) {
+            println!("Eulerian circuit: {:?}", circuit);
+        }
 
-            // Print the circuit with distances
-            if cfg!(debug_assertions) {
-                let mut prev_node_id: Option<usize> = None;
-                circuit.iter().for_each(|&to_node_id| {
-                    if let Some(from_node_id) = prev_node_id {
-                        if let Some(from_pt) = all_dock_points.get(from_node_id)
-                            && let Some(to_pt) = all_dock_points.get(to_node_id)
-                        {
-                            println!(
-                                "From node {} {:?}, To node {} {:?}, Distance: {}",
-                                from_node_id,
-                                from_pt,
-                                to_node_id,
-                                to_pt,
-                                from_pt.distance(*to_pt)
-                            );
-                        } else {
-                            println!("Node id {} not found", from_node_id);
-                        }
+        // Print the circuit with distances
+        if cfg!(debug_assertions) {
+            let mut prev_node_id: Option<usize> = None;
+            circuit.iter().for_each(|&to_node_id| {
+                if let Some(from_node_id) = prev_node_id {
+                    if let Some(from_pt) = all_dock_points.get(from_node_id)
+                        && let Some(to_pt) = all_dock_points.get(to_node_id)
+                    {
+                        println!(
+                            "From node {} {:?}, To node {} {:?}, Distance: {}",
+                            from_node_id,
+                            from_pt,
+                            to_node_id,
+                            to_pt,
+                            from_pt.distance(*to_pt)
+                        );
+                    } else {
+                        println!("Node id {} not found", from_node_id);
                     }
-                    prev_node_id = Some(to_node_id);
-                });
-            }
-            // get the node_connections keys, which are node ids.
-            // Sort the nodes (node ids) by the number of connections to other nodes.
-            let sorted_node_ids: Vec<usize> = node_connections
-                .keys()
-                .copied()
-                .sorted_by_key(|&node_id| node_connections[&node_id].connected.len())
-                .rev()
-                .collect();
-            if cfg!(debug_assertions) {
-                // debug print the sorted node ids
-                sorted_node_ids.iter().for_each(|&node_id| {
-                    if let Some(node) = node_connections.get(&node_id) {
-                        println!("Node id {}: {} edges", node.node_id, node.connected.len(),);
-                    }
-                });
-            }
-
-            let mut max_segments_count = 0;
-            let mut min_segments_len_spread = f32::MAX;
-            let mut best_segments = Vec::new();
-
-            // For each node_id in the sorted node ids,
-            // break the circuit into circular segments that start and end with that
-            // node_id. The best set of segments is the one with the most
-            // segments and where the length of the segments differ the least.
+                }
+                prev_node_id = Some(to_node_id);
+            });
+        }
+        // get the node_connections keys, which are node ids.
+        // Sort the nodes (node ids) by the number of connections to other nodes.
+        let sorted_node_ids: Vec<usize> = node_connections
+            .keys()
+            .copied()
+            .sorted_by_key(|&node_id| node_connections[&node_id].connected.len())
+            .rev()
+            .collect();
+        if cfg!(debug_assertions) {
+            // debug print the sorted node ids
             sorted_node_ids.iter().for_each(|&node_id| {
-                if cfg!(debug_assertions) {
-                    println!("Segments starting with node id {}:", node_id);
-                }
-
-                let mut segments = Vec::new();
-                let mut current_segment = Vec::new();
-                let circuit_len = circuit.len();
-                let mut starting_index = usize::MAX;
-                let mut end_index = usize::MAX;
-                let mut prev_value = usize::MAX;
-
-                for (index, &value) in circuit.iter().cycle().enumerate() {
-                    if value == node_id {
-                        if starting_index == usize::MAX {
-                            starting_index = index;
-                            if starting_index > 0 {
-                                end_index = index + circuit_len - 1;
-                            } else {
-                                end_index = index + circuit_len - 2;
-                            }
-                            if cfg!(debug_assertions) {
-                                println!(
-                                    "starting_index: {}, circuit_len: {}, end_index: {}",
-                                    starting_index, circuit_len, end_index
-                                );
-                            }
-                        }
-                        if !current_segment.is_empty() {
-                            current_segment.push(value);
-                            if cfg!(debug_assertions) {
-                                println!("Pushing segment: {:?}", current_segment);
-                            }
-                            segments.push(current_segment);
-                            current_segment = Vec::new();
-                        }
-                    }
-                    if starting_index < usize::MAX {
-                        if value != prev_value {
-                            current_segment.push(value);
-                        }
-                        prev_value = value;
-                    }
-
-                    // Stop cycling once we've looped back to the value before the starting index
-                    if index == end_index {
-                        if cfg!(debug_assertions) {
-                            println!("Breaking out of cycle at index {}", index);
-                        }
-                        break;
-                    }
-                }
-
-                // Add the last segment
-                if !current_segment.is_empty() {
-                    current_segment.push(node_id);
-                    if cfg!(debug_assertions) {
-                        println!("Pushing segment: {:?}", current_segment);
-                    }
-                    segments.push(current_segment);
-                }
-
-                if cfg!(debug_assertions) {
-                    println!("Segments: {:?}", segments);
-                }
-
-                let avg_segment_length = segments.iter().map(|segment| segment.len()).sum::<usize>()
-                    as f32
-                    / segments.len() as f32;
-
-                // We want similar segment lengths, so calculate the spread as the
-                // standard deviation of the segment lengths.
-                let seg_lengths_spread = segments
-                    .iter()
-                    .map(|segment| (segment.len() as f32 - avg_segment_length).powi(2))
-                    .sum::<f32>()
-                    .sqrt()
-                    / segments.len() as f32;
-
-                if cfg!(debug_assertions) {
-                    println!(
-                        "avg_segment_length: {}, seg_lengths_spread: {}",
-                        avg_segment_length, seg_lengths_spread
-                    );
-                }
-                // First take the longest segment count, then if the segment count is the same
-                // as the longest so far, take the one with the least length spread.
-                if segments.len() > max_segments_count {
-                    max_segments_count = segments.len();
-                    min_segments_len_spread = seg_lengths_spread;
-                    best_segments = segments;
-                } else if segments.len() == max_segments_count
-                    && seg_lengths_spread < min_segments_len_spread
-                {
-                    min_segments_len_spread = seg_lengths_spread;
-                    best_segments = segments;
+                if let Some(node) = node_connections.get(&node_id) {
+                    println!("Node id {}: {} edges", node.node_id, node.connected.len(),);
                 }
             });
+        }
+
+        let mut max_segments_count = 0;
+        let mut min_segments_len_spread = f32::MAX;
+        let mut best_segments = Vec::new();
+
+        // For each node_id in the sorted node ids,
+        // break the circuit into circular segments that start and end with that
+        // node_id. The best set of segments is the one with the most
+        // segments and where the length of the segments differ the least.
+        sorted_node_ids.iter().for_each(|&node_id| {
             if cfg!(debug_assertions) {
-                println!(
-                    "max_segments_count: {}, min_segments_len_spread: {}",
-                    max_segments_count, min_segments_len_spread
-                );
-                println!("Best segments: {:?}", best_segments);
+                println!("Segments starting with node id {}:", node_id);
             }
 
-            if let Some(best_segments2) =
-                best_eulerian_circuit_segments(&node_connections, &circuit)
-            {
-                if cfg!(debug_assertions) {
-                    println!("Best segments2: {:?}", best_segments2);
+            let mut segments = Vec::new();
+            let mut current_segment = Vec::new();
+            let circuit_len = circuit.len();
+            let mut starting_index = usize::MAX;
+            let mut end_index = usize::MAX;
+            let mut prev_value = usize::MAX;
+
+            for (index, &value) in circuit.iter().cycle().enumerate() {
+                if value == node_id {
+                    if starting_index == usize::MAX {
+                        starting_index = index;
+                        if starting_index > 0 {
+                            end_index = index + circuit_len - 1;
+                        } else {
+                            end_index = index + circuit_len - 2;
+                        }
+                        if cfg!(debug_assertions) {
+                            println!(
+                                "starting_index: {}, circuit_len: {}, end_index: {}",
+                                starting_index, circuit_len, end_index
+                            );
+                        }
+                    }
+                    if !current_segment.is_empty() {
+                        current_segment.push(value);
+                        if cfg!(debug_assertions) {
+                            println!("Pushing segment: {:?}", current_segment);
+                        }
+                        segments.push(current_segment);
+                        current_segment = Vec::new();
+                    }
                 }
-                assert_eq!(best_segments.len(), best_segments2.len());
-                assert_eq!(best_segments2.len(), 4);
-                assert_eq!(best_segments[0].len(), best_segments2[0].len());
-                assert_eq!(best_segments[1].len(), best_segments2[1].len());
-                assert_eq!(best_segments[2].len(), best_segments2[2].len());
-                assert_eq!(best_segments[3].len(), best_segments2[3].len());
-                assert_eq!(best_segments[3].len(), best_segments2[3].len());
-                assert_eq!(best_segments[0], best_segments2[0]);
-                assert_eq!(best_segments[1], best_segments2[1]);
-                assert_eq!(best_segments[2], best_segments2[2]);
-                assert_eq!(best_segments[3], best_segments2[3]);
-            } else {
-                panic!("No best segments2 found");
+                if starting_index < usize::MAX {
+                    if value != prev_value {
+                        current_segment.push(value);
+                    }
+                    prev_value = value;
+                }
+
+                // Stop cycling once we've looped back to the value before the starting index
+                if index == end_index {
+                    if cfg!(debug_assertions) {
+                        println!("Breaking out of cycle at index {}", index);
+                    }
+                    break;
+                }
             }
-        } else {
-            panic!("No Eulerian circuit found");
+
+            // Add the last segment
+            if !current_segment.is_empty() {
+                current_segment.push(node_id);
+                if cfg!(debug_assertions) {
+                    println!("Pushing segment: {:?}", current_segment);
+                }
+                segments.push(current_segment);
+            }
+
+            if cfg!(debug_assertions) {
+                println!("Segments: {:?}", segments);
+            }
+
+            let avg_segment_length = segments.iter().map(|segment| segment.len()).sum::<usize>()
+                as f32
+                / segments.len() as f32;
+
+            // We want similar segment lengths, so calculate the spread as the
+            // standard deviation of the segment lengths.
+            let seg_lengths_spread = segments
+                .iter()
+                .map(|segment| (segment.len() as f32 - avg_segment_length).powi(2))
+                .sum::<f32>()
+                .sqrt()
+                / segments.len() as f32;
+
+            if cfg!(debug_assertions) {
+                println!(
+                    "avg_segment_length: {}, seg_lengths_spread: {}",
+                    avg_segment_length, seg_lengths_spread
+                );
+            }
+            // First take the longest segment count, then if the segment count is the same
+            // as the longest so far, take the one with the least length spread.
+            if segments.len() > max_segments_count {
+                max_segments_count = segments.len();
+                min_segments_len_spread = seg_lengths_spread;
+                best_segments = segments;
+            } else if segments.len() == max_segments_count
+                && seg_lengths_spread < min_segments_len_spread
+            {
+                min_segments_len_spread = seg_lengths_spread;
+                best_segments = segments;
+            }
+        });
+        if cfg!(debug_assertions) {
+            println!(
+                "max_segments_count: {}, min_segments_len_spread: {}",
+                max_segments_count, min_segments_len_spread
+            );
+            println!("Best segments: {:?}", best_segments);
+        }
+
+        let (best_segments2, count, spread) =
+            best_eulerian_circuit_segments(&node_connections, &circuit)
+            .expect("best_eulerian_circuit_segments should not fail");
+        if cfg!(debug_assertions) {
+            println!("Best segments2: {:?}, count: {}, spread: {}", best_segments2, count, spread);
+        }
+        assert_eq!(best_segments.len(), best_segments2.len());
+        assert_eq!(best_segments2.len(), 4);
+        assert_eq!(best_segments[0].len(), best_segments2[0].len());
+        assert_eq!(best_segments[1].len(), best_segments2[1].len());
+        assert_eq!(best_segments[2].len(), best_segments2[2].len());
+        assert_eq!(best_segments[3].len(), best_segments2[3].len());
+        assert_eq!(best_segments[3].len(), best_segments2[3].len());
+        assert_eq!(best_segments[0], best_segments2[0]);
+        assert_eq!(best_segments[1], best_segments2[1]);
+        assert_eq!(best_segments[2], best_segments2[2]);
+        assert_eq!(best_segments[3], best_segments2[3]);
+    }
+
+    #[test]
+    fn best_eulerian_circuit_test() {
+        let node_connections: DHashMap<usize, DockNode> = DHashMap::from_iter([
+            (0, DockNode {
+                node_id: 0,
+                on_hull: false,
+                connected: DHashSet::from_iter([23, 29, 26, 14, 19, 4]),
+            }),
+            (28, DockNode {
+                node_id: 28,
+                on_hull: false,
+                connected: DHashSet::from_iter([23, 15, 25, 20, 21, 22]),
+            }),
+            (25, DockNode {
+                node_id: 25,
+                on_hull: false,
+                connected: DHashSet::from_iter([23, 11, 28, 21]),
+            }),
+            (22, DockNode {
+                node_id: 22,
+                on_hull: false,
+                connected: DHashSet::from_iter([23, 28, 27, 9, 3, 15]),
+            }),
+            (19, DockNode {
+                node_id: 19,
+                on_hull: false,
+                connected: DHashSet::from_iter([0, 6, 29, 18, 2, 4]),
+            }),
+            (16, DockNode {
+                node_id: 16,
+                on_hull: false,
+                connected: DHashSet::from_iter([10, 12, 20, 21]),
+            }),
+            (13, DockNode {
+                node_id: 13,
+                on_hull: true,
+                connected: DHashSet::from_iter([7, 26, 9, 27, 3, 18]),
+            }),
+            (10, DockNode {
+                node_id: 10,
+                on_hull: false,
+                connected: DHashSet::from_iter([24, 29, 11, 2, 16, 21]),
+            }),
+            (7, DockNode {
+                node_id: 7,
+                on_hull: true,
+                connected: DHashSet::from_iter([26, 1, 13, 11]),
+            }),
+            (4, DockNode {
+                node_id: 4,
+                on_hull: false,
+                connected: DHashSet::from_iter([0, 6, 14, 19]),
+            }),
+            (1, DockNode {
+                node_id: 1,
+                on_hull: true,
+                connected: DHashSet::from_iter([7, 26, 8, 17]),
+            }),
+            (29, DockNode {
+                node_id: 29,
+                on_hull: false,
+                connected: DHashSet::from_iter([0, 10, 24, 23, 19, 2]),
+            }),
+            (26, DockNode {
+                node_id: 26,
+                on_hull: false,
+                connected: DHashSet::from_iter([0, 23, 14, 1, 27, 5, 7, 13]),
+            }),
+            (23, DockNode {
+                node_id: 23,
+                on_hull: false,
+                connected: DHashSet::from_iter([0, 29, 25, 22, 28, 24, 11, 26]),
+            }),
+            (20, DockNode {
+                node_id: 20,
+                on_hull: true,
+                connected: DHashSet::from_iter([18, 28, 12, 15, 16, 21]),
+            }),
+            (17, DockNode {
+                node_id: 17,
+                on_hull: false,
+                connected: DHashSet::from_iter([5, 6, 8, 1]),
+            }),
+            (14, DockNode {
+                node_id: 14,
+                on_hull: false,
+                connected: DHashSet::from_iter([0, 5, 26, 4]),
+            }),
+            (11, DockNode {
+                node_id: 11,
+                on_hull: false,
+                connected: DHashSet::from_iter([10, 24, 23, 25, 21, 7]),
+            }),
+            (8, DockNode {
+                node_id: 8,
+                on_hull: true,
+                connected: DHashSet::from_iter([18, 6, 1, 17]),
+            }),
+            (5, DockNode {
+                node_id: 5,
+                on_hull: false,
+                connected: DHashSet::from_iter([6, 26, 14, 17]),
+            }),
+            (2, DockNode {
+                node_id: 2,
+                on_hull: false,
+                connected: DHashSet::from_iter([10, 29, 12, 19]),
+            }),
+            (27, DockNode {
+                node_id: 27,
+                on_hull: false,
+                connected: DHashSet::from_iter([26, 9, 13, 22]),
+            }),
+            (24, DockNode {
+                node_id: 24,
+                on_hull: false,
+                connected: DHashSet::from_iter([10, 29, 11, 23]),
+            }),
+            (21, DockNode {
+                node_id: 21,
+                on_hull: false,
+                connected: DHashSet::from_iter([10, 11, 25, 28, 20, 16]),
+            }),
+            (18, DockNode {
+                node_id: 18,
+                on_hull: true,
+                connected: DHashSet::from_iter([6, 12, 8, 19, 20, 13]),
+            }),
+            (15, DockNode {
+                node_id: 15,
+                on_hull: true,
+                connected: DHashSet::from_iter([28, 20, 3, 22]),
+            }),
+            (12, DockNode {
+                node_id: 12,
+                on_hull: false,
+                connected: DHashSet::from_iter([18, 2, 16, 20]),
+            }),
+            (9, DockNode {
+                node_id: 9,
+                on_hull: false,
+                connected: DHashSet::from_iter([13, 27, 3, 22]),
+            }),
+            (6, DockNode {
+                node_id: 6,
+                on_hull: false,
+                connected: DHashSet::from_iter([4, 8, 5, 18, 19, 17]),
+            }),
+            (3, DockNode {
+                node_id: 3,
+                on_hull: true,
+                connected: DHashSet::from_iter([13, 9, 15, 22]),
+            }),
+        ]);
+
+        let (best_segments, circuit, max_seg_len, min_spread, iteration) = find_best_eulerian_circuit(&node_connections).expect("a circuit should have been found");
+        if cfg!(debug_assertions) {
+            println!("Max segment length: {}", max_seg_len);
+            println!("Min spread: {}", min_spread);
+            println!("Iteration: {}", iteration);
+            println!("Best segments: {:?}", best_segments);
+            println!("Circuit: {:?}", circuit);
         }
     }
+
 }

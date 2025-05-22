@@ -18,12 +18,8 @@ use std::{
     borrow::Cow,
     env,
     error::Error,
-    fs::File,
-    io::{
-        ErrorKind,
-        Write,
-    },
-    path::{Path, PathBuf},
+    io::ErrorKind,
+    path::PathBuf,
 };
 use tracing::error;
 use vek::*;
@@ -283,229 +279,7 @@ impl TinySkiaSpriteMap {
     }
 }
 
-/// Fills a rectangle in the image with the given color.
-/// See https://stackoverflow.com/questions/10061146/how-to-rasterize-rotated-rectangle-in-2d-by-setpixel
-/// for the basic algorithm. This uses Xiaolin Wu's line algorithm to generate
-/// the edges and accounts for the alpha values along the edges.
-// fn fill_rect(image: &mut DynamicImage, pts: &[Vec2<f32>; 4], color: [u8; 3]) {
-//     // buffer values are (y coordinate, alpha)
-//     let mut buf_x0 = vec![(0i32, 0.0f32); 1024];
-//     let mut buf_x1 = vec![(0i32, 0.0f32); 1024];
-
-//     // pts are assumed to be in clockwise winding order. I.e, the rectangle
-//     // would be drawn from pts[0] to pts[1], then pts[1] to pts[2], etc., in
-//     // a clockwise manner.
-
-//     let mut min_buf_y = i32::MAX;
-//     let mut max_buf_y = i32::MIN;
-//     let mut min_buf_x = i32::MAX;
-//     let mut max_buf_x = i32::MIN;
-
-//     for i in 0..4 {
-//         let j = (i + 1) % 4;
-//         let dy = pts[j].y - pts[i].y;
-//         let mut minx = i32::MAX;
-//         let mut maxx = i32::MIN;
-//         let mut miny = i32::MAX;
-//         let mut maxy = i32::MIN;
-//         let mut minx_value = 0.0f32;
-//         let mut maxx_value = 0.0f32;
-
-//         for ((x, y), value) in
-//             XiaolinWu::<f32, i32>::new((pts[i].x, pts[i].y), (pts[j].x, pts[j].y))
-//         {
-//             if x < min_buf_x {
-//                 min_buf_x = x;
-//             }
-//             if x > max_buf_x {
-//                 max_buf_x = x;
-//             }
-//             if y < min_buf_y {
-//                 min_buf_y = y;
-//             }
-//             if y > max_buf_y {
-//                 max_buf_y = y;
-//             }
-//             if dy < 0.0 {
-//                 buf_x0[y as usize] = (x, value);
-//             } else if dy > 0.0 {
-//                 buf_x1[y as usize] = (x, value);
-//             } else {
-//                 if x < minx {
-//                     minx = x;
-//                     minx_value = value;
-//                 }
-//                 if x > maxx {
-//                     maxx = x;
-//                     maxx_value = value;
-//                 }
-//                 if y < miny {
-//                     miny = y;
-//                 }
-//                 if y > maxy {
-//                     maxy = y;
-//                 }
-//             }
-//         }
-//         if !(dy < 0.0 || dy > 0.0) {
-//             for y in miny..=maxy {
-//                 buf_x0[y as usize] = (minx, minx_value);
-//                 buf_x1[y as usize] = (maxx, maxx_value);
-//             }
-//         }
-//     }
-
-//     for y in min_buf_y..=max_buf_y {
-//         let (x0, value0) = buf_x0[y as usize];
-//         let (x1, value1) = buf_x1[y as usize];
-//         if x0 > x1 {
-//             continue;
-//         }
-//         if x0 < min_buf_x {
-//             continue;
-//         }
-//         if x1 > max_buf_x {
-//             continue;
-//         }
-//         image.put_pixel(
-//             x0 as u32,
-//             y as u32,
-//             [color[0], color[1], color[2], (value0 * 255.0) as u8].into(),
-//         );
-//         image.put_pixel(
-//             x1 as u32,
-//             y as u32,
-//             [color[0], color[1], color[2], (value1 * 255.0) as u8].into(),
-//         );
-
-//         for x in x0 + 1..x1 {
-//             image.put_pixel(
-//                 x as u32,
-//                 y as u32,
-//                 [color[0], color[1], color[2], 255].into(),
-//             );
-//         }
-//     }
-// }
-
-// fn fill_line(
-//     image: &mut DynamicImage,
-//     start: &Vec2<f32>,
-//     end: &Vec2<f32>,
-//     width: f32,
-//     color: [u8; 3],
-// ) {
-//     let dir1 = (end - start).normalized();
-//     let dir1cw = Vec2::new(-dir1.y, dir1.x);
-//     let line = [
-//         start + dir1cw * width / 2.0,
-//         start - dir1cw * width / 2.0,
-//         end - dir1cw * width,
-//         end + dir1cw * width,
-//     ];
-//     fill_rect(image, &line, color);
-// }
-
-// fn draw_dock_pos_indicator_arrows(
-//     image: &mut DynamicImage,
-//     p1: &Vec2<f32>,
-//     p2: &Vec2<f32>,
-//     out_index: usize,
-//     in_index: usize,
-//     width: f32,
-//     color: [u8; 3],
-// ) {
-//     let dir = (p2 - p1).normalized();
-//     let arrow_dir1 = dir.rotated_z(3.0 * std::f32::consts::FRAC_PI_4);
-//     let arrow_dir2 = Vec2::new(-arrow_dir1.y, arrow_dir1.x);
-//     let p21 = p2 - dir * 10.0;
-//     let arrow_p2 = p21 + arrow_dir1 * 20.0;
-//     fill_line(image, &p21, &arrow_p2, width, color);
-//     if in_index > 1 {
-//         let arrow_p2 = p21 + arrow_dir2 * 20.0;
-//         fill_line(image, &p21, &arrow_p2, width, color);
-//     };
-//     if in_index > 2 {
-//         let arrow_p1 = p21 - dir * 10.0;
-//         let arrow_p2 = arrow_p1 + arrow_dir1 * 20.0;
-//         fill_line(image, &arrow_p1, &arrow_p2, width, color);
-//     }
-//     if in_index > 3 {
-//         let arrow_p1 = p21 - dir * 10.0;
-//         let arrow_p2 = arrow_p1 + arrow_dir2 * 20.0;
-//         fill_line(image, &arrow_p1, &arrow_p2, width, color);
-//     }
-//     let p11 = p1 + dir * 15.0;
-//     let arrow_p2 = p11 + arrow_dir1 * 20.0;
-//     fill_line(image, &p11, &arrow_p2, width, color);
-//     if out_index > 1 {
-//         let arrow_p2 = p11 + arrow_dir2 * 20.0;
-//         fill_line(image, &p11, &arrow_p2, width, color);
-//     };
-//     if out_index > 2 {
-//         let arrow_p1 = p11 + dir * 10.0;
-//         let arrow_p2 = arrow_p1 + arrow_dir1 * 20.0;
-//         fill_line(image, &arrow_p1, &arrow_p2, width, color);
-//     }
-//     if out_index > 3 {
-//         let arrow_p1 = p11 + dir * 10.0;
-//         let arrow_p2 = arrow_p1 + arrow_dir2 * 20.0;
-//         fill_line(image, &arrow_p1, &arrow_p2, width, color);
-//     }
-// }
-
-// fn draw_dock_pos_indicator_lines(
-//     image: &mut DynamicImage,
-//     p1: &Vec2<f32>,
-//     p2: &Vec2<f32>,
-//     out_index: usize,
-//     in_index: usize,
-//     width: f32,
-//     color: [u8; 3],
-// ) {
-//     const WHITE_COLOR: [u8; 3] = [255, 255, 255];
-//     let dir = (p2 - p1).normalized();
-//     let line_dir1 = Vec2::new(-dir.y, dir.x);
-//     let line_dir2 = -line_dir1;
-//     let p1p2len = p1.distance(*p2);
-//     let p11 = p1 + (p1p2len * 0.25).max(10.0) * dir;
-//     let p21 = p2 - (p1p2len * 0.25).max(10.0) * dir;
-
-//     let line_p2 = p11 + line_dir1 * 20.0;
-//     fill_line(image, &p11, &line_p2, width, WHITE_COLOR);
-//     if out_index > 0 {
-//         let line_p2 = p11 + line_dir2 * 20.0;
-//         fill_line(image, &p11, &line_p2, width, WHITE_COLOR);
-//     };
-//     if out_index > 1 {
-//         let line_p1 = p11 + dir * 8.0;
-//         let line_p2 = line_p1 + line_dir1 * 20.0;
-//         fill_line(image, &line_p1, &line_p2, width, WHITE_COLOR);
-//     }
-//     if out_index > 2 {
-//         let line_p1 = p11 + dir * 8.0;
-//         let line_p2 = line_p1 + line_dir2 * 20.0;
-//         fill_line(image, &line_p1, &line_p2, width, WHITE_COLOR);
-//     }
-
-//     let line_p2 = p21 + line_dir1 * 20.0;
-//     fill_line(image, &p21, &line_p2, width, color);
-//     if in_index > 0 {
-//         let line_p2 = p21 + line_dir2 * 20.0;
-//         fill_line(image, &p21, &line_p2, width, color);
-//     };
-//     if in_index > 1 {
-//         let line_p1 = p21 - dir * 8.0;
-//         let line_p2 = line_p1 + line_dir1 * 20.0;
-//         fill_line(image, &line_p1, &line_p2, width, color);
-//     }
-//     if in_index > 2 {
-//         let line_p1 = p21 - dir * 8.0;
-//         let line_p2 = line_p1 + line_dir2 * 20.0;
-//         fill_line(image, &line_p1, &line_p2, width, color);
-//     }
-// }
-
+/// Creates a basic world map as a tiny_skia::Pixmap
 fn basic_world_pixmap(image_size: MapSizeLg, index: &Index, sampler: &WorldSim) -> Option<Pixmap> {
     let horizons = get_horizon_map(
         image_size,
@@ -568,65 +342,8 @@ fn basic_world_pixmap(image_size: MapSizeLg, index: &Index, sampler: &WorldSim) 
     }
 }
 
-// fn basic_world_map(image_size: MapSizeLg, index: &Index, sampler: &WorldSim) -> DynamicImage {
-//     let horizons = get_horizon_map(
-//         image_size,
-//         Aabr {
-//             min: Vec2::zero(),
-//             max: image_size.chunks().map(|e| e as i32),
-//         },
-//         CONFIG.sea_level,
-//         CONFIG.sea_level + sampler.max_height,
-//         |posi| {
-//             let sample = sampler.get(uniform_idx_as_vec2(image_size, posi)).unwrap();
-
-//             sample.basement.max(sample.water_alt)
-//         },
-//         |a| a,
-//         |h| h,
-//     )
-//     .ok();
-
-//     let colors = index.colors();
-//     let features = index.features();
-//     let index_ref = IndexRef {
-//         colors: &colors,
-//         features: &features,
-//         index,
-//     };
-
-//     let mut map_config = MapConfig::orthographic(image_size, 0.0..=sampler.max_height);
-//     map_config.horizons = horizons.as_ref();
-//     map_config.is_shaded = true;
-//     map_config.is_stylized_topo = true;
-//     let map = sampler.get_map(index_ref, None);
-//     let map_w = image_size.chunks().x as f32;
-//     let map_h = image_size.chunks().y as f32;
-//     let mut image = DynamicImage::new(map_w as u32, map_h as u32, image::ColorType::Rgba8);
-
-//     map_config.generate(
-//         |pos| {
-//             let default_sample = sample_pos(&map_config, sampler, index_ref, None, pos);
-//             let [r, g, b, _a] = map.rgba[pos].to_le_bytes();
-
-//             MapSample {
-//                 rgb: Rgb::new(r, g, b),
-//                 ..default_sample
-//             }
-//         },
-//         |wpos| sample_wpos(&map_config, sampler, wpos),
-//         |pos, (r, g, b, a)| {
-//             image.put_pixel(
-//                 pos.x as u32,
-//                 image_size.chunks().y as u32 - pos.y as u32 - 1,
-//                 [r, g, b, a].into(),
-//             )
-//         },
-//     );
-
-//     image
-// }
-
+/// Creates a tiny_skia::Pixmap of the airship routes.
+/// This is the route map where the airship travels out and back between the pairs of docking sites.
 fn airship_routes_map(
     airships: &mut Airships,
     image_size: MapSizeLg,
@@ -639,16 +356,6 @@ fn airship_routes_map(
     let world_blocks = world_chunks.map(|u| u as f32) * 32.0;
     let map_w = image_size.chunks().x as f32;
     let map_h = image_size.chunks().y as f32;
-
-    // Draw route lines
-
-    // colors
-    // let route_r = 0u8;
-    // let route_g = 255u8;
-    // let route_b = 255u8;
-    // let site_r = 105u8;
-    // let site_g = 231u8;
-    // let site_b = 255u8;
 
     let mut circled_points: DHashSet<Vec2<i32>> = DHashSet::default();
     let mut lines_drawn: DHashSet<(Vec2<i32>, Vec2<i32>)> = DHashSet::default();
@@ -666,6 +373,8 @@ fn airship_routes_map(
                 route.approaches[1].dock_center.x / world_blocks.x * map_w,
                 map_h - route.approaches[1].dock_center.y / world_blocks.y * map_h,
             );
+
+            // Draw a circle around the dock centers
         let p1i32 = Vec2::new(p1.x as i32, p1.y as i32);
         let p2i32 = Vec2::new(p2.x as i32, p2.y as i32);
         if !circled_points.contains(&p1i32) {
@@ -677,18 +386,7 @@ fn airship_routes_map(
             circled_points.insert(p2i32);
         }
 
-        // Draw a circle around the dock centers
-        // for dock_center in dock_centers.iter() {
-        //     for (x, y) in BresenhamCircle::new(dock_center.x as i32, dock_center.y as i32, 10) {
-        //         if x < 0 || y < 0 || x >= map_w as i32 || y >= map_h as i32 {
-        //             continue;
-        //         }
-        //         image.put_pixel(x as u32, y as u32, [site_r, site_g, site_b, 255].into());
-        //     }
-        // }
-
-        // calculate where the route_line intersects a circle of radius 20 around each
-        // dock center
+        // // Draw a line between the endpoints that intersect the circles
         if !lines_drawn.contains(&(p1i32, p2i32)) {
             let dir = (p2 - p1).normalized();
             let start_edge_center = p1 + dir * 10.0;
@@ -697,18 +395,8 @@ fn airship_routes_map(
             lines_pb.line_to(end_edge_center.x, end_edge_center.y);
             lines_drawn.insert((p1i32, p2i32));
         }
-        // // Draw a line between the endpoints that intersect the circles
-        // for ((x, y), value) in XiaolinWu::<f32, i64>::new(
-        //     (endpoints[0].x, endpoints[0].y),
-        //     (endpoints[1].x, endpoints[1].y),
-        // ) {
-        //     image.put_pixel(
-        //         x as u32,
-        //         y as u32,
-        //         [route_r, route_g, route_b, (value * 255.0) as u8].into(),
-        //     );
-        // }
     }
+
     let mut paint = Paint::default();
     paint.set_color_rgba8(105, 231, 255, 255);
     paint.anti_alias = true;
@@ -754,6 +442,254 @@ fn airship_routes_map(
     Some(pixmap)
 }
 
+/// Creates a tiny_skia::Pixmap of the basic triangulation over the docking sites.
+fn dock_sites_triangulation_map(
+    triangulation: &Triangulation,
+    points: &Vec<Point>,
+    image_size: MapSizeLg,
+    index: &Index,
+    sampler: &WorldSim,
+) -> Option<Pixmap> {
+    let mut pixmap = basic_world_pixmap(image_size, index, sampler)?;
+    let world_chunks = sampler.map_size_lg().chunks();
+    let world_blocks = world_chunks.map(|u| u as f32) * 32.0;
+    let map_w = image_size.chunks().x as f32;
+    let map_h = image_size.chunks().y as f32;
+
+    // coordinates are in world blocks, convert to map pixels and invert y axis
+    macro_rules! map_triangle_points {
+        ($vec:expr) => {
+            Vec2 {
+                x: $vec.x as f32,
+                y: $vec.y as f32,
+            }
+        };
+    }
+
+    macro_rules! flip_y {
+        ($vec:expr) => {
+            Vec2 {
+                x: $vec.x,
+                y: map_h - $vec.y,
+            }
+        };
+    }
+
+    // the triangles are triplets in a Vec<usize> so we need to iterate over them in
+    // groups of 3. The macros are used to convert the points from world blocks
+    // to map pixels and flip the y axis. map_triangles is a Vec of arrays of 3
+    // Vec2s representing the 3 points of each triangle.
+    let map_triangles = triangulation
+        .triangles
+        .chunks(3)
+        .map(|triangle| {
+            [
+                flip_y!(map_triangle_points!(points[triangle[0]]) / world_blocks * map_w),
+                flip_y!(map_triangle_points!(points[triangle[1]]) / world_blocks * map_w),
+                flip_y!(map_triangle_points!(points[triangle[2]]) / world_blocks * map_w),
+            ]
+        })
+        .collect::<Vec<_>>();
+
+    let mut paint = Paint::default();
+    paint.set_color_rgba8(105, 231, 255, 255);
+    paint.anti_alias = true;
+
+    let mut circled_points: DHashSet<Vec2<i32>> = DHashSet::default();
+    let mut lines_drawn: DHashSet<(Vec2<i32>, Vec2<i32>)> = DHashSet::default();
+    let mut circle_pb = PathBuilder::new();
+    let mut lines_pb = PathBuilder::new();
+
+    for triangle in map_triangles.iter() {
+        // triangle is an array of 3 Vec2<f32> representing the 3 points of the
+        // triangle.
+
+        // Draw a circle around the points
+        for p in triangle.iter() {
+            let pi32 = Vec2::new(p.x as i32, p.y as i32);
+            if !circled_points.contains(&pi32) {
+                circle_pb.push_circle(p.x, p.y, 10.0);
+                circled_points.insert(pi32);
+            }
+            // for (x, y) in BresenhamCircle::new(p.x as i32, p.y as i32, 10) {
+            //     if x < 0 || y < 0 || x >= map_w as i32 || y >= map_h as i32 {
+            //         continue;
+            //     }
+            //     image.put_pixel(x as u32, y as u32, [site_r, site_g, site_b, 255].into());
+            // }
+        }
+
+        // Now draw the triangle lines
+        for i in 0..3 {
+            let p1 = triangle[i];
+            let p2 = triangle[(i + 1) % 3];
+            let p1i32 = Vec2::new(p1.x as i32, p1.y as i32);
+            let p2i32 = Vec2::new(p2.x as i32, p2.y as i32);
+            if !lines_drawn.contains(&(p1i32, p2i32)) {
+                // calculate where the triangle edge intersects a circle of radius 10 around
+                // each point
+                let dir = (p2 - p1).normalized();
+                let start_edge_center = p1 + dir * 10.0;
+                let end_edge_center = p2 - dir * 10.0;
+                lines_pb.move_to(start_edge_center.x, start_edge_center.y);
+                lines_pb.line_to(end_edge_center.x, end_edge_center.y);
+                lines_drawn.insert((p1i32, p2i32));
+            }
+
+            // This is a simplified rectangle fill for the line to get more thickness.
+            // fill_line(&mut image, &start_edge_center, &end_edge_center, 3.0, [
+            //     route_r, route_g, route_b,
+            // ]);
+        }
+    }
+
+    let circle_stroke = Stroke{
+        width: 2.0,
+        ..Default::default()
+    };
+    match circle_pb.finish() {
+        Some(path) => {
+            pixmap.stroke_path(
+                &path,
+                &paint,
+                &circle_stroke,
+                Transform::identity(),
+                None,
+            );
+        },
+        None => {
+            eprintln!("Failed to draw circles path");
+        }
+    }
+
+    let lines_stroke = Stroke{
+        width: 3.0,
+        ..Default::default()
+    };
+    match lines_pb.finish() {
+        Some(path) => {
+            pixmap.stroke_path(
+                &path,
+                &paint,
+                &lines_stroke,
+                Transform::identity(),
+                None,
+            );
+        },
+        None => {
+            eprintln!("Failed to draw lines path");
+        }
+    }
+
+    Some(pixmap)
+}
+
+/// Creates a tiny_skia::Pixmap of the optimized docking sites tesselation
+/// where the docking site nodes all have an even number of connections
+/// to other docking sites.
+fn dock_sites_optimized_tesselation_map(
+    _triangulation: &Triangulation,
+    points: &Vec<Point>,
+    node_connections: &DHashMap<usize, DockNode>,
+    image_size: MapSizeLg,
+    index: &Index,
+    sampler: &WorldSim,
+) -> Option<Pixmap> {
+    let mut pixmap = basic_world_pixmap(image_size, index, sampler)?;
+
+    let world_chunks = sampler.map_size_lg().chunks();
+    let world_blocks = world_chunks.map(|u| u as f32) * 32.0;
+    let map_w = image_size.chunks().x as f32;
+    let map_h = image_size.chunks().y as f32;
+
+    let map_points = points
+        .iter()
+        .map(|p| {
+            Vec2::new(
+                (p.x / world_blocks.x as f64 * map_w as f64) as f32,
+                (map_h as f64 - (p.y / world_blocks.y as f64 * map_h as f64)) as f32,
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let mut paint = Paint::default();
+    paint.set_color_rgba8(105, 231, 255, 255);
+    paint.anti_alias = true;
+
+    let mut stroke = Stroke{
+        width: 2.0,
+        ..Default::default()
+    };
+
+    // Draw a circle around the points (the docking sites)
+    let mut pb = PathBuilder::new();
+    for dock_center in map_points.iter() {
+        pb.push_circle(dock_center.x, dock_center.y, 10.0);
+    }
+    match pb.finish() {
+        Some(path) => {
+            pixmap.stroke_path(
+                &path,
+                &paint,
+                &stroke,
+                Transform::identity(),
+                None,
+            );
+        },
+        None => {
+            eprintln!("Failed to create a circle path");
+        }
+    }
+
+    // Draw the dock node connections
+    pb = PathBuilder::new();
+
+    stroke = Stroke{
+        width: 3.0,
+        ..Default::default()
+    };
+
+    let mut lines_drawn: DHashSet<(usize, usize)> = DHashSet::default();
+    for (_, dock_node) in node_connections.iter() {
+        if let Some(dp1) = map_points.get(dock_node.node_id) {
+            dock_node.connected.iter().for_each(|cpid| {
+                if let Some(dp2) = map_points.get(*cpid) {
+                    if !lines_drawn.contains(&(dock_node.node_id, *cpid)) {
+                        // calculate where the line intersects a circle of radius 10 around
+                        // each point
+                        let dir = (dp2 - dp1).normalized();
+                        let ep1 = dp1 + dir * 10.0;
+                        let ep2 = dp2 - dir * 10.0;
+                        pb.move_to(ep1.x, ep1.y);
+                        pb.line_to(ep2.x, ep2.y);                        
+                        lines_drawn.insert((dock_node.node_id, *cpid));
+                    }
+                }
+            });
+        }
+    }
+
+    match pb.finish() {
+        Some(path) => {
+            pixmap.stroke_path(
+                &path,
+                &paint,
+                &stroke,
+                Transform::identity(),
+                None,
+            );
+        },
+        None => {
+            eprintln!("Failed to create a lines path");
+        }
+    }
+
+    Some(pixmap)
+}
+
+/// Creates a tiny_skia::Pixmap of the airship route segments
+/// where the segments are loops of docking points derived from the
+/// eulerian circuit created from the optimized tesselation.
 fn airship_route_segments_map(
     segments: &Vec<Vec<usize>>,
     points: &Vec<Point>,
@@ -902,262 +838,6 @@ fn airship_route_segments_map(
     Some(pixmap)
 }
 
-fn dock_sites_optimized_tesselation_map(
-    _triangulation: &Triangulation,
-    points: &Vec<Point>,
-    node_connections: &DHashMap<usize, DockNode>,
-    image_size: MapSizeLg,
-    index: &Index,
-    sampler: &WorldSim,
-) -> Option<Pixmap> {
-    let mut pixmap = basic_world_pixmap(image_size, index, sampler)?;
-
-    let world_chunks = sampler.map_size_lg().chunks();
-    let world_blocks = world_chunks.map(|u| u as f32) * 32.0;
-    let map_w = image_size.chunks().x as f32;
-    let map_h = image_size.chunks().y as f32;
-
-    let map_points = points
-        .iter()
-        .map(|p| {
-            Vec2::new(
-                (p.x / world_blocks.x as f64 * map_w as f64) as f32,
-                (map_h as f64 - (p.y / world_blocks.y as f64 * map_h as f64)) as f32,
-            )
-        })
-        .collect::<Vec<_>>();
-
-    let mut paint = Paint::default();
-    paint.set_color_rgba8(105, 231, 255, 255);
-    paint.anti_alias = true;
-
-    let mut stroke = Stroke{
-        width: 2.0,
-        ..Default::default()
-    };
-
-    // Draw a circle around the points (the docking sites)
-    let mut pb = PathBuilder::new();
-    for dock_center in map_points.iter() {
-        pb.push_circle(dock_center.x, dock_center.y, 10.0);
-    }
-    match pb.finish() {
-        Some(path) => {
-            pixmap.stroke_path(
-                &path,
-                &paint,
-                &stroke,
-                Transform::identity(),
-                None,
-            );
-        },
-        None => {
-            eprintln!("Failed to create a circle path");
-        }
-    }
-
-    // Draw the dock node connections
-    pb = PathBuilder::new();
-
-    stroke = Stroke{
-        width: 3.0,
-        ..Default::default()
-    };
-
-    let mut lines_drawn: DHashSet<(usize, usize)> = DHashSet::default();
-    for (_, dock_node) in node_connections.iter() {
-        if let Some(dp1) = map_points.get(dock_node.node_id) {
-            dock_node.connected.iter().for_each(|cpid| {
-                if let Some(dp2) = map_points.get(*cpid) {
-                    if !lines_drawn.contains(&(dock_node.node_id, *cpid)) {
-                        // calculate where the line intersects a circle of radius 10 around
-                        // each point
-                        let dir = (dp2 - dp1).normalized();
-                        let ep1 = dp1 + dir * 10.0;
-                        let ep2 = dp2 - dir * 10.0;
-                        pb.move_to(ep1.x, ep1.y);
-                        pb.line_to(ep2.x, ep2.y);                        
-                        lines_drawn.insert((dock_node.node_id, *cpid));
-                    }
-                }
-            });
-        }
-    }
-
-    match pb.finish() {
-        Some(path) => {
-            pixmap.stroke_path(
-                &path,
-                &paint,
-                &stroke,
-                Transform::identity(),
-                None,
-            );
-        },
-        None => {
-            eprintln!("Failed to create a lines path");
-        }
-    }
-
-    Some(pixmap)
-}
-
-fn dock_sites_triangulation_map(
-    triangulation: &Triangulation,
-    points: &Vec<Point>,
-    image_size: MapSizeLg,
-    index: &Index,
-    sampler: &WorldSim,
-) -> Option<Pixmap> {
-    let mut pixmap = basic_world_pixmap(image_size, index, sampler)?;
-    let world_chunks = sampler.map_size_lg().chunks();
-    let world_blocks = world_chunks.map(|u| u as f32) * 32.0;
-    let map_w = image_size.chunks().x as f32;
-    let map_h = image_size.chunks().y as f32;
-
-    // coordinates are in world blocks, convert to map pixels and invert y axis
-    macro_rules! map_triangle_points {
-        ($vec:expr) => {
-            Vec2 {
-                x: $vec.x as f32,
-                y: $vec.y as f32,
-            }
-        };
-    }
-
-    macro_rules! flip_y {
-        ($vec:expr) => {
-            Vec2 {
-                x: $vec.x,
-                y: map_h - $vec.y,
-            }
-        };
-    }
-
-    // the triangles are triplets in a Vec<usize> so we need to iterate over them in
-    // groups of 3. The macros are used to convert the points from world blocks
-    // to map pixels and flip the y axis. map_triangles is a Vec of arrays of 3
-    // Vec2s representing the 3 points of each triangle.
-    let map_triangles = triangulation
-        .triangles
-        .chunks(3)
-        .map(|triangle| {
-            [
-                flip_y!(map_triangle_points!(points[triangle[0]]) / world_blocks * map_w),
-                flip_y!(map_triangle_points!(points[triangle[1]]) / world_blocks * map_w),
-                flip_y!(map_triangle_points!(points[triangle[2]]) / world_blocks * map_w),
-            ]
-        })
-        .collect::<Vec<_>>();
-
-    let mut paint = Paint::default();
-    paint.set_color_rgba8(105, 231, 255, 255);
-    paint.anti_alias = true;
-
-    let mut circled_points: DHashSet<Vec2<i32>> = DHashSet::default();
-    let mut lines_drawn: DHashSet<(Vec2<i32>, Vec2<i32>)> = DHashSet::default();
-    let mut circle_pb = PathBuilder::new();
-    let mut lines_pb = PathBuilder::new();
-
-    for triangle in map_triangles.iter() {
-        // triangle is an array of 3 Vec2<f32> representing the 3 points of the
-        // triangle.
-
-        // Draw a circle around the points
-        for p in triangle.iter() {
-            let pi32 = Vec2::new(p.x as i32, p.y as i32);
-            if !circled_points.contains(&pi32) {
-                circle_pb.push_circle(p.x, p.y, 10.0);
-                circled_points.insert(pi32);
-            }
-            // for (x, y) in BresenhamCircle::new(p.x as i32, p.y as i32, 10) {
-            //     if x < 0 || y < 0 || x >= map_w as i32 || y >= map_h as i32 {
-            //         continue;
-            //     }
-            //     image.put_pixel(x as u32, y as u32, [site_r, site_g, site_b, 255].into());
-            // }
-        }
-
-        // Now draw the triangle lines
-        for i in 0..3 {
-            let p1 = triangle[i];
-            let p2 = triangle[(i + 1) % 3];
-            let p1i32 = Vec2::new(p1.x as i32, p1.y as i32);
-            let p2i32 = Vec2::new(p2.x as i32, p2.y as i32);
-            if !lines_drawn.contains(&(p1i32, p2i32)) {
-                // calculate where the triangle edge intersects a circle of radius 10 around
-                // each point
-                let dir = (p2 - p1).normalized();
-                let start_edge_center = p1 + dir * 10.0;
-                let end_edge_center = p2 - dir * 10.0;
-                lines_pb.move_to(start_edge_center.x, start_edge_center.y);
-                lines_pb.line_to(end_edge_center.x, end_edge_center.y);
-                lines_drawn.insert((p1i32, p2i32));
-            }
-
-            // This is a simplified rectangle fill for the line to get more thickness.
-            // fill_line(&mut image, &start_edge_center, &end_edge_center, 3.0, [
-            //     route_r, route_g, route_b,
-            // ]);
-        }
-    }
-
-    let circle_stroke = Stroke{
-        width: 2.0,
-        ..Default::default()
-    };
-    match circle_pb.finish() {
-        Some(path) => {
-            pixmap.stroke_path(
-                &path,
-                &paint,
-                &circle_stroke,
-                Transform::identity(),
-                None,
-            );
-        },
-        None => {
-            eprintln!("Failed to draw circles path");
-        }
-    }
-
-    let lines_stroke = Stroke{
-        width: 3.0,
-        ..Default::default()
-    };
-    match lines_pb.finish() {
-        Some(path) => {
-            pixmap.stroke_path(
-                &path,
-                &paint,
-                &lines_stroke,
-                Transform::identity(),
-                None,
-            );
-        },
-        None => {
-            eprintln!("Failed to draw lines path");
-        }
-    }
-
-    Some(pixmap)
-}
-
-// fn save_image_file(image: &DynamicImage, image_size: MapSizeLg, base_path: &Path) {
-//     let mut image_file =
-//         File::create(base_path.with_extension("png")).expect("Could not create map file");
-
-//     if let Err(error) = PngEncoder::new(&mut image_file).write_image(
-//         image.as_bytes(),
-//         image_size.chunks().x as u32,
-//         image_size.chunks().y as u32,
-//         image::ExtendedColorType::Rgba8,
-//     ) {
-//         error!(?error, "Could not write image data");
-//     }
-
-//     let _ = image_file.flush();
-// }
 
 pub fn save_airship_routes_map(airships: &mut Airships, index: &Index, sampler: &WorldSim) {
     let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
