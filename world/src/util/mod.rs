@@ -147,3 +147,12 @@ pub const SQUARE_9: [Vec2<i32>; 9] = [
     Vec2::new(0, 1),
     Vec2::new(1, 1),
 ];
+
+/// Checks if the distance between two positions is less or equal to `distance`.
+///
+/// When comparing world position distances prefer using this method, as `i32`
+/// will overflow for big worlds.
+#[inline(always)]
+pub fn within_distance(a: Vec2<i32>, b: Vec2<i32>, distance: i32) -> bool {
+    a.as_::<i64>().distance_squared(b.as_::<i64>()) <= (distance as i64).pow(2)
+}

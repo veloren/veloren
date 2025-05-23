@@ -256,7 +256,7 @@ impl Site {
                 } else {
                     let clamped =
                         wpos.clamped(self.tile_wpos(tile_pos), self.tile_wpos(tile_pos + 1) - 1);
-                    Some(clamped.distance_squared(wpos) as f32)
+                    Some(clamped.as_::<f32>().distance_squared(wpos.as_::<f32>()))
                 }
             })
             .min_by_key(|d2| *d2 as i32)
@@ -572,13 +572,16 @@ impl Site {
                             let intersection = plaza.aabr.intersection(aabr);
                             // If the size of the intersection is greater than zero they intersect
                             // on that axis and the distance on that axis is 0.
-                            intersection.size().map(|e| e.min(0)).magnitude_squared()
+                            intersection
+                                .size()
+                                .map(|e| e.min(0) as f32)
+                                .magnitude_squared()
                         } else {
                             let r = self.plot(p).root_tile();
                             let closest_point = aabr.projected_point(r);
-                            closest_point.distance_squared(r)
+                            closest_point.as_::<f32>().distance_squared(r.as_::<f32>())
                         };
-                        dist_sqr as f32 > (plaza_dist * 0.85).powi(2)
+                        dist_sqr > (plaza_dist * 0.85).powi(2)
                     })
                 })
         })?;
@@ -611,9 +614,10 @@ impl Site {
                         max: self.tile_wpos(tile + 1) - 1,
                     };
 
-                    if (tile_aabr
+                    if tile_aabr
                         .projected_point(path_wpos.as_())
-                        .distance_squared(path_wpos.as_()) as f32)
+                        .as_()
+                        .distance_squared(path_wpos)
                         < path.width.powi(2)
                     {
                         self.tiles

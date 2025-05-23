@@ -5,7 +5,7 @@ use crate::{
         gen::{place_circular, place_circular_as_vec, spiral_staircase},
         util::gradient::WrapMode,
     },
-    util::{RandomField, sampler::Sampler},
+    util::{RandomField, sampler::Sampler, within_distance},
 };
 use common::generation::EntityInfo;
 use rand::prelude::*;
@@ -61,7 +61,7 @@ impl Sahagin {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
-            trees: wpos.distance_squared(self.bounds.center()) > (75_i32).pow(2),
+            trees: !within_distance(wpos, self.bounds.center(), 75),
             ..SpawnRules::default()
         }
     }

@@ -3,7 +3,9 @@ use crate::{
     IndexRef, Land,
     assets::AssetHandle,
     site::{gen::PrimitiveTransform, util::Dir},
-    util::{FastNoise, NEIGHBORS, NEIGHBORS3, RandomField, attempt, sampler::Sampler},
+    util::{
+        FastNoise, NEIGHBORS, NEIGHBORS3, RandomField, attempt, sampler::Sampler, within_distance,
+    },
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
@@ -397,7 +399,7 @@ impl AdletStronghold {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
-            trees: wpos.distance_squared(self.entrance) > (self.surface_radius * 5 / 4).pow(2),
+            trees: !within_distance(wpos, self.entrance, self.surface_radius * 5 / 4),
             ..SpawnRules::default()
         }
     }

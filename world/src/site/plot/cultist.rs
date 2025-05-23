@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     Land,
     site::gen::{inscribed_polystar, place_circular},
-    util::{DIAGONALS, RandomField, sampler::Sampler},
+    util::{DIAGONALS, RandomField, sampler::Sampler, within_distance},
 };
 use common::{
     comp::misc::PortalData,
@@ -98,7 +98,7 @@ impl Cultist {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
-            trees: wpos.distance_squared(self.bounds.center()) > (75_i32).pow(2),
+            trees: !within_distance(wpos, self.bounds.center(), 75),
             ..SpawnRules::default()
         }
     }
@@ -696,7 +696,7 @@ impl Structure for Cultist {
         // candles & chests & npcs
         for sprite_pos in sprite_positions {
             // keep center pit clear
-            if sprite_pos.xy().distance_squared(center) > 40_i32.pow(2)
+            if !within_distance(sprite_pos.xy(), center, 40)
                 || sprite_pos.z < (base - (6 * room_size))
             {
                 match (RandomField::new(0).get(sprite_pos + 1)) % 16 {
