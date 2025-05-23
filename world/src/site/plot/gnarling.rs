@@ -3,7 +3,7 @@ use crate::{
     Land,
     assets::AssetHandle,
     site::{gen::PrimitiveTransform, util::Dir},
-    util::{RandomField, attempt, sampler::Sampler},
+    util::{RandomField, attempt, sampler::Sampler, within_distance},
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
@@ -314,7 +314,7 @@ impl GnarlingFortification {
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
-            trees: wpos.distance_squared(self.origin) > self.wall_radius.pow(2),
+            trees: !within_distance(wpos, self.origin, self.wall_radius),
             waypoints: false,
             ..SpawnRules::default()
         }

@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     CONFIG, Land,
     site::gen::{PrimitiveTransform, spiral_staircase},
-    util::{DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler},
+    util::{DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler, within_distance},
 };
 use common::{
     generation::EntityInfo,
@@ -37,7 +37,7 @@ impl SeaChapel {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
-            trees: wpos.distance_squared(self.center) > 100_i32.pow(2),
+            trees: !within_distance(wpos, self.center, 100),
             ..SpawnRules::default()
         }
     }

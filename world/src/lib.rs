@@ -405,13 +405,15 @@ impl World {
                 .filter(|id| {
                     index.sites[**id]
                         .origin
-                        .distance_squared(chunk_center_wpos2d) as f32
+                        .as_::<f32>()
+                        .distance_squared(chunk_center_wpos2d.as_::<f32>())
                         <= index.sites[**id].radius().powi(2)
                 })
                 .min_by_key(|id| {
                     index.sites[**id]
                         .origin
-                        .distance_squared(chunk_center_wpos2d)
+                        .as_::<i64>()
+                        .distance_squared(chunk_center_wpos2d.as_::<i64>())
                 })
                 .map(|id| index.sites[*id].meta().unwrap_or_default()),
             self.sim.approx_chunk_terrain_normal(chunk_pos),

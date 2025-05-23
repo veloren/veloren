@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     Land,
     site::gen::wall_staircase,
-    util::{CARDINALS, DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler},
+    util::{CARDINALS, DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler, within_distance},
 };
 use common::{generation::EntityInfo, terrain::SpriteKind};
 use rand::prelude::*;
@@ -94,7 +94,7 @@ impl VampireCastle {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
-            trees: wpos.distance_squared(self.bounds.center()) > (75_i32).pow(2),
+            trees: !within_distance(wpos, self.bounds.center(), 75),
             ..SpawnRules::default()
         }
     }

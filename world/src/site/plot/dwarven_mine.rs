@@ -12,7 +12,7 @@ ChatGPT: Improving Code Quality, Speeding up finding Syntax Errors
 */
 
 use super::*;
-use crate::Land;
+use crate::{Land, util::within_distance};
 use gen::render_prefab;
 use rand::prelude::*;
 use vek::*;
@@ -57,7 +57,7 @@ impl DwarvenMine {
     pub fn name(&self) -> &str { &self.name }
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
-        let near_entrance = wpos.distance_squared(self.origin) < 64i32.pow(2);
+        let near_entrance = within_distance(wpos, self.origin, 64);
         SpawnRules {
             trees: !near_entrance,
             max_warp: (!near_entrance) as i32 as f32,

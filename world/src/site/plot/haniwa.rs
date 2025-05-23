@@ -3,7 +3,7 @@ use crate::{
     Land,
     assets::AssetHandle,
     site::gen::{PrimitiveTransform, place_circular, place_circular_as_vec},
-    util::{DIAGONALS, LOCALITY, NEIGHBORS, RandomField, sampler::Sampler},
+    util::{DIAGONALS, LOCALITY, NEIGHBORS, RandomField, sampler::Sampler, within_distance},
 };
 use common::{
     generation::EntityInfo,
@@ -94,7 +94,7 @@ impl Haniwa {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
-            trees: wpos.distance_squared(self.center) > (self.diameter / 2).pow(2),
+            trees: !within_distance(wpos, self.center, self.diameter),
             ..SpawnRules::default()
         }
     }

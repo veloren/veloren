@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     Land,
     site::gen::{place_circular_as_vec, spiral_staircase},
-    util::{CARDINALS, DIAGONALS, RandomField, Sampler},
+    util::{CARDINALS, DIAGONALS, RandomField, Sampler, within_distance},
 };
 use common::{
     generation::SpecialEntity,
@@ -70,8 +70,8 @@ impl SavannahAirshipDock {
                 // airships are 20 blocks wide.
                 // Leave extra space for tree width (at least 15 extra).
                 // Don't allow trees within 24 + 20 + 15 = 59 blocks of the dock center
-                const AIRSHIP_MIN_TREE_DIST2: i32 = 59i32.pow(2);
-                wpos.distance_squared(self.center) > AIRSHIP_MIN_TREE_DIST2
+                const AIRSHIP_MIN_TREE_DIST2: i32 = 59;
+                !within_distance(wpos, self.center, AIRSHIP_MIN_TREE_DIST2)
             },
             waypoints: false,
             ..SpawnRules::default()

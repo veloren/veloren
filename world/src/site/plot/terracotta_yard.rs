@@ -3,7 +3,7 @@ use crate::{
     Land,
     assets::AssetHandle,
     site::gen::PrimitiveTransform,
-    util::{NEIGHBORS, RandomField, Sampler},
+    util::{NEIGHBORS, RandomField, Sampler, within_distance},
 };
 use common::{
     generation::EntityInfo,
@@ -47,7 +47,7 @@ impl TerracottaYard {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
-            trees: wpos.distance_squared(self.bounds.center()) > (85_i32).pow(2),
+            trees: !within_distance(wpos, self.bounds.center(), 85),
             ..SpawnRules::default()
         }
     }
