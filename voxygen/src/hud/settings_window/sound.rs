@@ -40,6 +40,8 @@ widget_ids! {
         ambience_volume_slider,
         ambience_volume_number,
         ambience_volume_muted,
+        rain_ambience_label,
+        rain_ambience_checkbox,
         music_spacing_text,
         music_spacing_slider,
         music_spacing_number,
@@ -400,9 +402,32 @@ impl Widget for Sound<'_> {
         .color(non_master_volume_text_color)
         .set(state.ids.ambience_volume_number, ui);
 
+        // Toggle rain ambience
+        Text::new(&self.localized_strings.get_msg("hud-settings-rain_ambience"))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .right_from(state.ids.rain_ambience_checkbox, 10.0)
+            .color(TEXT_COLOR)
+            .set(state.ids.rain_ambience_label, ui);
+
+        let rain_ambience_enabled = ToggleButton::new(
+            self.global_state.settings.audio.rain_ambience_enabled,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.ambience_volume_muted, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.rain_ambience_checkbox, ui);
+
+        if self.global_state.settings.audio.rain_ambience_enabled != rain_ambience_enabled {
+            events.push(RainAmbience(rain_ambience_enabled));
+        }
+
         // Music spacing
         Text::new(&self.localized_strings.get_msg("hud-settings-music_spacing"))
-            .down_from(state.ids.ambience_volume_muted, 10.0)
+            .down_from(state.ids.rain_ambience_checkbox, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)

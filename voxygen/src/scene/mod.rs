@@ -1364,7 +1364,7 @@ impl Scene {
         );
 
         self.ambience_mgr
-            .maintain(audio, scene_data.state, client, &self.camera);
+            .maintain(audio, &settings.audio, scene_data.state, client, &self.camera);
 
         self.music_mgr.maintain(audio, scene_data.state, client);
     }

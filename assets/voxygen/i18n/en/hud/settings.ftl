@@ -135,6 +135,7 @@ hud-settings-inactive_master_volume_perc = Inactive Window Volume
 hud-settings-music_volume = Music Volume
 hud-settings-sound_effect_volume = Sound Effects Volume
 hud-settings-ambience_volume = Ambience Volume
+hud-settings-rain_ambience = Rain Ambience
 hud-settings-combat_music = Combat Music
 hud-settings-music_spacing = Music Spacing
 hud-settings-audio_device = Audio Device
