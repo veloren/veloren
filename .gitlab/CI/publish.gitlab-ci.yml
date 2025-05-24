@@ -63,6 +63,7 @@ pages:
   artifacts:
     paths:
       - public
+    expire_in: 4 weeks
   script:
     - rm -rf public
     - mkdir -p public
